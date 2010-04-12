@@ -32,7 +32,8 @@ control system.
 Python allows us to leverage several key components without sacrificing performace. We have access to
 \href{http://www.mcs.anl.gov/petsc}{PETSc} via the \href{http://code.google.com/p/petsc4py}{petsc4py} wrappers, and we
 will access \href{http://www.amath.washington.edu/~claw/clawpack.org}{CLAWPACK} through new Python wrappers as
-well. Moreover, we will port small, compute-intensive kernels to the GPU using
+well. Moreover, we will tune compute-intensive kernels to \href{http://www.hpc.kaust.edu.sa/wiki/shaheen/}{Shaheen}'s 
+BlueGene/P architecture and port small, compute-intensive kernels to the GPU using
 \href{http://mathema.tician.de/software/pycuda}{PyCUDA}.
 
 \subsection{Mesh Management}
@@ -58,32 +59,29 @@ benchmarks in order to test our implementation.
 
 \section{People}
 \begin{itemize}
-  \item[DK] David Ketcheson
-
-  \item[GT] George Turkiyyah
-
-  \item[AA] Aron Ahmadia
-
-  \item[MK] Matt Knepley
-
-  \item[KM] Kyle Mandli
-
-  \item[AG] Amal Ghamdi
+  \item[DK] David Ketcheson david.ketcheson@kaust.edu.sa
+  \item[GT] George Turkiyyah George.Turkiyyah@kaust.edu.sa
+  \item[AA] Aron Ahmadia aron.ahmadia@kaust.edu.sa
+  \item[MK] Matt Knepley knepley@gmail.com
+  \item[KM] Kyle Mandli mandli@amath.washington.edu 
+  \item[AG] Amal Ghamdi amal.ghamdi@kaust.edu.sa
 \end{itemize}
 
 \section{Assignments}
 
 \begin{itemize}
-  \item[MK] Mercurial Repository on Bitbucket
+  \item[MK] Mercurial Repository on Bitbucket - DONE
 
   \item[MK] Start application (just update every vertex/cell, maybe do Euler)
+
   \begin{itemize}
     \item[DK] Add 1D advection and 2D metamaterials
 
     \item[GT] Add 3D elastodynamics
   \end{itemize}
 
-  \item[MK] Install petsc4py and develop documentation
+  \item[MK] Install petsc4py and develop documentation - AA
+    responsible for determining locations to install and strategy
 
   \item[MK] Draw picture of optimization stairstep
   \begin{itemize}
@@ -92,7 +90,8 @@ benchmarks in order to test our implementation.
 
   \item[GT] Introduce CUDA kernels for example problems
   \begin{itemize}
-    \item[GT,MK] Start system for generating CUDA kernel from specification
+    \item[GT,MK] Start system for generating CUDA kernel from
+      specification
 
     \item[GT,MK] Develop performance models of kernels
   \end{itemize}
