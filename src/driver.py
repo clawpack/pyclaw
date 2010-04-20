@@ -3,6 +3,7 @@ from petsc4py import PETSc
 
 class PetCLAW:
   def advection1D(self, N):
+    '''David: If you put in the linear algebra that you need (comments), I will move it to code'''
     da = PETSc.DA().create([N])
     da.view()
     f = da.createGlobalVector()
