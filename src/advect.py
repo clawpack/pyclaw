@@ -17,10 +17,10 @@ T=2.
 N=round(T/k)
 
 # Initial condition:
-u = np.exp(-10*(x-0.5)**2)
+q = np.exp(-10*(x-0.5)**2)
 
 for n in xrange(N+1):
-    u[1:]=u[1:]-cflnum*(u[1:]-u[:-1])
+    q[1:]=q[1:]-cflnqm*(q[1:]-q[:-1])
     #Uncomment below if you want it to plot:
     #pl.clf(); pl.hold(False)
-    #pl.plot(x,u); pl.axis([-0,1,-0.1,1.1]); pl.draw()
+    #pl.plot(x,q); pl.axis([-0,1,-0.1,1.1]); pl.draw()
