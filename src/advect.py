@@ -1,26 +1,56 @@
+#!/usr/bin/env python
 import numpy as np
-import pylab as pl
+from petsc4py import PETSc
 
-#Script to solve 1D advection equation:
-#
-# q_t + q_x = 0
-#
-#Using first-order finite differences.
+class PetCLAW:
+    def advection1D(self, M, cfl, T):
+        '''Script to solve 1D advection equation:
+        q_t + q_x = 0
+        Using first-order finite differences'''
+        
+        da = PETSc.DA().create([M])
+        da.setUniformCoordinates() # solves the problem from 0 to 1
+        da.view()
 
-#Grid:
-m=100
-x=np.linspace(0,1,m+1); x=x[:-1]
-h=x[1]-x[0]
-cflnum=0.95
-k=cflnum*h
-T=2.
-N=round(T/k)
+        xvec = da.getCoordinates()
+        xvec.view()
+        x = xvec.getArray()
+        
+        h = x[1]-x[0]
+        k=cfl*h
+        
+        fg = da.createGlobalVector()
+        fl = da.createLocalVector()
+        
+        N=int(round(T/k))
+        
+        # Initial condition:
+        q = np.exp(-10*(x-0.5)**2)
+        fg.setArray(q)
+        da.globalToLocal(fg,fl)
 
-# Initial condition:
-q = np.exp(-10*(x-0.5)**2)
+        fg.view()
+        
+        for n in xrange(N+1):
+            q = fl.getArray()
+            q[1:]=q[1:]-cfl*(q[1:]-q[:-1])
+            fl.setArray(q)
+            da.localToGlobal(fl,fg)            
+            fg.view()
+            da.globalToLocal(fg,fl)
 
-for n in xrange(N+1):
-    q[1:]=q[1:]-cflnqm*(q[1:]-q[:-1])
-    #Uncomment below if you want it to plot:
-    #pl.clf(); pl.hold(False)
-    #pl.plot(x,q); pl.axis([-0,1,-0.1,1.1]); pl.draw()
+    def run(self):
+        OptDB = PETSc.Options()
+        M = OptDB.getInt('M', 16)
+        cfl = OptDB.getReal('cfl',0.95)
+        T = OptDB.getReal('T',2.)
+        self.advection1D(M, cfl, T)
+        print 'Done'
+        return
+          
+if __name__ == '__main__':
+    PetCLAW().run()
+          
+
+    
+    
