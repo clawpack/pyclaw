@@ -1,0 +1,77 @@
+#
+# Library version of Makefile
+# ---------------------------
+
+# Library settings
+NAME = geoclaw2d
+INSTALL_PATH = $(CLAW)/lib
+MOD_PATH = $(CLAW)/geoclaw/2d/lib
+
+# Environment variable FC should be set to fortran compiler, e.g. gfortran
+FC ?= gfortran
+FFLAGS ?= -g
+# Add the include path from amrclaw, this is necessary so that we get the
+# correct order of includes
+ifdef INCLUDE
+	INCLUDE += . $(MOD_PATH) $(CLAW)/amrclaw/2d/lib
+else
+	INCLUDE = . $(MOD_PATH) $(CLAW)/amrclaw/2d/lib
+endif
+
+
+LIB_SRC = \
+	setprob_geo.f \
+	qinit_geo.f \
+	readqinit_geo.f \
+	movetopo_geo.f \
+	cellgridintegrate_geo.f \
+	topointegral_geo.f \
+	bilinearintegral_geo.f \
+	stepgrid_geo.f \
+	fgridinterp_geo.f \
+	fgridout_geo.f \
+	rpn2ez_geo.f \
+	riemannsolvers_geo.f \
+	rpt2_geo.f \
+	src2_geo.f \
+	src1d_geo.f \
+	step2_geo.f \
+	flux2fw_geo.f \
+	qad_geo.f \
+	valout_geo.f \
+	filval_geo.f \
+	filpatch_geo.f \
+	bc2amr_geo.f \
+	update_geo.f \
+	amr2ez_geo.f \
+	setaux_geo.f \
+	setqinit_geo.f \
+	setregions_geo.f \
+	setgauges_geo.f \
+	setfixedgrids_geo.f \
+	b4step2_geo.f \
+	flag2refine_geo.f  \
+	allowflag_geo.f  \
+	dumpgauge_geo.f \
+	upbnd_geo.f \
+	setgrd_geo.f \
+	ginit_geo.f \
+	gfixup_geo.f
+	
+LIB_MOD_SRC = \
+	geoclaw_mod.f90 \
+	topo_mod.f90 \
+	dtopo_mod.f90
+	
+	
+LIB_MODULES = \
+	geoclaw_module \
+	topo_module \
+	dtopo_module
+
+#-------------------------------------------------------------------
+# Include Makefile containing standard definitions and make options:
+include $(CLAW)/util/lib_rules.mk
+
+### DO NOT remove this line - make depends on it ###
+

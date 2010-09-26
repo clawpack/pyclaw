@@ -1,0 +1,46 @@
+
+begin_html [use: doc/doc.css]
+
+<!--
+     For a more readable version of this file, execute
+                  unix>  make htmls
+     in this directory and then point your browser to newapp.html
+-->
+<h1>Creating a new directory </h1>
+
+<h2> Clawpack 4.4</h2>
+
+<h4>Copying an existing example</h4>
+
+The simplest approach to implementing something new is to start with a
+Clawpack example and modify the code appropriately.
+
+Rather than modifying one of the examples in place, it is best to copy it to
+a new directory.  I suggest you create a directory claw/myclaw at the top
+level of Clawpack and store your own examples there.  This way if you use
+the Python server (by executing "python startserver.py" in the top level)
+you can view your files and plots via the web address
+http://localhost:50005/myclaw/...
+
+If your myclaw directory is located elsewhere, you can also create a
+symbolic link from the top claw level to the actual location and the above
+address should still work.
+
+In unix/linux you can copy a directory recursively (with all subdirectories
+intact) using the command
+{{{
+unix> cp -r $CLAW/examples/advection/1d/example1  path-to-newdir
+}}}
+for example.  However, if you are using the svn version of Clawpack <b>do
+not do this!</b>  The reason is that it will copy the subversion
+subdirectory .svn as well and svn will get very confused if you later want
+to put your new directory under version control.
+
+The better way to copy a directory under svn to a new place is by using
+{{{
+unix> svn export $CLAW/examples/advection/1d/example1  path-to-newdir
+}}}
+This exports everything that is under version control to the new directory.
+Files that were under version control (e.g. output files if you ran the
+program there) will not be exported.
+

@@ -1,0 +1,85 @@
+
+Index to files in claw/matlab
+------------------------------
+
+CHANGES ... might list some recent changes
+
+UserVariableFiles:
+------------------
+
+mach.m
+pressure.m
+xvelocity.m
+yvelocity.m
+zvelocity.m
+
+Colormaps:
+----------
+
+setColors.m    ... set colors based on q values
+yrbcolormap.m  ...  yellow -> red -> blue
+rybcolormap.m  ...  red -> yellow -> blue
+redwhite.m     ...  red -> pink -> white
+whitemap.m
+allblue.m
+standsout.m
+
+
+For manipulating data:
+----------------------
+coarsen.m ... takes a 1d or 2d array of data and coarsens it to a smaller size
+make2drad.m ... converts 1d data into radially symmetric 2d data 
+
+
+Printing and producing gifs and animations:
+-------------------------------------------
+printgif.m
+makeframegif.m
+
+Utilities for plotclaw:
+-----------------------
+query.m
+queryframe.m
+
+
+1d graphics:
+------------
+
+plotclaw1.m
+plotframe1.m
+infoplot1.m
+infoframe1.m
+setplot1.m
+hdf_frame1.m
+plothdf1.m
+compare1.m  ... compare coarse grid with finer grid solution
+
+2d graphics:
+------------
+
+plotclaw2.m
+plotframe2.m
+infoplot2.m
+infoframe2.m
+setplot2.m
+hdf_frame2.m
+plothdf2.m
+
+3d graphics:
+------------
+
+plotclaw3.m
+plotframe3.m
+setplot3.m
+hdf_frame3.m
+plothdf3.m
+
+drawContours.m
+intersectQWithSlices.m
+maskPatches.m
+plotCube.m
+plotSliceContour.m
+plotSliceIntersection.m
+plotSlicePatch.m
+projectBorder.m
+

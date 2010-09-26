@@ -1,0 +1,23 @@
+begin_html
+<h2>AMRCLAW Library Routines</h2>
+<p>
+<h3>claw/amrclaw/2d/lib</h3>
+<p>
+Most routines aren't listed yet....
+
+<dl>
+<dt>[code: amr2ez.f]
+<dd> The main routine.
+
+
+<dt>[code: bc2amr.f]
+<dd> Imposes boundary conditions by extending values in the computational
+grid to ghost cells on either side.
+
+If you want to add a new boundary condition, copy this file to your
+application directory, modify it, 
+and then modify the Makefile to point to the new version.
+
+
+
+</dl>

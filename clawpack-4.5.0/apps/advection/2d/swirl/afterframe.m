@@ -1,0 +1,3 @@
+axis('square')
+
+clear afterframe;

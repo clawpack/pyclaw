@@ -1,0 +1,13 @@
+begin_html
+
+<h2>Documentation via clawcode2html</h2>
+
+The Python script [link:clawcode2html.py] is used to convert programs, data
+files, README files, etc. into html files that can be viewed using a web
+browser.
+
+This is a modified version of 
+[www.amath.washington.edu/~rjl/mathcode2html mathcode2html], with some
+modifications for the Clawpack environment.
+
+end_html

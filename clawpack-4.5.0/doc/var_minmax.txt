@@ -1,0 +1,47 @@
+
+
+begin_html [use: doc/doc.css]
+
+<!--
+     For a more readable version of this file, execute
+                  unix>  make htmls
+     in this directory and then point your browser to the resulting .html
+-->
+
+<h1> 
+plotting.var_minmax function
+</h1>
+
+
+<pre>
+def var_minmax(plotdata,framenos,vars):
+    """
+    Determine range of values encountered in data for all frames
+    in the list framenos.  If framenos='all', search over all frames
+    in the most recent computation.
+
+    vars is a list of variables to return the min and max for.
+    Each element of the list can be a number, indicating the
+    corresponding element of the q vector, or a function that should
+    be applied to q to obtain the value of interest.  In other words,
+    any valid plot_var attribute of a ClawPlotItem object.
+
+    If vars=='all', use vars=[0,1,...] over all components of q.
+
+    Returns (varmin, varmax) where varmin and varmax are each
+    dictionaries with keys given by the variables.
+
+    For each var in vars, varmin[var] and varmax[var] are dictionaries, with
+    keys given by frame numbers in framenos.
+   
+    Also varmin[var]['all'] and varmax[var]['all'] are the min and max of
+    variable var over all frames considered.
+
+    For example if vars = [0,'machnumber'] then
+       varmin[0][3] is the minimum of q[0] (the first component of the
+           solution vector q) over all grids in frame 3.
+       varmin['machnumber']['all'] is the minimum of machnumber
+           over all grids in all frames.
+
+    """
+</pre>

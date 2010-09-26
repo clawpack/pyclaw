@@ -1,0 +1,104 @@
+
+begin_html [use: doc/doc.css]
+<!--
+     For a more readable version of this file, execute
+                  unix>  make htmls
+     in this directory and then point your browser to the resulting .html
+-->
+
+<h1> Hints on converting from Clawpack 4.3 to Clawpack 5.0 </h1>
+
+<h4> Changes from f77 to f95 </h4>
+
+<ul>
+<li> For Clawpack 5.0 a Fortran 95 compiler such as gfortran must be used.
+We now use dynamic memory allocation and other newer features.  Files that
+use f95 explicitly have the extension .f95.
+
+<li> Most old f77 files ending in .f still work when compiled with gfortran
+and can be used together with .f95 files.  So old Riemann solvers or qinit.f
+or setprob.f files can generally still be used.  In some of the examples
+in claw/examples these have been rewritten as .f95 files to take advantage
+of newer features.  If you don't know much Fortran, these are probably
+easier to modify without introducing errors.
+
+<li> In Clawpack 4.3 each example directory had a file driver.f to dimension
+various arrays (q, work, and aux if needed).  In Clawpack 5.0 this has
+disappeared.  Instead the library routine main.f95 (e.g.
+[clawcode:clawpack/1d/lib/main.f95] in 1d) uses dynamic memory allocation to
+allocate these arrays based on the value of mx and other parameters in the
+data files.
+
+<li> In Clawpack 4.3 the main program in driver.f called claw1ez,
+which read in data from claw1ez.data and then called claw1 (in 1d, for
+example).  In Clawpack 5.0 the main program in main.f95 calls claw1.f95
+which reads in data from claw.data.  This probably does not matter to you
+unless you were doing something sophisticated with your own version of one
+of these routines.
+
+</ul> 
+
+<h4>Changes to the data files</h4>
+
+<ul>
+<li> The old data file clawNez.data (N=1,2,3 for the number of space dimensions)
+has been replaced by a file that is simply called claw.data in all dimensions.
+At the moment this file can be identical to the old clawNez.data with one
+exception:
+<p>
+One new line should be added to the start of this file containing the
+integer 1, 2, or 3 for the number of space dimensions.
+<li> Note that as far a Fortran is concerned, everything on a line beyond
+the number(s) it is trying to read is ignored and is simply a comment.  The
+comments have been changed in many of the claw.data files but the set of
+parameters read in and their order is the same with the above exception.
+
+<li>  The syntax  <b>value  =:  name</b>  used in claw.data is used by some
+Python scripts but ignored by Fortran.   
+
+<li> See the Clawpack 4.3 documentation [link:claw43user.pdf (pdf)] for
+more information on all the parameters in claw.data and in amr/amr2ez.data
+files used with AMR.
+
+<li> We are considering completely reformulating the format of claw.data and
+the manner in which this data is read in by Fortran and Python. See
+[claw:dev/namelist_examples].
+
+</ul>
+
+[name:plotting]
+<h4>Plotting</h4>
+
+<ul>
+<li> Clawpack 5.0 produces the same ascii files fort.q000N and fort.t000N at
+output time N as did Clawpack 4.3 with one exception:
+
+<p> 
+fort.t000N has a new fourth line containing ndim, the number of space dimensions,
+before the fifth line with maux (number of auxiliary variables).
+
+<li> If you want to use the old Matlab scripts from [claw:matlab] these
+should still work fine (unless you were using the value maux for some reason,
+which the standard scripts do not).  
+
+<li> See the Clawpack 4.3 documentation [link:claw43user.pdf (pdf)] for
+information about plotting in Matlab.
+
+<li> Clawpack 5.0 contains a new approach to plotting using Python, see the
+documentation at [claw:doc/plotting] for details on how to use this.
+
+<li> If you want to use the new Python plotting routines to plot results
+produced by the old Clawpack 4.3 this should work fine, provided the output
+is modified to insert the require ndim parameter in each fort.t file.
+This can be done automatically for all such files using
+
+<pre class="clawcode">
+  unix> python $CLAW/python/fix_fort43.py
+</pre>
+
+in the directory where the old fort.t files are.
+
+</ul>
+end_html
+
+

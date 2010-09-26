@@ -1,0 +1,90 @@
+
+begin_html [use: doc/doc.css]
+
+<!--
+     For a more readable version of this file, execute
+                  unix>  make htmls
+     in this directory and then point your browser to the resulting .html
+-->
+
+<h1> 
+Using a setplot function to set up plotting
+</h1>
+
+
+Most example directories contain a file setplot.py that contains a
+function setplot(plotdata). This function
+sets various attributes of plotdata
+in order to specify how plotting is to be done.
+
+The object plotdata is of class ClawPlotData.  The way to set up the plot
+structure is to follow this outline:
+
+<ol>
+<li> Specify some attributes of setplot that determine  what sort of plots
+will be produced and where they will be stored, e.g.
+{{{
+plotdata.plotdir = 'plots'
+}}}
+will cause hardcopy to go to subdirectory plots of the current directory.
+
+There are many other [link:plotdata.html ClawPlotData attributes and methods] 
+
+<li> Specify one or more Figures to be created for each frame, e.g.
+{{{
+plotfigure = plotdata.new_plotfigure(name='Solution', figno=1)
+}}}
+plotfigure is now an object of class ClawPlotFigure and various attributes
+can be set, e.g., 
+{{{
+plotfigure.kwargs = {'figsize':[8,12], 'facecolor':'#ffeebb'}
+}}}
+to specify any keyword arguments 
+that should be used when creating this figure in matplotlib.
+The above would create a figure that is
+8 inches by 12 inches with a tan background.  
+<br>
+For more options,
+see the matplotlib
+documentation for the figure command.
+
+There are many other [link:plotfigure.html ClawPlotFigure attributes and methods] 
+
+<li> Specify one or more Axes to be created within each figure,
+e.g.
+{{{
+plotaxes = plotfigure.new_plotaxes(name='Pressure')
+}}}
+Note that new_plotaxes is a method of class ClawPlotFigure and creates a set
+of axes specific to the particular object plotfigure.
+
+plotaxes is now an object of class ClawPlotAxes  and various attributes
+can be set, e.g.,
+{{{
+plotfigure.ylim = [-1, 1]
+}}}
+
+There are many other [link:plotaxes.html ClawPlotAxes attributes and methods] 
+
+
+<li> Specify one or more Items to be created within these axes,
+e.g.
+{{{
+plotitem = plotaxes.new_plotitem(name='line')
+}}}
+Note that new_plotitem is a method of class ClawPlotAxes and creates a plot
+object (e.g. line, contour plot, etc)
+specific to the particular object plotaxes.
+
+plotitem is now an object of class ClawPlotItem  and various attributes
+can be set, e.g.,
+{{{
+plotitem.plotstyle = '-'
+}}}
+for a solid line.
+
+There are many other [link:plotitem.html ClawPlotItem attributes and methods] 
+
+<ol>
+
+

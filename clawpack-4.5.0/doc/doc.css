@@ -1,0 +1,152 @@
+
+<style type="text/css">
+
+body,p,h1,h2,h3,h4,ul,li,dd,dt {
+    font-family: sans-serif;
+}
+
+body {
+    display: block;
+    width: 100%;
+    font-size: 100%;
+    background-color: #FFFFFF;
+    #background-color: #FFFFE8;
+}
+
+a:link {color: #C45000;}
+a:visited {color: #C45033;}
+#a:visited {color: #7F0000;}
+
+h1 {
+    display: block;
+    text-align: center;
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: 250%;
+    color: brown;
+    width: 100%;
+    margin-top: 1em;
+}
+
+h2 {
+    display: block;
+    text-align: center;
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: 200%;
+    color: brown;
+    width: 100%
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+
+h3 {
+    display: block;
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: 120%;
+    color : #000 ;
+    width: 100%
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+
+h4 {
+    font-size: 100% ;
+    font-family: sans-serif ; 
+    font-weight: bold;
+    color : #000 ;
+    #background-color: #ffd695;
+    #background-color: #f0d3b2;
+    background-color: #ffee99;
+    width: 100%
+    border-width: 0 0 0 0 ;
+    padding : 0 5px 0 5px ;
+    margin: 1em 60px 1em 0em ;
+}
+
+dt {
+    font-weight: bold;
+}
+
+sp {
+    font-family: monospaced;
+    background-color: #ffd695;
+    width: 5em;
+}
+
+pre {
+    font-family: monospaced;
+}
+
+pre.clawcode {
+    #background-color: #ffeebb;
+    #background-color: #f2ebd6;
+    background-color: #ffddaa;
+    font-family: monospaced;
+    font-size: 90%;
+    border: 1px solid;
+    border-color: #999999;
+    margin: 1em 5em 1em 2em ;
+    padding: 9px;
+}
+pre.literal-block {
+    background-color: #ffffdd;
+    border: 1px solid;
+    border-color: #999999;
+    margin: 1em 5em 1em 2em ;
+    padding: 9px;
+}
+p {
+    font-family: sans-serif;
+    font-size: 100%;
+}
+p.indent1 {
+    margin: 5px 5px 15px 30px;
+}
+p.indent2 {
+    margin: 10px 5px 15px 60px
+}
+p.indent3 {
+    margin: 10px 5px 15px 90px
+}
+p.indent4 {
+    margin: 10px 5px 15px 120px
+}
+
+li {
+    font-family: sans-serif;
+    font-size: 100%;
+}
+
+span.initem {
+    margin: 5px 5px 5px 60px
+    padding: 5px 5px 5px 60px
+    background-color: #ffd695;
+}
+
+span.indent {
+    margin: 0px 5px 0px 20px
+}
+
+div.doc_description {
+    margin: 5px 5px 20px 30px;
+}
+
+div.indent1 {
+    margin: 5px 5px 20px 30px;
+}
+
+div.vsp {
+    margin: 1em 0 0 0
+}
+
+notexec {
+    font-size: normal;
+    font-weight: bold;
+    color : red ;
+}
+
+</style>

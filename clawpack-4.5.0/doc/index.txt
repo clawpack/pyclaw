@@ -1,0 +1,15 @@
+
+begin_html [use: doc/doc.css]
+
+<!--
+     For a more readable version of this file, execute
+                  unix>  make htmls
+     in this directory and then point your browser to index.html
+-->
+<h1> Clawpack 4.4 Documentation </h1>
+
+We are converting to [http://sphinx.pocoo.org/ sphinx] documentation. 
+
+A few things are available in 
+[link: ./sphinx/users/index.html ./sphinx/users/index.html].
+

@@ -1,0 +1,11 @@
+#
+#
+
+1.0                       =: A1        # amplitude on first Gaussian
+40.0                      =: beta1     # decay 
+-0.5                      =: x1        # location
+0.0                       =: y1
+-1.0                      =: A2        # amplitude on second Gaussian
+40.0                      =: beta2     # decay
+0.5                       =: x2        # location
+0.0                       =: y2
