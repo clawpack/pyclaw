@@ -23,6 +23,7 @@ dimensionally dependent ones such as :class:`ClawSolver1D`.
 import numpy as np
 
 from pyclaw.evolve.solver import Solver
+from petsc4py import PETSc
 
 import limiters
 
@@ -338,17 +339,36 @@ class ClawSolver1D(ClawSolver):
         # Limiter to use in the pth family
         limiter = np.array(self.mthlim,ndmin=1)  
         # Q with appended boundary conditions
-        q = grid.qbc()
+        # q = grid.qbc()
+
+        grid.da.globalToLocal(grid.gqVec, grid.lqVec)
+
+        
+        q = grid.lqVec.getArray()
+         
+        local_n = q.size
         # Flux vector
-        f = np.empty( (2*grid.mbc + grid.n[0], meqn) )
+        f = np.empty( (local_n, meqn) )
     
-        dtdx = np.zeros( (2*grid.mbc+grid.n[0]) )
+        dtdx = np.zeros( (local_n) )
 
         # Find local value for dt/dx
         if grid.capa is not None:
             dtdx = self.dt / (grid.d[0] * grid.capa)
         else:
             dtdx += self.dt/grid.d[0]
+
+
+
+        q= np.reshape(q, (local_n,meqn)) #remove value
+        #why still need reshaping while I've set the dof?
+        
+        
+        
+        
+
+
+        
     
         # Solve Riemann problem at each interface
         q_l=q[:-1,:]
@@ -368,8 +388,24 @@ class ClawSolver1D(ClawSolver):
         #        LL    |                               |     UL
         #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
         #              |                               |
-        LL = grid.mbc - 1
-        UL = grid.mbc + grid.n[0] + 1 
+
+       
+        #LL = grid.mbc - 1
+        #UL = grid.mbc + grid.n[0] + 1
+
+        # Is this should be anny different?
+        if PETSc.Comm.getRank(PETSc.COMM_WORLD) == 0:
+            LL =  1
+            UL =  local_n - 1
+        elif PETSc.Comm.getRank(PETSc.COMM_WORLD) == (PETSc.Comm.getSize(PETSc.COMM_WORLD) -1):
+            LL = 1
+            UL = local_n - 1
+        else:
+            LL = 1
+            UL = local_n - 1
+        
+
+        
 
         # Update q for Godunov update
         for m in xrange(meqn):
@@ -405,6 +441,7 @@ class ClawSolver1D(ClawSolver):
                 for mw in xrange(wave.shape[2]):
                     sabs = np.abs(s[LL-1:UL-1,mw])
                     om = 1.0 - sabs*dtdxave[:UL-LL]
+                    
                     for m in xrange(meqn):
                         f[LL:UL,m] += 0.5 * sabs * om * wave[LL-1:UL-1,m,mw]
 
@@ -413,4 +450,10 @@ class ClawSolver1D(ClawSolver):
                 q[LL:UL-1,m] -= dtdx[LL:UL-1] * (f[LL+1:UL,m] - f[LL:UL-1,m]) 
             
         # Reset q update
-        grid.q = q[grid.mbc:-grid.mbc][:]
+        # grid.q = q[grid.mbc:-grid.mbc][:]
+        
+        grid.lqVec.setArray(q)
+        grid.da.localToGlobal(grid.lqVec, grid.gqVec)
+        
+        #grid.q = grid.gqVec.getArray()
+        
