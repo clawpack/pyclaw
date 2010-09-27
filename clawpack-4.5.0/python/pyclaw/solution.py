@@ -22,6 +22,7 @@ import numpy as np
 
 from data import Data
 import io
+from petsc4py import PETSc
 
 # ============================================================================
 #  Default function definitions
@@ -89,6 +90,13 @@ class Dimension(object):
             return (self.upper-self.lower) / float(self.n)
         return locals()
     d = property(**d())
+    
+    def local_n():
+        doc = r""" """
+        def fget(self):
+            return self.n/ PETSc.Comm.getSize(PETSc.COMM_WORLD) # should be modified to be obtained from da
+        return locals()
+    local_n = property(**local_n())
     def mthbc_lower():
         doc = r"""(int) - Lower boundary condition fill method. 
                   ``default = 1``"""
@@ -135,6 +143,16 @@ class Dimension(object):
         return locals()
     center = property(**center())
     _center = None
+    
+
+
+    def local_n():
+        doc = r"""(int) - Size of the local portion of n"""
+        def fget(self):
+            return self.n/ PETSc.Comm.getSize(PETSc.COMM_WORLD)
+        return locals()
+    local_n = property(**local_n())
+
     
     def __init__(self, *args, **kargs):
         r"""
@@ -465,6 +483,19 @@ class Grid(object):
         self._dimensions = []
         for dim in dimensions:
             self.add_dimension(dim)
+
+
+        
+        self.da = PETSc.DA().create(dim=self.ndim,
+                                    dof=self.meqn, # should be modified to reflect the update
+                                    sizes=[self.n[0]+2*self.mbc],
+                                    #periodic_type = PETSc.DA.PeriodicType.X,
+                                    #periodic_type=self.PERIODIC,
+                                    #stencil_type=self.STENCIL,
+                                    #stencil_width=self.SWIDTH,
+                                    comm=PETSc.COMM_WORLD)
+        self.gqVec = self.da.createGlobalVector()
+        self.lqVec = self.da.createLocalVector()
     
     
     def __str__(self):
@@ -622,6 +653,23 @@ class Grid(object):
         shape = self.get_dim_attribute('n')
         shape.append(self.meqn)
         self.q = np.empty(shape,'d',order=order)
+
+
+    
+    def empty_qbc(self,order='C'):
+        r"""
+        Initialize q to empty
+        
+        :Input:
+         - *order* - (string) Order of array, must be understood by numpy
+           ``default = 'C'``
+        """
+        shape = self.get_dim_attribute('n')
+    
+        shape[0] = (shape[0]+ 2* self.mbc)/ PETSc.Comm.getSize(PETSc.COMM_WORLD)# should be modifide to get the range of indices from petsc
+        shape.append(self.meqn)
+        
+        self.q = np.empty(shape,'d',order=order) # currently q holds the bc points, this should be thought about
     
     def ones_q(self,order='C'):
         r"""
