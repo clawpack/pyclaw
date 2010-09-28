@@ -317,6 +317,47 @@ class ClawSolver1D(ClawSolver):
             logger.warning(error_msg)
             raise NameError(error_msg)
 
+
+    # ========== Setting Boundary Conditions ==================================
+    def set_bc_lower(self,grid):
+        r"""
+        
+        """
+
+        # User defined functions
+        x = grid.dimensions[0]
+        if x.mthbc_lower == 0:
+            #self.user_bc_lower(grid,self,qbc)
+            temp =1 #this is meaningless
+        # Zero-order extrapolation
+        elif x.mthbc_lower == 1:
+            #qbc[:grid.mbc,...] = qbc[grid.mbc,...]
+        # Periodic
+            temp =1 #this is meaningless
+        elif x.mthbc_lower == 2:
+            #qbc[:grid.mbc,...] = qbc[-2*grid.mbc:-grid.mbc,...]
+            # no of elmts = grid.mbc [0, .., mbc-1] [grid.n, ...,grid.n+grid.mbc-1]
+            list_from = [i for i in xrange(grid.x.n, grid.x.n + grid.mbc)]
+            list_to = [i for i in xrange(grid.mbc)]
+            is_from = PETSc.IS().createGeneral(list_from)
+            is_to = PETSc.IS().createGeneral(list_to )
+        
+            q_scatter = PETSc.Scatter().create(grid.gqVec, is_from, grid.gqVec, is_to)
+            q_scatter.scatterBegin(grid.gqVec, grid.gqVec, False, PETSc.Scatter.Mode.FORWARD)	
+ 	    q_scatter.scatterEnd( grid.gqVec, grid.gqVec, False, PETSc.Scatter.Mode.FORWARD)
+ 	    q_scatter.destroy()
+            
+        # Solid wall bc
+        elif x.mthbc_lower == 3:
+            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
+        else:
+            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
+
+
+        
+        
+
+
     # ========== Python Homogeneous Step =====================================
     def homogeneous_step(self,solutions):
         r"""
@@ -341,6 +382,7 @@ class ClawSolver1D(ClawSolver):
         # Q with appended boundary conditions
         # q = grid.qbc()
 
+        
         grid.da.globalToLocal(grid.gqVec, grid.lqVec)
 
         
@@ -450,10 +492,28 @@ class ClawSolver1D(ClawSolver):
                 q[LL:UL-1,m] -= dtdx[LL:UL-1] * (f[LL+1:UL,m] - f[LL:UL-1,m]) 
             
         # Reset q update
-        # grid.q = q[grid.mbc:-grid.mbc][:]
+        #grid.q = q[grid.mbc:-grid.mbc][:]
+
+        
+
+
+
+        
         
         grid.lqVec.setArray(q)
         grid.da.localToGlobal(grid.lqVec, grid.gqVec)
+
+        # this part to deal with bc, needs to be separated in a method and deals with different cases of bc, not periodic only
+        #if PETSc.Comm.getRank(PETSc.COMM_WORLD) == (PETSc.Comm.getSize(PETSc.COMM_WORLD) -1 or PETSc.Comm.getRank(PETSc.COMM_WORLD) == 0):
+            #communicate bc points from the end to bc points at the begining of process 0
+            
+            #grid.gqVec.setValues([0,1], [q[-2,0], q[-1,0]] )
+            #grid.gqVec.assemblyBegin()
+            #grid.gqVec.assemblyEnd()
         
-        #grid.q = grid.gqVec.getArray()
+        self.set_bc_lower(grid)
+        grid.q = grid.gqVec.getArray()
+        grid.q= np.reshape(grid.q, (grid.q.size,grid.meqn))
+        
+        
         
