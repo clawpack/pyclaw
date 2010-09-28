@@ -91,12 +91,7 @@ class Dimension(object):
         return locals()
     d = property(**d())
     
-    def local_n():
-        doc = r""" """
-        def fget(self):
-            return self.n/ PETSc.Comm.getSize(PETSc.COMM_WORLD) # should be modified to be obtained from da
-        return locals()
-    local_n = property(**local_n())
+   
     def mthbc_lower():
         doc = r"""(int) - Lower boundary condition fill method. 
                   ``default = 1``"""
@@ -146,13 +141,7 @@ class Dimension(object):
     
 
 
-    def local_n():
-        doc = r"""(int) - Size of the local portion of n"""
-        def fget(self):
-            return self.n/ PETSc.Comm.getSize(PETSc.COMM_WORLD)
-        return locals()
-    local_n = property(**local_n())
-
+    
     
     def __init__(self, *args, **kargs):
         r"""
@@ -664,9 +653,13 @@ class Grid(object):
          - *order* - (string) Order of array, must be understood by numpy
            ``default = 'C'``
         """
-        shape = self.get_dim_attribute('n')
+
+        # what about when multiple dimentions
+        ranges = self.da.getRanges()
+        shape =  [ranges[0][1] - ranges[0][0]]
+        
     
-        shape[0] = (shape[0]+ 2* self.mbc)/ PETSc.Comm.getSize(PETSc.COMM_WORLD)# should be modifide to get the range of indices from petsc
+       
         shape.append(self.meqn)
         
         self.q = np.empty(shape,'d',order=order) # currently q holds the bc points, this should be thought about
@@ -790,6 +783,9 @@ class Grid(object):
                 dim.qbc_upper(self,np.rollaxis(qbc,i))
             
         return qbc
+
+
+    
 
 
     def compute_p_center(self, recompute=False):
