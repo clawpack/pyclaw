@@ -63,9 +63,9 @@ def qinit(grid):
     
    
            
-    
+    # why this is here not in the homogenous step? because it needs to be set once
     grid.gqVec.setArray(grid.q)
-    qtest = grid.gqVec.getArray()
+    
     
     
 
@@ -104,7 +104,7 @@ solver.mthlim = 4
 # Solve
 #status = claw.run()
 sol = {"n":init_solution}
-solver.evolve_to_time(sol,0.1)
+solver.evolve_to_time(sol,0.5)
 
 sol = sol["n"]
 # Plot
@@ -113,19 +113,24 @@ sol = sol["n"]
     #for n in xrange(0,11):
         #sol = claw.frames[n]
         #plt.subplot(2,6,n+1)
-#Amal
-grid.q = grid.gqVec.getArray()
-grid.q= np.reshape(grid.q, (grid.q.size,grid.meqn))
+
+
 import matplotlib.pyplot as plt
 
-xvec = grid.da.getCoordinates()  #  this should be lower and upper not [0 1]
-x_center = xvec.getArray()
-x_center = x_center + grid.x.lower + 0.5*grid.x.d
+viewer = PETSc.Viewer.DRAW(grid.gqVec.comm)
+OptDB = PETSc.Options()
+OptDB['draw_pause'] = -1
+viewer(grid.gqVec)
 
 
-#for i in xrange(0,grid.q.size):
-    #x_center[i] = grid.x.lower + (i+0.5)*grid.x.d
-plt.plot(x_center,sol.q[:,0])
-plt.axis([x.lower,x.upper,0.0,1.2])
-plt.title('t = %s' % sol.t)
-plt.show()
+
+#xvec = grid.da.getCoordinates()  #  this should be lower and upper not [0 1]
+#x_center = xvec.getArray()
+#x_center = x_center + grid.x.lower + 0.5*grid.x.d
+
+
+
+#plt.plot(x_center,sol.q[:,0])
+#plt.axis([x.lower,x.upper,0.0,1.2])
+#plt.title('t = %s' % sol.t)
+#plt.show()
