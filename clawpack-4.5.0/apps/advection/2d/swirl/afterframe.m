@@ -1,3 +1,0 @@
-axis('square')
-
-clear afterframe;
