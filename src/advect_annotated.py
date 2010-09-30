@@ -11,6 +11,11 @@ class PetCLAW:
         # PETSc DA object, which handles structured grids, here are
         # requesting M global points 
         da = PETSc.DA().create([M])
+        print da.getSizes()
+
+        ranges = da.getRanges()
+        print ranges[0][1] - ranges[0][0]
+        
 
         # this solves the problem on the domain [0 1] by default
         da.setUniformCoordinates() 
