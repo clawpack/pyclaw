@@ -1,0 +1,16 @@
+
+plot_var(q,xp,t)
+  change to be plot_var(data)  similar to afterx for more flexibility.
+
+change data to current_data in afterx, plot_var for clarity
+
+return current_data from plotframe and plotitemN and add as attribute of
+Iplotclaw so that user has easy access to current_data interactively.
+
+Change ClawPlotItem attributes 'contour_nlevels' etc to 'nlevels' etc.
+with same names as kwargs of contour command.  Modify _set and _get methods
+of ClawPlotItem to store attributes that are also kwargs into kwargs
+dictionary that is passed to plot command.
+
+add plotter attribute to ClawPlotFigure for 'visit' or 'mayavi' options.
+
