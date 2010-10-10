@@ -362,7 +362,7 @@ class Grid(object):
                                     #periodic_type = PETSc.DA.PeriodicType.X,
                                     #periodic_type=self.PERIODIC,
                                     #stencil_type=self.STENCIL,
-                                    #stencil_width=self.SWIDTH,
+                                    stencil_width=self.mbc,
                                     comm=PETSc.COMM_WORLD)
         self.gqVec = self.da.createGlobalVector()
         self.lqVec = self.da.createLocalVector()
@@ -757,7 +757,7 @@ class Grid(object):
             
             # For one dimension, the center and edge arrays are equivalent
             if self.ndim == 1:
-                self._c_center[0] = self.dimensions[0].center
+                self._c_center[0] = self.center(dimensions[0])
             else:
                 # Produce ndim mesh grid function
                 mgrid = np.lib.index_tricks.nd_grid()
@@ -804,6 +804,30 @@ class Grid(object):
                 index_str = ','.join((':' for dim in self._dimensions))
                 for i in xrange(self.ndim):
                     exec("self._c_edge[i] = self.dimensions[i].edge[index[i,%s]]" % index_str)
+
+    def center(self, dim):
+        doc = r"""(ndarrary(:)) - Location of all grid cell center coordinates
+        for this dimension"""
+
+        self.da.setUniformCoordinates()
+        xvec = self.da.getCoordinates()  # Amal: this should be lower and upper not [0 1]
+        x = xvec.getArray()
+        x = x + dim.lower + 0.5*dim.d
+        return x
+
+    def edge(self, dim):
+        doc = r"""(ndarrary(:)) - Location of all grid cell edge coordinates
+        for this dimension"""
+        
+        
+        self._edge = np.empty(self.n+1)   
+        for i in xrange(0,self.n+1):
+            self.edge[i] = self.lower + i*self.d 
+            
+
+
+        
+        
 
 
     
@@ -1150,7 +1174,8 @@ class Solution(object):
 
         Writes out a suitable representation of this solution object based on
         the format requested.  The path is built from the optional path and
-        file_prefix arguments.  Will raise an IOError if unsuccessful.
+        file_prefix arguments.  Will f
+        an IOError if unsuccessful.
 
         :Input:
          - *frame* - (int) Frame number to append to the file output

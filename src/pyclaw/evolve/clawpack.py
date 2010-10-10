@@ -26,6 +26,7 @@ from pyclaw.evolve.solver import Solver
 from petsc4py import PETSc
 
 import limiters
+from step1 import step1
 
 # ========================================================================
 #  User-defined routines
@@ -97,7 +98,7 @@ class ClawSolver(Solver):
     """
     
     # ========== Generic Init Routine ========================================
-    def __init__(self,data=None):
+    def __init__(self, data=None):
         r"""
         See :class:`ClawSolver` for full documentation.
         """
@@ -211,12 +212,14 @@ class ClawSolver(Solver):
         
         grid.da.globalToLocal(grid.gqVec, grid.lqVec)
         q = grid.lqVec.getArray()
+        
 
         capa = grid.capa
         aux = grid.aux
         d = grid.d
         mbc = grid.mbc
         aux_global = grid.aux_global
+        
 
         
 
@@ -229,16 +232,81 @@ class ClawSolver(Solver):
             self.src(self,solutions,solutions['n'].t, self.dt/2.0)
     
         # Take a step on the homogeneous problem
-        q = self.homogeneous_step( q, aux, capa, d, meqn, mbc, aux_global)
+
+        kernelsType = 'F'
+        if(kernelsType == 'F'):
+            
+            local_n = q.size
+
+            dtdx = np.zeros( (local_n) )
+
+        
+            dtdx += self.dt/d[0]
+            dt = self.dt
+            dx = d[0]
+
+        
 
 
 
+
+            maxmx = local_n -mbc*2
+            mx = local_n -mbc*2
+            aux = np.empty( (local_n , meqn) )
+        
+            method =np.ones(7, dtype=int)
+            method[0] = 1  # fixed or adjustable timestep
+            method[1] = 2  # order of the method
+            method[2] = 0  # 2d, 3d
+            method[3] = 0  # info
+            method[4] = 0  # src term
+            method[5] = 0  #capa
+            method[6] = 0  # aux
+        
+            mthlim = self.mthlim
+        
+            cfl = self.cfl
+            f =  np.zeros( (local_n , meqn) )
+            mwaves = 1
+
+            wave = np.empty( (local_n,meqn,mwaves) )
+            s = np.empty( (local_n,mwaves) )
+            amdq = np.zeros( (local_n, meqn) )
+            apdq = np.zeros( (local_n, meqn) )
+        
+            q= np.reshape(q, (q.size,grid.meqn))
+
+            print "q before",q[25]
+            print q.size
+            
+        
+
+            q = step1(maxmx,mbc,mx,q,aux,dx,dt,method,mthlim,cfl,f,wave,s,amdq,apdq,dtdx, -1)
+
+            print "q after",q[25]
+            print q.size
+
+        elif(kernelsType == 'P'):
+            q = self.homogeneous_step( q, aux, capa, d, meqn, mbc, aux_global)
+
+        
+
+
+
+
+
+        
+
+        
         grid.lqVec.setArray(q)
         grid.da.localToGlobal(grid.lqVec, grid.gqVec)
 
-       
-        
+        self.bc_upper(grid)
         self.bc_lower(grid)
+        
+        
+
+        
         grid.q = grid.gqVec.getArray()
         grid.q= np.reshape(grid.q, (grid.q.size,grid.meqn))
 
@@ -311,6 +379,7 @@ class ClawSolver1D(ClawSolver):
         
         # Import Riemann solvers
         exec('import pyclaw.evolve.rp as rp',globals())
+        
             
         super(ClawSolver1D,self).__init__(data)
 
@@ -404,11 +473,11 @@ class ClawSolver1D(ClawSolver):
 
         # User defined functions
         x = grid.dimensions[0]
-        if x.mthbc_lower == 0:
+        if x.mthbc_upper == 0:
             self.user_bc_upper(grid)
             
         # Zero-order extrapolation
-        elif x.mthbc_lower == 1:
+        elif x.mthbc_upper == 1:
             #qbc[:grid.mbc,...] = qbc[grid.mbc,...]
             list_from = [(grid.x.n + grid.mbc -1 ) for i in xrange(grid.mbc)]      
             list_to = [i for i in xrange(grid.x.n + grid.mbc, grid.x.n + 2*grid.mbc)]
@@ -416,14 +485,15 @@ class ClawSolver1D(ClawSolver):
             is_to = PETSc.IS().createGeneral(list_to )
         
             q_scatter = PETSc.Scatter().create(grid.gqVec, is_from, grid.gqVec, is_to)
-            q_scatter.scatterBegin(grid.gqVec, grid.gqVec, False, PETSc.Scatter.Mode.FORWARD)	
- 	    q_scatter.scatterEnd( grid.gqVec, grid.gqVec, False, PETSc.Scatter.Mode.FORWARD)
+            q_scatter.scatterBegin(grid.gqVec, grid.gqVec, False, PETSc.Scatter.Mode.REVERSE)	
+ 	    q_scatter.scatterEnd( grid.gqVec, grid.gqVec, False, PETSc.Scatter.Mode.REVERSE)
  	    q_scatter.destroy()
 
  	    
         # Periodic
-        elif x.mthbc_lower == 2:
+        elif x.mthbc_upper == 2:
             #qbc[:grid. mbc,...] = qbc[-2*grid.mbc:-grid.mbc,...]
+            #qbc[-grid.mbc:,...] = qbc[grid.mbc:2*grid.mbc,...]
             list_from =[i for i in xrange(grid.mbc, 2* grid.mbc)]    
             list_to =  [i for i in xrange(grid.x.n + grid.mbc, grid.x.n + 2* grid.mbc)]  
             is_from = PETSc.IS().createGeneral(list_from)
@@ -436,7 +506,7 @@ class ClawSolver1D(ClawSolver):
             
 
         # Solid wall bc
-        elif x.mthbc_lower == 3:
+        elif x.mthbc_upper == 3:
             raise NotImplementedError("Solid wall upper boundary condition not implemented.")
 
 
@@ -524,6 +594,7 @@ class ClawSolver1D(ClawSolver):
             aux_r = None
         wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,aux_global)
         
+        
         # Update loop limits, these are the limits for the Riemann solver
         # locations, which then update a grid cell value
         # We include the Riemann problem just outside of the grid so we can
@@ -546,6 +617,8 @@ class ClawSolver1D(ClawSolver):
         #else:
             #LL = 1
             #UL = local_n - 1
+
+        
         
 
         

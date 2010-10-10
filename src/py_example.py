@@ -15,7 +15,7 @@ import os
 
 import numpy as np
 
-from pyclaw.controller import Controller
+
 from pyclaw.solution import Solution, Dimension, Grid
 from pyclaw.evolve.clawpack import ClawSolver1D
 from petsc4py import PETSc
@@ -31,12 +31,9 @@ def qinit(grid):
     x2 = grid.aux_global['x2']
     
     # Create an array with fortran native ordering
-    grid.da.setUniformCoordinates()
-    xvec = grid.da.getCoordinates()  # Amal: this should be lower and upper not [0 1]
-    x = xvec.getArray()
-    x = x + grid.x.lower + 0.5*grid.x.d
-    
-    grid.empty_qbc()
+    x =grid.center(grid.x)
+   
+    grid.empty_q()
     
     # Grid
     # 
@@ -104,7 +101,7 @@ solver.mthlim = 4
 # Solve
 #status = claw.run()
 sol = {"n":init_solution}
-solver.evolve_to_time(sol,0.5)
+solver.evolve_to_time(sol,0.25)
 
 sol = sol["n"]
 # Plot
@@ -115,7 +112,6 @@ sol = sol["n"]
         #plt.subplot(2,6,n+1)
 
 
-import matplotlib.pyplot as plt
 
 viewer = PETSc.Viewer.DRAW(grid.gqVec.comm)
 OptDB = PETSc.Options()
