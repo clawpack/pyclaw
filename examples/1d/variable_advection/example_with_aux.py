@@ -64,8 +64,9 @@ def qinit(grid):
 def auxinit(grid):
     x =grid.center(grid.x)
     grid.empty_aux(1)
-    grid.aux = np.sin(x)+2
+    grid.aux = np.sin(2.*np.pi*x)+2
     grid.aux= np.reshape(grid.aux, (grid.aux.size, 1))
+    print grid.aux
 
 
     grid.gauxVec.setArray(grid.aux)
