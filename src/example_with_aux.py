@@ -27,12 +27,10 @@ def qinit(grid):
     x2 = grid.aux_global['x2']
     
     # Create an array with fortran native ordering
-    grid.da.setUniformCoordinates()
-    xvec = grid.da.getCoordinates()  # Amal: this should be lower and upper not [0 1]
-    x = xvec.getArray()
-    x = x + grid.x.lower + 0.5*grid.x.d
     
-    grid.empty_qbc()
+    x =grid.center(grid.x)
+    
+    grid.empty_q()
     
     # Grid
     # 
@@ -59,8 +57,21 @@ def qinit(grid):
     
    
            
-    # why this is here not in the homogenous step? because it needs to be set once
+    # This needs to be removed somewhare else
     grid.gqVec.setArray(grid.q)
+
+
+def auxinit(grid):
+    x =grid.center(grid.x)
+    grid.empty_aux(1)
+    grid.aux = np.sin(x)+2
+    grid.aux= np.reshape(grid.aux, (grid.aux.size, 1))
+
+
+    grid.gauxVec.setArray(grid.aux)
+    grid.da.globalToLocal(grid.gauxVec, grid.lauxVec)
+       
+    
     
     
     
@@ -77,32 +88,33 @@ grid.set_aux_global(setprob_path)
 grid.meqn = 1
 grid.t = 0.0
 qinit(grid)
+auxinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = ClawSolver1D()
+solver = ClawSolver1D(kernelsType = 'P')
 solver.dt = 0.0004
 solver.max_steps = 5000
-solver.set_riemann_solver('vc advection')
+solver.set_riemann_solver('vc_advection')
 solver.order = 2
 solver.mthlim = 4
 
 # Controller instantiation
-#claw = Controller()
-#claw.outdir = './output/py'
-#claw.keep_copy = True
-#claw.nout = 10
-#claw.outstyle = 1
-#claw.tfinal = 1.0
-#claw.solutions['n'] = init_solution
-#claw.solver = solver
+claw = Controller()
+claw.outdir = './output/py'
+claw.keep_copy = True
+claw.nout = 10
+claw.outstyle = 1
+claw.tfinal = 1.0
+claw.solutions['n'] = init_solution
+claw.solver = solver
 
 # Solve
-#status = claw.run()
-sol = {"n":init_solution}
-solver.evolve_to_time(sol,0.5)
+status = claw.run()
+#sol = {"n":init_solution}
+#solver.evolve_to_time(sol,1)
 
-sol = sol["n"]
+#sol = sol["n"]
 # Plot
 #if claw.keep_copy:
     #import matplotlib.pyplot as plt
@@ -111,12 +123,11 @@ sol = sol["n"]
         #plt.subplot(2,6,n+1)
 
 
-import matplotlib.pyplot as plt
 
-viewer = PETSc.Viewer.DRAW(grid.gqVec.comm)
-OptDB = PETSc.Options()
-OptDB['draw_pause'] = -1
-viewer(grid.gqVec)
+#viewer = PETSc.Viewer.DRAW(grid.gqVec.comm)
+#OptDB = PETSc.Options()
+#OptDB['draw_pause'] = -1
+#viewer(grid.gqVec)
 
 
 
@@ -130,3 +141,25 @@ viewer(grid.gqVec)
 #plt.axis([x.lower,x.upper,0.0,1.2])
 #plt.title('t = %s' % sol.t)
 #plt.show()
+
+# Plot
+if claw.keep_copy:
+    
+    for n in xrange(0,11):
+        sol = claw.frames[n]
+        viewer = PETSc.Viewer()
+        viewer.createDraw(   comm=sol.grid.gqVec.comm)
+
+
+        
+        OptDB = PETSc.Options()
+        OptDB['draw_pause'] = -1
+        sol.grid.gqVec.setArray(sol.grid.q)
+        sol.grid.gqVec.view(viewer)
+
+
+        
+        
+        
+   
+

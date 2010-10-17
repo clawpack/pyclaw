@@ -366,6 +366,15 @@ class Grid(object):
                                     comm=PETSc.COMM_WORLD)
         self.gqVec = self.da.createGlobalVector()
         self.lqVec = self.da.createLocalVector()
+
+        self.gauxVec = self.da.createGlobalVector()
+        self.lauxVec = self.da.createLocalVector()
+
+
+        
+
+
+        self.da.setUniformCoordinates()
     
     
     def __str__(self):

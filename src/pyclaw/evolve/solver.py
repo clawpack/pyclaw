@@ -89,7 +89,7 @@ class Solver(object):
     #  ======================================================================
     #   Initialization routines
     #  ======================================================================
-    def __init__(self,data=None):
+    def __init__(self, kernelsType ,data=None):
         r"""
         Initialize a Solver object
         
@@ -120,6 +120,8 @@ class Solver(object):
         
         # Profile times
         self.times = []
+
+        self.kernelsType = kernelsType
         
     def __str__(self):
         output = "Solver Status:\n"

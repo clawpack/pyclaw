@@ -1,7 +1,7 @@
 
 
 step1.so : step1.f limiter.o philim.o rp1.o
-	f2py -m step1 -c step1.f limiter.o rp1.o philim.o 
+	f2py -m step1 -c  step1.f limiter.o rp1.o philim.o 
 	
 limiter.o:
 	gfortran -o limiter.o -c limiter.f

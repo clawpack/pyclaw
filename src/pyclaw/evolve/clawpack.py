@@ -98,7 +98,7 @@ class ClawSolver(Solver):
     """
     
     # ========== Generic Init Routine ========================================
-    def __init__(self, data=None):
+    def __init__(self, kernelsType, data=None):
         r"""
         See :class:`ClawSolver` for full documentation.
         """
@@ -116,7 +116,7 @@ class ClawSolver(Solver):
         self._default_attr_values['start_step'] = start_step
 
         # Call general initialization function
-        super(ClawSolver,self).__init__(data)
+        super(ClawSolver,self).__init__(kernelsType,data)
     
     # ========== Setup Routine ===============================================
     def setup(self):
@@ -219,6 +219,8 @@ class ClawSolver(Solver):
         d = grid.d
         mbc = grid.mbc
         aux_global = grid.aux_global
+        local_n = q.size
+
         
 
         
@@ -233,41 +235,37 @@ class ClawSolver(Solver):
     
         # Take a step on the homogeneous problem
 
-        kernelsType = 'F'
-        if(kernelsType == 'F'):
-            
-            local_n = q.size
-
-            dtdx = np.zeros( (local_n) )
-
         
-            dtdx += self.dt/d[0]
+        if(self.kernelsType == 'F'):
+            
+            
             dt = self.dt
             dx = d[0]
-
-        
-
-
-
-
+            dtdx = np.zeros( (local_n) ) + dt/dx
+            
             maxmx = local_n -mbc*2
-            mx = local_n -mbc*2
-            aux = np.empty( (local_n , meqn) )
+            mx = maxmx
+            
+            if(aux == None):
+                aux = np.empty( (local_n , meqn) )
         
-            method =np.ones(7, dtype=int)
-            method[0] = 1  # fixed or adjustable timestep
-            method[1] = 2  # order of the method
-            method[2] = 0  # 2d, 3d
-            method[3] = 0  # info
-            method[4] = 0  # src term
-            method[5] = 0  #capa
-            method[6] = 0  # aux
+            method =np.ones(7, dtype=int) # hardcoded 7
+            method[0] = self.dt_variable  # fixed or adjustable timestep
+            method[1] = self.order  # order of the method
+            method[2] = 0  # hardcoded 0, case of 2d or 3d
+            method[3] = 0  # hardcoded 0 design issue: contorller.verbosity
+            method[4] = self.src_split  # src term
+            if (capa == None):
+                method[5] = 0  #capa
+            else:
+                method[5] = 1  #capa. amal: mcapa no longer points to the capa componenets of the aux array as in fortran. capa now is a separate arry.
+            method[6] = grid.maux  # aux
         
             mthlim = self.mthlim
         
             cfl = self.cfl
             f =  np.zeros( (local_n , meqn) )
-            mwaves = 1
+            mwaves = meqn # amal: need to be modified
 
             wave = np.empty( (local_n,meqn,mwaves) )
             s = np.empty( (local_n,mwaves) )
@@ -286,7 +284,8 @@ class ClawSolver(Solver):
             print "q after",q[25]
             print q.size
 
-        elif(kernelsType == 'P'):
+        elif(self.kernelsType == 'P'):
+            
             q = self.homogeneous_step( q, aux, capa, d, meqn, mbc, aux_global)
 
         
@@ -366,7 +365,7 @@ class ClawSolver1D(ClawSolver):
         Kyle T. Mandli (2008-09-11) Initial version
     """
 
-    def __init__(self,data=None):
+    def __init__(self,kernelsType,data=None):
         r"""
         Create 1d Clawpack solver
         
@@ -381,7 +380,7 @@ class ClawSolver1D(ClawSolver):
         exec('import pyclaw.evolve.rp as rp',globals())
         
             
-        super(ClawSolver1D,self).__init__(data)
+        super(ClawSolver1D,self).__init__(kernelsType,data)
 
     # ========== Riemann solver library routines =============================   
     def list_riemann_solvers(self):
@@ -410,6 +409,7 @@ class ClawSolver1D(ClawSolver):
          - *solver_name* - (string) Name of the solver to be used, raises a 
            ``NameError`` if the solver does not exist.
         """
+        
         if solver_name in rp.rp_solver_list_1d:
             exec("self.rp = rp.rp_%s_1d" % solver_name)
         else:

@@ -44,8 +44,17 @@ def rp_vc_advection_1d(q_l,q_r,aux_l,aux_r,aux_global):
     apdq = np.zeros( (nrp, meqn) )
     
     wave[:,0,0] = q_r[:,0] - q_l[:,0]
-    s[:,0] = aux_l
-    apdq[:,0] = (aux_l>0)*s[:,0] * wave[:,0,0]
-    amdq[:,0] = (aux_l<0)*s[:,0] * wave[:,0,0]
+
+    
+
+    print "test: aux_l size", aux_l.shape
+    print "test: s size", s[:,0].shape
+
+    # Amal: it was s[:,0] = aux_l, you need to figure it out
+    s[:,0] = aux_l[:,0]
+
+    # Amal: it was  aux_l in both lines, you need to figure it out
+    apdq[:,0] = (aux_l[:,0]>0)*s[:,0] * wave[:,0,0]
+    amdq[:,0] = (aux_l[:,0]<0)*s[:,0] * wave[:,0,0]
 
     return wave, s, amdq, apdq

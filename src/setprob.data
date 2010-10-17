@@ -1,4 +1,4 @@
-1                        =: u            # advection velocity
+-1                        =: u            # advection velocity
 100.0                     =: beta         # used for Gaussian in qinit
 0.0                       =: gamma        # used for wave packet
 0.29999999999999999       =: x0           # used for Gaussian in qinit

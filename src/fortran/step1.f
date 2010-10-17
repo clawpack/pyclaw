@@ -1,7 +1,7 @@
 c
 c
 c ===================================================================
-      subroutine step1(maxmx,meqn,mwaves,mbc,mx,q_in, q,aux,dx,dt,
+      subroutine step1(maxmx,meqn,mwaves,mbc,mx, q,aux,dx,dt,
      &              method,mthlim,cfl,f,wave,s,amdq,apdq,dtdx, u)
 c ===================================================================
 c
@@ -33,9 +33,9 @@ c     f(1-mbc:maxmx+mbc, meqn) = correction fluxes for second order method
 c            f(i,m) = mth component of flux at left edge of ith cell 
 c     --------------------------------------------------------------------
 c
-      implicit double precision (a-h,o-z)
-      double precision, intent(out) ::  q(1-mbc:maxmx+mbc, meqn)
-      double precision, intent(in) ::  q_in(1-mbc:maxmx+mbc, meqn)
+      implicit double precision (a-h,o-z)    
+      dimension q(1-mbc:maxmx+mbc,meqn)
+cf2py intent(in,out) q  
       dimension  aux(1-mbc:maxmx+mbc, *)
       dimension    f(1-mbc:maxmx+mbc, meqn)
       dimension    s(1-mbc:maxmx+mbc, mwaves)
@@ -70,7 +70,7 @@ c
 c     # solve Riemann problem at each interface 
 c     -----------------------------------------
 c
-      call rp1(maxmx,meqn,mwaves,mbc,mx,q_in,aux,wave,s,amdq,apdq, u)
+      call rp1(maxmx,meqn,mwaves,mbc,mx,q,q,aux,aux,wave,s,amdq,apdq,u)
 c
 c     # Modify q for Godunov update:
 c     # Note this may not correspond to a conservative flux-differencing
@@ -78,13 +78,9 @@ c     # for equations not in conservation form.  It is conservative if
 c     # amdq + apdq = f(q(i)) - f(q(i-1)).
 c
 
-c     # Copying q_in into q
-      do 15 i= 1-mbc, maxmx+mbc
-         do 15 m=1,meqn
-            q(i,m) = q_in(i,m)
-   15       continue
 
-      print *,"q_in before, from fortran",q_in(24,1)
+
+      
       print *,"q before, from fortran",q(24,1)
 
       do 40 i=1,mx+1

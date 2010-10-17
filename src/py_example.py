@@ -81,7 +81,8 @@ qinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = ClawSolver1D()
+solver = ClawSolver1D(kernelsType = 'F')
+
 solver.dt = 0.0004
 solver.max_steps = 5000
 solver.set_riemann_solver('advection')

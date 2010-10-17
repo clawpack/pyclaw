@@ -1,8 +1,8 @@
 c
 c
 c =========================================================
-      subroutine rp1(maxmx,meqn,mwaves,mbc,mx,q,aux,
-     &           wave,s,amdq,apdq,u)
+      subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,
+     &           wave,s,amdq,apdq, u)
 c =========================================================
 c
 c     # solve Riemann problems for the 1D advection equation q_t + u*q_x = 0.
@@ -22,8 +22,8 @@ c     # From the basic clawpack routine step1, rp is called with ql = qr = q.
 c
 c
       implicit double precision (a-h,o-z)
-      
-      dimension    q(1-mbc:maxmx+mbc, meqn)
+      dimension   ql(1-mbc:maxmx+mbc, meqn)
+      dimension   qr(1-mbc:maxmx+mbc, meqn)
       dimension    s(1-mbc:maxmx+mbc, mwaves)
       dimension wave(1-mbc:maxmx+mbc, meqn, mwaves)
       dimension amdq(1-mbc:maxmx+mbc, meqn)
@@ -36,7 +36,7 @@ c
 c
 c        # Compute the wave and speed
 c
-         wave(i,1,1) = q(i,1) - q(i-1,1)
+         wave(i,1,1) = ql(i,1) - qr(i-1,1)
          s(i,1) = u
          amdq(i,1) = dmin1(u, 0.d0) * wave(i,1,1)
          apdq(i,1) = dmax1(u, 0.d0) * wave(i,1,1)
