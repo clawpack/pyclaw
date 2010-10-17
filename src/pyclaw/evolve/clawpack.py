@@ -26,7 +26,6 @@ from pyclaw.evolve.solver import Solver
 from petsc4py import PETSc
 
 import limiters
-from step1 import step1
 
 # ========================================================================
 #  User-defined routines
@@ -237,6 +236,7 @@ class ClawSolver(Solver):
 
         
         if(self.kernelsType == 'F'):
+            from step1 import step1
             
             
             dt = self.dt

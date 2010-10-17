@@ -81,7 +81,7 @@ qinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = ClawSolver1D(kernelsType = 'F')
+solver = ClawSolver1D(kernelsType = 'P')
 
 solver.dt = 0.0004
 solver.max_steps = 5000
