@@ -3,7 +3,7 @@
 Generic code for running the fortran version of Clawpack and sending the
 results to subdirectory output of the directory from which this is executed.
 Execute via
-    $ python $CLAW/python/pyclaw/runclaw.py
+    $ python $CLAW/python/petclaw/runclaw.py
 from a directory that contains a claw.data file and a Clawpack executable.
 """
 
@@ -19,7 +19,7 @@ def runclaw(xclawcmd=None, outdir=None):
     import os
     
     # importing these modules requires $CLAW/python in PYTHONPATH:
-    from pyclaw.controller import Controller
+    from petclaw.controller import Controller
 
 
     if xclawcmd is None:
@@ -43,7 +43,7 @@ def runclaw(xclawcmd=None, outdir=None):
     returncode = clawjob.runxclaw()
     if returncode != 0:
         print '*** returncode = ', returncode, '   aborting'
-    print 'Done executing %s via pyclaw.runclaw.py' % xclawcmd
+    print 'Done executing %s via petclaw.runclaw.py' % xclawcmd
     print 'Output is in ', outdir
     
 

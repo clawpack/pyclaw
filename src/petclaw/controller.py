@@ -3,7 +3,7 @@
 r"""
 Controller for basic computation and plotting setup
 
-This module defines the Pyclaw controller class.  It can be used to perform
+This module defines the petclaw controller class.  It can be used to perform
 simulations similar to previous versions of clawpack, i.e. with outstyle and
 output time specification.  It also can be used to setup easy plotting and 
 running of compiled fortran binaries.
@@ -35,7 +35,7 @@ from evolve.solver import Solver
 from util import FrameCounter
 
 class Controller(object):
-    r"""Controller for pyclaw simulation runs and plotting
+    r"""Controller for petclaw simulation runs and plotting
             
     :Initialization:
     
@@ -59,7 +59,7 @@ class Controller(object):
                         'write_aux_always','output_format',
                         'output_file_prefix','output_options','nout',
                         'outstyle','verbosity']
-        r"""(list) - Viewable attributes of the `:class:`~pyclaw.controller.Controller`"""
+        r"""(list) - Viewable attributes of the `:class:`~petclaw.controller.Controller`"""
 
         # Global information for running and/or plotting
         self.xdir = os.getcwd()
@@ -90,7 +90,7 @@ class Controller(object):
         # Solver information
         self.solutions = {}              # Solutions dictionary
         self.solver = None
-        r"""(:class:`~pyclaw.evolve.solver.Solver`) - Solver object"""
+        r"""(:class:`~petclaw.evolve.solver.Solver`) - Solver object"""
         
         # Output parameters for run convenience method
         self.keep_copy = False 
@@ -105,7 +105,7 @@ class Controller(object):
         ``default = False``"""
         self.output_format = 'ascii'
         r"""(list of strings) - Format or list of formats to output the data, 
-        if this is None, no output is performed.  See _pyclaw_io for more info
+        if this is None, no output is performed.  See _petclaw_io for more info
         on available formats.  ``default = 'ascii'``"""
         self.output_file_prefix = None
         r"""(string) - File prefix to be appended to output files, 
@@ -136,8 +136,8 @@ class Controller(object):
         
         # Data objects
         self.plotdata = None
-        r"""(:class:`~pyclaw.plotters.data.ClawPlotData`) - An instance of a 
-        :class:`~pyclaw.plotters.data.ClawPlotData` object defining the 
+        r"""(:class:`~petclaw.plotters.data.ClawPlotData`) - An instance of a 
+        :class:`~petclaw.plotters.data.ClawPlotData` object defining the 
         objects plot parameters."""
         
         
@@ -169,10 +169,10 @@ class Controller(object):
     def plotclaw(self, datadir='.'):
         pydir = '/home/rjl/claw/trunk/claw/python'
         if sys.platform in ['cygwin', 'win32']:
-            syscmd = " C:/Python25/python.exe C:/cygwin%s/pyclaw/plotclaw.py  %s" \
+            syscmd = " C:/Python25/python.exe C:/cygwin%s/petclaw/plotclaw.py  %s" \
                    % (pydir, datadir) 
         else:
-            syscmd = " python %s/pyclaw/plotclaw.py  %s" \
+            syscmd = " python %s/petclaw/plotclaw.py  %s" \
                    % (pydir, datadir) 
         os.system(syscmd)
     
@@ -277,7 +277,7 @@ class Controller(object):
             - *claw_path* - (string) Path to write data file to
             
         :Output:
-            - (:class:`~pyclaw.data.Data`) - Data object claw_data containing 
+            - (:class:`~petclaw.data.Data`) - Data object claw_data containing 
               the appropriate data for a claw.data file.
         """
         

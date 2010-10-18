@@ -27,7 +27,7 @@ def rp_advection_1d(q_l,q_r,aux_l,aux_r,aux_global):
     *aux_global* should contain -
      - *u* - (float) Determines advection speed
     
-    See :ref:`pyclaw_rp` for more details.
+    See :ref:`petclaw_rp` for more details.
     
     :Version: 1.0 (2008-2-20)
     """

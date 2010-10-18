@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
 #  ======================================================================
-#  Package:     pyclaw.io
+#  Package:     petclaw.io
 #  File:        __init__.py
 #  Created:     Feb 10, 2008
 #  Author:      Kyle Mandli
 #  ======================================================================
-"""Output package for Pyclaw"""
+"""Output package for Petclaw"""
 
 import logging
 from ascii import read_ascii,write_ascii

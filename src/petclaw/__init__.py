@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
 #  =====================================================================
-#  Package:     pyclaw
+#  Package:     petclaw
 #  File:        __init__.py
 #  Created:     Feb 19, 2008
 #  Author:      Kyle Mandli
 #  ======================================================================
-"""Main pyclaw package"""
+"""Main petclaw package"""
 
 import os
 import logging, logging.config
@@ -21,11 +21,11 @@ __all__ = []
 
 # Module imports
 __all__.extend(['Controller','Data','Dimension','Grid','Solution'])
-from pyclaw.controller import Controller
-from pyclaw.data import Data
-from pyclaw.solution import Dimension, Grid, Solution
+from petclaw.controller import Controller
+from petclaw.data import Data
+from petclaw.solution import Dimension, Grid, Solution
 
 # Sub-packages
 import evolve
-from pyclaw.evolve import *
+from petclaw.evolve import *
 __all__.extend(evolve.__all__)

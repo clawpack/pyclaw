@@ -25,7 +25,7 @@ def rp_vc_advection_1d(q_l,q_r,aux_l,aux_r,aux_global):
     *aux(i)* should contain -
      - *u(x_i)* - (float) advection speed
     
-    See :ref:`pyclaw_rp` for more details.
+    See :ref:`petclaw_rp` for more details.
     
     :Version: 1.0 (2010-10-10)
     """

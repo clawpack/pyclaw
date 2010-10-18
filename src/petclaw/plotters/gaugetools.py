@@ -8,9 +8,9 @@ import time
 import traceback
 
 
-from pyclaw.data import Data
-from pyclaw.plotters import plotpages
-from pyclaw.plotters.frametools import set_show
+from petclaw.data import Data
+from petclaw.plotters import plotpages
+from petclaw.plotters.frametools import set_show
 
 plotter = 'matplotlib'
 if plotter == 'matplotlib':
@@ -369,7 +369,7 @@ def read_setgauges(datadir):
     """
     import os
     import numpy as np
-    from pyclaw.data import Data
+    from petclaw.data import Data
     from matplotlib.mlab import find
 
     setgauges = Data()
@@ -538,7 +538,7 @@ def printgauges(plotdata=None, verbose=True):
     """
 
     import glob
-    from pyclaw.plotters.data import ClawPlotData
+    from petclaw.plotters.data import ClawPlotData
 
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 r"""
-Module containing all Pyclaw solution objects
+Module containing all petclaw solution objects
 
 :Authors:
     Kyle T. Mandli (2008-08-07) Initial version
@@ -151,11 +151,11 @@ class Dimension(object):
 
 
 # ============================================================================
-#  Pyclaw Grid object definition
+#  petclaw Grid object definition
 # ============================================================================
 class Grid(object):
     r"""
-    Basic representation of a single grid in Pyclaw
+    Basic representation of a single grid in petclaw
     
     :Dimension information:
     
@@ -846,7 +846,7 @@ class Grid(object):
 # ============================================================================
 class Solution(object):
     r"""
-    Pyclaw grid container class
+    petclaw grid container class
         
     :Input and Output:
     

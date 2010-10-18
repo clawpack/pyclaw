@@ -19,8 +19,8 @@ import logging
 
 import numpy as np
 
-from pyclaw.util import read_data_line
-import pyclaw.solution
+from petclaw.util import read_data_line
+import petclaw.solution
 
 logger = logging.getLogger('io')
 
@@ -38,7 +38,7 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
     3 dimensions.
     
     :Input:
-     - *solution* - (:class:`~pyclaw.solution.Solution`) Pyclaw object to be 
+     - *solution* - (:class:`~petclaw.solution.Solution`) petclaw object to be 
        output.
      - *frame* - (int) Frame number
      - *path* - (string) Root path
@@ -178,7 +178,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
     Note that the fort prefix can be changed.
     
     :Input:
-     - *solution* - (:class:`~pyclaw.solution.Solution`) Solution object to 
+     - *solution* - (:class:`~petclaw.solution.Solution`) Solution object to 
        read the data into.
      - *frame* - (int) Frame number to be read in
      - *path* - (string) Path to the current directory of the file
@@ -242,8 +242,8 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
             dimensions = []
             for i in xrange(ndim):
                 dimensions.append(
-                    pyclaw.solution.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
-            grid = pyclaw.solution.Grid(dimensions)
+                    petclaw.solution.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
+            grid = petclaw.solution.Grid(dimensions)
             grid.t = t
             grid.meqn = meqn
 

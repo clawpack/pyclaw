@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 r"""
-Module specifying the interface to every solver in pyclaw.
+Module specifying the interface to every solver in petclaw.
 
 :Authors:
     Kyle T. Mandli (2008-08-19) Initial version
@@ -22,14 +22,14 @@ import logging
 import numpy as np
 
 # Clawpack modules
-from pyclaw.data import Data
+from petclaw.data import Data
 
 class Solver(object):
     r"""
-    Pyclaw solver superclass
+    petclaw solver superclass
 
     All solvers should inherit from this object as it defines the interface 
-    that the Pyclaw expects for solvers.  This mainly means the evolve_to_time
+    that the petclaw expects for solvers.  This mainly means the evolve_to_time
     exists and the solver can be initialized and called correctly.
 
     .. attribute:: dt

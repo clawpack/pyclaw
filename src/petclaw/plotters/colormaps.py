@@ -1,7 +1,7 @@
 
 """
 Module colormap for creating custom color maps.  For example...
-  >>> from pyclaw.plotting import colormaps
+  >>> from petclaw.plotting import colormaps
   >>> mycmap = colormaps.make_colormap({0:'r', 1.:'b'})  # red to blue
   >>> colormaps.showcolors(mycmap)   # displays resulting colormap
 

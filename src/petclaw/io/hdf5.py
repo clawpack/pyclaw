@@ -30,7 +30,7 @@ import logging
 
 import numpy as np
 
-import pyclaw.solution
+import petclaw.solution
 
 logger = logging.getLogger('io')
 
@@ -61,7 +61,7 @@ def write_hdf5(solution,frame,path,file_prefix='claw',write_aux=False,
     Write out a Solution to a HDF5 file.
     
     :Input:
-     - *solution* - (:class:`~pyclaw.solution.Solution`) Pyclaw solution 
+     - *solution* - (:class:`~petclaw.solution.Solution`) petclaw solution 
        object to input into
      - *frame* - (int) Frame number
      - *path* - (string) Root path
@@ -180,7 +180,7 @@ def read_hdf5(solution,frame,path='./',file_prefix='claw',read_aux=True,
     Read in a HDF5 file into a Solution
     
     :Input:
-     - *solution* - (:class:`~pyclaw.solution.Solution`) Pyclaw object to be 
+     - *solution* - (:class:`~petclaw.solution.Solution`) petclaw object to be 
        output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
@@ -212,7 +212,7 @@ def read_hdf5(solution,frame,path='./',file_prefix='claw',read_aux=True,
             dim_names = subgroup.attrs['dimensions']
             for dim_name in dim_names:
                 # Create dimension
-                dim = pyclaw.solution.Dimension(dim_name,
+                dim = petclaw.solution.Dimension(dim_name,
                                     subgroup.attrs["%s.lower" % dim_name],
                                     subgroup.attrs["%s.upper" % dim_name],
                                     subgroup.attrs["%s.n" % dim_name])                    
@@ -224,7 +224,7 @@ def read_hdf5(solution,frame,path='./',file_prefix='claw',read_aux=True,
                 dimensions.append(dim)
             
             # Create grid
-            grid = pyclaw.solution.Grid(dimensions)
+            grid = petclaw.solution.Grid(dimensions)
                 
             # Fetch general grid properties
             for attr in ['t','meqn','gridno','level']:

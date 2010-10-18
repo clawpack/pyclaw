@@ -3,7 +3,7 @@ begin_html
 
 <h2>Python scripts and modules for Clawpack</h2>
 
-<b>Directory claw/python/pyclaw</b>
+<b>Directory claw/python/petclaw</b>
 
 These need to be cleaned up, reorganized, and better documented...
 

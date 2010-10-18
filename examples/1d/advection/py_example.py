@@ -16,8 +16,8 @@ import os
 import numpy as np
 
 
-from pyclaw.solution import Solution, Dimension, Grid
-from pyclaw.evolve.clawpack import ClawSolver1D
+from petclaw.solution import Solution, Dimension, Grid
+from petclaw.evolve.clawpack import ClawSolver1D
 from petsc4py import PETSc
 
 def qinit(grid):

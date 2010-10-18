@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
 #  ======================================================================
-#  Package:     pyclaw.plotters
+#  Package:     petclaw.plotters
 #  File:        __init__.py
 #  Created:     August 6, 2009
 #  Author:      R.J. LeVeque
 #  ======================================================================
-"""Output package for Pyclaw"""
+"""Output package for petclaw"""
 
 import logging
 #from ascii import read_ascii,write_ascii

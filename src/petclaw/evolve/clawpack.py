@@ -5,7 +5,7 @@ Module containg the classic Clawpack solvers
 
 This module contains the pure and wrapped classic clawpack solvers.  All 
 clawpack solvers inherit from the :class:`ClawSolver` superclass which in turn 
-inherits from the :class:`~pyclaw.evolve.solver.Solver` superclass.  As such, 
+inherits from the :class:`~petclaw.evolve.solver.Solver` superclass.  As such, 
 the only solver classes that should be directly used should be the 
 dimensionally dependent ones such as :class:`ClawSolver1D`.
 
@@ -22,7 +22,7 @@ dimensionally dependent ones such as :class:`ClawSolver1D`.
 
 import numpy as np
 
-from pyclaw.evolve.solver import Solver
+from petclaw.evolve.solver import Solver
 from petsc4py import PETSc
 
 import limiters
@@ -88,7 +88,7 @@ class ClawSolver(Solver):
     :Initialization:
     
     Input:
-     - *data* - (:class:`~pyclaw.data.Data`) Data object, the solver will look 
+     - *data* - (:class:`~petclaw.data.Data`) Data object, the solver will look 
        for the named variables to instantiate itself.    
     Output:
      - (:class:`ClawSolver`) - Initialized clawpack solver
@@ -123,7 +123,7 @@ class ClawSolver(Solver):
         Called before any set of time steps.
         
         This routine will be called once before the solver is used via the
-        :class:`~pyclaw.controller.Controller`.  In the case of 
+        :class:`~petclaw.controller.Controller`.  In the case of 
         :class:`ClawSolver` we make sure that the :attr:`mthlim` is a list.
         """
     
@@ -137,7 +137,7 @@ class ClawSolver(Solver):
         List available Riemann solvers 
         
         This routine returns a list of available Riemann solvers which is
-        constructed in the Riemann solver package (:ref:`pyclaw_rp`).  In this 
+        constructed in the Riemann solver package (:ref:`petclaw_rp`).  In this 
         case it lists all Riemann solvers.
         
         :Output:
@@ -192,10 +192,10 @@ class ClawSolver(Solver):
            (:attr:`src_split` = 1)
 
         This routine is called from the method evolve_to_time defined in the
-        pyclaw.evolve.solver.Solver superclass.
+        petclaw.evolve.solver.Solver superclass.
 
         :Input:
-         - *solutions* - (:class:`~pyclaw.solution.Solution`) Dictionary of 
+         - *solutions* - (:class:`~petclaw.solution.Solution`) Dictionary of 
            solutions to be evolved
          
         :Output: 
@@ -224,10 +224,10 @@ class ClawSolver(Solver):
 
         
 
-        # Call b4step, pyclaw should be subclassed if this is needed
+        # Call b4step, petclaw should be subclassed if this is needed
         self.start_step(self,solutions)
 
-        # Source term splitting, pyclaw should be subclassed if this 
+        # Source term splitting, petclaw should be subclassed if this 
         # is needed
         if self.src_split == 2:
             self.src(self,solutions,solutions['n'].t, self.dt/2.0)
@@ -356,7 +356,7 @@ class ClawSolver1D(ClawSolver):
     :Initialization:
     
     Input:
-     - *data* - (:class:`~pyclaw.data.Data`) An instance of a Data object whose
+     - *data* - (:class:`~petclaw.data.Data`) An instance of a Data object whose
        parameters can be used to initialize this solver
     Output:
      - (:class:`ClawSolver1D`) - Initialized 1d clawpack solver
@@ -377,7 +377,7 @@ class ClawSolver1D(ClawSolver):
         self._default_attr_values['rp'] = None
         
         # Import Riemann solvers
-        exec('import pyclaw.evolve.rp as rp',globals())
+        exec('import petclaw.evolve.rp as rp',globals())
         
             
         super(ClawSolver1D,self).__init__(kernelsType,data)
@@ -388,7 +388,7 @@ class ClawSolver1D(ClawSolver):
         List available Riemann solvers 
         
         This routine returns a list of available Riemann solvers which is
-        constructed in the Riemann solver package (_pyclaw_rp).  In this case
+        constructed in the Riemann solver package (_petclaw_rp).  In this case
         it lists only the 1D Riemann solvers.
         
         :Output:
@@ -550,7 +550,7 @@ class ClawSolver1D(ClawSolver):
         appropriate Riemann solver rp.
 
         :Input:
-         - *solutions* - (:class:`~pyclaw.solution.Solution`) Solution that 
+         - *solutions* - (:class:`~petclaw.solution.Solution`) Solution that 
            will be evolved
 
         :Version: 1.0 (2009-07-01)

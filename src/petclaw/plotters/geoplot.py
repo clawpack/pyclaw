@@ -2,7 +2,7 @@
 Useful things for plotting GeoClaw results.
 """
 
-from pyclaw.plotters import colormaps
+from petclaw.plotters import colormaps
 
 # Colormaps from geoclaw
 # Color attributes, single instance per run
@@ -197,7 +197,7 @@ def plot_topo_file(topoplotdata):
 
     import os
     import pylab
-    from pyclaw.data import Data
+    from petclaw.data import Data
 
     fname = topoplotdata.fname 
     topotype = getattr(topoplotdata, 'topotype', 3)

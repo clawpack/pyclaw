@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 # ======================================================================
-#  Package:     pyclaw.plotters
+#  Package:     petclaw.plotters
 #  File:        data.py
 #  Created:     Aug 7, 2009
 #  Author:      R.J. LeVeque
@@ -16,7 +16,7 @@ import os
 import copy
 import re
 import logging
-from pyclaw.data import Data
+from petclaw.data import Data
 
 
 # ============================================================================
@@ -196,7 +196,7 @@ class ClawPlotData(Data):
         frame has previously been read and the dictionary value is returned.
         """
 
-        from pyclaw import solution
+        from petclaw import solution
 
         framesoln_dict = self.framesoln_dict
 
@@ -250,7 +250,7 @@ class ClawPlotData(Data):
         This method only works for ascii formatted files
         """
 
-        from pyclaw.io.ascii import read_ascii_t
+        from petclaw.io.ascii import read_ascii_t
         t,meqn,ngrids,maux,ndim = read_ascii_t(frameno,path=outdir)
         return t
 
@@ -359,7 +359,7 @@ class ClawPlotData(Data):
         import os
         import numpy as np
         from matplotlib.mlab import find
-        from pyclaw.plotters import gaugetools
+        from petclaw.plotters import gaugetools
         from StringIO import StringIO
     
         fname = outdir + '/fort.gauge'
@@ -418,11 +418,11 @@ class ClawPlotData(Data):
 
 
     def plotframe(self, frameno):
-        from pyclaw.plotters import frametools
+        from petclaw.plotters import frametools
         frametools.plotframe(frameno, self)
         
     def printframes(self, verbose=True):
-        #from pyclaw.plotters import frametools
+        #from petclaw.plotters import frametools
         #frametools.printframes(self, verbose)
         print "*** printframes is deprecated.  Use plotpages.plotclaw_driver"
         print "*** for added capabilities."
@@ -628,7 +628,7 @@ class ClawPlotFigure(Data):
         If type='multi_frame' it is an axes that will be plotted based on
 	all the frames, such as x-t plots or time series. (Not yet implemented)
         If type='empty' it is created without doing any plots using the
-        pyclaw tools.  Presumably the user will create a plot within an
+        petclaw tools.  Presumably the user will create a plot within an
         afteraxes command, for example.
         """
         if name is None:
@@ -823,7 +823,7 @@ class ClawPlotItem(Data):
             if plot_type == '2d_pcolor':
                 # from pylab import cm
                 # self.add_attribute('pcolor_cmap',cm.RdYlBu,True)
-                from pyclaw.plotters import colormaps
+                from petclaw.plotters import colormaps
                 self.add_attribute('pcolor_cmap',colormaps.yellow_red_blue)
                 self.add_attribute('pcolor_cmin',None)
                 self.add_attribute('pcolor_cmax',None)
@@ -832,7 +832,7 @@ class ClawPlotItem(Data):
             elif plot_type == '2d_imshow':
                 # from pylab import cm
                 # self.add_attribute('pcolor_cmap',cm.RdYlBu,True)
-                from pyclaw.plotters import colormaps
+                from petclaw.plotters import colormaps
                 self.add_attribute('imshow_cmap',colormaps.yellow_red_blue)
                 self.add_attribute('imshow_cmin',None)
                 self.add_attribute('imshow_cmax',None)
@@ -850,7 +850,7 @@ class ClawPlotItem(Data):
                 self.add_attribute('add_colorbar',False)
 
             elif plot_type == '2d_schlieren':
-                from pyclaw.plotters import colormaps
+                from petclaw.plotters import colormaps
                 self.add_attribute('schlieren_cmap',colormaps.schlieren_grays)
                 self.add_attribute('schlieren_cmin',None)
                 self.add_attribute('schlieren_cmax',None)

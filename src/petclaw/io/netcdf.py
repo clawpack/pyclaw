@@ -31,7 +31,7 @@ To install the netCDF 4 library, please see:
 import os,sys
 import logging
 
-import pyclaw.solution
+import petclaw.solution
 
 logger = logging.getLogger('io')
 
@@ -60,7 +60,7 @@ def write_netcdf(solution,frame,path,file_prefix='claw',write_aux=False,
     Write out a NetCDF data file representation of solution
     
     :Input:
-     - *solution* - (:class:`~pyclaw.solution.Solution`) Pyclaw object to be 
+     - *solution* - (:class:`~petclaw.solution.Solution`) petclaw object to be 
        output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
@@ -242,7 +242,7 @@ def read_netcdf(solution,frame,path='./',file_prefix='claw',read_aux=True,
     Read in a NetCDF data files into solution
     
     :Input:
-     - *solution* - (:class:`~pyclaw.solution.Solution`) Pyclaw object to be 
+     - *solution* - (:class:`~petclaw.solution.Solution`) petclaw object to be 
        output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
@@ -276,7 +276,7 @@ def read_netcdf(solution,frame,path='./',file_prefix='claw',read_aux=True,
             # Read in dimension attribute to keep dimension order
             dim_names = getattr(subgroup,'dim_names')
             for dim_name in dim_names:
-                dim = pyclaw.solution.Dimension(dim_name, 
+                dim = petclaw.solution.Dimension(dim_name, 
                                       getattr(subgroup,'%s.lower' % dim_name),
                                       getattr(subgroup,'%s.upper' % dim_name),
                                       getattr(subgroup,'%s.n' % dim_name))
@@ -288,7 +288,7 @@ def read_netcdf(solution,frame,path='./',file_prefix='claw',read_aux=True,
                 dimensions.append(dim)
             
             # Create grid
-            grid = pyclaw.solution.Grid(dimensions)
+            grid = petclaw.solution.Grid(dimensions)
             
             # General grid properties
             for attr in ['t','meqn','gridno','level']:

@@ -49,7 +49,7 @@ def rp_euler_roe_1d(q_l,q_r,aux_l,aux_r,aux_global):
      - *gamma1* - (float) :math:`1 - \gamma`
      - *efix* - (bool) Whether to use an entropy fix or not
     
-    See :ref:`pyclaw_rp` for more details.
+    See :ref:`petclaw_rp` for more details.
     
     :Version: 1.0 (2009-6-26)
     """

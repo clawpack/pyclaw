@@ -11,8 +11,8 @@ import time
 import traceback
 
 
-from pyclaw.data import Data
-from pyclaw.plotters import plotpages
+from petclaw.data import Data
+from petclaw.plotters import plotpages
 from matplotlib.colors import Normalize 
 
 plotter = 'matplotlib'
@@ -619,7 +619,7 @@ def plotitem2(framesoln, plotitem, current_data, gridno):
     """
 
     import numpy as np
-    from pyclaw.plotters import colormaps
+    from petclaw.plotters import colormaps
 
     plotdata = plotitem._plotdata
     plotfigure = plotitem._plotfigure
@@ -1069,7 +1069,7 @@ def printframes(plotdata=None, verbose=True):
     """
 
     import glob
-    from pyclaw.plotters.data import ClawPlotData
+    from petclaw.plotters.data import ClawPlotData
 
 
 

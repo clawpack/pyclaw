@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 r"""
-Pyclaw utility methods
+petclaw utility methods
 
 :Authors:
     Kyle T. Mandli (2008-08-07) Initial version
