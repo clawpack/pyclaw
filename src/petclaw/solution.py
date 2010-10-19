@@ -217,6 +217,19 @@ class Grid(object):
         doc = r"""(list) - List of the number of grid cells in each dimension"""
         def fget(self): return self.get_dim_attribute('n')
         return locals()
+
+    def local_n():
+        def fget(self):
+            #Amal doc
+            shape = []
+            ranges = self.da.getRanges()
+ 
+            for i in ranges:
+                shape.append(i[1]-i[0])
+            return shape
+        return locals()
+
+            
     def name():
         doc = r"""(list) - List of names of each dimension"""
         def fget(self): return self._dimensions
@@ -298,6 +311,7 @@ class Grid(object):
     dimensions = property(**dimensions())
     maux = property(**maux())
     n = property(**n())
+    local_n = property(**local_n())
     name = property(**name())
     lower = property(**lower())
     upper = property(**upper())
