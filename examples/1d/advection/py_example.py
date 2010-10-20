@@ -11,9 +11,18 @@ Example python script for solving the 1d advection equation.
 To see the equivalent example using the fortran clawpack, see fort_example.py.
 """
 
-import os
+import os, sys
 
-import numpy as np
+try:
+    import numpy as np
+    from petsc4py import PETSc
+except:
+    sys.path.append("/opt/share/ksl/petsc4py/dev-aug29/ppc450d/lib/python/")
+    sys.path.append("/opt/share/ksl/numpy/dev-aug29/ppc450d/lib/python/")
+    
+    import numpy as np
+    from petsc4py import PETSc
+
 
 
 from petclaw.solution import Solution, Dimension, Grid
