@@ -360,6 +360,14 @@ class Grid(object):
             ``default = {}``"""
         self.mapc2p = default_mapc2p
         r"""(func) - Grid mapping function"""
+
+        self.q_da = None
+        self.aux_da = None
+        self.gqVec = None
+        self.lqVec = None
+        self.gauxVec = None
+        self.lauxVec = None
+        
         
         # Dimension parsing
         if isinstance(dimensions,Dimension):
@@ -370,25 +378,7 @@ class Grid(object):
 
 
         
-        self.da = PETSc.DA().create(dim=self.ndim,
-                                    dof=self.meqn, # should be modified to reflect the update
-                                    sizes=[self.n[0]+2*self.mbc],
-                                    #periodic_type = PETSc.DA.PeriodicType.X,
-                                    #periodic_type=self.PERIODIC,
-                                    #stencil_type=self.STENCIL,
-                                    stencil_width=self.mbc,
-                                    comm=PETSc.COMM_WORLD)
-        self.gqVec = self.da.createGlobalVector()
-        self.lqVec = self.da.createLocalVector()
-
-        self.gauxVec = self.da.createGlobalVector()
-        self.lauxVec = self.da.createLocalVector()
-
-
         
-
-
-        self.da.setUniformCoordinates()
     
     
     def __str__(self):
@@ -505,6 +495,72 @@ class Grid(object):
         Returns a tuple of all dimensions' attribute attr
         """
         return [getattr(getattr(self,name),attr) for name in self._dimensions]
+
+    def init_q_petsc_structures(self):
+        r"""
+        Initilizes PETSc structures for q. It initilizes q_da, gqVec and lqVec
+        
+        """
+        nbc = [x+(2*self.mbc) for x in self.n]
+        self.q_da = PETSc.DA().create(dim=self.ndim,
+                                    dof=self.meqn, # should be modified to reflect the update
+                                    sizes=nbc, 
+                                    #periodic_type = PETSc.DA.PeriodicType.X,
+                                    #periodic_type=self.PERIODIC,
+                                    #stencil_type=self.STENCIL,
+                                    stencil_width=self.mbc,
+                                    comm=PETSc.COMM_WORLD)
+        self.gqVec = self.q_da.createGlobalVector()
+        self.lqVec = self.q_da.createLocalVector()
+        
+
+    def fill_q_petsc_structures(self):
+        r"""
+        Set global gqVec array to q. and scatter to the local vector lqVec
+        
+        """
+        
+        self.gqVec.setArray(self.q)
+        self.q_da.globalToLocal(self.gqVec, self.lqVec)
+        
+
+    def init_aux_petsc_structures(self, maux):
+        r"""
+        Initilizes PETSc structures for aux. It initilizes aux_da, gauxVec and lauxVec
+        
+        """
+        nbc = [x+(2*self.mbc) for x in self.n]
+        self.aux_da = PETSc.DA().create(dim=self.ndim,
+                                    dof=maux, # should be modified to reflect the update
+                                    sizes=nbc,  #Amal: what about for 2D, 3D
+                                    #periodic_type = PETSc.DA.PeriodicType.X,
+                                    #periodic_type=self.PERIODIC,
+                                    #stencil_type=self.STENCIL,
+                                    stencil_width=self.mbc,
+                                    comm=PETSc.COMM_WORLD)
+    
+
+        self.gauxVec = self.aux_da.createGlobalVector()
+        self.lauxVec = self.aux_da.createLocalVector()
+        
+
+
+    def fill_aux_petsc_structures(self):
+        r"""
+        Set global gauxVec array to aux. and scatter to the local vector lauxVec
+        
+        """
+
+        self.gauxVec.setArray(self.aux)
+        self.aux_da.globalToLocal(self.gauxVec, self.lauxVec)
+        
+        
+
+
+        
+        
+        
+        
     
     
     # ========== Copy functionality ==========================================
@@ -526,6 +582,15 @@ class Grid(object):
             result.aux = copy.deepcopy(self.aux)
         if self.capa is not None:
             result.capa = copy.deepcopy(self.capa)
+
+        result.init_q_petsc_structures()
+        result.init_aux_petsc_structures(self.maux)
+        result.fill_q_petsc_structures()
+        result.fill_q_petsc_structures()
+            
+
+        
+            
         result.aux_global = copy.deepcopy(self.aux_global)
         
         result.mapc2p = self.mapc2p
@@ -551,7 +616,7 @@ class Grid(object):
 
         # what about when multiple dimentions
         shape = []
-        ranges = self.da.getRanges()
+        ranges = self.q_da.getRanges()
 
         for i in ranges:
             shape.append(i[1]-i[0])
@@ -569,7 +634,7 @@ class Grid(object):
            ``default = 'C'``
         """
         shape = []
-        ranges = self.da.getRanges()
+        ranges = self.q_da.getRanges()
 
         for i in ranges:
             shape.append(i[1]-i[0])
@@ -585,7 +650,7 @@ class Grid(object):
            ``default = 'C'``
         """
         shape = []
-        ranges = self.da.getRanges()
+        ranges = self.q_da.getRanges()
 
         for i in ranges:
             shape.append(i[1]-i[0])
@@ -605,7 +670,7 @@ class Grid(object):
         """
         if shape is None:
             shape = []
-            ranges = self.da.getRanges()
+            ranges = self.aux_da.getRanges()
 
             for i in ranges:
                 shape.append(i[1]-i[0])
@@ -626,7 +691,7 @@ class Grid(object):
         """
         if shape is None:
             shape = []
-            ranges = self.da.getRanges()
+            ranges = self.aux_da.getRanges()
 
             for i in ranges:
                 shape.append(i[1]-i[0])
@@ -647,7 +712,7 @@ class Grid(object):
         """
         if shape is None:
             shape = []
-            ranges = self.da.getRanges()
+            ranges = self.aux_da.getRanges()
 
             for i in ranges:
                 shape.append(i[1]-i[0])
@@ -832,8 +897,8 @@ class Grid(object):
         doc = r"""(ndarrary(:)) - Location of all grid cell center coordinates
         for this dimension"""
 
-        self.da.setUniformCoordinates()
-        xvec = self.da.getCoordinates()  # Amal: this should be lower and upper not [0 1]
+        self.q_da.setUniformCoordinates()
+        xvec = self.q_da.getCoordinates()  # Amal: this should be lower and upper not [0 1]
         x = xvec.getArray()
         x = x + dim.lower + 0.5*dim.d
         return x
