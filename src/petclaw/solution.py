@@ -578,15 +578,20 @@ class Grid(object):
         
         if self.q is not None:
             result.q = copy.deepcopy(self.q)
+            result.init_q_petsc_structures()
+            result.fill_q_petsc_structures()
+            
         if self.aux is not None:
             result.aux = copy.deepcopy(self.aux)
+            result.init_aux_petsc_structures(self.maux)
+            result.fill_aux_petsc_structures()
         if self.capa is not None:
             result.capa = copy.deepcopy(self.capa)
 
-        result.init_q_petsc_structures()
-        result.init_aux_petsc_structures(self.maux)
-        result.fill_q_petsc_structures()
-        result.fill_q_petsc_structures()
+        
+        
+        
+        
             
 
         

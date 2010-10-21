@@ -201,20 +201,30 @@ class ClawSolver(Solver):
         :Output: 
          - (bool) - True if full step succeeded, False otherwise
         """
+        
 
 
         # Grid we will be working on
         grid = solutions['n'].grids[0]
         # Number of equations
         meqn = solutions['n'].meqn
+        maux = grid.maux
           
         
-        grid.da.globalToLocal(grid.gqVec, grid.lqVec)
+        grid.q_da.globalToLocal(grid.gqVec, grid.lqVec)
         q = grid.lqVec.getArray()
         
 
+        
+        if grid.aux is not None:
+            aux = grid.lauxVec.getArray()
+        else:
+            aux = None
+        
+
+        
+
         capa = grid.capa
-        aux = grid.aux
         d = grid.d
         mbc = grid.mbc
         aux_global = grid.aux_global
@@ -286,7 +296,7 @@ class ClawSolver(Solver):
 
         elif(self.kernelsType == 'P'):
             
-            q = self.homogeneous_step( q, aux, capa, d, meqn, mbc, aux_global)
+            q = self.homogeneous_step( q, aux, capa, d, meqn,maux, mbc, aux_global)
 
         
 
@@ -298,7 +308,7 @@ class ClawSolver(Solver):
 
         
         grid.lqVec.setArray(q)
-        grid.da.localToGlobal(grid.lqVec, grid.gqVec)
+        grid.q_da.localToGlobal(grid.lqVec, grid.gqVec)
 
         self.bc_upper(grid)
         self.bc_lower(grid)
@@ -542,7 +552,7 @@ class ClawSolver1D(ClawSolver):
 
 
     # ========== Python Homogeneous Step =====================================
-    def homogeneous_step(self,q, aux, capa, d, meqn, mbc, aux_global):
+    def homogeneous_step(self,q, aux, capa, d, meqn, maux, mbc, aux_global):
         r"""
         Take one time step on the homogeneous hyperbolic system
 
@@ -575,6 +585,8 @@ class ClawSolver1D(ClawSolver):
 
         q= np.reshape(q, (local_n,meqn)) #remove value
         #why still need reshaping while I've set the dof?
+        if aux is not None:
+            aux= np.reshape(aux, (local_n,maux)) 
         
         
         
