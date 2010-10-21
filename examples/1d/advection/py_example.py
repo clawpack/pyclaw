@@ -13,9 +13,12 @@ To see the equivalent example using the fortran clawpack, see fort_example.py.
 
 import os, sys
 
+
+
 try:
     import numpy as np
     from petsc4py import PETSc
+    
 except:
     sys.path.append("/opt/share/ksl/petsc4py/dev-aug29/ppc450d/lib/python/")
     sys.path.append("/opt/share/ksl/numpy/dev-aug29/ppc450d/lib/python/")
@@ -28,8 +31,12 @@ except:
 from petclaw.solution import Solution, Dimension, Grid
 from petclaw.evolve.clawpack import ClawSolver1D
 from petsc4py import PETSc
+from petclaw.controller import Controller
 
 def qinit(grid):
+
+    # Initilize petsc Structures for q
+    grid.init_q_petsc_structures()
     
     # Initial Data parameters
     ic = grid.aux_global['ic']
@@ -69,8 +76,9 @@ def qinit(grid):
     
    
            
-    # why this is here not in the homogenous step? because it needs to be set once
-    grid.gqVec.setArray(grid.q)
+    
+    # fill the petsc global and local q vectors  with the array q
+    grid.fill_q_petsc_structures()
     
     
     
@@ -98,45 +106,52 @@ solver.set_riemann_solver('advection')
 solver.order = 2
 solver.mthlim = 4
 
-# Controller instantiation
-#claw = Controller()
-#claw.outdir = './output/py'
-#claw.keep_copy = True
-#claw.nout = 10
-#claw.outstyle = 1
-#claw.tfinal = 1.0
-#claw.solutions['n'] = init_solution
-#claw.solver = solver
-
-# Solve
-#status = claw.run()
-sol = {"n":init_solution}
-solver.evolve_to_time(sol,0.25)
-
-sol = sol["n"]
-# Plot
-#if claw.keep_copy:
-    #import matplotlib.pyplot as plt
-    #for n in xrange(0,11):
-        #sol = claw.frames[n]
-        #plt.subplot(2,6,n+1)
+useController = True
+makePlot = True
 
 
+if useController:
 
-viewer = PETSc.Viewer.DRAW(grid.gqVec.comm)
-OptDB = PETSc.Options()
-OptDB['draw_pause'] = -1
-viewer(grid.gqVec)
+    # Controller instantiation
+    claw = Controller()
+    claw.outdir = './output/py_withController'
+    claw.keep_copy = True
+    claw.nout = 10
+    claw.outstyle = 1
+    claw.tfinal = 1.0
+    claw.solutions['n'] = init_solution
+    claw.solver = solver
+
+    # Solve
+    status = claw.run()
+
+    if makePlot:
+        if claw.keep_copy:
+    
+            for n in xrange(0,11):
+                sol = claw.frames[n]
+                plotTitle="time: {0}".format(sol.t)
+                viewer = PETSc.Viewer()
+                viewer.createDraw(  title = plotTitle,  comm=sol.grid.gqVec.comm)
 
 
+        
+                OptDB = PETSc.Options()
+                OptDB['draw_pause'] = -1
+                sol.grid.gqVec.view(viewer)
 
-#xvec = grid.da.getCoordinates()  #  this should be lower and upper not [0 1]
-#x_center = xvec.getArray()
-#x_center = x_center + grid.x.lower + 0.5*grid.x.d
+
+else:
+    sol = {"n":init_solution}
+    solver.evolve_to_time(sol,0.25)
+
+    sol = sol["n"]
+
+    if makePlot:
+        viewer = PETSc.Viewer.DRAW(grid.gqVec.comm)
+        OptDB = PETSc.Options()
+        OptDB['draw_pause'] = -1
+        viewer(grid.gqVec)
+        
 
 
-
-#plt.plot(x_center,sol.q[:,0])
-#plt.axis([x.lower,x.upper,0.0,1.2])
-#plt.title('t = %s' % sol.t)
-#plt.show()
