@@ -314,10 +314,8 @@ class ClawSolver(Solver):
         self.bc_lower(grid)
         
         
-
-        
         grid.q = grid.gqVec.getArray()
-        grid.q= np.reshape(grid.q, (grid.q.size,grid.meqn))
+        grid.q= np.reshape(grid.q, (grid.q.size/grid.meqn,grid.meqn))
 
         
 
@@ -569,7 +567,7 @@ class ClawSolver1D(ClawSolver):
         # Limiter to use in the pth family
         limiter = np.array(self.mthlim,ndmin=1)
          
-        local_n = q.size
+        local_n = q.size/meqn
         # Flux vector
         f = np.empty( (local_n, meqn) )
     
@@ -581,9 +579,8 @@ class ClawSolver1D(ClawSolver):
         else:
             dtdx += self.dt/d[0]
 
-
-
-        q= np.reshape(q, (local_n,meqn)) #remove value
+        q.shape = (local_n,-1)
+        #q= np.reshape(q, (local_n,meqn)) #remove value
         #why still need reshaping while I've set the dof?
         if aux is not None:
             aux= np.reshape(aux, (local_n,maux)) 

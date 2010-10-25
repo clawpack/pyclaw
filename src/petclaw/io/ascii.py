@@ -67,8 +67,8 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
         f.write("%18.8e     time\n" % solution.t)
         f.write("%5i                  meqn\n" % solution.meqn)
         f.write("%5i                  ngrids\n" % len(solution.grids))
-        f.write("%5i                  maux\n" % solution.ndim)
-        f.write("%5i                  ndim\n" % solution.maux)
+        f.write("%5i                  maux\n" % solution.maux)
+        f.write("%5i                  ndim\n" % solution.ndim)
         f.close()
         
         # Open fort.qxxxx for writing
