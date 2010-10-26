@@ -26,6 +26,7 @@ from petclaw.evolve.solver import Solver
 from petsc4py import PETSc
 
 import limiters
+from mpi4py import MPI
 
 # ========================================================================
 #  User-defined routines
@@ -440,24 +441,21 @@ class ClawSolver1D(ClawSolver):
         # Zero-order extrapolation
         elif x.mthbc_lower == 1:
             #qbc[:grid.mbc,...] = qbc[grid.mbc,...]
-            list_from =[grid.mbc for i in xrange(grid.mbc)]    
-            list_to = [i for i in xrange(grid.mbc)]
-            is_from = PETSc.IS().createGeneral(list_from)
-            is_to = PETSc.IS().createGeneral(list_to )
-        
-            q_scatter = PETSc.Scatter().create(grid.gqVec, is_from, grid.gqVec, is_to)
-            q_scatter.scatterBegin(grid.gqVec, grid.gqVec, False, PETSc.Scatter.Mode.FORWARD)	
- 	    q_scatter.scatterEnd( grid.gqVec, grid.gqVec, False, PETSc.Scatter.Mode.FORWARD)
- 	    q_scatter.destroy()
-         
-            
+            list_from =[grid.mbc]*grid.mbc    
+            list_to = range(grid.mbc)
+            q=grid.gqVec.getArray()
+            local_n=q.size/grid.meqn           
+            q= np.reshape(q, (local_n,grid.meqn))
+            q[list_to,:]=q[list_from,:]
+            grid.gqVec.setArray(q)
+
            
         # Periodic
         elif x.mthbc_lower == 2:
             #qbc[:grid.mbc,...] = qbc[-2*grid.mbc:-grid.mbc,...]
             # no of elmts = grid.mbc [0, .., mbc-1] [grid.n, ...,grid.n+grid.mbc-1]
-            list_from = [i for i in xrange(grid.x.n, grid.x.n + grid.mbc)]
-            list_to = [i for i in xrange(grid.mbc)]
+            list_from = range(grid.x.n, grid.x.n + grid.mbc)
+            list_to = range(grid.mbc)
             is_from = PETSc.IS().createGeneral(list_from)
             is_to = PETSc.IS().createGeneral(list_to )
         
@@ -487,23 +485,21 @@ class ClawSolver1D(ClawSolver):
         # Zero-order extrapolation
         elif x.mthbc_upper == 1:
             #qbc[:grid.mbc,...] = qbc[grid.mbc,...]
-            list_from = [(grid.x.n + grid.mbc -1 ) for i in xrange(grid.mbc)]      
-            list_to = [i for i in xrange(grid.x.n + grid.mbc, grid.x.n + 2*grid.mbc)]
-            is_from = PETSc.IS().createGeneral(list_from)
-            is_to = PETSc.IS().createGeneral(list_to )
-        
-            q_scatter = PETSc.Scatter().create(grid.gqVec, is_from, grid.gqVec, is_to)
-            q_scatter.scatterBegin(grid.gqVec, grid.gqVec, False, PETSc.Scatter.Mode.REVERSE)	
- 	    q_scatter.scatterEnd( grid.gqVec, grid.gqVec, False, PETSc.Scatter.Mode.REVERSE)
- 	    q_scatter.destroy()
+            list_from = [(grid.x.n + grid.mbc -1 ) for i in xrange(grid.mbc)]
+            list_to = range(grid.x.n + grid.mbc, grid.x.n + 2*grid.mbc)
+            q=grid.gqVec.getArray()
+            local_n=q.size/grid.meqn           
+            q= np.reshape(q, (local_n,grid.meqn))
+            q[list_to,:]=q[list_from,:]
+            grid.gqVec.setArray(q)
 
  	    
         # Periodic
         elif x.mthbc_upper == 2:
             #qbc[:grid. mbc,...] = qbc[-2*grid.mbc:-grid.mbc,...]
             #qbc[-grid.mbc:,...] = qbc[grid.mbc:2*grid.mbc,...]
-            list_from =[i for i in xrange(grid.mbc, 2* grid.mbc)]    
-            list_to =  [i for i in xrange(grid.x.n + grid.mbc, grid.x.n + 2* grid.mbc)]  
+            list_from =range(grid.mbc, 2* grid.mbc)   
+            list_to =  range(grid.x.n + grid.mbc, grid.x.n + 2* grid.mbc) 
             is_from = PETSc.IS().createGeneral(list_from)
             is_to = PETSc.IS().createGeneral(list_to )
         
@@ -568,6 +564,7 @@ class ClawSolver1D(ClawSolver):
         limiter = np.array(self.mthlim,ndmin=1)
          
         local_n = q.size/meqn
+        q= np.reshape(q, (local_n,meqn))
         # Flux vector
         f = np.empty( (local_n, meqn) )
     
@@ -579,9 +576,6 @@ class ClawSolver1D(ClawSolver):
         else:
             dtdx += self.dt/d[0]
 
-        q.shape = (local_n,-1)
-        #q= np.reshape(q, (local_n,meqn)) #remove value
-        #why still need reshaping while I've set the dof?
         if aux is not None:
             aux= np.reshape(aux, (local_n,maux)) 
         

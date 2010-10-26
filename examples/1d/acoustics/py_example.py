@@ -55,7 +55,7 @@ example_path = './'
 setprob_path = os.path.join(example_path,'setprob.data')
 
 # Initialize grids and solutions
-x = Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
+x = Dimension('x',0.0,1.0,100,mthbc_lower=1,mthbc_upper=1)
 meqn = 2
 grid = Grid(x)
 grid.set_aux_global(setprob_path)
