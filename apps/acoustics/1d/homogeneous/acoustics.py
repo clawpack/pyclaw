@@ -81,7 +81,7 @@ if useController:
 
     # Controller instantiation
     claw = Controller()
-    claw.outdir = './output/py_withController'
+    claw.outdir = './_output/'
     claw.keep_copy = True
     claw.nout = 50
     claw.outstyle = 1
