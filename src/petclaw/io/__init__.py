@@ -26,4 +26,13 @@ try:
     from netcdf import read_netcdf, write_netcdf
     __all__ += ['read_netcdf','write_netcdf']
 except(ImportError):
-    logging.debug("No netcdf4 support found.")
+    logging.debug("No netcdf support found.")
+
+# Check for petsc4py support
+try:
+    import petsc_io
+    from petsc_io import read_petsc, write_petsc
+    __all__ += ['read_petsc','write_petsc']
+except(ImportError):
+    logging.debug("No petsc support found.")
+    

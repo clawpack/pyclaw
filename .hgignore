@@ -1,6 +1,8 @@
 syntax: glob
 *~
+*.pyc
 *.aux
 *.log
 *.out
+*/output/*
 doc/*.pdf
