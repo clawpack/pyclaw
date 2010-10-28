@@ -26,14 +26,10 @@ logger = logging.getLogger('io')
 
 from petsc4py import PETSc
 from mpi4py import MPI
-
-try:
-    import cPickle as pickle
-except:
-    import pickle
+import pickle
     
 
-def write_petscio(solution,frame,path='./',file_prefix='claw',write_aux=False,options={}):
+def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,options={}):
     r"""
         Write out pickle and PETSc data files representing the
         solution.  Common data is written from process 0 in pickle
@@ -59,7 +55,7 @@ def write_petscio(solution,frame,path='./',file_prefix='claw',write_aux=False,op
     """
 
     # Option parsing
-    option_defaults = {'format':'ascii','clobber':True}
+    option_defaults = {'format':'binary','clobber':True}
 
     for (k,v) in option_defaults.iteritems():
         if options.has_key(k):
@@ -68,11 +64,7 @@ def write_petscio(solution,frame,path='./',file_prefix='claw',write_aux=False,op
             options[k] = option_defaults[k]
 
     clobber = options['clobber']
-
-    if frame < 0:
-        # Don't construct file names with negative frameno values.
-        raise IOError("Frame " + str(frame) + " does not exist ***")
-
+    
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
 
@@ -92,10 +84,10 @@ def write_petscio(solution,frame,path='./',file_prefix='claw',write_aux=False,op
 
     rank = MPI.COMM_WORLD.rank
     if rank==0:
-        pickle_file = open(pickle_filename,'w')
+        pickle_file = open(pickle_filename,'wb')
         # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
         pickle.dump({'t':solution.t,'meqn':solution.meqn,'ngrids':len(solution.grids),
-                     'maux':solution.maux,'ndim':solution.ndim, 'write_aux':write_aux}, pickle_file)
+                     'maux':solution.maux,'ndim':solution.ndim,'write_aux':write_aux}, pickle_file)
         
     # now set up the PETSc viewers
     if options['format'] == 'ascii':
@@ -111,7 +103,8 @@ def write_petscio(solution,frame,path='./',file_prefix='claw',write_aux=False,op
     
     for grid in solution.grids:
         if rank==0:
-            pickle.dump(grid, pickle_file)
+            pickle.dump({'gridno':grid.gridno,'level':grid.level,
+                         'dimensions':grid.dimensions}, pickle_file)
 
         grid.gqVec.view(viewer)
         
@@ -123,7 +116,7 @@ def write_petscio(solution,frame,path='./',file_prefix='claw',write_aux=False,op
     if rank==0:
         pickle_file.close()
 
-def read_petscio(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
+def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
     r"""
     Read in pickles and PETSc data files representing the solution
     
@@ -146,7 +139,7 @@ def read_petscio(solution,frame,path='./',file_prefix='claw',read_aux=False,opti
     """
 
     # Option parsing
-    option_defaults = {'format':'ascii'}
+    option_defaults = {'format':'binary'}
 
     for (k,v) in option_defaults.iteritems():
         if options.has_key(k):
@@ -155,17 +148,14 @@ def read_petscio(solution,frame,path='./',file_prefix='claw',read_aux=False,opti
             options[k] = option_defaults[k]
     
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
-    viewer_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
+    viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
     aux_filename = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
-
-    in_file = open(filename,'r')
-    in_dict = pickle.load(in_file)
 
     if frame < 0:
         # Don't construct file names with negative frameno values.
         raise IOError("Frame " + str(frame) + " does not exist ***")
 
-    pickle_file = open(pickle_filename,'r')
+    pickle_file = open(pickle_filename,'rb')
 
     # this dictionary is mostly holding debugging information, only ngrids is needed
     # most of this information is explicitly saved in the individual grids
@@ -186,10 +176,30 @@ def read_petscio(solution,frame,path='./',file_prefix='claw',read_aux=False,opti
         raise IOError('format type %s not supported' % options['format'])
 
     for m in xrange(ngrids):
-        grid = pickle.load(pickle_file)
-        grid.gqVec = PETSc.Vec.load(viewer)
+        grid_dict = pickle.load(pickle_file)
+
+        gridno  = grid_dict['gridno']
+        level   = grid_dict['level']
+
+        dimensions = grid_dict['dimensions']
+        
+        grid = petclaw.solution.Grid(dimensions)
+        grid.t = value_dict['t']
+        grid.meqn = value_dict['meqn']
+
+        grid.gqVec = PETSc.Vec().load(viewer)
+
         if read_aux:
-            grid.gauxVec = PETSc.Vec.load(aux_viewer)
+            grid.gauxVec = PETSc.Vec().load(aux_viewer)
 
         # still need to rebuild the DAs on the fly
+
+        # Add AMR attributes:
+        grid.gridno = gridno
+        grid.level = level 
         solution.grids.append(grid)
+
+    pickle_file.close()
+    viewer.destroy()
+    if read_aux:
+        aux_viewer.destroy()
