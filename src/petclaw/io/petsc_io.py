@@ -196,13 +196,35 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         grid.t = value_dict['t']
         grid.meqn = value_dict['meqn']
 
+        nbc = [x+(2*grid.mbc) for x in grid.n]
+        grid.q_da = PETSc.DA().create(
+            dim=grid.ndim,
+            dof=grid.meqn, # should be modified to reflect the update
+            sizes=nbc, 
+            #periodic_type = PETSc.DA.PeriodicType.X,
+            #periodic_type=grid.PERIODIC,
+            #stencil_type=grid.STENCIL,
+            stencil_width=grid.mbc,
+            comm=PETSc.COMM_WORLD)
+
         grid.gqVec = PETSc.Vec().load(viewer)
+        grid.q = grid.gqVec.getArray().copy()
+        grid.q.shape = (grid.q.size/grid.meqn,grid.meqn)
 
         if read_aux:
+            nbc = [x+(2*grid.mbc) for x in grid.n]
+            grid.aux_da = PETSc.DA().create(dim=grid.ndim,
+                dof=maux, # should be modified to reflect the update
+                sizes=nbc,  #Amal: what about for 2D, 3D
+                #periodic_type = PETSc.DA.PeriodicType.X,
+                #periodic_type=grid.PERIODIC,
+                #stencil_type=grid.STENCIL,
+                stencil_width=grid.mbc,
+                comm=PETSc.COMM_WORLD)
             grid.gauxVec = PETSc.Vec().load(aux_viewer)
-
-        # still need to rebuild the DAs on the fly
-
+            grid.aux = grid.gauxVec.getArray().copy()
+            grid.aux.shape = (grid.aux.size/grid.meqn,grid.meqn)
+            
         # Add AMR attributes:
         grid.gridno = gridno
         grid.level = level 

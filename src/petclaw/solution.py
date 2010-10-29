@@ -878,15 +878,15 @@ class Grid(object):
             
             # For one dimension, the center and edge arrays are equivalent
             if self.ndim == 1:
-                self._c_center[0] = self.center(self._dimensions[0])
+                self._c_center[0] = self.center(self.dimensions[0])
             else:
                 # Produce ndim mesh grid function
                 mgrid = np.lib.index_tricks.nd_grid()
-            
+
                 # Create index arrays
                 index_str = ','.join(('0:self.%s.n' % dim for dim in self._dimensions))
                 exec('index = mgrid[%s]' % index_str)
-            
+
                 # Create c_center array
                 index_str = ','.join((':' for dim in self._dimensions))
                 for i in xrange(self.ndim):
@@ -912,7 +912,7 @@ class Grid(object):
             self._c_edge = [None for i in xrange(self.ndim)]
             
             if self.ndim == 1:
-                self._c_edge[0] = self.dimensions[0].edge
+                self._c_edge[0] = self.edge(self.dimensions[0])
             else:
                 # Produce ndim mesh grid function
                 mgrid = np.lib.index_tricks.nd_grid()
@@ -939,11 +939,10 @@ class Grid(object):
     def edge(self, dim):
         doc = r"""(ndarrary(:)) - Location of all grid cell edge coordinates
         for this dimension"""
-        
-        
-        self._edge = np.empty(self.n+1)   
-        for i in xrange(0,self.n+1):
-            self.edge[i] = self.lower + i*self.d 
+
+        self._edge = np.empty(dim.n+1)   
+        for i in xrange(0,dim.n+1):
+            self._edge[i] = dim.lower + i*dim.d 
             
 
 
