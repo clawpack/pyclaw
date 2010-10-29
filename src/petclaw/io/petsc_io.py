@@ -88,7 +88,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
         # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
         pickle.dump({'t':solution.t,'meqn':solution.meqn,'ngrids':len(solution.grids),
                      'maux':solution.maux,'ndim':solution.ndim,'write_aux':write_aux}, pickle_file)
-        
+
     # now set up the PETSc viewers
     if options['format'] == 'ascii':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.WRITE)
@@ -104,7 +104,8 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
     for grid in solution.grids:
         if rank==0:
             pickle.dump({'gridno':grid.gridno,'level':grid.level,
-                         'dimensions':grid.dimensions}, pickle_file)
+                         'names':grid.name,'lower':grid.lower,
+                         'n':grid.n,'d':grid.d}, pickle_file)
 
         grid.gqVec.view(viewer)
         
@@ -160,8 +161,9 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     # this dictionary is mostly holding debugging information, only ngrids is needed
     # most of this information is explicitly saved in the individual grids
     value_dict = pickle.load(pickle_file)
-    ngrids = value_dict['ngrids']                    
+    ngrids   = value_dict['ngrids']                    
     read_aux = value_dict['write_aux']
+    ndim     = value_dict['ndim']
 
     # now set up the PETSc viewer
     if options['format'] == 'ascii':
@@ -180,10 +182,17 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
 
         gridno  = grid_dict['gridno']
         level   = grid_dict['level']
-
-        dimensions = grid_dict['dimensions']
-        
+        names   = grid_dict['names']
+        lower   = grid_dict['lower']
+        n       = grid_dict['n']
+        d       = grid_dict['d']
+                
+        dimensions = []
+        for i in xrange(ndim):
+            dimensions.append(
+                petclaw.solution.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
         grid = petclaw.solution.Grid(dimensions)
+
         grid.t = value_dict['t']
         grid.meqn = value_dict['meqn']
 

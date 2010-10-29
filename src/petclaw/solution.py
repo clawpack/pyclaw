@@ -878,7 +878,7 @@ class Grid(object):
             
             # For one dimension, the center and edge arrays are equivalent
             if self.ndim == 1:
-                self._c_center[0] = self.center(dimensions[0])
+                self._c_center[0] = self.center(self._dimensions[0])
             else:
                 # Produce ndim mesh grid function
                 mgrid = np.lib.index_tricks.nd_grid()
