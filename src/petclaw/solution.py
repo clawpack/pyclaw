@@ -529,12 +529,46 @@ class Grid(object):
         Initilizes PETSc structures for q. It initilizes q_da, gqVec and lqVec
         
         """
-        nbc = [x+(2*self.mbc) for x in self.n]
+
+        periodic = False
+        for dimension in self.dimensions:
+            if dimension.mthbc_lower == 2 or dimension.mthbc_upper == 2:
+                periodic = True
+                break
+                
+        if self.ndim == 1:
+            if periodic:
+                periodic_type = PETSc.DA.PeriodicType.X
+            else:
+                periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
+                
+            
+
+        elif self.ndim == 2:
+            if periodic:
+                periodic_type = PETSc.DA.PeriodicType.XY
+            else:
+                periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
+                
+           
+
+        elif self.ndim == 3:
+            if periodic:
+                periodic_type = PETSc.DA.PeriodicType.XYZ
+            else:
+                periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
+               
+            
+
+        else:
+            raise Exception("Invalid number of dimensions")
+
+
+        
         self.q_da = PETSc.DA().create(dim=self.ndim,
                                     dof=self.meqn, # should be modified to reflect the update
-                                    sizes=nbc, 
-                                    #periodic_type = PETSc.DA.PeriodicType.X,
-                                    #periodic_type=self.PERIODIC,
+                                    sizes=self.n, 
+                                    periodic_type = periodic_type,
                                     #stencil_type=self.STENCIL,
                                     stencil_width=self.mbc,
                                     comm=PETSc.COMM_WORLD)
@@ -557,11 +591,12 @@ class Grid(object):
         Initilizes PETSc structures for aux. It initilizes aux_da, gauxVec and lauxVec
         
         """
-        nbc = [x+(2*self.mbc) for x in self.n]
+        periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
+        
         self.aux_da = PETSc.DA().create(dim=self.ndim,
                                     dof=maux, # should be modified to reflect the update
-                                    sizes=nbc,  #Amal: what about for 2D, 3D
-                                    #periodic_type = PETSc.DA.PeriodicType.X,
+                                    sizes=self.n,  #Amal: what about for 2D, 3D
+                                    periodic_type = periodic_type,
                                     #periodic_type=self.PERIODIC,
                                     #stencil_type=self.STENCIL,
                                     stencil_width=self.mbc,
