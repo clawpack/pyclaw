@@ -440,29 +440,25 @@ class ClawSolver1D(ClawSolver):
             
         # Zero-order extrapolation
         elif x.mthbc_lower == 1:
-            #qbc[:grid.mbc,...] = qbc[grid.mbc,...]
-            list_from =[grid.mbc]*grid.mbc    
-            list_to = range(grid.mbc)
-            q=grid.gqVec.getArray()
-            local_n=q.size/grid.meqn           
-            q= np.reshape(q, (local_n,grid.meqn))
-            q[list_to,:]=q[list_from,:]
-            grid.gqVec.setArray(q)
+            
 
+            ##specify rank
+            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
+            if rank == 0:
+                list_from =[grid.mbc]*grid.mbc    
+                list_to = range(grid.mbc)
+                q=grid.lqVec.getArray()
+                local_n=q.size/grid.meqn           
+                q= np.reshape(q, (local_n,grid.meqn))
+                q[list_to,:]=q[list_from,:]
+                grid.lqVec.setArray(q)
+                
+         
+            
            
         # Periodic
         elif x.mthbc_lower == 2:
-            #qbc[:grid.mbc,...] = qbc[-2*grid.mbc:-grid.mbc,...]
-            # no of elmts = grid.mbc [0, .., mbc-1] [grid.n, ...,grid.n+grid.mbc-1]
-            list_from = range(grid.x.n, grid.x.n + grid.mbc)
-            list_to = range(grid.mbc)
-            is_from = PETSc.IS().createGeneral(list_from)
-            is_to = PETSc.IS().createGeneral(list_to )
-        
-            q_scatter = PETSc.Scatter().create(grid.gqVec, is_from, grid.gqVec, is_to)
-            q_scatter.scatterBegin(grid.gqVec, grid.gqVec, False, PETSc.Scatter.Mode.FORWARD)	
- 	    q_scatter.scatterEnd( grid.gqVec, grid.gqVec, False, PETSc.Scatter.Mode.FORWARD)
- 	    q_scatter.destroy()
+            pass # Amal: this is implemented automatically by petsc4py
             
         # Solid wall bc
         elif x.mthbc_lower == 3:
@@ -484,30 +480,28 @@ class ClawSolver1D(ClawSolver):
             
         # Zero-order extrapolation
         elif x.mthbc_upper == 1:
-            #qbc[:grid.mbc,...] = qbc[grid.mbc,...]
-            list_from = [(grid.x.n + grid.mbc -1 ) for i in xrange(grid.mbc)]
-            list_to = range(grid.x.n + grid.mbc, grid.x.n + 2*grid.mbc)
-            q=grid.gqVec.getArray()
-            local_n=q.size/grid.meqn           
-            q= np.reshape(q, (local_n,grid.meqn))
-            q[list_to,:]=q[list_from,:]
-            grid.gqVec.setArray(q)
+
+            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
+            size = PETSc.Comm.getSize(PETSc.COMM_WORLD)
+            
+            if rank == size-1:
+                q=grid.lqVec.getArray()
+                local_n=q.size/grid.meqn
+                q= np.reshape(q, (local_n,grid.meqn))
+                list_from =[local_n - grid.mbc -1]*grid.mbc    
+                list_to = range(local_n - grid.mbc, local_n )
+                
+                           
+                
+                q[list_to,:]=q[list_from,:]
+                grid.lqVec.setArray(q)
+
+                
 
  	    
         # Periodic
         elif x.mthbc_upper == 2:
-            #qbc[:grid. mbc,...] = qbc[-2*grid.mbc:-grid.mbc,...]
-            #qbc[-grid.mbc:,...] = qbc[grid.mbc:2*grid.mbc,...]
-            list_from =range(grid.mbc, 2* grid.mbc)   
-            list_to =  range(grid.x.n + grid.mbc, grid.x.n + 2* grid.mbc) 
-            is_from = PETSc.IS().createGeneral(list_from)
-            is_to = PETSc.IS().createGeneral(list_to )
-        
-            q_scatter = PETSc.Scatter().create(grid.gqVec, is_from, grid.gqVec, is_to)
-            q_scatter.scatterBegin(grid.gqVec, grid.gqVec, False, PETSc.Scatter.Mode.FORWARD)	
- 	    q_scatter.scatterEnd( grid.gqVec, grid.gqVec, False, PETSc.Scatter.Mode.FORWARD)
- 	    q_scatter.destroy()
-            
+            pass # Amal: this is implemented automatically by petsc4py
 
         # Solid wall bc
         elif x.mthbc_upper == 3:
@@ -516,6 +510,7 @@ class ClawSolver1D(ClawSolver):
 
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
+
 
     # ========== Lower boundary condition user defined function default =======
     def user_bc_lower(self, grid):
@@ -637,6 +632,19 @@ class ClawSolver1D(ClawSolver):
             smax1 = max(dtdx[LL:UL]*s[LL-1:UL-1,mw])
             smax2 = max(-dtdx[LL-1:UL-1]*s[LL-1:UL-1,mw])
             self.cfl = max(self.cfl,smax1,smax2)
+
+
+        # comunicate max cfl
+        comm = MPI.COMM_WORLD #Amal:should be consistent with petsc commworld
+        size = comm.Get_size()
+        rank = comm.Get_rank()
+        max_cfl = 0
+        max_cfl =comm.reduce( sendobj=self.cfl, op=MPI.MAX,  root=0)
+        #max_cfl =comm.Reduce( self.cfl, max_cfl, op=MPI.MAX,  root=0)
+        self.cfl = comm.bcast(max_cfl, root=0)
+
+
+        
 
         # If we are doing slope limiting we have more work to do
         if self.order == 2:
