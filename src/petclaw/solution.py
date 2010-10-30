@@ -148,7 +148,87 @@ class Dimension(object):
         output += "  mthbc = (%s,%s)" % (self.mthbc_lower,self.mthbc_upper)
         return output
         
+    # ========== Setting Boundary Conditions ==================================
+    def qbc_lower(self,grid,qbc):
+        r"""
+        
+        """
+        # User defined functions
+        if self.mthbc_lower == 0:
+            self.user_bc_lower(grid,self,qbc)
+        # Zero-order extrapolation
+        elif self.mthbc_lower == 1:
+            ##specify rank
+            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
+            if rank == 0:
+                qbc[:grid.mbc,...] = qbc[grid.mbc,...]
+        # Periodic
+        elif x.mthbc_lower == 2:
+            pass # Amal: this is implemented automatically by petsc4py
+            
+        # Solid wall bc
+        elif x.mthbc_lower == 3:
+            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
+        else:
+            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
 
+
+    # ========== Setting Boundary Conditions ==================================
+    def qbc_upper(self,grid,qbc):
+        r"""
+        
+        """
+        # User defined functions
+        if self.mthbc_upper == 0:
+            self.user_bc_upper(grid,self,qbc)
+        # Zero-order extrapolation
+        elif self.mthbc_upper == 1:
+            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
+            size = PETSc.Comm.getSize(PETSc.COMM_WORLD)
+            
+            if rank == size-1:
+                local_n = grid.q.shape[0]
+                list_from =[local_n - grid.mbc -1]*grid.mbc    
+                list_to = range(local_n - grid.mbc, local_n )
+                grid.q[list_to,:]=grid.q[list_from,:]
+ 	    
+        elif x.mthbc_upper == 2:
+            # Periodic
+            pass # Amal: this is implemented automatically by petsc4py
+
+        # Solid wall bc
+        elif x.mthbc_upper == 3:
+            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
+
+        else:
+            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
+
+
+    # ========== Lower boundary condition user defined function default =======
+    def user_bc_lower(self, grid,qbc):
+        r"""
+        Fills the values of qbc with the correct boundary values
+    
+        This is a stub function which will return an exception if called.  If you
+        want to use a user defined boundary condition replace this function with
+        one of your own.
+        """
+        raise NotImplementedError("Lower user defined boundary condition unimplemented")
+
+    # ========== Upper boundary condition user defined function default =======
+    def user_bc_upper(self, grid,qbc):
+        r"""
+        Fills the values of qbc with the correct boundary values
+    
+        This is a stub function which will return an exception if called.  If you
+        want to use a user defined boundary condition replace this function with
+        one of your own.
+        """
+        raise NotImplementedError("Lower user defined boundary condition unimplemented")
+
+
+
+ 
 
 # ============================================================================
 #  petclaw Grid object definition
@@ -257,7 +337,19 @@ class Grid(object):
             return shape
         return locals()
 
-            
+    def q():
+        def fget(self):
+            #THIS ONLY WORKS IN 1D:
+            q=self.gqVec.getArray().reshape([-1,self.meqn])
+            return q
+        def fset(self,q):
+            if self.gqVec is None:
+                self.init_q_petsc_structures()
+            self.gqVec.setArray(q)
+            self.q_da.globalToLocal(self.gqVec, self.lqVec)
+        return locals()
+
+           
     def name():
         doc = r"""(list) - List of names of each dimension"""
         def fget(self): return self._dimensions
@@ -340,6 +432,7 @@ class Grid(object):
     maux = property(**maux())
     n = property(**n())
     local_n = property(**local_n())
+    q = property(**q())
     name = property(**name())
     lower = property(**lower())
     upper = property(**upper())
@@ -376,7 +469,7 @@ class Grid(object):
             ``default = 2``"""
         self.meqn = 1
         r"""(int) - Dimension of q array for this grid, ``default = 1``"""
-        self.q = None
+        #self.q = None
         r"""(ndarray(...,meqn)) - Cell averaged quantity being evolved."""
         self.aux = None
         r"""(ndarray(...,maux)) - Auxiliary array for this grid containing per 
@@ -576,16 +669,6 @@ class Grid(object):
         self.lqVec = self.q_da.createLocalVector()
         
 
-    def fill_q_petsc_structures(self):
-        r"""
-        Set global gqVec array to q. and scatter to the local vector lqVec
-        
-        """
-        
-        self.gqVec.setArray(self.q)
-        self.q_da.globalToLocal(self.gqVec, self.lqVec)
-        
-
     def init_aux_petsc_structures(self, maux):
         r"""
         Initilizes PETSc structures for aux. It initilizes aux_da, gauxVec and lauxVec
@@ -641,8 +724,6 @@ class Grid(object):
         
         if self.q is not None:
             result.q = copy.deepcopy(self.q)
-            result.init_q_petsc_structures()
-            result.fill_q_petsc_structures()
             
         if self.aux is not None:
             result.aux = copy.deepcopy(self.aux)
@@ -683,14 +764,16 @@ class Grid(object):
 
 
         # what about when multiple dimentions
-        shape = []
-        ranges = self.q_da.getRanges()
+        #shape = []
+        #ranges = self.q_da.getRanges()
 
-        for i in ranges:
-            shape.append(i[1]-i[0])
+        #for i in ranges:
+        #    shape.append(i[1]-i[0])
 
-        
+        shape = self.get_dim_attribute('n')
         shape.append(self.meqn)
+        print shape
+        
         self.q = np.empty(shape,'d',order=order) 
     
     def ones_q(self,order='C'):
@@ -789,10 +872,25 @@ class Grid(object):
         self.aux = np.zeros(shape,'d',order=order)
         
                 
-    
-
-
-    
+    def qbc(self):
+        #Apply BCs here
+        #THIS ONLY WORKS IN 1D:
+        qbc=self.lqVec.getArray().reshape([-1,self.meqn])
+        return qbc
+        for i in xrange(len(self._dimensions)):
+            dim = getattr(self,self._dimensions[i])
+            #If a user defined boundary condition is being used, send it on,
+            #otherwise roll the axis to front position and operate on it
+            print 'Applying bc: ',dim.mthbc_lower
+            if dim.mthbc_lower == 0:
+                dim.qbc_lower(self,qbc)
+            else:
+                dim.qbc_lower(self,np.rollaxis(qbc,i))
+            if dim.mthbc_upper == 0:
+                dim.qbc_upper(self,qbc)
+            else:
+                dim.qbc_upper(self,np.rollaxis(qbc,i))
+        return qbc
 
 
     def compute_p_center(self, recompute=False):

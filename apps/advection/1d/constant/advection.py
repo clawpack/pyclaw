@@ -1,14 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-py_example.py
-
-Created by Kyle Mandli on 2008-08-25.
-Copyright (c) 2008 University of Washington. All rights reserved.
+advection.py
 
 Example python script for solving the 1d advection equation.
-
-To see the equivalent example using the fortran clawpack, see fort_example.py.
 """
 
 import os, sys
@@ -35,7 +30,7 @@ from petclaw.controller import Controller
 
 def qinit(grid):
 
-    # Initilize petsc Structures for q
+    # Initialize petsc Structures for q
     grid.init_q_petsc_structures()
     
     # Initial Data parameters
@@ -49,14 +44,7 @@ def qinit(grid):
     # Create an array with fortran native ordering
     x =grid.center(grid.x)
    
-    grid.empty_q()
-    
-    # Grid
-    # 
-    # x = grid.x.center Amal: removed because dimention object does not know about the mbc
-    #x = np.empty(grid.q.size)
-    #for i in xrange(0,grid.q.size):
-        #x[i] = grid.x.lower + (i+0.5)*grid.x.d
+    q=np.zeros([len(x),grid.meqn])
     
     # Gaussian
     qg = np.exp(-beta * (x-x0)**2) * np.cos(gamma * (x - x0))
@@ -65,25 +53,14 @@ def qinit(grid):
     qs = (x > x1) * 1.0 - (x > x2) * 1.0
     
     if ic == 1:
-        grid.q[:,0] = qg
+        q[:,0] = qg
     elif ic == 2:
-        grid.q[:,0] = qs
+        q[:,0] = qs
     elif ic == 3:
-        grid.q[:,0] = qg + qs
+        q[:,0] = qg + qs
+    grid.q=q
 
 
-
-    
-   
-           
-    
-    # fill the petsc global and local q vectors  with the array q
-    grid.fill_q_petsc_structures()
-    
-    
-    
-
-    
 # Data paths and objects
 example_path = './'
 setprob_path = os.path.join(example_path,'setprob.data')

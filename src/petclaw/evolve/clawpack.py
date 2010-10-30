@@ -212,8 +212,8 @@ class ClawSolver(Solver):
         maux = grid.maux
           
         
-        grid.q_da.globalToLocal(grid.gqVec, grid.lqVec)
-        q = grid.lqVec.getArray()
+        #grid.q_da.globalToLocal(grid.gqVec, grid.lqVec)
+        q = grid.qbc()
         
 
         
@@ -229,10 +229,7 @@ class ClawSolver(Solver):
         d = grid.d
         mbc = grid.mbc
         aux_global = grid.aux_global
-        local_n = q.size
-
-        
-
+        local_n = grid.q.shape[0]
         
 
         # Call b4step, petclaw should be subclassed if this is needed
@@ -283,7 +280,7 @@ class ClawSolver(Solver):
             amdq = np.zeros( (local_n, meqn) )
             apdq = np.zeros( (local_n, meqn) )
         
-            q= np.reshape(q, (q.size,grid.meqn))
+            #q= np.reshape(q, (q.size,grid.meqn))
 
             print "q before",q[25]
             print q.size
@@ -300,26 +297,10 @@ class ClawSolver(Solver):
             q = self.homogeneous_step( q, aux, capa, d, meqn,maux, mbc, aux_global)
 
         
-
-
-
-
+        #THIS ONLY WORKS in 1D:
+        grid.q=q[mbc:-mbc,:]
 
         
-
-        
-        grid.lqVec.setArray(q)
-        grid.q_da.localToGlobal(grid.lqVec, grid.gqVec)
-
-        self.bc_upper(grid)
-        self.bc_lower(grid)
-        
-        
-        grid.q = grid.gqVec.getArray()
-        grid.q= np.reshape(grid.q, (grid.q.size/grid.meqn,grid.meqn))
-
-        
-
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
         # dt
@@ -427,91 +408,6 @@ class ClawSolver1D(ClawSolver):
             raise NameError(error_msg)
 
 
-    # ========== Setting Boundary Conditions ==================================
-    def bc_lower(self,grid):
-        r"""
-        
-        """
-
-        # User defined functions
-        x = grid.dimensions[0]
-        if x.mthbc_lower == 0:
-            self.user_bc_lower(grid)
-            
-        # Zero-order extrapolation
-        elif x.mthbc_lower == 1:
-            
-
-            ##specify rank
-            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
-            if rank == 0:
-                list_from =[grid.mbc]*grid.mbc    
-                list_to = range(grid.mbc)
-                q=grid.lqVec.getArray()
-                local_n=q.size/grid.meqn           
-                q= np.reshape(q, (local_n,grid.meqn))
-                q[list_to,:]=q[list_from,:]
-                grid.lqVec.setArray(q)
-                
-         
-            
-           
-        # Periodic
-        elif x.mthbc_lower == 2:
-            pass # Amal: this is implemented automatically by petsc4py
-            
-        # Solid wall bc
-        elif x.mthbc_lower == 3:
-            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
-        else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
-
-
-    # ========== Setting Boundary Conditions ==================================
-    def bc_upper(self,grid):
-        r"""
-        
-        """
-
-        # User defined functions
-        x = grid.dimensions[0]
-        if x.mthbc_upper == 0:
-            self.user_bc_upper(grid)
-            
-        # Zero-order extrapolation
-        elif x.mthbc_upper == 1:
-
-            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
-            size = PETSc.Comm.getSize(PETSc.COMM_WORLD)
-            
-            if rank == size-1:
-                q=grid.lqVec.getArray()
-                local_n=q.size/grid.meqn
-                q= np.reshape(q, (local_n,grid.meqn))
-                list_from =[local_n - grid.mbc -1]*grid.mbc    
-                list_to = range(local_n - grid.mbc, local_n )
-                
-                           
-                
-                q[list_to,:]=q[list_from,:]
-                grid.lqVec.setArray(q)
-
-                
-
- 	    
-        # Periodic
-        elif x.mthbc_upper == 2:
-            pass # Amal: this is implemented automatically by petsc4py
-
-        # Solid wall bc
-        elif x.mthbc_upper == 3:
-            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
-
-
-        else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
-
-
     # ========== Lower boundary condition user defined function default =======
     def user_bc_lower(self, grid):
         r"""
@@ -551,15 +447,12 @@ class ClawSolver1D(ClawSolver):
         :Input:
          - *solutions* - (:class:`~petclaw.solution.Solution`) Solution that 
            will be evolved
-
-        :Version: 1.0 (2009-07-01)
         """
     
         # Limiter to use in the pth family
         limiter = np.array(self.mthlim,ndmin=1)
          
-        local_n = q.size/meqn
-        q= np.reshape(q, (local_n,meqn))
+        local_n = q.shape[0]
         # Flux vector
         f = np.empty( (local_n, meqn) )
     
@@ -575,12 +468,6 @@ class ClawSolver1D(ClawSolver):
             aux= np.reshape(aux, (local_n,maux)) 
         
         
-        
-        
-
-
-        
-    
         # Solve Riemann problem at each interface
         q_l=q[:-1,:]
         q_r=q[1:,:]

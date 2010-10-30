@@ -4,14 +4,21 @@
 1D acoustics example.
 """
 
-import os
+import os, sys
 
-import numpy as np
-
+try:
+    import numpy as np
+    from petsc4py import PETSc
+    
+except:
+    sys.path.append("/opt/share/ksl/petsc4py/dev-aug29/ppc450d/lib/python/")
+    sys.path.append("/opt/share/ksl/numpy/dev-aug29/ppc450d/lib/python/")
+    
+    import numpy as np
+    from petsc4py import PETSc
 
 from petclaw.solution import Solution, Dimension, Grid
 from petclaw.evolve.clawpack import ClawSolver1D
-from petsc4py import PETSc
 from petclaw.controller import Controller
 
 def qinit(grid):
@@ -28,7 +35,7 @@ def qinit(grid):
     # Create an array with fortran native ordering
     x =grid.center(grid.x)
    
-    grid.empty_q()
+    q=np.zeros([len(x),grid.meqn])
     
     # Gaussian
     qg = np.exp(-beta * (x-x0)**2) * np.cos(gamma * (x - x0))
@@ -37,17 +44,13 @@ def qinit(grid):
     qs = (x > x1) * 1.0 - (x > x2) * 1.0
     
     if ic == 1:
-        grid.q[:,0] = qg
+        q[:,0] = qg
     elif ic == 2:
-        grid.q[:,0] = qs
+        q[:,0] = qs
     elif ic == 3:
-        grid.q[:,0] = qg + qs
-    grid.q[:,1]=0.
-
-    # fill the petsc global and local q vectors  with the array q
-    grid.fill_q_petsc_structures()
-    
-    
+        q[:,0] = qg + qs
+    q[:,1]=0.
+    grid.q=q
 
     
 # Data paths and objects

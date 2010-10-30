@@ -38,14 +38,7 @@ def qinit(grid):
     
     x =grid.center(grid.x)
     
-    grid.empty_q()
-    
-    # Grid
-    # 
-    # x = grid.x.center Amal: removed because dimention object does not know about the mbc
-    #x = np.empty(grid.q.size)
-    #for i in xrange(0,grid.q.size):
-        #x[i] = grid.x.lower + (i+0.5)*grid.x.d
+    q=np.zeros([len(x),grid.meqn])
     
     # Gaussian
     qg = np.exp(-beta * (x-x0)**2) * np.cos(gamma * (x - x0))
@@ -54,19 +47,13 @@ def qinit(grid):
     qs = (x > x1) * 1.0 - (x > x2) * 1.0
     
     if ic == 1:
-        grid.q[:,0] = qg
+        q[:,0] = qg
     elif ic == 2:
-        grid.q[:,0] = qs
+        q[:,0] = qs
     elif ic == 3:
-        grid.q[:,0] = qg + qs
+        q[:,0] = qg + qs
 
-
-
-    
-   
-           
-    # fill the petsc global and local q vectors  with the array q
-    grid.fill_q_petsc_structures()
+    grid.q=q
 
 
 def auxinit(grid):
