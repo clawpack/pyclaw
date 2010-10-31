@@ -86,6 +86,7 @@ if useController:
     claw = Controller()
     claw.outdir = './_output/'
     claw.keep_copy = True
+    claw.output_format = 'petsc'
     claw.nout = 50
     claw.outstyle = 1
     claw.tfinal = 1.0
