@@ -30,8 +30,8 @@ except(ImportError):
 
 # Check for petsc4py support
 try:
-    import petsc_io
-    from petsc_io import read_petsc, write_petsc
+    import petsc
+    from petsc import read_petsc, write_petsc
     __all__ += ['read_petsc','write_petsc']
 except(ImportError):
     logging.debug("No petsc support found.")
