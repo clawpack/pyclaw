@@ -61,31 +61,21 @@ def qinit(grid):
 def auxinit(grid):
     # Initilize petsc Structures for aux
     maux = 1
-    grid.init_aux_petsc_structures(maux)
-    
-    x =grid.x.center
-    grid.empty_aux(maux)
-    grid.aux = np.sin(2.*np.pi*x)+2
-    grid.aux= np.reshape(grid.aux, (grid.aux.size, maux))
-    
-
-
-    
-    # fill the petsc global and local aux vectors  with the array aux
-    grid.fill_aux_petsc_structures()
-       
-    
-    
+    xghost=grid.x.centerghost
+    #grid.empty_aux(maux)
+    grid.aux=np.empty([len(xghost),maux])
+    grid.aux[:,0] = np.sin(2.*np.pi*xghost)+2
+    #grid.aux= np.reshape(grid.aux, (grid.aux.size, maux))
     
     
 
-    
+
 # Data paths and objects
 example_path = './'
 setprob_path = os.path.join(example_path,'setprob.data')
 
 # Initialize grids and solutions
-x = Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
+x = Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2,mbc=2)
 grid = Grid(x)
 grid.set_aux_global(setprob_path)
 grid.meqn = 1
@@ -104,15 +94,15 @@ solver.mthlim = 4
 solver.dt_variable = False #Amal: need to handle the case dt_variable.
 
 
-use_controller = False
+use_controller = True
 
 if(use_controller):
 
 # Controller instantiation
     claw = Controller()
-    claw.outdir = './output/py'
+    claw.outdir = './_output'
     claw.keep_copy = True
-    claw.nout = 10
+    claw.nout = 100
     claw.outstyle = 1
     claw.output_format = 'petsc'
     claw.tfinal = 1.0
@@ -137,31 +127,13 @@ if(use_controller):
             OptDB['draw_pause'] = -1
             sol.grid.gqVec.view(viewer)
 
-
-
 else:
     sol = {"n":init_solution}
     
     solver.evolve_to_time(sol,.4)
     sol = sol["n"]
 
-    
-
-    
-    
-
-    
     viewer = PETSc.Viewer.DRAW(grid.gqVec.comm)
     OptDB = PETSc.Options()
     OptDB['draw_pause'] = -1
     viewer(grid.gqVec)
-
-    
-    
-
-
-        
-        
-        
-   
-

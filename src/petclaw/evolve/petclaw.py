@@ -14,7 +14,7 @@ dimensionally dependent ones such as :class:`PetClawSolver1D`.
     David Ketcheson
 """
 # ============================================================================
-#      Copyright (C) 2008 Kyle T. Mandli <mandli@amath.washington.edu>
+#      Copyright (C) 2010 David I. Ketcheson <david.ketcheson@kaust.edu.sa>
 #
 #  Distributed under the terms of the Berkeley Software Distribution (BSD) 
 #  license
@@ -23,31 +23,14 @@ dimensionally dependent ones such as :class:`PetClawSolver1D`.
 
 import numpy as np
 
-from pyclaw.evolve.clawpack import ClawSolver
+from pyclaw.evolve.clawpack import ClawSolver, ClawSolver1D, start_step, src
 from pyclaw.evolve import limiters
 
 from petsc4py import PETSc
 from mpi4py import MPI
 
-# ========================================================================
-def start_step(solver,solutions):
-    r"""
-    Dummy routine called before each step
-    
-    Replace this routine if you want to do something before each time step.
-    """
-    pass
-
-def src(solver,solutions,t,dt):
-    r"""
-    Dummy routine called to calculate a source term
-    
-    Replace this routine if you want to include a source term.
-    """
-    pass
-
 # ============================================================================
-#  Generic Clawpack solver class
+#  Generic PetClaw solver class
 # ============================================================================
 class PetClawSolver(ClawSolver):
     r"""
@@ -91,9 +74,7 @@ class PetClawSolver(ClawSolver):
      - *data* - (:class:`~petclaw.data.Data`) Data object, the solver will look 
        for the named variables to instantiate itself.    
     Output:
-     - (:class:`ClawSolver`) - Initialized clawpack solver
-    
-    :Version: 1.0 (2009-06-01)
+     - (:class:`PetClawSolver`) - Initialized petclaw solver
     """
     
     # ========== Generic Init Routine ========================================
@@ -145,11 +126,7 @@ class PetClawSolver(ClawSolver):
         maux = grid.maux
           
         q = grid.qbc()
-        
-        if grid.aux is not None:
-            aux = grid.lauxVec.getArray()
-        else:
-            aux = None
+        aux=grid.aux
 
         capa = grid.capa
         d = grid.d
@@ -213,9 +190,7 @@ class PetClawSolver(ClawSolver):
             
             q = self.homogeneous_step( q, aux, capa, d, meqn,maux, mbc, aux_global)
         
-        #THIS ONLY WORKS in 1D:
         grid.q=q[mbc:-mbc,:]
-
         
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
@@ -245,7 +220,7 @@ class PetClawSolver(ClawSolver):
 # ============================================================================
 #  ClawPack 1d Solver Class
 # ============================================================================
-class PetClawSolver1D(PetClawSolver):
+class PetClawSolver1D(PetClawSolver,ClawSolver1D):
     r"""
     PetClaw evolution routine in 1D
     
@@ -276,56 +251,12 @@ class PetClawSolver1D(PetClawSolver):
 
     def __init__(self,kernelsType,data=None):
         r"""
-        Create 1d Clawpack solver
+        Create 1d PetClaw solver
         
-        See :class:`ClawSolver1D` for more info.
+        See :class:`PetClawSolver1D` for more info.
         """   
         
-        # Add the functions as required attributes
-        self._required_attrs.append('rp')
-        self._default_attr_values['rp'] = None
-        
-        # Import Riemann solvers
-        exec('import pyclaw.evolve.rp as rp',globals())
-        
-            
         super(PetClawSolver1D,self).__init__(kernelsType,data)
-
-    # ========== Riemann solver library routines =============================   
-    def list_riemann_solvers(self):
-        r"""
-        List available Riemann solvers 
-        
-        This routine returns a list of available Riemann solvers which is
-        constructed in the Riemann solver package (_petclaw_rp).  In this case
-        it lists only the 1D Riemann solvers.
-        
-        :Output:
-         - (list) - List of Riemann solver names valid to be used with
-           :meth:`set_riemann_solver`
-        
-        .. note::
-            These Riemann solvers are currently only accessible to the python 
-            time stepping routines.
-        """
-        return rp.rp_solver_list_1d
-    
-    def set_riemann_solver(self,solver_name):
-        r"""
-        Assigns the library solver solver_name as the Riemann solver.
-        
-        :Input:
-         - *solver_name* - (string) Name of the solver to be used, raises a 
-           ``NameError`` if the solver does not exist.
-        """
-        
-        if solver_name in rp.rp_solver_list_1d:
-            exec("self.rp = rp.rp_%s_1d" % solver_name)
-        else:
-            error_msg = 'Could not find Riemann solver with name %s' % solver_name
-            logger.warning(error_msg)
-            raise NameError(error_msg)
-
 
     # ========== Python Homogeneous Step =====================================
     def homogeneous_step(self,q, aux, capa, d, meqn, maux, mbc, aux_global):
@@ -351,10 +282,6 @@ class PetClawSolver1D(PetClawSolver):
         else:
             dtdx += self.dt/d[0]
 
-        if aux is not None:
-            aux= np.reshape(aux, (local_n,maux)) 
-        
-        
         # Solve Riemann problem at each interface
         q_l=q[:-1,:]
         q_r=q[1:,:]
@@ -390,11 +317,6 @@ class PetClawSolver1D(PetClawSolver):
             #LL = 1
             #UL = local_n - 1
 
-        
-        
-
-        
-
         # Update q for Godunov update
         for m in xrange(meqn):
             q[LL:UL,m] -= dtdx[LL:UL]*apdq[LL-1:UL-1,m]
@@ -407,7 +329,6 @@ class PetClawSolver1D(PetClawSolver):
             smax2 = max(-dtdx[LL-1:UL-1]*s[LL-1:UL-1,mw])
             self.cfl = max(self.cfl,smax1,smax2)
 
-
         # comunicate max cfl
         comm = MPI.COMM_WORLD #Amal:should be consistent with petsc commworld
         size = comm.Get_size()
@@ -416,9 +337,6 @@ class PetClawSolver1D(PetClawSolver):
         max_cfl =comm.reduce( sendobj=self.cfl, op=MPI.MAX,  root=0)
         #max_cfl =comm.Reduce( self.cfl, max_cfl, op=MPI.MAX,  root=0)
         self.cfl = comm.bcast(max_cfl, root=0)
-
-
-        
 
         # If we are doing slope limiting we have more work to do
         if self.order == 2:

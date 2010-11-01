@@ -16,15 +16,12 @@ Module containing petclaw grid.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-import os
 import copy
-import logging
 
 import numpy as np
 
 from pyclaw.data import Data
 from pyclaw.solution import Dimension, Grid
-import io
 from petsc4py import PETSc
 
 # ============================================================================
@@ -81,6 +78,20 @@ class PCDimension(Dimension):
         return locals()
     edge = property(**edge())
     _edge = None
+
+    def centerghost():
+        doc = r"""(ndarrary(:)) - Location of all grid cell center coordinates
+        for this dimension, including ghost cells"""
+        def fget(self): 
+            mbc=self.mbc
+            if self._centerghost is None:
+                self._centerghost = np.empty(self.nend-self.nstart+2*mbc)
+                for i in xrange(self.nstart-mbc,self.nend+mbc):
+                    self.centerghost[i-self.nstart+mbc] = self.lower + (i+0.5)*self.d
+            return self._centerghost
+        return locals()
+    centerghost = property(**centerghost())
+    _centerghost = None
 
     def center():
         doc = r"""(ndarrary(:)) - Location of all grid cell center coordinates
@@ -249,23 +260,29 @@ class PCGrid(Grid):
         def fset(self,q):
             if self.gqVec is None:
                 self.init_q_petsc_structures()
-            #print q.reshape([-1]).shape
-            #print self.gqVec.getArray().shape
             self.gqVec.setArray(q.reshape([-1]))
             self.q_da.globalToLocal(self.gqVec, self.lqVec)
         return locals()
 
-           
-        
     local_n = property(**local_n())
     q = property(**q())
     
     # ========== Class Methods ===============================================
     def __init__(self,dimensions):
         r"""
-        Instantiate a Grid object
+        Instantiate a PCGrid object
+
+        Here we duplicate the __init__ function from the parent class Grid.
         
-        See :class:`Grid` for more info.
+        Really we should just do this:
+
+        super(PCGrid,self).__init__(dimensions)
+
+        But the problem is that Grid.__init__() sets q=None, messing up
+        our use of q as a property.  We should find a better way to
+        resolve this.
+
+        See :class:`PCGrid` for more info.
         """
         
         # ========== Attribute Definitions ===================================
@@ -281,8 +298,6 @@ class PCGrid(Grid):
             ``default = 2``"""
         self.meqn = 1
         r"""(int) - Dimension of q array for this grid, ``default = 1``"""
-        #self.q = None
-        r"""(ndarray(...,meqn)) - Cell averaged quantity being evolved."""
         self.aux = None
         r"""(ndarray(...,maux)) - Auxiliary array for this grid containing per 
             cell information"""
@@ -296,11 +311,8 @@ class PCGrid(Grid):
 
         ###  Some PETSc4Py specific stuff
         self.q_da = None
-        self.aux_da = None
         self.gqVec = None
         self.lqVec = None
-        self.gauxVec = None
-        self.lauxVec = None
 
         # Dimension parsing
         if isinstance(dimensions,Dimension):
@@ -308,6 +320,7 @@ class PCGrid(Grid):
         self._dimensions = []
         for dim in dimensions:
             self.add_dimension(dim)
+
 
     def init_q_petsc_structures(self):
         r"""
@@ -340,8 +353,6 @@ class PCGrid(Grid):
                                     #stencil_type=self.STENCIL,
                                     stencil_width=self.mbc,
                                     comm=PETSc.COMM_WORLD)
-        #dx=self.dimensions[0].d
-        #self.q_da.setUniformCoordinates(self.xlower+dx/2,self.xupper-dx/2)
         self.gqVec = self.q_da.createGlobalVector()
         self.lqVec = self.q_da.createLocalVector()
 
@@ -351,65 +362,6 @@ class PCGrid(Grid):
             self.dimensions[i].nstart=range[0]
             self.dimensions[i].nend  =range[1]
             
-        
-
-    def init_aux_petsc_structures(self, maux):
-        r"""
-        Initilizes PETSc structures for aux. It initilizes aux_da, gauxVec and lauxVec
-        
-        """
-        periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
-        
-        self.aux_da = PETSc.DA().create(dim=self.ndim,
-                                    dof=maux, # should be modified to reflect the update
-                                    sizes=self.n,  #Amal: what about for 2D, 3D
-                                    periodic_type = periodic_type,
-                                    #periodic_type=self.PERIODIC,
-                                    #stencil_type=self.STENCIL,
-                                    stencil_width=self.mbc,
-                                    comm=PETSc.COMM_WORLD)
-    
-
-        self.gauxVec = self.aux_da.createGlobalVector()
-        self.lauxVec = self.aux_da.createLocalVector()
-        
-
-
-    def fill_aux_petsc_structures(self):
-        r"""
-        Set global gauxVec array to aux. and scatter to the local vector lauxVec
-        
-        """
-
-        self.gauxVec.setArray(self.aux)
-        self.aux_da.globalToLocal(self.gauxVec, self.lauxVec)
-        
-        
-    def __deepcopy__(self,memo={}):
-        #We can get rid of this...
-        result = self.__class__(copy.deepcopy(self.dimensions))
-        result.__init__(copy.deepcopy(self.dimensions))
-        
-        for attr in ('level','gridno','t','mbc','meqn','_p_center','_p_edge',
-                        '_c_center','_c_edge'):
-            setattr(result,attr,copy.deepcopy(getattr(self,attr)))
-        
-        if self.q is not None:
-            result.q = copy.deepcopy(self.q)
-            
-        if self.aux is not None:
-            result.aux = copy.deepcopy(self.aux)
-            result.init_aux_petsc_structures(self.maux)
-            result.fill_aux_petsc_structures()
-        if self.capa is not None:
-            result.capa = copy.deepcopy(self.capa)
-
-        result.aux_global = copy.deepcopy(self.aux_global)
-        
-        result.mapc2p = self.mapc2p
-        
-        return result
-        
     
     # ========== Grid Operations =============================================
     # Convenience routines for initialization of q and aux

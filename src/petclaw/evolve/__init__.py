@@ -13,4 +13,3 @@ Copyright (c) 2008 University of Washington. All rights reserved.
 __all__ = ['ClawSolver1D','rp']
 from pyclaw.evolve.clawpack import ClawSolver1D
 from pyclaw.evolve.rp import *
-from rp import *
