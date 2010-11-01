@@ -21,12 +21,11 @@ except:
     import numpy as np
     from petsc4py import PETSc
 
-
-
-from petclaw.solution import Solution, Dimension, Grid
-from petclaw.evolve.clawpack import ClawSolver1D
-from petsc4py import PETSc
-from petclaw.controller import Controller
+from petclaw.grid import PCDimension as Dimension
+from petclaw.grid import PCGrid as Grid
+from pyclaw.solution import Solution
+from petclaw.evolve.petclaw import PetClawSolver1D
+from pyclaw.controller import Controller
 
 def qinit(grid):
 
@@ -42,7 +41,7 @@ def qinit(grid):
     x2 = grid.aux_global['x2']
     
     # Create an array with fortran native ordering
-    x =grid.center(grid.x)
+    x =grid.x.center
    
     q=np.zeros([len(x),grid.meqn])
     
@@ -75,7 +74,7 @@ qinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = ClawSolver1D(kernelsType = 'P')
+solver = PetClawSolver1D(kernelsType = 'F')
 
 solver.dt = 0.0004
 solver.max_steps = 5000
@@ -91,10 +90,11 @@ if useController:
 
     # Controller instantiation
     claw = Controller()
-    claw.outdir = './output/py_withController'
+    claw.outdir = './_output/'
     claw.keep_copy = True
     claw.nout = 10
     claw.outstyle = 1
+    claw.output_format = 'petsc'
     claw.tfinal = 1.0
     claw.solutions['n'] = init_solution
     claw.solver = solver

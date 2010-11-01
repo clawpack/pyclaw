@@ -21,11 +21,13 @@ __all__ = []
 
 # Module imports
 __all__.extend(['Controller','Data','Dimension','Grid','Solution'])
-from petclaw.controller import Controller
-from petclaw.data import Data
-from petclaw.solution import Dimension, Grid, Solution
+from pyclaw.controller import Controller
+from pyclaw.data import Data
+from pyclaw.solution import Solution
+from petclaw.grid import PCDimension as Dimension 
+from petclaw.grid import PCGrid as Grid 
 
 # Sub-packages
-import evolve
-from petclaw.evolve import *
-__all__.extend(evolve.__all__)
+#import evolve
+#from pyclaw.evolve import *
+#__all__.extend(evolve.__all__)

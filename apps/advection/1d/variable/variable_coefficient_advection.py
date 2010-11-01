@@ -13,9 +13,11 @@ import numpy as np
 
 
 
-from petclaw.controller import Controller
-from petclaw.solution import Solution, Dimension, Grid
-from petclaw.evolve.clawpack import ClawSolver1D
+from petclaw.grid import PCDimension as Dimension
+from petclaw.grid import PCGrid as Grid
+from pyclaw.solution import Solution
+from pyclaw.controller import Controller
+from petclaw.evolve.petclaw import PetClawSolver1D
 from petsc4py import PETSc
 
 def qinit(grid):
@@ -36,7 +38,7 @@ def qinit(grid):
 
     # Create an array with fortran native ordering
     
-    x =grid.center(grid.x)
+    x =grid.x.center
     
     q=np.zeros([len(x),grid.meqn])
     
@@ -61,7 +63,7 @@ def auxinit(grid):
     maux = 1
     grid.init_aux_petsc_structures(maux)
     
-    x =grid.center(grid.x)
+    x =grid.x.center
     grid.empty_aux(maux)
     grid.aux = np.sin(2.*np.pi*x)+2
     grid.aux= np.reshape(grid.aux, (grid.aux.size, maux))
@@ -93,7 +95,7 @@ auxinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = ClawSolver1D(kernelsType = 'P')
+solver = PetClawSolver1D(kernelsType = 'P')
 solver.dt = 0.0004
 solver.max_steps = 5000
 solver.set_riemann_solver('vc_advection')
@@ -112,6 +114,7 @@ if(use_controller):
     claw.keep_copy = True
     claw.nout = 10
     claw.outstyle = 1
+    claw.output_format = 'petsc'
     claw.tfinal = 1.0
     claw.solutions['n'] = init_solution
     claw.solver = solver

@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 # encoding: utf-8
 r"""
-Module containg the classic Clawpack solvers
+Module containg the PetClaw solvers
 
-This module contains the pure and wrapped classic clawpack solvers.  All 
-clawpack solvers inherit from the :class:`ClawSolver` superclass which in turn 
+This module contains the pure and wrapped PetClaw solvers.  All 
+PetClaw solvers inherit from the :class:`ClawSolver` superclass which in turn 
 inherits from the :class:`~petclaw.evolve.solver.Solver` superclass.  As such, 
 the only solver classes that should be directly used should be the 
-dimensionally dependent ones such as :class:`ClawSolver1D`.
+dimensionally dependent ones such as :class:`PetClawSolver1D`.
 
 :Authors:
-    Kyle T. Mandli (2008-09-11) Initial version
+    Amal Alghamdi
+    David Ketcheson
 """
 # ============================================================================
 #      Copyright (C) 2008 Kyle T. Mandli <mandli@amath.washington.edu>
@@ -22,14 +23,12 @@ dimensionally dependent ones such as :class:`ClawSolver1D`.
 
 import numpy as np
 
-from petclaw.evolve.solver import Solver
-from petsc4py import PETSc
+from pyclaw.evolve.clawpack import ClawSolver
+from pyclaw.evolve import limiters
 
-import limiters
+from petsc4py import PETSc
 from mpi4py import MPI
 
-# ========================================================================
-#  User-defined routines
 # ========================================================================
 def start_step(solver,solutions):
     r"""
@@ -50,11 +49,11 @@ def src(solver,solutions,t,dt):
 # ============================================================================
 #  Generic Clawpack solver class
 # ============================================================================
-class ClawSolver(Solver):
+class PetClawSolver(ClawSolver):
     r"""
-    Generic classic Clawpack solver
+    Generic PetClaw solver
     
-    All Clawpack solvers inherit from this base class.
+    All PetClaw solvers inherit from this base class.
     
     .. attribute:: mthlim 
     
@@ -103,74 +102,11 @@ class ClawSolver(Solver):
         See :class:`ClawSolver` for full documentation.
         """
         
-        # Required attributes for this solver
-        for attr in ['mthlim','order','src_split','fwave','src','start_step']:
-            self._required_attrs.append(attr)
+        self.kernelsType=kernelsType
         
-        # Default required attributes
-        self._default_attr_values['mthlim'] = [1]
-        self._default_attr_values['order'] = 2
-        self._default_attr_values['src_split'] = 0
-        self._default_attr_values['fwave'] = False
-        self._default_attr_values['src'] = src
-        self._default_attr_values['start_step'] = start_step
-
         # Call general initialization function
-        super(ClawSolver,self).__init__(kernelsType,data)
+        super(PetClawSolver,self).__init__(data)
     
-    # ========== Setup Routine ===============================================
-    def setup(self):
-        r"""
-        Called before any set of time steps.
-        
-        This routine will be called once before the solver is used via the
-        :class:`~petclaw.controller.Controller`.  In the case of 
-        :class:`ClawSolver` we make sure that the :attr:`mthlim` is a list.
-        """
-    
-        # Change mthlim to be an array regardless of how long it is
-        if not isinstance(self.mthlim,list) and self.mthlim is not None:
-            self.mthlim = [self.mthlim]
-    
-    # ========== Riemann solver library routines =============================   
-    def list_riemann_solvers(self):
-        r"""
-        List available Riemann solvers 
-        
-        This routine returns a list of available Riemann solvers which is
-        constructed in the Riemann solver package (:ref:`petclaw_rp`).  In this 
-        case it lists all Riemann solvers.
-        
-        :Output:
-         - (list) - List of Riemann solver names valid to be used with
-           :meth:`set_riemann_solver`
-        
-        .. note::
-            These Riemann solvers are currently only accessible to the python 
-            time stepping routines.
-        """
-        rp_solver_list = []
-        
-        # Construct list from each dimension list
-        for rp_solver in rp_solver_list_1d:
-            rp_solver_list.append('%s_1d' % rp_solver)
-        for rp_solver in rp_solver_list_2d:
-            rp_solver_list.append('%s_2d' % rp_solver)
-        for rp_solver in rp_solver_list_3d:
-            rp_solver_list.append('%s_3d' % rp_solver)
-        
-        return rp_solver_list
-    
-    def set_riemann_solver(self,solver_name):
-        r"""
-        Assigns the library solver solver_name as the Riemann solver.
-        
-        :Input:
-         - *solver_name* - (string) Name of the solver to be used, raises a 
-           NameError if the solver does not exist.
-        """
-        raise Exception("Cannot set a Riemann solver with this class," +
-                                        " use one of the derived classes.")
          
     # ========== Time stepping routines ======================================
     def step(self,solutions):
@@ -193,7 +129,7 @@ class ClawSolver(Solver):
            (:attr:`src_split` = 1)
 
         This routine is called from the method evolve_to_time defined in the
-        petclaw.evolve.solver.Solver superclass.
+        pyclaw.evolve.solver.Solver superclass.
 
         :Input:
          - *solutions* - (:class:`~petclaw.solution.Solution`) Dictionary of 
@@ -202,28 +138,18 @@ class ClawSolver(Solver):
         :Output: 
          - (bool) - True if full step succeeded, False otherwise
         """
-        
-
-
         # Grid we will be working on
         grid = solutions['n'].grids[0]
         # Number of equations
         meqn = solutions['n'].meqn
         maux = grid.maux
           
-        
-        #grid.q_da.globalToLocal(grid.gqVec, grid.lqVec)
         q = grid.qbc()
-        
-
         
         if grid.aux is not None:
             aux = grid.lauxVec.getArray()
         else:
             aux = None
-        
-
-        
 
         capa = grid.capa
         d = grid.d
@@ -280,22 +206,12 @@ class ClawSolver(Solver):
             amdq = np.zeros( (local_n, meqn) )
             apdq = np.zeros( (local_n, meqn) )
         
-            #q= np.reshape(q, (q.size,grid.meqn))
-
-            print "q before",q[25]
-            print q.size
-            
-        
-
             q = step1(maxmx,mbc,mx,q,aux,dx,dt,method,mthlim,cfl,f,wave,s,amdq,apdq,dtdx, -1)
 
-            print "q after",q[25]
-            print q.size
 
         elif(self.kernelsType == 'P'):
             
             q = self.homogeneous_step( q, aux, capa, d, meqn,maux, mbc, aux_global)
-
         
         #THIS ONLY WORKS in 1D:
         grid.q=q[mbc:-mbc,:]
@@ -329,9 +245,9 @@ class ClawSolver(Solver):
 # ============================================================================
 #  ClawPack 1d Solver Class
 # ============================================================================
-class ClawSolver1D(ClawSolver):
+class PetClawSolver1D(PetClawSolver):
     r"""
-    Clawpack evolution routine in 1D
+    PetClaw evolution routine in 1D
     
     This class represents the 1d clawpack solver on a single grid.  Note that 
     there are routines here for interfacing with the fortran time stepping 
@@ -351,8 +267,11 @@ class ClawSolver1D(ClawSolver):
     Output:
      - (:class:`ClawSolver1D`) - Initialized 1d clawpack solver
         
+    Need to check if we can simplify using multiple inheritance.
+
     :Authors:
-        Kyle T. Mandli (2008-09-11) Initial version
+        Amal Alghamdi
+        David Ketcheson
     """
 
     def __init__(self,kernelsType,data=None):
@@ -367,10 +286,10 @@ class ClawSolver1D(ClawSolver):
         self._default_attr_values['rp'] = None
         
         # Import Riemann solvers
-        exec('import petclaw.evolve.rp as rp',globals())
+        exec('import pyclaw.evolve.rp as rp',globals())
         
             
-        super(ClawSolver1D,self).__init__(kernelsType,data)
+        super(PetClawSolver1D,self).__init__(kernelsType,data)
 
     # ========== Riemann solver library routines =============================   
     def list_riemann_solvers(self):
@@ -408,34 +327,6 @@ class ClawSolver1D(ClawSolver):
             raise NameError(error_msg)
 
 
-    # ========== Lower boundary condition user defined function default =======
-    def user_bc_lower(self, grid):
-        r"""
-        Fills the values of qbc with the correct boundary values
-    
-        This is a stub function which will return an exception if called.  If you
-        want to use a user defined boundary condition replace this function with
-        one of your own.
-        """
-        raise NotImplementedError("Lower user defined boundary condition unimplemented")
-
-    # ========== Upper boundary condition user defined function default =======
-    def user_bc_upper(self, grid):
-        r"""
-        Fills the values of qbc with the correct boundary values
-    
-        This is a stub function which will return an exception if called.  If you
-        want to use a user defined boundary condition replace this function with
-        one of your own.
-        """
-        raise NotImplementedError("Lower user defined boundary condition unimplemented")
-
-
-
-        
-        
-
-
     # ========== Python Homogeneous Step =====================================
     def homogeneous_step(self,q, aux, capa, d, meqn, maux, mbc, aux_global):
         r"""
@@ -443,10 +334,6 @@ class ClawSolver1D(ClawSolver):
 
         Takes one time step of size dt on the hyperbolic system defined in the
         appropriate Riemann solver rp.
-
-        :Input:
-         - *solutions* - (:class:`~petclaw.solution.Solution`) Solution that 
-           will be evolved
         """
     
         # Limiter to use in the pth family
@@ -563,17 +450,4 @@ class ClawSolver1D(ClawSolver):
             for m in xrange(meqn):
                 q[LL:UL-1,m] -= dtdx[LL:UL-1] * (f[LL+1:UL,m] - f[LL:UL-1,m]) 
             
-        # Reset q update
-        #grid.q = q[grid.mbc:-grid.mbc][:]
         return q
-
-        
-
-
-
-        
-        
-        
-        
-        
-        
