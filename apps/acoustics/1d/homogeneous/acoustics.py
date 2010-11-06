@@ -69,7 +69,7 @@ qinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = PetClawSolver1D(kernelsType = 'P')
+solver = PetClawSolver1D(kernelsType = 'F')
 
 solver.dt = 0.0004
 solver.max_steps = 5000
