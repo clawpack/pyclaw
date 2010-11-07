@@ -132,7 +132,7 @@ class PetClawSolver(ClawSolver):
         d = grid.d
         mbc = grid.mbc
         aux_global = grid.aux_global
-        local_n = grid.q.shape[0]
+        local_n = q.shape[0]
         
 
         # Call b4step, petclaw should be subclassed if this is needed
