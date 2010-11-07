@@ -52,33 +52,52 @@ def setaux(grid):
 
     #Density:
     grid.aux[:,0] = rhoA*(xfrac<alpha)+rhoB*(xfrac>=alpha)
-    print grid.aux[0:30,0]
     #Bulk modulus:
     grid.aux[:,1] = KA  *(xfrac<alpha)+KB  *(xfrac>=alpha)
+    for i,x in enumerate(xghost):
+        if x<grid.x.lower:
+            grid.aux[i,0]=rhoA
+            grid.aux[i,1]=KA
+        if x>grid.x.upper:
+            grid.aux[i,0]=rhoB
+            grid.aux[i,1]=KB
     
     
-
-
-# Data paths and objects
-setprob_path = './setprob.data'
+def b4step(solver,solutions):
+    #Reverse velocity at trtime
+    #Note that trtime should be an output point
+    grid = solutions['n'].grids[0]
+    if grid.t>=grid.aux_global['trtime'] and not grid.aux_global['trdone']:
+        grid.q[:,1]=-grid.q[:,1]    
+        if grid.t>grid.aux_global['trtime']:
+            print 'WARNING: trtime is '+str(grid.aux_global['trtime'])+\
+                ' but velocities reversed at time '+str(grid.t)
+    #Change to periodic BCs after initial pulse 
+    if grid.t>5*grid.aux_global['tw1'] and grid.x.mthbc_lower==0:
+        grid.x.mthbc_lower=2
+        grid.x.mthbc_upper=2
+    
 
 # Initialize grids and solutions
 xlower=0.0; xupper=150.0
-cellsperlayer=12
-mx=150*cellsperlayer
-x = Dimension('x',xlower,xupper,mx,mthbc_lower=2,mthbc_upper=2,mbc=2)
+cellsperlayer=24; mx=150*cellsperlayer
+x = Dimension('x',xlower,xupper,mx,mthbc_lower=1,mthbc_upper=1,mbc=2)
 grid = Grid(x)
 grid.meqn = 2
 grid.t = 0.0
 
 #Set global parameters
 grid.aux_global = {}
-grid.aux_global['a1'] = 0.4
+grid.aux_global['t1']    = 10.0
+grid.aux_global['tw1']   = 10.0
+grid.aux_global['a1']    = 0.2
 grid.aux_global['alpha'] = 0.5
-grid.aux_global['KA'] = 1.0
-grid.aux_global['KB'] = 4.0
-grid.aux_global['rhoA'] = 1.0
-grid.aux_global['rhoB'] = 4.0
+grid.aux_global['KA']    = 1.0
+grid.aux_global['KB']    = 4.0
+grid.aux_global['rhoA']  = 1.0
+grid.aux_global['rhoB']  = 4.0
+grid.aux_global['trtime'] = 600.0
+grid.aux_global['trdone'] = False
 
 # Initilize petsc Structures
 grid.init_q_petsc_structures()
@@ -88,15 +107,21 @@ setaux(grid)
 qinit(grid)
 init_solution = Solution(grid)
 
+Kmax=max(grid.aux_global['KA'],grid.aux_global['KB'])
+emax=np.max(grid.q[:,0])
+smax=Kmax*np.exp(Kmax*emax)
+
 # Solver setup
 solver = PetClawSolver1D(kernelsType = 'P')
-solver.dt = 0.0004
+solver.dt = 0.2*grid.x.d/smax
+print solver.dt
 solver.max_steps = 5000
 solver.set_riemann_solver('nel')
 solver.order = 2
 solver.mthlim = [4,4]
 solver.dt_variable = False #Amal: need to handle the case dt_variable.
 solver.fwave = True 
+solver.start_step = b4step 
 
 use_controller = True
 
@@ -105,11 +130,11 @@ if(use_controller):
 # Controller instantiation
     claw = Controller()
     claw.outdir = './_output'
-    claw.keep_copy = True
+    claw.keep_copy = False
     claw.nout = 100
     claw.outstyle = 1
     claw.output_format = 'petsc'
-    claw.tfinal = 50.0
+    claw.tfinal = 250.0
     claw.solutions['n'] = init_solution
     claw.solver = solver
 
@@ -117,27 +142,8 @@ if(use_controller):
     status = claw.run()
 
 
-    if claw.keep_copy:
-    
-        for n in xrange(0,11):
-            sol = claw.frames[n]
-            plotTitle="time: {0}".format(sol.t)
-            viewer = PETSc.Viewer()
-            viewer.createDraw(  title = plotTitle,  comm=sol.grid.gqVec.comm)
-
-
-        
-            OptDB = PETSc.Options()
-            OptDB['draw_pause'] = -1
-            sol.grid.gqVec.view(viewer)
-
 else:
     sol = {"n":init_solution}
     
     solver.evolve_to_time(sol,.4)
     sol = sol["n"]
-
-    viewer = PETSc.Viewer.DRAW(grid.gqVec.comm)
-    OptDB = PETSc.Options()
-    OptDB['draw_pause'] = -1
-    viewer(grid.gqVec)
