@@ -154,11 +154,12 @@ class PetClawSolver(ClawSolver):
             dx = d[0]
             dtdx = np.zeros( (local_n) ) + dt/dx
             
+            maux = grid.maux
             maxmx = local_n -mbc*2
             mx = maxmx
             
             if(aux == None):
-                aux = np.empty( (local_n , meqn) )
+                aux = np.empty( (local_n , maux) )
         
             method =np.ones(7, dtype=int) # hardcoded 7
             method[0] = self.dt_variable  # fixed or adjustable timestep
