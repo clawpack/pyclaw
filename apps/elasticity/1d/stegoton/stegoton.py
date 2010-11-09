@@ -33,6 +33,7 @@ def qinit(grid):
     mbc=grid.mbc
     sigma = a1*np.exp(-((x-75.)/10.)**2.)
     q[:,0] = np.log(sigma+1.)/grid.aux[mbc:-mbc,1]
+    q[:,0] = 0.
 
     grid.q=q
 
@@ -77,12 +78,53 @@ def b4step(solver,solutions):
         grid.x.mthbc_lower=2
         grid.x.mthbc_upper=2
     
+class PPCGrid(Grid):
+    def init_q_petsc_structures(self):
+        r"""
+        Initilizes PETSc structures for q. It initilizes q_da, gqVec and lqVec
+        
+        """
+
+        print 'called!'            
+        periodic_type = PETSc.DA.PeriodicType.X
+
+        self.q_da = PETSc.DA().create(dim=self.ndim,
+                                    dof=self.meqn,
+                                    sizes=self.n, 
+                                    periodic_type = periodic_type,
+                                    stencil_width=self.mbc,
+                                    comm=PETSc.COMM_WORLD)
+        self.gqVec = self.q_da.createGlobalVector()
+        self.lqVec = self.q_da.createLocalVector()
+
+        #Now set up the local indices:
+        ranges = self.q_da.getRanges()
+        for i,range in enumerate(ranges):
+            self.dimensions[i].nstart=range[0]
+            self.dimensions[i].nend  =range[1]
+            
+ 
+def moving_wall_bc(grid,dim,qbc):
+    """Initial pulse generated at left boundary by prescribed motion"""
+    print dim.mthbc_lower
+    if dim.mthbc_lower==0:
+        print 'in'
+        if dim.centerghost[0]<0:
+           print 'further in'
+           qbc[:grid.mbc,0]=qbc[grid.mbc,0] 
+           t=grid.t; t1=grid.aux_global['t1']; tw1=grid.aux_global['tw1']
+           a1=grid.aux_global['a1']; mbc=grid.mbc
+           t0 = (t-t1)/tw1
+           if abs(t0)<=1.: vwall = -a1*(1.+np.cos(t0*np.pi))
+           else: vwall=0.
+           for ibc in xrange(mbc-1):
+               qbc[mbc-ibc-1,1] = 2*vwall*grid.aux[ibc,1] - qbc[mbc+ibc,1]
 
 # Initialize grids and solutions
 xlower=0.0; xupper=150.0
-cellsperlayer=24; mx=150*cellsperlayer
-x = Dimension('x',xlower,xupper,mx,mthbc_lower=1,mthbc_upper=1,mbc=2)
-grid = Grid(x)
+cellsperlayer=12; mx=150*cellsperlayer
+x = Dimension('x',xlower,xupper,mx,mthbc_lower=0,mthbc_upper=1,mbc=2)
+grid = PPCGrid(x)
 grid.meqn = 2
 grid.t = 0.0
 
@@ -106,6 +148,7 @@ grid.init_q_petsc_structures()
 setaux(grid)
 qinit(grid)
 init_solution = Solution(grid)
+grid.x.user_bc_lower=moving_wall_bc
 
 Kmax=max(grid.aux_global['KA'],grid.aux_global['KB'])
 emax=np.max(grid.q[:,0])
