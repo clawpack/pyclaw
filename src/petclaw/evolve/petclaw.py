@@ -27,7 +27,7 @@ from pyclaw.evolve.clawpack import ClawSolver, ClawSolver1D, start_step, src
 from pyclaw.evolve import limiters
 
 from petsc4py import PETSc
-from mpi4py import MPI
+
 
 # ============================================================================
 #  Generic PetClaw solver class
@@ -331,13 +331,18 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
             self.cfl = max(self.cfl,smax1,smax2)
 
         # comunicate max cfl
-        comm = MPI.COMM_WORLD #Amal:should be consistent with petsc commworld
-        size = comm.Get_size()
-        rank = comm.Get_rank()
-        max_cfl = 0
-        max_cfl =comm.reduce( sendobj=self.cfl, op=MPI.MAX,  root=0)
-        #max_cfl =comm.Reduce( self.cfl, max_cfl, op=MPI.MAX,  root=0)
-        self.cfl = comm.bcast(max_cfl, root=0)
+        if self.dt_variable:
+            try:
+                from mpi4py import MPI  
+                comm = MPI.COMM_WORLD #Amal:should be consistent with petsc commworld
+                size = comm.Get_size()
+                rank = comm.Get_rank()
+                max_cfl = 0
+                max_cfl =comm.reduce( sendobj=self.cfl, op=MPI.MAX,  root=0)
+                #max_cfl =comm.Reduce( self.cfl, max_cfl, op=MPI.MAX,  root=0)
+                self.cfl = comm.bcast(max_cfl, root=0)
+            except:
+                raise Exception("Unable to communicate cfl")
 
         # If we are doing slope limiting we have more work to do
         if self.order == 2:
