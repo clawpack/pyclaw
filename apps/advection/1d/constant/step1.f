@@ -1,7 +1,7 @@
 c
 c
 c ===================================================================
-      subroutine step1(maxmx,meqn,mwaves,mbc,mx, q,aux,dx,dt,
+      subroutine step1(maxmx,meqn,mwaves,mbc,maux,mx, q,aux,dx,dt,
      &              method,mthlim,cfl,f,wave,s,amdq,apdq,dtdx, u)
 c ===================================================================
 c
@@ -36,7 +36,7 @@ c
       implicit double precision (a-h,o-z)    
       dimension q(1-mbc:maxmx+mbc,meqn)
 cf2py intent(in,out) q  
-      dimension  aux(1-mbc:maxmx+mbc, *)
+      dimension  aux(1-mbc:maxmx+mbc, maux)
       dimension    f(1-mbc:maxmx+mbc, meqn)
       dimension    s(1-mbc:maxmx+mbc, mwaves)
       dimension wave(1-mbc:maxmx+mbc, meqn, mwaves)
@@ -81,7 +81,7 @@ c
 
 
       
-      print *,"q before, from fortran",q(24,1)
+c     print *,"q before, from fortran",q(24,1)
 
       do 40 i=1,mx+1
          do 40 m=1,meqn
@@ -136,6 +136,6 @@ c
   150       continue
 c
   900 continue
-      print *,"q after, from fortran",q(24,1)
+c     print *,"q after, from fortran",q(24,1)
       return
       end

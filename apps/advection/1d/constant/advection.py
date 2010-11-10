@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #!/usr/bin/env python
 # encoding: utf-8
 """
@@ -21,11 +22,34 @@ except:
     import numpy as np
     from petsc4py import PETSc
 
-from petclaw.grid import PCDimension as Dimension
-from petclaw.grid import PCGrid as Grid
-from pyclaw.solution import Solution
-from petclaw.evolve.petclaw import PetClawSolver1D
-from pyclaw.controller import Controller
+try:
+    from petclaw.grid import PCDimension as Dimension
+    from petclaw.grid import PCGrid as Grid
+    from pyclaw.solution import Solution
+    from petclaw.evolve.petclaw import PetClawSolver1D
+    from pyclaw.controller import Controller
+except:
+    #for el in os.environ.keys():
+        
+        #print el, os.environ[el]
+    #PATH = os.environ['PATH']
+    #print "Path::",PATH
+
+    #CLAW = os.environ['CLAW']
+    #PETCLAW = os.environ['PETCLAW']
+    #PYCLAW = CLAW+"/python"
+    #PETCLAW_PKG = PETCLAW + "/src"
+    #sys.path.append(PETCLAW_PKG)
+    #sys.path.append(PYCLAW)
+    sys.path.append("/home/project/k47/petclaw_testf2py/src/")
+    sys.path.append("/home/amal/clawpack/python/")
+    from petclaw.grid import PCDimension as Dimension
+    from petclaw.grid import PCGrid as Grid
+    from pyclaw.solution import Solution
+    from petclaw.evolve.petclaw import PetClawSolver1D
+    from pyclaw.controller import Controller
+
+
 
 def qinit(grid):
 
@@ -74,16 +98,17 @@ qinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = PetClawSolver1D(kernelsType = 'P')
+solver = PetClawSolver1D(kernelsType = 'F')
 
-solver.dt = 0.0004
-solver.max_steps = 5000
+solver.dt = 0.004
+solver.max_steps = 50000
+
 solver.set_riemann_solver('advection')
 solver.order = 2
 solver.mthlim = 4
 
 useController = True
-makePlot = True
+makePlot = False
 
 
 if useController:
@@ -92,10 +117,10 @@ if useController:
     claw = Controller()
     claw.outdir = './_output/'
     claw.keep_copy = True
-    claw.nout = 10
+    claw.nout = 1
     claw.outstyle = 1
     claw.output_format = 'petsc'
-    claw.tfinal = 1.0
+    claw.tfinal =0.5
     claw.solutions['n'] = init_solution
     claw.solver = solver
 
