@@ -89,7 +89,7 @@ example_path = './'
 setprob_path = os.path.join(example_path,'setprob.data')
 
 # Initialize grids and solutions
-x = Dimension('x',0.0,1.0,512,mthbc_lower=2,mthbc_upper=2)
+x = Dimension('x',0.0,1.0,4096,mthbc_lower=2,mthbc_upper=2)
 grid = Grid(x)
 grid.set_aux_global(setprob_path)
 grid.meqn = 1
@@ -108,9 +108,9 @@ solver.order = 2
 solver.mthlim = 4
 solver.dt_variable = False
 
+tfinal = 100*solver.dt
 
-useController = True
-makePlot = False
+useController = False
 
 
 if useController:
@@ -122,40 +122,20 @@ if useController:
     claw.nout = 1
     claw.outstyle = 1
     claw.output_format = 'petsc'
-    claw.tfinal = 100*solver.dt
+    claw.tfinal = tfinal
     claw.solutions['n'] = init_solution
     claw.solver = solver
 
     # Solve
     status = claw.run()
 
-    if makePlot:
-        if claw.keep_copy:
-    
-            for n in xrange(0,11):
-                sol = claw.frames[n]
-                plotTitle="time: {0}".format(sol.t)
-                viewer = PETSc.Viewer()
-                viewer.createDraw(  title = plotTitle,  comm=sol.grid.gqVec.comm)
-
-
-        
-                OptDB = PETSc.Options()
-                OptDB['draw_pause'] = -1
-                sol.grid.gqVec.view(viewer)
-
-
 else:
+    import time
     sol = {"n":init_solution}
-    solver.evolve_to_time(sol,0.25)
+    start=time.time()
+    solver.evolve_to_time(sol,tfinal)
+    end=time.time()
+    duration = end-start
+    print 'Job took '+str(duration)+' seconds'
 
     sol = sol["n"]
-
-    if makePlot:
-        viewer = PETSc.Viewer.DRAW(grid.gqVec.comm)
-        OptDB = PETSc.Options()
-        OptDB['draw_pause'] = -1
-        viewer(grid.gqVec)
-        
-
-

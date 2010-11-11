@@ -1,18 +1,17 @@
-#FFLAGS = -O0 -g -qextname
-#F2PYFLAGS = --fcompiler=bgpgnu --compiler=mpicc
 
-SOURCES = \
-  step1.f \
-  rp1.f
 
-LIBSOURCES = \
-  $(PETCLAW)/src/fortran/1d/limiter.f \
-  $(PETCLAW)/src/fortran/1d/philim.f
+step1.so : step1.f limiter.o philim.o rp1.o
+	f2py --fcompiler=bgpgnu  --compiler=mpicc -m step1 -c --noopt --debug step1.f limiter.o rp1.o philim.o 
+ 
+limiter.o:
+	$(F77) -O0 -g -qextname -o limiter.o -c limiter.f
 
-LIB = $(CURDIR)/
+philim.o:
+	$(F77) -O0 -g -qextname -o philim.o -c philim.f
 
-step1.so : $(SOURCES) $(LIBSOURCES)
-	f2py -m step1 -c step1.f rp1.f $(LIBSOURCES)
-	
+rp1.o:
+	$(F77) -O0 -g -qextname -o rp1.o -c rp1.f
+
 clean:
-	rm -f *.so *.log
+	rm *.o *.so
+	
