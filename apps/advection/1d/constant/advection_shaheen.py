@@ -54,12 +54,12 @@ def qinit(grid):
     grid.init_q_petsc_structures()
     
     # Initial Data parameters
-    ic = grid.aux_global['ic']
-    beta = grid.aux_global['beta']
-    gamma = grid.aux_global['gamma']
-    x0 = grid.aux_global['x0']
-    x1 = grid.aux_global['x1']
-    x2 = grid.aux_global['x2']
+    ic = 3
+    beta = 100.
+    gamma = 0.
+    x0 = 0.3
+    x1 = 0.7
+    x2 = 0.9
     
     # Create an array with fortran native ordering
     x =grid.x.center
@@ -72,25 +72,18 @@ def qinit(grid):
     # Step Function
     qs = (x > x1) * 1.0 - (x > x2) * 1.0
     
-    if ic == 1:
-        q[:,0] = qg
-    elif ic == 2:
-        q[:,0] = qs
-    elif ic == 3:
-        q[:,0] = qg + qs
+    if ic == 1: q[:,0] = qg
+    elif ic == 2: q[:,0] = qs
+    elif ic == 3: q[:,0] = qg + qs
     grid.q=q
 
 
-# Data paths and objects
-example_path = './'
-setprob_path = os.path.join(example_path,'setprob.data')
-
 # Initialize grids and solutions
-numprocs=32
+numprocs=1
 mx=4096*numprocs
 x = Dimension('x',0.0,1.0,mx,mthbc_lower=2,mthbc_upper=2)
 grid = Grid(x)
-grid.set_aux_global(setprob_path)
+grid.aux_global['u']=-1.
 grid.meqn = 1
 grid.t = 0.0
 qinit(grid)
@@ -117,7 +110,7 @@ if useController:
     # Controller instantiation
     claw = Controller()
     claw.outdir = './_output/'
-    claw.keep_copy = True
+    claw.keep_copy = False
     claw.nout = 1
     claw.outstyle = 1
     claw.output_format = 'petsc'
@@ -135,13 +128,10 @@ else:
     solver.evolve_to_time(sol,tfinal)
     end=time.time()
     duration1 = end-start
-    print 'first part of job took '+str(duration1)+' seconds'
+    print 'First part of job took '+str(duration1)+' seconds'
 
     start=time.time()
-    solver.evolve_to_time(sol,tfinal)
+    solver.evolve_to_time(sol,tfinal*2)
     end=time.time()
     duration2 = end-start
-    print 'second part of job took '+str(duration2)+' seconds'
-
-
-    sol = sol["n"]
+    print 'Second part of job took '+str(duration2)+' seconds'
