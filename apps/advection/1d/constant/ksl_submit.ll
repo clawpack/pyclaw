@@ -13,5 +13,5 @@
 # @ account_no          = k47
 
 # @ queue
-/bgsys/drivers/ppcfloor/bin/mpirun -exp_env LD_LIBRARY_PATH -env PYTHONPATH="${PYTHONPATH_PPC450D}" -env BG_MAPPING=TXYZ -np 1 -mode VN /bgsys/drivers/ppcfloor/gnu-linux/bin/python ./advection_shaheen.py
+/bgsys/drivers/ppcfloor/bin/mpirun -exp_env LD_LIBRARY_PATH -env PYTHONPATH="${PYTHONPATH_PPC450D}" -env BG_MAPPING=TXYZ -np 32 -mode VN /bgsys/drivers/ppcfloor/gnu-linux/bin/python ./advection_shaheen.py
 

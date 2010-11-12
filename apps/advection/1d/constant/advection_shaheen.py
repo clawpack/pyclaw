@@ -29,9 +29,6 @@ try:
     from petclaw.evolve.petclaw import PetClawSolver1D
     from pyclaw.controller import Controller
 except:
-    for el in os.environ.keys():
-        
-        print el, os.environ[el]
     #PATH = os.environ['PATH']
     #print "Path::",PATH
 
@@ -89,7 +86,9 @@ example_path = './'
 setprob_path = os.path.join(example_path,'setprob.data')
 
 # Initialize grids and solutions
-x = Dimension('x',0.0,1.0,4096,mthbc_lower=2,mthbc_upper=2)
+numprocs=32
+mx=4096*numprocs
+x = Dimension('x',0.0,1.0,mx,mthbc_lower=2,mthbc_upper=2)
 grid = Grid(x)
 grid.set_aux_global(setprob_path)
 grid.meqn = 1
@@ -100,15 +99,15 @@ init_solution = Solution(grid)
 # Solver setup
 solver = PetClawSolver1D(kernelsType = 'F')
 
-solver.dt = 0.000007
-solver.max_steps = 1000
+solver.dt = 0.8*grid.x.d
+solver.max_steps = 2000
 
 solver.set_riemann_solver('advection')
 solver.order = 2
 solver.mthlim = 4
 solver.dt_variable = False
 
-tfinal = 100*solver.dt
+tfinal = 500*solver.dt
 
 useController = False
 
@@ -135,7 +134,14 @@ else:
     start=time.time()
     solver.evolve_to_time(sol,tfinal)
     end=time.time()
-    duration = end-start
-    print 'Job took '+str(duration)+' seconds'
+    duration1 = end-start
+    print 'first part of job took '+str(duration1)+' seconds'
+
+    start=time.time()
+    solver.evolve_to_time(sol,tfinal)
+    end=time.time()
+    duration2 = end-start
+    print 'second part of job took '+str(duration2)+' seconds'
+
 
     sol = sol["n"]
