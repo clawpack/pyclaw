@@ -57,12 +57,12 @@ def qinit(grid):
     grid.init_q_petsc_structures()
     
     # Initial Data parameters
-    ic = grid.aux_global['ic']
-    beta = grid.aux_global['beta']
-    gamma = grid.aux_global['gamma']
-    x0 = grid.aux_global['x0']
-    x1 = grid.aux_global['x1']
-    x2 = grid.aux_global['x2']
+    ic = 3
+    beta = 100.
+    gamma = 0.
+    x0 = 0.3
+    x1 = 0.7
+    x2 = 0.9
     
     # Create an array with fortran native ordering
     x =grid.x.center
@@ -84,14 +84,10 @@ def qinit(grid):
     grid.q=q
 
 
-# Data paths and objects
-example_path = './'
-setprob_path = os.path.join(example_path,'setprob.data')
-
 # Initialize grids and solutions
 x = Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
 grid = Grid(x)
-grid.set_aux_global(setprob_path)
+grid.aux_global['u']=-1.
 grid.meqn = 1
 grid.t = 0.0
 qinit(grid)
@@ -101,6 +97,7 @@ init_solution = Solution(grid)
 solver = PetClawSolver1D(kernelsType = 'F')
 
 solver.dt = 0.004
+solver.dt_variable=False
 solver.max_steps = 50000
 
 solver.set_riemann_solver('advection')

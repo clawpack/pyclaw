@@ -27,49 +27,40 @@ def qinit(grid):
     grid.init_q_petsc_structures()
 
     # Initial Data parameters
-    ic = grid.aux_global['ic']
-    beta = grid.aux_global['beta']
-    gamma = grid.aux_global['gamma']
-    x0 = grid.aux_global['x0']
-    x1 = grid.aux_global['x1']
-    x2 = grid.aux_global['x2']
+    ic = 1
+    beta = 100.
+    gamma = 0.
+    x0 = 0.75
+    x1 = 0.7
+    x2 = 0.9
     
-    # Create an array with fortran native ordering
     x =grid.x.center
-   
     q=np.zeros([len(x),grid.meqn])
     
     # Gaussian
     qg = np.exp(-beta * (x-x0)**2) * np.cos(gamma * (x - x0))
-
     # Step Function
     qs = (x > x1) * 1.0 - (x > x2) * 1.0
     
-    if ic == 1:
-        q[:,0] = qg
-    elif ic == 2:
-        q[:,0] = qs
-    elif ic == 3:
-        q[:,0] = qg + qs
+    if ic == 1: q[:,0] = qg
+    elif ic == 2: q[:,0] = qs
+    elif ic == 3: q[:,0] = qg + qs
     q[:,1]=0.
     grid.q=q
 
-    
-# Data paths and objects
-example_path = './'
-setprob_path = os.path.join(example_path,'setprob.data')
 
 # Initialize grids and solutions
 x = Dimension('x',0.0,1.0,100,mthbc_lower=1,mthbc_upper=1)
 grid = Grid(x)
-grid.set_aux_global(setprob_path)
+grid.aux_global['zz']=1.0
+grid.aux_global['cc']=1.0
 grid.meqn=2
 grid.t = 0.0
 qinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = PetClawSolver1D(kernelsType = 'F')
+solver = PetClawSolver1D(kernelsType = 'P')
 
 solver.dt = 0.0004
 solver.max_steps = 5000
@@ -78,7 +69,7 @@ solver.order = 2
 solver.mthlim = [4,4]
 
 useController = True
-makePlot = True
+makePlot = False
 
 
 if useController:

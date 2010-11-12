@@ -26,34 +26,25 @@ def qinit(grid):
     grid.init_q_petsc_structures()
     
     # Initial Data parameters
-    ic = grid.aux_global['ic']
-    beta = grid.aux_global['beta']
-    gamma = grid.aux_global['gamma']
-    x0 = grid.aux_global['x0']
-    x1 = grid.aux_global['x1']
-    x2 = grid.aux_global['x2']
+    ic = 3
+    beta = 100.
+    gamma = 0.
+    x0 = 0.3
+    x1 = 0.7
+    x2 = 0.9
 
-    
-    
-
-    # Create an array with fortran native ordering
-    
     x =grid.x.center
     
     q=np.zeros([len(x),grid.meqn])
     
     # Gaussian
     qg = np.exp(-beta * (x-x0)**2) * np.cos(gamma * (x - x0))
-
     # Step Function
     qs = (x > x1) * 1.0 - (x > x2) * 1.0
     
-    if ic == 1:
-        q[:,0] = qg
-    elif ic == 2:
-        q[:,0] = qs
-    elif ic == 3:
-        q[:,0] = qg + qs
+    if ic == 1: q[:,0] = qg
+    elif ic == 2: q[:,0] = qs
+    elif ic == 3: q[:,0] = qg + qs
 
     grid.q=q
 
@@ -62,22 +53,14 @@ def auxinit(grid):
     # Initilize petsc Structures for aux
     maux = 1
     xghost=grid.x.centerghost
-    #grid.empty_aux(maux)
     grid.aux=np.empty([len(xghost),maux])
     grid.aux[:,0] = np.sin(2.*np.pi*xghost)+2
-    #grid.aux= np.reshape(grid.aux, (grid.aux.size, maux))
     
-    
-
-
-# Data paths and objects
-example_path = './'
-setprob_path = os.path.join(example_path,'setprob.data')
 
 # Initialize grids and solutions
-x = Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2,mbc=2)
+xlower=0.0; xupper=1.0; mx=100
+x = Dimension('x',xlower,xupper,mx,mthbc_lower=2,mthbc_upper=2,mbc=2)
 grid = Grid(x)
-grid.set_aux_global(setprob_path)
 grid.meqn = 1
 grid.t = 0.0
 qinit(grid)
@@ -86,13 +69,13 @@ init_solution = Solution(grid)
 
 # Solver setup
 solver = PetClawSolver1D(kernelsType = 'P')
-solver.dt = 0.0004
+solver.dt = 0.9*grid.x.d/np.max(np.abs(grid.aux[:,0]))
+print grid.x.d, solver.dt
 solver.max_steps = 5000
 solver.set_riemann_solver('vc_advection')
 solver.order = 2
 solver.mthlim = 4
-solver.dt_variable = False #Amal: need to handle the case dt_variable.
-
+solver.dt_variable = True
 
 use_controller = True
 
