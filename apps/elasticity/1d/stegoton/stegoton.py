@@ -130,9 +130,11 @@ def moving_wall_bc(grid,dim,qbc):
 
 
 if __name__ == "__main__":
+    import time
+    start=time.time()
     # Initialize grids and solutions
     xlower=0.0; xupper=150.0
-    cellsperlayer=24; mx=150*cellsperlayer
+    cellsperlayer=48; mx=150*cellsperlayer
     x = Dimension('x',xlower,xupper,mx,mthbc_lower=0,mthbc_upper=0,mbc=2)
     grid = PPCGrid(x)
     grid.meqn = 2
@@ -174,7 +176,7 @@ if __name__ == "__main__":
     # Solver setup
     solver = PetClawSolver1D(kernelsType = 'F')
 
-    tfinal=500.; nout = 200; tout=tfinal/nout
+    tfinal=500.; nout = 10; tout=tfinal/nout
     dt_rough = 1.45*grid.x.d/smax
     nsteps = np.ceil(tout/dt_rough)
     solver.dt = tout/nsteps
@@ -204,6 +206,8 @@ if __name__ == "__main__":
 
         # Solve
         status = claw.run()
+        end=time.time()
+        print 'job took '+str(end-start)+' seconds'
 
 
     else:
