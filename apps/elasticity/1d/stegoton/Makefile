@@ -1,7 +1,6 @@
-FC = gfortran
 #The flags below are needed when running on Shaheen:
-FFLAGS = -O3#-qextname
-F2PYFLAGS = #--fcompiler=bgpgnu --compiler=mpicc
+FFLAGS = -qextname
+F2PYFLAGS = --fcompiler=bgpgnu --compiler=mpicc
 
 SOURCES = \
   rp1nel.f
@@ -17,10 +16,10 @@ OBJECTS = $(subst .f,.o, $(SOURCES))
 LIBOBJECTS = $(subst .f,.o, $(LIBSOURCES))
 
 .SUFFIXES: .f .o
-%.o : %.f ; $(FC) $(FFLAGS) -c -I$(LIB) $< -o $@ $(FFLAGS) 
+%.o : %.f ; $(F77) $(FFLAGS) -c -I$(LIB) $< -o $@ $(FFLAGS) 
 
 step1.so : $(LIBOBJECTS) $(OBJECTS)
-	f2py $(F2PYFLAGS) --opt=-O3 -m step1 -c step1fw.f $(OBJECTS) $(LIBOBJECTS)
+	f2py $(F2PYFLAGS) -m step1 -c step1fw.f $(OBJECTS) $(LIBOBJECTS)
 	
 clean:
 	rm -f *.o *.so *.log
