@@ -184,7 +184,7 @@ class PetClawSolver(ClawSolver):
             amdq = np.zeros( (local_n, meqn) )
             apdq = np.zeros( (local_n, meqn) )
         
-            q = step1(maxmx,mbc,mx,q,aux,dx,dt,method,mthlim,cfl,f,wave,s,amdq,apdq,dtdx, -1)
+            q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,mthlim,f,wave,s,amdq,apdq,dtdx, -1)
 
 
         elif(self.kernelsType == 'P'):

@@ -29,12 +29,6 @@ try:
     from petclaw.evolve.petclaw import PetClawSolver1D
     from pyclaw.controller import Controller
 except:
-    #for el in os.environ.keys():
-        
-        #print el, os.environ[el]
-    #PATH = os.environ['PATH']
-    #print "Path::",PATH
-
     #CLAW = os.environ['CLAW']
     #PETCLAW = os.environ['PETCLAW']
     #PYCLAW = CLAW+"/python"
