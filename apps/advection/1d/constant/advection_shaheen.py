@@ -79,7 +79,7 @@ def qinit(grid):
 
 
 # Initialize grids and solutions
-numprocs=1
+numprocs = PETSc.Comm.getSize(PETSc.COMM_WORLD)
 mx=4096*numprocs
 x = Dimension('x',0.0,1.0,mx,mthbc_lower=2,mthbc_upper=2)
 grid = Grid(x)
