@@ -1,26 +1,19 @@
-#The flags below are needed when running on Shaheen:
-FFLAGS = -qextname
-F2PYFLAGS = --fcompiler=bgpgnu --compiler=mpicc
+#FC=f77
+FLAGS=-qextname
+F2PYFLAGS=--fcompiler=bgpgnu  --compiler=mpicc #--f77flags="-lgfortran -O3"
 
-SOURCES = \
-  rp1nel.f
+step1.so : step1fw.f limiter.o philim.o rp1nel.o
+	f2py $(F2PYFLAGS) -m step1 -c step1fw.f limiter.f rp1nel.f philim.f 
+ 
+limiter.o:
+	$(FC) $(FLAGS) -o limiter.o -c limiter.f
 
-LIBSOURCES = \
-  $(PETCLAW)/src/fortran/1d/limiter.f \
-  $(PETCLAW)/src/fortran/1d/philim.f
+philim.o:
+	$(FC) $(FLAGS) -o philim.o -c philim.f
 
-LIB = $(CURDIR)/
+rp1nel.o:
+	$(FC) $(FLAGS) -o rp1nel.o -c rp1nel.f
 
-# make list of .o files required from the sources above:
-OBJECTS = $(subst .f,.o, $(SOURCES))
-LIBOBJECTS = $(subst .f,.o, $(LIBSOURCES))
-
-.SUFFIXES: .f .o
-%.o : %.f ; $(F77) $(FFLAGS) -c -I$(LIB) $< -o $@ $(FFLAGS) 
-
-step1.so : $(LIBOBJECTS) $(OBJECTS)
-	f2py $(F2PYFLAGS) -m step1 -c step1fw.f $(OBJECTS) $(LIBOBJECTS)
-	
 clean:
-	rm -f *.o *.so *.log
+	rm *.o *.so
 	

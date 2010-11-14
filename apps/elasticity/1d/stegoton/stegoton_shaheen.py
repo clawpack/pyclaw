@@ -78,7 +78,6 @@ def b4step(solver,solutions):
     #Note that trtime should be an output point
     grid = solutions['n'].grids[0]
     if grid.t>=grid.aux_global['trtime']-1.e-10 and not grid.aux_global['trdone']:
-        print 'Time reversing'
         grid.q[:,1]=-grid.q[:,1]
         solutions['n'].grid.q=grid.q
         grid.aux_global['trdone']=True
@@ -150,7 +149,7 @@ if __name__ == "__main__":
     start=time.time()
     # Initialize grids and solutions
     xlower=0.0; xupper=150.0
-    cellsperlayer=48; mx=150*cellsperlayer
+    cellsperlayer=96; mx=150*cellsperlayer
     x = Dimension('x',xlower,xupper,mx,mthbc_lower=0,mthbc_upper=0,mbc=2)
     grid = PPCGrid(x)
     grid.meqn = 2
