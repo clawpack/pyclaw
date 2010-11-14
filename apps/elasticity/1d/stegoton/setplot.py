@@ -22,17 +22,17 @@ def setplot(plotdata):
     plotdata.clearfigures()  # clear any old figures,axes,items data
 
     # Figure for q[0]
-    plotfigure = plotdata.new_plotfigure(name='Strain', figno=1)
+    plotfigure = plotdata.new_plotfigure(name='Stress', figno=1)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     #plotaxes.xlimits = [0.,150.]
     #plotaxes.ylimits = [-.2,1.0]
-    plotaxes.title = 'Strain'
+    plotaxes.title = 'Stress'
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
-    plotitem.plot_var = 0
+    plotitem.plot_var = stress
     plotitem.plotstyle = '-o'
     plotitem.color = 'b'
     plotitem.show = True       # show on plot?
@@ -41,17 +41,17 @@ def setplot(plotdata):
 
 
     # Figure for q[1]
-    plotfigure = plotdata.new_plotfigure(name='Momentum', figno=2)
+    plotfigure = plotdata.new_plotfigure(name='Velocity', figno=2)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.xlimits = 'auto'
     plotaxes.ylimits = [-.5,1.1]
-    plotaxes.title = 'Momentum'
+    plotaxes.title = 'Velocity'
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
-    plotitem.plot_var = 1
+    plotitem.plot_var = velocity
     plotitem.plotstyle = '-'
     plotitem.color = 'b'
     plotitem.show = True       # show on plot?
@@ -75,3 +75,18 @@ def setplot(plotdata):
     return plotdata
 
  
+def velocity(current_data):
+    """Compute velocity from strain and momentum"""
+    from stegoton import setaux
+    aux=setaux(current_data.x)
+    velocity = current_data.q[:,1]/aux[:,0]
+    return velocity
+
+def stress(current_data):
+    """Compute stress from strain and momentum"""
+    from stegoton import setaux
+    from pyclaw.evolve.rp.rp_nel import sigma 
+    aux=setaux(current_data.x)
+    epsilon = current_data.q[:,0]
+    stress = sigma(epsilon,aux[:,1])
+    return stress
