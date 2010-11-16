@@ -148,8 +148,9 @@ if __name__ == "__main__":
     import time
     start=time.time()
     # Initialize grids and solutions
-    xlower=0.0; xupper=150.0
-    cellsperlayer=96; mx=150*cellsperlayer
+    xlower=0.0; xupper=150.0;
+    numprocs = 4096
+    cellsperlayer=6*numprocs; mx=150*cellsperlayer
     x = Dimension('x',xlower,xupper,mx,mthbc_lower=0,mthbc_upper=0,mbc=2)
     grid = PPCGrid(x)
     grid.meqn = 2
@@ -170,7 +171,7 @@ if __name__ == "__main__":
     grid.aux_global['KB'] = KB
     grid.aux_global['rhoA'] = rhoA
     grid.aux_global['rhoB'] = rhoB
-    grid.aux_global['trtime'] = 250.0
+    grid.aux_global['trtime'] = 5000.0
     grid.aux_global['trdone'] = False
 
     # Initilize petsc Structures
@@ -191,15 +192,15 @@ if __name__ == "__main__":
     # Solver setup
     solver = PetClawSolver1D(kernelsType = 'F')
 
-    tfinal=500.; nout = 10; tout=tfinal/nout
-    dt_rough = 1.45*grid.x.d/smax
+    tfinal=500./numprocs; nout = 10; tout=tfinal/nout
+    dt_rough = 1.2*grid.x.d/smax
     nsteps = np.ceil(tout/dt_rough)
     solver.dt = tout/nsteps
 
-    solver.max_steps = 5000
+    solver.max_steps = 5000000
     solver.set_riemann_solver('nel')
     solver.order = 2
-    solver.mthlim = [4,4]
+    solver.mthlim = [3,3]
     solver.dt_variable = False
     solver.fwave = True 
     solver.start_step = b4step 
@@ -210,7 +211,7 @@ if __name__ == "__main__":
 
     # Controller instantiation
         claw = Controller()
-        claw.outdir = './_output'
+        claw.outdir = './_output_'+str(numprocs)+'_procs'
         claw.keep_copy = False
         claw.nout = nout
         claw.outstyle = 1
@@ -222,11 +223,10 @@ if __name__ == "__main__":
         # Solve
         status = claw.run()
         end=time.time()
-        print 'job took '+str(end-start)+' seconds'
+        print 'job 1 took '+str(end-start)+' seconds'
 
-
-    else:
-        sol = {"n":init_solution}
-        
-        solver.evolve_to_time(sol,.4)
-        sol = sol["n"]
+        claw.tfinal = tfinal*2
+        start=time.time()
+        status = claw.run()
+        end=time.time()
+        print 'job 2 took '+str(end-start)+' seconds'
