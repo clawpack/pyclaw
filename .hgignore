@@ -9,3 +9,4 @@ doc/*.pdf
 _output*
 *.err
 *.o
+*.so
