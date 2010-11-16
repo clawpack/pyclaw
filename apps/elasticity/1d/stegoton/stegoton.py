@@ -9,7 +9,8 @@ Nonlinear elasticity in periodic medium.
 $$\\epsilon_t - u_x = 0$$
 $$\\rho(x) u_t - \\sigma(\\epsilon,x)_x = 0$$
 """
-
+solvertype='sharpclaw'
+kernelsType='P'
 
 import os
 import numpy as np
@@ -18,7 +19,10 @@ from petclaw.grid import PCDimension as Dimension
 from petclaw.grid import PCGrid as Grid
 from pyclaw.solution import Solution
 from pyclaw.controller import Controller
-from petclaw.evolve.petclaw import PetClawSolver1D
+if solvertype=='clawpack':
+    from petclaw.evolve.petclaw import PetClawSolver1D as Solver1D
+elif solvertype=='sharpclaw':
+    from petclaw.evolve.sharpclaw import SharpClawSolver1D as Solver1D
 from petsc4py import PETSc
 
 def qinit(grid):
@@ -119,6 +123,7 @@ def moving_wall_bc(grid,dim,qbc):
     """Initial pulse generated at left boundary by prescribed motion"""
     if dim.mthbc_lower==0:
         if dim.centerghost[0]<0:
+           print 'got here'
            qbc[:grid.mbc,0]=qbc[grid.mbc,0] 
            t=grid.t; t1=grid.aux_global['t1']; tw1=grid.aux_global['tw1']
            a1=grid.aux_global['a1']; mbc=grid.mbc
@@ -134,7 +139,7 @@ if __name__ == "__main__":
     start=time.time()
     # Initialize grids and solutions
     xlower=0.0; xupper=150.0
-    cellsperlayer=384; mx=150*cellsperlayer
+    cellsperlayer=12; mx=150*cellsperlayer
     x = Dimension('x',xlower,xupper,mx,mthbc_lower=0,mthbc_upper=0,mbc=2)
     grid = PPCGrid(x)
     grid.meqn = 2
@@ -172,10 +177,10 @@ if __name__ == "__main__":
     smax=np.sqrt(Kmax*np.exp(Kmax*emax)) #This isn't quite right
 
     # Solver setup
-    solver = PetClawSolver1D(kernelsType = 'F')
+    solver = Solver1D(kernelsType = kernelsType)
 
-    tfinal=5.; nout = 10; tout=tfinal/nout
-    dt_rough = 1.45*grid.x.d/smax
+    tfinal=50.; nout = 10; tout=tfinal/nout
+    dt_rough = 0.5*grid.x.d/smax
     nsteps = np.ceil(tout/dt_rough)
     solver.dt = tout/nsteps
 
@@ -188,6 +193,11 @@ if __name__ == "__main__":
     solver.start_step = b4step 
     solver.user_bc_lower=moving_wall_bc
     solver.user_bc_upper=zero_bc
+
+    if solvertype=='sharpclaw':
+        solver.lim_type = 2
+        solver.time_integrator='SSP33'
+        solver.char_decomp=0
 
     use_controller = True
 

@@ -77,7 +77,7 @@ solver.set_riemann_solver('advection')
 solver.order = 2
 solver.mthlim = 4
 solver.lim_type = 2
-solver.time_integrator='Euler'
+solver.time_integrator='SSP33'
 solver.char_decomp=0
 
 useController = True

@@ -57,6 +57,9 @@ class qrk(object):
         self.gVec = self.da.createGlobalVector()
         self.lVec = self.da.createLocalVector()
 
+        if self.time_integrator=='SSP33':
+            self.qrk = Solution(grid)
+
 
 class SharpClawSolver1D(ClawSolver1D):
     """SharpClaw evolution routine in 1D
@@ -97,30 +100,41 @@ class SharpClawSolver1D(ClawSolver1D):
         Arguments:
           tend - Target time step to reach
         """
+        from pyclaw.solution import Solution
+        # Grid we will be working on
+        grid = solutions['n'].grids[0]
 
+        if self.time_integrator=='Euler':
+            deltaq=self.dq(solutions)
+            grid.q+=deltaq
+        elif self.time_integrator=='SSP33':
+            #solutions['rk1']=Solution(grid.__deepcopy__())
+            qold = grid.q.copy()
+            told = solutions['n'].t
+            deltaq=self.dq(solutions)
+            grid.q+=deltaq
+            solutions['n'].t=told+self.dt
+            deltaq=self.dq(solutions)
+            grid.q = 0.75*qold + 0.25*(grid.q+deltaq)
+            solutions['n'].t=told+0.5*self.dt
+            deltaq=self.dq(solutions)
+            grid.q = 1./3.*qold + 2./3.*(grid.q+deltaq)
 
-        self.start_step(self,solutions)
-
-        # Take a step on the homogeneous problem
-        self.rkstep(solutions)
-
-        # Check here if we violated the CFL condition, if we did, return 
-        # immediately to evolve_to_time and let it deal with picking a new
-        # dt
-        if self.cfl >= self.cfl_max:
-            return False
-
-        # Godunov Splitting -- really the source term should be called inside rkstep
-        if self.src_term == 1:
-            self.src(solutions,solutions['n'].t,self.dt)
+        else:
+            raise Exception('Unrecognized time integrator')
 
         
-    def rkstep(self,solutions):
+    def dq(self,solutions):
         """
         Take one Runge-Kutta time step.
         Right now this is just Euler for debugging.
         Each RK stage should be a Solution object.
         """
+
+        self.start_step(self,solutions)
+
+        # Take a step on the homogeneous problem
+
         # Grid we will be working on
         grid = solutions['n'].grids[0]
         # Number of equations
@@ -139,15 +153,23 @@ class SharpClawSolver1D(ClawSolver1D):
         local_n = q.shape[0]
 
         t=solutions['n'].t
-        dq=self.dq1(q,t,aux,capa,d,meqn,maux,mbc,aux_global)
-        grid.q=q[mbc:-mbc,:]+dq
-        #q2 = qold+dq
-        #t2 = told+self.dt
-        #dq=self.dq1(solutions['n'],q2,t2)
-        #solutions['n'].q = 0.5*(qold+q2+dq)
+        deltaq=self.dqhyp1(q,t,aux,capa,d,meqn,maux,mbc,aux_global)
+
+        # Check here if we violated the CFL condition, if we did, return 
+        # immediately to evolve_to_time and let it deal with picking a new
+        # dt
+        if self.cfl >= self.cfl_max:
+            return False
+
+        # Godunov Splitting -- really the source term should be called inside rkstep
+        if self.src_term == 1:
+            deltaq+=self.src(solutions['n'],solutions['n'].t,self.dt)
 
 
-    def dq1(self,q, t, aux, capa, d, meqn, maux, mbc, aux_global):
+        return deltaq
+
+
+    def dqhyp1(self,q, t, aux, capa, d, meqn, maux, mbc, aux_global):
         """Compute dq/dt * (delta t) for the homogeneous hyperbolic system
 
         Note that the capa array, if present, should be located in the aux
