@@ -106,61 +106,6 @@ class PCDimension(Dimension):
     center = property(**center())
     _center = None
 
-    # ========== Setting Boundary Conditions ==================================
-    def qbc_lower(self,grid,qbc):
-        r"""
-        
-        """
-        # User defined functions
-        if self.mthbc_lower == 0:
-            self.user_bc_lower(grid,self,qbc)
-        # Zero-order extrapolation
-        elif self.mthbc_lower == 1:
-            ##specify rank
-            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
-            if rank == 0:
-                qbc[:grid.mbc,...] = qbc[grid.mbc,...]
-        # Periodic
-        elif self.mthbc_lower == 2:
-            pass # Amal: this is implemented automatically by petsc4py
-            
-        # Solid wall bc
-        elif self.mthbc_lower == 3:
-            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
-        else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
-
-
-    # ========== Setting Boundary Conditions ==================================
-    def qbc_upper(self,grid,qbc):
-        r"""
-        
-        """
-        # User defined functions
-        if self.mthbc_upper == 0:
-            self.user_bc_upper(grid,self,qbc)
-        # Zero-order extrapolation
-        elif self.mthbc_upper == 1:
-            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
-            size = PETSc.Comm.getSize(PETSc.COMM_WORLD)
-            
-            if rank == size-1:
-                local_n = grid.q.shape[0]
-                list_from =[local_n - grid.mbc -1]*grid.mbc    
-                list_to = range(local_n - grid.mbc, local_n )
-                grid.q[list_to,:]=grid.q[list_from,:]
- 	    
-        elif self.mthbc_upper == 2:
-            # Periodic
-            pass # Amal: this is implemented automatically by petsc4py
-
-        # Solid wall bc
-        elif self.mthbc_upper == 3:
-            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
-
-        else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
-
 
 
 # ============================================================================
@@ -171,7 +116,7 @@ class PCGrid(Grid):
     Basic representation of a single grid in petclaw
 
     The only difference between PetClaw grid and PyClaw grid is
-    the definition of q(), local_n(), qbc() __getstate__(), 
+    the definition of q(), local_n(), __getstate__(), 
     and __setstate__().
     
     :Dimension information:
@@ -324,7 +269,7 @@ class PCGrid(Grid):
 
     def init_q_petsc_structures(self):
         r"""
-        Initilizes PETSc structures for q. It initilizes q_da, gqVec and lqVec
+        Initializes PETSc structures for q. It initializes q_da, gqVec and lqVec
         
         """
 
@@ -361,26 +306,3 @@ class PCGrid(Grid):
         for i,range in enumerate(ranges):
             self.dimensions[i].nstart=range[0]
             self.dimensions[i].nend  =range[1]
-            
-    
-    # ========== Grid Operations =============================================
-    # Convenience routines for initialization of q and aux
-    
-    def qbc(self):
-        #Apply BCs here
-        #THIS ONLY WORKS IN 1D:
-        qbc=self.lqVec.getArray().reshape([-1,self.meqn])
-        #return qbc <--- BUG!
-        for i in xrange(len(self._dimensions)):
-            dim = getattr(self,self._dimensions[i])
-            #If a user defined boundary condition is being used, send it on,
-            #otherwise roll the axis to front position and operate on it
-            if dim.mthbc_lower == 0:
-                dim.qbc_lower(self,qbc)
-            else:
-                dim.qbc_lower(self,np.rollaxis(qbc,i))
-            if dim.mthbc_upper == 0:
-                dim.qbc_upper(self,qbc)
-            else:
-                dim.qbc_upper(self,np.rollaxis(qbc,i))
-        return qbc

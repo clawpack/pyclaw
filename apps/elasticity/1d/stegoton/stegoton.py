@@ -134,7 +134,7 @@ if __name__ == "__main__":
     start=time.time()
     # Initialize grids and solutions
     xlower=0.0; xupper=150.0
-    cellsperlayer=48; mx=150*cellsperlayer
+    cellsperlayer=24; mx=150*cellsperlayer
     x = Dimension('x',xlower,xupper,mx,mthbc_lower=0,mthbc_upper=0,mbc=2)
     grid = PPCGrid(x)
     grid.meqn = 2
@@ -166,8 +166,6 @@ if __name__ == "__main__":
     grid.aux=setaux(xghost,rhoB,KB,rhoA,KA,alpha)
     qinit(grid)
     init_solution = Solution(grid)
-    grid.x.user_bc_lower=moving_wall_bc
-    grid.x.user_bc_upper=zero_bc
 
     Kmax=max(grid.aux_global['KA'],grid.aux_global['KB'])
     emax=np.max(grid.q[:,0])
@@ -188,6 +186,8 @@ if __name__ == "__main__":
     solver.dt_variable = False
     solver.fwave = True 
     solver.start_step = b4step 
+    solver.user_bc_lower=moving_wall_bc
+    solver.user_bc_upper=zero_bc
 
     use_controller = True
 

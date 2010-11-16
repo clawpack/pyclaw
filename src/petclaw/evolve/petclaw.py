@@ -125,7 +125,7 @@ class PetClawSolver(ClawSolver):
         meqn = solutions['n'].meqn
         maux = grid.maux
           
-        q = grid.qbc()
+        q = self.qbc(grid.lqVec,grid)
         aux=grid.aux
 
         capa = grid.capa
@@ -217,6 +217,88 @@ class PetClawSolver(ClawSolver):
         """
         raise Exception("Dummy routine, please override!")
             
+
+    # ========== Boundary Conditions ==================================
+    def qbc(self,lqVec,grid):
+        """
+        Accepts an array qbc that includes ghost cells.
+        Returns an array with the ghost cells filled.
+        It would be nice to do the ghost cell array fetch in here, but
+        we need to think about how to associate q_da and gqVec, lqVec.
+
+        For now, grid and dim are passed in for backward compatibility.
+        We should think about what makes the most sense.
+        """
+        #THIS ONLY WORKS IN 1D:
+        qbc=lqVec.getArray().reshape([-1,grid.meqn])
+        for i in xrange(len(grid._dimensions)):
+            dim = getattr(grid,grid._dimensions[i])
+            #If a user defined boundary condition is being used, send it on,
+            #otherwise roll the axis to front position and operate on it
+            if dim.mthbc_lower == 0:
+                self.qbc_lower(qbc,grid,dim)
+            else:
+                self.qbc_lower(np.rollaxis(qbc,i),grid,dim)
+            if dim.mthbc_upper == 0:
+                self.qbc_upper(qbc,grid,dim)
+            else:
+                self.qbc_upper(np.rollaxis(qbc,i),grid,dim)
+        return qbc
+
+    def qbc_lower(self,qbc,grid,dim):
+        r"""
+        
+        """
+        # User defined functions
+        if dim.mthbc_lower == 0:
+            self.user_bc_lower(grid,dim,qbc)
+        # Zero-order extrapolation
+        elif dim.mthbc_lower == 1:
+            ##specify rank
+            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
+            if rank == 0:
+                qbc[:grid.mbc,...] = qbc[grid.mbc,...]
+        # Periodic
+        elif dim.mthbc_lower == 2:
+            pass # Amal: this is implemented automatically by petsc4py
+            
+        # Solid wall bc
+        elif dim.mthbc_lower == 3:
+            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
+        else:
+            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
+
+
+    # ========== Setting Boundary Conditions ==================================
+    def qbc_upper(self,qbc,grid,dim):
+        r"""
+        
+        """
+        # User defined functions
+        if dim.mthbc_upper == 0:
+            self.user_bc_upper(grid,dim,qbc)
+        # Zero-order extrapolation
+        elif dim.mthbc_upper == 1:
+            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
+            size = PETSc.Comm.getSize(PETSc.COMM_WORLD)
+            
+            if rank == size-1:
+                local_n = grid.q.shape[0]
+                list_from =[local_n - grid.mbc -1]*grid.mbc    
+                list_to = range(local_n - grid.mbc, local_n )
+                grid.q[list_to,:]=grid.q[list_from,:]
+ 	    
+        elif dim.mthbc_upper == 2:
+            # Periodic
+            pass # Amal: this is implemented automatically by petsc4py
+
+        # Solid wall bc
+        elif dim.mthbc_upper == 3:
+            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
+
+        else:
+            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
+
 
 # ============================================================================
 #  ClawPack 1d Solver Class
