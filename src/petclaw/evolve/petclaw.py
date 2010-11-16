@@ -269,7 +269,6 @@ class PetClawSolver(ClawSolver):
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
 
 
-    # ========== Setting Boundary Conditions ==================================
     def qbc_upper(self,qbc,grid,dim):
         r"""
         
@@ -388,17 +387,6 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
        
         LL = mbc - 1
         UL = local_n - mbc + 1
-
-        # Is this should be anny different?
-        #if PETSc.Comm.getRank(PETSc.COMM_WORLD) == 0:
-            #LL =  1
-            #UL =  local_n - 1
-        #elif PETSc.Comm.getRank(PETSc.COMM_WORLD) == (PETSc.Comm.getSize(PETSc.COMM_WORLD) -1):
-            #LL = 1
-            #UL = local_n - 1
-        #else:
-            #LL = 1
-            #UL = local_n - 1
 
         # Update q for Godunov update
         for m in xrange(meqn):

@@ -62,13 +62,14 @@ grid = Grid(x)
 grid.aux_global['u']=-1.
 grid.meqn = 1
 grid.t = 0.0
+grid.mbc=3
 qinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
 solver = SharpClawSolver1D(kernelsType = 'P')
 
-solver.dt = 0.004
+solver.dt = grid.x.d/4.
 solver.dt_variable=False
 solver.max_steps = 50000
 
@@ -89,7 +90,7 @@ if useController:
     claw = Controller()
     claw.outdir = './_output/'
     claw.keep_copy = True
-    claw.nout = 1
+    claw.nout = 10
     claw.outstyle = 1
     claw.output_format = 'petsc'
     claw.tfinal =0.5

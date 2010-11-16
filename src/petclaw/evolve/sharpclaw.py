@@ -24,6 +24,40 @@ from petsc4py import PETSc
 # Limiters
 import recon
 
+class qrk(object):
+    """
+    A single Runge-Kutta stage
+    """
+    def __init__(self,grid):
+        periodic = False
+        for dimension in grid.dimensions:
+            if dimension.mthbc_lower == 2 or dimension.mthbc_upper == 2:
+                periodic = True
+                break
+                
+        if grid.ndim == 1:
+            if periodic: periodic_type = PETSc.DA.PeriodicType.X
+            else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
+        elif grid.ndim == 2:
+            if periodic: periodic_type = PETSc.DA.PeriodicType.XY
+            else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
+        elif grid.ndim == 3:
+            if periodic: periodic_type = PETSc.DA.PeriodicType.XYZ
+            else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
+        else:
+            raise Exception("Invalid number of dimensions")
+
+        self.da = PETSc.DA().create(dim=grid.ndim,
+                                    dof=grid.meqn,
+                                    sizes=grid.n, 
+                                    periodic_type = periodic_type,
+                                    #stencil_type=grid.STENCIL,
+                                    stencil_width=grid.mbc,
+                                    comm=PETSc.COMM_WORLD)
+        self.gVec = self.da.createGlobalVector()
+        self.lVec = self.da.createLocalVector()
+
+
 class SharpClawSolver1D(ClawSolver1D):
     """SharpClaw evolution routine in 1D
     
@@ -47,6 +81,7 @@ class SharpClawSolver1D(ClawSolver1D):
         """
         
         self.kernelsType=kernelsType
+        self.src_term=0
         
         # Call general initialization function
         super(SharpClawSolver1D,self).__init__(data)
@@ -87,11 +122,10 @@ class SharpClawSolver1D(ClawSolver1D):
         Each RK stage should be a Solution object.
         """
         # Grid we will be working on
-        grid = solution.grids[0]
+        grid = solutions['n'].grids[0]
         # Number of equations
         meqn = grid.meqn
         # Q with appended boundary conditions
-        q = grid.qbc()
 
         maux = grid.maux
         aux=grid.aux
@@ -100,19 +134,20 @@ class SharpClawSolver1D(ClawSolver1D):
         d = grid.d
         mbc = grid.mbc
         aux_global = grid.aux_global
-        local_n = q.shape[0]
  
-        qold=solutions['n'].q
-        told=solutions['n'].t
-        dq=self.dq1(solutions['n'],qold,told)
-        solutions['n'].q = qold+dq
+        q = self.qbc(grid.lqVec,grid)
+        local_n = q.shape[0]
+
+        t=solutions['n'].t
+        dq=self.dq1(q,t,aux,capa,d,meqn,maux,mbc,aux_global)
+        grid.q=q[mbc:-mbc,:]+dq
         #q2 = qold+dq
         #t2 = told+self.dt
         #dq=self.dq1(solutions['n'],q2,t2)
         #solutions['n'].q = 0.5*(qold+q2+dq)
 
 
-    def dq1(self,q, aux, capa, d, meqn, maux, mbc, aux_global):
+    def dq1(self,q, t, aux, capa, d, meqn, maux, mbc, aux_global):
         """Compute dq/dt * (delta t) for the homogeneous hyperbolic system
 
         Note that the capa array, if present, should be located in the aux
@@ -155,8 +190,8 @@ class SharpClawSolver1D(ClawSolver1D):
         else:
             dtdx += self.dt/d[0]
 
-        dtdx = np.zeros( (2*grid.mbc+grid.mx) )
         dq = np.empty(q.shape)
+        mwaves = meqn # amal: need to be modified
 
         if aux is not None:
             aux_l=aux[:-1,:]
@@ -179,7 +214,8 @@ class SharpClawSolver1D(ClawSolver1D):
                 wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,aux_global)
                 ql,qr=recon.weno5_wave(q,wave,s)
             elif char_decomp==2: #Characteristic-wise reconstruction
-                pass
+                #HACK
+                ql=q; qr=q;
 
         # Solve Riemann problem at each interface
         q_l=qr[:-1,:]
@@ -192,7 +228,7 @@ class SharpClawSolver1D(ClawSolver1D):
 
         # Compute maximum wave speed
         self.cfl = 0.0
-        for mw in xrange(self.mwaves):
+        for mw in xrange(mwaves):
             smax1 = max(dtdx[LL:UL]*s[LL-1:UL-1,mw])
             smax2 = max(-dtdx[LL-1:UL-1]*s[LL-1:UL-1,mw])
             self.cfl = max(self.cfl,smax1,smax2)
@@ -207,3 +243,85 @@ class SharpClawSolver1D(ClawSolver1D):
                             + apdq2[LL:UL,m] + amdq2[LL:UL,m])
     
         return dq[LL+1:UL-1]
+
+    # ========== Boundary Conditions ==================================
+    def qbc(self,lqVec,grid):
+        """
+        Accepts an array qbc that includes ghost cells.
+        Returns an array with the ghost cells filled.
+        It would be nice to do the ghost cell array fetch in here, but
+        we need to think about how to associate q_da and gqVec, lqVec.
+
+        For now, grid and dim are passed in for backward compatibility.
+        We should think about what makes the most sense.
+        """
+        #THIS ONLY WORKS IN 1D:
+        qbc=lqVec.getArray().reshape([-1,grid.meqn])
+        for i in xrange(len(grid._dimensions)):
+            dim = getattr(grid,grid._dimensions[i])
+            #If a user defined boundary condition is being used, send it on,
+            #otherwise roll the axis to front position and operate on it
+            if dim.mthbc_lower == 0:
+                self.qbc_lower(qbc,grid,dim)
+            else:
+                self.qbc_lower(np.rollaxis(qbc,i),grid,dim)
+            if dim.mthbc_upper == 0:
+                self.qbc_upper(qbc,grid,dim)
+            else:
+                self.qbc_upper(np.rollaxis(qbc,i),grid,dim)
+        return qbc
+
+    def qbc_lower(self,qbc,grid,dim):
+        r"""
+        
+        """
+        # User defined functions
+        if dim.mthbc_lower == 0:
+            self.user_bc_lower(grid,dim,qbc)
+        # Zero-order extrapolation
+        elif dim.mthbc_lower == 1:
+            ##specify rank
+            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
+            print rank
+            if rank == 0:
+                qbc[:grid.mbc,...] = qbc[grid.mbc,...]
+        # Periodic
+        elif dim.mthbc_lower == 2:
+            pass # Amal: this is implemented automatically by petsc4py
+            
+        # Solid wall bc
+        elif dim.mthbc_lower == 3:
+            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
+        else:
+            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
+
+    def qbc_upper(self,qbc,grid,dim):
+        r"""
+        
+        """
+        # User defined functions
+        if dim.mthbc_upper == 0:
+            self.user_bc_upper(grid,dim,qbc)
+        # Zero-order extrapolation
+        elif dim.mthbc_upper == 1:
+            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
+            size = PETSc.Comm.getSize(PETSc.COMM_WORLD)
+            
+            if rank == size-1:
+                local_n = grid.q.shape[0]
+                list_from =[local_n - grid.mbc -1]*grid.mbc    
+                list_to = range(local_n - grid.mbc, local_n )
+                grid.q[list_to,:]=grid.q[list_from,:]
+ 	    
+        elif dim.mthbc_upper == 2:
+            # Periodic
+            pass # Amal: this is implemented automatically by petsc4py
+
+        # Solid wall bc
+        elif dim.mthbc_upper == 3:
+            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
+
+        else:
+            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
+
+

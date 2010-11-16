@@ -5,10 +5,10 @@ def weno5(q):
 
     epweno=1.e-36
 
-    dqim = np.diff(q,1,0)
+    dqiph = np.diff(q,1,0)
 
-    LL=2
-    UL=q.shape[0]-3
+    LL=3
+    UL=q.shape[0]-2
     qr=np.empty(q.shape)
     ql=np.empty(q.shape)
 
@@ -21,10 +21,10 @@ def weno5(q):
         intwo=-2*im
 
         #Create references to DQ slices
-        dq_intwo=dqim[LL+intwo:UL+intwo,:]
-        dq_ione =dqim[LL+ione:UL+ione  ,:]
-        dq_inone=dqim[LL+inone:UL+inone,:]
-        dq      =dqim[LL:UL            ,:]
+        dq_intwo=dqiph[LL+intwo-1:UL+intwo-1,:]
+        dq_ione =dqiph[LL+ione-1 :UL+ione-1 ,:]
+        dq_inone=dqiph[LL+inone-1:UL+inone-1,:]
+        dq      =dqiph[LL-1:UL-1            ,:]
 
         t1 = im*(dq_intwo-dq_inone)
         t2 = im*(dq_inone-dq)
@@ -32,7 +32,7 @@ def weno5(q):
 
         tt1=13.*t1**2+3.*(   dq_intwo - 3.*dq_inone)**2
         tt2=13.*t2**2+3.*(   dq_inone +    dq      )**2
-        tt3=13.*t3**2+3.*(3.*dq       -    dq_intwo)**2
+        tt3=13.*t3**2+3.*(3.*dq       -    dq_ione )**2
 
         tt1=(epweno+tt1)**2
         tt2=(epweno+tt2)**2
@@ -45,9 +45,9 @@ def weno5(q):
         s3 *= t0
 
         z=(s1*(t2-t1)+(0.5*s3-0.25)*(t3-t2))/3. \
-                + (-q[LL-1:UL-1,:]+7.*(q[LL:UL,:]+q[LL+1:UL+1,:])-q[LL+2:UL+2,:])/12.
-        if m1==1: qr[LL:UL,:] = z
-        else: ql[LL+1:UL+1,:] = z
+                + (-q[LL-2:UL-2,:]+7.*(q[LL-1:UL-1,:]+q[LL:UL,:])-q[LL+1:UL+1,:])/12.
+        if m1==1: qr[LL-1:UL-1,:] = z
+        else: ql[LL:UL,:] = z
                 
     return ql,qr
 
