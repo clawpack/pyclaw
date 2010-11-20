@@ -88,7 +88,7 @@ qinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = PetClawSolver1D(kernelsType = 'P')
+solver = PetClawSolver1D(kernelsType = 'F')
 
 solver.dt = 0.9
 print 'solver.dt before', solver.dt
