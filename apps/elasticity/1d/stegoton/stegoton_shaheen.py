@@ -9,21 +9,33 @@ Nonlinear elasticity in periodic medium.
 $$\\epsilon_t - u_x = 0$$
 $$\\rho(x) u_t - \\sigma(\\epsilon,x)_x = 0$$
 """
-solvertype='sharpclaw'
-kernelsType='P'
 
-import os
-import numpy as np
 
-from petclaw.grid import PCDimension as Dimension
-from petclaw.grid import PCGrid as Grid
-from pyclaw.solution import Solution
-from pyclaw.controller import Controller
-if solvertype=='clawpack':
-    from petclaw.evolve.petclaw import PetClawSolver1D as Solver1D
-elif solvertype=='sharpclaw':
-    from petclaw.evolve.sharpclaw import SharpClawSolver1D as Solver1D
-from petsc4py import PETSc
+import os, sys
+
+try:
+    import numpy as np
+    from petsc4py import PETSc
+except:
+    sys.path.append("/scratch/ketch/ksl/petsc4py/dev-aug29/ppc450d/lib/python/")
+    sys.path.append("/scratch/ketch/ksl/numpy/dev-aug29/ppc450d/lib/python/")
+    import numpy as np
+    from petsc4py import PETSc
+
+try:
+    from petclaw.grid import PCDimension as Dimension
+    from petclaw.grid import PCGrid as Grid
+    from pyclaw.solution import Solution
+    from pyclaw.controller import Controller
+    from petclaw.evolve.petclaw import PetClawSolver1D
+except:
+    sys.path.append("/scratch/ketch/petclaw/src")
+    sys.path.append("/scratch/ketch/clawpack4petclaw/python")
+    from petclaw.grid import PCDimension as Dimension
+    from petclaw.grid import PCGrid as Grid
+    from pyclaw.solution import Solution
+    from pyclaw.controller import Controller
+    from petclaw.evolve.petclaw import PetClawSolver1D
 
 def qinit(grid):
 
@@ -66,7 +78,6 @@ def b4step(solver,solutions):
     #Note that trtime should be an output point
     grid = solutions['n'].grids[0]
     if grid.t>=grid.aux_global['trtime']-1.e-10 and not grid.aux_global['trdone']:
-        print 'Time reversing'
         grid.q[:,1]=-grid.q[:,1]
         solutions['n'].grid.q=grid.q
         grid.aux_global['trdone']=True
@@ -123,7 +134,6 @@ def moving_wall_bc(grid,dim,qbc):
     """Initial pulse generated at left boundary by prescribed motion"""
     if dim.mthbc_lower==0:
         if dim.centerghost[0]<0:
-           print 'got here'
            qbc[:grid.mbc,0]=qbc[grid.mbc,0] 
            t=grid.t; t1=grid.aux_global['t1']; tw1=grid.aux_global['tw1']
            a1=grid.aux_global['a1']; mbc=grid.mbc
@@ -138,8 +148,9 @@ if __name__ == "__main__":
     import time
     start=time.time()
     # Initialize grids and solutions
-    xlower=0.0; xupper=150.0
-    cellsperlayer=12; mx=150*cellsperlayer
+    xlower=0.0; xupper=150.0;
+    numprocs = 4096
+    cellsperlayer=6*numprocs; mx=150*cellsperlayer
     x = Dimension('x',xlower,xupper,mx,mthbc_lower=0,mthbc_upper=0,mbc=2)
     grid = PPCGrid(x)
     grid.meqn = 2
@@ -160,7 +171,7 @@ if __name__ == "__main__":
     grid.aux_global['KB'] = KB
     grid.aux_global['rhoA'] = rhoA
     grid.aux_global['rhoB'] = rhoB
-    grid.aux_global['trtime'] = 250.0
+    grid.aux_global['trtime'] = 5000.0
     grid.aux_global['trdone'] = False
 
     # Initilize petsc Structures
@@ -171,33 +182,28 @@ if __name__ == "__main__":
     grid.aux=setaux(xghost,rhoB,KB,rhoA,KA,alpha)
     qinit(grid)
     init_solution = Solution(grid)
+    grid.x.user_bc_lower=moving_wall_bc
+    grid.x.user_bc_upper=zero_bc
 
     Kmax=max(grid.aux_global['KA'],grid.aux_global['KB'])
     emax=np.max(grid.q[:,0])
     smax=np.sqrt(Kmax*np.exp(Kmax*emax)) #This isn't quite right
 
     # Solver setup
-    solver = Solver1D(kernelsType = kernelsType)
+    solver = PetClawSolver1D(kernelsType = 'F')
 
-    tfinal=50.; nout = 10; tout=tfinal/nout
-    dt_rough = 0.5*grid.x.d/smax
+    tfinal=500./numprocs; nout = 10; tout=tfinal/nout
+    dt_rough = 1.2*grid.x.d/smax
     nsteps = np.ceil(tout/dt_rough)
     solver.dt = tout/nsteps
 
-    solver.max_steps = 5000
+    solver.max_steps = 5000000
     solver.set_riemann_solver('nel')
     solver.order = 2
-    solver.mthlim = [4,4]
+    solver.mthlim = [3,3]
     solver.dt_variable = False
     solver.fwave = True 
     solver.start_step = b4step 
-    solver.user_bc_lower=moving_wall_bc
-    solver.user_bc_upper=zero_bc
-
-    if solvertype=='sharpclaw':
-        solver.lim_type = 2
-        solver.time_integrator='SSP33'
-        solver.char_decomp=0
 
     use_controller = True
 
@@ -205,7 +211,7 @@ if __name__ == "__main__":
 
     # Controller instantiation
         claw = Controller()
-        claw.outdir = './_output'
+        claw.outdir = './_output_'+str(numprocs)+'_procs'
         claw.keep_copy = False
         claw.nout = nout
         claw.outstyle = 1
@@ -217,11 +223,10 @@ if __name__ == "__main__":
         # Solve
         status = claw.run()
         end=time.time()
-        print 'job took '+str(end-start)+' seconds'
+        print 'job 1 took '+str(end-start)+' seconds'
 
-
-    else:
-        sol = {"n":init_solution}
-        
-        solver.evolve_to_time(sol,.4)
-        sol = sol["n"]
+        claw.tfinal = tfinal*2
+        start=time.time()
+        status = claw.run()
+        end=time.time()
+        print 'job 2 took '+str(end-start)+' seconds'

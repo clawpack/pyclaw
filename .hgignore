@@ -4,5 +4,9 @@ syntax: glob
 *.aux
 *.log
 *.out
-*/output/*
 doc/*.pdf
+.DS_Store
+_output*
+*.err
+*.o
+*.so

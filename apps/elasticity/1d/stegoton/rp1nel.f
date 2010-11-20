@@ -42,10 +42,6 @@ c
       dimension apdq(1-mbc:maxm+mbc, meqn)
       dimension amdq(1-mbc:maxm+mbc, meqn)
 c
-c     local arrays
-c     ------------
-      dimension delta(2)
-c
 c
 c     # split the jump in q at each interface into waves
 c

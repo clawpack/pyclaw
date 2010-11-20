@@ -14,5 +14,8 @@ rp1.o:
 	$(F77) $(FLAGS) -o rp1.o -c rp1.f
 
 clean:
-	rm *.o *.so
+	rm -f *.o *.so
 	
+clobber:
+	rm -f *.o *.so
+	rm -f -R *output*

@@ -16,8 +16,8 @@ try:
     from petsc4py import PETSc
     
 except:
-    sys.path.append("/opt/share/ksl/petsc4py/dev-aug29/ppc450d/lib/python/")
-    sys.path.append("/opt/share/ksl/numpy/dev-aug29/ppc450d/lib/python/")
+    sys.path.append("/scratch/ketch/ksl/petsc4py/dev-aug29/ppc450d/lib/python/")
+    sys.path.append("/scratch/ketch/ksl/numpy/dev-aug29/ppc450d/lib/python/")
     
     import numpy as np
     from petsc4py import PETSc
@@ -38,8 +38,8 @@ except:
     #PETCLAW_PKG = PETCLAW + "/src"
     #sys.path.append(PETCLAW_PKG)
     #sys.path.append(PYCLAW)
-    sys.path.append("/home/project/k47/petclaw_testf2py/src/")
-    sys.path.append("/home/amal/clawpack/python/")
+    sys.path.append("/scratch/ketch/petclaw/src/")
+    sys.path.append("/scratch/ketch/clawpack4petclaw/python/")
     from petclaw.grid import PCDimension as Dimension
     from petclaw.grid import PCGrid as Grid
     from pyclaw.solution import Solution
