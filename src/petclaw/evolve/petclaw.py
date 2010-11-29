@@ -28,6 +28,11 @@ from pyclaw.evolve import limiters
 
 from petsc4py import PETSc
 
+#This should be modified so we don't depend on mpi4py:
+try:
+  from mpi4py import MPI
+except:
+  raise Exception("Unable to communicate cfl")
 
 # ============================================================================
 #  Generic PetClaw solver class
@@ -195,18 +200,12 @@ class PetClawSolver(ClawSolver):
         
         # comunicate max cfl
         if self.dt_variable:
-           try:
-              from mpi4py import MPI
-              comm = MPI.COMM_WORLD #Amal:should be consistent with petsc commworld
-              size = comm.Get_size()
-              rank = comm.Get_rank()
-              max_cfl = 0
-              max_cfl =comm.reduce( sendobj=self.cfl, op=MPI.MAX,  root=0)
-              #max_cfl =comm.Reduce( self.cfl, max_cfl, op=MPI.MAX,  root=0)
-              self.cfl = comm.bcast(max_cfl, root=0)
-           except:
-              raise Exception("Unable to communicate cfl")
-                                                                                                                                                                                        
+          comm = MPI.COMM_WORLD #Amal:should be consistent with petsc commworld
+          max_cfl = np.array([0.])
+          cfl1 = np.array([self.cfl])
+          comm.Allreduce(cfl1, max_cfl, MPI.MAX)
+          self.cfl = max_cfl[0]
+
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
         # dt
