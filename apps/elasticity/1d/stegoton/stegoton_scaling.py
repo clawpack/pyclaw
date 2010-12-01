@@ -196,7 +196,7 @@ if __name__ == "__main__":
     # Solver setup
     solver = Solver1D(kernelsType = kernelsType)
 
-    tfinal=1.; nout = 10; tout=tfinal/nout
+    tfinal=1.; nout = 1; tout=tfinal/nout
     dt_rough = 0.5*grid.x.d/smax 
     nsteps = np.ceil(tout/dt_rough)
     solver.dt = tout/nsteps/2.
@@ -210,5 +210,21 @@ if __name__ == "__main__":
     solver.start_step = b4step 
     solver.user_bc_lower=moving_wall_bc
     solver.user_bc_upper=zero_bc
+
+    #Solve
+    sol = {"n":init_solution}
+    start=time.time()
+    solver.evolve_to_time(sol,solver.dt * 4)
+    end=time.time()
+    duration1 = end-start
+    print 'First part of job took '+str(duration1)+' seconds'
+
+    start=time.time()
+    solver.evolve_to_time(sol,tfinal)
+    end=time.time()
+    duration2 = end-start
+    print 'Second part of job took '+str(duration2)+' seconds'
+    
+    
 
 #Add evolve_to_time() calls here, with timing
