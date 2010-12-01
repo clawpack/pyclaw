@@ -196,10 +196,11 @@ if __name__ == "__main__":
     # Solver setup
     solver = Solver1D(kernelsType = kernelsType)
 
-    tfinal=1.; nout = 1; tout=tfinal/nout
+    nout = 1; tout=tfinal/nout
     dt_rough = 0.5*grid.x.d/smax 
     nsteps = np.ceil(tout/dt_rough)
     solver.dt = tout/nsteps/2.
+    tfinal= 100. * solver.dt
 
     solver.max_steps = 5000000
     solver.set_riemann_solver('nel')
