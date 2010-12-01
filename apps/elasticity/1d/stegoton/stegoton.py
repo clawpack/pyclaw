@@ -11,8 +11,8 @@ $$\\rho(x) u_t - \\sigma(\\epsilon,x)_x = 0$$
 """
 solvertype='clawpack'
 kernelsType='F'
-machine='local'
-vary_Z=False
+machine='shaheen'
+vary_Z=True
 
 if machine=='shaheen':
     import sys
@@ -50,7 +50,7 @@ def qinit(grid,ic=2,a2=1.0):
     grid.q=q
 
 
-def setaux(x,rhoB=4,KB=4,rhoA=1,KA=1,alpha=0.5,xlower=0.,xupper=1200.,mthbc=2):
+def setaux(x,rhoB=4,KB=4,rhoA=1,KA=1,alpha=0.5,xlower=0.,xupper=600.,mthbc=2):
     aux=np.empty([len(x),2])
 
     xfrac = x-np.floor(x)
@@ -82,11 +82,10 @@ def b4step(solver,solutions):
     #Note that trtime should be an output point
     grid = solutions['n'].grids[0]
     if grid.t>=grid.aux_global['trtime']-1.e-10 and not grid.aux_global['trdone']:
-        print 'Time reversing'
+        #print 'Time reversing'
         grid.q[:,1]=-grid.q[:,1]
         solutions['n'].grid.q=grid.q
         grid.aux_global['trdone']=True
-        print grid.t
         if grid.t>grid.aux_global['trtime']:
             print 'WARNING: trtime is '+str(grid.aux_global['trtime'])+\
                 ' but velocities reversed at time '+str(grid.t)
@@ -151,11 +150,12 @@ def moving_wall_bc(grid,dim,qbc):
 
 
 if __name__ == "__main__":
+    #nprocs=1024
     import time
     start=time.time()
     # Initialize grids and solutions
-    xlower=0.0; xupper=1200.0
-    cellsperlayer=12; mx=int(round(xupper-xlower))*cellsperlayer
+    xlower=0.0; xupper=600.0
+    cellsperlayer=6144; mx=int(round(xupper-xlower))*cellsperlayer
     mthbc_lower=2; mthbc_upper=2
     x = Dimension('x',xlower,xupper,mx,mthbc_lower=mthbc_lower,mthbc_upper=mthbc_upper,mbc=mbc)
     grid = PPCGrid(x)
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     grid.aux_global['KB'] = KB
     grid.aux_global['rhoA'] = rhoA
     grid.aux_global['rhoB'] = rhoB
-    grid.aux_global['trtime'] = 500.0
+    grid.aux_global['trtime'] = 250.0
     grid.aux_global['trdone'] = False
 
     # Initilize petsc Structures
@@ -196,11 +196,12 @@ if __name__ == "__main__":
     # Solver setup
     solver = Solver1D(kernelsType = kernelsType)
 
-    tfinal=1000.; nout = 10; tout=tfinal/nout
+    tfinal=500.; nout = 10; tout=tfinal/nout
+    dt_rough = 0.5*grid.x.d/smax 
     nsteps = np.ceil(tout/dt_rough)
-    solver.dt = 0.5*grid.x.d/smax 
+    solver.dt = tout/nsteps/2.
 
-    solver.max_steps = 5000
+    solver.max_steps = 5000000
     solver.set_riemann_solver('nel')
     solver.order = 2
     solver.mthlim = [3,3]
@@ -229,18 +230,25 @@ if __name__ == "__main__":
 
 
 if vary_Z==True:
-    Zvalues = [2.4,2.6,2.8]
+    #Zvalues = [1.0,1.2,1.4,1.6,1.8,2.0]
+    #Zvalues = [2.0,2.2,2.4,2.6,2.8,3.0]
+    Zvalues = [2.5,3.0,3.5]
+    #a2values= [0.9766161130681, 1.0888194560100042, 1.1601786315361329, 1.20973731651806, 1.2462158254919984]
 
-    for Z in Zvalues:
+    #Zvalues = [4.0]
+    #a2values= [1.,1.]
+    for ii,Z in enumerate(Zvalues):
+	a2=1.0 #a2values[ii]
         KB = Z
         rhoB = Z
         grid.aux_global['KB'] = KB
         grid.aux_global['rhoB'] = rhoB
-        grid.aux=setaux(xghost,rhoB,KB,rhoA,KA,alpha)
-        grid.x.mthbc_lower=0
-        grid.x.mthbc_upper=0
+        grid.aux_global['trdone'] = False
+        grid.aux=setaux(xghost,rhoB,KB,rhoA,KA,alpha,mthbc_lower,xupper=xupper)
+        grid.x.mthbc_lower=2
+        grid.x.mthbc_upper=2
         grid.t = 0.0
-        qinit(grid)
+        qinit(grid,ic=2,a2=a2)
         init_solution = Solution(grid)
         claw.solutions['n'] = init_solution
         claw.solutions['n'].t = 0.0
