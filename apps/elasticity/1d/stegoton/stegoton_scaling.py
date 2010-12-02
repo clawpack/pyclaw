@@ -150,7 +150,7 @@ def moving_wall_bc(grid,dim,qbc):
 
 
 if __name__ == "__main__":
-    nprocs=512
+    nprocs= PETSc.Comm.getSize(PETSc.COMM_WORLD)
     import time
     start=time.time()
     # Initialize grids and solutions
@@ -196,12 +196,12 @@ if __name__ == "__main__":
     # Solver setup
     solver = Solver1D(kernelsType = kernelsType)
 
-    nout = 1; tout=tfinal/nout
-    dt_rough = 0.5*grid.x.d/smax 
-    nsteps = np.ceil(tout/dt_rough)
-    solver.dt = tout/nsteps/2.
-    tfinal= 100. * solver.dt
+    nout = 1;
+    dt_rough = 0.5*grid.x.d/smax    
+    solver.dt = dt_rough/2.
+    tfinal= 25000. * solver.dt
 
+    
     solver.max_steps = 5000000
     solver.set_riemann_solver('nel')
     solver.order = 2
@@ -215,16 +215,21 @@ if __name__ == "__main__":
     #Solve
     sol = {"n":init_solution}
     start=time.time()
-    solver.evolve_to_time(sol,solver.dt * 4)
+    solver.evolve_to_time(sol,solver.dt * 4.)
     end=time.time()
     duration1 = end-start
     print 'First part of job took '+str(duration1)+' seconds'
-
+    rank = PETSc.Comm.getRank(PETSc.COMM_WORLD)
+    if rank ==0:
+        print 'number of steps: '+ str(solver.status.get('numsteps'))
     start=time.time()
     solver.evolve_to_time(sol,tfinal)
     end=time.time()
     duration2 = end-start
     print 'Second part of job took '+str(duration2)+' seconds'
+    if rank ==0:
+        print 'number of steps: '+ str(solver.status.get('numsteps'))
+            
     
     
 
