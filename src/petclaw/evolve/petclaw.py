@@ -409,8 +409,8 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
         # Compute maximum wave speed
         self.cfl = 0.0
         for mw in xrange(wave.shape[2]):
-            smax1 = max(dtdx[LL:UL]*s[LL-1:UL-1,mw])
-            smax2 = max(-dtdx[LL-1:UL-1]*s[LL-1:UL-1,mw])
+            smax1 = np.max(dtdx[LL:UL]*s[LL-1:UL-1,mw])
+            smax2 = np.max(-dtdx[LL-1:UL-1]*s[LL-1:UL-1,mw])
             self.cfl = max(self.cfl,smax1,smax2)
         
         # If we are doing slope limiting we have more work to do
