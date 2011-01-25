@@ -191,7 +191,7 @@ class PCGrid(Grid):
         def fget(self):
             #Amal doc
             shape = []
-            ranges = self.da.getRanges()
+            ranges = self.q_da.getRanges()
  
             for i in ranges:
                 shape.append(i[1]-i[0])
@@ -199,8 +199,9 @@ class PCGrid(Grid):
         return locals()
     def q():
         def fget(self):
-            #THIS ONLY WORKS IN 1D:
-            q=self.gqVec.getArray().reshape([-1,self.meqn])
+            local_n = self.local_n
+            local_n.append(self.meqn)
+            q=self.gqVec.getArray().reshape(local_n)
             return q
         def fset(self,q):
             if self.gqVec is None:
