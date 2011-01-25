@@ -23,7 +23,7 @@ dimensionally dependent ones such as :class:`PetClawSolver1D`.
 
 import numpy as np
 
-from pyclaw.evolve.clawpack import ClawSolver, ClawSolver1D, start_step, src
+from pyclaw.evolve.clawpack import ClawSolver, ClawSolver1D, ClawSolver2D, start_step, src
 from pyclaw.evolve import limiters
 
 from petsc4py import PETSc
@@ -124,80 +124,18 @@ class PetClawSolver(ClawSolver):
         :Output: 
          - (bool) - True if full step succeeded, False otherwise
         """
-        # Grid we will be working on
-        grid = solutions['n'].grids[0]
-        # Number of equations
-        meqn = solutions['n'].meqn
-        maux = grid.maux
-          
-        q = self.qbc(grid.lqVec,grid)
-        aux=grid.aux
 
-        capa = grid.capa
-        d = grid.d
-        mbc = grid.mbc
-        aux_global = grid.aux_global
-        local_n = q.shape[0]
-        
-
-        # Call b4step, petclaw should be subclassed if this is needed
+        # Call b4step, pyclaw should be subclassed if this is needed
         self.start_step(self,solutions)
 
-        # Source term splitting, petclaw should be subclassed if this 
+        # Source term splitting, pyclaw should be subclassed if this 
         # is needed
         if self.src_split == 2:
             self.src(self,solutions,solutions['n'].t, self.dt/2.0)
     
         # Take a step on the homogeneous problem
+        self.homogeneous_step(solutions)
 
-        
-        if(self.kernelsType == 'F'):
-            from step1 import step1
-            
-            
-            dt = self.dt
-            dx = d[0]
-            dtdx = np.zeros( (local_n) ) + dt/dx
-            
-            maux = grid.maux
-            maxmx = local_n -mbc*2
-            mx = maxmx
-            
-            if(aux == None):
-                aux = np.empty( (local_n , maux) )
-        
-            method =np.ones(7, dtype=int) # hardcoded 7
-            method[0] = self.dt_variable  # fixed or adjustable timestep
-            method[1] = self.order  # order of the method
-            method[2] = 0  # hardcoded 0, case of 2d or 3d
-            method[3] = 0  # hardcoded 0 design issue: contorller.verbosity
-            method[4] = self.src_split  # src term
-            if (capa == None):
-                method[5] = 0  #capa
-            else:
-                method[5] = 1  #capa. amal: mcapa no longer points to the capa componenets of the aux array as in fortran. capa now is a separate arry.
-            method[6] = grid.maux  # aux
-        
-            mthlim = self.mthlim
-        
-            cfl = self.cfl
-            f =  np.zeros( (local_n , meqn) )
-            mwaves = meqn # amal: need to be modified
-
-            wave = np.empty( (local_n,meqn,mwaves) )
-            s = np.empty( (local_n,mwaves) )
-            amdq = np.zeros( (local_n, meqn) )
-            apdq = np.zeros( (local_n, meqn) )
-        
-            q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,mthlim,f,wave,s,amdq,apdq,dtdx, -1)
-
-
-        elif(self.kernelsType == 'P'):
-            
-            q = self.homogeneous_step( q, aux, capa, d, meqn,maux, mbc, aux_global)
-        
-        grid.q=q[mbc:-mbc,:]
-        
         # comunicate max cfl
         if self.dt_variable:
           comm = MPI.COMM_WORLD #Amal:should be consistent with petsc commworld
@@ -205,6 +143,7 @@ class PetClawSolver(ClawSolver):
           cfl1 = np.array([self.cfl])
           comm.Allreduce(cfl1, max_cfl, MPI.MAX)
           self.cfl = max_cfl[0]
+          
 
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
@@ -221,8 +160,9 @@ class PetClawSolver(ClawSolver):
             self.src(self,solutions,solutions['n'].t,self.dt)
             
         return True
+      
             
-    def homogeneous_step(self,q, aux, capa, d, meqn, mbc, aux_global):
+    def homogeneous_step(self,solutions):
         r"""
         Take one homogeneous step on the solutions
         
@@ -243,7 +183,12 @@ class PetClawSolver(ClawSolver):
         We should think about what makes the most sense.
         """
         #THIS ONLY WORKS IN 1D:
-        qbc=lqVec.getArray().reshape([-1,grid.meqn])
+        q_dim = grid.local_n
+        for i in xrange(grid.ndim):
+          q_dim[i] =  q_dim[i] + 2*grid.mbc
+        # add to the local_n the ghost cells
+        q_dim.append(grid.meqn)
+        qbc=lqVec.getArray().reshape(q_dim)
         for i in xrange(len(grid._dimensions)):
             dim = getattr(grid,grid._dimensions[i])
             #If a user defined boundary condition is being used, send it on,
@@ -354,93 +299,286 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
         super(PetClawSolver1D,self).__init__(kernelsType,data)
 
     # ========== Python Homogeneous Step =====================================
-    def homogeneous_step(self,q, aux, capa, d, meqn, maux, mbc, aux_global):
+    def homogeneous_step(self,solutions):
         r"""
         Take one time step on the homogeneous hyperbolic system
 
         Takes one time step of size dt on the hyperbolic system defined in the
         appropriate Riemann solver rp.
         """
-    
-        # Limiter to use in the pth family
-        limiter = np.array(self.mthlim,ndmin=1)
-         
+        # Grid we will be working on
+        grid = solutions['n'].grids[0]
+        # Number of equations
+        meqn = solutions['n'].meqn
+        maux = grid.maux
+          
+        q = self.qbc(grid.lqVec,grid)
+        aux=grid.aux
+
+        capa = grid.capa
+        d = grid.d
+        mbc = grid.mbc
+        aux_global = grid.aux_global
         local_n = q.shape[0]
-        # Flux vector
-        f = np.empty( (local_n, meqn) )
-    
-        dtdx = np.zeros( (local_n) )
 
-        # Find local value for dt/dx
-        if capa is not None:
-            dtdx = self.dt / (d[0] * capa)
-        else:
-            dtdx += self.dt/d[0]
 
-        # Solve Riemann problem at each interface
-        q_l=q[:-1,:]
-        q_r=q[1:,:]
-        if aux is not None:
-            aux_l=aux[:-1,:]
-            aux_r=aux[1:,:]
-        else:
-            aux_l = None
-            aux_r = None
-        wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,aux_global)
-        
-        
-        # Update loop limits, these are the limits for the Riemann solver
-        # locations, which then update a grid cell value
-        # We include the Riemann problem just outside of the grid so we can
-        # do proper limiting at the grid edges
-        #        LL    |                               |     UL
-        #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
-        #              |                               |
-
-       
-        LL = mbc - 1
-        UL = local_n - mbc + 1
-
-        # Update q for Godunov update
-        for m in xrange(meqn):
-            q[LL:UL,m] -= dtdx[LL:UL]*apdq[LL-1:UL-1,m]
-            q[LL-1:UL-1,m] -= dtdx[LL-1:UL-1]*amdq[LL-1:UL-1,m]
-    
-        # Compute maximum wave speed
-        self.cfl = 0.0
-        for mw in xrange(wave.shape[2]):
-            smax1 = np.max(dtdx[LL:UL]*s[LL-1:UL-1,mw])
-            smax2 = np.max(-dtdx[LL-1:UL-1]*s[LL-1:UL-1,mw])
-            self.cfl = max(self.cfl,smax1,smax2)
-        
-        # If we are doing slope limiting we have more work to do
-        if self.order == 2:
-            # Initialize flux corrections
-            f = np.zeros( (local_n + 2*mbc, meqn) )
-        
-            # Apply Limiters to waves
-            if (limiter > 0).any():
-                wave = limiters.limit(meqn,wave,s,limiter,dtdx)
-
-            # Compute correction fluxes for second order q_{xx} terms
-            dtdxave = 0.5 * (dtdx[LL-1:UL-1] + dtdx[LL:UL])
-            if self.fwave:
-                for mw in xrange(wave.shape[2]):
-                    sabs = np.abs(s[LL-1:UL-1,mw])
-                    om = 1.0 - sabs*dtdxave[:UL-LL]
-                    ssign = np.sign(s[LL-1:UL-1,mw])
-                    for m in xrange(meqn):
-                        f[LL:UL,m] += 0.5 * ssign * om * wave[LL-1:UL-1,m,mw]
-            else:
-                for mw in xrange(wave.shape[2]):
-                    sabs = np.abs(s[LL-1:UL-1,mw])
-                    om = 1.0 - sabs*dtdxave[:UL-LL]
-                    
-                    for m in xrange(meqn):
-                        f[LL:UL,m] += 0.5 * sabs * om * wave[LL-1:UL-1,m,mw]
-
-            # Update q by differencing correction fluxes
-            for m in xrange(meqn):
-                q[LL:UL-1,m] -= dtdx[LL:UL-1] * (f[LL+1:UL,m] - f[LL:UL-1,m]) 
+        if(self.kernelsType == 'F'):
+            from step1 import step1
             
-        return q
+            
+            dt = self.dt
+            dx = d[0]
+            dtdx = np.zeros( (local_n) ) + dt/dx
+            maxmx = local_n -mbc*2
+            mx = maxmx
+            
+            if(aux == None):
+                aux = np.empty( (local_n , maux) )
+        
+            method =np.ones(7, dtype=int) # hardcoded 7
+            method[0] = self.dt_variable  # fixed or adjustable timestep
+            method[1] = self.order  # order of the method
+            method[2] = 0  # hardcoded 0, case of 2d or 3d
+            method[3] = 0  # hardcoded 0 design issue: contorller.verbosity
+            method[4] = self.src_split  # src term
+            if (capa == None):
+                method[5] = 0  #capa
+            else:
+                method[5] = 1  #capa. amal: mcapa no longer points to the capa componenets of the aux array as in fortran. capa now is a separate arry.
+            method[6] = maux  # aux
+        
+            mthlim = self.mthlim
+        
+            cfl = self.cfl
+            f =  np.zeros( (local_n , meqn) )
+            mwaves = meqn # amal: need to be modified
+
+            wave = np.empty( (local_n,meqn,mwaves) )
+            s = np.empty( (local_n,mwaves) )
+            amdq = np.zeros( (local_n, meqn) )
+            apdq = np.zeros( (local_n, meqn) )
+        
+            q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,mthlim,f,wave,s,amdq,apdq,dtdx, -1)
+
+
+        elif(self.kernelsType == 'P'):
+            
+           
+            # Limiter to use in the pth family
+            limiter = np.array(self.mthlim,ndmin=1)  
+            # Q with appended boundary conditions
+            q = grid.qbc()
+            # Flux vector
+            f = np.empty( (2*grid.mbc + grid.n[0], meqn) )
+        
+            dtdx = np.zeros( (2*grid.mbc+grid.n[0]) )
+
+            # Find local value for dt/dx
+            if grid.capa is not None:
+                dtdx = self.dt / (grid.d[0] * grid.capa)
+            else:
+                dtdx += self.dt/grid.d[0]
+        
+            # Solve Riemann problem at each interface
+            q_l=q[:-1,:]
+            q_r=q[1:,:]
+            if grid.aux is not None:
+                aux_l=grid.aux[:-1,:]
+                aux_r=grid.aux[1:,:]
+            else:
+                aux_l = None
+                aux_r = None
+            wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,grid.aux_global)
+            
+            # Update loop limits, these are the limits for the Riemann solver
+            # locations, which then update a grid cell value
+            # We include the Riemann problem just outside of the grid so we can
+            # do proper limiting at the grid edges
+            #        LL    |                               |     UL
+            #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
+            #              |                               |
+            LL = grid.mbc - 1
+            UL = grid.mbc + grid.n[0] + 1 
+
+            # Update q for Godunov update
+            for m in xrange(meqn):
+                q[LL:UL,m] -= dtdx[LL:UL]*apdq[LL-1:UL-1,m]
+                q[LL-1:UL-1,m] -= dtdx[LL-1:UL-1]*amdq[LL-1:UL-1,m]
+        
+            # Compute maximum wave speed
+            self.cfl = 0.0
+            for mw in xrange(wave.shape[2]):
+                smax1 = max(dtdx[LL:UL]*s[LL-1:UL-1,mw])
+                smax2 = max(-dtdx[LL-1:UL-1]*s[LL-1:UL-1,mw])
+                self.cfl = max(self.cfl,smax1,smax2)
+
+            # If we are doing slope limiting we have more work to do
+            if self.order == 2:
+                # Initialize flux corrections
+                f = np.zeros( (grid.n[0] + 2*grid.mbc, meqn) )
+            
+                # Apply Limiters to waves
+                if (limiter > 0).any():
+                    wave = limiters.limit(grid.meqn,wave,s,limiter,dtdx)
+
+                # Compute correction fluxes for second order q_{xx} terms
+                dtdxave = 0.5 * (dtdx[LL-1:UL-1] + dtdx[LL:UL])
+                if self.fwave:
+                    for mw in xrange(wave.shape[2]):
+                        sabs = np.abs(s[LL-1:UL-1,mw])
+                        om = 1.0 - sabs*dtdxave[:UL-LL]
+                        ssign = np.sign(s[LL-1:UL-1,mw])
+                        for m in xrange(meqn):
+                            f[LL:UL,m] += 0.5 * ssign * om * wave[LL-1:UL-1,m,mw]
+                else:
+                    for mw in xrange(wave.shape[2]):
+                        sabs = np.abs(s[LL-1:UL-1,mw])
+                        om = 1.0 - sabs*dtdxave[:UL-LL]
+                        for m in xrange(meqn):
+                            f[LL:UL,m] += 0.5 * sabs * om * wave[LL-1:UL-1,m,mw]
+
+                # Update q by differencing correction fluxes
+                for m in xrange(meqn):
+                    q[LL:UL-1,m] -= dtdx[LL:UL-1] * (f[LL+1:UL,m] - f[LL:UL-1,m]) 
+                
+        
+        grid.q=q[mbc:-mbc,:]
+        
+    
+
+
+
+# ============================================================================
+#  PetClaw 2d Solver Class
+# ============================================================================
+class PetClawSolver2D(PetClawSolver,ClawSolver2D):
+    r"""
+    PetClaw evolution routine in 2D
+    
+    This class represents the 2d clawpack solver on a single grid.  Note that 
+    there are routines here for interfacing with the fortran time stepping 
+    routines and the python time stepping routines.  The ones used are 
+    dependent on the argument given to the initialization of the solver 
+    (defaults to python).
+    
+    .. attribute:: rp
+    
+        Riemann solver function.
+        
+    :Initialization:
+    
+    Input:
+     - *data* - (:class:`~petclaw.data.Data`) An instance of a Data object whose
+       parameters can be used to initialize this solver
+    Output:
+     - (:class:`ClawSolver1D`) - Initialized 1d clawpack solver
+        
+    Need to check if we can simplify using multiple inheritance.
+
+    :Authors:
+        Amal Alghamdi
+        David Ketcheson
+    """
+
+    def __init__(self,kernelsType,data=None):
+        r"""
+        Create 1d PetClaw solver
+        
+        See :class:`PetClawSolver1D` for more info.
+        """   
+        
+        super(PetClawSolver2D,self).__init__(kernelsType,data)
+
+    # ========== Python Homogeneous Step =====================================
+    def homogeneous_step(self,solutions):
+        r"""
+        Take one time step on the homogeneous hyperbolic system
+
+        Takes one time step of size dt on the hyperbolic system defined in the
+        appropriate Riemann solver rp.
+        """
+
+        # Grid we will be working on
+        grid = solutions['n'].grids[0]
+        # Number of equations
+        meqn = solutions['n'].meqn
+        maux = grid.maux
+
+        capa = grid.capa
+        d = grid.d
+        mbc = grid.mbc
+        aux_global = grid.aux_global
+        mwaves = meqn
+        local_n = grid.local_n
+        
+
+
+        if(self.kernelsType == 'F'):
+            from dimsp2 import dimsp2
+            #q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,mthlim,f,wave,s,amdq,apdq,dtdx, -1)
+            mwork = 50000
+            maxmx = grid.local_n[0]
+            maxmy = grid.local_n[1]
+            maxm = max(maxmx, maxmy)
+            mbc = grid.mbc
+            mx = maxmx
+            my = maxmy
+            qold = self.qbc(grid.lqVec,grid)
+            qnew = qold #(input/output)
+            aux = grid.aux
+            if(aux == None):
+                aux_dim = local_n[:]
+                for i in xrange(grid.ndim):
+                    aux_dim[i] = aux_dim[i]+ 2*grid.mbc
+                aux_dim.append(maux)
+                aux = np.empty(aux_dim  )
+                
+            dx = grid.d[0]
+            dy = grid.d[1]
+            dt = self.dt
+
+            method =np.ones(7, dtype=int) # hardcoded 7
+            method[0] = self.dt_variable  # fixed or adjustable timestep
+            method[1] = self.order  # order of the method
+            method[2] = 0  # hardcoded 0, case of 2d or 3d
+            method[3] = 0  # hardcoded 0 design issue: contorller.verbosity
+            method[4] = self.src_split  # src term
+            if (capa == None):
+                method[5] = 0  #capa
+            else:
+                method[5] = 1  #capa. amal: mcapa no longer points to the capa componenets of the aux array as in fortran. capa now is a separate arry.
+            method[6] = maux  # aux
+            
+            mthlim = self.mthlim
+            cfl = self.cfl
+            
+            cflv = np.zeros(4) # hardcoded 4
+            cflv[0] = self.cfl_max
+            cflv[1] = self.cfl_desired
+            #cflv[2] (output)
+            #cflv[3] (output)
+            
+            qadd = np.empty((maxm + 2*mbc, meqn))
+            fadd = np.empty((maxm + 2*mbc, meqn))
+            gadd = np.empty((maxm + 2*mbc, meqn , 2))
+            q1d  = np.empty((maxm + 2*mbc, meqn))
+            dtdx1d = np.empty((maxmx + 2*mbc))
+            dtdy1d = np.empty((maxmx + 2*mbc))
+            
+            aux1 = np.empty((maxm + 2*mbc, maux))
+            aux2 = np.empty((maxm + 2*mbc, maux))
+            aux3 = np.empty((maxm + 2*mbc, maux))
+            work = np.empty((mwork))
+            #[meqn,mwaves,mwork]
+            q, cflv = dimsp2(maxm,maxmx,maxmy,mbc,mx,my,qold,qnew,aux,dx,dy,dt,method,mthlim,cfl,cflv,qadd,fadd,gadd,q1d,dtdx1d,dtdy1d,aux1,aux2,aux3,work,meqn,mwaves,mwork)
+            self.cfl = cflv[2]
+
+        elif(self.kernelsType == 'P'):
+            raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
+
+        print "q.shape"
+        print q.shape
+        print "grid.q.shape"
+        print grid.q.shape
+        grid.q=q[mbc:local_n[0]+mbc,mbc:local_n[1]+mbc,:]
+    
