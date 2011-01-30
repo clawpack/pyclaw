@@ -201,12 +201,12 @@ class PCGrid(Grid):
         def fget(self):
             local_n = self.local_n
             local_n.append(self.meqn)
-            q=self.gqVec.getArray().reshape(local_n)
+            q=self.gqVec.getArray().reshape(local_n, order = 'F')
             return q
         def fset(self,q):
             if self.gqVec is None:
                 self.init_q_petsc_structures()
-            self.gqVec.setArray(q.reshape([-1]))
+            self.gqVec.setArray(q.reshape([-1], order = 'F'))
             self.q_da.globalToLocal(self.gqVec, self.lqVec)
         return locals()
 

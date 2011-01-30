@@ -188,7 +188,7 @@ class PetClawSolver(ClawSolver):
           q_dim[i] =  q_dim[i] + 2*grid.mbc
         # add to the local_n the ghost cells
         q_dim.append(grid.meqn)
-        qbc=lqVec.getArray().reshape(q_dim)
+        qbc=lqVec.getArray().reshape(q_dim, order = 'F')
         for i in xrange(len(grid._dimensions)):
             dim = getattr(grid,grid._dimensions[i])
             #If a user defined boundary condition is being used, send it on,

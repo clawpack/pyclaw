@@ -34,10 +34,10 @@ def qinit(grid):
     # Create an array with fortran native ordering
     x =grid.x.center
     y =grid.y.center
-    q=np.empty([len(x),len(y),grid.meqn])
+    q=np.empty([len(x),len(y),grid.meqn], order = 'F')
     for i in range(len(x)):
         for j in range(len(y)):
-            if x[i] > 0.1 and x[i] < 0.6 and y[j]>0.1 and y[j] < 0.6:
+            if x[i] > 0.4 and x[i] < 0.6 and y[j]>0.1 and y[j] < 0.6:
                 q[i,j,:] = 1.0
             else:
                 q[i,j,:] = 0.1
@@ -46,7 +46,7 @@ def qinit(grid):
 
 
 # Initialize grids and solutions
-x = Dimension('x',0.0,1.0,50,mthbc_lower=2,mthbc_upper=2)
+x = Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
 y = Dimension('y',0.0,1.0,50,mthbc_lower=2,mthbc_upper=2)
 grid = Grid([x,y])
 grid.aux_global['u']=0.5
@@ -94,7 +94,7 @@ if useController:
     if makePlot:
         if claw.keep_copy:
     
-            for n in xrange(0,claw.nout):
+            for n in xrange(0,5):
                 sol = claw.frames[n]
                 plotTitle="time: {0}".format(sol.t)
                 viewer = PETSc.Viewer()
