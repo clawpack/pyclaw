@@ -62,7 +62,7 @@ init_solution = Solution(grid)
 solver = PetClawSolver2D(kernelsType = 'F')
 
 solver.dt = 0.016
-solver.dt_variable=True
+solver.dt_variable=False
 solver.max_steps = 500
 solver.set_riemann_solver('advection')
 solver.order = 2
@@ -71,8 +71,8 @@ solver.mthlim = [3]
 solver.src_split = 0
 
 
-useController = False # controller does not work in case of 2D yet
-makePlot = False
+useController = True # controller does not work in case of 2D yet
+makePlot = True
 
 
 if useController:
@@ -81,10 +81,10 @@ if useController:
     claw = Controller()
     claw.outdir = './_output/'
     claw.keep_copy = True
-    claw.nout = 1
+    claw.nout = 10
     claw.outstyle = 1
     claw.output_format = 'petsc'
-    claw.tfinal =0.5
+    claw.tfinal =solver.dt * 100
     claw.solutions['n'] = init_solution
     claw.solver = solver
 
@@ -94,7 +94,7 @@ if useController:
     if makePlot:
         if claw.keep_copy:
     
-            for n in xrange(0,11):
+            for n in xrange(0,claw.nout):
                 sol = claw.frames[n]
                 plotTitle="time: {0}".format(sol.t)
                 viewer = PETSc.Viewer()
@@ -103,14 +103,14 @@ if useController:
 
         
                 OptDB = PETSc.Options()
-                OptDB['draw_pause'] = -1
+                OptDB['draw_pause'] = 1
                 sol.grid.gqVec.view(viewer)
 
 
 else:
     sol = {"n":init_solution}
     
-    solver.evolve_to_time(sol,2)
+    solver.evolve_to_time(sol,20 * solver.dt)
     
     sol = sol["n"]
 
