@@ -497,7 +497,7 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
         Takes one time step of size dt on the hyperbolic system defined in the
         appropriate Riemann solver rp.
         """
-
+        
         # Grid we will be working on
         grid = solutions['n'].grids[0]
         # Number of equations
@@ -514,17 +514,16 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
 
 
         if(self.kernelsType == 'F'):
-            from dimsp2 import dimsp2
+            from dimsp2 import dimsp2, comrp
             #q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,mthlim,f,wave,s,amdq,apdq,dtdx, -1)
-            mwork = 50000
+            comrp.ubar = grid.aux_global['u']
+            comrp.vbar = grid.aux_global['v']
             maxmx = grid.local_n[0]
             maxmy = grid.local_n[1]
             maxm = max(maxmx, maxmy)
             mbc = grid.mbc
             mx = maxmx
             my = maxmy
-            qold = self.qbc(grid.lqVec,grid)
-            qnew = qold #(input/output)
             aux = grid.aux
             if(aux == None):
                 aux_dim = local_n[:]
@@ -540,7 +539,7 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
             method =np.ones(7, dtype=int) # hardcoded 7
             method[0] = self.dt_variable  # fixed or adjustable timestep
             method[1] = self.order  # order of the method
-            method[2] = 0  # hardcoded 0, case of 2d or 3d
+            method[2] = -1  # hardcoded 0, case of 2d or 3d
             method[3] = 0  # hardcoded 0 design issue: contorller.verbosity
             method[4] = self.src_split  # src term
             if (capa == None):
@@ -557,28 +556,41 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
             cflv[1] = self.cfl_desired
             #cflv[2] (output)
             #cflv[3] (output)
-            
-            qadd = np.empty((maxm + 2*mbc, meqn))
-            fadd = np.empty((maxm + 2*mbc, meqn))
-            gadd = np.empty((maxm + 2*mbc, meqn , 2))
-            q1d  = np.empty((maxm + 2*mbc, meqn))
-            dtdx1d = np.empty((maxmx + 2*mbc))
-            dtdy1d = np.empty((maxmx + 2*mbc))
-            
-            aux1 = np.empty((maxm + 2*mbc, maux))
-            aux2 = np.empty((maxm + 2*mbc, maux))
-            aux3 = np.empty((maxm + 2*mbc, maux))
+
+            i_qadd = 0
+            i_fadd = i_qadd + (maxm + 2*mbc)*meqn
+            i_gadd = i_fadd + (maxm + 2*mbc)*meqn
+            i_q1d = i_gadd + (maxm + 2*mbc)*meqn*2
+            i_dtdx1 = i_q1d + (maxm + 2*mbc)*meqn
+            i_dtdy1 = i_dtdx1 + maxmx + 2*mbc
+            i_qwork1 = i_dtdy1 + maxmx + 2*mbc
+            nqwork = (maxmx +2*mbc)* (maxmy + 2*mbc) * meqn
+
+            if method[4] < 2:
+              i_qwork2 = i_qwork1
+              narray = 1
+            else:
+              i_qwork2 = i_qwork1 + nqwork
+              narray = 2
+
+            i_aux1 = i_qwork2 + nqwork
+            i_aux2 = i_aux1 + (maxm+2*mbc)*maux
+            i_aux3 = i_aux2 + (maxm+2*mbc)*maux
+
+            i_next = i_aux3 + (maxm+2*mbc)*maux
+            mwork = (maxm+2*mbc) * (10*meqn + mwaves + meqn*mwaves+ 3*maux + 2) + narray * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn
+
             work = np.empty((mwork))
+            
+            qold = self.qbc(grid.lqVec,grid)
+            qnew = qold #(input/output)
+            work[i_qwork1:i_qwork1 + nqwork] = qold.reshape((-1))
             #[meqn,mwaves,mwork]
-            q, cflv = dimsp2(maxm,maxmx,maxmy,mbc,mx,my,qold,qnew,aux,dx,dy,dt,method,mthlim,cfl,cflv,qadd,fadd,gadd,q1d,dtdx1d,dtdy1d,aux1,aux2,aux3,work,meqn,mwaves,mwork)
+            q, cflv = dimsp2(maxm,maxmx,maxmy,mbc,mx,my,work[i_qwork1:i_qwork1 + nqwork].reshape((maxmx +2*mbc, maxmy + 2*mbc, meqn)),qnew,aux,dx,dy,dt,method,mthlim,cfl,cflv, work[i_qadd:i_fadd], work[i_fadd:i_gadd], work[i_gadd:i_q1d].reshape((maxm + 2*mbc, meqn, 2)), work[i_q1d:i_dtdx1], work[i_dtdx1:i_dtdy1], work[i_dtdy1:i_qwork1], work[i_aux1:i_aux2], work[i_aux2:i_aux3], work[i_aux3:i_next], work[i_next:mwork])
             self.cfl = cflv[2]
 
         elif(self.kernelsType == 'P'):
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
 
-        print "q.shape"
-        print q.shape
-        print "grid.q.shape"
-        print grid.q.shape
         grid.q=q[mbc:local_n[0]+mbc,mbc:local_n[1]+mbc,:]
     
