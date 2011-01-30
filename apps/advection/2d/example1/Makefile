@@ -1,7 +1,7 @@
 
 
 
-objects = step2ds.o  flux2.o  limiter.o  philim.o rpt2.o rpn2.o
+objects = step2ds.o  flux2.o  limiter.o  philim.o rpt2.f rpn2.f
 step1.so: dimsp2.f $(objects)
 	f2py -m dimsp2 -c dimsp2.f $(objects)  
         
