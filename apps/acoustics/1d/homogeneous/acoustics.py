@@ -35,7 +35,7 @@ def qinit(grid):
     x2 = 0.9
     
     x =grid.x.center
-    q=np.zeros([len(x),grid.meqn])
+    q=np.zeros([len(x),grid.meqn], order = 'F')
     
     # Gaussian
     qg = np.exp(-beta * (x-x0)**2) * np.cos(gamma * (x - x0))
@@ -60,7 +60,7 @@ qinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = PetClawSolver1D(kernelsType = 'P')
+solver = PetClawSolver1D(kernelsType = 'F')
 
 solver.dt = 0.0004
 solver.max_steps = 5000
@@ -69,7 +69,7 @@ solver.order = 2
 solver.mthlim = [4,4]
 
 useController = True
-makePlot = False
+makePlot = True
 
 
 if useController:
@@ -92,11 +92,13 @@ if useController:
         if claw.keep_copy:
     
             for n in xrange(0,11):
+                
                 sol = claw.frames[n]
                 plotTitle="time: {0}".format(sol.t)
-                viewer = PETSc.Viewer()
-                viewer.createDraw(  title = plotTitle,  comm=sol.grid.gqVec.comm)
-
+                viewer = PETSc.Viewer.DRAW(sol.grid.gqVec.comm)
+                OptDB = PETSc.Options()
+                OptDB['draw_pause'] = 1
+                viewer(sol.grid.gqVec)
 
 else:
     sol = {"n":init_solution}
