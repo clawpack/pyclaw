@@ -10,3 +10,6 @@ _output*
 *.err
 *.o
 *.so
+*.png
+*/.DS_Store
+

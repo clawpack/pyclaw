@@ -1,17 +1,15 @@
-FLAGS=-qextname
-F2PYFLAGS=--fcompiler=bgpgnu  --compiler=mpicc 
 
 step1.so : step1.f limiter.o philim.o rp1.o
-	f2py $(F2PYFLAGS) -m step1 -c --noopt --debug step1.f limiter.o rp1.o philim.o 
+	f2py  -m step1 -c --noopt --debug step1.f limiter.o rp1.o philim.o 
  
 limiter.o:
-	$(F77) $(FLAGS) -o limiter.o -c limiter.f
+	gfortran -o limiter.o -c limiter.f
 
 philim.o:
-	$(F77) $(FLAGS) -o philim.o -c philim.f
+	gfortran -o philim.o -c philim.f
 
 rp1.o:
-	$(F77) $(FLAGS) -o rp1.o -c rp1.f
+	gfortran -o rp1.o -c rp1.f
 
 clean:
 	rm -f *.o *.so

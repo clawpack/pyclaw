@@ -1,8 +1,4 @@
 
-#clawdata.maux = 2
-#clawdata.mwaves = 2
-
-
 
 #!/usr/bin/python
 #!/usr/bin/env python
@@ -64,8 +60,8 @@ def qinit(grid):
 
 # Initialize grids and solutions
 from dimsp2 import cparam
-x = Dimension('x',-1.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
-y = Dimension('y',-1.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
+x = Dimension('x',-1.0,1.0,100,mthbc_lower=1,mthbc_upper=1)
+y = Dimension('y',-1.0,1.0,100,mthbc_lower=1,mthbc_upper=1)
 grid = Grid([x,y])
 
 rho = 1.0
@@ -126,18 +122,13 @@ if useController:
 
     if makePlot:
         if claw.keep_copy:
-    
             for n in xrange(0,claw.nout+1):
                 sol = claw.frames[n]
                 plotTitle="time: {0}".format(sol.t)
-                viewer = PETSc.Viewer()
-                viewer.createDraw(  title = plotTitle,  comm=sol.grid.gqVec.comm)
-
-
-        
+                viewer = PETSc.Viewer.DRAW(sol.grid.gqVec.comm)
                 OptDB = PETSc.Options()
                 OptDB['draw_pause'] = 1
-                sol.grid.gqVec.view(viewer)
+                viewer(sol.grid.gqVec)
 
 
 else:
