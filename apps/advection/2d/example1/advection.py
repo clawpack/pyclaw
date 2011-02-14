@@ -37,7 +37,7 @@ def qinit(grid):
     q=np.empty([len(x),len(y),grid.meqn], order = 'F')
     for i in range(len(x)):
         for j in range(len(y)):
-            if x[i] > 0.4 and x[i] < 0.6 and y[j]>0.1 and y[j] < 0.6:
+            if x[i] > 0.1 and x[i] < 0.4 and y[j]>0.1 and y[j] < 0.6:
                 q[i,j,:] = 1.0
             else:
                 q[i,j,:] = 0.1
@@ -46,12 +46,14 @@ def qinit(grid):
 
 
 # Initialize grids and solutions
-x = Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
-y = Dimension('y',0.0,1.0,50,mthbc_lower=2,mthbc_upper=2)
+from dimsp2 import comrp
+x = Dimension('x',0.0,1.0,100,mthbc_lower=1,mthbc_upper=1)
+y = Dimension('y',0.0,1.0,50,mthbc_lower=1,mthbc_upper=1)
 grid = Grid([x,y])
-grid.aux_global['u']=0.5
-grid.aux_global['v']=1.0
-
+grid.aux_global['u']=-0.6
+grid.aux_global['v']=0.4
+comrp.ubar = grid.aux_global['u']
+comrp.vbar = grid.aux_global['v']
 grid.meqn = 1
 grid.mbc = 2
 grid.t = 0.0
@@ -63,7 +65,7 @@ solver = PetClawSolver2D(kernelsType = 'F')
 
 solver.dt = 0.016
 solver.dt_variable=False
-solver.max_steps = 500
+solver.max_steps = 5000
 solver.set_riemann_solver('advection')
 solver.order = 2
 solver.order_trans = 2
@@ -84,7 +86,7 @@ if useController:
     claw.nout = 10
     claw.outstyle = 1
     claw.output_format = 'petsc'
-    claw.tfinal =solver.dt * 100
+    claw.tfinal =solver.dt * 200
     claw.solutions['n'] = init_solution
     claw.solver = solver
 
@@ -93,18 +95,16 @@ if useController:
 
     if makePlot:
         if claw.keep_copy:
-    
-            for n in xrange(0,5):
+            for n in xrange(0,claw.nout+1):
                 sol = claw.frames[n]
                 plotTitle="time: {0}".format(sol.t)
-                viewer = PETSc.Viewer()
-                viewer.createDraw(  title = plotTitle,  comm=sol.grid.gqVec.comm)
-
-
-        
+                viewer = PETSc.Viewer.DRAW(sol.grid.gqVec.comm)
+                #viewer.createDraw(title=plotTitle, comm=sol.grid.gqVec.comm)
                 OptDB = PETSc.Options()
                 OptDB['draw_pause'] = 1
-                sol.grid.gqVec.view(viewer)
+                viewer(sol.grid.gqVec)
+                #sol.grid.gqVec.view(viewer)
+                #viewer.flush()
 
 
 else:
