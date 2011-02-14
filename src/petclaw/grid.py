@@ -311,17 +311,19 @@ class PCGrid(Grid):
                 break
                 
         if self.ndim == 1:
-            if periodic: periodic_type = PETSc.DA.PeriodicType.X
-            else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
+            #if periodic: periodic_type = PETSc.DA.PeriodicType.X
+            #else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
+            periodic_type = PETSc.DA.PeriodicType.X
         elif self.ndim == 2:
-            if periodic: periodic_type = PETSc.DA.PeriodicType.XY
-            else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
+            #if periodic: periodic_type = PETSc.DA.PeriodicType.XY
+            #else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
+            periodic_type = PETSc.DA.PeriodicType.XY
         elif self.ndim == 3:
-            if periodic: periodic_type = PETSc.DA.PeriodicType.XYZ
-            else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
+            #if periodic: periodic_type = PETSc.DA.PeriodicType.XYZ
+            #else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
+            periodic_type = PETSc.DA.PeriodicType.XYZ #Amal
         else:
             raise Exception("Invalid number of dimensions")
-        periodic_type = PETSc.DA.PeriodicType.XY # Amal: temp sol
 
         self.q_da = PETSc.DA().create(dim=self.ndim,
                                     dof=self.meqn,
