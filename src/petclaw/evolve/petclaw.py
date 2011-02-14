@@ -172,7 +172,7 @@ class PetClawSolver(ClawSolver):
             
 
     # ========== Boundary Conditions ==================================
-    def qbc(self,lqVec,grid):
+    def qbc(self,grid):
         """
         Accepts an array qbc that includes ghost cells.
         Returns an array with the ghost cells filled.
@@ -182,13 +182,8 @@ class PetClawSolver(ClawSolver):
         For now, grid and dim are passed in for backward compatibility.
         We should think about what makes the most sense.
         """
-        #THIS ONLY WORKS IN 1D:
-        q_dim = grid.local_n
-        for i in xrange(grid.ndim):
-          q_dim[i] =  q_dim[i] + 2*grid.mbc
-        # add to the local_n the ghost cells
-        q_dim.append(grid.meqn)
-        qbc=lqVec.getArray().reshape(q_dim, order = 'F')
+        
+        qbc=  grid.ghosted_q 
         for i in xrange(len(grid._dimensions)):
             dim = getattr(grid,grid._dimensions[i])
             #If a user defined boundary condition is being used, send it on,
@@ -212,9 +207,7 @@ class PetClawSolver(ClawSolver):
             self.user_bc_lower(grid,dim,qbc)
         # Zero-order extrapolation
         elif dim.mthbc_lower == 1:
-            ##specify rank
-            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
-            if rank == 0:
+            if dim.nstart == 0:
                 qbc[:grid.mbc,...] = qbc[grid.mbc,...]
         # Periodic
         elif dim.mthbc_lower == 2:
@@ -236,14 +229,8 @@ class PetClawSolver(ClawSolver):
             self.user_bc_upper(grid,dim,qbc)
         # Zero-order extrapolation
         elif dim.mthbc_upper == 1:
-            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
-            size = PETSc.Comm.getSize(PETSc.COMM_WORLD)
-            
-            if rank == size-1:
-                local_n = grid.q.shape[0]
-                list_from =[local_n - grid.mbc -1]*grid.mbc    
-                list_to = range(local_n - grid.mbc, local_n )
-                grid.q[list_to,:]=grid.q[list_from,:]
+            if dim.nend == dim.n :
+                qbc[-grid.mbc:,...] = qbc[-grid.mbc-1,...] 
  	    
         elif dim.mthbc_upper == 2:
             # Periodic
@@ -312,7 +299,7 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
         meqn = solutions['n'].meqn
         maux = grid.maux
           
-        q = self.qbc(grid.lqVec,grid)
+        q = self.qbc(grid)
         aux=grid.aux
 
         capa = grid.capa
@@ -367,7 +354,7 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
             # Limiter to use in the pth family
             limiter = np.array(self.mthlim,ndmin=1)  
             # Q with appended boundary conditions
-            q = grid.qbc()
+            q = self.qbc(grid)
             # Flux vector
             f = np.empty( (2*grid.mbc + grid.n[0], meqn) )
         
@@ -514,10 +501,8 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
 
 
         if(self.kernelsType == 'F'):
-            from dimsp2 import dimsp2, comrp
+            from dimsp2 import dimsp2
             #q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,mthlim,f,wave,s,amdq,apdq,dtdx, -1)
-            comrp.ubar = grid.aux_global['u']
-            comrp.vbar = grid.aux_global['v']
             maxmx = grid.local_n[0]
             maxmy = grid.local_n[1]
             maxm = max(maxmx, maxmy)
@@ -582,15 +567,16 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
 
             work = np.empty((mwork))
             
-            qold = self.qbc(grid.lqVec,grid)
+            qold = self.qbc(grid)
             qnew = qold #(input/output)
             work[i_qwork1:i_qwork1 + nqwork] = qold.reshape((-1))
             #[meqn,mwaves,mwork]
-            q, cflv = dimsp2(maxm,maxmx,maxmy,mbc,mx,my,work[i_qwork1:i_qwork1 + nqwork].reshape((maxmx +2*mbc, maxmy + 2*mbc, meqn)),qnew,aux,dx,dy,dt,method,mthlim,cfl,cflv, work[i_qadd:i_fadd], work[i_fadd:i_gadd], work[i_gadd:i_q1d].reshape((maxm + 2*mbc, meqn, 2)), work[i_q1d:i_dtdx1], work[i_dtdx1:i_dtdy1], work[i_dtdy1:i_qwork1], work[i_aux1:i_aux2], work[i_aux2:i_aux3], work[i_aux3:i_next], work[i_next:mwork])
+            q, cflv = dimsp2(maxm,maxmx,maxmy,mbc,mx,my,work[i_qwork1:i_qwork1 + nqwork].reshape((maxmx +2*mbc, maxmy + 2*mbc, meqn)),qnew,aux,dx,dy,dt,method,mthlim,cfl,cflv, work[i_qadd:i_fadd].reshape((maxm + 2*mbc,meqn)), work[i_fadd:i_gadd].reshape((maxm + 2*mbc,meqn)), work[i_gadd:i_q1d].reshape((maxm + 2*mbc, meqn, 2)), work[i_q1d:i_dtdx1].reshape((maxm + 2*mbc,meqn)), work[i_dtdx1:i_dtdy1], work[i_dtdy1:i_qwork1], work[i_aux1:i_aux2], work[i_aux2:i_aux3], work[i_aux3:i_next], work[i_next:mwork])
             self.cfl = cflv[2]
 
         elif(self.kernelsType == 'P'):
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
 
         grid.q=q[mbc:local_n[0]+mbc,mbc:local_n[1]+mbc,:]
+        
     
