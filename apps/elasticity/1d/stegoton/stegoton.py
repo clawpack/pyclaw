@@ -11,7 +11,7 @@ $$\\rho(x) u_t - \\sigma(\\epsilon,x)_x = 0$$
 """
 solvertype='clawpack'
 kernelsType='F'
-machine='shaheen'
+machine='local'
 vary_Z=True
 
 if machine=='shaheen':
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     start=time.time()
     # Initialize grids and solutions
     xlower=0.0; xupper=600.0
-    cellsperlayer=6144; mx=int(round(xupper-xlower))*cellsperlayer
+    cellsperlayer=192; mx=int(round(xupper-xlower))*cellsperlayer
     mthbc_lower=2; mthbc_upper=2
     x = Dimension('x',xlower,xupper,mx,mthbc_lower=mthbc_lower,mthbc_upper=mthbc_upper,mbc=mbc)
     grid = PPCGrid(x)
@@ -229,38 +229,35 @@ if __name__ == "__main__":
     claw.solver = solver
 
 
-if vary_Z==True:
-    #Zvalues = [1.0,1.2,1.4,1.6,1.8,2.0]
-    #Zvalues = [2.0,2.2,2.4,2.6,2.8,3.0]
-    Zvalues = [2.5,3.0,3.5]
-    #a2values= [0.9766161130681, 1.0888194560100042, 1.1601786315361329, 1.20973731651806, 1.2462158254919984]
+    if vary_Z==True:
+        #Zvalues = [1.0,1.2,1.4,1.6,1.8,2.0,2.2,2.4,2.6,2.8,3.0,3.5,4.0]
+        Zvalues = [3.5,4.0]
+        #a2values= [0.9766161130681, 1.0888194560100042, 1.1601786315361329, 1.20973731651806, 1.2462158254919984]
 
-    #Zvalues = [4.0]
-    #a2values= [1.,1.]
-    for ii,Z in enumerate(Zvalues):
-	a2=1.0 #a2values[ii]
-        KB = Z
-        rhoB = Z
-        grid.aux_global['KB'] = KB
-        grid.aux_global['rhoB'] = rhoB
-        grid.aux_global['trdone'] = False
-        grid.aux=setaux(xghost,rhoB,KB,rhoA,KA,alpha,mthbc_lower,xupper=xupper)
-        grid.x.mthbc_lower=2
-        grid.x.mthbc_upper=2
-        grid.t = 0.0
-        qinit(grid,ic=2,a2=a2)
-        init_solution = Solution(grid)
-        claw.solutions['n'] = init_solution
-        claw.solutions['n'].t = 0.0
+        for ii,Z in enumerate(Zvalues):
+            a2=1.0 #a2values[ii]
+            KB = Z
+            rhoB = Z
+            grid.aux_global['KB'] = KB
+            grid.aux_global['rhoB'] = rhoB
+            grid.aux_global['trdone'] = False
+            grid.aux=setaux(xghost,rhoB,KB,rhoA,KA,alpha,mthbc_lower,xupper=xupper)
+            grid.x.mthbc_lower=2
+            grid.x.mthbc_upper=2
+            grid.t = 0.0
+            qinit(grid,ic=2,a2=a2)
+            init_solution = Solution(grid)
+            claw.solutions['n'] = init_solution
+            claw.solutions['n'].t = 0.0
 
-        claw.tfinal = tfinal
-        claw.outdir = './_output_Z'+str(Z)+'_'+str(cellsperlayer)
+            claw.tfinal = tfinal
+            claw.outdir = './_output_Z'+str(Z)+'_'+str(cellsperlayer)
+            status = claw.run()
+
+    else:
+        # Solve
         status = claw.run()
-
-else:
-    # Solve
-    status = claw.run()
-    end=time.time()
-    print 'job took '+str(end-start)+' seconds'
+        end=time.time()
+        print 'job took '+str(end-start)+' seconds'
 
 

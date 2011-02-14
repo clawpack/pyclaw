@@ -165,11 +165,8 @@ class PCGrid(Grid):
         #only need a shallow copy here
         result = self.__dict__.copy()
         del result['gqVec']
-        del result['gauxVec']
         del result['q_da']
-        del result['aux_da']
         del result['lqVec']
-        del result['lauxVec']
         
         return result
 
@@ -179,11 +176,8 @@ class PCGrid(Grid):
 
         # these are all in a bad state and need to be explicitly loaded from viewers
         self.q_da = None
-        self.aux_da = None
         self.gqVec = None
         self.lqVec = None
-        self.gauxVec = None
-        self.lauxVec = None
         
     
     # ========== Property Definitions ========================================
@@ -192,7 +186,6 @@ class PCGrid(Grid):
             #Amal doc
             shape = []
             ranges = self.q_da.getRanges()
- 
             for i in ranges:
                 shape.append(i[1]-i[0])
             return shape
