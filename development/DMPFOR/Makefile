@@ -1,0 +1,3 @@
+
+DMPFOR.so : DMPFOR.f90
+	f2py  -m DMPFOR -c DMPFOR.f90 
