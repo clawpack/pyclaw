@@ -89,8 +89,8 @@ solver = PetClawSolver2D(kernelsType = 'F')
 solver.dt_initial = 0.001
 solver.dt_variable=True
 solver.dt_max = 1e+99
-solver.cfl_max = 1.0
-solver.cfl_desired = 0.9
+solver.cfl_max = 0.1
+solver.cfl_desired = 0.1
 solver.max_steps = 50000
 
 #solver.set_riemann_solver('advection') can I get red of this because no python implementation
@@ -110,7 +110,7 @@ if useController:
     claw = Controller()
     claw.outdir = './_output/'
     claw.keep_copy = True
-    claw.nout = 40
+    claw.nout = 10
     claw.outstyle = 1
     claw.output_format = 'petsc'
     claw.tfinal = .27
