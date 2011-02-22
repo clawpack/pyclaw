@@ -522,7 +522,11 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
             dt = self.dt
 
             method =np.ones(7, dtype=int) # hardcoded 7
-            method[0] = self.dt_variable  # fixed or adjustable timestep
+            if self.dt_variable:
+                method[0] = 1  # fixed or adjustable timestep
+            else:
+                method[0] = 0
+            
             method[1] = self.order  # order of the method
             method[2] = -1  # hardcoded 0, case of 2d or 3d
             method[3] = 0  # hardcoded 0 design issue: contorller.verbosity
@@ -571,8 +575,8 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
             qnew = qold #(input/output)
             work[i_qwork1:i_qwork1 + nqwork] = qold.reshape((-1))
             #[meqn,mwaves,mwork]
-            q, cflv = dimsp2(maxm,maxmx,maxmy,mbc,mx,my,work[i_qwork1:i_qwork1 + nqwork].reshape((maxmx +2*mbc, maxmy + 2*mbc, meqn)),qnew,aux,dx,dy,dt,method,mthlim,cfl,cflv, work[i_qadd:i_fadd].reshape((maxm + 2*mbc,meqn)), work[i_fadd:i_gadd].reshape((maxm + 2*mbc,meqn)), work[i_gadd:i_q1d].reshape((maxm + 2*mbc, meqn, 2)), work[i_q1d:i_dtdx1].reshape((maxm + 2*mbc,meqn)), work[i_dtdx1:i_dtdy1], work[i_dtdy1:i_qwork1], work[i_aux1:i_aux2], work[i_aux2:i_aux3], work[i_aux3:i_next], work[i_next:mwork])
-            self.cfl = cflv[2]
+            q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my,work[i_qwork1:i_qwork1 + nqwork].reshape((maxmx +2*mbc, maxmy + 2*mbc, meqn)),qnew,aux,dx,dy,dt,method,mthlim,cfl,cflv, work[i_qadd:i_fadd].reshape((maxm + 2*mbc,meqn)), work[i_fadd:i_gadd].reshape((maxm + 2*mbc,meqn)), work[i_gadd:i_q1d].reshape((maxm + 2*mbc, meqn, 2)), work[i_q1d:i_dtdx1].reshape((maxm + 2*mbc,meqn)), work[i_dtdx1:i_dtdy1], work[i_dtdy1:i_qwork1], work[i_aux1:i_aux2], work[i_aux2:i_aux3], work[i_aux3:i_next], work[i_next:mwork])
+            self.cfl = cfl
 
         elif(self.kernelsType == 'P'):
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")

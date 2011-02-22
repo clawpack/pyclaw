@@ -24,13 +24,13 @@ c     # since it typically works as well, is faster, and boundary
 c     # conditions are handled properly.
 c
       implicit double precision (a-h,o-z)
+cf2py intent(in,out) cfl
       external rpn2,rpt2
       dimension qold(1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc, meqn)
       dimension qnew(1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc, meqn)
 cf2py intent(in,out) qnew  
       dimension  q1d(1-mbc:maxm+mbc, meqn)
       dimension cflv(4)
-cf2py intent(in,out) cflv
       dimension qadd(1-mbc:maxm+mbc, meqn)
       dimension fadd(1-mbc:maxm+mbc, meqn)
       dimension gadd(1-mbc:maxm+mbc, meqn, 2)
