@@ -191,11 +191,11 @@ class PetClawSolver(ClawSolver):
             if dim.mthbc_lower == 0:
                 self.qbc_lower(qbc,grid,dim)
             else:
-                self.qbc_lower(np.rollaxis(qbc,i),grid,dim)
+                self.qbc_lower(np.rollaxis(qbc,i+1,2),grid,dim)
             if dim.mthbc_upper == 0:
                 self.qbc_upper(qbc,grid,dim)
             else:
-                self.qbc_upper(np.rollaxis(qbc,i),grid,dim)
+                self.qbc_upper(np.rollaxis(qbc,i+1,2),grid,dim)
         return qbc
 
     def qbc_lower(self,qbc,grid,dim):
@@ -208,7 +208,8 @@ class PetClawSolver(ClawSolver):
         # Zero-order extrapolation
         elif dim.mthbc_lower == 1:
             if dim.nstart == 0:
-                qbc[:grid.mbc,...] = qbc[grid.mbc,...]
+                for i in xrange(grid.mbc):
+                    qbc[:,i,...] = qbc[:,grid.mbc,...]
         # Periodic
         elif dim.mthbc_lower == 2:
             pass # Amal: this is implemented automatically by petsc4py
@@ -230,7 +231,8 @@ class PetClawSolver(ClawSolver):
         # Zero-order extrapolation
         elif dim.mthbc_upper == 1:
             if dim.nend == dim.n :
-                qbc[-grid.mbc:,...] = qbc[-grid.mbc-1,...] 
+                for i in xrange(grid.mbc):
+                    qbc[:,-i-1,...] = qbc[:,-grid.mbc-1,...] 
  	    
         elif dim.mthbc_upper == 2:
             # Periodic
@@ -567,20 +569,21 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
             i_aux3 = i_aux2 + (maxm+2*mbc)*maux
 
             i_next = i_aux3 + (maxm+2*mbc)*maux
-            mwork = (maxm+2*mbc) * (10*meqn + mwaves + meqn*mwaves+ 3*maux + 2) + narray * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn
+            mwork = (maxm+2*mbc) * (10*meqn + mwaves + meqn*mwaves+ 3*maux + 2) + narray * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn 
 
             work = np.empty((mwork))
             
             qold = self.qbc(grid)
             qnew = qold #(input/output)
-            work[i_qwork1:i_qwork1 + nqwork] = qold.reshape((-1))
+            work[i_qwork1:i_qwork1 + nqwork] = qold.reshape((-1), order = 'F')
             #[meqn,mwaves,mwork]
-            q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my,work[i_qwork1:i_qwork1 + nqwork].reshape((maxmx +2*mbc, maxmy + 2*mbc, meqn)),qnew,aux,dx,dy,dt,method,mthlim,cfl,cflv, work[i_qadd:i_fadd].reshape((maxm + 2*mbc,meqn)), work[i_fadd:i_gadd].reshape((maxm + 2*mbc,meqn)), work[i_gadd:i_q1d].reshape((maxm + 2*mbc, meqn, 2)), work[i_q1d:i_dtdx1].reshape((maxm + 2*mbc,meqn)), work[i_dtdx1:i_dtdy1], work[i_dtdy1:i_qwork1], work[i_aux1:i_aux2], work[i_aux2:i_aux3], work[i_aux3:i_next], work[i_next:mwork])
+            q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my,work[i_qwork1:i_qwork1 + nqwork].reshape((meqn, maxmx +2*mbc, maxmy + 2*mbc), order = 'F'),qnew,aux,dx,dy,dt,method,mthlim,cfl,cflv, work[i_qadd:i_fadd].reshape((meqn, maxm + 2*mbc), order = 'F'), work[i_fadd:i_gadd].reshape((meqn, maxm + 2*mbc), order = 'F'), work[i_gadd:i_q1d].reshape((meqn, maxm + 2*mbc, 2), order = 'F'), work[i_q1d:i_dtdx1].reshape((meqn, maxm + 2*mbc), order = 'F'), work[i_dtdx1:i_dtdy1], work[i_dtdy1:i_qwork1], work[i_aux1:i_aux2], work[i_aux2:i_aux3], work[i_aux3:i_next], work[i_next:mwork])
+            #q = q.reshape(q.shape, order = 'F')
             self.cfl = cfl
 
         elif(self.kernelsType == 'P'):
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
 
-        grid.q=q[mbc:local_n[0]+mbc,mbc:local_n[1]+mbc,:]
+        grid.q=q[:meqn,mbc:local_n[0]+mbc,mbc:local_n[1]+mbc]
         
     

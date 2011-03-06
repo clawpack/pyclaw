@@ -195,21 +195,11 @@ class PCGrid(Grid):
             q_dim = self.local_n
             q_dim.insert(0,self.meqn)
             q=self.gqVec.getArray().reshape(q_dim, order = 'F')
-            q = np.rollaxis(q, 0,len(q_dim))
-            q_dim.pop(0)
-            q_dim.append(self.meqn)
-            q_copy = np.empty(q_dim)
-            q_copy[...] = q[...]
-            return q_copy
+            return q
         def fset(self,q):
             if self.gqVec is None:
                 self.init_q_petsc_structures()
-            q = np.rollaxis(q, self.ndim,0)
-            q_dim = self.local_n
-            q_dim.insert(0,self.meqn)
-            q_copy = np.empty(q_dim)   
-            q_copy[...] = q[...]
-            self.gqVec.setArray(q_copy.reshape([-1], order = 'F'))
+            self.gqVec.setArray(q.reshape([-1], order = 'F'))
             self.q_da.globalToLocal(self.gqVec, self.lqVec)
         return locals()
 
@@ -220,22 +210,11 @@ class PCGrid(Grid):
                 q_dim[i] =  q_dim[i] + 2*self.mbc
             q_dim.insert(0,self.meqn)
             ghosted_q=self.lqVec.getArray().reshape(q_dim, order = 'F')
-            ghosted_q = np.rollaxis(ghosted_q, 0,len(q_dim))
-            q_dim.pop(0)
-            q_dim.append(self.meqn)
-            ghosted_q_copy = np.empty(q_dim)
-            ghosted_q_copy[...] = ghosted_q[...]
-            return ghosted_q_copy
+            return ghosted_q
         def fset(self,ghosted_q):
             if self.lqVec is None:
-                self.init_q_petsc_structures()
-            ghosted_q = np.rollaxis(ghosted_q, self.ndim,0)
-            q_dim = self.local_n
-            q_dim.insert(0,self.meqn)
-            q_copy = np.empty(q_dim)   
-            ghosted_q_copy[...] = ghosted_q[...]
-            ghosted_q_copy =ghosted_q.copy()          
-            self.lqVec.setArray(ghosted_q_copy.reshape([-1], order = 'F'))
+                self.init_q_petsc_structures()        
+            self.lqVec.setArray(ghosted_q.reshape([-1], order = 'F'))
             self.q_da.localToGlobal(self.lqVec, self.gqVec)
         return locals()
 
