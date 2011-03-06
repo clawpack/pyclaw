@@ -5,6 +5,7 @@
 """
 
 import os, sys
+import math
 
 try:
     import numpy as np
@@ -50,10 +51,19 @@ def qinit(grid):
 
 
 # Initialize grids and solutions
+from step1 import cparam 
 x = Dimension('x',0.0,1.0,100,mthbc_lower=1,mthbc_upper=1)
 grid = Grid(x)
-grid.aux_global['zz']=1.0
-grid.aux_global['cc']=1.0
+rho = 1.0
+bulk = 1.0
+grid.aux_global['rho']=rho
+grid.aux_global['bulk']=bulk
+grid.aux_global['zz']=math.sqrt(rho*bulk)
+grid.aux_global['cc']=math.sqrt(rho/bulk)
+cparam.rho = grid.aux_global['rho']
+cparam.bulk = grid.aux_global['bulk']
+cparam.zz = grid.aux_global['zz']
+cparam.cc = grid.aux_global['cc']
 grid.meqn=2
 grid.t = 0.0
 qinit(grid)

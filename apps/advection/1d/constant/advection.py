@@ -49,7 +49,7 @@ def qinit(grid):
 
     # Initialize petsc Structures for q
     grid.init_q_petsc_structures()
-    
+
     # Initial Data parameters
     ic = 3
     beta = 100.
@@ -79,9 +79,11 @@ def qinit(grid):
 
 
 # Initialize grids and solutions
+from step1 import comrp
 x = Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
 grid = Grid(x)
 grid.aux_global['u']=-1.
+comrp.u = grid.aux_global['u']
 grid.meqn = 1
 grid.t = 0.0
 qinit(grid)
@@ -91,7 +93,7 @@ init_solution = Solution(grid)
 solver = PetClawSolver1D(kernelsType = 'F')
 
 solver.dt = 0.004
-solver.dt_variable=False
+solver.dt_variable=True
 solver.max_steps = 50000
 
 solver.set_riemann_solver('advection')
@@ -99,7 +101,7 @@ solver.order = 2
 solver.mthlim = 4
 
 useController = True
-makePlot = False
+makePlot = True
 
 
 if useController:
@@ -108,7 +110,7 @@ if useController:
     claw = Controller()
     claw.outdir = './_output/'
     claw.keep_copy = True
-    claw.nout = 1
+    claw.nout = 10
     claw.outstyle = 1
     claw.output_format = 'petsc'
     claw.tfinal =0.5
@@ -121,17 +123,13 @@ if useController:
     if makePlot:
         if claw.keep_copy:
     
-            for n in xrange(0,11):
+            for n in xrange(0,claw.nout):
                 sol = claw.frames[n]
                 plotTitle="time: {0}".format(sol.t)
-                viewer = PETSc.Viewer()
-                viewer.createDraw(  title = plotTitle,  comm=sol.grid.gqVec.comm)
-
-
-        
+                viewer = PETSc.Viewer.DRAW(sol.grid.gqVec.comm)
                 OptDB = PETSc.Options()
-                OptDB['draw_pause'] = -1
-                sol.grid.gqVec.view(viewer)
+                OptDB['draw_pause'] = 1
+                viewer(sol.grid.gqVec)
 
 
 else:
@@ -141,10 +139,10 @@ else:
     sol = sol["n"]
 
     if makePlot:
-        viewer = PETSc.Viewer.DRAW(grid.gqVec.comm)
+        viewer = PETSc.Viewer.DRAW(sol.grid.gqVec.comm)
         OptDB = PETSc.Options()
         OptDB['draw_pause'] = -1
-        viewer(grid.gqVec)
+        viewer(sol.grid.gqVec)
         
 
 
