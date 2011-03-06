@@ -224,7 +224,7 @@ c
          if (mcapa.eq.0) then
 c
 c            # no capa array.  Standard flux differencing:
-            forall (m=1:men, j=1:my)
+            forall (m=1:meqn, j=1:my)
 			   qnew(m,i,j) = qnew(m,i,j) + qadd(m,j)
      &                  - dtdy * (fadd(m,j+1) - fadd(m,j))
 			end forall
@@ -233,7 +233,7 @@ c
          else
 c
 c            # with capa array.
-            forall (m=1:men, j=1:my)  
+            forall (m=1:meqn, j=1:my)  
 	           qnew(m,i,j) = qnew(m,i,j) + qadd(m,j)
      &                  - dtdy * (fadd(m,j+1) - fadd(m,j))
      &                        / aux(i,j,mcapa)
