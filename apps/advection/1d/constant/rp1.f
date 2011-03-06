@@ -2,7 +2,7 @@ c
 c
 c =========================================================
       subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,
-     &           wave,s,amdq,apdq,u)
+     &           wave,s,amdq,apdq)
 c =========================================================
 c
 c     # solve Riemann problems for the 1D advection equation q_t + u*q_x = 0.
@@ -28,6 +28,7 @@ c
       dimension wave(1-mbc:maxmx+mbc, meqn, mwaves)
       dimension amdq(1-mbc:maxmx+mbc, meqn)
       dimension apdq(1-mbc:maxmx+mbc, meqn)
+      common /comrp/ u
 c
 c
 c

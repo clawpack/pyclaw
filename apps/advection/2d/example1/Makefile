@@ -1,31 +1,33 @@
 
+TWO_D_LIBPATH = $(PETCLAW)/src/fortran/2d/nonInterleaved/
+LIBOBJ = \
+   step2ds.o\
+   flux2.o\
+   limiter.o\
+   philim.o\
 
 
-objects = step2ds.o  flux2.o  limiter.o  philim.o rpt2.f rpn2.f
-step1.so: dimsp2.f $(objects)
-	f2py -m dimsp2 -c dimsp2.f $(objects)  
-        
-limiter.o: limiter.f
-	gfortran -o limiter.o -c limiter.f
+SOURCE = rpt2.f rpn2.f
+
+dimsp2.so: $(TWO_D_LIBPATH)dimsp2.f $(SOURCE) $(LIBOBJ)
+	f2py -m dimsp2 -c $(TWO_D_LIBPATH)dimsp2.f $(LIBOBJ) $(SOURCE)  
+
+limiter.o: 
+	gfortran -o limiter.o -c $(TWO_D_LIBPATH)limiter.f
 
 philim.o:
-	gfortran -o philim.o -c philim.f
+	gfortran -o philim.o -c $(TWO_D_LIBPATH)philim.f
 
 flux2.o:
-	gfortran -o flux2.o -c flux2.f
+	gfortran -o flux2.o -c $(TWO_D_LIBPATH)flux2.f
 
 step2ds.o:
-	gfortran -o step2ds.o -c step2ds.f
-
-rpt2.o:
-	gfortran -o rpt2.o -c rpt2.f
-
-rpn2.o:
-	gfortran -o rpn2.o -c rpn2.f
+	gfortran -o step2ds.o -c $(TWO_D_LIBPATH)step2ds.f
 
 clean:
 	rm -f *.o *.so
-	
+
 clobber:
 	rm -f *.o *.so
 	rm -f -R *output*
+

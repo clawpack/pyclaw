@@ -1,16 +1,19 @@
 
-
+ONE_D_LIBPATH = $(PETCLAW)/src/fortran/1d
 LIBOBJ = \
-   $(PETCLAW)/src/fortran/1d/limiter.o \
-   $(PETCLAW)/src/fortran/1d/philim.o
+   limiter.o \
+   philim.o
 
-OBJ =   rp1.f
+SOURCE =   rp1.f
 
-step1.so: $(PETCLAW)/src/fortran/1d/step1.f $(LIBOBJ) $(OBJ)
-	f2py -m step1 -c $(PETCLAW)/src/fortran/1d/step1.f $(LIBOBJ) $(OBJ) 
+step1.so: $(ONE_D_LIBPATH)/step1.f $(LIBOBJ) $(SOURCE)
+	f2py -m step1 -c $(ONE_D_LIBPATH)/step1.f $(SOURCE) $(LIBOBJ) 
         
-rp1.o:
-	gfortran -o rp1.o -c rp1.f
+limiter.o:
+	gfortran -o limiter.o -c $(ONE_D_LIBPATH)/limiter.f
+
+philim.o:
+	gfortran -o philim.o -c $(ONE_D_LIBPATH)/philim.f
 
 clean:
 	rm -f *.o *.so
