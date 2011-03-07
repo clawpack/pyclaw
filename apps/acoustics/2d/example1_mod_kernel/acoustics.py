@@ -92,7 +92,7 @@ solver.dt_max = 1e+99
 solver.cfl_max = 0.1
 solver.cfl_desired = 0.1
 solver.max_steps = 50000
-
+solver.mwaves = 2
 #solver.set_riemann_solver('advection') can I get red of this because no python implementation
 solver.order = 2
 solver.order_trans = 2

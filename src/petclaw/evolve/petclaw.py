@@ -340,8 +340,7 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
         
             cfl = self.cfl
             f =  np.zeros( (local_n , meqn) )
-            mwaves = meqn # amal: need to be modified
-
+            mwaves = self.mwaves # amal: need to be modified
             wave = np.empty( (local_n,meqn,mwaves) )
             s = np.empty( (local_n,mwaves) )
             amdq = np.zeros( (local_n, meqn) )
@@ -497,7 +496,7 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
         d = grid.d
         mbc = grid.mbc
         aux_global = grid.aux_global
-        mwaves = meqn
+        mwaves = self.mwaves
         local_n = grid.local_n
         
 
