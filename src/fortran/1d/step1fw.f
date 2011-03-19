@@ -2,7 +2,7 @@ c
 c
 c ===================================================================
       subroutine step1(maxmx,meqn,mwaves,mbc,maux,mx, q,aux,dx,dt,
-     &              method,mthlim,cfl,f,fwave,s,amdq,apdq,dtdx,u)
+     &              method,mthlim,cfl,f,fwave,s,amdq,apdq,dtdx)
 c ===================================================================
 c
 c     # Take one time step, updating q.

@@ -5,10 +5,8 @@ syntax: glob
 *.log
 *.out
 doc/*.pdf
-.DS_Store
 _output*
 *.err
 *.o
 *.so
 *.png
-*/.DS_Store

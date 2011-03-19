@@ -1,12 +1,9 @@
-
-
-#!/usr/bin/python
 #!/usr/bin/env python
 # encoding: utf-8
 """
-advection.py
+acoustics.py
 
-Example python script for solving the 2d advection equation.
+Example python script for solving the 2d acoustics equation.
 """
 
 import os, sys
@@ -24,6 +21,8 @@ from pyclaw.controller import Controller
 
 
 def qinit(grid):
+    """qinit - sets the initial values for the solution
+    grid currently inherits from PCGrid """
 
     # Set initial conditions for q.
     # Sample scalar equation with data that is piecewise constant with
@@ -59,7 +58,10 @@ def qinit(grid):
 
 
 # Initialize grids and solutions
+
+# dimsp2 is an f2py module
 from dimsp2 import cparam
+
 x = Dimension('x',-1.0,1.0,100,mthbc_lower=1,mthbc_upper=1)
 y = Dimension('y',-1.0,1.0,100,mthbc_lower=1,mthbc_upper=1)
 grid = Grid([x,y])
@@ -68,7 +70,7 @@ rho = 1.0
 bulk = 4.0
 cc = math.sqrt(bulk/rho)
 zz = rho*cc
-grid.aux_global['rho']= rho
+grid.aux_global['rho']= rho  #Check whether this is necessary
 grid.aux_global['bulk']=bulk
 grid.aux_global['zz']= zz
 grid.aux_global['cc']=cc
@@ -84,7 +86,7 @@ qinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = PetClawSolver2D(kernelsType = 'F')
+solver = PetClawSolver2D(kernelsType = 'F')   #Instead of flag we could just import the appropriate function
 
 solver.dt_initial = 0.001
 solver.dt_variable=True
@@ -93,7 +95,6 @@ solver.cfl_max = 0.1
 solver.cfl_desired = 0.1
 solver.max_steps = 50000
 
-#solver.set_riemann_solver('advection') can I get red of this because no python implementation
 solver.order = 2
 solver.order_trans = 2
 solver.mthlim = [0,0]

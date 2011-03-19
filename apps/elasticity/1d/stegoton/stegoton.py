@@ -210,6 +210,7 @@ if __name__ == "__main__":
     solver.start_step = b4step 
     solver.user_bc_lower=moving_wall_bc
     solver.user_bc_upper=zero_bc
+    solver.mwaves=2
 
     if solvertype=='sharpclaw':
         solver.lim_type = 2
