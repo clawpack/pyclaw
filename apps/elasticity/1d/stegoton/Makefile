@@ -2,7 +2,7 @@
 #FLAGS=-qextname
 #F2PYFLAGS=--fcompiler=bgpgnu  --compiler=mpicc
 
-FC = gfortran
+FC ?= gfortran
 
 ONE_D_LIBPATH = $(PETCLAW)/src/fortran/1d
 

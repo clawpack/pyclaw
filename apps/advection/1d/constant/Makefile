@@ -1,3 +1,5 @@
+FC ?= gfortran
+
 ONE_D_LIBPATH = $(PETCLAW)/src/fortran/1d
 
 LIBOBJ = \
@@ -10,10 +12,10 @@ step1.so: $(ONE_D_LIBPATH)/step1.f $(SOURCE) $(LIBOBJ)
 	f2py  -m step1 -c $(ONE_D_LIBPATH)/step1.f $(SOURCE) $(LIBOBJ)
  
 limiter.o:
-	gfortran -o limiter.o -c $(ONE_D_LIBPATH)/limiter.f
+	$(FC) -o limiter.o -c $(ONE_D_LIBPATH)/limiter.f
 
 philim.o:
-	gfortran -o philim.o -c $(ONE_D_LIBPATH)/philim.f
+	$(FC) -o philim.o -c $(ONE_D_LIBPATH)/philim.f
 
 
 clean:
