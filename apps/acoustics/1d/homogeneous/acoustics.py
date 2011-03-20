@@ -36,17 +36,17 @@ def qinit(grid):
     x2 = 0.9
     
     x =grid.x.center
-    q=np.zeros([len(x),grid.meqn], order = 'F')
+    q=np.zeros([grid.meqn,len(x)], order = 'F')
     
     # Gaussian
     qg = np.exp(-beta * (x-x0)**2) * np.cos(gamma * (x - x0))
     # Step Function
     qs = (x > x1) * 1.0 - (x > x2) * 1.0
     
-    if ic == 1: q[:,0] = qg
-    elif ic == 2: q[:,0] = qs
-    elif ic == 3: q[:,0] = qg + qs
-    q[:,1]=0.
+    if ic == 1: q[0,:] = qg
+    elif ic == 2: q[0,:] = qs
+    elif ic == 3: q[0,:] = qg + qs
+    q[1,:]=0.
     grid.q=q
 
 

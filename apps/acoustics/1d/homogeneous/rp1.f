@@ -28,12 +28,12 @@ c
 c
       implicit double precision (a-h,o-z)
 c
-      dimension wave(1-mbc:maxm+mbc, meqn, mwaves)
-      dimension    s(1-mbc:maxm+mbc, mwaves)
-      dimension   ql(1-mbc:maxm+mbc, meqn)
-      dimension   qr(1-mbc:maxm+mbc, meqn)
-      dimension apdq(1-mbc:maxm+mbc, meqn)
-      dimension amdq(1-mbc:maxm+mbc, meqn)
+      dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
+      dimension    s(mwaves,1-mbc:maxm+mbc)
+      dimension   ql(meqn, 1-mbc:maxm+mbc)
+      dimension   qr(meqn, 1-mbc:maxm+mbc)
+      dimension apdq(meqn, 1-mbc:maxm+mbc)
+      dimension amdq(meqn, 1-mbc:maxm+mbc)
 c
 c     local arrays
 c     ------------
@@ -43,36 +43,37 @@ c     # density, bulk modulus, and sound speed, and impedence of medium:
 c     # (should be set in setprob.f)
       common /cparam/ rho,bulk,cc,zz   
 c
+      write(*,*) rho, bulk, cc, zz
 c
 c     # split the jump in q at each interface into waves
 c
 c     # find a1 and a2, the coefficients of the 2 eigenvectors:
       do 20 i = 2-mbc, mx+mbc
-         delta(1) = ql(i,1) - qr(i-1,1)
-         delta(2) = ql(i,2) - qr(i-1,2)
+         delta(1) = ql(1,i) - qr(1,i-1)
+         delta(2) = ql(2,i) - qr(2,i-1)
          a1 = (-delta(1) + zz*delta(2)) / (2.d0*zz)
          a2 =  (delta(1) + zz*delta(2)) / (2.d0*zz)
 c
 c        # Compute the waves.
 c
-         wave(i,1,1) = -a1*zz
-         wave(i,2,1) = a1
-         s(i,1) = -cc
+         wave(1,1,i) = -a1*zz
+         wave(2,1,i) = a1
+         s(1,i) = -cc
 c
-         wave(i,1,2) = a2*zz
-         wave(i,2,2) = a2
-         s(i,2) = cc
+         wave(1,2,i) = a2*zz
+         wave(2,2,i) = a2
+         s(2,i) = cc
 c
    20    continue
 c
 c
 c     # compute the leftgoing and rightgoing flux differences:
-c     # Note s(i,1) < 0   and   s(i,2) > 0.
+c     # Note s(1,i) < 0   and   s(2,i) > 0.
 c
       do 220 m=1,meqn
          do 220 i = 2-mbc, mx+mbc
-            amdq(i,m) = s(i,1)*wave(i,m,1)
-            apdq(i,m) = s(i,2)*wave(i,m,2)
+            amdq(m,i) = s(1,i)*wave(m,1,i)
+            apdq(m,i) = s(2,i)*wave(m,2,i)
   220       continue
 c
       return

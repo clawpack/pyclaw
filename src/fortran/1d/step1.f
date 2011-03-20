@@ -34,15 +34,15 @@ c            f(i,m) = mth component of flux at left edge of ith cell
 c     --------------------------------------------------------------------
 c
       implicit double precision (a-h,o-z)    
-      dimension q(1-mbc:maxmx+mbc,meqn)
+      dimension q(meqn,1-mbc:maxmx+mbc)
 cf2py intent(in,out) q  
 cf2py intent(out) cfl  
-      dimension  aux(1-mbc:maxmx+mbc, maux)
-      dimension    f(1-mbc:maxmx+mbc, meqn)
-      dimension    s(1-mbc:maxmx+mbc, mwaves)
-      dimension wave(1-mbc:maxmx+mbc, meqn, mwaves)
-      dimension amdq(1-mbc:maxmx+mbc, meqn)
-      dimension apdq(1-mbc:maxmx+mbc, meqn)
+      dimension  aux(maux,1-mbc:maxmx+mbc)
+      dimension    f(meqn,1-mbc:maxmx+mbc)
+      dimension    s(mwaves,1-mbc:maxmx+mbc)
+      dimension wave(meqn, mwaves,1-mbc:maxmx+mbc)
+      dimension amdq(meqn,1-mbc:maxmx+mbc)
+      dimension apdq(meqn,1-mbc:maxmx+mbc)
       dimension dtdx(1-mbc:maxmx+mbc)
       dimension method(7),mthlim(mwaves)
       logical limit
@@ -56,11 +56,11 @@ c
       mcapa = method(6)
       do 10 i=1-mbc,mx+mbc
          if (mcapa.gt.0) then
-             if (aux(i,mcapa) .le. 0.d0) then
+             if (aux(mcapa,i) .le. 0.d0) then
                 write(6,*) 'Error -- capa must be positive'
                 stop
                 endif
-             dtdx(i) = dt / (dx*aux(i,mcapa))
+             dtdx(i) = dt / (dx*aux(mcapa,i))
             else
              dtdx(i) = dt/dx
             endif
@@ -84,11 +84,10 @@ c
       
 c     print *,"q before, from fortran",q(24,1)
 
-      do 40 i=1,mx+1
-         do 40 m=1,meqn
-            q(i,m) = q(i,m) - dtdx(i)*apdq(i,m)
-            q(i-1,m) = q(i-1,m) - dtdx(i-1)*amdq(i,m)
-   40       continue
+      forall(i=1:mx+1, m=1:meqn)
+         q(i,m) = q(i,m) - dtdx(i)*apdq(i,m)
+         q(i-1,m) = q(i-1,m) - dtdx(i-1)*amdq(i,m)
+      end forall
 
 c
 c     # compute maximum wave speed:
@@ -97,7 +96,7 @@ c     # compute maximum wave speed:
          do 45 i=1,mx+1
 c          # if s>0 use dtdx(i) to compute CFL,
 c          # if s<0 use dtdx(i-1) to compute CFL:
-           cfl = dmax1(cfl, dtdx(i)*s(i,mw), -dtdx(i-1)*s(i,mw))
+           cfl = dmax1(cfl, dtdx(i)*s(mw,i), -dtdx(i-1)*s(mw,i))
    45      continue
    50    continue
 c
@@ -106,10 +105,9 @@ c
 c     # compute correction fluxes for second order q_{xx} terms:
 c     ----------------------------------------------------------
 c
-      do 100 m = 1, meqn
-            do 100 i = 1-mbc, mx+mbc
-               f(i,m) = 0.d0
-  100          continue
+      forall(i=1-mbc:mx+mbc, m=1:meqn)
+         f(i,m) = 0.d0
+      end forall
 c
 c      # apply limiter to waves:
       if (limit) call limiter(maxmx,meqn,mwaves,mbc,mx,wave,s,mthlim)
@@ -117,26 +115,22 @@ c
       do 120 i=1,mx+1
          do 120 m=1,meqn
             do 110 mw=1,mwaves
-               dtdxave = 0.5d0 * (dtdx(i-1) + dtdx(i))
-               f(i,m) = f(i,m) + 0.5d0 * dabs(s(i,mw))
-     &             * (1.d0 - dabs(s(i,mw))*dtdxave) * wave(i,m,mw)
+         dtdxave = 0.5d0 * (dtdx(i-1) + dtdx(i))
+         f(m,i) = f(m,i) + 0.5d0 * dabs(s(mw,i))
+     &             * (1.d0 - dabs(s(mw,i))*dtdxave) * wave(m,mw,i)
   110          continue
   120       continue
 c
-c
-  140 continue
 c
 c     # update q by differencing correction fluxes 
 c     ============================================
 c
 c     # (Note:  Godunov update has already been performed above)
 c
-      do 150 m=1,meqn
-         do 150 i=1,mx
-            q(i,m) = q(i,m) - dtdx(i) * (f(i+1,m) - f(i,m))
-  150       continue
+      forall(i=1:mx+1, m=1:meqn)
+            q(m,i) = q(m,i) - dtdx(i) * (f(m,i+1) - f(m,i))
+      end forall
 c
   900 continue
-c     print *,"q after, from fortran",q(24,1)
       return
       end

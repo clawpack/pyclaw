@@ -308,7 +308,6 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
         d = grid.d
         mbc = grid.mbc
         aux_global = grid.aux_global
-        print q.shape
         local_n = q.shape[1]
 
 
@@ -431,8 +430,6 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
                 
         
         grid.q=q[:,mbc:-mbc]
-        
-    
 
 
 

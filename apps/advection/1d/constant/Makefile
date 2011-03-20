@@ -1,6 +1,6 @@
 FC ?= gfortran
 
-ONE_D_LIBPATH = $(PETCLAW)/src/fortran/1d/interleaved
+ONE_D_LIBPATH = $(PETCLAW)/src/fortran/1d
 
 LIBOBJ = \
     limiter.o\

@@ -35,7 +35,7 @@ def qinit(grid):
 
     x =grid.x.center
     
-    q=np.zeros([len(x),grid.meqn])
+    q=np.zeros([grid.meqn,len(x)],order='F')
     
     # Gaussian
     qg = np.exp(-beta * (x-x0)**2) * np.cos(gamma * (x - x0))
