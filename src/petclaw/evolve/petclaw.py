@@ -83,7 +83,7 @@ class PetClawSolver(ClawSolver):
     """
     
     # ========== Generic Init Routine ========================================
-    def __init__(self, kernelsType, data=None):
+    def __init__(self, kernelsType='F', data=None):
         r"""
         See :class:`ClawSolver` for full documentation.
         """
@@ -465,7 +465,7 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
         David Ketcheson
     """
 
-    def __init__(self,kernelsType,data=None):
+    def __init__(self,kernelsType='F',data=None):
         r"""
         Create 1d PetClaw solver
         
