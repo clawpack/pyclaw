@@ -570,6 +570,7 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
             work = np.empty((mwork))
             
             qold = self.qbc(grid)
+            #DK: Do we need to copy here? (i.e., qnew=qold.copy())
             qnew = qold #(input/output)
             work[i_qwork1:i_qwork1 + nqwork] = qold.reshape((-1), order = 'F')
             #[meqn,mwaves,mwork]
@@ -580,6 +581,6 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
         elif(self.kernelsType == 'P'):
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
 
-        grid.q=q[:meqn,mbc:local_n[0]+mbc,mbc:local_n[1]+mbc]
+        grid.q=q[:,mbc:local_n[0]+mbc,mbc:local_n[1]+mbc]
         
     

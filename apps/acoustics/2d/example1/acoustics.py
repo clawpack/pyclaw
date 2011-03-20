@@ -12,8 +12,8 @@ import numpy as np
 import math
 from petsc4py import PETSc
 
-from petclaw.grid import PCDimension as Dimension
-from petclaw.grid import PCGrid as Grid
+from petclaw.grid import Dimension
+from petclaw.grid import Grid
 from pyclaw.solution import Solution
 from petclaw.evolve.petclaw import PetClawSolver2D
 from pyclaw.controller import Controller
@@ -88,6 +88,7 @@ init_solution = Solution(grid)
 # Solver setup
 solver = PetClawSolver2D(kernelsType = 'F')   #Instead of flag we could just import the appropriate function
 
+solver.mwaves = 3
 solver.dt_initial = 0.001
 solver.dt_variable=True
 solver.dt_max = 1e+99

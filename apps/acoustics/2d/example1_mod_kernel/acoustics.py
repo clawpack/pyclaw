@@ -15,8 +15,8 @@ import numpy as np
 import math
 from petsc4py import PETSc
 
-from petclaw.grid import PCDimension as Dimension
-from petclaw.grid import PCGrid as Grid
+from petclaw.grid import Dimension
+from petclaw.grid import Grid
 from pyclaw.solution import Solution
 from petclaw.evolve.petclaw import PetClawSolver2D
 from pyclaw.controller import Controller
@@ -93,7 +93,6 @@ solver.cfl_max = 0.1
 solver.cfl_desired = 0.1
 solver.max_steps = 50000
 solver.mwaves = 2
-#solver.set_riemann_solver('advection') can I get red of this because no python implementation
 solver.order = 2
 solver.order_trans = 2
 solver.mthlim = [0,0]
