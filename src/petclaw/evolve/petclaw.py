@@ -308,12 +308,12 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
         d = grid.d
         mbc = grid.mbc
         aux_global = grid.aux_global
-        local_n = q.shape[0]
+        print q.shape
+        local_n = q.shape[1]
 
 
         if(self.kernelsType == 'F'):
             from step1 import step1
-            
             
             dt = self.dt
             dx = d[0]
@@ -322,7 +322,7 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
             mx = maxmx
             
             if(aux == None):
-                aux = np.empty( (local_n , maux) )
+                aux = np.empty( (maux,local_n) )
         
             method =np.ones(7, dtype=int) # hardcoded 7
             method[0] = self.dt_variable  # fixed or adjustable timestep
@@ -339,12 +339,12 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
             mthlim = self.mthlim
         
             cfl = self.cfl
-            f =  np.zeros( (local_n , meqn) )
+            f =  np.zeros( (meqn,local_n) )
             mwaves = self.mwaves # amal: need to be modified
-            wave = np.empty( (local_n,meqn,mwaves) )
-            s = np.empty( (local_n,mwaves) )
-            amdq = np.zeros( (local_n, meqn) )
-            apdq = np.zeros( (local_n, meqn) )
+            wave = np.empty( (meqn,mwaves,local_n) )
+            s = np.empty( (mwaves,local_n) )
+            amdq = np.zeros( (meqn,local_n) )
+            apdq = np.zeros( (meqn,local_n) )
         
             q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,mthlim,f,wave,s,amdq,apdq,dtdx)
 
@@ -430,7 +430,7 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
                     q[LL:UL-1,m] -= dtdx[LL:UL-1] * (f[LL+1:UL,m] - f[LL:UL-1,m]) 
                 
         
-        grid.q=q[mbc:-mbc,:]
+        grid.q=q[:,mbc:-mbc]
         
     
 

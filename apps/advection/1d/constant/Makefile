@@ -1,12 +1,12 @@
 FC ?= gfortran
 
-ONE_D_LIBPATH = $(PETCLAW)/src/fortran/1d
+ONE_D_LIBPATH = $(PETCLAW)/src/fortran/1d/interleaved
 
 LIBOBJ = \
     limiter.o\
     philim.o\
 
-SOURCE = rp1.f
+SOURCE = rp1_interleaved.f
 
 step1.so: $(ONE_D_LIBPATH)/step1.f $(SOURCE) $(LIBOBJ) 
 	f2py  -m step1 -c $(ONE_D_LIBPATH)/step1.f $(SOURCE) $(LIBOBJ)

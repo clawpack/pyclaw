@@ -82,7 +82,7 @@ def qinit(grid):
 from step1 import comrp
 x = Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
 grid = Grid(x)
-grid.aux_global['u']=-1.
+grid.aux_global['u']=1.
 comrp.u = grid.aux_global['u']
 grid.meqn = 1
 grid.t = 0.0
@@ -93,6 +93,7 @@ init_solution = Solution(grid)
 solver = PetClawSolver1D(kernelsType = 'F')
 
 solver.dt = 0.004
+solver.mwaves = 1
 solver.dt_variable=True
 solver.max_steps = 50000
 
