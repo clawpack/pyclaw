@@ -43,7 +43,6 @@ c     # density, bulk modulus, and sound speed, and impedence of medium:
 c     # (should be set in setprob.f)
       common /cparam/ rho,bulk,cc,zz   
 c
-      write(*,*) rho, bulk, cc, zz
 c
 c     # split the jump in q at each interface into waves
 c

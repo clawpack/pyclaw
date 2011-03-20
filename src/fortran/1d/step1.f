@@ -16,21 +16,21 @@ c     amdq, apdq, wave, s, and f are used locally:
 c
 c     amdq(1-mbc:maxmx+mbc, meqn) = left-going flux-differences
 c     apdq(1-mbc:maxmx+mbc, meqn) = right-going flux-differences
-c        e.g. amdq(i,m) = m'th component of A^- \Delta q from i'th Riemann
+c        e.g. amdq(m,i) = m'th component of A^- \Delta q from i'th Riemann
 c                         problem (between cells i-1 and i).
 c
 c     wave(1-mbc:maxmx+mbc, meqn, mwaves) = waves from solution of
 c                                           Riemann problems,
-c            wave(i,m,mw) = mth component of jump in q across
+c            wave(m,mw,i) = mth component of jump in q across
 c                           wave in family mw in Riemann problem between
 c                           states i-1 and i.
 c
 c     s(1-mbc:maxmx+mbc, mwaves) = wave speeds,
-c            s(i,mw) = speed of wave in family mw in Riemann problem between
+c            s(m,iw) = speed of wave in family mw in Riemann problem between
 c                      states i-1 and i.
 c
 c     f(1-mbc:maxmx+mbc, meqn) = correction fluxes for second order method
-c            f(i,m) = mth component of flux at left edge of ith cell 
+c            f(m,i) = mth component of flux at left edge of ith cell 
 c     --------------------------------------------------------------------
 c
       implicit double precision (a-h,o-z)    
@@ -85,8 +85,8 @@ c
 c     print *,"q before, from fortran",q(24,1)
 
       forall(i=1:mx+1, m=1:meqn)
-         q(i,m) = q(i,m) - dtdx(i)*apdq(i,m)
-         q(i-1,m) = q(i-1,m) - dtdx(i-1)*amdq(i,m)
+         q(m,i) = q(m,i) - dtdx(i)*apdq(m,i)
+         q(m,i-1) = q(m,i-1) - dtdx(i-1)*amdq(m,i)
       end forall
 
 c
@@ -106,7 +106,7 @@ c     # compute correction fluxes for second order q_{xx} terms:
 c     ----------------------------------------------------------
 c
       forall(i=1-mbc:mx+mbc, m=1:meqn)
-         f(i,m) = 0.d0
+         f(m,i) = 0.d0
       end forall
 c
 c      # apply limiter to waves:
