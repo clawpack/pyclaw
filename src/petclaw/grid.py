@@ -20,8 +20,8 @@ import copy
 
 import numpy as np
 
-from pyclaw.data import Data
-from pyclaw.solution import Dimension, Grid
+import pyclaw.data
+import pyclaw.solution
 from petsc4py import PETSc
 
 # ============================================================================
@@ -43,7 +43,7 @@ def default_mapc2p(grid,x):
 # ============================================================================
 #  Dimension Object
 # ============================================================================
-class PCDimension(Dimension):
+class Dimension(pyclaw.solution.Dimension):
     r"""
     Basic class representing a dimension of a Grid object
 
@@ -111,7 +111,7 @@ class PCDimension(Dimension):
 # ============================================================================
 #  petclaw Grid object definition
 # ============================================================================
-class PCGrid(Grid):
+class Grid(pyclaw.solution.Grid):
     r"""
     Basic representation of a single grid in petclaw
 

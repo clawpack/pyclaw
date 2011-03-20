@@ -4,7 +4,7 @@ r"""
 Module containing SharpClaw solvers for PyClaw/PetClaw
 
 #  File:        sharpclaw.py
-#  Created:     2009-04-07
+#  Created:     2010-03-20
 #  Author:      David Ketcheson
 """
 # ============================================================================
@@ -124,7 +124,7 @@ class SharpClawSolver1D(ClawSolver1D):
             raise Exception('Unrecognized time integrator')
 
         
-    def dq(self,solutions):
+    def dq(self,solutions,qstart):
         """
         Take one Runge-Kutta time step.
         Right now this is just Euler for debugging.

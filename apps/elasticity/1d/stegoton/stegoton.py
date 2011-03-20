@@ -24,8 +24,8 @@ if machine=='shaheen':
 import numpy as np
 from petsc4py import PETSc
 
-from petclaw.grid import PCDimension as Dimension
-from petclaw.grid import PCGrid as Grid
+from petclaw.grid import Dimension
+from petclaw.grid import Grid
 from pyclaw.solution import Solution
 from pyclaw.controller import Controller
 if solvertype=='clawpack':

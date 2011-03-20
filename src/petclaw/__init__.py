@@ -24,8 +24,8 @@ __all__.extend(['Controller','Data','Dimension','Grid','Solution'])
 from pyclaw.controller import Controller
 from pyclaw.data import Data
 from pyclaw.solution import Solution
-from petclaw.grid import PCDimension as Dimension 
-from petclaw.grid import PCGrid as Grid 
+from petclaw.grid import Dimension 
+from petclaw.grid import Grid 
 
 # Sub-packages
 #import evolve

@@ -23,8 +23,8 @@ except:
     from petsc4py import PETSc
 
 try:
-    from petclaw.grid import PCDimension as Dimension
-    from petclaw.grid import PCGrid as Grid
+    from petclaw.grid import Dimension
+    from petclaw.grid import Grid
     from pyclaw.solution import Solution
     from petclaw.evolve.petclaw import PetClawSolver1D
     from pyclaw.controller import Controller
@@ -37,8 +37,8 @@ except:
     #sys.path.append(PYCLAW)
     sys.path.append("/home/project/k47/petclaw_testf2py/src/")
     sys.path.append("/home/amal/clawpack/python/")
-    from petclaw.grid import PCDimension as Dimension
-    from petclaw.grid import PCGrid as Grid
+    from petclaw.grid import Dimension
+    from petclaw.grid import Grid
     from pyclaw.solution import Solution
     from petclaw.evolve.petclaw import PetClawSolver1D
     from pyclaw.controller import Controller
