@@ -1,3 +1,7 @@
+ifeq ($(PETCLAW),)
+$(warning PETCLAW environment variable not set, assuming in-place usage!)
+PETCLAW=../../../../
+endif
 
 FC ?= gfortran
 
@@ -10,7 +14,7 @@ SOURCE =   rp1.f
 
 step1.so: $(ONE_D_LIBPATH)/step1.f $(LIBOBJ) $(SOURCE)
 	f2py -m step1 -c $(ONE_D_LIBPATH)/step1.f $(SOURCE) $(LIBOBJ) 
-        
+
 limiter.o:
 	$(FC) -o limiter.o -c $(ONE_D_LIBPATH)/limiter.f
 
@@ -19,7 +23,7 @@ philim.o:
 
 clean:
 	rm -f *.o *.so
-	
+
 clobber:
 	rm -f *.o *.so
 	rm -f -R *output*
