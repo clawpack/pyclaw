@@ -79,7 +79,7 @@ def velocity(current_data):
     """Compute velocity from strain and momentum"""
     from stegoton import setaux
     aux=setaux(current_data.x)
-    velocity = current_data.q[:,1]/aux[:,0]
+    velocity = current_data.q[:,1]/aux[0,:]
     return velocity
 
 def stress(current_data):
@@ -88,5 +88,5 @@ def stress(current_data):
     from pyclaw.evolve.rp.rp_nel import sigma 
     aux=setaux(current_data.x)
     epsilon = current_data.q[:,0]
-    stress = sigma(epsilon,aux[:,1])
+    stress = sigma(epsilon,aux[1,:])
     return stress

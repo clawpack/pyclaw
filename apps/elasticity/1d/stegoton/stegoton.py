@@ -12,7 +12,7 @@ $$\\rho(x) u_t - \\sigma(\\epsilon,x)_x = 0$$
 solvertype='clawpack'
 kernelsType='F'
 machine='local'
-vary_Z=True
+vary_Z=False
 
 if machine=='shaheen':
     import sys
@@ -37,7 +37,7 @@ elif solvertype=='sharpclaw':
 
 def qinit(grid,ic=2,a2=1.0):
     x =grid.x.center
-    q=np.zeros([len(x),grid.meqn])
+    q=np.zeros([grid.meqn,len(x)],order='F')
     
     if ic==1: #Zero ic
         pass
@@ -45,35 +45,35 @@ def qinit(grid,ic=2,a2=1.0):
         # Gaussian
         mbc=grid.mbc
         sigma = a2*np.exp(-((x-xupper/2.)/10.)**2.)
-        q[:,0] = np.log(sigma+1.)/grid.aux[mbc:-mbc,1]
+        q[0,:] = np.log(sigma+1.)/grid.aux[1,mbc:-mbc]
 
     grid.q=q
 
 
 def setaux(x,rhoB=4,KB=4,rhoA=1,KA=1,alpha=0.5,xlower=0.,xupper=600.,mthbc=2):
-    aux=np.empty([len(x),2])
+    aux=np.zeros([3,len(x)],order='F')
 
     xfrac = x-np.floor(x)
 
     #Density:
-    aux[:,0] = rhoA*(xfrac<alpha)+rhoB*(xfrac>=alpha)
+    aux[0,:] = rhoA*(xfrac<alpha)+rhoB*(xfrac>=alpha)
     #Bulk modulus:
-    aux[:,1] = KA  *(xfrac<alpha)+KB  *(xfrac>=alpha)
+    aux[1,:] = KA  *(xfrac<alpha)+KB  *(xfrac>=alpha)
     for i,xi in enumerate(x):
         if xi<xlower:
             if mthbc==2:
-                aux[i,0]=rhoB
-                aux[i,1]=KB
+                aux[0,i]=rhoB
+                aux[1,i]=KB
             else:
-                aux[i,0]=rhoA
-                aux[i,1]=KA
+                aux[0,i]=rhoA
+                aux[1,i]=KA
         if xi>xupper:
             if mthbc==2:
-                aux[i,0]=rhoA
-                aux[i,1]=KA
+                aux[0,i]=rhoA
+                aux[1,i]=KA
             else:
-                aux[i,0]=rhoB
-                aux[i,1]=KB
+                aux[0,i]=rhoB
+                aux[1,i]=KB
     return aux
 
     
@@ -83,7 +83,7 @@ def b4step(solver,solutions):
     grid = solutions['n'].grids[0]
     if grid.t>=grid.aux_global['trtime']-1.e-10 and not grid.aux_global['trdone']:
         #print 'Time reversing'
-        grid.q[:,1]=-grid.q[:,1]
+        grid.q[1,:]=-grid.q[1,:]
         solutions['n'].grid.q=grid.q
         grid.aux_global['trdone']=True
         if grid.t>grid.aux_global['trtime']:
@@ -97,11 +97,11 @@ def b4step(solver,solutions):
         xghost=grid.x.centerghost
         for i,x in enumerate(xghost):
             if x<grid.x.lower:
-                grid.aux[i,0]=grid.aux_global['rhoB']
-                grid.aux[i,1]=grid.aux_global['KB']
+                grid.aux[0,i]=grid.aux_global['rhoB']
+                grid.aux[1,i]=grid.aux_global['KB']
             if x>grid.x.upper:
-                grid.aux[i,0]=grid.aux_global['rhoA']
-                grid.aux[i,1]=grid.aux_global['KA']
+                grid.aux[0,i]=grid.aux_global['rhoA']
+                grid.aux[1,i]=grid.aux_global['KA']
 
 
     
@@ -133,20 +133,20 @@ def zero_bc(grid,dim,qbc):
     """Set everything to zero"""
     if dim.mthbc_upper==0:
         if dim.centerghost[-1]>150.:
-           qbc[-grid.mbc:,:]=0.
+            qbc[:,-grid.mbc:]=0.
 
 def moving_wall_bc(grid,dim,qbc):
     """Initial pulse generated at left boundary by prescribed motion"""
     if dim.mthbc_lower==0:
         if dim.centerghost[0]<0:
-           qbc[:grid.mbc,0]=qbc[grid.mbc,0] 
+           qbc[0,:grid.mbc]=qbc[0,grid.mbc] 
            t=grid.t; t1=grid.aux_global['t1']; tw1=grid.aux_global['tw1']
            a1=grid.aux_global['a1']; mbc=grid.mbc
            t0 = (t-t1)/tw1
            if abs(t0)<=1.: vwall = -a1*(1.+np.cos(t0*np.pi))
            else: vwall=0.
            for ibc in xrange(mbc-1):
-               qbc[mbc-ibc-1,1] = 2*vwall*grid.aux[ibc,1] - qbc[mbc+ibc,1]
+               qbc[1,mbc-ibc-1] = 2*vwall*grid.aux[1,ibc] - qbc[1,mbc+ibc]
 
 
 if __name__ == "__main__":
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     start=time.time()
     # Initialize grids and solutions
     xlower=0.0; xupper=600.0
-    cellsperlayer=192; mx=int(round(xupper-xlower))*cellsperlayer
+    cellsperlayer=12; mx=int(round(xupper-xlower))*cellsperlayer
     mthbc_lower=2; mthbc_upper=2
     x = Dimension('x',xlower,xupper,mx,mthbc_lower=mthbc_lower,mthbc_upper=mthbc_upper,mbc=mbc)
     grid = PPCGrid(x)
