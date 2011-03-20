@@ -36,8 +36,9 @@ def acoustics2D(petscPlot=True,useController=True):
     from pyclaw.controller import Controller
 
     # Initialize grid
-    x = Dimension('x',-1.0,1.0,100,mthbc_lower=1,mthbc_upper=1)
-    y = Dimension('y',-1.0,1.0,100,mthbc_lower=1,mthbc_upper=1)
+    mx=100; my=100
+    x = Dimension('x',-1.0,1.0,mx,mthbc_lower=1,mthbc_upper=1)
+    y = Dimension('y',-1.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
     grid = Grid([x,y])
 
     #Set global variables
@@ -70,7 +71,7 @@ def acoustics2D(petscPlot=True,useController=True):
 
     # Controller instantiation
     claw = Controller()
-    if petscPlot: claw.keep_copy = True
+    claw.keep_copy = True
     claw.nout = 10
     claw.outstyle = 1
     # The output format MUST be set to petsc!
@@ -92,6 +93,8 @@ def acoustics2D(petscPlot=True,useController=True):
             OptDB['draw_pause'] = 1
             viewer(sol.grid.gqVec)
 
+    pressure=claw.frames[claw.nout].grid.gqVec.getArray().reshape([mx,my,grid.meqn])[:,:,0]
+    return pressure
 
 
 if __name__=="__main__":
