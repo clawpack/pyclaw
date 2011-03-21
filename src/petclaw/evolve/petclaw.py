@@ -298,30 +298,21 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
         # Grid we will be working on
         grid = solutions['n'].grids[0]
         # Number of equations
-        meqn = solutions['n'].meqn
-        maux = grid.maux
+        meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,grid.mbc,grid.aux
           
         q = self.qbc(grid)
-        aux=grid.aux
 
-        capa = grid.capa
-        d = grid.d
-        mbc = grid.mbc
-        aux_global = grid.aux_global
         local_n = q.shape[1]
-
 
         if(self.kernelsType == 'F'):
             from step1 import step1
             
-            dt = self.dt
-            dx = d[0]
+            dx,dt = grid.d[0],self.dt
             dtdx = np.zeros( (local_n) ) + dt/dx
             maxmx = local_n -mbc*2
             mx = maxmx
             
-            if(aux == None):
-                aux = np.empty( (maux,local_n) )
+            if(aux == None): aux = np.empty( (maux,local_n) )
         
             method =np.ones(7, dtype=int) # hardcoded 7
             method[0] = self.dt_variable  # fixed or adjustable timestep
@@ -329,27 +320,21 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
             method[2] = 0  # hardcoded 0, case of 2d or 3d
             method[3] = 0  # hardcoded 0 design issue: contorller.verbosity
             method[4] = self.src_split  # src term
-            if (capa == None):
+            if (grid.capa == None):
                 method[5] = 0  #capa
             else:
                 method[5] = 1  #capa. amal: mcapa no longer points to the capa componenets of the aux array as in fortran. capa now is a separate arry.
             method[6] = maux  # aux
         
-            mthlim = self.mthlim
-        
-            cfl = self.cfl
-            f =  np.zeros( (meqn,local_n) )
-            mwaves = self.mwaves # amal: need to be modified
+            f    = np.empty( (meqn,local_n) )
             wave = np.empty( (meqn,mwaves,local_n) )
-            s = np.empty( (mwaves,local_n) )
-            amdq = np.zeros( (meqn,local_n) )
-            apdq = np.zeros( (meqn,local_n) )
+            s    = np.empty( (mwaves,local_n) )
+            amdq = np.empty( (meqn,local_n) )
+            apdq = np.empty( (meqn,local_n) )
         
-            q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,mthlim,f,wave,s,amdq,apdq,dtdx)
-
+            q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,self.mthlim,f,wave,s,amdq,apdq,dtdx)
 
         elif(self.kernelsType == 'P'):
-            
            
             # Limiter to use in the pth family
             limiter = np.array(self.mthlim,ndmin=1)  
@@ -441,22 +426,15 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
     PetClaw evolution routine in 2D
     
     This class represents the 2d clawpack solver on a single grid.  Note that 
-    there are routines here for interfacing with the fortran time stepping 
-    routines and the python time stepping routines.  The ones used are 
-    dependent on the argument given to the initialization of the solver 
-    (defaults to python).
+    only the fortran routines are supported for now in 2D.
     
-    .. attribute:: rp
-    
-        Riemann solver function.
-        
     :Initialization:
     
     Input:
      - *data* - (:class:`~petclaw.data.Data`) An instance of a Data object whose
        parameters can be used to initialize this solver
     Output:
-     - (:class:`ClawSolver1D`) - Initialized 1d clawpack solver
+     - (:class:`PetClawSolver1D`) - Initialized 1d clawpack solver
         
     Need to check if we can simplify using multiple inheritance.
 
@@ -467,9 +445,8 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
 
     def __init__(self,kernelsType='F',data=None):
         r"""
-        Create 1d PetClaw solver
-        
-        See :class:`PetClawSolver1D` for more info.
+        Create 2D PetClaw solver.
+        See :class:`PetClawSolver2D` for more info.
         """   
         
         super(PetClawSolver2D,self).__init__(kernelsType,data)
@@ -477,41 +454,24 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
     # ========== Python Homogeneous Step =====================================
     def homogeneous_step(self,solutions):
         r"""
-        Take one time step on the homogeneous hyperbolic system
-
-        Takes one time step of size dt on the hyperbolic system defined in the
-        appropriate Riemann solver rp.
+        Take one time step on the homogeneous hyperbolic system.
+        Only the dimensionally split algorithm is supported for now.
         """
         
         # Grid we will be working on
         grid = solutions['n'].grids[0]
         # Number of equations
-        meqn = solutions['n'].meqn
-        maux = grid.maux
-
-        capa = grid.capa
-        d = grid.d
-        mbc = grid.mbc
-        aux_global = grid.aux_global
-        mwaves = self.mwaves
-        local_n = grid.local_n
-        
-
+        meqn,maux,mbc,mwaves = grid.meqn,grid.maux,grid.mbc,self.mwaves
 
         if(self.kernelsType == 'F'):
             from dimsp2 import dimsp2
-            maxmx = grid.local_n[0]
-            maxmy = grid.local_n[1]
+            maxmx,maxmy = grid.local_n[0],grid.local_n[1]
             maxm = max(maxmx, maxmy)
-            mbc = grid.mbc
-            mx = maxmx
-            my = maxmy
+            mx,my = maxmx,maxmy
             aux = grid.aux
             if(aux == None): aux=np.empty([0]*(grid.ndim+1))
                 
-            dx = grid.d[0]
-            dy = grid.d[1]
-            dt = self.dt
+            dx,dy,dt = grid.d[0],grid.d[1],self.dt
 
             method =np.ones(7, dtype=int)
             method[0] = self.dt_variable
@@ -519,84 +479,59 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
             method[2] = -1  # hardcoded 0, case of 2d or 3d
             method[3] = 0  # hardcoded 0 design issue: controller.verbosity
             method[4] = self.src_split  # src term
-            if (capa == None):
-                method[5] = 0
-            else:
-                # mcapa no longer points to the capa components of the aux 
-                # array as in fortran. capa now is a separate array.
-                method[5] = 1  
+
+            # mcapa no longer points to the capa components of the aux 
+            # array as in fortran. capa now is a separate array.
+            if (grid.capa == None): method[5] = 0
+            else: method[5] = 1  
             method[6] = maux
             
-            mthlim = self.mthlim
-            cfl = self.cfl
-            
             cflv = np.zeros(4)
-            cflv[0] = self.cfl_max
-            cflv[1] = self.cfl_desired
+            cflv[0:2] = [self.cfl_max,self.cfl_desired]
             #cflv[2] and cflv[3] are output values.
 
-            i_qadd = 0
-            i_fadd = i_qadd + (maxm + 2*mbc)*meqn
-            i_gadd = i_fadd + (maxm + 2*mbc)*meqn
-            i_q1d = i_gadd + (maxm + 2*mbc)*meqn*2
-            i_dtdx1 = i_q1d + (maxm + 2*mbc)*meqn
-            i_dtdy1 = i_dtdx1 + maxmx + 2*mbc
-            i_qwork1 = i_dtdy1 + maxmx + 2*mbc
-            nqwork = (maxmx +2*mbc)* (maxmy + 2*mbc) * meqn
+            if method[4] < 2: narray = 1
+            else: narray = 2
 
-            if method[4] < 2:
-              i_qwork2 = i_qwork1
-              narray = 1
-            else:
-              i_qwork2 = i_qwork1 + nqwork
-              narray = 2
-
-            i_aux1 = i_qwork2 + nqwork
-            i_aux2 = i_aux1 + (maxm+2*mbc)*maux
-            i_aux3 = i_aux2 + (maxm+2*mbc)*maux
-            i_next = i_aux3 + (maxm+2*mbc)*maux
-            mwork = (maxm+2*mbc) * (10*meqn + mwaves + meqn*mwaves+ 3*maux + 2) \
-                       + narray * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn 
-
+            mwork = (maxm+2*mbc) * (5*meqn + mwaves + meqn*mwaves) \
+                       + (narray-1) * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn 
             work = np.empty((mwork))
             
             qold = self.qbc(grid)
             #DK: Do we need to copy here? (i.e., qnew=qold.copy())
             qnew = qold #(input/output)
-            work[i_qwork1:i_qwork1 + nqwork] = qold.reshape((-1), order = 'F')
 
             #Workaround for f2py bug (?)
-            #Doesn't like fortran arrays with first dimension zero
+            #f2py Doesn't like fortran arrays with first dimension zero,
+            # so if maux=0 we just pass empty 1x1 arrays for aux1,aux2,aux3.
             if maux==0:
                 q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my, \
-                      work[i_qwork1:i_qwork1 + nqwork].reshape((meqn, maxmx +2*mbc, maxmy + 2*mbc), order = 'F'), \
-                      qnew,aux,dx,dy,dt,method,mthlim,cfl,cflv, \
-                      work[i_qadd:i_fadd].reshape((meqn, maxm +2*mbc),order='F'), \
-                      work[i_fadd:i_gadd].reshape((meqn,maxm+2*mbc),order='F'), \
-                      work[i_gadd:i_q1d].reshape((meqn,2,maxm+2*mbc), order = 'F'), \
-                      work[i_q1d:i_dtdx1].reshape((meqn,maxm+2*mbc),order='F'), \
-                      work[i_dtdx1:i_dtdy1], work[i_dtdy1:i_qwork1], \
-                      np.empty((1,1)), np.empty((1,1)), np.empty((1,1)), \
-                      work[i_next:mwork])
+                          qold,qnew,aux,dx,dy,dt,method,self.mthlim,self.cfl,cflv, \
+                          np.empty((meqn,maxm+2*mbc)), \
+                          np.empty((meqn,maxm+2*mbc)), \
+                          np.empty((meqn,2,maxm+2*mbc)), \
+                          np.empty((meqn,maxm+2*mbc)), \
+                          np.empty((maxmx+2*mbc)), np.empty((maxmy+2*mbc)), \
+                          np.empty((1,1)), np.empty((1,1)), np.empty((1,1)), \
+                          work)
             else:
                 q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my, \
-                      work[i_qwork1:i_qwork1 + nqwork].reshape((meqn, maxmx +2*mbc, maxmy + 2*mbc), order = 'F'), \
-                      qnew,aux,dx,dy,dt,method,mthlim,cfl,cflv, \
-                      work[i_qadd:i_fadd].reshape((meqn, maxm +2*mbc),order='F'), \
-                      work[i_fadd:i_gadd].reshape((meqn,maxm+2*mbc),order='F'), \
-                      work[i_gadd:i_q1d].reshape((meqn,2,maxm+2*mbc), order = 'F'), \
-                      work[i_q1d:i_dtdx1].reshape((meqn,maxm+2*mbc),order='F'), \
-                      work[i_dtdx1:i_dtdy1], work[i_dtdy1:i_qwork1], \
-                      np.empty((maux,maxm+2*mbc)), \
-                      np.empty((maux,maxm+2*mbc)), \
-                      np.empty((maux,maxm+2*mbc)), \
-                      work[i_next:mwork])
+                          qold,qnew,aux,dx,dy,dt,method,self.mthlim,self.cfl,cflv, \
+                          np.empty((meqn,maxm+2*mbc)), \
+                          np.empty((meqn,maxm+2*mbc)), \
+                          np.empty((meqn,2,maxm+2*mbc)), \
+                          np.empty((meqn,maxm+2*mbc)), \
+                          np.empty((maxmx+2*mbc)), np.empty((maxmy+2*mbc)), \
+                          np.empty((maux,maxm+2*mbc)), \
+                          np.empty((maux,maxm+2*mbc)), \
+                          np.empty((maux,maxm+2*mbc)), \
+                          work)
 
             self.cfl = cfl
+            grid.q=q[:,mbc:grid.local_n[0]+mbc,mbc:grid.local_n[1]+mbc]
 
         elif(self.kernelsType == 'P'):
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
 
-        grid.q=q[:,mbc:local_n[0]+mbc,mbc:local_n[1]+mbc]
         
     
