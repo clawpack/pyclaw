@@ -587,9 +587,9 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
                       work[i_gadd:i_q1d].reshape((meqn,2,maxm+2*mbc), order = 'F'), \
                       work[i_q1d:i_dtdx1].reshape((meqn,maxm+2*mbc),order='F'), \
                       work[i_dtdx1:i_dtdy1], work[i_dtdy1:i_qwork1], \
-                      work[i_aux1:i_aux2].reshape((mhaux,maxm+2*mbc),order='F'), \
-                      work[i_aux2:i_aux3].reshape((maux,maxm+2*mbc),order='F'), \
-                      work[i_aux3:i_next].reshape((maux,maxm+2*mbc),order='F'), \
+                      np.empty((maux,maxm+2*mbc)), \
+                      np.empty((maux,maxm+2*mbc)), \
+                      np.empty((maux,maxm+2*mbc)), \
                       work[i_next:mwork])
 
             self.cfl = cfl

@@ -317,3 +317,4 @@ class Grid(pyclaw.solution.Grid):
         for i,range in enumerate(ranges):
             self.dimensions[i].nstart=range[0]
             self.dimensions[i].nend  =range[1]
+            self.dimensions[i].mbc=self.mbc
