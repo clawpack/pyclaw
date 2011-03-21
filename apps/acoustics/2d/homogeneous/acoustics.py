@@ -54,7 +54,7 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True):
     grid.meqn = 3
     grid.mbc = 2
     grid.t = 0.0
-    tfinal = 0.27
+    tfinal = 0.12
     qinit(grid)
     inital_solution = Solution(grid)
 
@@ -63,6 +63,7 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True):
     solver.cfl_desired = 0.45
     solver.mwaves = 2
     solver.mthlim = [4]*solver.mwaves
+    solver.dt=np.min(grid.d)/grid.aux_global['cc']*solver.cfl_desired
 
     claw = Controller()
     claw.keep_copy = True

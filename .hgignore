@@ -10,3 +10,5 @@ _output*
 *.o
 *.so
 *.png
+claw.pkl*
+claw.ptc*
