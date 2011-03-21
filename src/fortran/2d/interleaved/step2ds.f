@@ -3,7 +3,7 @@ c
 c
 c
 c     ==========================================================
-      subroutine step2ds(maxm,maxmx,maxmy,meqn,mwaves,mbc,mx,my,
+      subroutine step2ds(maxm,maxmx,maxmy,meqn,mwaves,maux,mbc,mx,my,
      &               qold,qnew,aux,dx,dy,dt,method,mthlim,cfl,
      &               qadd,fadd,gadd,q1d,dtdx1d,dtdy1d,
      &                 aux1,aux2,aux3,work,mwork,rpn2,rpt2,ids)
@@ -28,10 +28,10 @@ c
       dimension qadd(meqn, 1-mbc:maxm+mbc)
       dimension fadd(meqn, 1-mbc:maxm+mbc)
       dimension gadd(meqn, 1-mbc:maxm+mbc, 2)
-      dimension aux(1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc, *)
-      dimension aux1(1-mbc:maxm+mbc, *)
-      dimension aux2(1-mbc:maxm+mbc, *)
-      dimension aux3(1-mbc:maxm+mbc, *)
+      dimension aux(maux, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
+      dimension aux1(maux, 1-mbc:maxm+mbc)
+      dimension aux2(maux, 1-mbc:maxm+mbc)
+      dimension aux3(maux, 1-mbc:maxm+mbc)
 
       dimension dtdx1d(1-mbc:maxm+mbc)
       dimension dtdy1d(1-mbc:maxm+mbc)
@@ -95,27 +95,27 @@ c        # copy data along a slice into 1d arrays:
 c
          if (mcapa.gt.0)  then
             do 22 i = 1-mbc, mx+mbc
-               dtdx1d(i) = dtdx / aux(i,j,mcapa)
+               dtdx1d(i) = dtdx / aux(mcapa,i,j)
    22       continue
          endif
 c
          if (maux .gt. 0)  then
              do 23 ma=1,maux
                do 23 i = 1-mbc, mx+mbc
-                 aux2(i,ma) = aux(i,j  ,ma)
+                 aux2(ma,i) = aux(ma,i,j  )
    23          continue
 c
              if(j .ne. 1-mbc)then
                 do 24 ma=1,maux
                    do 24 i = 1-mbc, mx+mbc
-                      aux1(i,ma) = aux(i,j-1,ma)
+                      aux1(ma,i) = aux(ma,i,j-1)
    24              continue
                 endif
 c
              if(j .ne. my+mbc)then
                 do 25 ma=1,maux
                    do 25 i = 1-mbc, mx+mbc
-                      aux3(i,ma) = aux(i,j+1,ma)
+                      aux3(ma,i) = aux(ma,i,j+1)
    25              continue
                 endif
 c
@@ -127,7 +127,7 @@ c        # variable coefficient problems)
          jcom = j  
 c           
 c        # compute modifications fadd and gadd to fluxes along this slice:
-         call flux2(1,maxm,meqn,mwaves,mbc,mx,
+         call flux2(1,maxm,meqn,mwaves,maux,mbc,mx,
      &            q1d,dtdx1d,aux1,aux2,aux3,method,mthlim,
      &            qadd,fadd,gadd,cfl1d,
      &              work(i0wave),work(i0s),work(i0amdq),work(i0apdq),
@@ -153,7 +153,7 @@ c            # with capa array.
             forall (m=1:meqn, i=1:mx)
 	           qnew(m,i,j) = qnew(m,i,j) + qadd(m,i)
      &                        - dtdx * (fadd(m,i+1) - fadd(m,i))
-     &                        / aux(i,j,mcapa)
+     &                        / aux(mcapa,i,j)
             end forall
          endif
    50 continue
@@ -175,7 +175,7 @@ c        # copy data along a slice into 1d arrays:
 c
          if (mcapa.gt.0)  then
             do 72 j = 1-mbc, my+mbc
-               dtdy1d(j) = dtdy / aux(i,j,mcapa)
+               dtdy1d(j) = dtdy / aux(mcapa,i,j)
    72       continue
          endif
 c
@@ -183,20 +183,20 @@ c
 c
              do 73 ma=1,maux
                do 73 j = 1-mbc, my+mbc
-                 aux2(j,ma) = aux(i,j,ma)
+                 aux2(ma,j) = aux(ma,i,j)
    73          continue
 c
              if(i .ne. 1-mbc)then
                 do 74 ma=1,maux
                    do 74 j = 1-mbc, my+mbc
-                      aux1(j,ma) = aux(i-1,j,ma)
+                      aux1(ma,j) = aux(ma,i-1,j)
    74              continue
                 endif
 c
              if(i .ne. mx+mbc)then
                 do 75 ma=1,maux
                    do 75 j = 1-mbc, my+mbc
-                      aux3(j,ma) = aux(i+1,j,ma)
+                      aux3(ma,j) = aux(ma,i+1,j)
    75              continue
                 endif
 c
@@ -208,7 +208,7 @@ c        # variable coefficient problems)
          icom = i  
 c           
 c        # compute modifications fadd and gadd to fluxes along this slice:
-         call flux2(2,maxm,meqn,mwaves,mbc,my,
+         call flux2(2,maxm,meqn,mwaves,maux,mbc,my,
      &            q1d,dtdy1d,aux1,aux2,aux3,method,mthlim,
      &            qadd,fadd,gadd,cfl1d,
      &              work(i0wave),work(i0s),work(i0amdq),work(i0apdq),
@@ -236,7 +236,7 @@ c            # with capa array.
             forall (m=1:meqn, j=1:my)  
 	           qnew(m,i,j) = qnew(m,i,j) + qadd(m,j)
      &                  - dtdy * (fadd(m,j+1) - fadd(m,j))
-     &                        / aux(i,j,mcapa)
+     &                        / aux(mcapa,i,j)
 			end forall
 
          endif

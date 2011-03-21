@@ -2,7 +2,7 @@ c
 c
 c
 c     =====================================================
-      subroutine flux2(ixy,maxm,meqn,mwaves,mbc,mx,
+      subroutine flux2(ixy,maxm,meqn,mwaves,maux,mbc,mx,
      &                 q1d,dtdx1d,aux1,aux2,aux3,method,mthlim,
      &               qadd,fadd,gadd,cfl1d,wave,s,
      &                 amdq,apdq,cqxx,bmasdq,bpasdq,rpn2,rpt2)
@@ -63,15 +63,15 @@ c
       dimension   cqxx(meqn, 1-mbc:maxm+mbc)
       dimension   qadd(meqn, 1-mbc:maxm+mbc)
       dimension   fadd(meqn, 1-mbc:maxm+mbc)
-      dimension   gadd(meqn, 1-mbc:maxm+mbc, 2)
+      dimension   gadd(meqn, 2, 1-mbc:maxm+mbc)
 c
       dimension dtdx1d(1-mbc:maxm+mbc)
-      dimension aux1(1-mbc:maxm+mbc, *)
-      dimension aux2(1-mbc:maxm+mbc, *)
-      dimension aux3(1-mbc:maxm+mbc, *)
+      dimension aux1(maux,1-mbc:maxm+mbc)
+      dimension aux2(maux,1-mbc:maxm+mbc)
+      dimension aux3(maux,1-mbc:maxm+mbc)
 c
-      dimension     s(1-mbc:maxm+mbc, mwaves)
-      dimension  wave(meqn, 1-mbc:maxm+mbc, mwaves)
+      dimension     s(mwaves,1-mbc:maxm+mbc)
+      dimension  wave(meqn, mwaves, 1-mbc:maxm+mbc)
 c
       dimension method(7),mthlim(mwaves)
       logical limit
@@ -88,8 +88,8 @@ c
       forall (m=1:meqn, i = 1-mbc: mx+mbc)
 	     qadd(m,i) = 0.d0
 	     fadd(m,i) = 0.d0
-	     gadd(m,i,1) = 0.d0
-	     gadd(m,i,2) = 0.d0
+	     gadd(m,1,i) = 0.d0
+	     gadd(m,2,i) = 0.d0
       end forall
   
 c
@@ -111,8 +111,8 @@ c     # compute maximum wave speed for checking Courant number:
          do 50 i=1,mx+1
 c          # if s>0 use dtdx1d(i) to compute CFL,
 c          # if s<0 use dtdx1d(i-1) to compute CFL:
-            cfl1d = dmax1(cfl1d, dtdx1d(i)*s(i,mw), 
-     &                          -dtdx1d(i-1)*s(i,mw))
+            cfl1d = dmax1(cfl1d, dtdx1d(i)*s(mw,i), 
+     &                          -dtdx1d(i-1)*s(mw,i))
    50    continue
    51 continue
 c
@@ -137,8 +137,8 @@ c
             do 119 mw=1,mwaves
 c
 c              # second order corrections:
-               cqxx(m,i) = cqxx(m,i) + dabs(s(i,mw))
-     &            * (1.d0 - dabs(s(i,mw))*dtdxave) * wave(m,i,mw)
+               cqxx(m,i) = cqxx(m,i) + dabs(s(mw,i))
+     &            * (1.d0 - dabs(s(mw,i))*dtdxave) * wave(m,mw,i)
 c
   119       continue
             fadd(m,i) = fadd(m,i) + 0.5d0 * cqxx(m,i)
@@ -169,9 +169,9 @@ c     # split the left-going flux difference into down-going and up-going:
 c
 c     # modify flux below and above by B^- A^- Delta q and  B^+ A^- Delta q:
       forall ( m=1:meqn , i = 1:mx+1)
-	     gadd(m,i-1,1) = gadd(m,i-1,1) - 
+	     gadd(m,1,i-1) = gadd(m,1,i-1) - 
      &                 0.5d0*dtdx1d(i-1) * bmasdq(m,i)
-	     gadd(m,i-1,2) = gadd(m,i-1,2) -
+	     gadd(m,2,i-1) = gadd(m,2,i-1) -
      &                 0.5d0*dtdx1d(i-1) * bpasdq(m,i)
 	  end forall
  
@@ -182,9 +182,9 @@ c     # split the right-going flux difference into down-going and up-going:
 c
 c     # modify flux below and above by B^- A^+ Delta q and  B^+ A^+ Delta q:
       forall ( m=1:meqn , i = 1: mx+1)
-            gadd(m,i,1) = gadd(m,i,1) - 
+            gadd(m,1,i) = gadd(m,1,i) - 
      &                0.5d0*dtdx1d(i) * bmasdq(m,i)
-            gadd(m,i,2) = gadd(m,i,2) - 
+            gadd(m,2,i) = gadd(m,2,i) - 
      &                0.5d0*dtdx1d(i) * bpasdq(m,i)
       end forall
 c

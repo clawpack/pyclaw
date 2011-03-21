@@ -32,8 +32,8 @@ c     # aux arrays not used in this solver.
 c
       implicit double precision (a-h,o-z)
 c
-      dimension wave(meqn, 1-mbc:maxm+mbc, mwaves)
-      dimension    s(1-mbc:maxm+mbc, mwaves)
+      dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
+      dimension    s(mwaves, 1-mbc:maxm+mbc)
       dimension   ql(meqn, 1-mbc:maxm+mbc)
       dimension   qr(meqn, 1-mbc:maxm+mbc)
       dimension apdq(meqn, 1-mbc:maxm+mbc)
@@ -80,15 +80,15 @@ c     # find a1 and a2, the coefficients of the 2 eigenvectors:
 c
 c        # Compute the waves.
 c
-         wave(1,i,1) = -a1*zz
-         wave(mu,i,1) = a1
-         wave(mv,i,1) = 0.d0
-         s(i,1) = -cc
+         wave(1,1,i) = -a1*zz
+         wave(mu,1,i) = a1
+         wave(mv,1,i) = 0.d0
+         s(1,i) = -cc
 c
-         wave(1,i,2) = a2*zz
-         wave(mu,i,2) = a2
-         wave(mv,i,2) = 0.d0
-         s(i,2) = cc
+         wave(1,2,i) = a2*zz
+         wave(mu,2,i) = a2
+         wave(mv,2,i) = 0.d0
+         s(2,i) = cc
 c
    20    continue
 c
@@ -97,8 +97,8 @@ c     # compute the leftgoing and rightgoing flux differences:
 c     # Note s(i,1) < 0   and   s(i,2) > 0.
 c
       forall (m=1:meqn,  i=2-mbc: mx+mbc)
-	     amdq(m,i) = s(i,1)*wave(m,i,1)
-		 apdq(m,i) = s(i,2)*wave(m,i,2)
+	     amdq(m,i) = s(1,i)*wave(m,1,i)
+		 apdq(m,i) = s(2,i)*wave(m,2,i)
       end forall
 c
       return

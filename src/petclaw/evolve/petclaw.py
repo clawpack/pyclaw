@@ -500,7 +500,6 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
 
         if(self.kernelsType == 'F'):
             from dimsp2 import dimsp2
-            #q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,mthlim,f,wave,s,amdq,apdq,dtdx, -1)
             maxmx = grid.local_n[0]
             maxmy = grid.local_n[1]
             maxm = max(maxmx, maxmy)
@@ -508,41 +507,33 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
             mx = maxmx
             my = maxmy
             aux = grid.aux
-            if(aux == None):
-                aux_dim = local_n[:]
-                for i in xrange(grid.ndim):
-                    aux_dim[i] = aux_dim[i]+ 2*grid.mbc
-                aux_dim.append(maux)
-                aux = np.empty(aux_dim  )
+            if(aux == None): aux=np.empty([0]*(grid.ndim+1))
                 
             dx = grid.d[0]
             dy = grid.d[1]
             dt = self.dt
 
-            method =np.ones(7, dtype=int) # hardcoded 7
-            if self.dt_variable:
-                method[0] = 1  # fixed or adjustable timestep
-            else:
-                method[0] = 0
-            
-            method[1] = self.order  # order of the method
+            method =np.ones(7, dtype=int)
+            method[0] = self.dt_variable
+            method[1] = self.order
             method[2] = -1  # hardcoded 0, case of 2d or 3d
-            method[3] = 0  # hardcoded 0 design issue: contorller.verbosity
+            method[3] = 0  # hardcoded 0 design issue: controller.verbosity
             method[4] = self.src_split  # src term
             if (capa == None):
-                method[5] = 0  #capa
+                method[5] = 0
             else:
-                method[5] = 1  #capa. amal: mcapa no longer points to the capa componenets of the aux array as in fortran. capa now is a separate arry.
-            method[6] = maux  # aux
+                # mcapa no longer points to the capa components of the aux 
+                # array as in fortran. capa now is a separate array.
+                method[5] = 1  
+            method[6] = maux
             
             mthlim = self.mthlim
             cfl = self.cfl
             
-            cflv = np.zeros(4) # hardcoded 4
+            cflv = np.zeros(4)
             cflv[0] = self.cfl_max
             cflv[1] = self.cfl_desired
-            #cflv[2] (output)
-            #cflv[3] (output)
+            #cflv[2] and cflv[3] are output values.
 
             i_qadd = 0
             i_fadd = i_qadd + (maxm + 2*mbc)*meqn
@@ -563,9 +554,9 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
             i_aux1 = i_qwork2 + nqwork
             i_aux2 = i_aux1 + (maxm+2*mbc)*maux
             i_aux3 = i_aux2 + (maxm+2*mbc)*maux
-
             i_next = i_aux3 + (maxm+2*mbc)*maux
-            mwork = (maxm+2*mbc) * (10*meqn + mwaves + meqn*mwaves+ 3*maux + 2) + narray * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn 
+            mwork = (maxm+2*mbc) * (10*meqn + mwaves + meqn*mwaves+ 3*maux + 2) \
+                       + narray * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn 
 
             work = np.empty((mwork))
             
@@ -573,9 +564,34 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
             #DK: Do we need to copy here? (i.e., qnew=qold.copy())
             qnew = qold #(input/output)
             work[i_qwork1:i_qwork1 + nqwork] = qold.reshape((-1), order = 'F')
-            #[meqn,mwaves,mwork]
-            q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my,work[i_qwork1:i_qwork1 + nqwork].reshape((meqn, maxmx +2*mbc, maxmy + 2*mbc), order = 'F'),qnew,aux,dx,dy,dt,method,mthlim,cfl,cflv, work[i_qadd:i_fadd].reshape((meqn, maxm + 2*mbc), order = 'F'), work[i_fadd:i_gadd].reshape((meqn, maxm + 2*mbc), order = 'F'), work[i_gadd:i_q1d].reshape((meqn, maxm + 2*mbc, 2), order = 'F'), work[i_q1d:i_dtdx1].reshape((meqn, maxm + 2*mbc), order = 'F'), work[i_dtdx1:i_dtdy1], work[i_dtdy1:i_qwork1], work[i_aux1:i_aux2], work[i_aux2:i_aux3], work[i_aux3:i_next], work[i_next:mwork])
-            #q = q.reshape(q.shape, order = 'F')
+
+            #Workaround for f2py bug (?)
+            #Doesn't like fortran arrays with first dimension zero
+            if maux==0:
+                q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my, \
+                      work[i_qwork1:i_qwork1 + nqwork].reshape((meqn, maxmx +2*mbc, maxmy + 2*mbc), order = 'F'), \
+                      qnew,aux,dx,dy,dt,method,mthlim,cfl,cflv, \
+                      work[i_qadd:i_fadd].reshape((meqn, maxm +2*mbc),order='F'), \
+                      work[i_fadd:i_gadd].reshape((meqn,maxm+2*mbc),order='F'), \
+                      work[i_gadd:i_q1d].reshape((meqn,2,maxm+2*mbc), order = 'F'), \
+                      work[i_q1d:i_dtdx1].reshape((meqn,maxm+2*mbc),order='F'), \
+                      work[i_dtdx1:i_dtdy1], work[i_dtdy1:i_qwork1], \
+                      np.empty((1,1)), np.empty((1,1)), np.empty((1,1)), \
+                      work[i_next:mwork])
+            else:
+                q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my, \
+                      work[i_qwork1:i_qwork1 + nqwork].reshape((meqn, maxmx +2*mbc, maxmy + 2*mbc), order = 'F'), \
+                      qnew,aux,dx,dy,dt,method,mthlim,cfl,cflv, \
+                      work[i_qadd:i_fadd].reshape((meqn, maxm +2*mbc),order='F'), \
+                      work[i_fadd:i_gadd].reshape((meqn,maxm+2*mbc),order='F'), \
+                      work[i_gadd:i_q1d].reshape((meqn,2,maxm+2*mbc), order = 'F'), \
+                      work[i_q1d:i_dtdx1].reshape((meqn,maxm+2*mbc),order='F'), \
+                      work[i_dtdx1:i_dtdy1], work[i_dtdy1:i_qwork1], \
+                      work[i_aux1:i_aux2].reshape((mhaux,maxm+2*mbc),order='F'), \
+                      work[i_aux2:i_aux3].reshape((maux,maxm+2*mbc),order='F'), \
+                      work[i_aux3:i_next].reshape((maux,maxm+2*mbc),order='F'), \
+                      work[i_next:mwork])
+
             self.cfl = cfl
 
         elif(self.kernelsType == 'P'):

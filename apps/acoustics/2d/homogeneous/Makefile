@@ -11,9 +11,16 @@ LIBOBJ = \
 
 SOURCE =   rpn2ac.f rpt2ac.f
 
-dimsp2.so: $(TWO_D_LIBPATH)dimsp2.f $(SOURCE) $(LIBOBJ)
-	f2py -m dimsp2 -c $(TWO_D_LIBPATH)dimsp2.f $(LIBOBJ) $(SOURCE)  
+dimsp2.so: $(TWO_D_LIBPATH)dimsp2.pyf $(SOURCE) $(LIBOBJ)
+	f2py -c $(TWO_D_LIBPATH)dimsp2.pyf $(TWO_D_LIBPATH)dimsp2.f $(LIBOBJ) $(SOURCE)  
+
+#dimsp2.pyf: dimsp2.f $(SOURCE) 
+#	f2py -m dimsp2 -h dimsp2.pyf  dimsp2.f $(SOURCE)
         
+#dimsp2.so: dimsp2.pyf $(SOURCE) $(LIBOBJ)
+#	f2py -c dimsp2.pyf dimsp2.f $(LIBOBJ) $(SOURCE)  
+
+ 
 limiter.o: 
 	$(FC) -o limiter.o -c $(TWO_D_LIBPATH)limiter.f
 
