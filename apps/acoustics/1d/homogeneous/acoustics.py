@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-def acoustics(makePlot=True):
+def acoustics(petscPlot=True):
     """
     1D acoustics example.
     """
@@ -99,7 +99,7 @@ def acoustics(makePlot=True):
         # Solve
         status = claw.run()
 
-        if makePlot:
+        if petscPlot:
             if claw.keep_copy:
         
                 for n in xrange(0,claw.nout+1):
@@ -117,7 +117,7 @@ def acoustics(makePlot=True):
 
         sol = sol["n"]
 
-        if makePlot:
+        if petscPlot:
             viewer = PETSc.Viewer.DRAW(grid.gqVec.comm)
             OptDB = PETSc.Options()
             OptDB['draw_pause'] = -1

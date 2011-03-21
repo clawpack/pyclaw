@@ -11,6 +11,9 @@ def build_run_verify(path, target_name, module_name, method_name, verifier):
         verify_it(run_method, build_info, verifier)
     finally:
         sys.path.remove(path)
+        if module_name in sys.modules:
+            del(sys.modules[module_name])
+            del module
 
 def build_it(build_info, build_command):
     import subprocess, sys
@@ -26,7 +29,7 @@ def build_it(build_info, build_command):
         raise BuildError(err)
  
 def verify_it(run_method, build_info, verifier):
-    output = run_method(makePlot=False)
+    output = run_method(petscPlot=False)
 
     if not verifier(output):
         err = "Error verifying %s\n" % build_info
