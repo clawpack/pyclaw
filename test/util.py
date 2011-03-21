@@ -1,6 +1,6 @@
+import sys
 
 def build_run_verify(path, target_name, module_name, method_name, verifier):
-    import sys
     sys.path.append(path)
     try:    
         build_command = "make -C %s %s" % (path, target_name)
@@ -26,7 +26,7 @@ def build_it(build_info, build_command):
         raise BuildError(err)
  
 def verify_it(run_method, build_info, verifier):
-    output = run_method(makePlot=False)
+    output = run_method(petscPlot=False)
 
     if not verifier(output):
         err = "Error verifying %s\n" % build_info

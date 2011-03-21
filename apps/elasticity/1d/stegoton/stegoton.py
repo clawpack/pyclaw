@@ -220,7 +220,6 @@ if __name__ == "__main__":
     use_controller = True
 
     claw = Controller()
-    claw.outdir = './_output'
     claw.keep_copy = False
     claw.nout = nout
     claw.outstyle = 1
