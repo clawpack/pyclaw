@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
-def acoustics(kernelsType='F',petscPlot=False,iplot=True):
+def acoustics(kernelsType='F',petscPlot=False,iplot=False):
     import numpy as np
     from petsc4py import PETSc
     """
@@ -13,6 +13,7 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=True):
     from pyclaw.solution import Solution
     from petclaw.evolve.petclaw import PetClawSolver1D
     from pyclaw.controller import Controller
+    from petclaw import plot
 
 
     # Initialize grids and solutions
