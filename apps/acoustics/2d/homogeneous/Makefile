@@ -34,8 +34,8 @@ step2ds.o:
 	$(FC) -o step2ds.o -c $(TWO_D_LIBPATH)step2ds.f
 
 clean:
-	rm -f *.o *.so
+	rm -f *.o *.so *.log
 	
-clobber:
-	rm -f *.o *.so
-	rm -f -R *output*
+clobber: clean
+	rm -f -R *_output*
+	rm -f -R *_plots*

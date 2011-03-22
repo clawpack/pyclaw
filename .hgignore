@@ -12,3 +12,6 @@ _output*
 *.png
 claw.pkl*
 claw.ptc*
+_build
+.DS_Store
+_plots

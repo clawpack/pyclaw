@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
-def acoustics(kernelsType='F',petscPlot=False,iplot=False):
+def acoustics(kernelsType='F',petscPlot=False,iplot=False,htmlplot=False,outdir='./_output'):
     import numpy as np
     from petsc4py import PETSc
     """
@@ -53,6 +53,7 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False):
     claw.nout = 5
     # The output format MUST be set to petsc!
     claw.output_format = 'petsc'
+    claw.outdir = outdir
     claw.tfinal = 1.0
     claw.solutions['n'] = init_solution
     claw.solver = solver
@@ -60,11 +61,9 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False):
     # Solve
     status = claw.run()
 
-    if petscPlot:
-        plot.plotPetsc(output_object)
-
-    if iplot:
-        plot.plotInteractive()
+    if htmlplot:  plot.plotHTML()
+    if petscPlot: plot.plotPetsc(output_object)
+    if iplot:     plot.plotInteractive()
 
     #This test is set up so that the waves pass through the domain
     #exactly once, and the final solution should be equal to the
