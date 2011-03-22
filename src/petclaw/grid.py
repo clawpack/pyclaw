@@ -290,22 +290,22 @@ class Grid(pyclaw.solution.Grid):
         if self.ndim == 1:
             #if periodic: periodic_type = PETSc.DA.PeriodicType.X
             #else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
-            boundary_type = PETSc.DA.BoundaryType.PERIODIC
+            periodic_type = PETSc.DA.PeriodicType.X
         elif self.ndim == 2:
             #if periodic: periodic_type = PETSc.DA.PeriodicType.XY
             #else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
-            boundary_type = PETSc.DA.BoundaryType.PERIODIC
+            periodic_type = PETSc.DA.PeriodicType.XY
         elif self.ndim == 3:
             #if periodic: periodic_type = PETSc.DA.PeriodicType.XYZ
             #else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
-            boundary_type = PETSc.DA.BoundaryType.PERIODIC #Amal
+            periodic_type = PETSc.DA.PeriodicType.XYZ #Amal
         else:
             raise Exception("Invalid number of dimensions")
 
         self.q_da = PETSc.DA().create(dim=self.ndim,
                                     dof=self.meqn,
                                     sizes=self.n, 
-                                    boundary_type = boundary_type,
+                                    periodic_type = periodic_type,
                                     #stencil_type=self.STENCIL,
                                     stencil_width=self.mbc,
                                     comm=PETSc.COMM_WORLD)
