@@ -21,7 +21,7 @@ def qinit(grid,width=0.2):
     grid.q=q
 
 
-def acoustics2D(iplot=False,petscPlot=False,useController=True):
+def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     """
     Example python script for solving the 2d acoustics equations.
     """
@@ -76,15 +76,16 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True):
     # Solve
     status = claw.run()
 
-    if petscPlot:
-        plot.plotPetsc(claw)
-
-    if iplot:
-        plot.plotInteractive()
+    if htmlplot:  plot.plotHTML()
+    if petscPlot: plot.plotPetsc(output_object)
+    if iplot:     plot.plotInteractive()
 
     pressure=claw.frames[claw.nout].grid.gqVec.getArray().reshape([mx,my,grid.meqn])[:,:,0]
     return pressure
 
 
 if __name__=="__main__":
-    acoustics2D()
+    import sys
+
+    if len(sys.argv)==2: acoustics2D(sys.argv[1])
+    else: acoustics2D()

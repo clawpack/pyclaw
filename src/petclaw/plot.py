@@ -21,7 +21,7 @@ def plotPetsc(clawobj,delay=1):
         OptDB['draw_pause'] = -1
         viewer(clawobj.grid.gqVec)
 
-def plotInteractive(outdir='./_output/'):
+def plotInteractive(outdir='./_output'):
     """
     Convenience function for launching an interactive plotting session.
     """
@@ -30,3 +30,10 @@ def plotInteractive(outdir='./_output/'):
     ip.plotdata.outdir=outdir
     ip.plotdata.format='petsc'
     ip.plotloop()
+
+def plotHTML(outdir='./_output'):
+    """
+    Convenience function for creating html page with plots.
+    """
+    from pyclaw.plotters import plotclaw
+    plotclaw.plotclaw('./_output',format='petsc')
