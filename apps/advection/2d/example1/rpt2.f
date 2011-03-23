@@ -14,11 +14,11 @@ c     # into down-going flux difference bmasdq (= B^- A^* \Delta q)
 c     #    and up-going flux difference bpasdq (= B^+ A^* \Delta q)
 c
 c
-      dimension     ql(1-mbc:maxm+mbc, meqn)
-      dimension     qr(1-mbc:maxm+mbc, meqn)
-      dimension   asdq(1-mbc:maxm+mbc, meqn)
-      dimension bmasdq(1-mbc:maxm+mbc, meqn)
-      dimension bpasdq(1-mbc:maxm+mbc, meqn)
+      dimension     ql(meqn,1-mbc:maxm+mbc)
+      dimension     qr(meqn,1-mbc:maxm+mbc)
+      dimension   asdq(meqn,1-mbc:maxm+mbc)
+      dimension bmasdq(meqn,1-mbc:maxm+mbc)
+      dimension bpasdq(meqn,1-mbc:maxm+mbc)
       parameter (maxm2 = 502)
       common /comrp/ ubar,vbar
 c
@@ -35,8 +35,8 @@ c
       stranp = dmax1(stran, 0.d0)
       
       do 10 i = 2-mbc, mx+mbc
-          bmasdq(i,1) = stranm * asdq(i,1)
-          bpasdq(i,1) = stranp * asdq(i,1)
+          bmasdq(1,i) = stranm * asdq(1,i)
+          bpasdq(1,i) = stranp * asdq(1,i)
    10     continue
 c
       return

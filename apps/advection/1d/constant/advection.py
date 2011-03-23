@@ -11,7 +11,7 @@ def advection(kernelsType='F',iplot=True,petscPlot=False,useController=True):
     from petclaw.grid import Dimension
     from petclaw.grid import Grid
     from pyclaw.solution import Solution
-    from petclaw.evolve.petclaw import PetClawSolver1D
+    from petclaw.evolve.solver import PetClawSolver1D
     from pyclaw.controller import Controller
     from petclaw import plot
 

@@ -469,7 +469,19 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
             maxm = max(maxmx, maxmy)
             mx,my = maxmx,maxmy
             aux = grid.aux
-            if(aux == None): aux=np.empty([0]*(grid.ndim+1))
+            
+            #Old workaround
+            #if(aux == None): aux=np.empty([0]*(grid.ndim+1))
+
+            #New workaround
+            #The following is an awful hack to work around an issue
+            #with f2py.  It involves wastefully allocating a large array.
+            #It could be avoided by using the other workaround below, but
+            #that makes the build process different for every example
+            #because we would need to generate and modify the .pyf file.
+            if(aux == None): 
+                maux=1
+                aux=np.empty((maux,maxmx+2*mbc,maxmy+2*mbc))
                 
             dx,dy,dt = grid.d[0],grid.d[1],self.dt
 
@@ -498,34 +510,33 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
             work = np.empty((mwork))
             
             qold = self.qbc(grid)
-            #DK: Do we need to copy here? (i.e., qnew=qold.copy())
             qnew = qold #(input/output)
 
-            #Workaround for f2py bug (?)
+            #Old Workaround for f2py bug (?)
             #f2py Doesn't like fortran arrays with first dimension zero,
             # so if maux=0 we just pass empty 1x1 arrays for aux1,aux2,aux3.
-            if maux==0:
-                q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my, \
-                          qold,qnew,aux,dx,dy,dt,method,self.mthlim,self.cfl,cflv, \
-                          np.empty((meqn,maxm+2*mbc)), \
-                          np.empty((meqn,maxm+2*mbc)), \
-                          np.empty((meqn,2,maxm+2*mbc)), \
-                          np.empty((meqn,maxm+2*mbc)), \
-                          np.empty((maxmx+2*mbc)), np.empty((maxmy+2*mbc)), \
-                          np.empty((1,1)), np.empty((1,1)), np.empty((1,1)), \
-                          work)
-            else:
-                q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my, \
-                          qold,qnew,aux,dx,dy,dt,method,self.mthlim,self.cfl,cflv, \
-                          np.empty((meqn,maxm+2*mbc)), \
-                          np.empty((meqn,maxm+2*mbc)), \
-                          np.empty((meqn,2,maxm+2*mbc)), \
-                          np.empty((meqn,maxm+2*mbc)), \
-                          np.empty((maxmx+2*mbc)), np.empty((maxmy+2*mbc)), \
-                          np.empty((maux,maxm+2*mbc)), \
-                          np.empty((maux,maxm+2*mbc)), \
-                          np.empty((maux,maxm+2*mbc)), \
-                          work)
+            #if maux==0:
+            #    q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my, \
+            #              qold,qnew,aux,dx,dy,dt,method,self.mthlim,self.cfl,cflv, \
+            #              np.empty((meqn,maxm+2*mbc)), \
+            #              np.empty((meqn,maxm+2*mbc)), \
+            #              np.empty((meqn,2,maxm+2*mbc)), \
+            #              np.empty((meqn,maxm+2*mbc)), \
+            #              np.empty((maxmx+2*mbc)), np.empty((maxmy+2*mbc)), \
+            #              np.empty((1,1)), np.empty((1,1)), np.empty((1,1)), \
+            #              work)
+            #else:
+            q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my, \
+                      qold,qnew,aux,dx,dy,dt,method,self.mthlim,self.cfl,cflv, \
+                      np.empty((meqn,maxm+2*mbc)), \
+                      np.empty((meqn,maxm+2*mbc)), \
+                      np.empty((meqn,2,maxm+2*mbc)), \
+                      np.empty((meqn,maxm+2*mbc)), \
+                      np.empty((maxm+2*mbc)), np.empty((maxm+2*mbc)), \
+                      np.empty((maux,maxm+2*mbc)), \
+                      np.empty((maux,maxm+2*mbc)), \
+                      np.empty((maux,maxm+2*mbc)), \
+                      work)
 
             self.cfl = cfl
             grid.q=q[:,mbc:grid.local_n[0]+mbc,mbc:grid.local_n[1]+mbc]

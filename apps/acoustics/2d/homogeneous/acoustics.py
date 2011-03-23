@@ -29,7 +29,7 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     from petclaw.grid import Dimension
     from petclaw.grid import Grid
     from pyclaw.solution import Solution
-    from petclaw.evolve.petclaw import PetClawSolver2D
+    from petclaw.evolve.solver import PetClawSolver2D
     from pyclaw.controller import Controller
     from petclaw import plot
 
@@ -39,7 +39,6 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     y = Dimension('y',-1.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
     grid = Grid([x,y])
 
-    #Set global variables
     rho = 1.0
     bulk = 4.0
     cc = np.sqrt(bulk/rho)
@@ -53,7 +52,6 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
 
     grid.meqn = 3
     grid.mbc = 2
-    grid.t = 0.0
     tfinal = 0.12
     qinit(grid)
     inital_solution = Solution(grid)
@@ -76,6 +74,9 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     # Solve
     status = claw.run()
 
+    print htmlplot
+    print iplot
+
     if htmlplot:  plot.plotHTML()
     if petscPlot: plot.plotPetsc(output_object)
     if iplot:     plot.plotInteractive()
@@ -87,5 +88,6 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
 if __name__=="__main__":
     import sys
 
+    print sys.argv
     if len(sys.argv)==2: acoustics2D(sys.argv[1])
     else: acoustics2D()

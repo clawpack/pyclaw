@@ -1,22 +1,9 @@
 #!/usr/bin/python
 #!/usr/bin/env python
 # encoding: utf-8
-"""
-advection.py
 
-Example python script for solving the 2d advection equation.
-"""
-
-import os, sys
-    
 import numpy as np
 from petsc4py import PETSc
-
-from petclaw.grid import PCDimension as Dimension
-from petclaw.grid import PCGrid as Grid
-from pyclaw.solution import Solution
-from petclaw.evolve.petclaw import PetClawSolver2D
-from pyclaw.controller import Controller
 
 
 
@@ -34,92 +21,72 @@ def qinit(grid):
     # Create an array with fortran native ordering
     x =grid.x.center
     y =grid.y.center
-    q=np.empty([len(x),len(y),grid.meqn], order = 'F')
+    q=np.empty([grid.meqn,len(x),len(y)], order = 'F')
     for i in range(len(x)):
         for j in range(len(y)):
             if x[i] > 0.1 and x[i] < 0.4 and y[j]>0.1 and y[j] < 0.6:
-                q[i,j,:] = 1.0
+                q[:,i,j] = 1.0
             else:
-                q[i,j,:] = 0.1
+                q[:,i,j] = 0.1
                 
     grid.q=q
 
+def advection2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
+    """
+    Example python script for solving the 2d advection equation.
+    """
 
-# Initialize grids and solutions
-from dimsp2 import comrp
-x = Dimension('x',0.0,1.0,100,mthbc_lower=1,mthbc_upper=1)
-y = Dimension('y',0.0,1.0,50,mthbc_lower=1,mthbc_upper=1)
-grid = Grid([x,y])
-grid.aux_global['u']=-0.6
-grid.aux_global['v']=0.4
-comrp.ubar = grid.aux_global['u']
-comrp.vbar = grid.aux_global['v']
-grid.meqn = 1
-grid.mbc = 2
-grid.t = 0.0
-qinit(grid)
-init_solution = Solution(grid)
+    from petclaw.grid import Dimension
+    from petclaw.grid import Grid
+    from pyclaw.solution import Solution
+    from petclaw.evolve.solver import PetClawSolver2D
+    from pyclaw.controller import Controller
+    from petclaw import plot
 
-# Solver setup
-solver = PetClawSolver2D(kernelsType = 'F')
+    mx=100; my=50
+    # Initialize grids and solutions
+    from dimsp2 import comrp
+    x = Dimension('x',0.0,1.0,mx,mthbc_lower=1,mthbc_upper=1)
+    y = Dimension('y',0.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
+    grid = Grid([x,y])
 
-solver.dt = 0.016
-solver.dt_variable=False
-solver.max_steps = 5000
-solver.set_riemann_solver('advection')
-solver.order = 2
-solver.order_trans = 2
-solver.mthlim = [3]
-solver.src_split = 0
+    grid.aux_global['u']=-0.6
+    grid.aux_global['v']=0.4
+    comrp.ubar = grid.aux_global['u']
+    comrp.vbar = grid.aux_global['v']
 
+    grid.meqn = 1
+    qinit(grid)
+    initial_solution = Solution(grid)
 
-useController = True # controller does not work in case of 2D yet
-makePlot = True
+    solver = PetClawSolver2D()
 
+    solver.dt = 0.016
+    solver.dt_variable=False
+    solver.max_steps = 5000
+    solver.set_riemann_solver('advection')
+    solver.order = 2
+    solver.order_trans = 2
+    solver.mwaves=1
+    solver.mthlim = [3]
 
-if useController:
-
-    # Controller instantiation
     claw = Controller()
-    claw.outdir = './_output/'
     claw.keep_copy = True
     claw.nout = 10
-    claw.outstyle = 1
     claw.output_format = 'petsc'
     claw.tfinal =solver.dt * 200
-    claw.solutions['n'] = init_solution
+    claw.solutions['n'] = initial_solution
     claw.solver = solver
 
-    # Solve
+    #Solve
     status = claw.run()
 
-    if makePlot:
-        if claw.keep_copy:
-            for n in xrange(0,claw.nout+1):
-                sol = claw.frames[n]
-                plotTitle="time: {0}".format(sol.t)
-                viewer = PETSc.Viewer.DRAW(sol.grid.gqVec.comm)
-                #viewer.createDraw(title=plotTitle, comm=sol.grid.gqVec.comm)
-                OptDB = PETSc.Options()
-                OptDB['draw_pause'] = 1
-                viewer(sol.grid.gqVec)
-                #sol.grid.gqVec.view(viewer)
-                #viewer.flush()
+    if htmlplot:  plot.plotHTML()
+    if petscPlot: plot.plotPetsc(output_object)
+    if iplot:     plot.plotInteractive()
 
+if __name__=="__main__":
+    import sys
 
-else:
-    sol = {"n":init_solution}
-    
-    solver.evolve_to_time(sol,20 * solver.dt)
-    
-    sol = sol["n"]
-
-    if makePlot:
-        viewer = PETSc.Viewer.DRAW(grid.gqVec.comm)
-        OptDB = PETSc.Options()
-        OptDB['draw_pause'] = -1
-        viewer(grid.gqVec)
-    
-        
-
-
+    if len(sys.argv)==2: advection2D(sys.argv[1])
+    else: advection2D()

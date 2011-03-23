@@ -11,7 +11,7 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False,htmlplot=False,outdir=
     from petclaw.grid import Grid
     from petclaw.grid import Dimension
     from pyclaw.solution import Solution
-    from petclaw.evolve.petclaw import PetClawSolver1D
+    from petclaw.evolve.solver import PetClawSolver1D
     from pyclaw.controller import Controller
     from petclaw import plot
 

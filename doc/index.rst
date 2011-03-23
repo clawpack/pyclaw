@@ -28,6 +28,7 @@ Contents:
 
    started
    tips
+   develop
    about
 
 .. Indices and tables
