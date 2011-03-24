@@ -76,5 +76,8 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False,htmlplot=False,outdir=
 
 
 if __name__=="__main__":
-    error=acoustics()
-    print(error)
+    import sys
+    from petclaw.util import _method_info_from_argv
+    method_name, args, kwargs = _method_info_from_argv(sys.argv)
+    error=acoustics(*args,**kwargs)
+    print 'Error: ',error

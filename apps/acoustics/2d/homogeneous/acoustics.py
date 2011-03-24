@@ -11,7 +11,7 @@ def qinit(grid,width=0.2):
     # Create an array with fortran native ordering
     x =grid.x.center
     y =grid.y.center
-    X,Y = np.meshgrid(x,y)
+    Y,X = np.meshgrid(y,x)
     r = np.sqrt(X**2 + Y**2)
 
     q=np.empty([grid.meqn,len(x),len(y)], order = 'F')
@@ -74,9 +74,6 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     # Solve
     status = claw.run()
 
-    print htmlplot
-    print iplot
-
     if htmlplot:  plot.plotHTML()
     if petscPlot: plot.plotPetsc(output_object)
     if iplot:     plot.plotInteractive()
@@ -87,7 +84,8 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
 
 if __name__=="__main__":
     import sys
-
-    print sys.argv
-    if len(sys.argv)==2: acoustics2D(sys.argv[1])
+    if len(sys.argv)>1:
+        from petclaw.util import _info_from_argv
+        args, kwargs = _info_from_argv(sys.argv)
+        acoustics2D(*args,**kwargs)
     else: acoustics2D()

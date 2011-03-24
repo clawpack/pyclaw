@@ -22,9 +22,10 @@ def qinit(grid):
     x =grid.x.center
     y =grid.y.center
     q=np.empty([grid.meqn,len(x),len(y)], order = 'F')
+    #q2=np.arange(len(q.reshape([-1])))
     for i in range(len(x)):
         for j in range(len(y)):
-            if x[i] > 0.1 and x[i] < 0.4 and y[j]>0.1 and y[j] < 0.6:
+            if x[i] > 0.0 and x[i] < 0.5 and y[j]>0.0 and y[j] < 0.5:
                 q[:,i,j] = 1.0
             else:
                 q[:,i,j] = 0.1
@@ -43,7 +44,7 @@ def advection2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     from pyclaw.controller import Controller
     from petclaw import plot
 
-    mx=100; my=50
+    mx=80; my=80
     # Initialize grids and solutions
     from dimsp2 import comrp
     x = Dimension('x',0.0,1.0,mx,mthbc_lower=1,mthbc_upper=1)
@@ -87,6 +88,8 @@ def advection2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
 
 if __name__=="__main__":
     import sys
-
-    if len(sys.argv)==2: advection2D(sys.argv[1])
+    if len(sys.argv)>1:
+        from petclaw.util import _info_from_argv
+        args, kwargs = _info_from_argv(sys.argv)
+        advection2D(*args,**kwargs)
     else: advection2D()
