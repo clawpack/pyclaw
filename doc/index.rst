@@ -27,6 +27,7 @@ Contents:
    :maxdepth: 2
 
    started
+   plotting
    tips
    develop
    about
