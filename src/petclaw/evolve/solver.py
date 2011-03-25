@@ -191,11 +191,11 @@ class PetClawSolver(ClawSolver):
             if dim.mthbc_lower == 0:
                 self.qbc_lower(qbc,grid,dim)
             else:
-                self.qbc_lower(np.rollaxis(qbc,i+1,2),grid,dim)
+                self.qbc_lower(np.rollaxis(qbc,i+1,1),grid,dim)
             if dim.mthbc_upper == 0:
                 self.qbc_upper(qbc,grid,dim)
             else:
-                self.qbc_upper(np.rollaxis(qbc,i+1,2),grid,dim)
+                self.qbc_upper(np.rollaxis(qbc,i+1,1),grid,dim)
         return qbc
 
     def qbc_lower(self,qbc,grid,dim):
