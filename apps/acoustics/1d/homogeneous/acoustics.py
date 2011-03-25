@@ -44,7 +44,7 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False,htmlplot=False,outdir=
 
     solver = PetClawSolver1D(kernelsType = kernelsType)
     solver.mwaves=2
-    if kernelsType=='P': solver.set_riemann_solver('acoustics')
+    if kernelsType=='P': solver.set_riemann_solver('acousticsinterleaved')
     solver.mthlim = [4]*solver.mwaves
     solver.dt=grid.d[0]/grid.aux_global['cc']*0.1
 
@@ -77,7 +77,7 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False,htmlplot=False,outdir=
 
 if __name__=="__main__":
     import sys
-    from petclaw.util import _method_info_from_argv
-    method_name, args, kwargs = _method_info_from_argv(sys.argv)
+    from petclaw.util import _info_from_argv
+    args, kwargs = _info_from_argv(sys.argv)
     error=acoustics(*args,**kwargs)
     print 'Error: ',error

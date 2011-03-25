@@ -94,83 +94,6 @@ class PetClawSolver(ClawSolver):
         super(PetClawSolver,self).__init__(data)
     
          
-    # ========== Time stepping routines ======================================
-    def step(self,solutions):
-        r"""
-        Evolve solutions one time step
-
-        This routine encodes the generic order in a full time step in this
-        order:
-        
-        1. The :meth:`start_step` function is called
-        
-        2. A half step on the source term :func:`src` if Strang splitting is 
-           being used (:attr:`src_split` = 2)
-        
-        3. A step on the homogeneous problem :math:`q_t + f(q)_x = 0` is taken
-        
-        4. A second half step or a full step is taken on the source term
-           :func:`src` depending on whether Strang splitting was used 
-           (:attr:`src_split` = 2) or Godunov splitting 
-           (:attr:`src_split` = 1)
-
-        This routine is called from the method evolve_to_time defined in the
-        pyclaw.evolve.solver.Solver superclass.
-
-        :Input:
-         - *solutions* - (:class:`~petclaw.solution.Solution`) Dictionary of 
-           solutions to be evolved
-         
-        :Output: 
-         - (bool) - True if full step succeeded, False otherwise
-        """
-
-        # Call b4step, pyclaw should be subclassed if this is needed
-        self.start_step(self,solutions)
-
-        # Source term splitting, pyclaw should be subclassed if this 
-        # is needed
-        if self.src_split == 2:
-            self.src(self,solutions,solutions['n'].t, self.dt/2.0)
-    
-        # Take a step on the homogeneous problem
-        self.homogeneous_step(solutions)
-
-        # comunicate max cfl
-        if self.dt_variable:
-          comm = MPI.COMM_WORLD #Amal:should be consistent with petsc commworld
-          max_cfl = np.array([0.])
-          cfl1 = np.array([self.cfl])
-          comm.Allreduce(cfl1, max_cfl, MPI.MAX)
-          self.cfl = max_cfl[0]
-          
-
-        # Check here if we violated the CFL condition, if we did, return 
-        # immediately to evolve_to_time and let it deal with picking a new
-        # dt
-        if self.cfl >= self.cfl_max:
-            return False
-
-        # Strang splitting
-        if self.src_split == 2:
-            self.src(self,solutions,solutions['n'].t + self.dt/2.0, self.dt/2.0)
-
-        # Godunov Splitting
-        if self.src_split == 1:
-            self.src(self,solutions,solutions['n'].t,self.dt)
-            
-        return True
-      
-            
-    def homogeneous_step(self,solutions):
-        r"""
-        Take one homogeneous step on the solutions
-        
-        This is a dummy routine and must be overridden.
-        """
-        raise Exception("Dummy routine, please override!")
-            
-
     # ========== Boundary Conditions ==================================
     def qbc(self,grid):
         """
@@ -183,7 +106,7 @@ class PetClawSolver(ClawSolver):
         We should think about what makes the most sense.
         """
         
-        qbc=  grid.ghosted_q 
+        qbc = grid.ghosted_q 
         for i in xrange(len(grid._dimensions)):
             dim = getattr(grid,grid._dimensions[i])
             #If a user defined boundary condition is being used, send it on,
@@ -200,11 +123,10 @@ class PetClawSolver(ClawSolver):
 
     def qbc_lower(self,qbc,grid,dim):
         r"""
-        
+        This function should be upstreamed to the pyclaw.evolve.solver.Solver class
         """
         # User defined functions
-        if dim.mthbc_lower == 0:
-            self.user_bc_lower(grid,dim,qbc)
+        if dim.mthbc_lower == 0: self.user_bc_lower(grid,dim,qbc)
         # Zero-order extrapolation
         elif dim.mthbc_lower == 1:
             if dim.nstart == 0:
@@ -223,11 +145,10 @@ class PetClawSolver(ClawSolver):
 
     def qbc_upper(self,qbc,grid,dim):
         r"""
-        
+        This function should be upstreamed to the pyclaw.evolve.solver.Solver class
         """
         # User defined functions
-        if dim.mthbc_upper == 0:
-            self.user_bc_upper(grid,dim,qbc)
+        if dim.mthbc_upper == 0: self.user_bc_upper(grid,dim,qbc)
         # Zero-order extrapolation
         elif dim.mthbc_upper == 1:
             if dim.nend == dim.n :
@@ -245,6 +166,14 @@ class PetClawSolver(ClawSolver):
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
 
+    def communicateCFL(self):
+        if self.dt_variable:
+          comm = MPI.COMM_WORLD #Amal:should be consistent with petsc commworld
+          max_cfl = np.array([0.])
+          cfl1 = np.array([self.cfl])
+          comm.Allreduce(cfl1, max_cfl, MPI.MAX)
+          self.cfl = max_cfl[0]
+ 
 
 # ============================================================================
 #  ClawPack 1d Solver Class
@@ -335,88 +264,11 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
             q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,self.mthlim,f,wave,s,amdq,apdq,dtdx)
 
         elif(self.kernelsType == 'P'):
-           
-            # Limiter to use in the pth family
-            limiter = np.array(self.mthlim,ndmin=1)  
-            # Q with appended boundary conditions
-            q = self.qbc(grid)
-            # Flux vector
-            f = np.empty( (2*grid.mbc + grid.n[0], meqn) )
-        
-            dtdx = np.zeros( (2*grid.mbc+grid.n[0]) )
+            q,self.cfl=self.python_homogeneous_step_interleaved(grid,q)
 
-            # Find local value for dt/dx
-            if grid.capa is not None:
-                dtdx = self.dt / (grid.d[0] * grid.capa)
-            else:
-                dtdx += self.dt/grid.d[0]
-        
-            # Solve Riemann problem at each interface
-            q_l=q[:-1,:]
-            q_r=q[1:,:]
-            if grid.aux is not None:
-                aux_l=grid.aux[:-1,:]
-                aux_r=grid.aux[1:,:]
-            else:
-                aux_l = None
-                aux_r = None
-            wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,grid.aux_global)
-            
-            # Update loop limits, these are the limits for the Riemann solver
-            # locations, which then update a grid cell value
-            # We include the Riemann problem just outside of the grid so we can
-            # do proper limiting at the grid edges
-            #        LL    |                               |     UL
-            #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
-            #              |                               |
-            LL = grid.mbc - 1
-            UL = grid.mbc + grid.n[0] + 1 
-
-            # Update q for Godunov update
-            for m in xrange(meqn):
-                q[LL:UL,m] -= dtdx[LL:UL]*apdq[LL-1:UL-1,m]
-                q[LL-1:UL-1,m] -= dtdx[LL-1:UL-1]*amdq[LL-1:UL-1,m]
-        
-            # Compute maximum wave speed
-            self.cfl = 0.0
-            for mw in xrange(wave.shape[2]):
-                smax1 = max(dtdx[LL:UL]*s[LL-1:UL-1,mw])
-                smax2 = max(-dtdx[LL-1:UL-1]*s[LL-1:UL-1,mw])
-                self.cfl = max(self.cfl,smax1,smax2)
-
-            # If we are doing slope limiting we have more work to do
-            if self.order == 2:
-                # Initialize flux corrections
-                f = np.zeros( (grid.n[0] + 2*grid.mbc, meqn) )
-            
-                # Apply Limiters to waves
-                if (limiter > 0).any():
-                    wave = limiters.limit(grid.meqn,wave,s,limiter,dtdx)
-
-                # Compute correction fluxes for second order q_{xx} terms
-                dtdxave = 0.5 * (dtdx[LL-1:UL-1] + dtdx[LL:UL])
-                if self.fwave:
-                    for mw in xrange(wave.shape[2]):
-                        sabs = np.abs(s[LL-1:UL-1,mw])
-                        om = 1.0 - sabs*dtdxave[:UL-LL]
-                        ssign = np.sign(s[LL-1:UL-1,mw])
-                        for m in xrange(meqn):
-                            f[LL:UL,m] += 0.5 * ssign * om * wave[LL-1:UL-1,m,mw]
-                else:
-                    for mw in xrange(wave.shape[2]):
-                        sabs = np.abs(s[LL-1:UL-1,mw])
-                        om = 1.0 - sabs*dtdxave[:UL-LL]
-                        for m in xrange(meqn):
-                            f[LL:UL,m] += 0.5 * sabs * om * wave[LL-1:UL-1,m,mw]
-
-                # Update q by differencing correction fluxes
-                for m in xrange(meqn):
-                    q[LL:UL-1,m] -= dtdx[LL:UL-1] * (f[LL+1:UL,m] - f[LL:UL-1,m]) 
-                
-        
-        grid.q=q[:,mbc:-mbc]
-
-
+        grid.q=q[:,grid.mbc:-grid.mbc]
+        self.communicateCFL()
+          
 
 # ============================================================================
 #  PetClaw 2d Solver Class
@@ -461,7 +313,7 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
         # Grid we will be working on
         grid = solutions['n'].grids[0]
         # Number of equations
-        meqn,maux,mbc,mwaves = grid.meqn,grid.maux,grid.mbc,self.mwaves
+        meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,grid.mbc,self.mwaves,grid.aux
 
         if(self.kernelsType == 'F'):
             from dimsp2 import dimsp2
@@ -488,7 +340,7 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
             method =np.ones(7, dtype=int)
             method[0] = self.dt_variable
             method[1] = self.order
-            method[2] = -1  # hardcoded 0, case of 2d or 3d
+            method[2] = -1  # only dimensional splitting for now
             method[3] = 0  # hardcoded 0 design issue: controller.verbosity
             method[4] = self.src_split  # src term
 
@@ -544,5 +396,4 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
         elif(self.kernelsType == 'P'):
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
 
-        
-    
+        self.communicateCFL()
