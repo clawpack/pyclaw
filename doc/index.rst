@@ -27,7 +27,9 @@ Contents:
    :maxdepth: 2
 
    started
+   plotting
    tips
+   develop
    about
 
 .. Indices and tables

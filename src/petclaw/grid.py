@@ -16,28 +16,8 @@ Module containing petclaw grid.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-import copy
-
 import numpy as np
-
-import pyclaw.data
 import pyclaw.solution
-from petsc4py import PETSc
-
-# ============================================================================
-#  Default function definitions
-# ============================================================================
-
-# Default mapc2p function
-def default_mapc2p(grid,x):
-    r"""
-    Returns the physical coordinate of the point x
-    
-    This is the stub function which simply returns the identity
-    """
-    return x
-    
-
 
 
 # ============================================================================
@@ -160,34 +140,32 @@ class Grid(pyclaw.solution.Grid):
 
     # Serialization Definitions (save everything but q and aux!)
 
-    def __getstate__(self):
-        doc = r"""Returns dictionary of serializable attributes of this object"""
-        #only need a shallow copy here
-        result = self.__dict__.copy()
-        del result['gqVec']
-        del result['q_da']
-        del result['lqVec']
-        
-        return result
-
-    def __setstate__(self, state):
-        doc = r"""Reconstructs this object from a dictionary of its serializable attributes"""
-        self.__dict__ = state
-
-        # these are all in a bad state and need to be explicitly loaded from viewers
-        self.q_da = None
-        self.gqVec = None
-        self.lqVec = None
+    # Are these ever used?  Commmenting out as a test.
+#    def __getstate__(self):
+#        doc = r"""Returns dictionary of serializable attributes of this object"""
+#        #only need a shallow copy here
+#        result = self.__dict__.copy()
+#        del result['gqVec']
+#        del result['q_da']
+#        del result['lqVec']
+#        
+#        return result
+#
+#    def __setstate__(self, state):
+#        doc = r"""Reconstructs this object from a dictionary of its serializable attributes"""
+#        self.__dict__ = state
+#
+#        # these are all in a bad state and need to be explicitly loaded from viewers
+#        self.q_da = None
+#        self.gqVec = None
+#        self.lqVec = None
         
     
     # ========== Property Definitions ========================================
     def local_n():
         def fget(self):
             #Amal doc
-            shape = []
-            ranges = self.q_da.getRanges()
-            for i in ranges:
-                shape.append(i[1]-i[0])
+            shape = [i[1]-i[0] for i in self.q_da.getRanges()]
             return shape
         return locals()
     def q():
@@ -204,9 +182,7 @@ class Grid(pyclaw.solution.Grid):
 
     def ghosted_q():
         def fget(self):
-            q_dim = self.local_n
-            for i in xrange(self.ndim):
-                q_dim[i] =  q_dim[i] + 2*self.mbc
+            q_dim = [self.local_n[i] + 2*self.mbc for i in xrange(self.ndim)]
             q_dim.insert(0,self.meqn)
             ghosted_q=self.lqVec.getArray().reshape(q_dim, order = 'F')
             return ghosted_q
@@ -216,9 +192,9 @@ class Grid(pyclaw.solution.Grid):
             self.q_da.localToGlobal(self.lqVec, self.gqVec)
         return locals()
 
-    local_n = property(**local_n())
-    q = property(**q())
-    ghosted_q = property(**ghosted_q())
+    local_n     = property(**local_n())
+    q           = property(**q())
+    ghosted_q   = property(**ghosted_q())
     
     # ========== Class Methods ===============================================
     def __init__(self,dimensions):
@@ -235,8 +211,9 @@ class Grid(pyclaw.solution.Grid):
         our use of q as a property.  We should find a better way to
         resolve this.
 
-        See :class:`PCGrid` for more info.
+        See :class:`petclaw.Grid` for more info.
         """
+        from pyclaw.solution import default_mapc2p
         
         # ========== Attribute Definitions ===================================
         self.level = 1
@@ -268,11 +245,9 @@ class Grid(pyclaw.solution.Grid):
         self.lqVec = None
 
         # Dimension parsing
-        if isinstance(dimensions,Dimension):
-            dimensions = [dimensions]
+        if isinstance(dimensions,Dimension): dimensions = [dimensions]
         self._dimensions = []
-        for dim in dimensions:
-            self.add_dimension(dim)
+        for dim in dimensions: self.add_dimension(dim)
 
 
     def init_q_petsc_structures(self):
@@ -280,6 +255,7 @@ class Grid(pyclaw.solution.Grid):
         Initializes PETSc structures for q. It initializes q_da, gqVec and lqVec
         
         """
+        from petsc4py import PETSc
 
         periodic = False
         for dimension in self.dimensions:

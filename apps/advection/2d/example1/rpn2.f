@@ -24,8 +24,8 @@ c     #                       f(qr(i-1)) - f(ql(i))
 c     #                   into leftgoing and rightgoing parts respectively.
 c     #               
 c
-c     # Note that the i'th Riemann problem has left state qr(i-1,:)
-c     #                                    and right state ql(i,:)
+c     # Note that the i'th Riemann problem has left state qr(:,i-1)
+c     #                                    and right state ql(:,i)
 c     # From the basic clawpack routines, this routine is called with ql = qr
 c     # maux=0 and aux arrays are unused in this example.
 c
@@ -33,26 +33,26 @@ c
       implicit double precision (a-h,o-z)
       common /comrp/ ubar,vbar
 c
-      dimension wave(1-mbc:maxm+mbc, meqn, mwaves)
-      dimension    s(1-mbc:maxm+mbc, mwaves)
-      dimension   ql(1-mbc:maxm+mbc, meqn)
-      dimension   qr(1-mbc:maxm+mbc, meqn)
-      dimension  apdq(1-mbc:maxm+mbc, meqn)
-      dimension  amdq(1-mbc:maxm+mbc, meqn)
+      dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
+      dimension    s(mwaves, 1-mbc:maxm+mbc)
+      dimension   ql(meqn, 1-mbc:maxm+mbc)
+      dimension   qr(meqn, 1-mbc:maxm+mbc)
+      dimension  apdq(meqn, 1-mbc:maxm+mbc)
+      dimension  amdq(meqn, 1-mbc:maxm+mbc)
 c
 c
 c$$$      do 30 i = 2-mbc, mx+mbc-1
       do 30 i = 2-mbc, mx+mbc
-         wave(i,1,1) = ql(i,1) - qr(i-1,1)
+         wave(1,1,i) = ql(1,i) - qr(1,i-1)
          if (ixy.eq.1) then
-             s(i,1) = ubar
+             s(1,i) = ubar
            else
-             s(i,1) = vbar
+             s(1,i) = vbar
            endif
 c
 c        # flux differences:
-         amdq(i,1) = dmin1(s(i,1), 0.d0) * wave(i,1,1)
-         apdq(i,1) = dmax1(s(i,1), 0.d0) * wave(i,1,1)
+         amdq(1,i) = dmin1(s(1,i), 0.d0) * wave(1,1,i)
+         apdq(1,i) = dmax1(s(1,i), 0.d0) * wave(1,1,i)
 c
    30    continue
 c

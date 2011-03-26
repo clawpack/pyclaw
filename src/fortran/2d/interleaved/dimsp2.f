@@ -39,8 +39,8 @@ cf2py intent(in,out) qnew
       dimension aux2(maux,1-mbc:maxm+mbc)
       dimension aux3(maux,1-mbc:maxm+mbc)
 
-      dimension dtdx1d(1-mbc:maxmx+mbc)
-      dimension dtdy1d(1-mbc:maxmx+mbc)
+      dimension dtdx1d(1-mbc:maxm+mbc)
+      dimension dtdy1d(1-mbc:maxm+mbc)
       dimension method(7),mthlim(mwaves)
       dimension work(mwork)
 

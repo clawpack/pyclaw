@@ -11,7 +11,7 @@ def qinit(grid,width=0.2):
     # Create an array with fortran native ordering
     x =grid.x.center
     y =grid.y.center
-    X,Y = np.meshgrid(x,y)
+    Y,X = np.meshgrid(y,x)
     r = np.sqrt(X**2 + Y**2)
 
     q=np.empty([grid.meqn,len(x),len(y)], order = 'F')
@@ -21,7 +21,7 @@ def qinit(grid,width=0.2):
     grid.q=q
 
 
-def acoustics2D(iplot=False,petscPlot=False,useController=True):
+def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     """
     Example python script for solving the 2d acoustics equations.
     """
@@ -29,7 +29,7 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True):
     from petclaw.grid import Dimension
     from petclaw.grid import Grid
     from pyclaw.solution import Solution
-    from petclaw.evolve.petclaw import PetClawSolver2D
+    from petclaw.evolve.solver import PetClawSolver2D
     from pyclaw.controller import Controller
     from petclaw import plot
 
@@ -39,7 +39,6 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True):
     y = Dimension('y',-1.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
     grid = Grid([x,y])
 
-    #Set global variables
     rho = 1.0
     bulk = 4.0
     cc = np.sqrt(bulk/rho)
@@ -53,7 +52,6 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True):
 
     grid.meqn = 3
     grid.mbc = 2
-    grid.t = 0.0
     tfinal = 0.12
     qinit(grid)
     inital_solution = Solution(grid)
@@ -76,15 +74,18 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True):
     # Solve
     status = claw.run()
 
-    if petscPlot:
-        plot.plotPetsc(claw)
+    if htmlplot:  plot.plotHTML()
+    if petscPlot: plot.plotPetsc(output_object)
+    if iplot:     plot.plotInteractive()
 
-    if iplot:
-        plot.plotInteractive()
-
-    pressure=claw.frames[claw.nout].grid.gqVec.getArray().reshape([mx,my,grid.meqn])[:,:,0]
+    pressure=claw.frames[claw.nout].grid.gqVec.getArray().reshape([grid.local_n[0],grid.local_n[1],grid.meqn])[:,:,0]
     return pressure
 
 
 if __name__=="__main__":
-    acoustics2D()
+    import sys
+    if len(sys.argv)>1:
+        from petclaw.util import _info_from_argv
+        args, kwargs = _info_from_argv(sys.argv)
+        acoustics2D(*args,**kwargs)
+    else: acoustics2D()

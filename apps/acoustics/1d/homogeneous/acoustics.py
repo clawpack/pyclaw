@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
-def acoustics(kernelsType='F',petscPlot=False,iplot=False):
+def acoustics(kernelsType='F',petscPlot=False,iplot=False,htmlplot=False,outdir='./_output'):
     import numpy as np
     from petsc4py import PETSc
     """
@@ -11,7 +11,7 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False):
     from petclaw.grid import Grid
     from petclaw.grid import Dimension
     from pyclaw.solution import Solution
-    from petclaw.evolve.petclaw import PetClawSolver1D
+    from petclaw.evolve.solver import PetClawSolver1D
     from pyclaw.controller import Controller
     from petclaw import plot
 
@@ -44,7 +44,7 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False):
 
     solver = PetClawSolver1D(kernelsType = kernelsType)
     solver.mwaves=2
-    if kernelsType=='P': solver.set_riemann_solver('acoustics')
+    if kernelsType=='P': solver.set_riemann_solver('acousticsinterleaved')
     solver.mthlim = [4]*solver.mwaves
     solver.dt=grid.d[0]/grid.aux_global['cc']*0.1
 
@@ -53,6 +53,7 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False):
     claw.nout = 5
     # The output format MUST be set to petsc!
     claw.output_format = 'petsc'
+    claw.outdir = outdir
     claw.tfinal = 1.0
     claw.solutions['n'] = init_solution
     claw.solver = solver
@@ -60,11 +61,9 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False):
     # Solve
     status = claw.run()
 
-    if petscPlot:
-        plot.plotPetsc(output_object)
-
-    if iplot:
-        plot.plotInteractive()
+    if htmlplot:  plot.plotHTML()
+    if petscPlot: plot.plotPetsc(output_object)
+    if iplot:     plot.plotInteractive()
 
     #This test is set up so that the waves pass through the domain
     #exactly once, and the final solution should be equal to the
@@ -77,5 +76,8 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False):
 
 
 if __name__=="__main__":
-    error=acoustics()
-    print(error)
+    import sys
+    from petclaw.util import _info_from_argv
+    args, kwargs = _info_from_argv(sys.argv)
+    error=acoustics(*args,**kwargs)
+    print 'Error: ',error

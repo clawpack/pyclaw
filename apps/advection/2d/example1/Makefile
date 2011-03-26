@@ -1,13 +1,12 @@
 FC ?= gfortran
 
 
-TWO_D_LIBPATH = $(PETCLAW)/src/fortran/2d/nonInterleaved/
+TWO_D_LIBPATH = $(PETCLAW)/src/fortran/2d/interleaved/
 LIBOBJ = \
    step2ds.o\
    flux2.o\
    limiter.o\
    philim.o\
-
 
 SOURCE = rpt2.f rpn2.f
 
@@ -29,7 +28,6 @@ step2ds.o:
 clean:
 	rm -f *.o *.so
 
-clobber:
-	rm -f *.o *.so
-	rm -f -R *output*
-
+clobber: clean
+	rm -f -R *_output*
+	rm -f -R *_plots*
