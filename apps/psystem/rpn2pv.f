@@ -1,6 +1,6 @@
 c     =====================================================
       subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,
-     &                  auxl,auxr,wave,s,amdq,apdq)
+     &                  auxl,auxr,fwave,s,amdq,apdq)
 c     =====================================================
 c
 c     # Aproximate Riemann solver for the nonlinear P-system in 2d 
@@ -49,7 +49,7 @@ c material properties
          pi=auxl(1,i)
          Eim=auxr(2,i-1)
          Ei=auxl(2,i)
-
+         
 c solution eps, urho and vrho 
          epsi=ql(1,i)
          urhoi=ql(2,i)
@@ -61,8 +61,8 @@ c solution eps, urho and vrho
 c linearity of material (for cell i and for cell im)
          linearity_mati=auxl(3,i)
          linearity_matim=auxr(3,i-1)
-         !print *,linearity_mati
 
+         !print *,pi,Ei,linearity_mati
 c sigma
          sigmai=sigma(epsi,Ei,linearity_mati)
          sigmaim=sigma(epsim,Eim,linearity_matim)
@@ -72,8 +72,8 @@ c sigmap
          sigmapim=sigmap(epsim,Eim,linearity_matim)
 
 c computation of components of eigenvectors 
-         r11=1/dsqrt(sigmapim*pim) !!!!!
-         r13=-1/dsqrt(sigmapi*pi) !!!!!
+         r11=1/dsqrt(sigmapim*pim)
+         r13=-1/dsqrt(sigmapi*pi)
 
 c shock speeds
          s(1,i)=-dsqrt(sigmapim/pim)  !lambda_1
@@ -135,7 +135,6 @@ c     eps, E and depending the linearity of the material
          case (3)
             sigma=0.1*E*eps+beta*eps**3*E**3
       end select 
-
       return
       end
 
@@ -152,8 +151,5 @@ c     eps, E and depending the linearity of the material
          case (3)
             sigmap=0.1*E+3*beta*eps**2*E**3
       end select
-
       return
       end
-
-    

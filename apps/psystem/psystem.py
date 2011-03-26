@@ -13,9 +13,8 @@ def qinit(grid,A,x0,y0,varx,vary):
     
     # Create meshgrid
     # start form left top to right bottom
-    [xx,yy]=np.meshgrid(x,y)
+    [yy,xx]=np.meshgrid(y,x)
     s=A*np.exp(-(xx-x0)**2/(2*varx)-(yy-y0)**2/(2*vary)) #sigma(@t=0)
-    s=np.transpose(s)
 
     #parameters from aux
     linearity_mat=grid.aux[2,grid.mbc:-grid.mbc,grid.mbc:-grid.mbc]
@@ -93,7 +92,7 @@ def b4step(solver,solutions):
             grid.q[:,0:np.floor(grid.aux_global['mx']/2),:]=0
             solutions['n'].grid.q=grid.q
 
-def psystem2D(iplot=False,petscPlot=False,useController=True):
+def psystem2D(iplot=False,petscPlot=True,useController=True):
     """
     psystem in 2D with variable coefficients
     """
@@ -108,7 +107,6 @@ def psystem2D(iplot=False,petscPlot=False,useController=True):
 ####################################
 ######### MAIN PARAMETERS ##########
 ####################################
-    #from dimsp2 import clinearity
 # material parameters
     E1=1.;   p1=1.
     E2=10.;   p2=10.
@@ -125,9 +123,9 @@ def psystem2D(iplot=False,petscPlot=False,useController=True):
 # Initial condition parameters
     A=5.
     x0=x_upper/2.; y0=y_upper/2.
-    varx=1.; vary=1.
+    varx=1.0; vary=1.0
 # Boundary conditions
-    mthbc_x_lower=1; mthbc_x_upper=1 
+    mthbc_x_lower=1; mthbc_x_upper=1
     mthbc_y_lower=1; mthbc_y_upper=1
 # Turning off 1st half of the domain. Useful in rect domains
     turnZero_half_2D=0 #flag
@@ -143,8 +141,8 @@ def psystem2D(iplot=False,petscPlot=False,useController=True):
 ####################################
 ####################################
 # creation of grid
-    x = Dimension('x',x_lower,x_upper,mx,mthbc_x_lower,mthbc_x_upper,mbc=mbc)
-    y = Dimension('y',y_lower,y_upper,my,mthbc_y_lower,mthbc_y_upper,mbc=mbc)
+    x = Dimension('x',x_lower,x_upper,mx,mthbc_lower=mthbc_x_lower,mthbc_upper=mthbc_x_upper,mbc=mbc)
+    y = Dimension('y',y_lower,y_upper,my,mthbc_lower=mthbc_y_lower,mthbc_upper=mthbc_y_upper,mbc=mbc)
     grid = Grid([x,y])
     grid.meqn=meqn
     grid.mbc=mbc
@@ -174,7 +172,7 @@ def psystem2D(iplot=False,petscPlot=False,useController=True):
     inital_solution = Solution(grid)
 
     solver = PetClawSolver2D()
-    solver.max_steps=5000000
+    solver.max_steps=1000000
     solver.dt_variable=True
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
@@ -203,8 +201,8 @@ def psystem2D(iplot=False,petscPlot=False,useController=True):
     if iplot:
         plot.plotInteractive()
 
-    eps=claw.frames[claw.nout].grid.gqVec.getArray().reshape([mx,my,grid.meqn])[:,:,0]
-    return eps
+    #eps=claw.frames[claw.nout].grid.gqVec.getArray().reshape([mx,my,grid.meqn])[:,:,0]
+    #return eps
 
 
 if __name__=="__main__":
