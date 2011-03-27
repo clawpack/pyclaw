@@ -230,11 +230,10 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
           
         q = self.qbc(grid,grid.q,grid.t)
 
-        local_n = q.shape[1]
-
         if(self.kernelsType == 'F'):
             from step1 import step1
             
+            local_n = q.shape[1]
             dx,dt = grid.d[0],self.dt
             dtdx = np.zeros( (local_n) ) + dt/dx
             maxmx = local_n -mbc*2
@@ -263,7 +262,7 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
             q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,self.mthlim,f,wave,s,amdq,apdq,dtdx)
 
         elif(self.kernelsType == 'P'):
-            q,self.cfl=self.python_homogeneous_step_interleaved(grid,q)
+            q=self.python_homogeneous_step(grid,q)
 
         grid.q=q[:,grid.mbc:-grid.mbc]
         self.communicateCFL()
