@@ -95,9 +95,8 @@ class PetClawSolver(ClawSolver):
     
          
     # ========== Boundary Conditions ==================================
-    def qbc(self,grid):
+    def qbc(self,grid,q,t):
         """
-        Accepts an array qbc that includes ghost cells.
         Returns an array with the ghost cells filled.
         It would be nice to do the ghost cell array fetch in here, but
         we need to think about how to associate q_da and gqVec, lqVec.
@@ -112,16 +111,16 @@ class PetClawSolver(ClawSolver):
             #If a user defined boundary condition is being used, send it on,
             #otherwise roll the axis to front position and operate on it
             if dim.mthbc_lower == 0:
-                self.qbc_lower(qbc,grid,dim)
+                self.qbc_lower(grid,dim,qbc)
             else:
-                self.qbc_lower(np.rollaxis(qbc,i+1,1),grid,dim)
+                self.qbc_lower(grid,dim,np.rollaxis(qbc,i+1,1))
             if dim.mthbc_upper == 0:
-                self.qbc_upper(qbc,grid,dim)
+                self.qbc_upper(grid,dim,qbc)
             else:
-                self.qbc_upper(np.rollaxis(qbc,i+1,1),grid,dim)
+                self.qbc_upper(grid,dim,np.rollaxis(qbc,i+1,1))
         return qbc
 
-    def qbc_lower(self,qbc,grid,dim):
+    def qbc_lower(self,grid,dim,qbc):
         r"""
         This function should be upstreamed to the pyclaw.evolve.solver.Solver class
         """
@@ -143,7 +142,7 @@ class PetClawSolver(ClawSolver):
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
 
 
-    def qbc_upper(self,qbc,grid,dim):
+    def qbc_upper(self,grid,dim,qbc):
         r"""
         This function should be upstreamed to the pyclaw.evolve.solver.Solver class
         """
@@ -229,7 +228,7 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
         # Number of equations
         meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,grid.mbc,grid.aux
           
-        q = self.qbc(grid)
+        q = self.qbc(grid,grid.q,grid.t)
 
         local_n = q.shape[1]
 
@@ -361,7 +360,7 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
                        + (narray-1) * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn 
             work = np.empty((mwork))
             
-            qold = self.qbc(grid)
+            qold = self.qbc(grid,grid.q,grid.t)
             qnew = qold #(input/output)
 
             #Old Workaround for f2py bug (?)

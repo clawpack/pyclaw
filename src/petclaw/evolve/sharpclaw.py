@@ -18,15 +18,16 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 import numpy as np
 
 # Solver superclass
-from pyclaw.evolve.clawpack import ClawSolver, ClawSolver1D, start_step, src
+import pyclaw.solver
+from pyclaw.evolve.clawpack import start_step, src
 from petsc4py import PETSc
 
 # Limiters
 import recon
 
-class qrk(object):
+class RKStage(object):
     """
-    A single Runge-Kutta stage
+    A single Runge-Kutta stage.
     """
     def __init__(self,grid):
         periodic = False
@@ -57,11 +58,9 @@ class qrk(object):
         self.gVec = self.da.createGlobalVector()
         self.lVec = self.da.createLocalVector()
 
-        if self.time_integrator=='SSP33':
-            self.qrk = Solution(grid)
 
 
-class SharpClawSolver1D(ClawSolver1D):
+class SharpPetClawSolver1D(SharpClawSolver):
     """SharpClaw evolution routine in 1D
     
     This class represents the 1d SharpClaw solver.  Note that there are 
@@ -78,17 +77,7 @@ class SharpClawSolver1D(ClawSolver1D):
     # ========================================================================
     #   Initialization routines
     # ========================================================================
-    def __init__(self, kernelsType, data=None):
-        r"""
-        Here we just set the flag for using Python or Fortran kernels.
-        """
-        
-        self.kernelsType=kernelsType
-        self.src_term=0
-        
-        # Call general initialization function
-        super(SharpClawSolver1D,self).__init__(data)
- 
+
 
     # ========== Time stepping routines ======================================
     def step(self,solutions):
@@ -105,10 +94,15 @@ class SharpClawSolver1D(ClawSolver1D):
         grid = solutions['n'].grids[0]
 
         if self.time_integrator=='Euler':
-            deltaq=self.dq(solutions)
+            deltaq=self.dq(grid,grid.q,grid.t)
             grid.q+=deltaq
         elif self.time_integrator=='SSP33':
-            #solutions['rk1']=Solution(grid.__deepcopy__())
+            deltaq=self.dq(grid,grid.q,grid.t)
+            grid.rk_stages[0].q=grid.q+deltaq
+            grid.rk_stages[0].t =grid.t+self.dt
+            deltaq=self.dq(grid,grid.rk_stages[0],grid.rk_stages[0].t)
+            
+            
             qold = grid.q.copy()
             told = solutions['n'].t
             deltaq=self.dq(solutions)
@@ -265,85 +259,3 @@ class SharpClawSolver1D(ClawSolver1D):
                             + apdq2[LL:UL,m] + amdq2[LL:UL,m])
     
         return dq[LL+1:UL-1]
-
-    # ========== Boundary Conditions ==================================
-    def qbc(self,lqVec,grid):
-        """
-        Accepts an array qbc that includes ghost cells.
-        Returns an array with the ghost cells filled.
-        It would be nice to do the ghost cell array fetch in here, but
-        we need to think about how to associate q_da and gqVec, lqVec.
-
-        For now, grid and dim are passed in for backward compatibility.
-        We should think about what makes the most sense.
-        """
-        #THIS ONLY WORKS IN 1D:
-        qbc=lqVec.getArray().reshape([-1,grid.meqn])
-        for i in xrange(len(grid._dimensions)):
-            dim = getattr(grid,grid._dimensions[i])
-            #If a user defined boundary condition is being used, send it on,
-            #otherwise roll the axis to front position and operate on it
-            if dim.mthbc_lower == 0:
-                self.qbc_lower(qbc,grid,dim)
-            else:
-                self.qbc_lower(np.rollaxis(qbc,i),grid,dim)
-            if dim.mthbc_upper == 0:
-                self.qbc_upper(qbc,grid,dim)
-            else:
-                self.qbc_upper(np.rollaxis(qbc,i),grid,dim)
-        return qbc
-
-    def qbc_lower(self,qbc,grid,dim):
-        r"""
-        
-        """
-        # User defined functions
-        if dim.mthbc_lower == 0:
-            self.user_bc_lower(grid,dim,qbc)
-        # Zero-order extrapolation
-        elif dim.mthbc_lower == 1:
-            ##specify rank
-            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
-            print rank
-            if rank == 0:
-                qbc[:grid.mbc,...] = qbc[grid.mbc,...]
-        # Periodic
-        elif dim.mthbc_lower == 2:
-            pass # Amal: this is implemented automatically by petsc4py
-            
-        # Solid wall bc
-        elif dim.mthbc_lower == 3:
-            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
-        else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
-
-    def qbc_upper(self,qbc,grid,dim):
-        r"""
-        
-        """
-        # User defined functions
-        if dim.mthbc_upper == 0:
-            self.user_bc_upper(grid,dim,qbc)
-        # Zero-order extrapolation
-        elif dim.mthbc_upper == 1:
-            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) # Amal: hardcoded communicator
-            size = PETSc.Comm.getSize(PETSc.COMM_WORLD)
-            
-            if rank == size-1:
-                local_n = grid.q.shape[0]
-                list_from =[local_n - grid.mbc -1]*grid.mbc    
-                list_to = range(local_n - grid.mbc, local_n )
-                grid.q[list_to,:]=grid.q[list_from,:]
- 	    
-        elif dim.mthbc_upper == 2:
-            # Periodic
-            pass # Amal: this is implemented automatically by petsc4py
-
-        # Solid wall bc
-        elif dim.mthbc_upper == 3:
-            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
-
-        else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
-
-
