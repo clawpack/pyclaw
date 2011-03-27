@@ -383,7 +383,7 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
                       np.empty((meqn,maxm+2*mbc)), \
                       np.empty((meqn,2,maxm+2*mbc)), \
                       np.empty((meqn,maxm+2*mbc)), \
-                      np.empty((maxm+2*mbc)), np.empty((maxm+2*mbc)), \
+                      np.empty((maxmx+2*mbc)), np.empty((maxmx+2*mbc)), \
                       np.empty((maux,maxm+2*mbc)), \
                       np.empty((maux,maxm+2*mbc)), \
                       np.empty((maux,maxm+2*mbc)), \
