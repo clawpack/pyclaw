@@ -27,7 +27,7 @@ def qinit(grid,A,x0,y0,varx,vary):
 
     grid.q=q
 
-def setaux(x,y,mthbcx,mthbcy,mbc=2,E1=1.,p1=1.,E2=1.,p2=1.,linearity_mat1=1,linearity_mat2=1,alphax=0.5,deltax=1.,alphay=0.5,deltay=1.):
+def setaux(grid, x,y,mthbcx,mthbcy,mbc=2,E1=1.,p1=1.,E2=1.,p2=1.,linearity_mat1=1,linearity_mat2=1,alphax=0.5,deltax=1.,alphay=0.5,deltay=1.):
 # Creates a matrix representing every grid cell in the domain, 
 #  whose size is len(x),len(y)
 # Each entry of the matrix contains a vector of size 3 with:
@@ -58,25 +58,44 @@ def setaux(x,y,mthbcx,mthbcy,mbc=2,E1=1.,p1=1.,E2=1.,p2=1.,linearity_mat1=1,line
     my=len(y)-2*mbc
     
 #first take care of the ghost cells below and above the domain
-    for i in range(mbc,mbc+mx):
-        for ibc in range(1,mbc+1):
-            for k in range(0,maux):
-                if mthbcy==2:
-                    aux[k,i,mbc-ibc]=aux[k,i,mbc+my-ibc]
-                    aux[k,i,mbc-1+my+ibc]=aux[k,i,mbc-1+ibc]
-                else:
-                    aux[k,i,mbc-ibc]=aux[k,i,mbc]
-                    aux[k,i,mbc-1+my+ibc]=aux[k,i,mbc-1+my]
+    if  grid.y.nstart == 0:
+        for i in range(mbc,mbc+mx):
+            for ibc in range(1,mbc+1):
+                for k in range(0,maux):
+                    if mthbcy==2:
+                        aux[k,i,mbc-ibc]=aux[k,i,mbc+my-ibc]
+                    else:
+                        aux[k,i,mbc-ibc]=aux[k,i,mbc]
+    
+    if grid.y.nend == grid.y.n:
+        for i in range(mbc,mbc+mx):
+            for ibc in range(1,mbc+1):
+                for k in range(0,maux):
+                    if mthbcy==2:
+                        aux[k,i,mbc-1+my+ibc]=aux[k,i,mbc-1+ibc]
+                    else:
+                        aux[k,i,mbc-1+my+ibc]=aux[k,i,mbc-1+my]
+
+
 #now take care of ghost cells at the left and right of the domain
-    for j in range(0,my+2*mbc):
-        for ibc in range(1,mbc+1):
-            for k in range(0,maux):
-                if mthbcx==2:
-                    aux[k,mbc-ibc,j]=aux[k,mbc+mx-ibc,j]
-                    aux[k,mbc-1+mx+ibc,j]=aux[k,mbc-1+ibc,j]
-                else:
-                    aux[k,mbc-ibc,j]=aux[k,mbc,j]
-                    aux[k,mbc-1+mx+ibc,j]=aux[k,mbc-1+mx,j]
+    if grid.x.nstart == 0: 
+        for j in range(0,my+2*mbc):
+            for ibc in range(1,mbc+1):
+                for k in range(0,maux):
+                    if mthbcx==2:
+                        aux[k,mbc-ibc,j]=aux[k,mbc+mx-ibc,j]
+                    else:
+                        aux[k,mbc-ibc,j]=aux[k,mbc,j]
+    
+    if grid.x.nend == grid.x.n:
+        for j in range(0,my+2*mbc):
+            for ibc in range(1,mbc+1):
+                for k in range(0,maux):
+                    if mthbcx==2:
+                        aux[k,mbc-1+mx+ibc,j]=aux[k,mbc-1+ibc,j]
+                    else:
+                        aux[k,mbc-1+mx+ibc,j]=aux[k,mbc-1+mx,j]
+
     return aux
 
 def b4step(solver,solutions):
@@ -158,7 +177,7 @@ def psystem2D(iplot=False,petscPlot=True,useController=True):
 # setaux
     xghost=grid.x.centerghost
     yghost=grid.y.centerghost
-    grid.aux=setaux(xghost,yghost,mthbc_x_lower,mthbc_y_lower,mbc,E1,p1,E2,p2,linearity_mat1,linearity_mat2,alphax,deltax,alphay,deltay)
+    grid.aux=setaux(grid,xghost,yghost,mthbc_x_lower,mthbc_y_lower,mbc,E1,p1,E2,p2,linearity_mat1,linearity_mat2,alphax,deltax,alphay,deltay)
 
 # initial conditions
     qinit(grid,A,x0,y0,varx,vary)
