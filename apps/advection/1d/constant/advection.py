@@ -1,30 +1,30 @@
 #!/usr/bin/python
 #!/usr/bin/env python
 # encoding: utf-8
-def advection(kernelsType='F',iplot=True,petscPlot=False,useController=True):
+def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True):
     """
     Example python script for solving the 1d advection equation.
     """
 
     import numpy as np
     from petsc4py import PETSc
-    from petclaw.grid import Dimension
-    from petclaw.grid import Grid
+    from petclaw.grid import Dimension, Grid
     from pyclaw.solution import Solution
     from petclaw.evolve.solver import PetClawSolver1D
     from pyclaw.controller import Controller
     from petclaw import plot
 
     # Initialize grids and solutions
-    from step1 import comrp
     x = Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
     grid = Grid(x)
-    grid.aux_global['u']=1.
-    comrp.u = grid.aux_global['u']
+    grid.aux_global['u']=-1.
+    if kernelsType=='F': 
+        from step1 import comrp
+        comrp.u = grid.aux_global['u']
     grid.meqn = 1
     grid.t = 0.0
-
     grid.init_q_petsc_structures()
+
     xc=grid.x.center
     beta=100; gamma=0; x0=0.75
     q=np.zeros([grid.meqn,len(xc)], order = 'F')
@@ -34,9 +34,10 @@ def advection(kernelsType='F',iplot=True,petscPlot=False,useController=True):
     initial_solution = Solution(grid)
 
     # Solver setup
-    solver = PetClawSolver1D(kernelsType = 'F')
+    solver = PetClawSolver1D(kernelsType = 'P')
     solver.mwaves = 1
-    if kernelsType=='P': solver.set_riemann_solver('advection')
+    if kernelsType=='P': solver.set_riemann_solver('advectioninterleaved')
+    solver.mthlim=[4]
 
     if useController:
         claw = Controller()

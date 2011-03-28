@@ -44,7 +44,7 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False,htmlplot=False,outdir=
 
     solver = PetClawSolver1D(kernelsType = kernelsType)
     solver.mwaves=2
-    if kernelsType=='P': solver.set_riemann_solver('acousticsinterleaved')
+    if kernelsType=='P': solver.set_riemann_solver('acoustics')
     solver.mthlim = [4]*solver.mwaves
     solver.dt=grid.d[0]/grid.aux_global['cc']*0.1
 
