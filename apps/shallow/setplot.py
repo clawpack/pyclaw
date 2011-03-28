@@ -6,14 +6,7 @@ This module is imported by the plotting routines and then the
 function setplot is called to set the plot parameters.
     
 """ 
-
-import os
-if os.path.exists('./1drad/_output'):
-    qref_dir = os.path.abspath('./1drad/_output')
-else:
-    qref_dir = None
-    print "Directory ./1drad/_output not found"
-
+import numpy as np
 
 #--------------------------
 def setplot(plotdata):
@@ -26,72 +19,65 @@ def setplot(plotdata):
     
     """ 
 
-
-    from pyclaw.plotters import colormaps
+    def velocity(cd):
+        h = cd.q[0,:]
+        index = np.nonzero(h > 1e-3)
+        u = np.zeros(h.shape)
+        u[index] = cd.q[1,index] / h[index]
+        return u
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
-    
 
-    # Figure for pressure
-    # -------------------
-
-    plotfigure = plotdata.new_plotfigure(name='Pressure', figno=0)
+    # Figure for depth
+    plotfigure = plotdata.new_plotfigure(name='h', figno=1)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
-    plotaxes.xlimits = 'auto'
-    plotaxes.ylimits = 'auto'
-    plotaxes.title = 'Pressure'
-    plotaxes.scaled = True      # so aspect ratio is 1
+    #plotaxes.xlimits = [0.,150.]
+    #plotaxes.ylimits = [-.2,1.0]
+    plotaxes.title = 'Depth'
 
     # Set up for item on these axes:
-    plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
+    plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
     plotitem.plot_var = 0
-    plotitem.pcolor_cmap = colormaps.yellow_red_blue
-    plotitem.add_colorbar = True
+    plotitem.plotstyle = '-o'
+    plotitem.color = 'b'
     plotitem.show = True       # show on plot?
+    plotitem.kwargs = {'linewidth':2,'markersize':5}
     
-
-    # Figure for scatter plot
-    # -----------------------
-
-    plotfigure = plotdata.new_plotfigure(name='scatter', figno=3)
+    # Momentum
+    plotfigure = plotdata.new_plotfigure(name='hu', figno=2)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
-    plotaxes.xlimits = 'auto'
-    plotaxes.ylimits = 'auto'
-    plotaxes.title = 'Scatter plot'
+    #plotaxes.xlimits = [0.,150.]
+    #plotaxes.ylimits = [-.2,1.0]
+    plotaxes.title = 'Momentum'
 
-    # Set up for item on these axes: scatter of 2d data
-    plotitem = plotaxes.new_plotitem(plot_type='1d_from_2d_data')
-    
-    def p_vs_r(current_data):
-        # Return radius of each grid cell and p value in the cell
-        from pylab import sqrt
-        x = current_data.x
-        y = current_data.y
-        r = sqrt(x**2 + y**2)
-        q = current_data.q
-        p = q[0,:,:]
-        return r,p
-
-    plotitem.map_2d_to_1d = p_vs_r
-    plotitem.plot_var = 0
-    plotitem.plotstyle = 'o'
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
+    plotitem.plot_var = 1
+    plotitem.plotstyle = '-o'
     plotitem.color = 'b'
     plotitem.show = True       # show on plot?
+    plotitem.kwargs = {'linewidth':2,'markersize':5}
     
-    # Set up for item on these axes: 1d reference solution
+    # Velocity
+    plotfigure = plotdata.new_plotfigure(name='u', figno=3)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    #plotaxes.xlimits = [0.,150.]
+    #plotaxes.ylimits = [-.2,1.0]
+    plotaxes.title = 'Velocity'
+
+    # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
-    plotitem.outdir = qref_dir
-    plotitem.plot_var = 0
-    plotitem.plotstyle = '-'
-    plotitem.color = 'r'
-    plotitem.kwargs = {'linewidth': 2}
+    plotitem.plot_var = velocity
+    plotitem.plotstyle = '-o'
+    plotitem.color = 'b'
     plotitem.show = True       # show on plot?
-    plotaxes.afteraxes = "pylab.legend(('2d data', '1d reference solution'))"
-    
+    plotitem.kwargs = {'linewidth':2,'markersize':5}
 
     # Parameters used only when creating html and/or latex hardcopy
     # e.g., via pyclaw.plotters.frametools.printframes:
@@ -101,7 +87,7 @@ def setplot(plotdata):
     plotdata.print_framenos = 'all'          # list of frames to print
     plotdata.print_fignos = 'all'            # list of figures to print
     plotdata.html = True                     # create html files of plots?
-    plotdata.html_homelink = '../README.html'   # pointer for top of index
+    plotdata.html_homelink = '../README.html'
     plotdata.latex = True                    # create latex file of plots?
     plotdata.latex_figsperline = 2           # layout of plots
     plotdata.latex_framesperline = 1         # layout of plots
@@ -109,4 +95,4 @@ def setplot(plotdata):
 
     return plotdata
 
-    
+ 
