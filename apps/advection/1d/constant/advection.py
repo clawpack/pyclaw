@@ -36,7 +36,7 @@ def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True):
     # Solver setup
     solver = PetClawSolver1D(kernelsType = 'P')
     solver.mwaves = 1
-    if kernelsType=='P': solver.set_riemann_solver('advectioninterleaved')
+    if kernelsType=='P': solver.set_riemann_solver('advection')
     solver.mthlim=[4]
 
     if useController:
