@@ -26,9 +26,7 @@ def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True):
 
     xc=grid.x.center
     beta=100; gamma=0; x0=0.75
-    q=np.zeros([grid.meqn,len(xc)], order = 'F')
-    q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
-    grid.q=q
+    grid.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
 
     initial_solution = Solution(grid)
 

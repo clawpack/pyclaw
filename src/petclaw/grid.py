@@ -177,11 +177,11 @@ class Grid(pyclaw.solution.Grid):
         def fset(self,q):
             if self.gqVec is None: self.init_q_petsc_structures()
             self.gqVec.setArray(q.reshape([-1], order = 'F'))
-            self.q_da.globalToLocal(self.gqVec, self.lqVec)
         return locals()
 
     def ghosted_q():
         def fget(self):
+            self.q_da.globalToLocal(self.gqVec, self.lqVec)
             q_dim = [self.local_n[i] + 2*self.mbc for i in xrange(self.ndim)]
             q_dim.insert(0,self.meqn)
             ghosted_q=self.lqVec.getArray().reshape(q_dim, order = 'F')
@@ -189,7 +189,6 @@ class Grid(pyclaw.solution.Grid):
         def fset(self,ghosted_q):
             if self.lqVec is None: self.init_q_petsc_structures()        
             self.lqVec.setArray(ghosted_q.reshape([-1], order = 'F'))
-            self.q_da.localToGlobal(self.lqVec, self.gqVec)
         return locals()
 
     local_n     = property(**local_n())
