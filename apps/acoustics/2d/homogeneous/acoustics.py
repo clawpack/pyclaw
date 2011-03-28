@@ -75,7 +75,7 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     status = claw.run()
 
     if htmlplot:  plot.plotHTML()
-    if petscPlot: plot.plotPetsc(output_object)
+    if petscPlot: plot.plotPetsc(claw)
     if iplot:     plot.plotInteractive()
 
     pressure=claw.frames[claw.nout].grid.gqVec.getArray().reshape([grid.local_n[0],grid.local_n[1],grid.meqn])[:,:,0]
