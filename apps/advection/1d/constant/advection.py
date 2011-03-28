@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #!/usr/bin/env python
 # encoding: utf-8
 def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True):
