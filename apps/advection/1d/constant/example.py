@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True,usepetclaw=True,soltype='clawpack'):
+def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True,usepetclaw=True,soltype='sharpclaw'):
     """
     Example python script for solving the 1d advection equation.
     """
@@ -39,7 +39,7 @@ def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True,usep
     x = Dimension('x',0.0,1.0,200,mthbc_lower=2,mthbc_upper=2)
     x.mbc=mbc
     grid = Grid(x)
-    grid.aux_global['u']=-1.
+    grid.aux_global['u']=1.
     if kernelsType=='F':
         from step1 import comrp
         comrp.u = grid.aux_global['u']

@@ -23,7 +23,7 @@ from clawpack import PetClawSolver
 from pyclaw.evolve.sharpclaw import SharpClawSolver1D
 from petsc4py import PETSc
 
-class RKStage(object):
+class RKStageDA(object):
     """
     A single Runge-Kutta stage.
     """
@@ -44,16 +44,48 @@ class RKStage(object):
             else:
                 raise Exception("Invalid number of dimensions")
 
-        self.da = PETSc.DA().create(dim=grid.ndim,
+        self.q_da = PETSc.DA().create(dim=grid.ndim,
                                     dof=grid.meqn,
                                     sizes=grid.n, 
                                     periodic_type = periodic_type,
                                     stencil_width=grid.mbc,
                                     comm=PETSc.COMM_WORLD)
-        self.gVec = self.da.createGlobalVector()
-        self.lVec = self.da.createLocalVector()
+        self.gqVec = self.q_da.createGlobalVector()
+        self.lqVec = self.q_da.createLocalVector()
+        self.mbc  = grid.mbc
+        self.meqn = grid.meqn
+        self.ndim = grid.ndim
 
+    def local_n():
+        def fget(self):
+            shape = [i[1]-i[0] for i in self.q_da.getRanges()]
+            return shape
+        return locals()
+    def q():
+        def fget(self):
+            q_dim = self.local_n
+            q_dim.insert(0,self.meqn)
+            q=self.gqVec.getArray().reshape(q_dim, order = 'F')
+            return q
+        def fset(self,q):
+            self.gqVec.setArray(q.reshape([-1], order = 'F'))
+        return locals()
 
+    def ghosted_q():
+        def fget(self):
+            self.q_da.globalToLocal(self.gqVec, self.lqVec)
+            q_dim = [self.local_n[i] + 2*self.mbc for i in xrange(self.ndim)]
+            q_dim.insert(0,self.meqn)
+            ghosted_q=self.lqVec.getArray().reshape(q_dim, order = 'F')
+            return ghosted_q
+        def fset(self,ghosted_q):
+            self.lqVec.setArray(ghosted_q.reshape([-1], order = 'F'))
+        return locals()
+
+    local_n     = property(**local_n())
+    q           = property(**q())
+    ghosted_q   = property(**ghosted_q())
+ 
 class SharpPetClawSolver1D(SharpClawSolver1D,PetClawSolver):
     """SharpClaw evolution routine in 1D
     
@@ -64,6 +96,16 @@ class SharpPetClawSolver1D(SharpClawSolver1D,PetClawSolver):
     
     """
     
-    def qbc(self,grid,q,t):
-        return PetClawSolver.qbc(self,grid,q,t)
+    def qbc(self,grid,state):
+        return PetClawSolver.qbc(self,grid,state)
+
+    def setup(self,solutions):
+
+        if self.time_integrator == 'Euler': nregisters=1
+        elif self.time_integrator == 'SSP33': nregisters=2
+ 
+        grid = solutions['n'].grids[0]
+        self.rk_stages = []
+        for i in range(nregisters-1):
+            self.rk_stages.append(RKStageDA(grid))
 

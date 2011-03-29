@@ -184,8 +184,6 @@ class Grid(pyclaw.solution.Grid):
             self.q_da.globalToLocal(self.gqVec, self.lqVec)
             q_dim = [self.local_n[i] + 2*self.mbc for i in xrange(self.ndim)]
             q_dim.insert(0,self.meqn)
-            print q_dim
-            print self.lqVec.getArray().shape
             ghosted_q=self.lqVec.getArray().reshape(q_dim, order = 'F')
             return ghosted_q
         def fset(self,ghosted_q):

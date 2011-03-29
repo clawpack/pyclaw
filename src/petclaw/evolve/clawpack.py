@@ -95,7 +95,7 @@ class PetClawSolver(ClawSolver):
     
          
     # ========== Boundary Conditions ==================================
-    def qbc(self,grid,q,t):
+    def qbc(self,grid,state):
         """
         Returns an array with the ghost cells filled.
         It would be nice to do the ghost cell array fetch in here, but
@@ -105,7 +105,7 @@ class PetClawSolver(ClawSolver):
         We should think about what makes the most sense.
         """
         
-        qbc = grid.ghosted_q 
+        qbc = state.ghosted_q 
         for i in xrange(len(grid._dimensions)):
             dim = getattr(grid,grid._dimensions[i])
             #If a user defined boundary condition is being used, send it on,
@@ -228,7 +228,7 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
         # Number of equations
         meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,grid.mbc,grid.aux
           
-        q = self.qbc(grid,grid.q,grid.t)
+        q = self.qbc(grid,grid)
 
         if(self.kernelsType == 'F'):
             from step1 import step1
@@ -359,7 +359,7 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
                        + (narray-1) * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn 
             work = np.empty((mwork))
             
-            qold = self.qbc(grid,grid.q,grid.t)
+            qold = self.qbc(grid,grid)
             qnew = qold #(input/output)
 
             #Old Workaround for f2py bug (?)
