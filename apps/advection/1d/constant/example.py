@@ -38,7 +38,7 @@ def advection(kernelsType='P',iplot=False,petscPlot=False,htmlplot=False,useCont
     from pyclaw.solution import Solution
     from pyclaw.controller import Controller
 
-    x = Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
+    x = Dimension('x',0.0,1.0,200,mthbc_lower=2,mthbc_upper=2)
     x.mbc=mbc
     grid = Grid(x)
     grid.aux_global['u']=1.
