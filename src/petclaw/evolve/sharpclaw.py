@@ -19,7 +19,7 @@ import numpy as np
 
 # Solver superclass
 from pyclaw.evolve.clawpack import start_step, src
-from solver import PetClawSolver
+from clawpack import PetClawSolver
 from pyclaw.evolve.sharpclaw import SharpClawSolver1D
 from petsc4py import PETSc
 
