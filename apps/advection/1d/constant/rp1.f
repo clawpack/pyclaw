@@ -22,24 +22,23 @@ c     # From the basic clawpack routine step1, rp is called with ql = qr = q.
 c
 c
       implicit double precision (a-h,o-z)
-      dimension   ql(1-mbc:maxmx+mbc, meqn)
-      dimension   qr(1-mbc:maxmx+mbc, meqn)
-      dimension    s(1-mbc:maxmx+mbc, mwaves)
-      dimension wave(1-mbc:maxmx+mbc, meqn, mwaves)
-      dimension amdq(1-mbc:maxmx+mbc, meqn)
-      dimension apdq(1-mbc:maxmx+mbc, meqn)
+      dimension   ql( meqn,1-mbc:maxmx+mbc)
+      dimension   qr( meqn,1-mbc:maxmx+mbc)
+      dimension   amdq( meqn,1-mbc:maxmx+mbc)
+      dimension   apdq( meqn,1-mbc:maxmx+mbc)
+      dimension    s(mwaves,1-mbc:maxmx+mbc)
+      dimension wave(meqn, mwaves,1-mbc:maxmx+mbc)
       common /comrp/ u
-c
 c
 c
       do 30 i=2-mbc,mx+mbc
 c
 c        # Compute the wave and speed
 c
-         wave(i,1,1) = ql(i,1) - qr(i-1,1)
-         s(i,1) = u
-         amdq(i,1) = dmin1(u, 0.d0) * wave(i,1,1)
-         apdq(i,1) = dmax1(u, 0.d0) * wave(i,1,1)
+         wave(1,1,i) = ql(1,i) - qr(1,i-1)
+         s(1,i) = u
+         amdq(1,i) = dmin1(u, 0.d0) * wave(1,1,i)
+         apdq(1,i) = dmax1(u, 0.d0) * wave(1,1,i)
    30    continue
 c
       return
