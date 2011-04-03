@@ -53,7 +53,7 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     grid.mbc = 2
     tfinal = 0.12
     qinit(grid)
-    inital_solution = Solution(grid)
+    initial_solution = Solution(grid)
 
     solver = PetClawSolver2D()
     solver.cfl_max = 0.5
@@ -67,7 +67,7 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     # The output format MUST be set to petsc!
     claw.output_format = 'petsc'
     claw.tfinal = tfinal
-    claw.solutions['n'] = inital_solution
+    claw.solutions['n'] = initial_solution
     claw.solver = solver
 
     # Solve

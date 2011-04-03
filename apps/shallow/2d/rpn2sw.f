@@ -1,9 +1,8 @@
-
 c
 c
 c     =====================================================
       subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,
-     &			wave,s,amdq,apdq)
+     &                wave,s,amdq,apdq)
 c     =====================================================
 c
 c     # Roe-solver for the 2D shallow water equations
@@ -36,33 +35,39 @@ c
       dimension   qr(1-mbc:maxm+mbc, meqn)
       dimension  apdq(1-mbc:maxm+mbc, meqn)
       dimension  amdq(1-mbc:maxm+mbc, meqn)
+      double precision g
 c
 c     local arrays -- common block comroe is passed to rpt2sh
 c     ------------
-      parameter (maxm2 = 603)  !# assumes at most 600x600 grid with mbc=3
+c     parameter (maxm2 = 603)  !# assumes at most 600x600 grid with mbc=3
       dimension delta(3)
       logical efix
-      common /param/  g    !# gravitational parameter 
-      common /comroe/ u(-2:maxm2),v(-2:maxm2),a(-2:maxm2),h(-2:maxm2)
+c      common /cparam/  g    !# gravitational parameter 
+      dimension u(1-mbc:maxm+mbc)
+      dimension v(1-mbc:maxm+mbc)
+      dimension a(1-mbc:maxm+mbc)
+      dimension h(1-mbc:maxm+mbc)
 c
       data efix /.true./    !# use entropy fix for transonic rarefactions
 c
-      if (-2.gt.1-mbc .or. maxm2 .lt. maxm+mbc) then
-	 write(6,*) 'Check dimensions of local arrays in rpn2'
-	 stop
-	 endif
+c      if (-2.gt.1-mbc .or. maxm2 .lt. maxm+mbc) then
+c	 write(6,*) 'Check dimensions of local arrays in rpn2'
+c	 stop
+c	 endif
 c
 c     # set mu to point to  the component of the system that corresponds
 c     # to momentum in the direction of this slice, mv to the orthogonal
 c     # momentum:
 c
       if (ixy.eq.1) then
-	  mu = 2
-	  mv = 3
-	else
-	  mu = 3
-	  mv = 2
-	endif
+          mu = 2
+          mv = 3
+      else
+         mu = 3
+         mv = 2
+      endif
+
+          g = 1.d0
 c
 c     # note that notation for u and v reflects assumption that the
 c     # Riemann problems are in the x-direction with u in the normal
@@ -83,7 +88,7 @@ c
          hsq2 = hsqrtl + hsqrtr
          u(i) = (qr(i-1,mu)/hsqrtl + ql(i,mu)/hsqrtr) / hsq2
          v(i) = (qr(i-1,mv)/hsqrtl + ql(i,mv)/hsqrtr) / hsq2
-         a(i) = dsqrt(g*h(i))
+         a(i) =  dsqrt(g*h(i))
    10    continue
 c
 c
@@ -130,14 +135,14 @@ c     # apdq = SUM s*wave   over right-going waves
 c
       do 100 m=1,3
          do 100 i=2-mbc, mx+mbc
-	    amdq(i,m) = 0.d0
-	    apdq(i,m) = 0.d0
-	    do 90 mw=1,mwaves
-	       if (s(i,mw) .lt. 0.d0) then
-		   amdq(i,m) = amdq(i,m) + s(i,mw)*wave(i,m,mw)
-		 else
-		   apdq(i,m) = apdq(i,m) + s(i,mw)*wave(i,m,mw)
-		 endif
+            amdq(i,m) = 0.d0
+            apdq(i,m) = 0.d0
+            do 90 mw=1,mwaves
+                if (s(i,mw) .lt. 0.d0) then
+                    amdq(i,m) = amdq(i,m) + s(i,mw)*wave(i,m,mw)
+                else
+                    apdq(i,m) = apdq(i,m) + s(i,mw)*wave(i,m,mw)
+            endif
    90          continue
   100       continue
       go to 900
