@@ -67,7 +67,7 @@ c
          mv = 2
       endif
 
-          g = 1.d0
+      g = 1.d0
 c
 c     # note that notation for u and v reflects assumption that the
 c     # Riemann problems are in the x-direction with u in the normal

@@ -10,15 +10,14 @@ def qinit(grid):
     # Create an array with fortran native ordering
     x =grid.x.center
     y =grid.y.center
-    Y,X = np.meshgrid(y,x)
-
+ 
     q=np.empty([grid.meqn,len(x),len(y)], order = 'F')
     q[0,:,:] = 1.0
     q[1,:,:] = 0.0
     q[2,:,:] = 0.0
     grid.q=q
 
-def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
+def shallow2D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
     """
     Example python script for solving the 2d shallow water equations.
     """
@@ -38,7 +37,7 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
 
     # Define number of equations and BC
     grid.meqn = 3
-    grid.mbc = 2
+    grid.mbc = 3
 
     # Define parameters for simulation
     #g = 1.0 # gravity
@@ -62,7 +61,7 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
 
     # Define controller and controller's parameters
     claw = Controller()
-    claw.keep_copy = True
+    claw.keep_copy = False
     claw.output_format = 'petsc' # The output format MUST be set to petsc!
     tfinal = 0.1
     claw.tfinal = tfinal
