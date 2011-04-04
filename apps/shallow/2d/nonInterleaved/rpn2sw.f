@@ -29,12 +29,12 @@ c
 c
       implicit double precision (a-h,o-z)
 c
-      dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
-      dimension    s(mwaves, 1-mbc:maxm+mbc)
-      dimension   ql(meqn,1-mbc:maxm+mbc)
-      dimension   qr(meqn, 1-mbc:maxm+mbc)
-      dimension  apdq(meqn, 1-mbc:maxm+mbc)
-      dimension  amdq(meqn, 1-mbc:maxm+mbc)
+      dimension wave(1-mbc:maxm+mbc, meqn, mwaves)
+      dimension    s(1-mbc:maxm+mbc, mwaves)
+      dimension   ql(1-mbc:maxm+mbc, meqn)
+      dimension   qr(1-mbc:maxm+mbc, meqn)
+      dimension  apdq(1-mbc:maxm+mbc, meqn)
+      dimension  amdq(1-mbc:maxm+mbc, meqn)
       double precision g
 c
 c     local arrays -- common block comroe is passed to rpt2sh
@@ -82,12 +82,12 @@ c     # These are stored in the common block comroe since they are
 c     # later used in routine rpt2sh to do the transverse wave splitting.
 c
         do 10 i = 2-mbc, mx+mbc
-         h(i) = (qr(1,i-1)+ql(1,i))*0.50d0
-         hsqrtl = dsqrt(qr(1,i-1))
-         hsqrtr = dsqrt(ql(1,i))
+         h(i) = (qr(i-1,1)+ql(i,1))*0.50d0
+         hsqrtl = dsqrt(qr(i-1,1))
+         hsqrtr = dsqrt(ql(i,1))
          hsq2 = hsqrtl + hsqrtr
-         u(i) = (qr(mu,i-1)/hsqrtl + ql(mu,i)/hsqrtr) / hsq2
-         v(i) = (qr(mv,i-1)/hsqrtl + ql(mv,i)/hsqrtr) / hsq2
+         u(i) = (qr(i-1,mu)/hsqrtl + ql(i,mu)/hsqrtr) / hsq2
+         v(i) = (qr(i-1,mv)/hsqrtl + ql(i,mv)/hsqrtr) / hsq2
          a(i) =  dsqrt(g*h(i))
    10    continue
 c
@@ -96,29 +96,29 @@ c     # now split the jump in q at each interface into waves
 c
 c     # find a1 thru a3, the coefficients of the 3 eigenvectors:
       do 20 i = 2-mbc, mx+mbc
-         delta(1) = ql(1,i) - qr(1,i-1)
-         delta(2) = ql(mu,i) - qr(mu,i-1)
-         delta(3) = ql(mv,i) - qr(mv,i-1)
+         delta(1) = ql(i,1) - qr(i-1,1)
+         delta(2) = ql(i,mu) - qr(i-1,mu)
+         delta(3) = ql(i,mv) - qr(i-1,mv)
          a1 = ((u(i)+a(i))*delta(1) - delta(2))*(0.50d0/a(i))
          a2 = -v(i)*delta(1) + delta(3)
          a3 = (-(u(i)-a(i))*delta(1) + delta(2))*(0.50d0/a(i))
 c
 c        # Compute the waves.
 c
-         wave(1,1,i) = a1
-         wave(mu,1,i) = a1*(u(i)-a(i))
-         wave(mv,1,i) = a1*v(i)
-         s(1,i) = u(i)-a(i)
+         wave(i,1,1) = a1
+         wave(i,mu,1) = a1*(u(i)-a(i))
+         wave(i,mv,1) = a1*v(i)
+         s(i,1) = u(i)-a(i)
 c
-         wave(1,2,i) = 0.0d0
-         wave(mu,2,1) = 0.0d0
-         wave(mv,2,i) = a2
-         s(2,i) = u(i)
+         wave(i,1,2) = 0.0d0
+         wave(i,mu,2) = 0.0d0
+         wave(i,mv,2) = a2
+         s(i,2) = u(i)
 c
-         wave(1,3,i) = a3
-         wave(mu,3,i) = a3*(u(i)+a(i))
-         wave(mv,3,i) = a3*v(i)
-         s(3,i) = u(i)+a(i)
+         wave(i,1,3) = a3
+         wave(i,mu,3) = a3*(u(i)+a(i))
+         wave(i,mv,3) = a3*v(i)
+         s(i,3) = u(i)+a(i)
    20    continue
 c
 c
@@ -135,13 +135,13 @@ c     # apdq = SUM s*wave   over right-going waves
 c
       do 100 m=1,3
          do 100 i=2-mbc, mx+mbc
-            amdq(m,i) = 0.d0
-            apdq(m,i) = 0.d0
+            amdq(i,m) = 0.d0
+            apdq(i,m) = 0.d0
             do 90 mw=1,mwaves
-                if (s(mw,i) .lt. 0.d0) then
-                    amdq(m,i) = amdq(m,i) + s(mw,i)*wave(m,mw,i)
+                if (s(i,mw) .lt. 0.d0) then
+                    amdq(i,m) = amdq(i,m) + s(i,mw)*wave(i,m,mw)
                 else
-                    apdq(m,i) = apdq(m,i) + s(mw,i)*wave(m,mw,i)
+                    apdq(i,m) = apdq(i,m) + s(i,mw)*wave(i,m,mw)
             endif
    90          continue
   100       continue
@@ -161,62 +161,62 @@ c    # if s should change sign.
 c
          do 200 i=2-mbc,mx+mbc
 c           check 1-wave
-            him1 = qr(1,i-1)
-            s0 =  qr(mu,i-1)/him1 - dsqrt(g*him1)
+            him1 = qr(i-1,1)
+            s0 =  qr(i-1,mu)/him1 - dsqrt(g*him1)
 c           check for fully supersonic case :
             if (s0.gt.0.0d0.and.s(i,1).gt.0.0d0) then
                do 60 m=1,3
-                  amdq(m,i)=0.0d0
+                  amdq(i,m)=0.0d0
    60          continue
                goto 200
             endif
 c
-            h1 = qr(1,i-1)+wave(1,1,i)
-            hu1= qr(mu,i-1)+wave(mu,1,i)
+            h1 = qr(i-1,1)+wave(i,1,1)
+            hu1= qr(i-1,mu)+wave(i,mu,1)
             s1 = hu1/h1 - dsqrt(g*h1) !speed just to right of 1-wave
             if (s0.lt.0.0d0.and.s1.gt.0.0d0) then
 c              transonic rarefaction in 1-wave
-               sfract = s0*((s1-s(1,i))/(s1-s0))
-            else if (s(1,i).lt.0.0d0) then
+               sfract = s0*((s1-s(i,1))/(s1-s0))
+            else if (s(i,1).lt.0.0d0) then
 c              1-wave is leftgoing
-               sfract = s(1,i)
+               sfract = s(i,1)
             else
 c              1-wave is rightgoing
                sfract = 0.0d0
             endif
             do 120 m=1,3
-               amdq(m,i) = sfract*wave(m,1,i)
+               amdq(i,m) = sfract*wave(i,m,1)
   120       continue
 
 c           check 2-wave
-            if (s(2,i).gt.0.0d0) then
+            if (s(i,2).gt.0.0d0) then
 c              #2 and 3 waves are right-going
                go to 200
                endif
 
             do 140 m=1,3
-               amdq(m,i) = amdq(m,i) + s(2,i)*wave(m,2,i)
+               amdq(i,m) = amdq(i,m) + s(i,2)*wave(i,m,2)
   140       continue
 c
 c           check 3-wave
 c
-            hi = ql(1,i)
-            s03 = ql(mu,i)/hi + dsqrt(g*hi)
-            h3=ql(1,i)-wave(1,3,i)
-            hu3=ql(mu,i)-wave(mu,3,i)
+            hi = ql(i,1)
+            s03 = ql(i,mu)/hi + dsqrt(g*hi)
+            h3=ql(i,1)-wave(i,1,3)
+            hu3=ql(i,mu)-wave(i,mu,3)
             s3=hu3/h3 + dsqrt(g*h3)
             if (s3.lt.0.0d0.and.s03.gt.0.0d0) then
 c              transonic rarefaction in 3-wave
-               sfract = s3*((s03-s(3,i))/(s03-s3))
-            else if (s(3,i).lt.0.0d0) then
+               sfract = s3*((s03-s(i,3))/(s03-s3))
+            else if (s(i,3).lt.0.0d0) then
 c              3-wave is leftgoing
-               sfract = s(3,i)
+               sfract = s(i,3)
             else
 c              3-wave is rightgoing
                goto 200
             endif
             do 160 m=1,3
-               amdq(m,i) = amdq(m,i) + sfract*wave(m,3,i)
+               amdq(i,m) = amdq(i,m) + sfract*wave(i,m,3)
   160       continue
   200       continue
 c
@@ -226,9 +226,9 @@ c
                do 220 i = 2-mbc,mx+mbc
                   df = 0.0d0
                   do 210 mw=1,mwaves
-                     df = df + s(mw,i)*wave(m,mw,i)
+                     df = df + s(i,mw)*wave(i,m,mw)
   210             continue
-                  apdq(m,i)=df-amdq(m,i)
+                  apdq(i,m)=df-amdq(i,m)
   220          continue
 c
 c
