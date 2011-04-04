@@ -111,7 +111,7 @@ c
          s(1,i) = u(i)-a(i)
 c
          wave(1,2,i) = 0.0d0
-         wave(mu,2,1) = 0.0d0
+         wave(mu,2,i) = 0.0d0
          wave(mv,2,i) = a2
          s(2,i) = u(i)
 c

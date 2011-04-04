@@ -18,14 +18,14 @@ def qinit(grid):
     q[2,:,:] = 0.0
     grid.q=q
 
-def shallow2D(iplot=False,petscPlot=False,useCcontroller=True,htmlplot=False)
+def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     """
     Example python script for solving the 2d shallow water equations.
     """
 
     from petclaw.grid import Dimension
     from petclaw.grid import Grid
-    from petclaw.solution import Solution
+    from pyclaw.solution import Solution
     from petclaw.evolve.clawpack import PetClawSolver2D
     from pyclaw.controller import Controller
     from petclaw import plot
@@ -66,7 +66,7 @@ def shallow2D(iplot=False,petscPlot=False,useCcontroller=True,htmlplot=False)
     claw.output_format = 'petsc' # The output format MUST be set to petsc!
     tfinal = 0.1
     claw.tfinal = tfinal
-    claw.solution['n'] = initial_solution
+    claw.solutions['n'] = initial_solution
     claw.solver = solver
 
     # Solve problem
