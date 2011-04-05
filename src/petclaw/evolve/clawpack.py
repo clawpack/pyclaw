@@ -264,6 +264,7 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
         elif(self.kernelsType == 'P'):
             q=self.python_homogeneous_step(grid,q)
 
+        #This copy is unnecessary and should be eliminated.
         grid.q=q[:,grid.mbc:-grid.mbc]
         self.communicateCFL()
           
