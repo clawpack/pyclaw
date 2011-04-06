@@ -43,17 +43,17 @@ c     parameter (maxm2 = 603)  !# assumes at most 600x600 grid with mbc=3
       dimension delta(3)
       logical efix
 c      common /cparam/  g    !# gravitational parameter 
-      dimension u(1-mbc:maxm+mbc)
-      dimension v(1-mbc:maxm+mbc)
-      dimension a(1-mbc:maxm+mbc)
-      dimension h(1-mbc:maxm+mbc)
+      dimension u(-2:603)
+      dimension v(-2:603)
+      dimension a(-2:603)
+      dimension h(-2:603)
 c
       data efix /.true./    !# use entropy fix for transonic rarefactions
 c
-c      if (-2.gt.1-mbc .or. maxm2 .lt. maxm+mbc) then
-c	 write(6,*) 'Check dimensions of local arrays in rpn2'
-c	 stop
-c	 endif
+      if (-2.gt.1-mbc .or. 603 .lt. maxm+mbc) then
+         write(6,*) 'Check dimensions of local arrays in rpn2'
+         stop
+         endif
 c
 c     # set mu to point to  the component of the system that corresponds
 c     # to momentum in the direction of this slice, mv to the orthogonal
@@ -164,7 +164,7 @@ c           check 1-wave
             him1 = qr(1,i-1)
             s0 =  qr(mu,i-1)/him1 - dsqrt(g*him1)
 c           check for fully supersonic case :
-            if (s0.gt.0.0d0.and.s(i,1).gt.0.0d0) then
+            if (s0.gt.0.0d0.and.s(1,i).gt.0.0d0) then
                do 60 m=1,3
                   amdq(m,i)=0.0d0
    60          continue

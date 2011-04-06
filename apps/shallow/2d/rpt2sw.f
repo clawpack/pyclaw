@@ -26,17 +26,17 @@ c
 c      common /cparam/  g    !# gravitational parameter 
       dimension waveb(3,3),sb(3)
 c      parameter (maxm2 = 603)  !# assumes at most 600x600 grid with mbc=3
-      dimension u(1-mbc:maxm+mbc)
-      dimension v(1-mbc:maxm+mbc)
-      dimension a(1-mbc:maxm+mbc)
-      dimension hl(1-mbc:maxm+mbc)
-      dimension hr(1-mbc:maxm+mbc)
-      dimension h(1-mbc:maxm+mbc)
+      dimension u(-2:603)
+      dimension v(-2:603)
+      dimension a(-2:603)
+      dimension hl(-2:603)
+      dimension hr(-2:603)
+      dimension h(-2:603)
 c
-c      if (-2.gt.1-mbc .or. maxm2 .lt. maxm+mbc) then
-c	 write(6,*) 'need to increase maxm2 in rpB'
-c	 stop
-c      endif
+      if (-2.gt.1-mbc .or. 603 .lt. maxm+mbc) then
+        write(6,*) 'need to increase maxm2 in rpB'
+        stop
+      endif
 c
 
 

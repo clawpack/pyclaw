@@ -3,7 +3,7 @@
 
 import numpy as np
 
-def qinit(grid):
+def qinit(grid,xlower,ylower,dx,dy,hin,hout):
     # Initialize petsc Structures for q
     grid.init_q_petsc_structures()
     
@@ -12,10 +12,30 @@ def qinit(grid):
     y =grid.y.center
  
     q=np.empty([grid.meqn,len(x),len(y)], order = 'F')
-    q[0,:,:] = 1.0
-    q[1,:,:] = 0.0
-    q[2,:,:] = 0.0
+
+    print dx, dy, hin, hout
+
+    for i in range(len(x)):
+        for j in range(len(y)):
+            r = np.sqrt(grid.x.center[i]**2 + grid.y.center[j]**2)
+            if r<0.5: 
+                q[0,i,j] = hin;
+            else:
+                q[0,i,j] = hout
+            q[1,i,j] = 0.0
+            q[2,i,j] = 0.0
     grid.q=q
+
+
+#def cellave(xlower,ylower,dx,dy,wl)
+#    """
+#    This function is a translation from fortran 77 to python  of the Clawpack routine
+#    written by Prof. LeVeque. See cellave.f in clawpack/2d/lib/
+#    """
+    
+#    xx = array([xlow,xlow,xlow+dx,xlow+dx,xlow], dtype=float)
+#    yy - array([ylow,ylow+dy,ylow+dy,ylow,ylow], dtype=float)
+
 
 def shallow2D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
     """
@@ -31,9 +51,18 @@ def shallow2D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
 
     # Create grid
     mx=100; my=100
-    x = Dimension('x',-1.0,1.0,mx,mthbc_lower=1,mthbc_upper=1)
-    y = Dimension('y',-1.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
+    xlower = -2.5
+    xupper = 2.5
+    ylower = -2.5
+    yupper = 2.5
+    x = Dimension('x',xlower,xupper,mx,mthbc_lower=1,mthbc_upper=1)
+    y = Dimension('y',ylower,yupper,my,mthbc_lower=1,mthbc_upper=1)
     grid = Grid([x,y])
+   
+    # Get cell's sizes needed to initialize the solution 
+    dx = grid.d[0]
+    dy = grid.d[1]
+
 
     # Define number of equations and BC
     grid.meqn = 3
@@ -46,7 +75,9 @@ def shallow2D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
     #for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     # Set initial condition (initial solution)
-    qinit(grid)
+    hin = 2.0
+    hout = 1.0
+    qinit(grid,xlower,ylower,dx,dy,hin,hout)
     initial_solution = Solution(grid)
 
 
@@ -54,8 +85,8 @@ def shallow2D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
     solver = PetClawSolver2D()
     solver.order = 2
     solver.order_trans = 2
-    solver.cfl_max = 0.5
-    solver.cfl_desired = 0.45
+    solver.cfl_max = 0.15
+    solver.cfl_desired = 0.1
     solver.mwaves = 3
     solver.mathlim = [3]
 
@@ -63,7 +94,7 @@ def shallow2D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
     claw = Controller()
     claw.keep_copy = False
     claw.output_format = 'petsc' # The output format MUST be set to petsc!
-    tfinal = 0.1
+    tfinal = 1.5
     claw.tfinal = tfinal
     claw.solutions['n'] = initial_solution
     claw.solver = solver
