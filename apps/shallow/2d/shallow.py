@@ -10,20 +10,24 @@ def qinit(grid,xlower,ylower,dx,dy,hin,hout):
     # Create an array with fortran native ordering
     x =grid.x.center
     y =grid.y.center
+    Y,X = np.meshgrid(y,x)
  
     q=np.empty([grid.meqn,len(x),len(y)], order = 'F')
 
-    print dx, dy, hin, hout
 
-    for i in range(len(x)):
-        for j in range(len(y)):
-            r = np.sqrt(grid.x.center[i]**2 + grid.y.center[j]**2)
-            if r<0.5: 
-                q[0,i,j] = hin;
-            else:
-                q[0,i,j] = hout
-            q[1,i,j] = 0.0
-            q[2,i,j] = 0.0
+ #   print dx, dy, hin, hout
+
+ #   for i in range(len(x)):
+ #       for j in range(len(y)):
+ #           r = np.sqrt(grid.x.center[i]**2 + grid.y.center[j]**2)
+ #           if grid.x.center[i]<0.0: 
+ #               q[0,i,j] = 2
+ #           else:
+ #               q[0,i,j] = 1
+
+    q[0,:,:] = hin * (X <= 0.0) + hout * (X > 0.0)
+    q[1,:,:] = 0.0
+    q[2,:,:] = 0.0
     grid.q=q
 
 
@@ -37,7 +41,7 @@ def qinit(grid,xlower,ylower,dx,dy,hin,hout):
 #    yy - array([ylow,ylow+dy,ylow+dy,ylow,ylow], dtype=float)
 
 
-def shallow2D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
+def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
     """
     Example python script for solving the 2d shallow water equations.
     """
@@ -83,16 +87,16 @@ def shallow2D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
 
     # Define solver and solver's parameters
     solver = PetClawSolver2D()
-    solver.order = 2
-    solver.order_trans = 2
+    #solver.order = 2
+    #solver.order_trans = 2
     solver.cfl_max = 0.15
     solver.cfl_desired = 0.1
     solver.mwaves = 3
-    solver.mathlim = [3]
+    solver.mathlim = [4]*solver.mwaves
 
     # Define controller and controller's parameters
     claw = Controller()
-    claw.keep_copy = False
+    claw.keep_copy = True
     claw.output_format = 'petsc' # The output format MUST be set to petsc!
     tfinal = 1.5
     claw.tfinal = tfinal
