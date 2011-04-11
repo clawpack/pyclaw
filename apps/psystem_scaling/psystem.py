@@ -126,11 +126,16 @@ def psystem2D(iplot=False,petscPlot=False,useController=True):
 
 if __name__=="__main__":
     from petsc4py import PETSc
-    rank =PETSc.Comm.getRank(PETSc.COMM_WORLD)
-    size =PETSc.Comm.getSize(PETSc.COMM_WORLD)
-    if rank == 0 or rank == 5:
-        import cProfile
-        cProfile.run('psystem2D()', 'profile'+str(rank)+'_'+str(size))
+    generateProfile = False
+    proccessesList = [0,5]
+    if generateProfile:
+        rank =PETSc.Comm.getRank(PETSc.COMM_WORLD)
+        size =PETSc.Comm.getSize(PETSc.COMM_WORLD)
+        if rank in proccessesList:
+            import cProfile
+            cProfile.run('psystem2D()', 'profile'+str(rank)+'_'+str(size))
+        else:
+            print "process"+str(rank) +"not profiled"
+            psystem2D()
     else:
-        print "process"+str(rank) +"not profiled"
         psystem2D()
