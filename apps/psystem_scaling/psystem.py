@@ -30,17 +30,12 @@ def psystem2D(iplot=False,petscPlot=False,useController=True):
     psystem in 2D with variable coefficients
     """
     import time
-    time_import_start=time.time()
     from petclaw.grid import Dimension
     from petclaw.grid import Grid
     from pyclaw.solution import Solution
-    from petclaw.evolve.solver import PetClawSolver2D
+    from petclaw.evolve.clawpack import PetClawSolver2D
     from pyclaw.controller import Controller
     from petclaw import plot
-    time_import_end=time.time()
-    print 'Import time '+str(time_import_end-time_import_start)+' sec'
-
-    time_run_start=time.time()
 ####################################
 ######### MAIN PARAMETERS ##########
 ####################################
@@ -50,11 +45,15 @@ def psystem2D(iplot=False,petscPlot=False,useController=True):
 # Linearity parameters
     #hardcoded in the Riemman Solver
     #linearity_mat1=linearity_mat2=1
-# Domain
-    x_lower=0.0; x_upper=10.0
-    y_lower=0.0; y_upper=10.0
 # Grid cells
-    mx=100; my=100
+    size = PETSc.Comm.getSize(PETSc.COMM_WORLD)
+    mx=int(np.sqrt(size*10000)); my=mx
+    rank = PETSc.Comm.getRank(PETSc.COMM_WORLD)
+    if rank == 0:
+        print "mx, my = ",mx, my
+# Domain
+    x_lower=0.0; x_upper=mx/10
+    y_lower=0.0; y_upper=mx/10
 # Initial condition parameters
     A=5.
     x0=x_upper/2.; y0=y_upper/2.
@@ -95,11 +94,14 @@ def psystem2D(iplot=False,petscPlot=False,useController=True):
     solver.mwaves = 2
     solver.fwave = True 
     solver.mthlim = [4]*solver.mwaves
-
+    sol = {"n":inital_solution}
+    solver.evolve_to_time(sol,tfinal/10.)
+    
     claw = Controller()
     claw.keep_copy = True
     claw.nout = nout
-    claw.outdir = './_output/'
+    size = PETSc.Comm.getSize(PETSc.COMM_WORLD)
+    claw.outdir = './_output_'+str(size)+'/'
     # The output format MUST be set to petsc!
     claw.output_format = 'petsc'
     claw.tfinal = tfinal
@@ -107,13 +109,28 @@ def psystem2D(iplot=False,petscPlot=False,useController=True):
     claw.solver = solver
 
     # Solve
+    import time
+    start=time.time()
+    # Solve
     status = claw.run()
-         
-    time_run_end=time.time()
-    print 'Running time '+str(time_run_end-time_run_start)
+    end=time.time()
+    duration1 = end-start
+    rank = PETSc.Comm.getRank(PETSc.COMM_WORLD)
+    print 'controller.run took'+str(duration1)+' seconds, for process '+str(rank)
+    if rank ==0:
+        print 'number of steps: '+ str(claw.solver.status.get('numsteps'))
+                                            
     
     #eps=claw.frames[claw.nout].grid.gqVec.getArray().reshape([mx,my,grid.meqn])[:,:,0]
     #return eps
 
 if __name__=="__main__":
-    psystem2D()
+    from petsc4py import PETSc
+    rank =PETSc.Comm.getRank(PETSc.COMM_WORLD)
+    size =PETSc.Comm.getSize(PETSc.COMM_WORLD)
+    if rank == 0 or rank == 5:
+        import cProfile
+        cProfile.run('psystem2D()', 'profile'+str(rank)+'_'+str(size))
+    else:
+        print "process"+str(rank) +"not profiled"
+        psystem2D()
