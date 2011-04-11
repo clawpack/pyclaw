@@ -81,23 +81,6 @@ def shallow1D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
     if iplot: plot.plotInteractive()
 
 
-    # Plot
-    if claw.keep_copy:
-        import matplotlib.pyplot as plt
-        for n in xrange(0,claw.nout+1):
-            sol = claw.frames[n]
-            plt.figure(1)
-            plt.subplot(3,2,n+1)
-            plt.plot(x.center,sol.q[0,:])
-            plt.axis([x.lower,x.upper,0.0,3.2])
-            plt.title('Height t = %s' % sol.t)
-            plt.figure(2)
-            plt.subplot(3,2,n+1)
-            plt.plot(x.center,sol.q[1,:])
-            plt.axis([x.lower,x.upper,0.0,4.6])
-            plt.title('Momentum t = %s' % sol.t)
-        plt.show()
-
 if __name__=="__main__":
     import sys
     from petclaw.util import _info_from_argv
