@@ -33,6 +33,11 @@ def shallow1D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
     grid.meqn = 2
     grid.t = 0.0
 
+    # Parameters
+    grid.aux_global['grav'] = 1.0
+    from step1 import cparam
+    for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
+
 
     # Initial solution:
     grid.init_q_petsc_structures() # This must be called before grid.x.center and such can be accessed.
