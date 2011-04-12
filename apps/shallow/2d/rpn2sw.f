@@ -45,7 +45,7 @@ c      parameter (maxm2 = 603)  !# assumes at most 600x600 grid with mbc=3
       dimension delta(3)
       logical efix
 c      common /param/  g    !# gravitational parameter 
-      common /comroe/ u(-2:603),v(-2:603),a(-2:603),h(-2:603)
+      common /comroe/ u(-2:103),v(-2:103),a(-2:103),h(-2:103)
 c
       data efix /.true./    !# use entropy fix for transonic rarefactions
 c

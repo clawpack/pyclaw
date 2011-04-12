@@ -22,7 +22,7 @@ def qinit(grid,hl,ul,vl,hr,ur,vr,radDam):
     for i,x in enumerate(xCenter):
         for j,y in enumerate(yCenter):
             #r = np.sqrt(xCenter[i]**2 + yCenter[j]**2)
-            if x<0.: 
+            if np.sqrt(x**2+y**2)<=radDam: 
                 q[0,i,j] = hl
                 q[1,i,j] = hl*ul
                 q[2,i,j] = hl*vl
@@ -141,7 +141,7 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
     status = claw.run()
 
 
-    pdb.set_trace()
+    #pdb.set_trace()
 
     if htmlplot: plot.plotHTML()
     if petscPlot: plot.plotPetsc(output_object)
