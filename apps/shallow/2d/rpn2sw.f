@@ -1,3 +1,4 @@
+
 c
 c
 c     =====================================================
@@ -29,45 +30,43 @@ c
 c
       implicit double precision (a-h,o-z)
 c
-      dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
-      dimension    s(mwaves, 1-mbc:maxm+mbc)
-      dimension   ql(meqn,1-mbc:maxm+mbc)
-      dimension   qr(meqn, 1-mbc:maxm+mbc)
-      dimension  apdq(meqn, 1-mbc:maxm+mbc)
-      dimension  amdq(meqn, 1-mbc:maxm+mbc)
-      double precision g
+      dimension wave(meqn,   mwaves, 1-mbc:maxm+mbc)
+      dimension    s(mwaves,         1-mbc:maxm+mbc)
+      dimension   ql(meqn,           1-mbc:maxm+mbc)
+      dimension   qr(meqn,           1-mbc:maxm+mbc)
+      dimension  apdq(meqn,          1-mbc:maxm+mbc)
+      dimension  amdq(meqn,          1-mbc:maxm+mbc)
+
+      double precision :: g
 c
 c     local arrays -- common block comroe is passed to rpt2sh
 c     ------------
-c     parameter (maxm2 = 603)  !# assumes at most 600x600 grid with mbc=3
+c      parameter (maxm2 = 603)  !# assumes at most 600x600 grid with mbc=3
       dimension delta(3)
       logical efix
-c      common /cparam/  g    !# gravitational parameter 
-      dimension u(-2:603)
-      dimension v(-2:603)
-      dimension a(-2:603)
-      dimension h(-2:603)
+c      common /param/  g    !# gravitational parameter 
+      common /comroe/ u(-2:603),v(-2:603),a(-2:603),h(-2:603)
 c
       data efix /.true./    !# use entropy fix for transonic rarefactions
 c
-      if (-2.gt.1-mbc .or. 603 .lt. maxm+mbc) then
-         write(6,*) 'Check dimensions of local arrays in rpn2'
-         stop
-         endif
+c      if (-2.gt.1-mbc .or. maxm2 .lt. maxm+mbc) then
+c	 write(6,*) 'Check dimensions of local arrays in rpn2'
+c	 stop
+c	 endif
 c
 c     # set mu to point to  the component of the system that corresponds
 c     # to momentum in the direction of this slice, mv to the orthogonal
 c     # momentum:
 c
       if (ixy.eq.1) then
-          mu = 2
-          mv = 3
-      else
-         mu = 3
-         mv = 2
-      endif
+	  mu = 2
+	  mv = 3
+	else
+	  mu = 3
+	  mv = 2
+	endif
 
-      g = 1.d0
+        g = 1.d0
 c
 c     # note that notation for u and v reflects assumption that the
 c     # Riemann problems are in the x-direction with u in the normal
@@ -88,7 +87,7 @@ c
          hsq2 = hsqrtl + hsqrtr
          u(i) = (qr(mu,i-1)/hsqrtl + ql(mu,i)/hsqrtr) / hsq2
          v(i) = (qr(mv,i-1)/hsqrtl + ql(mv,i)/hsqrtr) / hsq2
-         a(i) =  dsqrt(g*h(i))
+         a(i) = dsqrt(g*h(i))
    10    continue
 c
 c
@@ -117,7 +116,7 @@ c
 c
          wave(1,3,i) = a3
          wave(mu,3,i) = a3*(u(i)+a(i))
-         wave(mv,3,i) = a3*v(i)
+         wave(i,mv,3) = a3*v(i)
          s(3,i) = u(i)+a(i)
    20    continue
 c
@@ -135,14 +134,14 @@ c     # apdq = SUM s*wave   over right-going waves
 c
       do 100 m=1,3
          do 100 i=2-mbc, mx+mbc
-            amdq(m,i) = 0.d0
-            apdq(m,i) = 0.d0
-            do 90 mw=1,mwaves
-                if (s(mw,i) .lt. 0.d0) then
-                    amdq(m,i) = amdq(m,i) + s(mw,i)*wave(m,mw,i)
-                else
-                    apdq(m,i) = apdq(m,i) + s(mw,i)*wave(m,mw,i)
-            endif
+	    amdq(m,i) = 0.d0
+	    apdq(m,i) = 0.d0
+	    do 90 mw=1,mwaves
+	       if (s(mw,i) .lt. 0.d0) then
+		   amdq(m,i) = amdq(m,i) + s(mw,i)*wave(m,mw,i)
+		 else
+		   apdq(m,i) = apdq(m,i) + s(mw,i)*wave(m,mw,i)
+		 endif
    90          continue
   100       continue
       go to 900

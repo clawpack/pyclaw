@@ -138,6 +138,10 @@ class PetClawSolver(ClawSolver):
         # Solid wall bc
         elif dim.mthbc_lower == 3:
             raise NotImplementedError("Solid wall upper boundary condition not implemented.")
+            #if dim.nstart == 0:
+             #   for i in xrange(grid.mbc):
+              #      qbc[1,i,...] = qbc[1,i+1,...]
+               #     qbc[2,i,...] = -qbc[2,i+1,...]
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
 
@@ -161,6 +165,11 @@ class PetClawSolver(ClawSolver):
         # Solid wall bc
         elif dim.mthbc_upper == 3:
             raise NotImplementedError("Solid wall upper boundary condition not implemented.")
+            #if dim.nend == dim.n :
+             #   for i in xrange(grid.mbc):
+              #      qbc[1,-i-1,...] = qbc[1,-grid.mbc-1,...] 
+               #     qbc[2,-i-1,...] = -qbc[2,-grid.mbc-1,...]
+
 
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)

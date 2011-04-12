@@ -38,8 +38,8 @@ def setplot(plotdata):
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
     plotitem.plot_var = 0
     plotitem.pcolor_cmap = colormaps.red_yellow_blue
-    plotitem.pcolor_cmin = '1'
-    plotitem.pcolor_cmax = '2'
+    plotitem.pcolor_cmin = 0.5
+    plotitem.pcolor_cmax = 1.5
     plotitem.add_colorbar = True
     plotitem.show = True       # show on plot?
     
@@ -54,19 +54,25 @@ def setplot(plotdata):
     plotaxes.title = 'Scatter plot of h'
 
     # Set up for item on these axes:
-    plotitem = plotaxes.new_plotitem(plot_type='1d_from_2d_data')
-    plotitem.plot_var = 0
-    def q_vs_radius(current_data):
-        from numpy import sqrt
-        x = current_data.x
-        y = current_data.y
-        r = sqrt(x**2 + y**2)
-        q = current_data.q[0,:,:]
-        return r,q
-    plotitem.map_2d_to_1d = q_vs_radius
-    plotitem.plotstyle = 'o'
+    #plotitem = plotaxes.new_plotitem(plot_type='1d_from_2d_data')
+    #plotitem.plot_var = 0
+    #def q_vs_radius(current_data):
+    #    from numpy import sqrt
+    #    x = current_data.x
+    #    y = current_data.y
+    #    r = sqrt(x**2 + y**2)
+    #    q = current_data.q[:,:,0]
+    #    return r,q
+    #plotitem.map_2d_to_1d = q_vs_radius
+    #plotitem.plotstyle = 'o'
 
-   
+    # Plot the 1drad solution on scatter plot:
+    #plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
+    #plotitem.plot_var = 0
+    #import os
+    #plotitem.outdir = os.path.abspath('1drad/_output')
+    #plotitem.plotstyle = 'r-'
+
 
     # Figure for q[1]
     plotfigure = plotdata.new_plotfigure(name='q[1]', figno=1)
