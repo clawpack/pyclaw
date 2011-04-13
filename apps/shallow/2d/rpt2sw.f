@@ -22,13 +22,13 @@ c
       dimension bmasdq(meqn, 1-mbc:maxm+mbc)
       dimension bpasdq(meqn, 1-mbc:maxm+mbc)
 
-      double precision :: g
+c      double precision :: g
 c
-c      common /param/  g    !# gravitational parameter 
+c      common /cparam/  grav   !# gravitational parameter 
       dimension waveb(3,3),sb(3)
 c      parameter (maxm2 = 603)  !# assumes at most 600x600 grid with mbc=3
-      common /comroe/ u(-2:103),v(-2:103),a(-2:103),hl(-2:103),
-     &		      hr(-2:103)
+      common /comroe/ u(-2:603),v(-2:603),a(-2:603),hl(-2:603),
+     &		      hr(-2:603)
 c
 c      if (-2.gt.1-mbc .or. maxm2 .lt. maxm+mbc) then
 c	 write(6,*) 'need to increase maxm2 in rpB'
@@ -43,7 +43,8 @@ c
 	  mv = 2
 	endif
 
-          g = 1.d0
+c            g = 1.d0
+        
 c
         do 20 i = 2-mbc, mx+mbc
            a1 = (0.50d0/a(i))*((v(i)+a(i))*asdq(1,i)-asdq(mv,i))

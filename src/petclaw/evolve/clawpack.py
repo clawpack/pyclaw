@@ -136,12 +136,28 @@ class PetClawSolver(ClawSolver):
             pass # Amal: this is implemented automatically by petsc4py
             
         # Solid wall bc
+        # Matteo: I've used three if statements to impose correctly this BC for both 1D and 2D
+        # simulation. Is this the most efficient way?
         elif dim.mthbc_lower == 3:
-            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
-            #if dim.nstart == 0:
-             #   for i in xrange(grid.mbc):
-              #      qbc[1,i,...] = qbc[1,i+1,...]
-               #     qbc[2,i,...] = -qbc[2,i+1,...]
+             if dim.nstart == 0:
+                if grid.ndim == 1:
+                    for i in xrange(grid.mbc):
+                        qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
+                        qbc[1,i,...] = -qbc[1,grid.mbc+1-i,...] # Negate normal velocity
+                elif grid.ndim == 2:
+                     if dim.name == 'y':
+                         for i in xrange(grid.mbc):
+                             qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
+                             qbc[1,i,...] = -qbc[1,grid.mbc+1-i,...] # Negate normal velocity
+                             qbc[2,i,...] = qbc[2,grid.mbc+1-i,...]
+                     #else:
+                     #    for i in xrange(grid.mbc):
+                     #        qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
+                     #        qbc[1,i,...] = qbc[1,grid.mbc+1-i,...] 
+                     #        qbc[2,i,...] = -qbc[2,grid.mbc+1-i,...] # Negate normal velocity
+              
+                else:
+                    raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
 
@@ -163,14 +179,29 @@ class PetClawSolver(ClawSolver):
             pass # Amal: this is implemented automatically by petsc4py
 
         # Solid wall bc
-        elif dim.mthbc_upper == 3:
-            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
-            #if dim.nend == dim.n :
-             #   for i in xrange(grid.mbc):
-              #      qbc[1,-i-1,...] = qbc[1,-grid.mbc-1,...] 
-               #     qbc[2,-i-1,...] = -qbc[2,-grid.mbc-1,...]
-
-
+        # Matteo: I've used three if statements to impose correctly this BC for both 1D and 2D
+        # simulation. Is this the most efficient way?
+        elif dim.mthbc_lower == 3:
+            raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
+             #if dim.nstart == 0:
+             #   if grid.ndim == 1:
+             #       for i in xrange(grid.mbc):
+             #           qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
+             #           qbc[1,i,...] = -qbc[1,grid.mbc+1-i,...] # Negate normal velocity
+             #   elif grid.ndim == 2:
+             #        if dim.name == 'x':
+             #            for i in xrange(grid.mbc):
+             #                qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
+             #                qbc[1,i,...] = -qbc[1,grid.mbc+1-i,...] # Negate normal velocity
+             #                qbc[2,i,...] = qbc[2,grid.mbc+1-i,...]
+                     #else:
+                     #    for i in xrange(grid.mbc):
+                     #        qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
+                     #        qbc[1,i,...] = qbc[1,grid.mbc+1-i,...] 
+                     #        qbc[2,i,...] = -qbc[2,grid.mbc+1-i,...] # Negate normal velocity
+              
+                #else:
+                #    raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
 

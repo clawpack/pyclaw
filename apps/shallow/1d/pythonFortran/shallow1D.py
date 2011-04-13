@@ -27,7 +27,7 @@ def shallow1D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
     xlower = -5.0
     xupper = 5.0
     mx = 500
-    x = Dimension('x',xlower,xupper,mx,mthbc_lower=1,mthbc_upper=1)
+    x = Dimension('x',xlower,xupper,mx,mthbc_lower=3,mthbc_upper=1)
     grid = Grid(x)
 
     grid.meqn = 2
@@ -71,7 +71,7 @@ def shallow1D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
     claw = Controller()
     claw.keep_copy = True
     claw.output_format = 'petsc' # The output format MUST be set to petsc!!
-    claw.tfinal = 2.0
+    claw.tfinal = 5.0
     claw.solutions['n'] = init_solution
     claw.solver = solver
 

@@ -82,9 +82,11 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
     grid.mbc = 3   # Number of ghost cells
     grid.t = 0.    # Initial time
 
+    #pdb.set_trace()
+
     # Parameters
     #grid.aux_global['grav'] = 1.0
-    #from step1 import cparam
+    #from dimsp2 import cparam
     #for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     # Initial solution
@@ -130,7 +132,7 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
     claw = Controller()
     claw.keep_copy = True
     claw.output_format = 'petsc' # The output format MUST be set to petsc!!
-    claw.tfinal = 2.0
+    claw.tfinal = 4.0
     claw.solutions['n'] = init_solution
     claw.solver = solver
 
@@ -151,10 +153,12 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
 
 if __name__=="__main__":
     import sys
-    from petclaw.util import _info_from_argv
-    args, kwargs = _info_from_argv(sys.argv)
-    error=shallow2D(*args,**kwargs)
-    print 'Error: ',error
+    if len(sys.argv)>1:
+        from petclaw.util import _info_from_argv
+        args, kwargs = _info_from_argv(sys.argv)
+        error=shallow2D(*args,**kwargs)
+        print 'Error: ',error
+    else: shallow2D()
 
 
 
