@@ -116,7 +116,7 @@ c
 c
          wave(1,3,i) = a3
          wave(mu,3,i) = a3*(u(i)+a(i))
-         wave(i,mv,3) = a3*v(i)
+         wave(mv,3,i) = a3*v(i)
          s(3,i) = u(i)+a(i)
    20    continue
 c
