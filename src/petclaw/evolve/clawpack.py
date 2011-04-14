@@ -145,16 +145,16 @@ class PetClawSolver(ClawSolver):
                         qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
                         qbc[1,i,...] = -qbc[1,grid.mbc+1-i,...] # Negate normal velocity
                 elif grid.ndim == 2:
-                     if dim.name == 'y':
+                     if dim.name == 'x':  # lower boundary in the x direction
                          for i in xrange(grid.mbc):
                              qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
-                             qbc[1,i,...] = -qbc[1,grid.mbc+1-i,...] # Negate normal velocity
+                             qbc[1,i,...] = qbc[1,grid.mbc+1-i,...] 
+                             qbc[2,i,...] = -qbc[2,grid.mbc+1-i,...] # Negate normal velocity
+                     else: # left boundary in the y direction
+                         for i in xrange(grid.mbc):
+                             qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
+                             qbc[1,i,...] = -qbc[1,grid.mbc+1-i,...]  # Negate normal velocity
                              qbc[2,i,...] = qbc[2,grid.mbc+1-i,...]
-                     #else:
-                     #    for i in xrange(grid.mbc):
-                     #        qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
-                     #        qbc[1,i,...] = qbc[1,grid.mbc+1-i,...] 
-                     #        qbc[2,i,...] = -qbc[2,grid.mbc+1-i,...] # Negate normal velocity
               
                 else:
                     raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
@@ -181,27 +181,26 @@ class PetClawSolver(ClawSolver):
         # Solid wall bc
         # Matteo: I've used three if statements to impose correctly this BC for both 1D and 2D
         # simulation. Is this the most efficient way?
-        elif dim.mthbc_lower == 3:
-            raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
-             #if dim.nstart == 0:
-             #   if grid.ndim == 1:
-             #       for i in xrange(grid.mbc):
-             #           qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
-             #           qbc[1,i,...] = -qbc[1,grid.mbc+1-i,...] # Negate normal velocity
-             #   elif grid.ndim == 2:
-             #        if dim.name == 'x':
-             #            for i in xrange(grid.mbc):
-             #                qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
-             #                qbc[1,i,...] = -qbc[1,grid.mbc+1-i,...] # Negate normal velocity
-             #                qbc[2,i,...] = qbc[2,grid.mbc+1-i,...]
-                     #else:
-                     #    for i in xrange(grid.mbc):
-                     #        qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
-                     #        qbc[1,i,...] = qbc[1,grid.mbc+1-i,...] 
-                     #        qbc[2,i,...] = -qbc[2,grid.mbc+1-i,...] # Negate normal velocity
+        elif dim.mthbc_upper == 3:
+            if dim.nend == dim.n:
+                if grid.ndim == 1:
+                    for i in xrange(grid.mbc):
+                        qbc[0,-i-1,...] = qbc[0,-grid.mbc-2+i,...]
+                        qbc[1,-i-1,...] = -qbc[1,-grid.mbc-2+i,...] # Negate normal velocity
+                elif grid.ndim == 2:
+                     if dim.name == 'x': # upper boundary in the x direction
+                         for i in xrange(grid.mbc):
+                             qbc[0,-i-1,...] = qbc[0,-grid.mbc-2+i,...]
+                             qbc[1,-i-1,...] = qbc[1,-grid.mbc-2+i,...] 
+                             qbc[2,-i-1,...] = -qbc[2,-grid.mbc-2+i,...] # Negate normal velocity
+                     else: # right boundary in the y direction
+                         for i in xrange(grid.mbc):
+                             qbc[0,-i-1,...] = qbc[0,-grid.mbc-2+i,...]
+                             qbc[1,-i-1,...] = -qbc[1,-grid.mbc-2+i,...] # Negate normal velocity
+                             qbc[2,-i-1,...] = qbc[2,-grid.mbc-2+i,...] 
               
-                #else:
-                #    raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
+                else:
+                    raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
 
