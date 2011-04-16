@@ -19,8 +19,8 @@ c     #            s the speeds,
 c     #            amdq the  left-going flux difference  A^- \Delta q
 c     #            apdq the right-going flux difference  A^+ \Delta q
 c
-c     # Note that the i'th Riemann problem has left state qr(i-1,:)
-c     #                                    and right state ql(i,:)
+c     # Note that the i'th Riemann problem has left state qr(:,i-1)
+c     #                                    and right state ql(:,i)
 c     # From the basic clawpack routine step1, rp is called with ql = qr = q.
 c
 c     # Here meqn=mwaves=2 should be passed from the calling routine
@@ -31,12 +31,13 @@ c     # for the interleaved indices
 
 
       implicit double precision (a-h,o-z)
-      dimension   ql(meqn,         1-mbc:maxmx+mbc)
-      dimension   qr(meqn,         1-mbc:maxmx+mbc)
-      dimension    s(mwaves,       1-mbc:maxmx+mbc)
-      dimension wave(meqn, mwaves, 1-mbc:maxmx+mbc)
-      dimension amdq(meqn,         1-mbc:maxmx+mbc)
-      dimension apdq(meqn,         1-mbc:maxmx+mbc)
+
+      dimension   ql(meqn,           1-mbc:maxmx+mbc)
+      dimension   qr(meqn,           1-mbc:maxmx+mbc)
+      dimension    s(mwaves,         1-mbc:maxmx+mbc)
+      dimension wave(meqn,   mwaves, 1-mbc:maxmx+mbc)
+      dimension amdq(meqn,           1-mbc:maxmx+mbc)
+      dimension apdq(meqn,           1-mbc:maxmx+mbc)
 
 c     # Gravity constant set in the shallow1D.py file      
       common /cparam/ grav
@@ -46,8 +47,8 @@ c     # Local storage
 c     ---------------
       dimension delta(2)
       logical efix
-c     common /comrp/ grav
-      data efix /.true./    !# use entropy fix for transonic rarefactions
+
+      data efix /.true./    !# Use entropy fix for transonic rarefactions
 
 
 

@@ -13,6 +13,10 @@ c     #           qr contains the state vector at the right edge of each cell
 c
 c     # This data is along a slice in the x-direction if ixy=1
 c     #                            or the y-direction if ixy=2.
+c
+c     # This function solve the Riemann problem at all interfaces in one
+c     # call
+c
 c     # On output, wave contains the waves, s the speeds,
 c     # and amdq, apdq the decomposition of the flux difference
 c     #   f(qr(i-1)) - f(ql(i))
@@ -22,32 +26,41 @@ c     #    amdq  =  A^- \Delta q    and    apdq  =  A^+ \Delta q
 c     # where A is the Roe matrix.  An entropy fix can also be incorporated
 c     # into the flux differences.
 c
-c     # Note that the i'th Riemann problem has left state qr(i-1,:)
-c     #                                    and right state ql(i,:)
+c     # Note that the i'th Riemann problem has left state qr(:,i-1)
+c     #                                    and right state ql(:,i)
 c     # From the basic clawpack routines, this routine is called with ql = qr
 c
 c
+c     # This Riemann solver differs from the original clawpack Riemann solver 
+c     # for the interleaved indices
+
       implicit double precision (a-h,o-z)
-c
-      dimension wave(meqn,   mwaves, 1-mbc:maxm+mbc)
-      dimension    s(mwaves,         1-mbc:maxm+mbc)
+
       dimension   ql(meqn,           1-mbc:maxm+mbc)
       dimension   qr(meqn,           1-mbc:maxm+mbc)
+      dimension    s(mwaves,         1-mbc:maxm+mbc)
+      dimension wave(meqn,   mwaves, 1-mbc:maxm+mbc)
       dimension  apdq(meqn,          1-mbc:maxm+mbc)
       dimension  amdq(meqn,          1-mbc:maxm+mbc)
 
-      double precision :: g
+c     # Gravity constant set in the shallow1D.py file 
+      common /cparam/ grav
+
+c     # Roe averages quantities of each interface
+c     # These arrays are used afterwards in the transverse Riemann
+c     # solver, i.e. rpt2sw.f
+      common /comroe/ u(-2:603),v(-2:603),a(-2:603),h(-2:603)
+
+
 c
-c     local arrays -- common block comroe is passed to rpt2sh
+c     local arrays
 c     ------------
       dimension delta(3)
       logical efix
-c     common /param/  g    !# gravitational parameter 
-      common /comroe/ u(-2:603),v(-2:603),a(-2:603),h(-2:603)
-c
-      data efix /.true./    !# use entropy fix for transonic rarefactions
 
-c     # set mu to point to  the component of the system that corresponds
+      data efix /.true./    !# Use entropy fix for transonic rarefactions
+
+c     # Set mu to point to  the component of the system that corresponds
 c     # to momentum in the direction of this slice, mv to the orthogonal
 c     # momentum:
 c
@@ -59,9 +72,8 @@ c
           mv = 2
       endif
 
-      g = 1.d0
 c
-c     # note that notation for u and v reflects assumption that the
+c     # Note that notation for u and v reflects assumption that the
 c     # Riemann problems are in the x-direction with u in the normal
 c     # direciton and v in the orthogonal direcion, but with the above
 c     # definitions of mu and mv the routine also works with ixy=2
@@ -69,7 +81,7 @@ c     # and returns, for example, f0 as the Godunov flux g0 for the
 c     # Riemann problems u_t + g(u)_y = 0 in the y-direction.
 c
 c
-c     # compute the Roe-averaged variables needed in the Roe solver.
+c     # Compute the Roe-averaged variables needed in the Roe solver.
 c     # These are stored in the common block comroe since they are
 c     # later used in routine rpt2sh to do the transverse wave splitting.
 c
@@ -80,7 +92,7 @@ c
          hsq2 = hsqrtl + hsqrtr
          u(i) = (qr(mu,i-1)/hsqrtl + ql(mu,i)/hsqrtr) / hsq2
          v(i) = (qr(mv,i-1)/hsqrtl + ql(mv,i)/hsqrtr) / hsq2
-         a(i) = dsqrt(g*h(i))
+         a(i) = dsqrt(grav*h(i))
    10    continue
 c
 c
@@ -154,7 +166,7 @@ c
          do 200 i=2-mbc,mx+mbc
 c           check 1-wave
             him1 = qr(1,i-1)
-            s0 =  qr(mu,i-1)/him1 - dsqrt(g*him1)
+            s0 =  qr(mu,i-1)/him1 - dsqrt(grav*him1)
 c           check for fully supersonic case :
             if (s0.gt.0.0d0.and.s(1,i).gt.0.0d0) then
                do 60 m=1,3
@@ -165,7 +177,7 @@ c           check for fully supersonic case :
 c
             h1 = qr(1,i-1)+wave(1,1,i)
             hu1= qr(mu,i-1)+wave(mu,1,i)
-            s1 = hu1/h1 - dsqrt(g*h1) !speed just to right of 1-wave
+            s1 = hu1/h1 - dsqrt(grav*h1) !speed just to right of 1-wave
             if (s0.lt.0.0d0.and.s1.gt.0.0d0) then
 c              transonic rarefaction in 1-wave
                sfract = s0*((s1-s(1,i))/(s1-s0))
@@ -193,10 +205,10 @@ c
 c           check 3-wave
 c
             hi = ql(1,i)
-            s03 = ql(mu,i)/hi + dsqrt(g*hi)
+            s03 = ql(mu,i)/hi + dsqrt(grav*hi)
             h3=ql(1,i)-wave(1,3,i)
             hu3=ql(mu,i)-wave(mu,3,i)
-            s3=hu3/h3 + dsqrt(g*h3)
+            s3=hu3/h3 + dsqrt(grav*h3)
             if (s3.lt.0.0d0.and.s03.gt.0.0d0) then
 c              transonic rarefaction in 3-wave
                sfract = s3*((s03-s(3,i))/(s03-s3))

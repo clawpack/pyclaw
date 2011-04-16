@@ -142,7 +142,7 @@ class PetClawSolver(ClawSolver):
             
         # Solid wall bc
         # Matteo: I've used three if statements to impose correctly this BC for both 1D and 2D
-        # simulation. Is this the most efficient way?
+        # simulations. Is this the most efficient way?
         elif dim.mthbc_lower == 3:
              if dim.nstart == 0:
                 if grid.ndim == 1:
@@ -185,7 +185,7 @@ class PetClawSolver(ClawSolver):
 
         # Solid wall bc
         # Matteo: I've used three if statements to impose correctly this BC for both 1D and 2D
-        # simulation. Is this the most efficient way?
+        # simulations. Is this the most efficient way?
         elif dim.mthbc_upper == 3:
             if dim.nend == dim.n:
                 if grid.ndim == 1:

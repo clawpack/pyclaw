@@ -9,7 +9,7 @@
 #===========================================================================
 
 import numpy as np
-import pdb
+#import pdb
 
 
 def qinit(grid,hl,ul,vl,hr,ur,vr,radDam):
@@ -50,13 +50,12 @@ def qinit(grid,hl,ul,vl,hr,ur,vr,radDam):
 
 
     
-def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
+def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
     #===========================================================================
     # Import libraries
     #===========================================================================
-    from petsc4py import PETSc   
-    from petclaw.grid import Grid
     from petclaw.grid import Dimension
+    from petclaw.grid import Grid
     from pyclaw.solution import Solution
     from petclaw.evolve.clawpack import PetClawSolver2D
     from pyclaw.controller import Controller
@@ -83,12 +82,12 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     grid.mbc = 2   # Number of ghost cells
     grid.t = 0.    # Initial time
 
-    #pdb.set_trace()
 
     # Parameters
-    #grid.aux_global['grav'] = 1.0
-    #from dimsp2 import cparam
-    #for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
+    grav = 1.0
+    grid.aux_global['grav'] = grav
+    from dimsp2 import cparam
+    for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     # Initial solution
     # ================
