@@ -69,11 +69,11 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
     # Grid:
     xlower = -2.5
     xupper = 2.5
-    mx = 100
+    mx = 50
     
     ylower = -2.5
     yupper = 2.5
-    my = 100
+    my = 50
     x = Dimension('x',xlower,xupper,mx,mthbc_lower=1,mthbc_upper=1)
     y = Dimension('y',ylower,yupper,my,mthbc_lower=1,mthbc_upper=1)
     grid = Grid([x,y])
@@ -132,7 +132,7 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
     claw = Controller()
     claw.keep_copy = True
     claw.output_format = 'petsc' # The output format MUST be set to petsc!!
-    claw.tfinal = 4.0
+    claw.tfinal = 1.5
     claw.solutions['n'] = init_solution
     claw.solver = solver
 
@@ -141,9 +141,7 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
     # Solve the problem
     #===========================================================================
     status = claw.run()
-
-
-    #pdb.set_trace()
+  
 
     if htmlplot: plot.plotHTML()
     if petscPlot: plot.plotPetsc(output_object)

@@ -54,23 +54,23 @@ def setplot(plotdata):
     plotaxes.title = 'Scatter plot of h'
 
     # Set up for item on these axes:
-    #plotitem = plotaxes.new_plotitem(plot_type='1d_from_2d_data')
-    #plotitem.plot_var = 0
-    #def q_vs_radius(current_data):
-    #    from numpy import sqrt
-    #    x = current_data.x
-    #    y = current_data.y
-    #    r = sqrt(x**2 + y**2)
-    #    q = current_data.q[:,:,0]
-    #    return r,q
-    #plotitem.map_2d_to_1d = q_vs_radius
-    #plotitem.plotstyle = 'o'
+    plotitem = plotaxes.new_plotitem(plot_type='1d_from_2d_data')
+    plotitem.plot_var = 0
+    def q_vs_radius(current_data):
+        from numpy import sqrt
+        x = current_data.x
+        y = current_data.y
+        r = sqrt(x**2 + y**2)
+        q = current_data.q[0,:,:]
+        return r,q
+    plotitem.map_2d_to_1d = q_vs_radius
+    plotitem.plotstyle = 'o'
 
     # Plot the 1drad solution on scatter plot:
     #plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
     #plotitem.plot_var = 0
     #import os
-    #plotitem.outdir = os.path.abspath('1drad/_output')
+    #plotitem.outdir = os.path.abspath('1dRadialSymm/_output')
     #plotitem.plotstyle = 'r-'
 
 
