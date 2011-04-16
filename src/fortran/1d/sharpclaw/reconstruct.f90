@@ -72,7 +72,7 @@ contains
                     deallocate(hh)
                     deallocate(uh)
             end select
-            recon_alloc = 0
+            recon_alloc = .False.
         end select
     end subroutine dealloc_recon_workspace
 
