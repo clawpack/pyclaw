@@ -23,6 +23,9 @@ dimensionally dependent ones such as :class:`PetClawSolver1D`.
 
 import numpy as np
 
+import pdb # debugger
+
+
 from pyclaw.evolve.clawpack import ClawSolver, ClawSolver1D, ClawSolver2D, start_step, src
 from pyclaw.evolve import limiters
 
@@ -92,6 +95,8 @@ class PetClawSolver(ClawSolver):
         
         # Call general initialization function
         super(PetClawSolver,self).__init__(data)
+
+
     
          
     # ========== Boundary Conditions ==================================
@@ -347,11 +352,13 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
         Take one time step on the homogeneous hyperbolic system.
         Only the dimensionally split algorithm is supported for now.
         """
+
         
         # Grid we will be working on
         grid = solutions['n'].grids[0]
         # Number of equations
-        meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,grid.mbc,self.mwaves,grid.aux
+        meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,grid.mbc,grid.aux
+
 
         if(self.kernelsType == 'F'):
             from dimsp2 import dimsp2

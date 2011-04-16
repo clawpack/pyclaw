@@ -31,7 +31,7 @@ def setplot(plotdata):
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.xlimits = [-2.5, 2.5]
     plotaxes.ylimits = [-2.5, 2.5]
-    plotaxes.title = 'q[0]'
+    plotaxes.title = 'Water height'
     plotaxes.scaled = True
 
     # Set up for item on these axes:
@@ -81,7 +81,7 @@ def setplot(plotdata):
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.xlimits = [-2.5, 2.5]
     plotaxes.ylimits = [-2.5, 2.5]
-    plotaxes.title = 'q[1]'
+    plotaxes.title = 'Momentum'
     plotaxes.scaled = True
 
     # Set up for item on these axes:

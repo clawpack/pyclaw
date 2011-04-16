@@ -35,6 +35,7 @@ def qinit(grid,hl,ul,vl,hr,ur,vr,radDam):
 
 
 
+
 #def setaux(maxlength):
 #    """
 #    This function "allocate" memory for some arrays that are needed in both rpn2sw.f
@@ -49,7 +50,7 @@ def qinit(grid,hl,ul,vl,hr,ur,vr,radDam):
 
 
     
-def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
+def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     #===========================================================================
     # Import libraries
     #===========================================================================
@@ -69,17 +70,17 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
     # Grid:
     xlower = -2.5
     xupper = 2.5
-    mx = 50
+    mx = 100
     
     ylower = -2.5
     yupper = 2.5
-    my = 50
+    my = 100
     x = Dimension('x',xlower,xupper,mx,mthbc_lower=1,mthbc_upper=1)
     y = Dimension('y',ylower,yupper,my,mthbc_lower=1,mthbc_upper=1)
     grid = Grid([x,y])
 
     grid.meqn = 3  # Number of equations
-    grid.mbc = 3   # Number of ghost cells
+    grid.mbc = 2   # Number of ghost cells
     grid.t = 0.    # Initial time
 
     #pdb.set_trace()
@@ -126,6 +127,7 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
 
 
 
+
     #===========================================================================
     # Setup controller and controller paramters
     #===========================================================================
@@ -137,12 +139,14 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
     claw.solver = solver
 
 
+
     #===========================================================================
     # Solve the problem
     #===========================================================================
     status = claw.run()
-  
 
+  
+  
     if htmlplot: plot.plotHTML()
     if petscPlot: plot.plotPetsc(output_object)
     if iplot: plot.plotInteractive()
