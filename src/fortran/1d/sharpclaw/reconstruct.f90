@@ -15,30 +15,30 @@ contains
             case(1)
             select case(char_decomp)
                 case(1) ! Storage for tvd2_wave()
-                    allocate(uu(1-mbc:maxnx+mbc,mwaves))
+                    allocate(uu(mwaves,1-mbc:maxnx+mbc))
                 case(2) ! Storage for tvd2_char()
-                    allocate(dq(1-mbc:maxnx+mbc,meqn))
-                    allocate( u(1-mbc:maxnx+mbc,meqn,2))
-                    allocate(hh(1-mbc:maxnx+mbc,-1:1))
+                    allocate(dq(meqn,1-mbc:maxnx+mbc))
+                    allocate( u(meqn,2,1-mbc:maxnx+mbc))
+                    allocate(hh(-1:1,1-mbc:maxnx+mbc))
             end select
             case(2)
             select case(char_decomp)
                 case(0)
-                    allocate(uu(maxnx+2*mbc,2))
+                    allocate(uu(2,maxnx+2*mbc))
                     allocate( dq1m(maxnx+2*mbc))
                 case(2) ! Storage for weno5_char
-                    allocate(dq(maxnx+2*mbc,meqn))
-                    allocate(uu(maxnx+2*mbc,2))
-                    allocate(hh(maxnx+2*mbc,-2:2))
+                    allocate(dq(meqn,maxnx+2*mbc))
+                    allocate(uu(2,maxnx+2*mbc))
+                    allocate(hh(-2:2,maxnx+2*mbc))
                 case(3) ! Storage for weno5_trans
-                    allocate(dq(maxnx+2*mbc,meqn))
-                    allocate(gg(maxnx+2*mbc,meqn))
-                    allocate( u(maxnx+2*mbc,meqn,2))
-                    allocate(hh(maxnx+2*mbc,-2:2))
-                    allocate(uh(maxnx+2*mbc,meqn,2))
+                    allocate(dq(meqn,maxnx+2*mbc))
+                    allocate(gg(meqn,maxnx+2*mbc))
+                    allocate( u(meqn,2,maxnx+2*mbc))
+                    allocate(hh(-2:2,maxnx+2*mbc))
+                    allocate(uh(meqn,2,maxnx+2*mbc))
             end select
-            recon_alloc = .True.
         end select
+        recon_alloc = .True.
 
     end subroutine alloc_recon_workspace
 
@@ -85,10 +85,9 @@ contains
         double precision, intent(in) :: q(meqn,maxnx+2*mbc)
         double precision, intent(out) :: ql(meqn,maxnx+2*mbc),qr(meqn,maxnx+2*mbc)
 
-        integer, parameter :: mbc=3
         integer :: meqn, mx2
 
-        mx2  = size(q,1); meqn = size(q,2)
+        mx2  = size(q,2); meqn = size(q,1)
 
         !loop over all equations (all components).  
         !the reconstruction is performed component-wise;
@@ -98,7 +97,7 @@ contains
 
             forall (i=2:mx2)
                 ! compute and store the differences of the cell averages
-                dq1m(i)=q(i,m)-q(i-1,m)
+                dq1m(i)=q(m,i)-q(m,i-1)
             end forall
 
             ! the reconstruction
@@ -131,14 +130,14 @@ contains
                     s1 =s1*t0
                     s3 =s3*t0
   
-                    uu(i,m1) = (s1*(t2-t1)+(0.5*s3-0.25)*(t3-t2))/3. &
-                             +(-q(i-2,m)+7.*(q(i-1,m)+q(i,m))-q(i+1,m))/12.
+                    uu(m1,i) = (s1*(t2-t1)+(0.5*s3-0.25)*(t3-t2))/3. &
+                             +(-q(m,i-2)+7.*(q(m,i-1)+q(m,i))-q(m,i+1))/12.
 
                 end do
             end do
 
-           qr(mbc-1:mx2-mbc,  m)=uu(mbc:mx2-mbc+1,1)
-           ql(mbc  :mx2-mbc+1,m)=uu(mbc:mx2-mbc+1,2)
+           qr(m,mbc-1:mx2-mbc  )=uu(1,mbc:mx2-mbc+1)
+           ql(m,mbc  :mx2-mbc+1)=uu(2,mbc:mx2-mbc+1)
 
         end do
 

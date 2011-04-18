@@ -22,7 +22,7 @@ subroutine flux1(q1d,dq1d,ndim,aux,dt,cfl,t,dtdx,ql,qr,wave,s,amdq,apdq, &
 !                           wave in family mw in Riemann problem between
 !                           states i-1 and i.
 !
-!     s(1-mbc:mx+mbc, mwaves) = wave speeds,
+!     s(mwaves,1-mbc:mx+mbc) = wave speeds,
 !            s(mw,i) = speed of wave in family mw in Riemann problem between
 !                      states i-1 and i.
 !
@@ -50,7 +50,7 @@ subroutine flux1(q1d,dq1d,ndim,aux,dt,cfl,t,dtdx,ql,qr,wave,s,amdq,apdq, &
     double precision :: dtdx(1-mbc:mx+mbc)
     double precision :: amdq2(meqn,1-mbc:mx+mbc),apdq2(meqn,1-mbc:mx+mbc)
     double precision :: qr(meqn,1-mbc:mx+mbc),ql(meqn,1-mbc:mx+mbc)
-    double precision :: s(meqn,1-mbc:mx+mbc),wave(meqn,mwaves,1-mbc:mx+mbc)
+    double precision :: s(mwaves,1-mbc:mx+mbc),wave(meqn,mwaves,1-mbc:mx+mbc)
     double precision :: q1d(meqn,1-mbc:mx+mbc)
     double precision :: dq1d(meqn,1-mbc:maxnx+mbc)
     dimension aux(maux,1-mbc:mx+mbc)
@@ -60,12 +60,13 @@ subroutine flux1(q1d,dq1d,ndim,aux,dt,cfl,t,dtdx,ql,qr,wave,s,amdq,apdq, &
     integer, intent(in) :: ixy, mthlim(mwaves)
     integer t
 
+
     if (recon_alloc.eqv..False.) then
         call alloc_recon_workspace(maxnx,mbc,meqn,mwaves,lim_type,char_decomp)
     endif
 
     if (mcapa.gt.0) then
-        dtdx = dt / (dx(ixy)*aux(:,mcapa))
+        dtdx = dt / (dx(ixy)*aux(mcapa,:))
     else
         dtdx = dt/dx(ixy)
     endif
@@ -179,8 +180,8 @@ subroutine flux1(q1d,dq1d,ndim,aux,dt,cfl,t,dtdx,ql,qr,wave,s,amdq,apdq, &
         if (maux .gt. 0) then
              do i = 1-mbc+1,mx+mbc
                 do m = 1, maux
-                        auxr(m,i-1) = aux(m,i) !aux is not griddat type
-                        auxl(m,i  ) = aux(m,i) !aux is not griddat type
+                    auxr(m,i-1) = aux(m,i) !aux is not griddat type
+                    auxl(m,i  ) = aux(m,i) !aux is not griddat type
                 enddo
             enddo
         endif

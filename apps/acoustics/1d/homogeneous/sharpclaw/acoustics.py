@@ -53,8 +53,8 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False,htmlplot=False,outdir=
     claw = Controller()
     claw.keep_copy = True
     claw.outstyle = 3
-    claw.nout = 5
-    claw.iout = 5
+    claw.nout = 50
+    claw.iout = 50
     # The output format MUST be set to petsc!
     claw.output_format = 'ascii'
     claw.outdir = outdir
