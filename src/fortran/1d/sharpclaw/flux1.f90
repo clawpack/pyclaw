@@ -1,5 +1,6 @@
 ! ===================================================================
 subroutine flux1(q1d,dq1d,ndim,aux,dt,cfl,t,dtdx,ql,qr,wave,s,amdq,apdq, &
+                 amdq2,apdq2, &
                  ixy,mcapa,maux,meqn,mx,mwaves,mbc,maxnx,dx,tfluct_solver, &
                  char_decomp,lim_type,mthlim)
 ! ===================================================================
@@ -107,9 +108,9 @@ subroutine flux1(q1d,dq1d,ndim,aux,dt,cfl,t,dtdx,ql,qr,wave,s,amdq,apdq, &
                 call weno5(q1d,ql,qr,meqn,maxnx,mbc)
             case (1)
                 ! wave-based reconstruction
-                call rp1(maxnx,meqn,mwaves,mbc,mx,&
-                        q1d,q1d,aux,aux,wave,s,amdq,apdq)
-                call weno5_wave(q1d,ql,qr,wave)
+                !call rp1(maxnx,meqn,mwaves,mbc,mx,&
+                !        q1d,q1d,aux,aux,wave,s,amdq,apdq)
+                !call weno5_wave(q1d,ql,qr,wave)
                 !call weno5_fwave(q1d,ql,qr,wave,s)
             case (2)
                 ! characteristic-wise reconstruction

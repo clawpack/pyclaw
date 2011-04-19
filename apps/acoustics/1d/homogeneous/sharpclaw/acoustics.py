@@ -46,15 +46,15 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False,htmlplot=False,outdir=
     if kernelsType=='P': solver.set_riemann_solver('acoustics')
     solver.mthlim = [4]*solver.mwaves
     solver.dt=grid.d[0]/grid.aux_global['cc']*0.1
-    solver.time_integrator='SSP33'
+    solver.time_integrator='Euler'
     solver.cfl_desired=0.45
     solver.cfl_max=0.5
 
     claw = Controller()
     claw.keep_copy = True
     claw.outstyle = 3
-    claw.nout = 50
-    claw.iout = 50
+    claw.nout = 500
+    claw.iout = 500
     # The output format MUST be set to petsc!
     claw.output_format = 'ascii'
     claw.outdir = outdir
