@@ -62,8 +62,9 @@ def shallow1D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
     kernelsType = 'F'
     solver = PetClawSolver1D(kernelsType = kernelsType)
     solver.mwaves = 2
-    if kernelsType =='P': solver.set_riemann_solver('shallow_roe')
     solver.mthlim = [4]*solver.mwaves
+    if kernelsType =='P': solver.set_riemann_solver('shallow_roe')
+ 
 
     #===========================================================================
     # Setup controller and controller paramters
