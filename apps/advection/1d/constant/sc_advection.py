@@ -14,10 +14,9 @@ import numpy as np
 from petsc4py import PETSc
 
 
-from petclaw.grid import PCDimension as Dimension
-from petclaw.grid import PCGrid as Grid
+from petclaw.grid import Dimension, Grid
 from pyclaw.solution import Solution
-from petclaw.evolve.sharpclaw import SharpClawSolver1D
+from petclaw.evolve.sharpclaw import SharpPetClawSolver1D
 from pyclaw.controller import Controller
 
 
@@ -66,8 +65,8 @@ qinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = SharpClawSolver1D(kernelsType = 'P')
-
+solver = SharpPetClawSolver1D(kernelsType = 'P')
+solver.mwaves = 1
 solver.dt = grid.x.d/4.
 solver.dt_variable=False
 solver.max_steps = 50000
@@ -113,6 +112,12 @@ if useController:
                 OptDB = PETSc.Options()
                 OptDB['draw_pause'] = -1
                 sol.grid.gqVec.view(viewer)
+
+    if 1:
+        q0=claw.frames[0].grid.gqVec.getArray().reshape([-1])
+        qfinal=claw.frames[claw.nout].grid.gqVec.getArray().reshape([-1])
+        dx=claw.frames[0].grid.d[0]
+        print 'max error', np.max(qfinal - q0)
 
 
 else:
