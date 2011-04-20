@@ -1,8 +1,7 @@
+PETCLAWMAKE = $(PETCLAW)/Makefile.common
 
-FC ?= gfortran
+include $(PETCLAWMAKE)
 
-
-TWO_D_LIBPATH = $(PETCLAW)/src/fortran/2d/nonInterleaved/
 LIBOBJ = \
    step2ds.o\
    flux2.o\
