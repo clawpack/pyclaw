@@ -1,11 +1,7 @@
-ifeq ($(PETCLAW),)
-$(warning PETCLAW environment variable not set, assuming in-place usage!)
-PETCLAW=../../../../
-endif
+PETCLAWMAKE = $(PETCLAW)/Makefile.common
 
-FC ?= gfortran
+include $(PETCLAWMAKE)
 
-ONE_D_LIBPATH = $(PETCLAW)/src/fortran/1d
 LIBOBJ = \
    limiter.o \
    philim.o

@@ -1,10 +1,10 @@
+PETCLAWMAKE = $(PETCLAW)/Makefile.common
+
+include $(PETCLAWMAKE)
+
 #FC=f77
 #FLAGS=-qextname
 #F2PYFLAGS=--fcompiler=bgpgnu  --compiler=mpicc
-
-FC ?= gfortran
-
-ONE_D_LIBPATH = $(PETCLAW)/src/fortran/1d
 
 LIBOBJ = \
     limiter.o\

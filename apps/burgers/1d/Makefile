@@ -1,6 +1,6 @@
-FC ?= gfortran
+PETCLAWMAKE = $(PETCLAW)/Makefile.common
 
-ONE_D_LIBPATH = $(PETCLAW)/src/fortran/1d
+include $(PETCLAWMAKE)
 
 LIBOBJ = \
     limiter.o\

@@ -1,11 +1,7 @@
-ifeq ($(PETCLAW),)
-$(warning PETCLAW environment variable not set, assuming in-place usage!)
-PETCLAW=../../../../
-endif
+PETCLAWMAKE = $(PETCLAW)/Makefile.common
 
-FC ?= gfortran
+include $(PETCLAWMAKE)
 
-ONE_D_LIBPATH = $(PETCLAW)/src/fortran/1d
 LIBOBJ = \
    limiter.o \
    philim.o
@@ -13,6 +9,7 @@ LIBOBJ = \
 SOURCE =   rp1.f
 
 step1.so: $(ONE_D_LIBPATH)/step1.f $(LIBOBJ) $(SOURCE)
+	echo $(ONE_D_LIBPATH)
 	f2py -m step1 -c $(ONE_D_LIBPATH)/step1.f $(SOURCE) $(LIBOBJ) 
 
 limiter.o:
@@ -27,3 +24,4 @@ clean:
 clobber:
 	rm -f *.o *.so
 	rm -f -R *output*
+

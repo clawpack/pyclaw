@@ -1,0 +1,10 @@
+ifeq ($(PETCLAW),)
+$(warning PETCLAW environment variable not set, assuming in-place usage!)
+PETCLAW=../../../../
+endif
+
+FC ?= gfortran
+
+ONE_D_LIBPATH = $(PETCLAW)/petclaw/fortran/1d
+
+TWO_D_LIBPATH = $(PETCLAW)/petclaw/fortran/2d/

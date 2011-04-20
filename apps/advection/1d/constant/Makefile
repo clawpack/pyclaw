@@ -1,4 +1,6 @@
-FC ?= gfortran
+PETCLAWMAKE = $(PETCLAW)/Makefile.common
+
+include $(PETCLAWMAKE)
 
 ONE_D_LIBPATH = $(PETCLAW)/src/fortran/1d
 
