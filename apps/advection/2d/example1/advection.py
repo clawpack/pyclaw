@@ -39,7 +39,7 @@ def advection2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     from petclaw.grid import Dimension
     from petclaw.grid import Grid
     from pyclaw.solution import Solution
-    from petclaw.evolve.solver import PetClawSolver2D
+    from petclaw.evolve.clawpack import PetClawSolver2D
     from pyclaw.controller import Controller
     from petclaw import plot
 

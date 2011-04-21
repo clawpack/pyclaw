@@ -28,13 +28,14 @@ class RKStageDA(object):
     A single Runge-Kutta stage.
     """
     def __init__(self,grid):
+        self.t = grid.t
         periodic = False
         for dimension in grid.dimensions:
             if dimension.mthbc_lower == 2 or dimension.mthbc_upper == 2:
                 periodic = True
                 break
                 
-        if hasattr(PETSc.DA,'PeriodicType'):
+        if hasattr(PETSc.DA,'PeriodicType'):  # PETSc-3.1
             if grid.ndim == 1:
                 periodic_type = PETSc.DA.PeriodicType.X
             elif grid.ndim == 2:
@@ -44,12 +45,26 @@ class RKStageDA(object):
             else:
                 raise Exception("Invalid number of dimensions")
 
-        self.q_da = PETSc.DA().create(dim=grid.ndim,
-                                    dof=grid.meqn,
-                                    sizes=grid.n, 
-                                    periodic_type = periodic_type,
-                                    stencil_width=grid.mbc,
-                                    comm=PETSc.COMM_WORLD)
+            self.q_da = PETSc.DA().create(dim=grid.ndim,
+                                          dof=grid.meqn,
+                                          sizes=grid.n,
+                                          periodic_type = periodic_type,
+                                          stencil_width=grid.mbc,
+                                          comm=PETSc.COMM_WORLD)
+        else:
+            self.q_da = PETSc.DA().create(dim=grid.ndim,
+                                          dof=grid.meqn,
+                                          sizes=grid.n,
+                                          boundary_type = PETSc.DA.BoundaryType.PERIODIC,
+                                          stencil_width=grid.mbc,
+                                          comm=PETSc.COMM_WORLD)
+
+        if grid.ndim == 1:
+            self.q_da.setUniformCoordinates(xmin=grid.x.lower,xmax=grid.x.upper)
+        elif grid.ndim == 2:
+            self.q_da.setUniformCoordinates(xmin=grid.x.lower,xmax=grid.x.upper,ymin=grid.y.lower,ymax=grid.y.upper)
+        elif grid.ndim == 3:
+            self.q_da.setUniformCoordinates(xmin=grid.x.lower,xmax=grid.x.upper,ymin=grid.y.lower,ymax=grid.y.upper,zmin=grid.z.lower,zmax=grid.z.upper)
         self.gqVec = self.q_da.createGlobalVector()
         self.lqVec = self.q_da.createLocalVector()
         self.mbc  = grid.mbc
@@ -108,4 +123,23 @@ class SharpPetClawSolver1D(SharpClawSolver1D,PetClawSolver):
         self.rk_stages = []
         for i in range(nregisters-1):
             self.rk_stages.append(RKStageDA(grid))
+
+
+
+    def dqdt(self,grid,rk_stage):
+        """
+        Evaluate dq/dt
+        """
+
+        q = self.qbc(grid,rk_stage)
+
+        self.dt = 1
+        deltaq = self.dq_homogeneous(grid,q,rk_stage.t)
+
+        # Godunov Splitting -- really the source term should be called inside rkstep
+        if self.src_term == 1:
+            deltaq+=self.src(grid,q,rk_stage.t)
+
+        return deltaq.flatten('f')
+            
 

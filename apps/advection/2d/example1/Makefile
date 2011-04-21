@@ -2,7 +2,7 @@ PETCLAWMAKE = $(PETCLAW)/Makefile.common
 
 include $(PETCLAWMAKE)
 
-TWO_D_LIBPATH = $(PETCLAW)/src/fortran/2d/interleaved/
+
 LIBOBJ = \
    step2ds.o\
    flux2.o\
