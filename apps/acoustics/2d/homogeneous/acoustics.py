@@ -20,7 +20,7 @@ def qinit(grid,width=0.2):
     grid.q=q
 
 
-def acoustics2D(iplot=False,petscPlot=True,useController=True,htmlplot=False):
+def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     """
     Example python script for solving the 2d acoustics equations.
     """

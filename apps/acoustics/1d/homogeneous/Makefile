@@ -19,9 +19,9 @@ philim.o:
 	$(FC) -o philim.o -c $(ONE_D_LIBPATH)/philim.f
 
 clean:
-	rm -f *.o *.so
+	rm -f *.o *.so *.pyc
 
-clobber:
-	rm -f *.o *.so
-	rm -f -R *output*
+clobber: clean
+	rm -f -r _output/
+	rm -f -r _plots
 
