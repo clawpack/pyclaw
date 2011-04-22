@@ -320,6 +320,12 @@ class ClawSolver1D(ClawSolver):
 
     # ========== Python Homogeneous Step =====================================
     def homogeneous_step(self,solutions):
+        grid = solutions['n'].grids[0]
+        q = self.qbc(grid,grid.q,grid.t)
+        q = self.python_homogeneous_step(grid,q)
+        grid.q = q[:,grid.mbc:-grid.mbc]
+
+    def python_homogeneous_step(self,grid,q):
         r"""
         Take one time step on the homogeneous hyperbolic system
 
@@ -333,16 +339,11 @@ class ClawSolver1D(ClawSolver):
         :Version: 1.0 (2009-07-01)
         """
     
-        # Grid we will be working on
-        grid = solutions['n'].grids[0]
         # Number of equations
-        meqn = solutions['n'].meqn
+        meqn = grid.meqn
         # Limiter to use in the pth family
         limiter = np.array(self.mthlim,ndmin=1)  
         # Q with appended boundary conditions
-        q = self.qbc(grid,grid.t,grid.q)
-        # Flux vector
-        # f = np.empty( (meqn,2*grid.mbc + grid.n[0]) )
     
         dtdx = np.zeros( (2*grid.mbc+grid.n[0]) )
 
@@ -415,4 +416,173 @@ class ClawSolver1D(ClawSolver):
                 q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1]) 
             
         # Reset q update
-        grid.q = q[:,grid.mbc:-grid.mbc]
+        return q
+
+    # def python_homogeneous_step_interleaved(self,grid,q):
+    #     r"""
+    #     Take one time step on the homogeneous hyperbolic system
+    # 
+    #     Takes one time step of size dt on the hyperbolic system defined in the
+    #     appropriate Riemann solver rp.
+    # 
+    #     :Input:
+    #      - *solutions* - (:class:`~pyclaw.solution.Solution`) Solution that 
+    #        will be evolved
+    # 
+    #     :Version: 1.0 (2009-07-01)
+    #     """
+    # 
+    #     # Number of equations
+    #     meqn = grid.meqn
+    #     # Limiter to use in the pth family
+    #     limiter = np.array(self.mthlim,ndmin=1)  
+    #     # Q with appended boundary conditions
+    #     # Flux vector
+    #     f = np.empty( (meqn,2*grid.mbc + grid.n[0]) )
+    # 
+    #     dtdx = np.zeros( (2*grid.mbc+grid.n[0]) )
+    # 
+    #     # Find local value for dt/dx
+    #     if grid.capa is not None:
+    #         dtdx = self.dt / (grid.d[0] * grid.capa)
+    #     else:
+    #         dtdx += self.dt/grid.d[0]
+    # 
+    #     # Solve Riemann problem at each interface
+    #     q_l=q[:,:-1]
+    #     q_r=q[:,1:]
+    #     if grid.aux is not None:
+    #         aux_l=grid.aux[:,:-1]
+    #         aux_r=grid.aux[:,1:]
+    #     else:
+    #         aux_l = None
+    #         aux_r = None
+    #     wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,grid.aux_global)
+    #     
+    #     # Update loop limits, these are the limits for the Riemann solver
+    #     # locations, which then update a grid cell value
+    #     # We include the Riemann problem just outside of the grid so we can
+    #     # do proper limiting at the grid edges
+    #     #        LL    |                               |     UL
+    #     #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
+    #     #              |                               |
+    #     LL = grid.mbc - 1
+    #     UL = grid.mbc + grid.n[0] + 1 
+    # 
+    #     # Update q for Godunov update
+    #     for m in xrange(meqn):
+    #         q[m,LL:UL] -= dtdx[LL:UL]*apdq[m,LL-1:UL-1]
+    #         q[m,LL-1:UL-1] -= dtdx[LL-1:UL-1]*amdq[m,LL-1:UL-1]
+    # 
+    #     # Compute maximum wave speed
+    #     self.cfl = 0.0
+    #     for mw in xrange(wave.shape[1]):
+    #         smax1 = max(dtdx[LL:UL]*s[mw,LL-1:UL-1])
+    #         smax2 = max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
+    #         self.cfl = max(self.cfl,smax1,smax2)
+    # 
+    #     # If we are doing slope limiting we have more work to do
+    #     if self.order == 2:
+    #         # Initialize flux corrections
+    #         f = np.zeros( (meqn,grid.n[0] + 2*grid.mbc) )
+    #     
+    #         # Apply Limiters to waves
+    #         if (limiter > 0).any():
+    #             wave = limiters.limit(grid.meqn,wave,s,limiter,dtdx)
+    # 
+    #         # Compute correction fluxes for second order q_{xx} terms
+    #         dtdxave = 0.5 * (dtdx[LL-1:UL-1] + dtdx[LL:UL])
+    #         if self.fwave:
+    #             for mw in xrange(wave.shape[1]):
+    #                 sabs = np.abs(s[mw,LL-1:UL-1])
+    #                 om = 1.0 - sabs*dtdxave[:UL-LL]
+    #                 ssign = np.sign(s[mw,LL-1:UL-1])
+    #                 for m in xrange(meqn):
+    #                     f[m,LL:UL] += 0.5 * ssign * om * wave[m,mw,LL-1:UL-1]
+    #         else:
+    #             for mw in xrange(wave.shape[1]):
+    #                 sabs = np.abs(s[mw,LL-1:UL-1])
+    #                 om = 1.0 - sabs*dtdxave[:UL-LL]
+    #                 for m in xrange(meqn):
+    #                     f[m,LL:UL] += 0.5 * sabs * om * wave[m,mw,LL-1:UL-1]
+    # 
+    #         # Update q by differencing correction fluxes
+    #         for m in xrange(meqn):
+    #             q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1]) 
+    #         
+    #     # Reset q update
+    #     return q,self.cfl
+
+
+
+# ============================================================================
+#  ClawPack 2d Solver Class
+# ============================================================================
+class ClawSolver2D(ClawSolver):
+    r"""
+    Clawpack evolution routine in 2D
+    
+    
+    """
+
+    def __init__(self,data=None):
+        r"""
+        Create 2d Clawpack solver
+        
+        See :class:`ClawSolver2D` for more info.
+        """   
+        
+        # Add the functions as required attributes
+        self._required_attrs.append('rp')
+        self._default_attr_values['rp'] = None
+        
+        # Import Riemann solvers
+        exec('import pyclaw.evolve.rp as rp',globals())
+            
+        super(ClawSolver2D,self).__init__(data)
+
+    # ========== Riemann solver library routines =============================   
+    def list_riemann_solvers(self):
+        r"""
+        List available Riemann solvers 
+        
+        This routine returns a list of available Riemann solvers which is
+        constructed in the Riemann solver package (_pyclaw_rp).  In this case
+        it lists only the 1D Riemann solvers.
+        
+        :Output:
+         - (list) - List of Riemann solver names valid to be used with
+           :meth:`set_riemann_solver`
+        
+        .. note::
+            These Riemann solvers are currently only accessible to the python 
+            time stepping routines.
+        """
+        return rp.rp_solver_list_1d
+    
+    def set_riemann_solver(self,solver_name):
+        r"""
+        Assigns the library solver solver_name as the Riemann solver.
+        
+        :Input:
+         - *solver_name* - (string) Name of the solver to be used, raises a 
+           ``NameError`` if the solver does not exist.
+        """
+        import logging
+        if solver_name in rp.rp_solver_list_1d:
+            exec("self.rp = rp.rp_%s_1d" % solver_name)
+        else:
+            logger = logging.getLogger('solver')
+            error_msg = 'Could not find Riemann solver with name %s' % solver_name
+            logger.warning(error_msg)
+            raise NameError(error_msg)
+
+    # ========== Python Homogeneous Step =====================================
+    def homogeneous_step(self,solutions):
+        r"""
+        
+        """
+
+        raise Exception("Dummy routine, please override!")
+    
+        

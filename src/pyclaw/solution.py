@@ -251,9 +251,8 @@ class Grid(object):
     def maux():
         doc = r"""(int) - Rank of auxiliary array"""
         def fget(self):
-            if self.aux is not None:
-                return self.aux.shape[-1]
-            return 0
+            if self.aux is not None: return self.aux.shape[0]
+            else: return 0
         return locals()
     def n():
         doc = r"""(list) - List of the number of grid cells in each dimension"""
@@ -810,7 +809,7 @@ class Solution(object):
     
     :Properties:
     
-        If there is only one grid belonging to this grid, the solution will
+        If there is only one grid belonging to this solution, the solution will
         appear to have many of the attributes assigned to its one grid.  Some
         parameters that have in the past been parameters for all grids are
         also reachable although Solution does not check to see if these
@@ -1152,8 +1151,10 @@ class Solution(object):
         # Determine if we need to create the path
         path = os.path.expandvars(os.path.expanduser(path))
         if not os.path.exists(path):
-            # Attempt to constuct the path  
-            os.makedirs(path)
+            try:
+                os.makedirs(path)
+            except OSError:
+                print "directory already exists, ignoring"  
 
         # Call the correct write function based on the output format
         if isinstance(format,str):

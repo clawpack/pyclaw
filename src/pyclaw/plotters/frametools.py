@@ -1472,9 +1472,16 @@ def only_most_recent(framenos,outdir='.',verbose=True):
     for file in glob.glob('fort.q*'):
         frameno = int(file[7:10])
         fortfile[frameno] = file
+
+    #DK: In PetClaw, we don't output fort.q* files.  Instead count the
+    #claw.pkl* files.
+    if len(fortfile) == 0:
+        for file in glob.glob('claw.pkl*'):
+            frameno = int(file[9:12])
+            fortfile[frameno] = file
     
     if len(fortfile) == 0:
-        print '*** No fort.q files found in directory ', os.getcwd()
+        print '*** No fort.q or claw.pkl files found in directory ', os.getcwd()
         framenos = []
         return framenos
     

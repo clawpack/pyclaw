@@ -210,7 +210,7 @@ class Controller(object):
             raise Exception("The solver failed to initialize properly.") 
             
         # Call solver's setup routine
-        self.solver.setup(solutions)
+        self.solver.setup(self.solutions)
             
         # Check to make sure the initial solutions are valid
         if not reduce(lambda x,y: x*y,[sol.is_valid() for sol in 

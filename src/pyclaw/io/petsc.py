@@ -25,8 +25,9 @@ import pyclaw.solution
 logger = logging.getLogger('io')
 
 from petsc4py import PETSc
-from mpi4py import MPI
+#from mpi4py import MPI
 import pickle
+import numpy as np
     
 
 def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,options={}):
@@ -66,7 +67,10 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
     clobber = options['clobber']
     
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
-    viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
+    if options['format']=='vtk':
+        viewer_filename = os.path.join(path, file_prefix+str(frame).zfill(4)+'.vtk')
+    else:
+        viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
 
     if solution.maux > 0 and write_aux:
         write_aux = True
@@ -81,8 +85,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
             raise IOError('Cowardly refusing to clobber %s!' % viewer_filename)
         if write_aux and os.path.exists(aux_filename):
             raise IOError('Cowardly refusing to clobber %s!' % aux_filename)
-
-    rank = MPI.COMM_WORLD.rank
+    rank =  PETSc.Comm.getRank(PETSc.COMM_WORLD)
     if rank==0:
         pickle_file = open(pickle_filename,'wb')
         # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
@@ -98,6 +101,10 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
         viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.WRITE)
         if write_aux:
             aux_viewer = PETSc.Viewer().createBinary(aux_filename, PETSc.Viewer.Mode.WRITE)
+    elif options['format'] == 'vtk':
+        viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.WRITE, format=PETSc.Viewer.Format.ASCII_VTK)
+        if write_aux:
+            aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE) 
     else:
         raise IOError('format type %s not supported' % options['format'])
     
@@ -196,11 +203,10 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         grid.t = value_dict['t']
         grid.meqn = value_dict['meqn']
 
-        nbc = [x+(2*grid.mbc) for x in grid.n]
         grid.q_da = PETSc.DA().create(
             dim=grid.ndim,
             dof=grid.meqn, # should be modified to reflect the update
-            sizes=nbc, 
+            sizes=grid.n, 
             #periodic_type = PETSc.DA.PeriodicType.X,
             #periodic_type=grid.PERIODIC,
             #stencil_type=grid.STENCIL,
@@ -208,9 +214,18 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
             comm=PETSc.COMM_WORLD)
 
         grid.gqVec = PETSc.Vec().load(viewer)
-        grid.q = grid.gqVec.getArray().copy()
-        grid.q.shape = (grid.q.size/grid.meqn,grid.meqn)
-
+        q = grid.gqVec.getArray().copy()
+        q_dim=[grid.meqn]
+        if len(grid.n)==2: 
+            q_dim.append(grid.n[1])
+            q_dim.append(grid.n[0])
+            q = q.reshape(q_dim,order='F')
+            #q = np.rollaxis(q,2,1)
+        else: 
+            q_dim.append(grid.n[0])
+            q = q.reshape(q_dim,order='F')
+        grid.q = q
+        
         if read_aux:
             nbc = [x+(2*grid.mbc) for x in grid.n]
             grid.aux_da = PETSc.DA().create(dim=grid.ndim,
@@ -234,3 +249,45 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     viewer.destroy()
     if read_aux:
         aux_viewer.destroy()
+
+def read_petsc_t(frame,path='./',file_prefix='claw'):
+    r"""Read only the petsc.pkl file and return the data
+    
+    :Input:
+     - *frame* - (int) Frame number to be read in
+     - *path* - (string) Path to the current directory of the file
+     - *file_prefix* - (string) Prefix of the files to be read in.  
+       ``default = 'claw'``
+     
+    :Output:
+     - (list) List of output variables
+      - *t* - (int) Time of frame
+      - *meqn* - (int) Number of equations in the frame
+      - *ngrids* - (int) Number of grids
+      - *maux* - (int) Auxillary value in the frame
+      - *ndim* - (int) Number of dimensions in q and aux
+    
+    """
+
+    base_path = os.path.join(path,)
+    path = os.path.join(base_path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
+    try:
+        f = open(path,'rb')
+        logger.debug("Opening %s file." % path)
+        grid_dict = pickle.load(f)
+
+        t = grid_dict['t']
+        meqn = grid_dict['meqn']
+        ngrids   = grid_dict['ngrids']                    
+        maux   = grid_dict['maux']                    
+        ndim     = grid_dict['ndim']
+
+        f.close()
+    except(IOError):
+        raise
+    except:
+        logger.error("File " + t_fname + " should contain t, meqn, ngrids, maux, ndim")
+        print "File " + t_fname + " should contain t, meqn, ngrids, maux, ndim"
+        raise
+        
+    return t,meqn,ngrids,maux,ndim

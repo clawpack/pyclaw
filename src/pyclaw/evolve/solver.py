@@ -24,6 +24,11 @@ import numpy as np
 # Clawpack modules
 from pyclaw.data import Data
 
+class CFLError(Exception):
+
+    def __init__(self,msg):
+        super(CFLError,self).__init__(msg)
+
 class Solver(object):
     r"""
     Pyclaw solver superclass
@@ -352,7 +357,11 @@ class Solver(object):
 
             # In case we need to retake a time step
             if self.dt_variable:
-                old_solution = copy.deepcopy(solutions["n"])
+                # pass
+                #Temporarily HACKed to avoid slowdown!
+                #old_solution = copy.deepcopy(solutions["n"])
+                qold = copy.copy(solutions["n"].grid.q)
+                told = solutions["n"].t
             retake_step = False  # Reset flag
             
             # Take one time step defined by the subclass
@@ -362,7 +371,11 @@ class Solver(object):
             if self.cfl <= self.cfl_max:
                 # Accept this step
                 self.status['cflmax'] = max(self.cfl, self.status['cflmax'])
-                solutions['n'].t += self.dt 
+                if self.dt_variable==True:
+                    solutions['n'].t += self.dt 
+                else:
+                    #Avoid roundoff error if dt_variable=False:
+                    solutions['n'].t = tstart+(n+1)*self.dt
                 # Verbose messaging
                 self.logger.debug("Step %i  CFL = %f   dt = %f   t = %f"
                     % (n,self.cfl,self.dt,solutions['n'].t))
@@ -376,7 +389,8 @@ class Solver(object):
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
                 if self.dt_variable:
-                    solutions['n'] = old_solution
+                    solutions['n'].grid.q = qold
+                    solutions['n'].t = told
                     # Retake step
                     retake_step = True
                 else:

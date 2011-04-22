@@ -63,44 +63,44 @@ def rp_shallow_roe_1d(q_l,q_r,aux_l,aux_r,aux_global):
     """
     
     # Array shapes
-    nrp = q_l.shape[0]
+    nrp = q_l.shape[1]
     meqn = 2
     mwaves = 2
     
     # Output arrays
-    wave = np.empty( (nrp, meqn, mwaves) )
-    s = np.empty( (nrp, mwaves) )
-    amdq = np.zeros( (nrp, meqn) )
-    apdq = np.zeros( (nrp, meqn) )
+    wave = np.empty( (meqn, mwaves, nrp) )
+    s = np.zeros( (mwaves, nrp) )
+    amdq = np.zeros( (meqn, nrp) )
+    apdq = np.zeros( (meqn, nrp) )
 
     # Compute roe-averaged quantities
-    ubar = ( (q_l[:,1]/np.sqrt(q_l[:,0]) + q_r[:,1]/np.sqrt(q_r[:,0])) /
-        (np.sqrt(q_l[:,0]) + np.sqrt(q_r[:,0])) )
-    cbar = np.sqrt(0.5 * aux_global['g'] * (q_l[:,0] + q_r[:,0]))
+    ubar = ( (q_l[1,:]/np.sqrt(q_l[0,:]) + q_r[1,:]/np.sqrt(q_r[0,:])) /
+        (np.sqrt(q_l[0,:]) + np.sqrt(q_r[0,:])) )
+    cbar = np.sqrt(0.5 * aux_global['g'] * (q_l[0,:] + q_r[0,:]))
         
     # Compute Flux structure    
     delta = q_r - q_l
-    a1 = 0.5 * (-delta[:,1] + (ubar + cbar) * delta[:,0]) / cbar
-    a2 = 0.5 * ( delta[:,1] - (ubar - cbar) * delta[:,0]) / cbar
+    a1 = 0.5 * (-delta[1,:] + (ubar + cbar) * delta[0,:]) / cbar
+    a2 = 0.5 * ( delta[1,:] - (ubar - cbar) * delta[0,:]) / cbar
         
     # Compute each family of waves
-    wave[:,0,0] = a1
-    wave[:,1,0] = a1 * (ubar - cbar)
-    s[:,0] = ubar - cbar
+    wave[0,0,:] = a1
+    wave[1,0,:] = a1 * (ubar - cbar)
+    s[0,:] = ubar - cbar
     
-    wave[:,0,1] = a2
-    wave[:,1,1] = a2 * (ubar + cbar)
-    s[:,1] = ubar + cbar
+    wave[0,1,:] = a2
+    wave[1,1,:] = a2 * (ubar + cbar)
+    s[1,:] = ubar + cbar
         
     if aux_global['efix']:
         raise NotImplementedError("Entropy fix has not been implemented.")
     else:
-        s_index = np.zeros((nrp,2))
+        s_index = np.zeros((2,nrp))
         for m in xrange(meqn):
             for mw in xrange(mwaves):
-                s_index[:,0] = s[:,mw]
-                amdq[:,m] += np.min(s_index,axis=1) * wave[:,m,mw]
-                apdq[:,m] += np.max(s_index,axis=1) * wave[:,m,mw]
+                s_index[0,:] = s[mw,:]
+                amdq[m,:] += np.min(s_index,axis=0) * wave[m,mw,:]
+                apdq[m,:] += np.max(s_index,axis=0) * wave[m,mw,:]
             
     return wave, s, amdq, apdq
     
@@ -119,7 +119,7 @@ def rp_shallow_hll_1d(q_l,q_r,aux_l,aux_r,aux_global):
             
     :Version: 1.0 (2009-02-05)
     """
-    
+    raise NotImplemented("This Riemann solver has not been interleaved!")
     # Array shapes
     nrp = q_l.shape[0]
     meqn = 2

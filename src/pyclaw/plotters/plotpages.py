@@ -2020,8 +2020,17 @@ def plotclaw_driver(plotdata, verbose=False):
         for figno in fignos_each_frame:
             pngfile[frameno,figno] = 'frame' + file[-4:] + 'fig%s.png' % figno
     
+    #DK: In PetClaw, we don't output fort.q* files.  Instead count the
+    #claw.pkl* files.
     if len(fortfile) == 0:
-        print '*** No fort.q files found in directory ', os.getcwd()
+        for file in glob.glob('claw.pkl*'):
+            frameno = int(file[9:12])
+            fortfile[frameno] = file
+            for figno in fignos_each_frame:
+                pngfile[frameno,figno] = 'frame' + file[-4:] + 'fig%s.png' % figno
+ 
+    if len(fortfile) == 0:
+        print '*** No fort.q or claw.pkl files found in directory ', os.getcwd()
         return plotdata
     
     # Discard frames that are not from latest run, based on

@@ -37,7 +37,7 @@ import numpy as np
 
 def rp_acoustics_1d(q_l,q_r,aux_l,aux_r,aux_global):
     r"""
-    Basic 1d acoustics riemann solver
+    Basic 1d acoustics riemann solver, with interleaved arrays
     
     *aux_global* is expected to contain -
      - *zz* - (float) Impedence
@@ -51,35 +51,35 @@ def rp_acoustics_1d(q_l,q_r,aux_l,aux_r,aux_global):
     meqn = 2
     mwaves = 2
     # Convenience
-    nrp = np.size(q_l,0)
+    nrp = np.size(q_l,1)
 
     # Return values
-    wave = np.empty( (nrp, meqn, mwaves) )
-    s = np.empty( (nrp, mwaves) )
-    amdq = np.empty( (nrp, meqn) )
-    apdq = np.empty( (nrp, meqn) )
+    wave = np.empty( (meqn, mwaves, nrp) )
+    s = np.empty( (mwaves, nrp) )
+    amdq = np.empty( (meqn, nrp) )
+    apdq = np.empty( (meqn, nrp) )
     
     # Local values
     delta = np.empty(np.shape(q_l))
     
     delta = q_r - q_l
-    a1 = (-delta[:,0] + aux_global['zz']*delta[:,1]) / (2.0 * aux_global['zz'])
-    a2 = (delta[:,0] + aux_global['zz']*delta[:,1]) / (2.0 * aux_global['zz'])
+    a1 = (-delta[0,:] + aux_global['zz']*delta[1,:]) / (2.0 * aux_global['zz'])
+    a2 = (delta[0,:] + aux_global['zz']*delta[1,:]) / (2.0 * aux_global['zz'])
         
     # Compute the waves
     # 1-Wave
-    wave[:,0,0] = -a1 * aux_global['zz']
-    wave[:,1,0] = a1
-    s[:,0] = -aux_global['cc']
+    wave[0,0,:] = -a1 * aux_global['zz']
+    wave[1,0,:] = a1
+    s[0,:] = -aux_global['cc']
         
     # 2-Wave
-    wave[:,0,1] = a2 * aux_global['zz']
-    wave[:,1,1] = a2
-    s[:,1] = aux_global['cc']
+    wave[0,1,:] = a2 * aux_global['zz']
+    wave[1,1,:] = a2
+    s[1,:] = aux_global['cc']
     
     # Compute the left going and right going fluctuations
     for m in xrange(meqn):
-        amdq[:,m] = s[:,0] * wave[:,m,0]
-        apdq[:,m] = s[:,1] * wave[:,m,1]
+        amdq[m,:] = s[0,:] * wave[m,0,:]
+        apdq[m,:] = s[1,:] * wave[m,1,:]
     
     return wave, s, amdq, apdq

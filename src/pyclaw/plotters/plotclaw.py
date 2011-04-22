@@ -25,13 +25,14 @@ if sys.platform in ['win32','cygwin']:
     sys.path.append(pypath)
 
 
-def plotclaw(outdir='.', plotdir='_plots', setplot = 'setplot.py'):
+def plotclaw(outdir='.', plotdir='_plots', setplot = 'setplot.py',format='ascii'):
     """
     Create html and/or latex versions of plots.
 
     INPUT:
         setplot is a module containing a function setplot that will be called
                 to set various plotting parameters.
+        format specifies the format of the files output from Clawpack
     """
 
     from pyclaw.plotters.data import ClawPlotData
@@ -41,6 +42,7 @@ def plotclaw(outdir='.', plotdir='_plots', setplot = 'setplot.py'):
     plotdata.outdir = outdir
     plotdata.plotdir = plotdir
     plotdata.setplot = setplot
+    plotdata.format = format
 
     plotpages.plotclaw_driver(plotdata, verbose=False)
 
