@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
-def acoustics(kernelsType='F',petscPlot=False,iplot=False,htmlplot=False,outdir='./_output'):
+def acoustics(kernel_language='Fortran',petscPlot=False,iplot=False,htmlplot=False,outdir='./_output'):
     import numpy as np
     from petsc4py import PETSc
     """
@@ -42,9 +42,10 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False,htmlplot=False,outdir=
     
     init_solution = Solution(grid)
 
-    solver = PetClawSolver1D(kernelsType = kernelsType)
+    solver = PetClawSolver1D()
     solver.mwaves=2
-    if kernelsType=='P': solver.set_riemann_solver('acoustics')
+    solver.kernel_language=kernel_language
+    if kernel_language=='Python': solver.set_riemann_solver('acoustics')
     solver.mthlim = [4]*solver.mwaves
     solver.dt=grid.d[0]/grid.aux_global['cc']*0.1
 

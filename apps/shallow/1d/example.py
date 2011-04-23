@@ -50,7 +50,8 @@ qinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = ClawSolver(kernelsType='P')
+solver = ClawSolver()
+solver.kernel_language='Fortran'
 
 solver.time_integrator='SSP33'
 solver.lim_type=2

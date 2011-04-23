@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True):
+def advection(kernel_language='Python',iplot=True,petscPlot=False,useController=True):
     """
     Example python script for solving the 1d advection equation.
     """
@@ -17,7 +17,7 @@ def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True):
     x = Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
     grid = Grid(x)
     grid.aux_global['u']=-1.
-    if kernelsType=='F': 
+    if kernel_language=='Fortran': 
         from step1 import comrp
         comrp.u = grid.aux_global['u']
     grid.meqn = 1
@@ -31,9 +31,10 @@ def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True):
     initial_solution = Solution(grid)
 
     # Solver setup
-    solver = PetClawSolver1D(kernelsType = 'P')
+    solver = PetClawSolver1D()
     solver.mwaves = 1
-    if kernelsType=='P': solver.set_riemann_solver('advection')
+    solver.kernel_language=kernel_language
+    if kernel_language=='Python': solver.set_riemann_solver('advection')
     solver.mthlim=[4]
 
     if useController:

@@ -138,29 +138,6 @@ class Grid(pyclaw.solution.Grid):
          - (:class:`Grid`) Initialized grid object
     """
 
-    # Serialization Definitions (save everything but q and aux!)
-
-    # Are these ever used?  Commmenting out as a test.
-#    def __getstate__(self):
-#        doc = r"""Returns dictionary of serializable attributes of this object"""
-#        #only need a shallow copy here
-#        result = self.__dict__.copy()
-#        del result['gqVec']
-#        del result['q_da']
-#        del result['lqVec']
-#        
-#        return result
-#
-#    def __setstate__(self, state):
-#        doc = r"""Reconstructs this object from a dictionary of its serializable attributes"""
-#        self.__dict__ = state
-#
-#        # these are all in a bad state and need to be explicitly loaded from viewers
-#        self.q_da = None
-#        self.gqVec = None
-#        self.lqVec = None
-        
-    
     # ========== Property Definitions ========================================
     def local_n():
         def fget(self):

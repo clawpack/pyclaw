@@ -57,10 +57,11 @@ qinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = PetClawSolver1D(kernelsType='P')
+solver = PetClawSolver1D()
 solver.dt = 0.1
 solver.max_steps = 500
 solver.mwaves = 2
+solver.kernel_language='Python'
 solver.set_riemann_solver('shallow_roe')
 solver.order = 2
 solver.mthlim = [3]*solver.mwaves

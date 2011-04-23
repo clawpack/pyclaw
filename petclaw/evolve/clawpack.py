@@ -85,22 +85,8 @@ class PetClawSolver(ClawSolver):
      - (:class:`PetClawSolver`) - Initialized petclaw solver
     """
     
-    # ========== Generic Init Routine ========================================
-    def __init__(self, kernelsType='F', data=None):
-        r"""
-        See :class:`ClawSolver` for full documentation.
-        """
-        
-        self.kernelsType=kernelsType
-        
-        # Call general initialization function
-        super(PetClawSolver,self).__init__(data)
-
-
-    
-         
     # ========== Boundary Conditions ==================================
-    def qbc(self,grid,state):
+    def qbc(self,grid,t,q):
         """
         Returns an array with the ghost cells filled.
         It would be nice to do the ghost cell array fetch in here, but
@@ -110,9 +96,8 @@ class PetClawSolver(ClawSolver):
         We should think about what makes the most sense.
         """
         
-        qbc = state.ghosted_q 
-        for i in xrange(len(grid._dimensions)):
-            dim = getattr(grid,grid._dimensions[i])
+        qbc = grid.ghosted_q
+        for i,dim in enumerate(grid.dimensions):
             #If a user defined boundary condition is being used, send it on,
             #otherwise roll the axis to front position and operate on it
             if dim.mthbc_lower == 0:
@@ -147,19 +132,17 @@ class PetClawSolver(ClawSolver):
              if dim.nstart == 0:
                 if grid.ndim == 1:
                     for i in xrange(grid.mbc):
-                        qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
+                        qbc[:,i,...] = qbc[:,grid.mbc+1-i,...]
                         qbc[1,i,...] = -qbc[1,grid.mbc+1-i,...] # Negate normal velocity
                 elif grid.ndim == 2:
-                     if dim.name == 'x':  # lower boundary in the x direction
+                     if dim.name == 'x':  # left boundary in the x direction
                          for i in xrange(grid.mbc):
-                             qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
-                             qbc[1,i,...] = qbc[1,grid.mbc+1-i,...] 
-                             qbc[2,i,...] = -qbc[2,grid.mbc+1-i,...] # Negate normal velocity
-                     else: # left boundary in the y direction
+                             qbc[:,i,...] = qbc[:,grid.mbc+1-i,...]
+                             qbc[1,i,...] = -qbc[1,grid.mbc+1-i,...] # Negate normal velocity
+                     else: # lower boundary in the y direction
                          for i in xrange(grid.mbc):
-                             qbc[0,i,...] = qbc[0,grid.mbc+1-i,...]
-                             qbc[1,i,...] = -qbc[1,grid.mbc+1-i,...]  # Negate normal velocity
-                             qbc[2,i,...] = qbc[2,grid.mbc+1-i,...]
+                             qbc[:,i,...] = qbc[:,grid.mbc+1-i,...]
+                             qbc[2,i,...] = -qbc[2,grid.mbc+1-i,...]  # Negate normal velocity
               
                 else:
                     raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
@@ -190,19 +173,17 @@ class PetClawSolver(ClawSolver):
             if dim.nend == dim.n:
                 if grid.ndim == 1:
                     for i in xrange(grid.mbc):
-                        qbc[0,-i-1,...] = qbc[0,-grid.mbc-2+i,...]
+                        qbc[:,-i-1,...] = qbc[:,-grid.mbc-2+i,...]
                         qbc[1,-i-1,...] = -qbc[1,-grid.mbc-2+i,...] # Negate normal velocity
                 elif grid.ndim == 2:
-                     if dim.name == 'x': # upper boundary in the x direction
+                     if dim.name == 'x': # right boundary in the x direction
                          for i in xrange(grid.mbc):
-                             qbc[0,-i-1,...] = qbc[0,-grid.mbc-2+i,...]
-                             qbc[1,-i-1,...] = qbc[1,-grid.mbc-2+i,...] 
-                             qbc[2,-i-1,...] = -qbc[2,-grid.mbc-2+i,...] # Negate normal velocity
-                     else: # right boundary in the y direction
-                         for i in xrange(grid.mbc):
-                             qbc[0,-i-1,...] = qbc[0,-grid.mbc-2+i,...]
+                             qbc[:,-i-1,...] = qbc[:,-grid.mbc-2+i,...]
                              qbc[1,-i-1,...] = -qbc[1,-grid.mbc-2+i,...] # Negate normal velocity
-                             qbc[2,-i-1,...] = qbc[2,-grid.mbc-2+i,...] 
+                     else: # upper boundary in the y direction
+                         for i in xrange(grid.mbc):
+                             qbc[:,-i-1,...] = qbc[:,-grid.mbc-2+i,...]
+                             qbc[2,-i-1,...] = -qbc[2,-grid.mbc-2+i,...] # Negate normal velocity
               
                 else:
                     raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
@@ -250,69 +231,6 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
         David Ketcheson
     """
 
-    def __init__(self,kernelsType,data=None):
-        r"""
-        Create 1d PetClaw solver
-        
-        See :class:`PetClawSolver1D` for more info.
-        """   
-        
-        super(PetClawSolver1D,self).__init__(kernelsType,data)
-
-    # ========== Python Homogeneous Step =====================================
-    def homogeneous_step(self,solutions):
-        r"""
-        Take one time step on the homogeneous hyperbolic system
-
-        Takes one time step of size dt on the hyperbolic system defined in the
-        appropriate Riemann solver rp.
-        """
-        # Grid we will be working on
-        grid = solutions['n'].grids[0]
-        # Number of equations
-        meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,grid.mbc,grid.aux
-          
-        q = self.qbc(grid,grid)
-
-        if(self.kernelsType == 'F'):
-            from step1 import step1
-            
-            local_n = q.shape[1]
-            dx,dt = grid.d[0],self.dt
-            dtdx = np.zeros( (local_n) ) + dt/dx
-            maxmx = local_n -mbc*2
-            mx = maxmx
-            
-            if(aux == None): aux = np.empty( (maux,local_n) )
-        
-            method =np.ones(7, dtype=int) # hardcoded 7
-            method[0] = self.dt_variable  # fixed or adjustable timestep
-            method[1] = self.order  # order of the method
-            method[2] = 0  # hardcoded 0, case of 2d or 3d
-            method[3] = 0  # hardcoded 0 design issue: contorller.verbosity
-            method[4] = self.src_split  # src term
-            if (grid.capa == None):
-                method[5] = 0  #capa
-            else:
-                method[5] = 1  #capa. amal: mcapa no longer points to the capa componenets of the aux array as in fortran. capa now is a separate arry.
-            method[6] = maux  # aux
-        
-            f    = np.empty( (meqn,local_n) )
-            wave = np.empty( (meqn,mwaves,local_n) )
-            s    = np.empty( (mwaves,local_n) )
-            amdq = np.empty( (meqn,local_n) )
-            apdq = np.empty( (meqn,local_n) )
-        
-            q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,self.mthlim,f,wave,s,amdq,apdq,dtdx)
-
-        elif(self.kernelsType == 'P'):
-            q=self.python_homogeneous_step(grid,q)
-
-        #This copy is unnecessary and should be eliminated.
-        grid.q=q[:,grid.mbc:-grid.mbc]
-        self.communicateCFL()
-          
-
 # ============================================================================
 #  PetClaw 2d Solver Class
 # ============================================================================
@@ -338,13 +256,13 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
         David Ketcheson
     """
 
-    def __init__(self,kernelsType='F',data=None):
+    def __init__(self,data=None):
         r"""
         Create 2D PetClaw solver.
         See :class:`PetClawSolver2D` for more info.
         """   
         
-        super(PetClawSolver2D,self).__init__(kernelsType,data)
+        super(PetClawSolver2D,self).__init__(data)
 
     # ========== Python Homogeneous Step =====================================
     def homogeneous_step(self,solutions):
@@ -360,7 +278,7 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
         meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,grid.mbc,grid.aux
 
 
-        if(self.kernelsType == 'F'):
+        if(self.kernel_language == 'Fortran'):
             from dimsp2 import dimsp2
             maxmx,maxmy = grid.local_n[0],grid.local_n[1]
             maxm = max(maxmx, maxmy)
@@ -406,7 +324,7 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
                        + (narray-1) * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn 
             work = np.empty((mwork))
             
-            qold = self.qbc(grid,grid)
+            qold = self.qbc(grid,grid.q,grid.t)
             qnew = qold #(input/output)
 
             #Old Workaround for f2py bug (?)
@@ -438,7 +356,7 @@ class PetClawSolver2D(PetClawSolver,ClawSolver2D):
             self.cfl = cfl
             grid.q=q[:,mbc:grid.local_n[0]+mbc,mbc:grid.local_n[1]+mbc]
 
-        elif(self.kernelsType == 'P'):
+        elif(self.kernel_language == 'Python'):
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
 
         self.communicateCFL()

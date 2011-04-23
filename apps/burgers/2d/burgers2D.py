@@ -6,7 +6,7 @@ from petsc4py import PETSc
 from petclaw.grid import Dimension
 from petclaw.grid import Grid
 from pyclaw.solution import Solution
-from petclaw.evolve.solver import PetClawSolver2D
+from petclaw.evolve.clawpack import PetClawSolver2D
 from pyclaw.controller import Controller
 import math
 from petclaw import plot
@@ -22,10 +22,7 @@ def qinit(grid):
     Y,X = np.meshgrid(y,x)
 
     q=np.empty([grid.meqn,len(x),len(y)], order = 'F')
-    if gt(x,0.1) and lt(x,0.6) and gt(y,0.1) and lt(y,0.6): 
-    	q[0,:,:] = 1.0
-    else: 
-    	q[0,:,:] = 0.1
+    q[0,:,:] = 0.1 + 0.9* (X>0.1)*(X<0.6)*(Y>0.1)*(Y<0.6)
     grid.q=q
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-def burgers(kernelsType='F',iplot=False,petscPlot=False,useController=True,htmlplot=True):
+def burgers(kernel_language='Fortran',iplot=False,petscPlot=False,useController=True,htmlplot=True):
     """
     Example python script for solving the 1d Burgers equation.
     """
@@ -34,16 +34,18 @@ def burgers(kernelsType='F',iplot=False,petscPlot=False,useController=True,htmlp
     q=np.zeros([len(xc),grid.meqn], order = 'F')
     q[:,0] = np.sin(np.pi*2*xc) + 0.50
     grid.q=q
+    grid.aux_global['efix']=True
 
     initial_solution = Solution(grid)
 
     #===========================================================================
     # Setup solver and solver parameters
     #===========================================================================
-    solver = PetClawSolver1D(kernelsType = kernelsType)
+    solver = PetClawSolver1D()
+    solver.kernel_language = kernel_language
     solver.mwaves = 1
     solver.mthlim = [3]
-    if kernelsType=='P': solver.set_riemann_solver('burgers')
+    if kernel_language=='Python': solver.set_riemann_solver('burgers')
 
 
 
