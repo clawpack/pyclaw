@@ -69,7 +69,7 @@ class Controller(object):
         self.rundir = os.getcwd()
         r"""(string) - Directory to run from (containing \*.data files), uses 
         \*.data from rundir"""
-        self.outdir = os.getcwd()
+        self.outdir = os.getcwd()+'/_output'
         r"""(string) - Output directory, directs output files to outdir"""
         self.overwrite = True
         r"""(bool) - Ok to overwrite old result in outdir, ``default = True``"""

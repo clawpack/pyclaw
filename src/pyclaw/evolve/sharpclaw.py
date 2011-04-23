@@ -58,7 +58,7 @@ class SharpClawSolver(Solver):
     # ========================================================================
     #   Initialization routines
     # ========================================================================
-    def __init__(self, kernelsType, data=None):
+    def __init__(self, data=None):
         r"""
         Here we just set the flag for using Python or Fortran kernels.
         """
@@ -76,12 +76,11 @@ class SharpClawSolver(Solver):
         self._default_attr_values['char_decomp'] = 0
         self._default_attr_values['aux_time_dep'] = False
         self._default_attr_values['src_term'] = False
+        self._default_attr_values['kernel_language'] = 'Fortran'
         
         # Call general initialization function
         super(SharpClawSolver,self).__init__(data)
         
-        self.kernelsType = kernelsType
-
     def setup(self,solutions):
         """
         Allocate RK stage arrays.
@@ -206,7 +205,7 @@ class SharpClawSolver1D(SharpClawSolver):
     argument given to the initialization of the solver (defaults to fortran).
     
     """
-    def __init__(self, kernelsType,data=None):
+    def __init__(self, data=None):
         r"""
         Create 1d Clawpack solver
         
@@ -220,7 +219,7 @@ class SharpClawSolver1D(SharpClawSolver):
         # Import Riemann solvers
         exec('import pyclaw.evolve.rp as rp',globals())
             
-        super(SharpClawSolver1D,self).__init__(kernelsType,data)
+        super(SharpClawSolver1D,self).__init__(data)
 
 
      # ========== Riemann solver library routines =============================   

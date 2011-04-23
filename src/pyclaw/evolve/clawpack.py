@@ -112,6 +112,7 @@ class ClawSolver(Solver):
         self._default_attr_values['fwave'] = False
         self._default_attr_values['src'] = src
         self._default_attr_values['start_step'] = start_step
+        self._default_attr_values['kernel_language'] = 'Fortran'
 
         # Call general initialization function
         super(ClawSolver,self).__init__(data)
@@ -212,6 +213,10 @@ class ClawSolver(Solver):
         # Take a step on the homogeneous problem
         self.homogeneous_step(solutions)
 
+        # Putting this here now for PetClaw.  We should think about the best way
+        # to handle CFL communication.
+        self.communicateCFL()
+
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
         # dt
@@ -235,6 +240,12 @@ class ClawSolver(Solver):
         This is a dummy routine and must be overridden.
         """
         raise Exception("Dummy routine, please override!")
+
+    def communicateCFL(self):
+        r"""
+        Dummy function, only here for PetClaw to override.
+        """
+        pass
             
 
 # ============================================================================
@@ -318,14 +329,8 @@ class ClawSolver1D(ClawSolver):
             logger.warning(error_msg)
             raise NameError(error_msg)
 
-    # ========== Python Homogeneous Step =====================================
+    # ========== Homogeneous Step =====================================
     def homogeneous_step(self,solutions):
-        grid = solutions['n'].grids[0]
-        q = self.qbc(grid,grid.q,grid.t)
-        q = self.python_homogeneous_step(grid,q)
-        grid.q = q[:,grid.mbc:-grid.mbc]
-
-    def python_homogeneous_step(self,grid,q):
         r"""
         Take one time step on the homogeneous hyperbolic system
 
@@ -338,182 +343,123 @@ class ClawSolver1D(ClawSolver):
 
         :Version: 1.0 (2009-07-01)
         """
-    
-        # Number of equations
-        meqn = grid.meqn
-        # Limiter to use in the pth family
-        limiter = np.array(self.mthlim,ndmin=1)  
-        # Q with appended boundary conditions
-    
-        dtdx = np.zeros( (2*grid.mbc+grid.n[0]) )
+        grid = solutions['n'].grids[0]
+        q = self.qbc(grid,grid.q,grid.t)
 
-        # Find local value for dt/dx
-        if grid.capa is not None:
-            dtdx = self.dt / (grid.d[0] * grid.capa)
-        else:
-            dtdx += self.dt/grid.d[0]
-    
-        # Solve Riemann problem at each interface
-        q_l=q[:,:-1]
-        q_r=q[:,1:]
-        if grid.aux is not None:
-            aux_l=grid.aux[:,:-1]
-            aux_r=grid.aux[:,1:]
-        else:
-            aux_l = None
-            aux_r = None
-        wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,grid.aux_global)
-        
-        # Update loop limits, these are the limits for the Riemann solver
-        # locations, which then update a grid cell value
-        # We include the Riemann problem just outside of the grid so we can
-        # do proper limiting at the grid edges
-        #        LL    |                               |     UL
-        #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
-        #              |                               |
-        LL = grid.mbc - 1
-        UL = grid.mbc + grid.n[0] + 1 
-
-        # Update q for Godunov update
-        for m in xrange(meqn):
-            q[m,LL:UL] -= dtdx[LL:UL]*apdq[m,LL-1:UL-1]
-            q[m,LL-1:UL-1] -= dtdx[LL-1:UL-1]*amdq[m,LL-1:UL-1]
-    
-        # Compute maximum wave speed
-        self.cfl = 0.0
-        for mw in xrange(wave.shape[1]):
-            smax1 = np.max(dtdx[LL:UL]*s[mw,LL-1:UL-1])
-            smax2 = np.max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
-            self.cfl = max(self.cfl,smax1,smax2)
-
-        # If we are doing slope limiting we have more work to do
-        if self.order == 2:
-            # Initialize flux corrections
-            f = np.zeros( (meqn,grid.n[0] + 2*grid.mbc) )
-        
-            # Apply Limiters to waves
-            if (limiter > 0).any():
-                wave = limiters.limit(grid.meqn,wave,s,limiter,dtdx)
-
-            # Compute correction fluxes for second order q_{xx} terms
-            dtdxave = 0.5 * (dtdx[LL-1:UL-1] + dtdx[LL:UL])
-            if self.fwave:
-                for mw in xrange(wave.shape[1]):
-                    sabs = np.abs(s[mw,LL-1:UL-1])
-                    om = 1.0 - sabs*dtdxave[:UL-LL]
-                    ssign = np.sign(s[mw,LL-1:UL-1])
-                    for m in xrange(meqn):
-                        f[m,LL:UL] += 0.5 * ssign * om * wave[m,mw,LL-1:UL-1]
-            else:
-                for mw in xrange(wave.shape[1]):
-                    sabs = np.abs(s[mw,LL-1:UL-1])
-                    om = 1.0 - sabs*dtdxave[:UL-LL]
-                    for m in xrange(meqn):
-                        f[m,LL:UL] += 0.5 * sabs * om * wave[m,mw,LL-1:UL-1]
-
-            # Update q by differencing correction fluxes
-            for m in xrange(meqn):
-                q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1]) 
+        meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,grid.mbc,grid.aux
+          
+        if(self.kernel_language == 'Fortran'):
+            from step1 import step1
             
-        # Reset q update
-        return q
+            local_n = q.shape[1]
+            dx,dt = grid.d[0],self.dt
+            dtdx = np.zeros( (local_n) ) + dt/dx
+            maxmx = local_n -mbc*2
+            mx = maxmx
+            
+            if(aux == None): aux = np.empty( (maux,local_n) )
+        
+            method =np.ones(7, dtype=int) # hardcoded 7
+            method[0] = self.dt_variable  # fixed or adjustable timestep
+            method[1] = self.order  # order of the method
+            method[2] = 0  # hardcoded 0, case of 2d or 3d
+            method[3] = 0  # hardcoded 0 design issue: contorller.verbosity
+            method[4] = self.src_split  # src term
+            if (grid.capa == None):
+                method[5] = 0  
+            else:
+                method[5] = 1  
+            method[6] = maux  # aux
+        
+            #This should be done just once, either in the fortran or the python:
+            f    = np.empty( (meqn,local_n) )
+            wave = np.empty( (meqn,mwaves,local_n) )
+            s    = np.empty( (mwaves,local_n) )
+            amdq = np.empty( (meqn,local_n) )
+            apdq = np.empty( (meqn,local_n) )
+        
+            q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,self.mthlim,f,wave,s,amdq,apdq,dtdx)
 
-    # def python_homogeneous_step_interleaved(self,grid,q):
-    #     r"""
-    #     Take one time step on the homogeneous hyperbolic system
-    # 
-    #     Takes one time step of size dt on the hyperbolic system defined in the
-    #     appropriate Riemann solver rp.
-    # 
-    #     :Input:
-    #      - *solutions* - (:class:`~pyclaw.solution.Solution`) Solution that 
-    #        will be evolved
-    # 
-    #     :Version: 1.0 (2009-07-01)
-    #     """
-    # 
-    #     # Number of equations
-    #     meqn = grid.meqn
-    #     # Limiter to use in the pth family
-    #     limiter = np.array(self.mthlim,ndmin=1)  
-    #     # Q with appended boundary conditions
-    #     # Flux vector
-    #     f = np.empty( (meqn,2*grid.mbc + grid.n[0]) )
-    # 
-    #     dtdx = np.zeros( (2*grid.mbc+grid.n[0]) )
-    # 
-    #     # Find local value for dt/dx
-    #     if grid.capa is not None:
-    #         dtdx = self.dt / (grid.d[0] * grid.capa)
-    #     else:
-    #         dtdx += self.dt/grid.d[0]
-    # 
-    #     # Solve Riemann problem at each interface
-    #     q_l=q[:,:-1]
-    #     q_r=q[:,1:]
-    #     if grid.aux is not None:
-    #         aux_l=grid.aux[:,:-1]
-    #         aux_r=grid.aux[:,1:]
-    #     else:
-    #         aux_l = None
-    #         aux_r = None
-    #     wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,grid.aux_global)
-    #     
-    #     # Update loop limits, these are the limits for the Riemann solver
-    #     # locations, which then update a grid cell value
-    #     # We include the Riemann problem just outside of the grid so we can
-    #     # do proper limiting at the grid edges
-    #     #        LL    |                               |     UL
-    #     #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
-    #     #              |                               |
-    #     LL = grid.mbc - 1
-    #     UL = grid.mbc + grid.n[0] + 1 
-    # 
-    #     # Update q for Godunov update
-    #     for m in xrange(meqn):
-    #         q[m,LL:UL] -= dtdx[LL:UL]*apdq[m,LL-1:UL-1]
-    #         q[m,LL-1:UL-1] -= dtdx[LL-1:UL-1]*amdq[m,LL-1:UL-1]
-    # 
-    #     # Compute maximum wave speed
-    #     self.cfl = 0.0
-    #     for mw in xrange(wave.shape[1]):
-    #         smax1 = max(dtdx[LL:UL]*s[mw,LL-1:UL-1])
-    #         smax2 = max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
-    #         self.cfl = max(self.cfl,smax1,smax2)
-    # 
-    #     # If we are doing slope limiting we have more work to do
-    #     if self.order == 2:
-    #         # Initialize flux corrections
-    #         f = np.zeros( (meqn,grid.n[0] + 2*grid.mbc) )
-    #     
-    #         # Apply Limiters to waves
-    #         if (limiter > 0).any():
-    #             wave = limiters.limit(grid.meqn,wave,s,limiter,dtdx)
-    # 
-    #         # Compute correction fluxes for second order q_{xx} terms
-    #         dtdxave = 0.5 * (dtdx[LL-1:UL-1] + dtdx[LL:UL])
-    #         if self.fwave:
-    #             for mw in xrange(wave.shape[1]):
-    #                 sabs = np.abs(s[mw,LL-1:UL-1])
-    #                 om = 1.0 - sabs*dtdxave[:UL-LL]
-    #                 ssign = np.sign(s[mw,LL-1:UL-1])
-    #                 for m in xrange(meqn):
-    #                     f[m,LL:UL] += 0.5 * ssign * om * wave[m,mw,LL-1:UL-1]
-    #         else:
-    #             for mw in xrange(wave.shape[1]):
-    #                 sabs = np.abs(s[mw,LL-1:UL-1])
-    #                 om = 1.0 - sabs*dtdxave[:UL-LL]
-    #                 for m in xrange(meqn):
-    #                     f[m,LL:UL] += 0.5 * sabs * om * wave[m,mw,LL-1:UL-1]
-    # 
-    #         # Update q by differencing correction fluxes
-    #         for m in xrange(meqn):
-    #             q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1]) 
-    #         
-    #     # Reset q update
-    #     return q,self.cfl
+        elif(self.kernel_language == 'Python'):
+ 
+            # Limiter to use in the pth family
+            limiter = np.array(self.mthlim,ndmin=1)  
+        
+            dtdx = np.zeros( (2*grid.mbc+grid.n[0]) )
 
+            # Find local value for dt/dx
+            if grid.capa is not None:
+                dtdx = self.dt / (grid.d[0] * grid.capa)
+            else:
+                dtdx += self.dt/grid.d[0]
+        
+            # Solve Riemann problem at each interface
+            q_l=q[:,:-1]
+            q_r=q[:,1:]
+            if grid.aux is not None:
+                aux_l=grid.aux[:,:-1]
+                aux_r=grid.aux[:,1:]
+            else:
+                aux_l = None
+                aux_r = None
+            wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,grid.aux_global)
+            
+            # Update loop limits, these are the limits for the Riemann solver
+            # locations, which then update a grid cell value
+            # We include the Riemann problem just outside of the grid so we can
+            # do proper limiting at the grid edges
+            #        LL    |                               |     UL
+            #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
+            #              |                               |
+            LL = grid.mbc - 1
+            UL = grid.mbc + grid.n[0] + 1 
 
+            # Update q for Godunov update
+            for m in xrange(meqn):
+                q[m,LL:UL] -= dtdx[LL:UL]*apdq[m,LL-1:UL-1]
+                q[m,LL-1:UL-1] -= dtdx[LL-1:UL-1]*amdq[m,LL-1:UL-1]
+        
+            # Compute maximum wave speed
+            self.cfl = 0.0
+            for mw in xrange(wave.shape[1]):
+                smax1 = np.max(dtdx[LL:UL]*s[mw,LL-1:UL-1])
+                smax2 = np.max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
+                self.cfl = max(self.cfl,smax1,smax2)
+
+            # If we are doing slope limiting we have more work to do
+            if self.order == 2:
+                # Initialize flux corrections
+                f = np.zeros( (meqn,grid.n[0] + 2*grid.mbc) )
+            
+                # Apply Limiters to waves
+                if (limiter > 0).any():
+                    wave = limiters.limit(grid.meqn,wave,s,limiter,dtdx)
+
+                # Compute correction fluxes for second order q_{xx} terms
+                dtdxave = 0.5 * (dtdx[LL-1:UL-1] + dtdx[LL:UL])
+                if self.fwave:
+                    for mw in xrange(wave.shape[1]):
+                        sabs = np.abs(s[mw,LL-1:UL-1])
+                        om = 1.0 - sabs*dtdxave[:UL-LL]
+                        ssign = np.sign(s[mw,LL-1:UL-1])
+                        for m in xrange(meqn):
+                            f[m,LL:UL] += 0.5 * ssign * om * wave[m,mw,LL-1:UL-1]
+                else:
+                    for mw in xrange(wave.shape[1]):
+                        sabs = np.abs(s[mw,LL-1:UL-1])
+                        om = 1.0 - sabs*dtdxave[:UL-LL]
+                        for m in xrange(meqn):
+                            f[m,LL:UL] += 0.5 * sabs * om * wave[m,mw,LL-1:UL-1]
+
+                # Update q by differencing correction fluxes
+                for m in xrange(meqn):
+                    q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1]) 
+
+        else: raise Exception("Unrecognized kernel_language; choose 'Fortran' or 'Python'")
+            
+        grid.q = q[:,grid.mbc:-grid.mbc]
+
+   
 
 # ============================================================================
 #  ClawPack 2d Solver Class

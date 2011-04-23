@@ -32,29 +32,29 @@ def rp_burgers_1d(q_l,q_r,aux_l,aux_r,aux_global):
     :Version: 1.0 (2009-2-4)
     """
         
-    nrp = q_l.shape[0]
+    nrp = q_l.shape[1]
     meqn = 1
     mwaves = 1
     
     # Output arrays
-    wave = np.empty( (nrp, meqn, mwaves) )
-    s = np.empty( (nrp, mwaves) )
-    amdq = np.empty( (nrp, meqn) )
-    apdq = np.empty( (nrp, meqn) )
+    wave = np.empty( (meqn, mwaves, nrp) )
+    s = np.empty( (mwaves, nrp) )
+    amdq = np.empty( (meqn, nrp) )
+    apdq = np.empty( (meqn, nrp) )
 
     # Basic solve
-    wave[:,:,0] = q_r - q_l
-    s[:,0] = 0.5 * (q_r[:,0] + q_l[:,0])
+    wave[0,:,:] = q_r - q_l
+    s[0,:] = 0.5 * (q_r[0,:] + q_l[0,:])
 
-    s_index = np.zeros((nrp,2))
-    s_index[:,0] = s[:,0]
-    amdq[:,0] = np.min(s_index,axis=1) * wave[:,0,0]
-    apdq[:,0] = np.max(s_index,axis=1) * wave[:,0,0]
+    s_index = np.zeros((2,nrp))
+    s_index[0,:] = s[0,:]
+    amdq[0,:] = np.min(s_index,axis=0) * wave[0,0,:]
+    apdq[0,:] = np.max(s_index,axis=0) * wave[0,0,:]
     
     # Compute entropy fix
     if aux_global['efix']:
-        transonic = (q_l[:,0] < 0.0) * (q_r[:,0] > 0.0)
-        amdq[transonic,0] = -0.5 * q_l[transonic,0]**2
-        apdq[transonic,0] = 0.5 * q_r[transonic,0]**2
+        transonic = (q_l[0,:] < 0.0) * (q_r[0,:] > 0.0)
+        amdq[0,transonic] = -0.5 * q_l[0,transonic]**2
+        apdq[0,transonic] = 0.5 * q_r[0,transonic]**2
 
     return wave, s, amdq, apdq
