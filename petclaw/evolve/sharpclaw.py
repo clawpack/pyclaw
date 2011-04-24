@@ -17,7 +17,6 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 
 import numpy as np
 
-# Solver superclass
 from pyclaw.evolve.clawpack import start_step, src
 from clawpack import PetClawSolver
 from pyclaw.evolve.sharpclaw import SharpClawSolver1D
