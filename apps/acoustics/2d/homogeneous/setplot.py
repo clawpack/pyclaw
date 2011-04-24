@@ -54,8 +54,8 @@ def setplot(plotdata):
 
     # Figure for scatter plot
     # -----------------------
-
-    plotfigure = plotdata.new_plotfigure(name='scatter', figno=3)
+    
+    plotfigure = plotdata.new_plotfigure(name='scatter', figno=1)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
@@ -83,14 +83,14 @@ def setplot(plotdata):
     plotitem.show = True       # show on plot?
     
     # Set up for item on these axes: 1d reference solution
-    plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
-    plotitem.outdir = qref_dir
-    plotitem.plot_var = 0
-    plotitem.plotstyle = '-'
-    plotitem.color = 'r'
-    plotitem.kwargs = {'linewidth': 2}
-    plotitem.show = True       # show on plot?
-    plotaxes.afteraxes = "pylab.legend(('2d data', '1d reference solution'))"
+    #Remove 1d comparison: plotitem = emove 1d comparison:m(plot_type='1d_plot')
+    #Remove 1d comparison: plotitem.outdir = qref_dir
+    #Remove 1d comparison: plotitem.plot_var = 0
+    #Remove 1d comparison: plotitem.plotstyle = '-'
+    #Remove 1d comparison: plotitem.color = 'r'
+    #Remove 1d comparison: plotitem.kwargs = {'linewidth': 2}
+    #Remove 1d comparison: plotitem.show = True       # show on plot?
+    #Remove 1d comparison: plotaxes.afteraxes = "pylab.legend('2d data')" #Remove 1d comparison:, '1d reference solution'))"
     
 
     # Parameters used only when creating html and/or latex hardcopy
