@@ -23,12 +23,6 @@ MODULE = assembly
 step1.so: $(STEP1_SOURCE) $(LIBOBJ)
 	${F2PY} -m step1 -c $^
 
-all: step1.so ${MODULE}.so
-
-${MODULE}.so: ${MODULE}.pyx ${MODULE}impl.h ${MODULE}impl.c petscdadef.h
-	CC='${PCC}' CFLAGS='${PCC_FLAGS}' F90='${FC_LINKER}' FFLAGS='${FFLAGS}' LDFLAGS='${FC_LINKER_FLAGS}' ${PYTHON} setup.py -q build_ext --inplace
-	${RM} -r build ${MODULE}_wrap.c
-
 limiter.o: $(ONE_D_CLASSIC)/limiter.f
 	$(FCOMPILE_SINGLE) -c -o $@ $^
 

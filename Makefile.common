@@ -5,6 +5,10 @@ endif
 
 FC ?= gfortran
 
-ONE_D_LIBPATH = $(PETCLAW)/petclaw/fortran/1d
+ONE_D_CLASSIC = $(PETCLAW)/petclaw/fortran/1d/classic
 
-TWO_D_LIBPATH = $(PETCLAW)/petclaw/fortran/2d/
+TWO_D_CLASSIC ?= $(PETCLAW)/petclaw/fortran/2d/classic
+
+ONE_D_SHARPCLAW ?= $(PETCLAW)/petclaw/fortran/1d/sharpclaw
+
+TWO_D_SHARPCLAW ?= $(PETCLAW)/petclaw/fortran/2d/sharpclaw

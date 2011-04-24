@@ -59,11 +59,12 @@ def shallow1D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
     #===========================================================================
     # Setup solver and solver parameters
     #===========================================================================
-    kernelsType = 'F'
-    solver = PetClawSolver1D(kernelsType = kernelsType)
+    kernel_language = 'Fortran'
+    solver = PetClawSolver1D()
     solver.mwaves = 2
     solver.mthlim = [4]*solver.mwaves
-    if kernelsType =='P': solver.set_riemann_solver('shallow_roe')
+    solver.kernel_language=kernel_language
+    if kernel_language =='Python': solver.set_riemann_solver('shallow_roe')
  
 
     #===========================================================================

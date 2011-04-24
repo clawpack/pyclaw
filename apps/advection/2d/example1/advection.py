@@ -46,11 +46,11 @@ def advection2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     mx=80; my=80
     # Initialize grids and solutions
     from dimsp2 import comrp
-    x = Dimension('x',0.0,1.0,mx,mthbc_lower=1,mthbc_upper=1)
-    y = Dimension('y',0.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
+    x = Dimension('x',0.0,1.0,mx,mthbc_lower=2,mthbc_upper=2)
+    y = Dimension('y',0.0,1.0,my,mthbc_lower=2,mthbc_upper=2)
     grid = Grid([x,y])
 
-    grid.aux_global['u']=-0.6
+    grid.aux_global['u']=0.6
     grid.aux_global['v']=0.4
     comrp.ubar = grid.aux_global['u']
     comrp.vbar = grid.aux_global['v']
