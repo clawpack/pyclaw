@@ -1,3 +1,6 @@
+"""
+Utility functions for parsing command line arguments and passing them to Python functions.
+"""
 def _method_info_from_argv(argv=None):
     """Command-line -> method call arg processing.
     

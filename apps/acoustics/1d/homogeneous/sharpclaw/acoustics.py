@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
-def acoustics(kernelsType='F',petscPlot=False,iplot=False,htmlplot=False,outdir='./_output'):
+def acoustics(kernel_language='Fortran',petscPlot=False,iplot=False,htmlplot=False,outdir='./_output'):
     import numpy as np
     """
     1D acoustics example.
@@ -24,8 +24,9 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False,htmlplot=False,outdir=
     grid.aux_global['bulk']=bulk
     grid.aux_global['zz']=np.sqrt(rho*bulk)
     grid.aux_global['cc']=np.sqrt(rho/bulk)
-    from flux1 import cparam 
-    for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
+    if kernel_language=='Fortran':
+        from flux1 import cparam 
+        for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
     grid.meqn=2
     grid.mbc=3
     grid.t = 0.0
@@ -41,21 +42,19 @@ def acoustics(kernelsType='F',petscPlot=False,iplot=False,htmlplot=False,outdir=
     
     init_solution = Solution(grid)
 
-    solver = SharpClawSolver1D(kernelsType = kernelsType)
+    solver = SharpClawSolver1D('F')
     solver.mwaves=2
-    if kernelsType=='P': solver.set_riemann_solver('acoustics')
+    solver.kernel_language=kernel_language
+    if kernel_language=='Python': solver.set_riemann_solver('acoustics')
     solver.mthlim = [4]*solver.mwaves
     solver.dt=grid.d[0]/grid.aux_global['cc']*0.1
-    solver.time_integrator='Euler'
+    solver.time_integrator='SSP33'
     solver.cfl_desired=0.45
     solver.cfl_max=0.5
 
     claw = Controller()
     claw.keep_copy = True
-    claw.outstyle = 3
-    claw.nout = 500
-    claw.iout = 500
-    # The output format MUST be set to petsc!
+    claw.outstyle = 1
     claw.output_format = 'ascii'
     claw.outdir = outdir
     claw.tfinal = 1.0
