@@ -534,18 +534,14 @@ class ClawSolver2D(ClawSolver):
             mx,my = maxmx,maxmy
             aux = grid.aux
             
-            #Old workaround
-            #if(aux == None): aux=np.empty([0]*(grid.ndim+1))
-
             #New workaround
-            #The following is an awful hack to work around an issue
-            #with f2py.  It involves wastefully allocating a large array.
-            #It could be avoided by using the other workaround below, but
-            #that makes the build process different for every example
-            #because we would need to generate and modify the .pyf file.
+            #The following is a hack to work around an issue
+            #with f2py.  It involves wastefully allocating a three arrays.
+            #f2py seems not able to handle multiple zero-size arrays being passed.
+            # it appears the bug is related to f2py/src/fortranobject.c line 841.
             if(aux == None): 
-                maux=0
-                aux=np.empty((maux,maxmx+2*mbc,maxmy+2*mbc))
+                maux=1
+                aux=np.empty((0,maxmx+2*mbc,maxmy+2*mbc))
                 
             dx,dy,dt = grid.d[0],grid.d[1],self.dt
 
