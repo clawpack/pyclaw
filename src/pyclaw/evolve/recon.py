@@ -1,16 +1,19 @@
 #Reconstruction functions for SharpClaw
 import numpy as np
 
-def weno5(q):
+def weno(k, q):
+
+    if k != 5:
+        raise ValueError, '%d order WENO reconstruction not supported' % k
 
     epweno=1.e-36
 
-    dqiph = np.diff(q,1,0)
+    dqiph = np.diff(q,1)
 
     LL=3
-    UL=q.shape[0]-2
-    qr=np.empty(q.shape)
-    ql=np.empty(q.shape)
+    UL=q.shape[1]-2
+    qr=q.copy()
+    ql=q.copy()
 
     for m1 in [1,2]:
         #m1=1: construct q^-_{i+1/2} (ql)
@@ -21,10 +24,10 @@ def weno5(q):
         intwo=-2*im
 
         #Create references to DQ slices
-        dq_intwo=dqiph[LL+intwo-1:UL+intwo-1,:]
-        dq_ione =dqiph[LL+ione-1 :UL+ione-1 ,:]
-        dq_inone=dqiph[LL+inone-1:UL+inone-1,:]
-        dq      =dqiph[LL-1:UL-1            ,:]
+        dq_intwo=dqiph[:,LL+intwo-1:UL+intwo-1]
+        dq_ione =dqiph[:,LL+ione-1 :UL+ione-1 ]
+        dq_inone=dqiph[:,LL+inone-1:UL+inone-1]
+        dq      =dqiph[:,LL-1:UL-1            ]
 
         t1 = im*(dq_intwo-dq_inone)
         t2 = im*(dq_inone-dq)
@@ -45,10 +48,10 @@ def weno5(q):
         s3 *= t0
 
         z=(s1*(t2-t1)+(0.5*s3-0.25)*(t3-t2))/3. \
-                + (-q[LL-2:UL-2,:]+7.*(q[LL-1:UL-1,:]+q[LL:UL,:])-q[LL+1:UL+1,:])/12.
-        if m1==1: qr[LL-1:UL-1,:] = z
-        else: ql[LL:UL,:] = z
-                
+                + (-q[:,LL-2:UL-2]+7.*(q[:,LL-1:UL-1]+q[:,LL:UL])-q[:,LL+1:UL+1])/12.
+        if m1==1: qr[:,LL-1:UL-1] = z
+        else: ql[:,LL:UL] = z
+
     return ql,qr
 
 def weno5_wave(q,wave,s):
@@ -58,9 +61,9 @@ def weno5_wave(q,wave,s):
     qr=q.copy()
     ql=q.copy()
     LL=2
-    UL=q.shape[0]-3
-    mwaves=wave.shape[2]
-    meqn=wave.shape[1]
+    UL=q.shape[1]-3
+    mwaves=wave.shape[1]
+    meqn=wave.shape[0]
     for m1 in [1,2]:
         #m1=1: construct q^-_{i+1/2} (ql)
         #m1=2: construct q^+_{i+1/2} (qr)
@@ -70,15 +73,15 @@ def weno5_wave(q,wave,s):
         intwo=-2*im
 
         for mw in xrange(mwaves):
-            wnorm2 = wave[LL:UL,0,mw]**2
-            theta1 = wave[LL+intwo:UL+intwo,0,mw]*wave[LL:UL,0,mw]
-            theta2 = wave[LL+inone:UL+inone,0,mw]*wave[LL:UL,0,mw]
-            theta3 = wave[LL+ione :UL+ione ,0,mw]*wave[LL:UL,0,mw]
+            wnorm2 = wave[0,mw,LL:UL]**2
+            theta1 = wave[0,mw,LL+intwo:UL+intwo]*wave[0,mw,LL:UL]
+            theta2 = wave[0,mw,LL+inone:UL+inone]*wave[0,mw,LL:UL]
+            theta3 = wave[0,mw,LL+ione :UL+ione ]*wave[0,mw,LL:UL]
             for m in xrange(1,meqn):
-                wnorm2 += wave[LL:UL,m,mw]**2
-                theta1 += wave[LL+intwo:UL+intwo,m,mw]*wave[LL:UL,m,mw]
-                theta2 += wave[LL+inone:UL+inone,m,mw]*wave[LL:UL,m,mw]
-                theta3 += wave[LL+ione :UL+ione ,m,mw]*wave[LL:UL,m,mw]
+                wnorm2 += wave[m,mw,LL:UL]**2
+                theta1 += wave[m,mw,LL+intwo:UL+intwo]*wave[m,mw,LL:UL]
+                theta2 += wave[m,mw,LL+inone:UL+inone]*wave[m,mw,LL:UL]
+                theta3 += wave[m,mw,LL+ione :UL+ione ]*wave[m,mw,LL:UL]
 
             t1=im*(theta1-theta2)
             t2=im*(theta2-wnorm2)
@@ -104,7 +107,7 @@ def weno5_wave(q,wave,s):
             wnorm2=np.where(wnorm2>1.e-14,1./wnorm2,1.)
 
             for m in xrange(meqn):
-                if m1==1: qr[LL:UL,m] += u*wave[LL:UL,m,mw]*wnorm2
-                else: ql[LL+1:UL+1,m] += u*wave[LL:UL,m,mw]*wnorm2
-                
+                if m1==1: qr[m,LL:UL] += u*wave[m,mw,LL:UL]*wnorm2
+                else: ql[m,LL+1:UL+1] += u*wave[m,mw,LL:UL]*wnorm2
+
     return ql,qr

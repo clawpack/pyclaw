@@ -21,8 +21,14 @@ import numpy as np
 from pyclaw.evolve.solver import Solver, CFLError
 # from pyclaw.evolve.clawpack import start_step, src
 
-# Limiters
-from pyclaw.evolve import recon
+# Reconstructor
+try:
+    # load c-based WENO reconstructor (PyWENO)
+    from pyclaw.evolve import reconstruct as recon
+except:
+    # load old WENO5 reconstructor
+    from pyclaw.evolve import recon
+
 
 def start_step(solver,grid,rk_stage):
     r"""
@@ -48,7 +54,7 @@ class RKStage(object):
     Otherwise we would need to keep a copy of it with each RK stage.
     """
     def __init__(self,grid):
-        self.q=np.empty(grid.q.shape)
+        self.q=np.zeros(grid.q.shape)
         self.t=grid.t
 
 
@@ -77,6 +83,7 @@ class SharpClawSolver(Solver):
         self._default_attr_values['aux_time_dep'] = False
         self._default_attr_values['src_term'] = False
         self._default_attr_values['kernel_language'] = 'Fortran'
+        self._default_attr_values['mbc'] = 3
         
         # Call general initialization function
         super(SharpClawSolver,self).__init__(data)
@@ -118,7 +125,7 @@ class SharpClawSolver(Solver):
                 self.rk_stages[0].q=grid.q+deltaq
                 self.rk_stages[0].t =grid.t+self.dt
                 deltaq=self.dq(grid,self.rk_stages[0])
-                self.rk_stages[0].q= 0.75*grid.q + 0.25*(grid.q+deltaq)
+                self.rk_stages[0].q= 0.75*grid.q + 0.25*(self.rk_stages[0].q+deltaq)
                 self.rk_stages[0].t = grid.t+0.5*self.dt
                 deltaq=self.dq(grid,self.rk_stages[0])
                 grid.q = 1./3.*grid.q + 2./3.*(self.rk_stages[0].q+deltaq)
@@ -130,20 +137,19 @@ class SharpClawSolver(Solver):
         
     def dq(self,grid,rk_stage):
         """
-        Take one Runge-Kutta time step.
-        Right now this is just Euler for debugging.
-        Each RK stage should be a Solution object.
+        Evaluate dq/dt * (delta t)
         """
 
         start_step(self,grid,rk_stage)
 
-        q = self.qbc(grid,rk_stage.q,rk_stage.t)
+        q = self.qbc(grid,rk_stage.t,rk_stage.q)
 
         deltaq = self.dq_homogeneous(grid,q,rk_stage.t)
 
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
         # dt
+        self.communicateCFL()
         if self.cfl >= self.cfl_max:
             raise CFLError('cfl_max exceeded')
 
@@ -251,7 +257,7 @@ class SharpClawSolver1D(SharpClawSolver):
         """
         import logging
         if solver_name in rp.rp_solver_list_1d:
-            exec("self.rp = rp.rp_%s_1d" % solver_name)
+            self.rp = getattr(rp,'rp_%s_1d' % solver_name)
         else:
             logger = logging.getLogger('solver')
             error_msg = 'Could not find Riemann solver with name %s' % solver_name
@@ -286,24 +292,20 @@ class SharpClawSolver1D(SharpClawSolver):
         """
     
         # Limiter to use in the pth family
-        limiter = np.array(self.mthlim,ndmin=1)  
         lim_type=self.lim_type
-        char_decomp=self.char_decomp
-    
-        mx = grid.n[0] + 2*grid.mbc
 
         # Flux vector
-        f = np.empty( (grid.meqn,grid.n[0] + 2*grid.mbc) )
         dtdx = np.zeros( (grid.n[0] + 2*grid.mbc) )
 
         # Find local value for dt/dx
         if grid.capa is not None:
             dtdx = self.dt / (grid.d[0] * grid.capa)
+            mcapa=1
         else:
             dtdx += self.dt/grid.d[0]
+            mcapa=0
 
-        dq = np.empty(q.shape)
-        # grid.mwaves = grid.meqn
+        dq = np.zeros(q.shape)
 
         if grid.aux is not None:
             aux_l=grid.aux[:,:-1]
@@ -312,47 +314,81 @@ class SharpClawSolver1D(SharpClawSolver):
             aux_l = None
             aux_r = None
    
-        #Reconstruct (wave reconstruction uses a Riemann solve)
-        if lim_type==-1: #1st-order Godunov
-            ql=q; qr=q;
-        elif lim_type==0: #Unlimited reconstruction
-            raise NotImplementedError('Unlimited reconstruction not implemented')
-        elif lim_type==1: #TVD Reconstruction
-            raise NotImplementedError('TVD reconstruction not implemented')
-        elif lim_type==2: #WENO Reconstruction
-            if char_decomp==0: #No characteristic decomposition
-                ql,qr=recon.weno5(q)
-            elif char_decomp==1: #Wave-based reconstruction
-                q_l=q[:,:-1]
-                q_r=q[:,1: ]
-                wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,grid.aux_global)
-                ql,qr=recon.weno5_wave(q,wave,s)
-            elif char_decomp==2: #Characteristic-wise reconstruction
-                raise NotImplementedError
+        ql=np.zeros((grid.meqn,grid.n[0]+2*grid.mbc))
+        qr=np.zeros((grid.meqn,grid.n[0]+2*grid.mbc))
+        wave=np.zeros((grid.meqn,self.mwaves,grid.n[0]+2*grid.mbc))
+        s=np.zeros((self.mwaves,grid.n[0]+2*grid.mbc))
+        amdq=np.zeros((grid.meqn,grid.n[0]+2*grid.mbc))
+        apdq=np.zeros((grid.meqn,grid.n[0]+2*grid.mbc))
+        amdq2=np.zeros((grid.meqn,grid.n[0]+2*grid.mbc))
+        apdq2=np.zeros((grid.meqn,grid.n[0]+2*grid.mbc))
+        ixy=1
+        aux=grid.aux
+        if(aux == None): aux = np.zeros( (grid.maux,grid.n[0]+2*grid.mbc) )
 
-        # Solve Riemann problem at each interface
-        q_l=qr[:,:-1]
-        q_r=ql[:,1: ]
-        wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,grid.aux_global)
+        if self.kernel_language=='Fortran':
+            from flux1 import flux1
+            dq,self.cfl=flux1(q,dq,aux,self.dt,t,dtdx,ql,qr,wave,s, amdq,apdq,amdq2,apdq2,ixy,mcapa,grid.n[0],grid.mbc,grid.n[0],grid.d, 0,0,2,self.mthlim)
 
-        # Loop limits for local potion of grid
-        LL = grid.mbc - 1
-        UL = grid.n[0] + grid.mbc + 1
+        elif self.kernel_language=='Python':
+            #Reconstruct (wave reconstruction uses a Riemann solve)
+            if lim_type==-1: #1st-order Godunov
+                ql=q; qr=q;
+            elif lim_type==0: #Unlimited reconstruction
+                raise NotImplementedError('Unlimited reconstruction not implemented')
+            elif lim_type==1: #TVD Reconstruction
+                raise NotImplementedError('TVD reconstruction not implemented')
+            elif lim_type==2: #WENO Reconstruction
+                if self.char_decomp==0: #No characteristic decomposition
+                    ql,qr=recon.weno(5,q)
+                elif self.char_decomp==1: #Wave-based reconstruction
+                    q_l=q[:,:-1]
+                    q_r=q[:,1: ]
+                    wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,grid.aux_global)
+                    ql,qr=recon.weno5_wave(q,wave,s)
+                elif self.char_decomp==2: #Characteristic-wise reconstruction
+                    raise NotImplementedError
 
-        # Compute maximum wave speed
-        self.cfl = 0.0
-        for mw in xrange(self.mwaves):
-            smax1 = np.max(dtdx[LL:UL]*s[mw,LL-1:UL-1])
-            smax2 = np.max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
-            self.cfl = max(self.cfl,smax1,smax2)
+            # Solve Riemann problem at each interface
+            q_l=qr[:,:-1]
+            q_r=ql[:,1: ]
+            wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,grid.aux_global)
 
-       
-        #Find total fluctuation within each cell
-        wave,s,amdq2,apdq2 = self.rp(ql,qr,grid.aux,grid.aux,grid.aux_global)
+            # Loop limits for local potion of grid
+            LL = grid.mbc - 1
+            UL = grid.n[0] + grid.mbc + 1
 
-        # Compute dq
-        for m in xrange(grid.meqn):
-            dq[m,LL:UL] = -dtdx[LL:UL]*(amdq[m,LL:UL] + apdq[m,LL-1:UL-1] \
-                            + apdq2[m,LL:UL] + amdq2[m,LL:UL])
+            # Compute maximum wave speed
+            self.cfl = 0.0
+            for mw in xrange(self.mwaves):
+                smax1 = np.max(dtdx[LL:UL]*s[mw,LL-1:UL-1])
+                smax2 = np.max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
+                self.cfl = max(self.cfl,smax1,smax2)
+
+            #Find total fluctuation within each cell
+            wave,s,amdq2,apdq2 = self.rp(ql,qr,grid.aux,grid.aux,grid.aux_global)
+
+            # Compute dq
+            for m in xrange(grid.meqn):
+                dq[m,LL:UL] = -dtdx[LL:UL]*(amdq[m,LL:UL] + apdq[m,LL-1:UL-1] \
+                                + apdq2[m,LL:UL] + amdq2[m,LL:UL])
+
+        else: raise Exception('Unrecognized value of solver.kernel_language.')
+        
+        return dq[:,grid.mbc:-grid.mbc]
     
-        return dq[:,LL+1:UL-1]
+    def dqdt(self,grid,rk_stage):
+        """
+        Evaluate dq/dt.  This routine is used for implicit time stepping.
+        """
+
+        q = self.qbc(grid,rk_stage)
+
+        self.dt = 1
+        deltaq = self.dq_homogeneous(grid,q,rk_stage.t)
+
+        # Godunov Splitting -- really the source term should be called inside rkstep
+        if self.src_term == 1:
+            deltaq+=self.src(grid,q,rk_stage.t)
+
+        return deltaq.flatten('f')

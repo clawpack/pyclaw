@@ -76,8 +76,9 @@ def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True,usep
 
     status = claw.run()
 
-    from petclaw import plot
-    plot.plotInteractive(format=output_format)
+    if iplot:
+        from petclaw import plot
+        plot.plotInteractive(format=output_format)
 
     output_object=claw
 
@@ -85,4 +86,7 @@ def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True,usep
     return output_object
 
 if __name__=="__main__":
-    advection()
+    import sys
+    from pyclaw.util import _info_from_argv
+    args, kwargs = _info_from_argv(sys.argv)
+    output=advection(*args,**kwargs)

@@ -202,7 +202,7 @@ class Solver(object):
         dim_string = ','.join( ('2*self.mbc+grid.%s.n' % dim.name for dim in grid.dimensions) )
         exec("qbc = np.zeros( (grid.meqn,%s) )" % dim_string)
         dim_string = ','.join( ('self.mbc:-self.mbc' for dim in grid.dimensions) )
-        exec("qbc[:,%s] = grid.q" % dim_string)
+        exec("qbc[:,%s] = q" % dim_string)
         
         for (i,dim) in enumerate(grid.dimensions):
             # If a user defined boundary condition is being used, send it on,
@@ -428,3 +428,12 @@ class Solver(object):
         would like to use the default time stepping in evolve_to_time.
         """
         raise NotImplementedError("No stepping routine has been defined!")
+
+    def communicateCFL(self):
+        r"""
+        Dummy function, only here for PetClaw to override.
+        """
+        pass
+            
+
+

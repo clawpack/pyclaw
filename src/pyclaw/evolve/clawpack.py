@@ -241,13 +241,6 @@ class ClawSolver(Solver):
         """
         raise Exception("Dummy routine, please override!")
 
-    def communicateCFL(self):
-        r"""
-        Dummy function, only here for PetClaw to override.
-        """
-        pass
-            
-
 # ============================================================================
 #  ClawPack 1d Solver Class
 # ============================================================================
@@ -468,7 +461,7 @@ class ClawSolver2D(ClawSolver):
     r"""
     Clawpack evolution routine in 2D
     
-    
+    Note that only the fortran routines are supported for now in 2D.
     """
 
     def __init__(self,data=None):
@@ -523,12 +516,80 @@ class ClawSolver2D(ClawSolver):
             logger.warning(error_msg)
             raise NameError(error_msg)
 
-    # ========== Python Homogeneous Step =====================================
+    # ========== Homogeneous Step =====================================
     def homogeneous_step(self,solutions):
         r"""
         
         """
+        # Grid we will be working on
+        grid = solutions['n'].grids[0]
+        # Number of equations
+        meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,grid.mbc,grid.aux
 
-        raise Exception("Dummy routine, please override!")
-    
-        
+
+        if(self.kernel_language == 'Fortran'):
+            from dimsp2 import dimsp2
+            maxmx,maxmy = grid.local_n[0],grid.local_n[1]
+            maxm = max(maxmx, maxmy)
+            mx,my = maxmx,maxmy
+            aux = grid.aux
+            
+            #Old workaround
+            #if(aux == None): aux=np.empty([0]*(grid.ndim+1))
+
+            #New workaround
+            #The following is an awful hack to work around an issue
+            #with f2py.  It involves wastefully allocating a large array.
+            #It could be avoided by using the other workaround below, but
+            #that makes the build process different for every example
+            #because we would need to generate and modify the .pyf file.
+            if(aux == None): 
+                maux=0
+                aux=np.empty((maux,maxmx+2*mbc,maxmy+2*mbc))
+                
+            dx,dy,dt = grid.d[0],grid.d[1],self.dt
+
+            method =np.ones(7, dtype=int)
+            method[0] = self.dt_variable
+            method[1] = self.order
+            method[2] = -1  # only dimensional splitting for now
+            method[3] = 0  # hardcoded 0 design issue: controller.verbosity
+            method[4] = self.src_split  # src term
+
+            # mcapa no longer points to the capa components of the aux 
+            # array as in fortran. capa now is a separate array.
+            if (grid.capa == None): method[5] = 0
+            else: method[5] = 1  
+            method[6] = maux
+            
+            cflv = np.zeros(4)
+            cflv[0:2] = [self.cfl_max,self.cfl_desired]
+            #cflv[2] and cflv[3] are output values.
+
+            if method[4] < 2: narray = 1
+            else: narray = 2
+
+            mwork = (maxm+2*mbc) * (5*meqn + mwaves + meqn*mwaves) \
+                       + (narray-1) * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn 
+            work = np.empty((mwork))
+            
+            qold = self.qbc(grid,grid.q,grid.t)
+            qnew = qold #(input/output)
+
+            q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my, \
+                      qold,qnew,aux,dx,dy,dt,method,self.mthlim,self.cfl,cflv, \
+                      np.empty((meqn,maxm+2*mbc)), \
+                      np.empty((meqn,maxm+2*mbc)), \
+                      np.empty((meqn,2,maxm+2*mbc)), \
+                      np.empty((meqn,maxm+2*mbc)), \
+                      np.empty((maxmx+2*mbc)), np.empty((maxmx+2*mbc)), \
+                      np.empty((maux,maxm+2*mbc)), \
+                      np.empty((maux,maxm+2*mbc)), \
+                      np.empty((maux,maxm+2*mbc)), \
+                      work)
+
+            self.cfl = cfl
+            grid.q=q[:,mbc:grid.local_n[0]+mbc,mbc:grid.local_n[1]+mbc]
+
+        elif(self.kernel_language == 'Python'):
+            raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
