@@ -1,6 +1,6 @@
 import sys
 
-def build_run_verify(path, target_name, module_name, method_name, verifier):
+def build_run_verify(path, target_name, module_name, method_name, verifier, options):
     sys.path.append(path)
     try:    
         build_command = "make -C %s %s" % (path, target_name)
@@ -8,7 +8,7 @@ def build_run_verify(path, target_name, module_name, method_name, verifier):
         build_it(build_info, build_command)
         module = __import__(module_name)
         run_method = getattr(module,method_name)
-        verify_it(run_method, build_info, verifier)
+        verify_it(run_method, build_info, verifier, options)
     finally:
         sys.path.remove(path)
         if module_name in sys.modules:
@@ -28,8 +28,8 @@ def build_it(build_info, build_command):
         sys.stderr.write(stdout_data)
         raise BuildError(err)
  
-def verify_it(run_method, build_info, verifier):
-    output = run_method(petscPlot=False)
+def verify_it(run_method, build_info, verifier, options):
+    output = run_method(**options)
 
     if not verifier(output):
         err = "Error verifying %s\n" % build_info

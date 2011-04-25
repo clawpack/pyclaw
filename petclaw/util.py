@@ -35,6 +35,8 @@ def _method_info_from_argv(argv=None):
             value = json.loads(value) 
         except ValueError:
             pass
+        if value=='True': value=True
+        if value=='False': value=False
         if key:
             kwargs[key] = value
         else:
@@ -75,6 +77,8 @@ def _info_from_argv(argv=None):
             value = json.loads(value) 
         except ValueError:
             pass
+        if value=='True': value=True
+        if value=='False': value=False
         if key:
             kwargs[key] = value
         else:

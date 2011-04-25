@@ -17,13 +17,13 @@ Module containing petclaw grid.
 # ============================================================================
 
 import numpy as np
-import pyclaw.solution
+import pyclaw.grid
 
 
 # ============================================================================
 #  Dimension Object
 # ============================================================================
-class Dimension(pyclaw.solution.Dimension):
+class Dimension(pyclaw.grid.Dimension):
     r"""
     Basic class representing a dimension of a Grid object
 
@@ -91,7 +91,7 @@ class Dimension(pyclaw.solution.Dimension):
 # ============================================================================
 #  petclaw Grid object definition
 # ============================================================================
-class Grid(pyclaw.solution.Grid):
+class Grid(pyclaw.grid.Grid):
     r"""
     Basic representation of a single grid in petclaw
 
@@ -189,7 +189,7 @@ class Grid(pyclaw.solution.Grid):
 
         See :class:`petclaw.Grid` for more info.
         """
-        from pyclaw.solution import default_mapc2p
+        from pyclaw.grid import default_mapc2p
         
         # ========== Attribute Definitions ===================================
         self.level = 1

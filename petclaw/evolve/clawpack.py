@@ -58,7 +58,7 @@ class PetClawSolver(ClawSolver):
     """
     
     # ========== Boundary Conditions ==================================
-    def qbc(self,grid,t,q):
+    def qbc(self,grid,q,t):
         """
         Returns an array with the ghost cells filled.
         """

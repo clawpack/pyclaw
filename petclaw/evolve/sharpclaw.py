@@ -110,8 +110,8 @@ class SharpPetClawSolver1D(SharpClawSolver1D,PetClawSolver):
     
     """
     
-    def qbc(self,grid,t,q):
-        return PetClawSolver.qbc(self,grid,t,q)
+    def qbc(self,grid,q,t):
+        return PetClawSolver.qbc(self,grid,q,t)
 
     def setup(self,solutions):
 
@@ -130,7 +130,7 @@ class SharpPetClawSolver1D(SharpClawSolver1D,PetClawSolver):
         Evaluate dq/dt
         """
 
-        q = self.qbc(grid,rk_stage.t,rk_stage.q)
+        q = self.qbc(grid,rk_stage.q,rk_stage.t)
 
         self.dt = 1
         deltaq = self.dq_homogeneous(grid,q,rk_stage.t)
