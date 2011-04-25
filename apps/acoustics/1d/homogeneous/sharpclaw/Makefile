@@ -4,7 +4,7 @@ include $(PETCLAWMAKE)
 
 LIBOBJ = reconstruct.o
 
-SOURCE =   ../rp1.f $(ONE_D_SHARPCLAW)/reconstruct.f90
+SOURCE =   $(RIEMANN)/src/rp1_acoustics.f $(ONE_D_SHARPCLAW)/reconstruct.f90
 
 flux1.so: $(ONE_D_SHARPCLAW)/flux1.f90 $(LIBOBJ) $(SOURCE)
 	f2py -m flux1 -c $(ONE_D_SHARPCLAW)/flux1.f90 $(SOURCE) 

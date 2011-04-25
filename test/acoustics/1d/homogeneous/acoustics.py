@@ -1,19 +1,29 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
-def acoustics(use_PETSc=True,kernel_language='Fortran',petscPlot=False,iplot=False,htmlplot=False,outdir='./_output'):
+def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=False,htmlplot=False,outdir='./_output'):
     import numpy as np
-    from petsc4py import PETSc
     """
     1D acoustics example.
     """
 
     if use_PETSc:
+        from petsc4py import PETSc
         import petclaw as myclaw
-        from petclaw.evolve.clawpack import PetClawSolver1D as mySolver
-    else:
+        output_format='petsc'
+        if soltype=='classic':
+            from petclaw.evolve.clawpack import PetClawSolver1D as mySolver
+        elif soltype=='sharpclaw':
+            from petclaw.evolve.sharpclaw import SharpPetClawSolver1D as mySolver
+        else: raise Exception('Unrecognized value of soltype.')
+    else: #Pure pyclaw
         import pyclaw as myclaw
-        from pyclaw.evolve.clawpack import ClawSolver1D as mySolver
+        output_format='ascii'
+        if soltype=='classic':
+            from pyclaw.evolve.clawpack import ClawSolver1D as mySolver
+        elif soltype=='sharpclaw':
+            from pyclaw.evolve.sharpclaw import SharpClawSolver1D as mySolver
+        else: raise Exception('Unrecognized value of soltype.')
 
     from pyclaw.solution import Solution
     from pyclaw.controller import Controller
@@ -22,6 +32,8 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',petscPlot=False,iplot=Fal
     x = myclaw.grid.Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
     grid = myclaw.grid.Grid(x)
     grid.meqn=2
+    if soltype=='sharpclaw':
+        grid.mbc=2
 
     rho = 1.0
     bulk = 1.0
@@ -30,7 +42,10 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',petscPlot=False,iplot=Fal
     grid.aux_global['zz']=np.sqrt(rho*bulk)
     grid.aux_global['cc']=np.sqrt(rho/bulk)
     if kernel_language=='Fortran':
-        from step1 import cparam 
+        if soltype=='classic':
+            from step1 import cparam 
+        elif soltype=='sharpclaw':
+            from flux1 import cparam
         for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     # init_q_petsc_structures must be called 
@@ -48,6 +63,8 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',petscPlot=False,iplot=Fal
     init_solution = Solution(grid)
 
     solver = mySolver()
+    if soltype=='sharpclaw': solver.mbc=3
+
     solver.mwaves=2
     solver.kernel_language=kernel_language
 
@@ -61,10 +78,7 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',petscPlot=False,iplot=Fal
     claw.keep_copy = True
     claw.nout = 5
     
-    if use_PETSc:
-        claw.output_format = 'petsc'
-    else:
-        claw.output_format = 'ascii'
+    claw.output_format = output_format
 
     claw.outdir = outdir
     claw.tfinal = 1.0
@@ -76,8 +90,7 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',petscPlot=False,iplot=Fal
 
     from petclaw import plot
     if htmlplot:  plot.plotHTML()
-    if petscPlot: plot.plotPetsc(output_object)
-    if iplot:     plot.plotInteractive(format=claw.output_format)
+    if iplot:     plot.plotInteractive(format=output_format)
 
     #This test is set up so that the waves pass through the domain
     #exactly once, and the final solution should be equal to the

@@ -20,23 +20,30 @@ def qinit(grid,width=0.2):
     grid.q=q
 
 
-def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
+def acoustics2D(use_PETSc=True,kernel_language='Fortran',iplot=False,petscPlot=False,useController=True,htmlplot=False):
     """
     Example python script for solving the 2d acoustics equations.
     """
+    if use_PETSc:
+        from petsc4py import PETSc
+        import petclaw as myclaw
+        output_format='petsc'
+        from petclaw.evolve.clawpack import PetClawSolver2D as mySolver
+    else: #Pure pyclaw
+        import pyclaw as myclaw
+        output_format='ascii'
+        from pyclaw.evolve.clawpack import ClawSolver2D as mySolver
 
-    from petclaw.grid import Dimension
-    from petclaw.grid import Grid
     from pyclaw.solution import Solution
-    from petclaw.evolve.clawpack import PetClawSolver2D
     from pyclaw.controller import Controller
+
     from petclaw import plot
 
     # Initialize grid
     mx=100; my=100
-    x = Dimension('x',-1.0,1.0,mx,mthbc_lower=1,mthbc_upper=1)
-    y = Dimension('y',-1.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
-    grid = Grid([x,y])
+    x = myclaw.grid.Dimension('x',-1.0,1.0,mx,mthbc_lower=1,mthbc_upper=1)
+    y = myclaw.grid.Dimension('y',-1.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
+    grid = myclaw.grid.Grid([x,y])
 
     rho = 1.0
     bulk = 4.0
@@ -50,12 +57,11 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     grid.meqn = 3
-    grid.mbc = 2
     tfinal = 0.12
     qinit(grid)
     initial_solution = Solution(grid)
 
-    solver = PetClawSolver2D()
+    solver = mySolver()
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
     solver.mwaves = 2

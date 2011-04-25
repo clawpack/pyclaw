@@ -86,8 +86,8 @@ class PetClawSolver(ClawSolver):
         # Zero-order extrapolation
         elif dim.mthbc_lower == 1:
             if dim.nstart == 0:
-                for i in xrange(grid.mbc):
-                    qbc[:,i,...] = qbc[:,grid.mbc,...]
+                for i in xrange(self.mbc):
+                    qbc[:,i,...] = qbc[:,self.mbc,...]
         # Periodic
         elif dim.mthbc_lower == 2:
             pass # Amal: this is implemented automatically by petsc4py
@@ -98,18 +98,18 @@ class PetClawSolver(ClawSolver):
         elif dim.mthbc_lower == 3:
              if dim.nstart == 0:
                 if grid.ndim == 1:
-                    for i in xrange(grid.mbc):
-                        qbc[:,i,...] = qbc[:,grid.mbc+1-i,...]
-                        qbc[1,i,...] = -qbc[1,grid.mbc+1-i,...] # Negate normal velocity
+                    for i in xrange(self.mbc):
+                        qbc[:,i,...] = qbc[:,self.mbc+1-i,...]
+                        qbc[1,i,...] = -qbc[1,self.mbc+1-i,...] # Negate normal velocity
                 elif grid.ndim == 2:
                      if dim.name == 'x':  # left boundary in the x direction
-                         for i in xrange(grid.mbc):
-                             qbc[:,i,...] = qbc[:,grid.mbc+1-i,...]
-                             qbc[1,i,...] = -qbc[1,grid.mbc+1-i,...] # Negate normal velocity
+                         for i in xrange(self.mbc):
+                             qbc[:,i,...] = qbc[:,self.mbc+1-i,...]
+                             qbc[1,i,...] = -qbc[1,self.mbc+1-i,...] # Negate normal velocity
                      else: # lower boundary in the y direction
-                         for i in xrange(grid.mbc):
-                             qbc[:,i,...] = qbc[:,grid.mbc+1-i,...]
-                             qbc[2,i,...] = -qbc[2,grid.mbc+1-i,...]  # Negate normal velocity
+                         for i in xrange(self.mbc):
+                             qbc[:,i,...] = qbc[:,self.mbc+1-i,...]
+                             qbc[2,i,...] = -qbc[2,self.mbc+1-i,...]  # Negate normal velocity
               
                 else:
                     raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
@@ -126,8 +126,8 @@ class PetClawSolver(ClawSolver):
         # Zero-order extrapolation
         elif dim.mthbc_upper == 1:
             if dim.nend == dim.n :
-                for i in xrange(grid.mbc):
-                    qbc[:,-i-1,...] = qbc[:,-grid.mbc-1,...] 
+                for i in xrange(self.mbc):
+                    qbc[:,-i-1,...] = qbc[:,-self.mbc-1,...] 
  	    
         elif dim.mthbc_upper == 2:
             # Periodic
@@ -139,18 +139,18 @@ class PetClawSolver(ClawSolver):
         elif dim.mthbc_upper == 3:
             if dim.nend == dim.n:
                 if grid.ndim == 1:
-                    for i in xrange(grid.mbc):
-                        qbc[:,-i-1,...] = qbc[:,-grid.mbc-2+i,...]
-                        qbc[1,-i-1,...] = -qbc[1,-grid.mbc-2+i,...] # Negate normal velocity
+                    for i in xrange(self.mbc):
+                        qbc[:,-i-1,...] = qbc[:,-self.mbc-2+i,...]
+                        qbc[1,-i-1,...] = -qbc[1,-self.mbc-2+i,...] # Negate normal velocity
                 elif grid.ndim == 2:
                      if dim.name == 'x': # right boundary in the x direction
-                         for i in xrange(grid.mbc):
-                             qbc[:,-i-1,...] = qbc[:,-grid.mbc-2+i,...]
-                             qbc[1,-i-1,...] = -qbc[1,-grid.mbc-2+i,...] # Negate normal velocity
+                         for i in xrange(self.mbc):
+                             qbc[:,-i-1,...] = qbc[:,-self.mbc-2+i,...]
+                             qbc[1,-i-1,...] = -qbc[1,-self.mbc-2+i,...] # Negate normal velocity
                      else: # upper boundary in the y direction
-                         for i in xrange(grid.mbc):
-                             qbc[:,-i-1,...] = qbc[:,-grid.mbc-2+i,...]
-                             qbc[2,-i-1,...] = -qbc[2,-grid.mbc-2+i,...] # Negate normal velocity
+                         for i in xrange(self.mbc):
+                             qbc[:,-i-1,...] = qbc[:,-self.mbc-2+i,...]
+                             qbc[2,-i-1,...] = -qbc[2,-self.mbc-2+i,...] # Negate normal velocity
               
                 else:
                     raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)

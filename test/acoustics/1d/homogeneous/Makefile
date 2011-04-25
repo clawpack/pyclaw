@@ -14,20 +14,24 @@ LIBOBJ = \
    limiter.o \
    philim.o
 
-STEP1_SOURCE =  ${ONE_D_CLASSIC}/step1.f $(RIEMANN)/src/rp1_acoustics.f
+SOURCE =  $(RIEMANN)/src/rp1_acoustics.f
 
 F2PY = f2py
-PYTHON = python
-MODULE = assembly
 
-step1.so: $(STEP1_SOURCE) $(LIBOBJ)
+step1.so: ${ONE_D_CLASSIC}/step1.f $(LIBOBJ) $(SOURCE)
 	${F2PY} -m step1 -c $^
+
+flux1.so: $(ONE_D_SHARPCLAW)/flux1.f90 reconstruct.o $(SOURCE)
+	f2py -m flux1 -c $(ONE_D_SHARPCLAW)/flux1.f90 $(RIEMANN)/src/rp1_acoustics.f $(ONE_D_SHARPCLAW)/reconstruct.f90 
 
 limiter.o: $(ONE_D_CLASSIC)/limiter.f
 	$(FCOMPILE_SINGLE) -c -o $@ $^
 
 philim.o: $(ONE_D_CLASSIC)/philim.f
 	$(FCOMPILE_SINGLE) -c -o $@ $^
+
+reconstruct.o:
+	$(FC) -o reconstruct.o -c $(ONE_D_SHARPCLAW)/reconstruct.f90
 
 clean:
 	rm -f *.o *.so *.pyc
