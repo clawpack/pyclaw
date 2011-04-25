@@ -78,7 +78,7 @@ class SharpClawSolver(Solver):
         self._default_attr_values['mthlim'] = [1]
         self._default_attr_values['start_step'] = start_step
         self._default_attr_values['lim_type'] = 2
-        self._default_attr_values['time_integrator'] = 'Euler'
+        self._default_attr_values['time_integrator'] = 'SSP33'
         self._default_attr_values['char_decomp'] = 0
         self._default_attr_values['aux_time_dep'] = False
         self._default_attr_values['src_term'] = False
@@ -295,7 +295,7 @@ class SharpClawSolver1D(SharpClawSolver):
         lim_type=self.lim_type
 
         # Flux vector
-        dtdx = np.zeros( (grid.n[0] + 2*grid.mbc) )
+        dtdx = np.zeros( (grid.n[0] + 2*self.mbc) )
 
         # Find local value for dt/dx
         if grid.capa is not None:
@@ -314,21 +314,21 @@ class SharpClawSolver1D(SharpClawSolver):
             aux_l = None
             aux_r = None
    
-        ql=np.zeros((grid.meqn,grid.n[0]+2*grid.mbc))
-        qr=np.zeros((grid.meqn,grid.n[0]+2*grid.mbc))
-        wave=np.zeros((grid.meqn,self.mwaves,grid.n[0]+2*grid.mbc))
-        s=np.zeros((self.mwaves,grid.n[0]+2*grid.mbc))
-        amdq=np.zeros((grid.meqn,grid.n[0]+2*grid.mbc))
-        apdq=np.zeros((grid.meqn,grid.n[0]+2*grid.mbc))
-        amdq2=np.zeros((grid.meqn,grid.n[0]+2*grid.mbc))
-        apdq2=np.zeros((grid.meqn,grid.n[0]+2*grid.mbc))
+        ql=np.zeros((grid.meqn,grid.n[0]+2*self.mbc))
+        qr=np.zeros((grid.meqn,grid.n[0]+2*self.mbc))
+        wave=np.zeros((grid.meqn,self.mwaves,grid.n[0]+2*self.mbc))
+        s=np.zeros((self.mwaves,grid.n[0]+2*self.mbc))
+        amdq=np.zeros((grid.meqn,grid.n[0]+2*self.mbc))
+        apdq=np.zeros((grid.meqn,grid.n[0]+2*self.mbc))
+        amdq2=np.zeros((grid.meqn,grid.n[0]+2*self.mbc))
+        apdq2=np.zeros((grid.meqn,grid.n[0]+2*self.mbc))
         ixy=1
         aux=grid.aux
-        if(aux == None): aux = np.zeros( (grid.maux,grid.n[0]+2*grid.mbc) )
+        if(aux == None): aux = np.zeros( (grid.maux,grid.n[0]+2*self.mbc) )
 
         if self.kernel_language=='Fortran':
             from flux1 import flux1
-            dq,self.cfl=flux1(q,dq,aux,self.dt,t,dtdx,ql,qr,wave,s, amdq,apdq,amdq2,apdq2,ixy,mcapa,grid.n[0],grid.mbc,grid.n[0],grid.d, 0,0,2,self.mthlim)
+            dq,self.cfl=flux1(q,dq,aux,self.dt,t,dtdx,ql,qr,wave,s, amdq,apdq,amdq2,apdq2,ixy,mcapa,grid.n[0],self.mbc,grid.n[0],grid.d, 0,0,2,self.mthlim)
 
         elif self.kernel_language=='Python':
             #Reconstruct (wave reconstruction uses a Riemann solve)
@@ -355,8 +355,8 @@ class SharpClawSolver1D(SharpClawSolver):
             wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,grid.aux_global)
 
             # Loop limits for local potion of grid
-            LL = grid.mbc - 1
-            UL = grid.n[0] + grid.mbc + 1
+            LL = self.mbc - 1
+            UL = grid.n[0] + self.mbc + 1
 
             # Compute maximum wave speed
             self.cfl = 0.0
@@ -375,7 +375,7 @@ class SharpClawSolver1D(SharpClawSolver):
 
         else: raise Exception('Unrecognized value of solver.kernel_language.')
         
-        return dq[:,grid.mbc:-grid.mbc]
+        return dq[:,self.mbc:-self.mbc]
     
     def dqdt(self,grid,rk_stage):
         """

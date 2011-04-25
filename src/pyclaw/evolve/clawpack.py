@@ -106,6 +106,7 @@ class ClawSolver(Solver):
             self._required_attrs.append(attr)
         
         # Default required attributes
+        self._default_attr_values['mbc'] = 2
         self._default_attr_values['mthlim'] = [1]
         self._default_attr_values['order'] = 2
         self._default_attr_values['src_split'] = 0
@@ -339,7 +340,7 @@ class ClawSolver1D(ClawSolver):
         grid = solutions['n'].grids[0]
         q = self.qbc(grid,grid.q,grid.t)
 
-        meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,grid.mbc,grid.aux
+        meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,self.mbc,grid.aux
           
         if(self.kernel_language == 'Fortran'):
             from step1 import step1
@@ -378,7 +379,7 @@ class ClawSolver1D(ClawSolver):
             # Limiter to use in the pth family
             limiter = np.array(self.mthlim,ndmin=1)  
         
-            dtdx = np.zeros( (2*grid.mbc+grid.n[0]) )
+            dtdx = np.zeros( (2*self.mbc+grid.n[0]) )
 
             # Find local value for dt/dx
             if grid.capa is not None:
@@ -404,8 +405,8 @@ class ClawSolver1D(ClawSolver):
             #        LL    |                               |     UL
             #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
             #              |                               |
-            LL = grid.mbc - 1
-            UL = grid.mbc + grid.n[0] + 1 
+            LL = self.mbc - 1
+            UL = self.mbc + grid.n[0] + 1 
 
             # Update q for Godunov update
             for m in xrange(meqn):
@@ -422,7 +423,7 @@ class ClawSolver1D(ClawSolver):
             # If we are doing slope limiting we have more work to do
             if self.order == 2:
                 # Initialize flux corrections
-                f = np.zeros( (meqn,grid.n[0] + 2*grid.mbc) )
+                f = np.zeros( (meqn,grid.n[0] + 2*self.mbc) )
             
                 # Apply Limiters to waves
                 if (limiter > 0).any():
@@ -450,7 +451,7 @@ class ClawSolver1D(ClawSolver):
 
         else: raise Exception("Unrecognized kernel_language; choose 'Fortran' or 'Python'")
             
-        grid.q = q[:,grid.mbc:-grid.mbc]
+        grid.q = q[:,self.mbc:-self.mbc]
 
    
 
@@ -524,7 +525,7 @@ class ClawSolver2D(ClawSolver):
         # Grid we will be working on
         grid = solutions['n'].grids[0]
         # Number of equations
-        meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,grid.mbc,grid.aux
+        meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,self.mbc,grid.aux
 
 
         if(self.kernel_language == 'Fortran'):
