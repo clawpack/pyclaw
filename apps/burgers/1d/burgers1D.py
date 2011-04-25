@@ -79,9 +79,6 @@ def burgers(kernel_language='Fortran',iplot=False,petscPlot=False,useController=
         plot.plotHTML()
 
 
-    return output_object
-
-
 
 if __name__=="__main__":
     import sys

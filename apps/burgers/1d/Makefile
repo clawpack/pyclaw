@@ -6,7 +6,7 @@ LIBOBJ = \
     limiter.o\
     philim.o\
 
-SOURCE = rp1d.f90
+SOURCE = $(RIEMANN)/src/rp1_burgers.f90
 
 step1.so: $(ONE_D_CLASSIC)/step1.f $(SOURCE) $(LIBOBJ) 
 	f2py  -m step1 -c $(ONE_D_CLASSIC)/step1.f $(SOURCE) $(LIBOBJ)

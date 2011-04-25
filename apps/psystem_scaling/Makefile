@@ -9,7 +9,7 @@ LIBOBJ = \
 	limiter.o\
 	philim.o\
 
-SOURCE = rpn2pv.f rpt2pv.f
+SOURCE =   $(RIEMANN)/src/rpn2_psystem.f $(RIEMANN)/src/rpt2_psystem.f
 
 dimsp2.so: $(TWO_D_LIBPATH)/dimsp2.pyf $(SOURCE) $(LIBOBJ)
 	f2py $(F2PYFLAGS) -c $(TWO_D_LIBPATH)dimsp2.pyf $(TWO_D_LIBPATH)/dimsp2.f $(SOURCE) $(LIBOBJ)
