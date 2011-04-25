@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
-def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True,usepetclaw=False,soltype='classic'):
+def advection(kernel_language='Python',iplot=True,petscPlot=False,useController=True,use_PETSc=False,soltype='classic'):
     """
     Example python script for solving the 1d advection equation.
     """
 
     import numpy as np
-    if usepetclaw:
+    if use_PETSc:
         from petsc4py import PETSc
         from petclaw.grid import Grid, Dimension
         output_format='petsc'
@@ -16,13 +16,13 @@ def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True,usep
             from petclaw.evolve.clawpack import PetClawSolver1D as ClawSolver
     else: #Pure pyclaw
         output_format='ascii'
-        from pyclaw.solution import Grid, Dimension
+        from pyclaw.grid import Grid, Dimension
         if soltype=='sharpclaw':
             from pyclaw.evolve.sharpclaw import SharpClawSolver1D as ClawSolver
         else:
             from pyclaw.evolve.clawpack import ClawSolver1D as ClawSolver
         solver = ClawSolver()
-        if kernelsType=='F': raise notImplementedError
+        if kernel_language=='Fortran': raise notImplementedError
     if soltype=='sharpclaw':
         solver.time_integrator='SSP33'
         solver.lim_type=2
@@ -42,7 +42,7 @@ def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True,usep
     grid.t = 0.0
     grid.mbc=mbc
 
-    if usepetclaw: grid.init_q_petsc_structures()
+    if use_PETSc: grid.init_q_petsc_structures()
 
     xc=grid.x.center
     beta=100; gamma=0; x0=0.75
@@ -59,7 +59,7 @@ def advection(kernelsType='P',iplot=True,petscPlot=False,useController=True,usep
     solver.mwaves = 1
     solver.cfl_max=0.5
     solver.cfl_desired=0.45
-    solver.kernel_language='Fortran'
+    solver.kernel_language='Python'
     if solver.kernel_language=='Python': 
         solver.set_riemann_solver('advection')
     else:

@@ -23,7 +23,8 @@ __all__ = []
 __all__.extend(['Controller','Data','Dimension','Grid','Solution'])
 from pyclaw.controller import Controller
 from pyclaw.data import Data
-from pyclaw.solution import Dimension, Grid, Solution
+from pyclaw.solution import Solution
+from pyclaw.grid import Dimension, Grid
 
 # Sub-packages
 import evolve

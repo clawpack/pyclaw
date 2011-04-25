@@ -173,7 +173,7 @@ class Solver(object):
     # ========================================================================
     #  Boundary Conditions
     # ========================================================================    
-    def qbc(self,grid,t,q):
+    def qbc(self,grid,q,t):
         r"""
         Appends boundary conditions to q
     
