@@ -7,7 +7,7 @@ LIBOBJ = reconstruct.o
 SOURCE =   $(RIEMANN)/src/rp1_acoustics.f $(ONE_D_SHARPCLAW)/reconstruct.f90
 
 flux1.so: $(ONE_D_SHARPCLAW)/flux1.f90 $(LIBOBJ) $(SOURCE)
-	f2py -m flux1 -c $(ONE_D_SHARPCLAW)/flux1.f90 $(SOURCE) 
+	f2py -m flux1 -c $(ONE_D_SHARPCLAW)/flux1.f90 $(SOURCE) $(ONE_D_SHARPCLAW)/workspace.f90
 
 reconstruct.o:
 	$(FC) -o reconstruct.o -c $(ONE_D_SHARPCLAW)/reconstruct.f90

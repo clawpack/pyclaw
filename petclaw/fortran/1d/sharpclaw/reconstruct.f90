@@ -17,6 +17,7 @@ contains
                 case(1) ! Storage for tvd2_wave()
                     allocate(uu(mwaves,1-mbc:maxnx+mbc))
                 case(2) ! Storage for tvd2_char()
+                    ! Do the array bounds here cause a bug?
                     allocate(dq(meqn,1-mbc:maxnx+mbc))
                     allocate( u(meqn,2,1-mbc:maxnx+mbc))
                     allocate(hh(-1:1,1-mbc:maxnx+mbc))
