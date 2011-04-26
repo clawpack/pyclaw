@@ -314,21 +314,13 @@ class SharpClawSolver1D(SharpClawSolver):
             aux_l = None
             aux_r = None
    
-        ql=np.zeros((grid.meqn,grid.n[0]+2*self.mbc))
-        qr=np.zeros((grid.meqn,grid.n[0]+2*self.mbc))
-        wave=np.zeros((grid.meqn,self.mwaves,grid.n[0]+2*self.mbc))
-        s=np.zeros((self.mwaves,grid.n[0]+2*self.mbc))
-        amdq=np.zeros((grid.meqn,grid.n[0]+2*self.mbc))
-        apdq=np.zeros((grid.meqn,grid.n[0]+2*self.mbc))
-        amdq2=np.zeros((grid.meqn,grid.n[0]+2*self.mbc))
-        apdq2=np.zeros((grid.meqn,grid.n[0]+2*self.mbc))
         ixy=1
         aux=grid.aux
         if(aux == None): aux = np.zeros( (grid.maux,grid.n[0]+2*self.mbc) )
 
         if self.kernel_language=='Fortran':
             from flux1 import flux1
-            dq,self.cfl=flux1(q,dq,aux,self.dt,t,dtdx,ql,qr,wave,s, amdq,apdq,amdq2,apdq2,ixy,mcapa,grid.n[0],self.mbc,grid.n[0],grid.d, 0,0,2,self.mthlim)
+            dq,self.cfl=flux1(q,dq,aux,self.dt,t,dtdx,ixy,mcapa,grid.n[0],self.mbc,grid.n[0],grid.d, 0,0,2,self.mthlim)
 
         elif self.kernel_language=='Python':
             #Reconstruct (wave reconstruction uses a Riemann solve)
