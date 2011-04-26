@@ -18,7 +18,7 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 import numpy as np
 
 from pyclaw.evolve.clawpack import start_step, src
-from clawpack import PetClawSolver
+from clawpack import PetSolver
 from pyclaw.evolve.sharpclaw import SharpClawSolver1D
 from petsc4py import PETSc
 
@@ -100,7 +100,7 @@ class RKStageDA(object):
     q           = property(**q())
     ghosted_q   = property(**ghosted_q())
  
-class SharpPetClawSolver1D(SharpClawSolver1D,PetClawSolver):
+class PetSharpClawSolver1D(SharpClawSolver1D,PetSolver):
     """SharpClaw evolution routine in 1D
     
     This class represents the 1d SharpClaw solver.  Note that there are 
@@ -111,7 +111,7 @@ class SharpPetClawSolver1D(SharpClawSolver1D,PetClawSolver):
     """
     
     def qbc(self,grid,q,t):
-        return PetClawSolver.qbc(self,grid,q,t)
+        return PetSolver.qbc(self,grid,q,t)
 
     def setup(self,solutions):
 
