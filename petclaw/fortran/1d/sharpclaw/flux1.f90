@@ -1,6 +1,5 @@
 ! ===================================================================
-subroutine flux1(q1d,dq1d,ndim,aux,dt,cfl,t,dtdx,ql,qr,wave,s,amdq,apdq, &
-                 amdq2,apdq2, &
+subroutine flux1(q1d,dq1d,ndim,aux,dt,cfl,t,dtdx,&
                  ixy,mcapa,maux,meqn,mx,mwaves,mbc,maxnx,dx,tfluct_solver, &
                  char_decomp,lim_type,mthlim)
 ! ===================================================================
@@ -40,6 +39,7 @@ subroutine flux1(q1d,dq1d,ndim,aux,dt,cfl,t,dtdx,ql,qr,wave,s,amdq,apdq, &
 ! ===================================================================
 
     USE reconstruct
+    USE workspace
 
     implicit double precision (a-h,o-z)
 
@@ -47,11 +47,7 @@ subroutine flux1(q1d,dq1d,ndim,aux,dt,cfl,t,dtdx,ql,qr,wave,s,amdq,apdq, &
 !f2py intent(out) cfl  
 
     integer :: ndim,mcapa,maux,meqn,mwaves,mbc,maxnx,mx,char_decomp,lim_type
-    double precision :: amdq(meqn,1-mbc:mx+mbc),apdq(meqn,1-mbc:mx+mbc)
     double precision :: dtdx(1-mbc:mx+mbc)
-    double precision :: amdq2(meqn,1-mbc:mx+mbc),apdq2(meqn,1-mbc:mx+mbc)
-    double precision :: qr(meqn,1-mbc:mx+mbc),ql(meqn,1-mbc:mx+mbc)
-    double precision :: s(mwaves,1-mbc:mx+mbc),wave(meqn,mwaves,1-mbc:mx+mbc)
     double precision :: q1d(meqn,1-mbc:mx+mbc)
     double precision :: dq1d(meqn,1-mbc:maxnx+mbc)
     dimension aux(maux,1-mbc:mx+mbc)
@@ -61,6 +57,10 @@ subroutine flux1(q1d,dq1d,ndim,aux,dt,cfl,t,dtdx,ql,qr,wave,s,amdq,apdq, &
     integer, intent(in) :: ixy, mthlim(mwaves)
     integer t
 
+
+    if (work_alloc.eqv..False.) then
+        call alloc_workspace(maxnx,mbc,meqn,mwaves)
+    endif
 
     if (recon_alloc.eqv..False.) then
         call alloc_recon_workspace(maxnx,mbc,meqn,mwaves,lim_type,char_decomp)
