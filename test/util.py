@@ -3,7 +3,7 @@ import sys
 def build_run_verify(path, target_name, module_name, method_name, verifier, options):
     sys.path.append(path)
     try:    
-        build_command = "make -C %s %s" % (path, target_name)
+        build_command = "make -B -C %s %s" % (path, target_name)
         build_info = "[path: %s, name: %s]" % (path, target_name)
         build_it(build_info, build_command)
         module = __import__(module_name)
