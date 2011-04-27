@@ -481,6 +481,48 @@ class ClawSolver2D(ClawSolver):
             
         super(ClawSolver2D,self).__init__(data)
 
+    # ========== Setup routine =============================   
+    def setup(self,solutions):
+        r"""
+        See setup doc string in the super class.
+        We are initializing (allocating) the working arrays needed by fortran kernels 
+        in this routine. These arrays are passed in each call to the fortran kernel dimsp.
+        """
+        # Grid we will be working on
+        grid = solutions['n'].grids[0]
+        # Number of equations
+        meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,self.mbc,grid.aux
+        maxmx,maxmy = grid.local_n[0],grid.local_n[1]
+        maxm = max(maxmx, maxmy)
+        if self.src_split < 2: narray = 1
+        else: narray = 2
+        # work arround solution
+        if(aux == None):
+            maux=1
+
+        if(self.kernel_language == 'Fortran'):
+            self.qadd = np.empty((meqn,maxm+2*mbc))
+            self.fadd = np.empty((meqn,maxm+2*mbc))
+            self.gadd = np.empty((meqn,2,maxm+2*mbc))
+            self.q1d  = np.empty((meqn,maxm+2*mbc))
+            self.dtdx1d = np.empty((maxmx+2*mbc))
+            self.dtdy1d = np.empty((maxmx+2*mbc))
+            self.aux1 = np.empty((maux,maxm+2*mbc))
+            self.aux2 = np.empty((maux,maxm+2*mbc))
+            self.aux3 = np.empty((maux,maxm+2*mbc))
+            mwork = (maxm+2*mbc) * (5*meqn + mwaves + meqn*mwaves) \
+                  + (narray-1) * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn
+            # Amal: I think no need for the term
+            # (narray-1) * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn
+            # this extra q array should be created and handled in function
+            # step in case we have src term with strange splitting (Do not
+            # think the fortran code will complain, but not sure)
+            print mwork
+            self.work = np.empty((mwork))
+
+        #Initialize (allocate) memory for work arrays that will be passed to the fortran kernel
+
+
     # ========== Riemann solver library routines =============================   
     def list_riemann_solvers(self):
         r"""
@@ -566,24 +608,14 @@ class ClawSolver2D(ClawSolver):
             if method[4] < 2: narray = 1
             else: narray = 2
 
-            mwork = (maxm+2*mbc) * (5*meqn + mwaves + meqn*mwaves) \
-                       + (narray-1) * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn 
-            work = np.empty((mwork))
-            
             qold = self.qbc(grid,grid.q,grid.t)
             qnew = qold #(input/output)
 
             q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my, \
                       qold,qnew,aux,dx,dy,dt,method,self.mthlim,self.cfl,cflv, \
-                      np.empty((meqn,maxm+2*mbc)), \
-                      np.empty((meqn,maxm+2*mbc)), \
-                      np.empty((meqn,2,maxm+2*mbc)), \
-                      np.empty((meqn,maxm+2*mbc)), \
-                      np.empty((maxmx+2*mbc)), np.empty((maxmx+2*mbc)), \
-                      np.empty((maux,maxm+2*mbc)), \
-                      np.empty((maux,maxm+2*mbc)), \
-                      np.empty((maux,maxm+2*mbc)), \
-                      work)
+                      self.qadd,self.fadd,self.gadd,self.q1d,self.dtdx1d,\
+                      self.dtdy1d,self.aux1,self.aux2,self.aux3,self.work)
+
 
             self.cfl = cfl
             grid.q=q[:,mbc:grid.local_n[0]+mbc,mbc:grid.local_n[1]+mbc]
