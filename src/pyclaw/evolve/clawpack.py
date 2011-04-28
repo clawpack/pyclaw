@@ -517,7 +517,6 @@ class ClawSolver2D(ClawSolver):
             # this extra q array should be created and handled in function
             # step in case we have src term with strange splitting (Do not
             # think the fortran code will complain, but not sure)
-            print mwork
             self.work = np.empty((mwork))
 
         #Initialize (allocate) memory for work arrays that will be passed to the fortran kernel
@@ -572,6 +571,12 @@ class ClawSolver2D(ClawSolver):
 
         if(self.kernel_language == 'Fortran'):
             from dimsp2 import dimsp2
+            # If the user did not call setup function that allocate date for the
+            # fortran call, the function setup will be called in here.
+            try:
+                self.qadd
+            except:
+                self.setup(solutions)
             maxmx,maxmy = grid.local_n[0],grid.local_n[1]
             maxm = max(maxmx, maxmy)
             mx,my = maxmx,maxmy
