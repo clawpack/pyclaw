@@ -28,7 +28,7 @@ class AcousticEquation:
         xmax = self.grid.x.upper
         return formIJacobian(ts, t, X, Xdot, a, J, P, cc, zz, xmin, xmax)
     
-def acoustics(kernelsType='P',petscPlot=False,iplot=False,htmlplot=False,myplot=False,outdir='./_output',sclaw=False,**kwargs):
+def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=False,myplot=False,outdir='./_output',sclaw=False,**kwargs):
     import numpy as np
     """
     1D acoustics example.
@@ -57,6 +57,8 @@ def acoustics(kernelsType='P',petscPlot=False,iplot=False,htmlplot=False,myplot=
     from step1 import cparam 
     for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
     grid.meqn=2
+    if sclaw:
+        grid.mbc=3
     grid.t = 0.0
 
     # init_q_petsc_structures must be called 
@@ -72,20 +74,21 @@ def acoustics(kernelsType='P',petscPlot=False,iplot=False,htmlplot=False,myplot=
     init_solution = Solution(grid)
 
     if sclaw:
-        from petclaw.evolve.sharpclaw import SharpPetClawSolver1D
-        solver = SharpPetClawSolver1D(kernelsType = kernelsType)
+        from petclaw.evolve.sharpclaw import PetSharpClawSolver1D
+        solver = PetSharpClawSolver1D()
         solver.lim_type = kwargs.get('lim_type',2)
         solver.time_integrator = 'SSP33'
         solver.mwaves=2
         solver.char_decomp=0
     else:
-        from petclaw.evolve.solver import PetClawSolver1D
-        solver = PetClawSolver1D(kernelsType = kernelsType)
+        from petclaw.evolve.clawpack import PetClawSolver1D
+        solver = PetClawSolver1D()
         solver.mwaves=2
         solver.mthlim = [4]*solver.mwaves
 
-    if kernelsType=='P': solver.set_riemann_solver('acoustics')
+    if kernel_language=='Python': solver.set_riemann_solver('acoustics')
     solver.dt=grid.d[0]/grid.aux_global['cc']*0.1
+    solver.kernel_language=kernel_language
 
     claw = Controller()
     #claw.outstyle = 3

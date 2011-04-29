@@ -50,7 +50,7 @@ def qinit(grid,hl,ul,vl,hr,ur,vr,radDam):
 
 
     
-def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
+def shallow2D(kernel_language='Fortran',iplot=False,petscPlot=False,useController=True,htmlplot=True):
     #===========================================================================
     # Import libraries
     #===========================================================================
@@ -69,12 +69,12 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
     # Grid:
     xlower = -2.5
     xupper = 2.5
-    mx = 100
+    mx = 50
     
     ylower = -2.5
     yupper = 2.5
-    my = 100
-    x = Dimension('x',xlower,xupper,mx,mthbc_lower=1,mthbc_upper=1)
+    my = 50
+    x = Dimension('x',xlower,xupper,mx,mthbc_lower=2,mthbc_upper=1)
     y = Dimension('y',ylower,yupper,my,mthbc_lower=1,mthbc_upper=1)
     grid = Grid([x,y])
 
@@ -118,10 +118,9 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
     #===========================================================================
     # Setup solver and solver parameters
     #===========================================================================
-    kernelsType = 'F'
-    solver = PetClawSolver2D(kernelsType = kernelsType)
+    solver = PetClawSolver2D()
     solver.mwaves = 3
-    if kernelsType =='P': solver.set_riemann_solver('shallow_roe')
+    if kernel_language=='Python': solver.set_riemann_solver('shallow_roe')
     solver.mthlim = [4]*solver.mwaves
 
 
@@ -133,7 +132,7 @@ def shallow2D(iplot=False,petscPlot=False,useController=True,htmlplot=True):
     claw = Controller()
     claw.keep_copy = True
     claw.output_format = 'petsc' # The output format MUST be set to petsc!!
-    claw.tfinal = 1.5
+    claw.tfinal = 5.0
     claw.solutions['n'] = init_solution
     claw.solver = solver
 
