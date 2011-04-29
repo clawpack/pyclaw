@@ -22,7 +22,7 @@ step1.so: ${ONE_D_CLASSIC}/step1.f $(LIBOBJ) $(SOURCE)
 	${F2PY} -m step1 -c $^
 
 flux1.so: $(ONE_D_SHARPCLAW)/flux1.f90 reconstruct.o $(SOURCE)
-	f2py -m flux1 -c $(ONE_D_SHARPCLAW)/flux1.f90 $(RIEMANN)/src/rp1_acoustics.f $(ONE_D_SHARPCLAW)/reconstruct.f90 
+	f2py -m flux1 -c $(ONE_D_SHARPCLAW)/flux1.f90 $(RIEMANN)/src/rp1_acoustics.f $(ONE_D_SHARPCLAW)/reconstruct.f90 $(ONE_D_SHARPCLAW)/workspace.f90
 
 limiter.o: $(ONE_D_CLASSIC)/limiter.f
 	$(FCOMPILE_SINGLE) -c -o $@ $^

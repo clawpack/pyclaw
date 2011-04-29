@@ -42,7 +42,7 @@ def acoustics(kernel_language='Fortran',petscPlot=False,iplot=False,htmlplot=Fal
     
     init_solution = Solution(grid)
 
-    solver = SharpClawSolver1D('F')
+    solver = SharpClawSolver1D()
     solver.mwaves=2
     solver.kernel_language=kernel_language
     if kernel_language=='Python': solver.set_riemann_solver('acoustics')

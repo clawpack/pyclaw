@@ -26,6 +26,7 @@ import numpy as np
 import pdb # debugger
 
 
+from pyclaw.evolve.solver import Solver
 from pyclaw.evolve.clawpack import ClawSolver, ClawSolver1D, ClawSolver2D, start_step, src
 from pyclaw.evolve import limiters
 
@@ -40,7 +41,7 @@ except:
 # ============================================================================
 #  Generic PetClaw solver class
 # ============================================================================
-class PetClawSolver(ClawSolver):
+class PetSolver(Solver):
     r"""
     Generic PetClaw solver
     
@@ -165,6 +166,11 @@ class PetClawSolver(ClawSolver):
           comm.Allreduce(cfl1, max_cfl, MPI.MAX)
           self.cfl = max_cfl[0]
  
+
+class PetClawSolver(ClawSolver,PetSolver):
+    r"""
+    Base class for Clawpack solvers with PETSc parallelism.
+    """
 
 # ============================================================================
 #  ClawPack 1d Solver Class

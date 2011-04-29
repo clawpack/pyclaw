@@ -7,18 +7,17 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
     1D acoustics example.
     """
 
+    output_format=None #Suppress output to make tests faster
     if use_PETSc:
         from petsc4py import PETSc
         import petclaw as myclaw
-        output_format='petsc'
         if soltype=='classic':
             from petclaw.evolve.clawpack import PetClawSolver1D as mySolver
         elif soltype=='sharpclaw':
-            from petclaw.evolve.sharpclaw import SharpPetClawSolver1D as mySolver
+            from petclaw.evolve.sharpclaw import PetSharpClawSolver1D as mySolver
         else: raise Exception('Unrecognized value of soltype.')
     else: #Pure pyclaw
         import pyclaw as myclaw
-        output_format='ascii'
         if soltype=='classic':
             from pyclaw.evolve.clawpack import ClawSolver1D as mySolver
         elif soltype=='sharpclaw':
@@ -32,8 +31,6 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
     x = myclaw.grid.Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
     grid = myclaw.grid.Grid(x)
     grid.meqn=2
-    if soltype=='sharpclaw':
-        grid.mbc=2
 
     rho = 1.0
     bulk = 1.0
@@ -63,7 +60,6 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
     init_solution = Solution(grid)
 
     solver = mySolver()
-    if soltype=='sharpclaw': solver.mbc=3
 
     solver.mwaves=2
     solver.kernel_language=kernel_language
@@ -87,10 +83,6 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
 
     # Solve
     status = claw.run()
-
-    from petclaw import plot
-    if htmlplot:  plot.plotHTML()
-    if iplot:     plot.plotInteractive(format=output_format)
 
     #This test is set up so that the waves pass through the domain
     #exactly once, and the final solution should be equal to the
