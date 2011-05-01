@@ -119,8 +119,9 @@ def shallow2D(kernel_language='Fortran',iplot=False,petscPlot=False,useControlle
     # Setup solver and solver parameters
     #===========================================================================
     solver = PetClawSolver2D()
+    solver.kernel_language = 'Fortran'
     solver.mwaves = 3
-    if kernel_language=='Python': solver.set_riemann_solver('shallow_roe')
+    if solver.kernel_language =='Python': solver.set_riemann_solver('shallow_roe')
     solver.mthlim = [4]*solver.mwaves
 
 
@@ -145,9 +146,9 @@ def shallow2D(kernel_language='Fortran',iplot=False,petscPlot=False,useControlle
 
   
   
+    plot.plotInteractive()
     if htmlplot: plot.plotHTML()
     if petscPlot: plot.plotPetsc(output_object)
-    if iplot: plot.plotInteractive()
 
 
 
