@@ -288,6 +288,27 @@ class ClawSolver1D(ClawSolver):
             
         super(ClawSolver1D,self).__init__(data)
 
+
+    # ========== Setup routine =============================   
+    def setup(self,solutions):
+        r"""
+        See setup doc string in the super class.
+        We are initializing (allocating) the working arrays needed by fortran kernels 
+        in this routine. These arrays are passed in each call to the fortran kernel step1.
+        """
+        # Grid we will be working on
+        grid = solutions['n'].grids[0]
+        # Number of equations
+        meqn,mwaves,mbc = grid.meqn,self.mwaves,self.mbc
+        local_n = grid.local_n[0]+2*mbc
+        
+        if(self.kernel_language == 'Fortran'):
+            self.f    = np.empty( (meqn,local_n) )
+            self.wave = np.empty( (meqn,mwaves,local_n) )
+            self.s    = np.empty( (mwaves,local_n) )
+            self.amdq = np.empty( (meqn,local_n) )
+            self.apdq = np.empty( (meqn,local_n) )
+
     # ========== Riemann solver library routines =============================   
     def list_riemann_solvers(self):
         r"""
@@ -345,6 +366,12 @@ class ClawSolver1D(ClawSolver):
           
         if(self.kernel_language == 'Fortran'):
             from step1 import step1
+            # If the user did not call setup function that allocate date for the
+            # fortran call, the function setup will be called in here.
+            try:
+                self.f
+            except:
+                self.setup(solutions)
             
             local_n = q.shape[1]
             dx,dt = grid.d[0],self.dt
@@ -366,14 +393,7 @@ class ClawSolver1D(ClawSolver):
                 method[5] = 1  
             method[6] = maux  # aux
         
-            #This should be done just once, either in the fortran or the python:
-            f    = np.empty( (meqn,local_n) )
-            wave = np.empty( (meqn,mwaves,local_n) )
-            s    = np.empty( (mwaves,local_n) )
-            amdq = np.empty( (meqn,local_n) )
-            apdq = np.empty( (meqn,local_n) )
-        
-            q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,self.mthlim,f,wave,s,amdq,apdq,dtdx)
+            q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,self.mthlim,self.f,self.wave,self.s,self.amdq,self.apdq,dtdx)
 
         elif(self.kernel_language == 'Python'):
  
@@ -487,7 +507,7 @@ class ClawSolver2D(ClawSolver):
         r"""
         See setup doc string in the super class.
         We are initializing (allocating) the working arrays needed by fortran kernels 
-        in this routine. These arrays are passed in each call to the fortran kernel dimsp.
+        in this routine. These arrays are passed in each call to the fortran kernel dimsp2.
         """
         # Grid we will be working on
         grid = solutions['n'].grids[0]
