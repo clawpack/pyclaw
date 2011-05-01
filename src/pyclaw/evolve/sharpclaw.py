@@ -223,7 +223,7 @@ class SharpClawSolver1D(SharpClawSolver):
         self._default_attr_values['rp'] = None
         
         # Import Riemann solvers
-        exec('import pyclaw.evolve.rp as rp',globals())
+        exec('import riemann',globals())
             
         super(SharpClawSolver1D,self).__init__(data)
 
@@ -245,7 +245,7 @@ class SharpClawSolver1D(SharpClawSolver):
             These Riemann solvers are currently only accessible to the python 
             time stepping routines.
         """
-        return rp.rp_solver_list_1d
+        return riemann.rp_solver_list_1d
     
     def set_riemann_solver(self,solver_name):
         r"""
@@ -256,8 +256,8 @@ class SharpClawSolver1D(SharpClawSolver):
            ``NameError`` if the solver does not exist.
         """
         import logging
-        if solver_name in rp.rp_solver_list_1d:
-            self.rp = getattr(rp,'rp_%s_1d' % solver_name)
+        if solver_name in riemann.rp_solver_list_1d:
+            self.rp = getattr(riemann,'rp_%s_1d' % solver_name)
         else:
             logger = logging.getLogger('solver')
             error_msg = 'Could not find Riemann solver with name %s' % solver_name

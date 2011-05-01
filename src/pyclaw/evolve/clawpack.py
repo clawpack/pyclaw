@@ -25,6 +25,7 @@ import numpy as np
 from pyclaw.evolve.solver import Solver
 
 import limiters
+import riemann
 
 # ========================================================================
 #  User-defined routines
@@ -283,7 +284,7 @@ class ClawSolver1D(ClawSolver):
         self._default_attr_values['rp'] = None
         
         # Import Riemann solvers
-        exec('import pyclaw.evolve.rp as rp',globals())
+        exec('import riemann',globals())
             
         super(ClawSolver1D,self).__init__(data)
 
@@ -304,7 +305,7 @@ class ClawSolver1D(ClawSolver):
             These Riemann solvers are currently only accessible to the python 
             time stepping routines.
         """
-        return rp.rp_solver_list_1d
+        return riemann.rp_solver_list_1d
     
     def set_riemann_solver(self,solver_name):
         r"""
@@ -315,8 +316,8 @@ class ClawSolver1D(ClawSolver):
            ``NameError`` if the solver does not exist.
         """
         import logging
-        if solver_name in rp.rp_solver_list_1d:
-            exec("self.rp = rp.rp_%s_1d" % solver_name)
+        if solver_name in riemann.rp_solver_list_1d:
+            exec("self.rp = riemann.rp_%s_1d" % solver_name)
         else:
             logger = logging.getLogger('solver')
             error_msg = 'Could not find Riemann solver with name %s' % solver_name
@@ -477,7 +478,7 @@ class ClawSolver2D(ClawSolver):
         self._default_attr_values['rp'] = None
         
         # Import Riemann solvers
-        exec('import pyclaw.evolve.rp as rp',globals())
+        exec('import riemann',globals())
             
         super(ClawSolver2D,self).__init__(data)
 
@@ -539,7 +540,7 @@ class ClawSolver2D(ClawSolver):
             These Riemann solvers are currently only accessible to the python 
             time stepping routines.
         """
-        return rp.rp_solver_list_1d
+        return riemann.rp_solver_list_1d
     
     def set_riemann_solver(self,solver_name):
         r"""
@@ -550,8 +551,8 @@ class ClawSolver2D(ClawSolver):
            ``NameError`` if the solver does not exist.
         """
         import logging
-        if solver_name in rp.rp_solver_list_1d:
-            exec("self.rp = rp.rp_%s_1d" % solver_name)
+        if solver_name in riemann.rp_solver_list_1d:
+            exec("self.rp = riemann.rp_%s_1d" % solver_name)
         else:
             logger = logging.getLogger('solver')
             error_msg = 'Could not find Riemann solver with name %s' % solver_name
