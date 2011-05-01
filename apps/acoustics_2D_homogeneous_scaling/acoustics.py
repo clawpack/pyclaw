@@ -68,29 +68,16 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     solver.dt=np.min(grid.d)/grid.aux_global['cc']*solver.cfl_desired
     sol = {"n":initial_solution}
     solver.setup(sol)
-    solver.evolve_to_time(sol,tfinal/10.) 
-     
-    claw = Controller()
-    claw.nout = 1
-    claw.keep_copy = True
-    size = PETSc.Comm.getSize(PETSc.COMM_WORLD)
-    claw.outdir = './_output_'+str(size)+'/'
-    # The output format MUST be set to petsc!
-    claw.output_format = 'petsc'
-    claw.tfinal = tfinal
-    claw.solutions['n'] = initial_solution
-    claw.solver = solver
-
+    
     # Solve
     import time
-    start=time.time()    
-    status = claw.run()
+    start=time.time()   
+    solver.evolve_to_time(sol,tfinal) 
     end=time.time()
     duration1 = end-start
-    rank = PETSc.Comm.getRank(PETSc.COMM_WORLD)
-    print 'controller.run took'+str(duration1)+' seconds, for process '+str(rank)
+    print 'evolve_to_time took'+str(duration1)+' seconds, for process '+str(rank)
     if rank ==0:
-        print 'number of steps: '+ str(claw.solver.status.get('numsteps'))
+        print 'number of steps: '+ str(solver.status.get('numsteps'))
                             
 if __name__=="__main__":
     import sys
