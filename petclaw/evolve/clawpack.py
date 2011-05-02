@@ -64,6 +64,8 @@ class PetSolver(Solver):
         Returns an array with the ghost cells filled.
         """
         
+        #This line causes us to use grid.mbc.  We should get rid of it.
+        #ghost_q should be a method of solver.
         qbc = grid.ghosted_q
         for i,dim in enumerate(grid.dimensions):
             #If a user defined boundary condition is being used, send it on,

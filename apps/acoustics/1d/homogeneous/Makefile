@@ -20,10 +20,13 @@ F2PY = f2py
 PYTHON = python
 MODULE = assembly
 
-all: step1.so ${MODULE}.so
+all: step1.so flux1.so ${MODULE}.so
 
 step1.so: $(STEP1_SOURCE) $(LIBOBJ)
 	${F2PY} -m step1 -c $^
+	
+flux1.so: $(ONE_D_SHARPCLAW)/flux1.f90 $(SOURCE)
+	f2py -m flux1 -c $(ONE_D_SHARPCLAW)/flux1.f90 $(RIEMANN)/src/rp1_acoustics.f $(ONE_D_SHARPCLAW)/reconstruct.f90 $(ONE_D_SHARPCLAW)/workspace.f90
 
 ${MODULE}.so: ${MODULE}.pyx ${MODULE}impl.h ${MODULE}impl.c petscdadef.h
 	CC='${PCC}' CFLAGS='${PCC_FLAGS}' F90='${FC_LINKER}' FFLAGS='${FFLAGS}' LDFLAGS='${FC_LINKER_FLAGS}' ${PYTHON} setup.py -q build_ext --inplace

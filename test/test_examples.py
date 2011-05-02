@@ -7,25 +7,31 @@ def test_examples():
    path        = './test/acoustics/1d/homogeneous'
    name        = 'acoustics'
    target_name = 'step1.so'
-   method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : False}
+   method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : False, 'soltype' : 'classic'}
    verifier    = lambda error: abs(error-0.00104856594174)<1.e-5
    yield(util.build_run_verify, path, target_name, name, name, verifier, method_options)
 
-   method_options = {'kernel_language' : 'Python', 'use_PETSc' : False}
+   method_options = {'kernel_language' : 'Python', 'use_PETSc' : False, 'soltype' : 'classic'}
+   yield(util.run_verify, path, name, name, verifier, method_options)
+
+   method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : True, 'soltype' : 'classic'}
    yield(util.build_run_verify, path, target_name, name, name, verifier, method_options)
 
-   method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : True}
-   yield(util.build_run_verify, path, target_name, name, name, verifier, method_options)
-
-   method_options = {'kernel_language' : 'Python', 'use_PETSc' : True}
-   yield(util.build_run_verify, path, target_name, name, name, verifier, method_options)
+   method_options = {'kernel_language' : 'Python', 'use_PETSc' : True, 'soltype' : 'classic'}
+   yield(util.run_verify, path, name, name, verifier, method_options)
 
    verifier    = lambda error: abs(error-0.000818286913339)<1.e-5
+   target_name = 'flux1.so'
    method_options = {'kernel_language' : 'Python', 'use_PETSc' : False, 'soltype' : 'sharpclaw'}
+   yield(util.run_verify, path, name, name, verifier, method_options)
+
+   method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : False, 'soltype' : 'sharpclaw'}
    yield(util.build_run_verify, path, target_name, name, name, verifier, method_options)
 
-   target_name = 'flux1.so'
-   method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : False, 'soltype' : 'sharpclaw'}
+   method_options = {'kernel_language' : 'Python', 'use_PETSc' : True, 'soltype' : 'sharpclaw'}
+   yield(util.run_verify, path, name, name, verifier, method_options)
+
+   method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : True, 'soltype' : 'sharpclaw'}
    yield(util.build_run_verify, path, target_name, name, name, verifier, method_options)
 
    path        = './test/acoustics/2d/homogeneous'
