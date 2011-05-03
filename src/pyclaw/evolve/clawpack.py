@@ -300,14 +300,14 @@ class ClawSolver1D(ClawSolver):
         grid = solutions['n'].grids[0]
         # Number of equations
         meqn,mwaves,mbc = grid.meqn,self.mwaves,self.mbc
-        local_n = grid.local_n[0]+2*mbc
+        mx = grid.q.shape[1]
         
         if(self.kernel_language == 'Fortran'):
-            self.f    = np.empty( (meqn,local_n) )
-            self.wave = np.empty( (meqn,mwaves,local_n) )
-            self.s    = np.empty( (mwaves,local_n) )
-            self.amdq = np.empty( (meqn,local_n) )
-            self.apdq = np.empty( (meqn,local_n) )
+            self.f    = np.empty( (meqn,mx+2*mbc) )
+            self.wave = np.empty( (meqn,mwaves,mx+2*mbc) )
+            self.s    = np.empty( (mwaves,mx+2*mbc) )
+            self.amdq = np.empty( (meqn,mx+2*mbc) )
+            self.apdq = np.empty( (meqn,mx+2*mbc) )
 
     # ========== Riemann solver library routines =============================   
     def list_riemann_solvers(self):
@@ -513,7 +513,7 @@ class ClawSolver2D(ClawSolver):
         grid = solutions['n'].grids[0]
         # Number of equations
         meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,self.mbc,grid.aux
-        maxmx,maxmy = grid.local_n[0],grid.local_n[1]
+        maxmx,maxmy = grid.q.shape[1],grid.q.shape[2]
         maxm = max(maxmx, maxmy)
         if self.src_split < 2: narray = 1
         else: narray = 2
@@ -598,7 +598,7 @@ class ClawSolver2D(ClawSolver):
                 self.qadd
             except:
                 self.setup(solutions)
-            maxmx,maxmy = grid.local_n[0],grid.local_n[1]
+            maxmx,maxmy = grid.q.shape[1],grid.q.shape[2]
             maxm = max(maxmx, maxmy)
             mx,my = maxmx,maxmy
             aux = grid.aux
@@ -644,7 +644,7 @@ class ClawSolver2D(ClawSolver):
 
 
             self.cfl = cfl
-            grid.q=q[:,mbc:grid.local_n[0]+mbc,mbc:grid.local_n[1]+mbc]
+            grid.q=q[:,mbc:grid.q.shape[1]+mbc,mbc:grid.q.shape[2]+mbc]
 
         elif(self.kernel_language == 'Python'):
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
