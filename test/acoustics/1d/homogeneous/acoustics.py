@@ -32,6 +32,9 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
     grid = myclaw.grid.Grid(x)
     grid.meqn=2
 
+    if soltype=='classic': grid.mbc=2
+    elif soltype=='sharpclaw': grid.mbc=3
+
     rho = 1.0
     bulk = 1.0
     grid.aux_global['rho']=rho

@@ -58,15 +58,29 @@ class PetSolver(Solver):
      - (:class:`PetClawSolver`) - Initialized petclaw solver
     """
     
+    def setup(self, solutions): 
+        grid = solutions['n'].grids[0]
+        self.q_da = grid.q_da
+
+        super(PetSolver,self).setup(solutions)
+
     # ========== Boundary Conditions ==================================
-    def qbc(self,grid,q,t):
+    def append_ghost_cells(self,state,q):
+        self.q_da.globalToLocal(state.gqVec, state.lqVec)
+        q_dim = [state.local_n[i] + 2*self.mbc for i in xrange(state.ndim)]
+        q_dim.insert(0,state.meqn)
+        ghosted_q=state.lqVec.getArray().reshape(q_dim, order = 'F')
+        return ghosted_q
+ 
+    def qbc(self,grid,state):
         """
         Returns an array with the ghost cells filled.
         """
         
         #This line causes us to use grid.mbc.  We should get rid of it.
         #ghost_q should be a method of solver.
-        qbc = grid.ghosted_q
+        qbc = self.append_ghost_cells(state,state.q)
+
         for i,dim in enumerate(grid.dimensions):
             #If a user defined boundary condition is being used, send it on,
             #otherwise roll the axis to front position and operate on it
@@ -96,8 +110,6 @@ class PetSolver(Solver):
             pass # Amal: this is implemented automatically by petsc4py
             
         # Solid wall bc
-        # Matteo: I've used three if statements to impose correctly this BC for both 1D and 2D
-        # simulations. Is this the most efficient way?
         elif dim.mthbc_lower == 3:
              if dim.nstart == 0:
                 if grid.ndim == 1:
@@ -137,8 +149,6 @@ class PetSolver(Solver):
             pass # Amal: this is implemented automatically by petsc4py
 
         # Solid wall bc
-        # Matteo: I've used three if statements to impose correctly this BC for both 1D and 2D
-        # simulations. Is this the most efficient way?
         elif dim.mthbc_upper == 3:
             if dim.nend == dim.n:
                 if grid.ndim == 1:
@@ -169,7 +179,7 @@ class PetSolver(Solver):
           self.cfl = max_cfl[0]
  
 
-class PetClawSolver(ClawSolver,PetSolver):
+class PetClawSolver(PetSolver,ClawSolver):
     r"""
     Base class for Clawpack solvers with PETSc parallelism.
     """

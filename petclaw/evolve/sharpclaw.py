@@ -22,48 +22,14 @@ from clawpack import PetSolver
 from pyclaw.evolve.sharpclaw import SharpClawSolver1D
 from petsc4py import PETSc
 
-class RKStageDA(object):
+class RKStageState(object):
     """
     A single Runge-Kutta stage.
     """
     def __init__(self,grid):
+        #Probably we should pass a solver instead of a grid to this function.
         self.t = grid.t
-        periodic = False
-        for dimension in grid.dimensions:
-            if dimension.mthbc_lower == 2 or dimension.mthbc_upper == 2:
-                periodic = True
-                break
-                
-        if hasattr(PETSc.DA,'PeriodicType'):  # PETSc-3.1
-            if grid.ndim == 1:
-                periodic_type = PETSc.DA.PeriodicType.X
-            elif grid.ndim == 2:
-                periodic_type = PETSc.DA.PeriodicType.XY
-            elif grid.ndim == 3:
-                periodic_type = PETSc.DA.PeriodicType.XYZ
-            else:
-                raise Exception("Invalid number of dimensions")
-
-            self.q_da = PETSc.DA().create(dim=grid.ndim,
-                                          dof=grid.meqn,
-                                          sizes=grid.n,
-                                          periodic_type = periodic_type,
-                                          stencil_width=grid.mbc,
-                                          comm=PETSc.COMM_WORLD)
-        else:
-            self.q_da = PETSc.DA().create(dim=grid.ndim,
-                                          dof=grid.meqn,
-                                          sizes=grid.n,
-                                          boundary_type = PETSc.DA.BoundaryType.PERIODIC,
-                                          stencil_width=grid.mbc,
-                                          comm=PETSc.COMM_WORLD)
-
-        if grid.ndim == 1:
-            self.q_da.setUniformCoordinates(xmin=grid.x.lower,xmax=grid.x.upper)
-        elif grid.ndim == 2:
-            self.q_da.setUniformCoordinates(xmin=grid.x.lower,xmax=grid.x.upper,ymin=grid.y.lower,ymax=grid.y.upper)
-        elif grid.ndim == 3:
-            self.q_da.setUniformCoordinates(xmin=grid.x.lower,xmax=grid.x.upper,ymin=grid.y.lower,ymax=grid.y.upper,zmin=grid.z.lower,zmax=grid.z.upper)
+        self.q_da=grid.q_da
         self.gqVec = self.q_da.createGlobalVector()
         self.lqVec = self.q_da.createLocalVector()
         self.mbc  = grid.mbc
@@ -100,7 +66,7 @@ class RKStageDA(object):
     q           = property(**q())
     ghosted_q   = property(**ghosted_q())
  
-class PetSharpClawSolver1D(SharpClawSolver1D,PetSolver):
+class PetSharpClawSolver1D(PetSolver,SharpClawSolver1D):
     """SharpClaw evolution routine in 1D
     
     This class represents the 1d SharpClaw solver.  Note that there are 
@@ -110,9 +76,6 @@ class PetSharpClawSolver1D(SharpClawSolver1D,PetSolver):
     
     """
     
-    def qbc(self,grid,q,t):
-        return PetSolver.qbc(self,grid,q,t)
-
     def setup(self,solutions):
 
         if self.time_integrator == 'Euler': nregisters=1
@@ -121,8 +84,9 @@ class PetSharpClawSolver1D(SharpClawSolver1D,PetSolver):
         grid = solutions['n'].grids[0]
         self.rk_stages = []
         for i in range(nregisters-1):
-            self.rk_stages.append(RKStageDA(grid))
+            self.rk_stages.append(RKStageState(grid))
 
+        super(PetSharpClawSolver1D,self).setup(solutions)
 
 
     def dqdt(self,grid,rk_stage):
@@ -130,7 +94,7 @@ class PetSharpClawSolver1D(SharpClawSolver1D,PetSolver):
         Evaluate dq/dt
         """
 
-        q = self.qbc(grid,rk_stage.q,rk_stage.t)
+        q = self.qbc(grid,rk_stage)
 
         self.dt = 1
         deltaq = self.dq_homogeneous(grid,q,rk_stage.t)
