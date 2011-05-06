@@ -173,7 +173,15 @@ class Solver(object):
     # ========================================================================
     #  Boundary Conditions
     # ========================================================================    
-    def qbc(self,grid,q,t):
+    def append_ghost_cells(self,grid,state,q):
+        # Create ghost cell array
+        dim_string = ','.join( ('2*self.mbc+grid.%s.n' % dim.name for dim in grid.dimensions) )
+        exec("qbc = np.zeros( (grid.meqn,%s) )" % dim_string)
+        dim_string = ','.join( ('self.mbc:-self.mbc' for dim in grid.dimensions) )
+        exec("qbc[:,%s] = q" % dim_string)
+        return qbc
+ 
+    def qbc(self,grid,state):
         r"""
         Appends boundary conditions to q
     
@@ -198,12 +206,11 @@ class Solver(object):
             the boundary condition has not been rolled. 
         """
         
-        # Create ghost cell array
-        dim_string = ','.join( ('2*self.mbc+grid.%s.n' % dim.name for dim in grid.dimensions) )
-        exec("qbc = np.zeros( (grid.meqn,%s) )" % dim_string)
-        dim_string = ','.join( ('self.mbc:-self.mbc' for dim in grid.dimensions) )
-        exec("qbc[:,%s] = q" % dim_string)
-        
+        q=state.q
+        t=state.t
+
+        qbc=self.append_ghost_cells(grid,state,q)
+       
         for (i,dim) in enumerate(grid.dimensions):
             # If a user defined boundary condition is being used, send it on,
             # otherwise roll the axis to front position and operate on it

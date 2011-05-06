@@ -96,9 +96,10 @@ class SharpClawSolver(Solver):
         elif self.time_integrator == 'SSP33': nregisters=2
  
         grid = solutions['n'].grids[0]
-        self.rk_stages = []
-        for i in range(nregisters-1):
-            self.rk_stages.append(RKStage(grid))
+        if not hasattr(self,'rk_stages'):
+            self.rk_stages = []
+            for i in range(nregisters-1):
+                self.rk_stages.append(RKStage(grid))
 
 
 
@@ -142,7 +143,7 @@ class SharpClawSolver(Solver):
 
         start_step(self,grid,rk_stage)
 
-        q = self.qbc(grid,rk_stage.q,rk_stage.t)
+        q = self.qbc(grid,rk_stage)
 
         deltaq = self.dq_homogeneous(grid,q,rk_stage.t)
 

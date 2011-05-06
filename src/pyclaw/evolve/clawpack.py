@@ -360,7 +360,7 @@ class ClawSolver1D(ClawSolver):
         :Version: 1.0 (2009-07-01)
         """
         grid = solutions['n'].grids[0]
-        q = self.qbc(grid,grid.q,grid.t)
+        q = self.qbc(grid,grid)
 
         meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,self.mbc,grid.aux
           
@@ -634,7 +634,7 @@ class ClawSolver2D(ClawSolver):
             if method[4] < 2: narray = 1
             else: narray = 2
 
-            qold = self.qbc(grid,grid.q,grid.t)
+            qold = self.qbc(grid,grid)
             qnew = qold #(input/output)
 
             q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my, \
