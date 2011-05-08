@@ -26,13 +26,14 @@ subroutine flux1(q1d,dq1d,ndim,aux,dt,cfl,t,dtdx,&
 !            s(mw,i) = speed of wave in family mw in Riemann problem between
 !                      states i-1 and i.
 !
+!     Note that mx must be the size of the grid for the dimension corresponding
+!     to the value of ixy.
+!
 !     t is the time at which we want to evaluate dq/dt, which may not
 !      be the current simulation time
 ! ===================================================================
 !
-! Add here some info about modifications.
-!
-! Modified: March 30, 2011
+! Modified: April 26, 2011
 ! Authors:  David Ketcheson
 !           Matteo Parsani
 !

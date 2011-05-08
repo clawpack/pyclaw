@@ -10,6 +10,6 @@ Copyright (c) 2008 University of Washington. All rights reserved.
 # This __init__ script only imports common utilities, most of the import 
 # should be done depending on the solver needed
 
-__all__ = ['ClawSolver1D','rp']
-from pyclaw.evolve.clawpack import ClawSolver1D
-from pyclaw.evolve.rp import *
+__all__ = ['ClawSolver1D']
+from clawpack import PetClawSolver1D
+from riemann import *

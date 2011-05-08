@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-stegoton.py
-
 Stegoton problem.
 Nonlinear elasticity in periodic medium.
+See LeVeque & Yong (2003).
 
 $$\\epsilon_t - u_x = 0$$
 $$\\rho(x) u_t - \\sigma(\\epsilon,x)_x = 0$$
 """
-solvertype='clawpack'
-kernelsType='F'
+solvertype='sharpclaw'
+kernel_language='Fortran'
 machine='local'
 vary_Z=False
 
@@ -24,15 +23,14 @@ if machine=='shaheen':
 import numpy as np
 from petsc4py import PETSc
 
-from petclaw.grid import Dimension
-from petclaw.grid import Grid
+from petclaw.grid import Dimension, Grid
 from pyclaw.solution import Solution
 from pyclaw.controller import Controller
 if solvertype=='clawpack':
-    from petclaw.evolve.petclaw import PetClawSolver1D as Solver1D
+    from petclaw.evolve.clawpack import PetClawSolver1D as Solver1D
     mbc=2
 elif solvertype=='sharpclaw':
-    from petclaw.evolve.sharpclaw import SharpClawSolver1D as Solver1D
+    from petclaw.evolve.sharpclaw import PetSharpClawSolver1D as Solver1D
     mbc=3
 
 def qinit(grid,ic=2,a2=1.0):
@@ -44,6 +42,7 @@ def qinit(grid,ic=2,a2=1.0):
     elif ic==2:
         # Gaussian
         mbc=grid.mbc
+        print q.shape, grid.aux.shape,mbc
         sigma = a2*np.exp(-((x-xupper/2.)/10.)**2.)
         q[0,:] = np.log(sigma+1.)/grid.aux[1,mbc:-mbc]
 
@@ -155,12 +154,13 @@ if __name__ == "__main__":
     start=time.time()
     # Initialize grids and solutions
     xlower=0.0; xupper=600.0
-    cellsperlayer=12; mx=int(round(xupper-xlower))*cellsperlayer
+    cellsperlayer=6; mx=int(round(xupper-xlower))*cellsperlayer
     mthbc_lower=2; mthbc_upper=2
     x = Dimension('x',xlower,xupper,mx,mthbc_lower=mthbc_lower,mthbc_upper=mthbc_upper,mbc=mbc)
     grid = PPCGrid(x)
     grid.meqn = 2
     grid.t = 0.0
+    grid.mbc=mbc
 
     #Set global parameters
     alpha = 0.5
@@ -194,7 +194,8 @@ if __name__ == "__main__":
     smax=np.sqrt(np.exp(Kmax*emax)) #Works only for K=rho
 
     # Solver setup
-    solver = Solver1D(kernelsType = kernelsType)
+    solver = Solver1D()
+    solver.kernel_language=kernel_language
 
     tfinal=500.; nout = 10; tout=tfinal/nout
     dt_rough = 0.5*grid.x.d/smax 
@@ -259,5 +260,8 @@ if __name__ == "__main__":
         status = claw.run()
         end=time.time()
         print 'job took '+str(end-start)+' seconds'
+
+    from petclaw import plot
+    plot.plotInteractive()
 
 
