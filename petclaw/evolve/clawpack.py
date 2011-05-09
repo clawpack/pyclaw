@@ -66,7 +66,7 @@ class PetSolver(Solver):
 
     # ========== Boundary Conditions ==================================
     def append_ghost_cells(self,state,q):
-        self.q_da.globalToLocal(state.gqVec, state.lqVec)
+        state.q_da.globalToLocal(state.gqVec, state.lqVec)
         q_dim = [state.local_n[i] + 2*self.mbc for i in xrange(state.ndim)]
         q_dim.insert(0,state.meqn)
         ghosted_q=state.lqVec.getArray().reshape(q_dim, order = 'F')
