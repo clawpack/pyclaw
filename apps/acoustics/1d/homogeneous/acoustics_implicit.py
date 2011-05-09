@@ -6,10 +6,10 @@ from petsc4py import PETSc
 
 class AcousticEquation:
     def __init__(self, grid, solver):
-        from petclaw.evolve.sharpclaw import RKStageDA
+        from petclaw.evolve.sharpclaw import RKStageState
         self.grid = grid
         self.solver = solver
-        self.wrapper = RKStageDA(grid)
+        self.wrapper = RKStageState(grid)
         return
 
     def rhsfunction(self, ts, t, x, f):
