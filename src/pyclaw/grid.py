@@ -176,6 +176,9 @@ class Dimension(object):
         
         for (k,v) in kargs.iteritems():
             setattr(self,k,v)
+
+        self.nstart = 0
+        self.nend = self.n
             
         # Function attribute assignments
     
