@@ -96,10 +96,9 @@ class SharpClawSolver(Solver):
         elif self.time_integrator == 'SSP33': nregisters=2
  
         grid = solutions['n'].grids[0]
-        if not hasattr(self,'rk_stages'):
-            self.rk_stages = []
-            for i in range(nregisters-1):
-                self.rk_stages.append(RKStage(grid))
+        self.rk_stages = []
+        for i in range(nregisters-1):
+            self.rk_stages.append(RKStage(grid))
 
 
 

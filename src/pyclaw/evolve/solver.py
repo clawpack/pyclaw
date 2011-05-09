@@ -14,7 +14,6 @@ Module specifying the interface to every solver in pyclaw.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-import sys
 import time
 import copy
 import logging
