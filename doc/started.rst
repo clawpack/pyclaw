@@ -5,10 +5,9 @@ Getting started
 Installation
 ==================
 To run PetClaw you'll need to install PETSc, Python, 
-numpy, and petsc4py, as well as the Clawpack version located 
-at https://bitbucket.org/ketch/clawpack4petclaw.
-For further installation instructions, for now see the 
-`wiki <http://bitbucket.org/knepley/wiki/Home>`_.
+numpy, and petsc4py, as well as PyClaw.
+For some outdated installation instructions, see the 
+`old bitbucket wiki <http://bitbucket.org/knepley/wiki/Home>`_.
 
 Setting up the environment
 ============================
@@ -25,7 +24,7 @@ If you don't have it already, install nose ::
 
 Now simply execute ::
 
-    $ cd $PETCLAW
+    $ cd $PYCLAW
     $ nosetests
 
 If everything is set up correctly, this will compile the Fortran source,
@@ -35,7 +34,7 @@ Running and plotting an example
 ================================
 Next ::
 
-    $ cd $PETCLAW/apps/advection/1d/constant
+    $ cd $PYCLAW/apps/advection/1d/constant
     $ make
     $ python advection.py
 

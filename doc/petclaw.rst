@@ -12,10 +12,6 @@ PyClaw package.
 The low-level kernels are written in Fortran and based on Clawpack.
 The parallelism is implemented using PETSc and petsc4py.
 
-You can get the latest development version of PetClaw from
-https://bitbucket.org/knepley/petclaw.  If you are participating
-in the (HPC)^3 workshop, you should clone the HPC3 branch.
-
 The PetClaw user interface is based on the PyClaw package.  
 For details, please read the 
 `PyClaw tutorial <http://kingkong.amath.washington.edu/clawpack/users/pyclaw/tutorial.html>`_.
