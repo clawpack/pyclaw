@@ -14,7 +14,6 @@ Module specifying the interface to every solver in pyclaw.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-import sys
 import time
 import copy
 import logging
@@ -174,7 +173,14 @@ class Solver(object):
     #  Boundary Conditions
     # ========================================================================    
     def append_ghost_cells(self,grid,state,q):
-        # Create ghost cell array
+        """
+        Returns q with ghost cells attached.  For Solver, this means
+        just creating a copy of q with extra cells.
+
+        The argument 'state' is not used here; it is passed only in order
+        to have a common interface for the petclaw and pyclaw versions of
+        this function.
+        """
         dim_string = ','.join( ('2*self.mbc+grid.%s.n' % dim.name for dim in grid.dimensions) )
         exec("qbc = np.zeros( (grid.meqn,%s) )" % dim_string)
         dim_string = ','.join( ('self.mbc:-self.mbc' for dim in grid.dimensions) )
@@ -183,7 +189,7 @@ class Solver(object):
  
     def qbc(self,grid,state):
         r"""
-        Appends boundary conditions to q
+        Appends boundary cells to q and fills them with appropriate values.
     
         This function returns an array of dimension determined by the 
         :attr:`mbc` attribute.  The type of boundary condition set is 
@@ -224,8 +230,9 @@ class Solver(object):
                 self.qbc_upper(grid,dim,t,np.rollaxis(qbc,i+1,1))
             
         return qbc
-        
-    def qbc_lower(self,grid,dimension,t,qbc):
+
+
+    def qbc_lower(self,grid,dim,t,qbc):
         r"""
         Apply lower boundary conditions to qbc
         
@@ -243,23 +250,45 @@ class Solver(object):
          - *qbc* - (ndarray(...,meqn)) Array with added ghost cells which will
            be set in this routines
         """
-        
         # User defined functions
-        if dimension.mthbc_lower == 0:
-            dimension.user_bc_lower(grid,dimension,t,qbc)
+        if dim.mthbc_lower == 0: self.user_bc_lower(grid,dim,qbc)
         # Zero-order extrapolation
-        elif dimension.mthbc_lower == 1:
-            qbc[:,:self.mbc,...] = qbc[:,self.mbc,...]
+        elif dim.mthbc_lower == 1:
+            if dim.nstart == 0:
+                for i in xrange(self.mbc):
+                    qbc[:,i,...] = qbc[:,self.mbc,...]
         # Periodic
-        elif dimension.mthbc_lower == 2:
-            qbc[:,:self.mbc,...] = qbc[:,-2*self.mbc:-self.mbc,...]
-        # Solid wall bc
-        elif dimension.mthbc_lower == 3:
-            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
-        else:
-            raise NotImplementedError("Boundary condition %s not implemented" % self.mthbc_lower)
+        elif dim.mthbc_lower == 2:
+            if dim.nstart == 0 and dim.nend==dim.n:
+                # This process owns the whole grid
+                qbc[:,:self.mbc,...] = qbc[:,-2*self.mbc:-self.mbc,...]
+            else:
+                pass #Handled automatically by PETSc
             
-    def qbc_upper(self,grid,dimension,t,qbc):
+        # Solid wall bc
+        elif dim.mthbc_lower == 3:
+             if dim.nstart == 0:
+                if grid.ndim == 1:
+                    for i in xrange(self.mbc):
+                        qbc[:,i,...] = qbc[:,self.mbc+1-i,...]
+                        qbc[1,i,...] = -qbc[1,self.mbc+1-i,...] # Negate normal velocity
+                elif grid.ndim == 2:
+                     if dim.name == 'x':  # left boundary in the x direction
+                         for i in xrange(self.mbc):
+                             qbc[:,i,...] = qbc[:,self.mbc+1-i,...]
+                             qbc[1,i,...] = -qbc[1,self.mbc+1-i,...] # Negate normal velocity
+                     else: # lower boundary in the y direction
+                         for i in xrange(self.mbc):
+                             qbc[:,i,...] = qbc[:,self.mbc+1-i,...]
+                             qbc[2,i,...] = -qbc[2,self.mbc+1-i,...]  # Negate normal velocity
+              
+                else:
+                    raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
+        else:
+            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
+
+
+    def qbc_upper(self,grid,dim,t,qbc):
         r"""
         Apply upper boundary conditions to qbc
         
@@ -277,23 +306,46 @@ class Solver(object):
          - *qbc* - (ndarray(...,meqn)) Array with added ghost cells which will
            be set in this routines
         """
-        
+ 
         # User defined functions
-        if dimension.mthbc_upper == 0:
-            dimension.user_bc_upper(grid,dimension,t,qbc)
+        if dim.mthbc_upper == 0: self.user_bc_upper(grid,dim,qbc)
         # Zero-order extrapolation
-        elif dimension.mthbc_upper == 1:
-            qbc[:,-self.mbc:,...] = qbc[:,-self.mbc-1,...]
-        # Periodic
-        elif dimension.mthbc_upper == 2:
-            qbc[:,-self.mbc:,...] = qbc[:,self.mbc:2*self.mbc,...]
-        # Solid wall bc
-        elif dimension.mthbc_upper == 3:
-            raise NotImplementedError("Solid wall upper boundary condition not implemented.")
-        else:
-            raise NotImplementedError("Boundary condition %s not implemented" % self.mthbc_upper)
+        elif dim.mthbc_upper == 1:
+            if dim.nend == dim.n :
+                for i in xrange(self.mbc):
+                    qbc[:,-i-1,...] = qbc[:,-self.mbc-1,...] 
+ 	    
+        elif dim.mthbc_upper == 2:
+            # Periodic
+            if dim.nstart == 0 and dim.nend==dim.n:
+                # This process owns the whole grid
+                qbc[:,-self.mbc:,...] = qbc[:,self.mbc:2*self.mbc,...]
+            else:
+                pass # this is implemented automatically by petsc4py
 
-        
+        # Solid wall bc
+        elif dim.mthbc_upper == 3:
+            if dim.nend == dim.n:
+                if grid.ndim == 1:
+                    for i in xrange(self.mbc):
+                        qbc[:,-i-1,...] = qbc[:,-self.mbc-2+i,...]
+                        qbc[1,-i-1,...] = -qbc[1,-self.mbc-2+i,...] # Negate normal velocity
+                elif grid.ndim == 2:
+                     if dim.name == 'x': # right boundary in the x direction
+                         for i in xrange(self.mbc):
+                             qbc[:,-i-1,...] = qbc[:,-self.mbc-2+i,...]
+                             qbc[1,-i-1,...] = -qbc[1,-self.mbc-2+i,...] # Negate normal velocity
+                     else: # upper boundary in the y direction
+                         for i in xrange(self.mbc):
+                             qbc[:,-i-1,...] = qbc[:,-self.mbc-2+i,...]
+                             qbc[2,-i-1,...] = -qbc[2,-self.mbc-2+i,...] # Negate normal velocity
+              
+                else:
+                    raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
+        else:
+            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
+
+
     # ========================================================================
     #  Evolution routines
     # ========================================================================
