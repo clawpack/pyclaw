@@ -1,6 +1,6 @@
-PETCLAWMAKE = $(PETCLAW)/Makefile.common
+PYCLAWMAKE = $(PYCLAW)/Makefile.common
 
-include $(PETCLAWMAKE)
+include $(PYCLAWMAKE)
 
 LIBOBJ = \
     limiter.o\

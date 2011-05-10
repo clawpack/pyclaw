@@ -1,6 +1,6 @@
-PETCLAWMAKE = $(PETCLAW)/Makefile.common
+PYCLAWMAKE = $(PYCLAW)/Makefile.common
 
-include $(PETCLAWMAKE)
+include $(PYCLAWMAKE)
 
 # This makefile uses the Fortran compiler and flags from PETSc. This
 # means that PETSc needs to be configured with Fortran support which
