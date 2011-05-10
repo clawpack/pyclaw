@@ -1607,11 +1607,11 @@ def errors_2d_vs_1d(solution,reference,var_2d,var_1d,map_2d_to_1d):
       reference: object of class ClawSolution with 1d reference solution
 
       var_2d: variable to compare from solution
-      if integer, compare q[:,:,var_2d]
+      if integer, compare q[var_2d,:,:]
       if function, apply to q to obtain the variable
 
       var_1d: variable to compare from reference
-      if integer, compare to q[:,var_2d]
+      if integer, compare to q[var_2d,:]
       if function, apply to q to obtain the variable
 
       map_2d_to_1d: function mapping 2d data to 1d for comparison::

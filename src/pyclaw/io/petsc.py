@@ -217,8 +217,8 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         q = grid.gqVec.getArray().copy()
         q_dim=[grid.meqn]
         if len(grid.n)==2: 
-            q_dim.append(grid.n[1])
             q_dim.append(grid.n[0])
+            q_dim.append(grid.n[1])
             q = q.reshape(q_dim,order='F')
             #q = np.rollaxis(q,2,1)
         else: 
