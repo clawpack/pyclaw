@@ -1,0 +1,99 @@
+%
+%  Riemann Solver Comparison
+%
+%  Created by Kyle Mandli on 2010-04-20.
+%  Copyright (c) 2010 University of Washington. All rights reserved.
+%
+\documentclass[]{article}
+
+% Use utf-8 encoding for foreign characters
+\usepackage[utf8]{inputenc}
+
+% Setup for fullpage use
+\usepackage{fullpage}
+\usepackage{verbatim}
+
+% Uncomment some of the following if you use the features
+%
+% Running Headers and footers
+%\usepackage{fancyhdr}
+
+% Multipart figures
+%\usepackage{subfigure}
+
+% More symbols
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{latexsym}
+
+% Surround parts of graphics with box
+\usepackage{boxedminipage}
+
+% Package for including code in the document
+% \usepackage{listings}
+
+% If you want to generate a toc for each chapter (use with book)
+% \usepackage{minitoc}
+
+% This is now the recommended way for checking for PDFLaTeX:
+\usepackage{ifpdf}
+
+\ifpdf
+\usepackage[pdftex]{graphicx}
+\else
+\usepackage{graphicx}
+\fi
+% 
+% % Commands 
+% \include{commands}
+
+% Graphics
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+\usepackage{epstopdf}
+
+\title{Riemann Solver Comparison:  Point-wise vs. Vector Evaluation}
+\author{  }
+\date{}
+
+\begin{document}
+
+\ifpdf
+\DeclareGraphicsExtensions{.pdf, .jpg, .tif}
+\else
+\DeclareGraphicsExtensions{.eps, .jpg}
+\fi
+
+\maketitle
+
+\section{Introduction}
+The current version of Clawpack evaluates the Riemann solver by sending a vector of quantities into the function that will evaluate the Riemann solution and give back a vector of waves and wave speeds for each grid cell.  This solve requires a loop over all grid cells inside of the Riemann problem.  In order to simplify the code needed to solve these problems and provide a simpler interface to the Riemann solver, it has been suggested that a point-wise function call, where the Riemann solver only solves for one interface, be implemented.
+
+The goal of this project is to understand the inefficiencies and consequences of moving to a point-wise Riemann solver from the current vector based one. 
+
+\section{Algorithm Background}
+A Riemann problem is defined as a hyperbolic PDE such as
+\begin{equation}
+    q_t + f(q)_x = 0,
+\end{equation}
+where $q$ is a vector of size $m$ and $f(q)$ is the flux function dependent on the state vector $q$, and piecewise constant initial data with a jump discontinuity.
+\begin{equation}
+    q(x,0) = \left \{ \begin{aligned}
+    &q_\ell ~~~~~ \text{if } x < 0,\\
+    &q_r ~~~~~ \text{if } x > 0. \end{aligned} \right .
+\end{equation}
+The solution to this problem includes the determination of a set of waves $\mathcal{W^p} \in \mathcal{R}^m$ along with their associated speeds $s^p$.  The Riemann solver then needs to accept the left and right values of $q$ to either side of the Riemann problem and output the set of waves $W^p$ and speeds $s^p$ then determine how we update to the next time.  This procedure is done for each grid cell interface giving a vector of values for $\mathcal{W}$ and $s$.  
+
+\section{Goals}
+There are a few known sources of overhead increase in moving from the vectorized version of the code to the point-wise version:
+\begin{enumerate}
+    \item Function call overhead - The number of function calls increases proportional to $mx+1$ which can be considerable since this is done many times for the life of the simulation.  Function call overhead has been evaluated for simple functions (such as a function that takes the square root of a number) but a compiler can identify these types of functions and optimize accordingly.  It is not clear if a compiler can always identify the Riemann solvers and optimize them well without a lot of ``hand holding''.
+    \item Slicing of arrays - Array slicing is needed to pass the arguments in and assign them to the output correctly, i.e.
+\begin{verbatim}
+pw_rp(q(:,i),q(:,i),aux(:,i-1),aux(:,i),wave(:,:,i),s(:,i))
+\end{verbatim}
+    Windowing using pointers is another possible avenue but has not been looked into.  There are large penalties for slicing sometimes, depending on how one goes about it.
+\end{enumerate}
+
+\bibliographystyle{plain}
+\bibliography{/Users/mandli/Documents/papers/database.bib}
+\end{document}
