@@ -77,6 +77,9 @@ class PetSharpClawSolver1D(PetSolver,SharpClawSolver1D):
     """
     
     def setup(self,solutions):
+        """
+        Allocate RK stage arrays.
+        """
 
         if self.time_integrator == 'Euler': nregisters=1
         elif self.time_integrator == 'SSP33': nregisters=2
@@ -85,8 +88,6 @@ class PetSharpClawSolver1D(PetSolver,SharpClawSolver1D):
         self.rk_stages = []
         for i in range(nregisters-1):
             self.rk_stages.append(RKStageState(grid))
-
-        super(PetSharpClawSolver1D,self).setup(solutions)
 
 
     def dqdt(self,grid,rk_stage):
