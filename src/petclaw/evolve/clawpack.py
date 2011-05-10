@@ -23,20 +23,14 @@ dimensionally dependent ones such as :class:`PetClawSolver1D`.
 
 import numpy as np
 
-import pdb # debugger
-
-
 from pyclaw.evolve.solver import Solver
-from pyclaw.evolve.clawpack import ClawSolver, ClawSolver1D, ClawSolver2D, start_step, src
-from pyclaw.evolve import limiters
-
-from petsc4py import PETSc
+from pyclaw.evolve.clawpack import ClawSolver, ClawSolver1D, ClawSolver2D
 
 #This should be modified so we don't depend on mpi4py:
 try:
-  from mpi4py import MPI
+    from mpi4py import MPI
 except:
-  raise Exception("Unable to communicate cfl")
+    raise Exception("Unable to communicate cfl")
 
 # ============================================================================
 #  Generic PetClaw solver class
@@ -75,11 +69,11 @@ class PetSolver(Solver):
  
     def communicateCFL(self):
         if self.dt_variable:
-          comm = MPI.COMM_WORLD #Amal:should be consistent with petsc commworld
-          max_cfl = np.array([0.])
-          cfl1 = np.array([self.cfl])
-          comm.Allreduce(cfl1, max_cfl, MPI.MAX)
-          self.cfl = max_cfl[0]
+            comm = MPI.COMM_WORLD #Amal:should be consistent with petsc commworld
+            max_cfl = np.array([0.])
+            cfl1 = np.array([self.cfl])
+            comm.Allreduce(cfl1, max_cfl, MPI.MAX)
+            self.cfl = max_cfl[0]
  
 
 class PetClawSolver(PetSolver,ClawSolver):

@@ -1,6 +1,9 @@
 """
 Utility functions for parsing command line arguments and passing them to Python functions.
 """
+import json
+import sys
+
 def _method_info_from_argv(argv=None):
     """Command-line -> method call arg processing.
     
@@ -18,8 +21,6 @@ def _method_info_from_argv(argv=None):
     @param argv {list} Command line arg list. Defaults to `sys.argv`.
     @returns (<method-name>, <args>, <kwargs>)
     """
-    import json
-    import sys
     if argv is None:
         argv = sys.argv
 
@@ -60,8 +61,6 @@ def _info_from_argv(argv=None):
     @param argv {list} Command line arg list. Defaults to `sys.argv`.
     @returns (<method-name>, <args>, <kwargs>)
     """
-    import json
-    import sys
     if argv is None:
         argv = sys.argv
 

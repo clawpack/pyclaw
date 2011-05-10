@@ -15,12 +15,8 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-import numpy as np
-
-from pyclaw.evolve.clawpack import start_step, src
 from clawpack import PetSolver
 from pyclaw.evolve.sharpclaw import SharpClawSolver1D
-from petsc4py import PETSc
 
 class RKStageState(object):
     """
@@ -51,20 +47,8 @@ class RKStageState(object):
             self.gqVec.setArray(q.reshape([-1], order = 'F'))
         return locals()
 
-    def ghosted_q():
-        def fget(self):
-            self.q_da.globalToLocal(self.gqVec, self.lqVec)
-            q_dim = [self.local_n[i] + 2*self.mbc for i in xrange(self.ndim)]
-            q_dim.insert(0,self.meqn)
-            ghosted_q=self.lqVec.getArray().reshape(q_dim, order = 'F')
-            return ghosted_q
-        def fset(self,ghosted_q):
-            self.lqVec.setArray(ghosted_q.reshape([-1], order = 'F'))
-        return locals()
-
     local_n     = property(**local_n())
     q           = property(**q())
-    ghosted_q   = property(**ghosted_q())
  
 class PetSharpClawSolver1D(PetSolver,SharpClawSolver1D):
     """SharpClaw evolution routine in 1D

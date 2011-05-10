@@ -19,7 +19,6 @@ import numpy as np
 
 # Solver superclass
 from pyclaw.evolve.solver import Solver, CFLError
-# from pyclaw.evolve.clawpack import start_step, src
 
 # Reconstructor
 try:

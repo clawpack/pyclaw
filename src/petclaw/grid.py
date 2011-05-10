@@ -156,21 +156,8 @@ class Grid(pyclaw.grid.Grid):
             self.gqVec.setArray(q.reshape([-1], order = 'F'))
         return locals()
 
-    def ghosted_q():
-        def fget(self):
-            self.q_da.globalToLocal(self.gqVec, self.lqVec)
-            q_dim = [self.local_n[i] + 2*self.mbc for i in xrange(self.ndim)]
-            q_dim.insert(0,self.meqn)
-            ghosted_q=self.lqVec.getArray().reshape(q_dim, order = 'F')
-            return ghosted_q
-        def fset(self,ghosted_q):
-            if self.lqVec is None: self.init_q_petsc_structures()        
-            self.lqVec.setArray(ghosted_q.reshape([-1], order = 'F'))
-        return locals()
-
     local_n     = property(**local_n())
     q           = property(**q())
-    ghosted_q   = property(**ghosted_q())
     
     # ========== Class Methods ===============================================
     def __init__(self,dimensions):
@@ -215,7 +202,6 @@ class Grid(pyclaw.grid.Grid):
         self.mapc2p = default_mapc2p
         r"""(func) - Grid mapping function"""
 
-        ###  Some PETSc4Py specific stuff
         self.q_da = None
         self.gqVec = None
         self.lqVec = None
@@ -228,29 +214,24 @@ class Grid(pyclaw.grid.Grid):
 
     def init_q_petsc_structures(self):
         r"""
-        Initializes PETSc structures for q. It initializes q_da, gqVec and lqVec
+        Initializes PETSc structures for q. It initializes q_da, gqVec and lqVec,
+        and also sets up nstart, nend, and mbc for the dimensions.
         
         """
         from petsc4py import PETSc
 
-        periodic = False
-        for dimension in self.dimensions:
-            if dimension.mthbc_lower == 2 or dimension.mthbc_upper == 2:
-                periodic = True
-                break
+        #Due to the way PETSc works, we just make the grid always periodic,
+        #regardless of the boundary conditions actually selected.
+        #This works because in solver.qbc() we first call globalToLocal()
+        #and then impose the real boundary conditions (if non-periodic).
+
         if hasattr(PETSc.DA, 'PeriodicType'):
             if self.ndim == 1:
-                #if periodic: periodic_type = PETSc.DA.PeriodicType.X
-                #else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
                 periodic_type = PETSc.DA.PeriodicType.X
             elif self.ndim == 2:
-                #if periodic: periodic_type = PETSc.DA.PeriodicType.XY
-                #else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
                 periodic_type = PETSc.DA.PeriodicType.XY
             elif self.ndim == 3:
-                #if periodic: periodic_type = PETSc.DA.PeriodicType.XYZ
-                #else: periodic_type = PETSc.DA.PeriodicType.GHOSTED_XYZ
-                periodic_type = PETSc.DA.PeriodicType.XYZ #Amal
+                periodic_type = PETSc.DA.PeriodicType.XYZ
             else:
                 raise Exception("Invalid number of dimensions")
             self.q_da = PETSc.DA().create(dim=self.ndim,
@@ -274,7 +255,7 @@ class Grid(pyclaw.grid.Grid):
 
         #Now set up the local indices:
         ranges = self.q_da.getRanges()
-        for i,range in enumerate(ranges):
-            self.dimensions[i].nstart=range[0]
-            self.dimensions[i].nend  =range[1]
+        for i,nrange in enumerate(ranges):
+            self.dimensions[i].nstart=nrange[0]
+            self.dimensions[i].nend  =nrange[1]
             self.dimensions[i].mbc=self.mbc

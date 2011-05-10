@@ -366,12 +366,7 @@ class ClawSolver1D(ClawSolver):
           
         if(self.kernel_language == 'Fortran'):
             from step1 import step1
-            # If the user did not call setup function that allocate date for the
-            # fortran call, the function setup will be called in here.
-            try:
-                self.f
-            except:
-                self.setup(solutions)
+            self.f
             
             local_n = q.shape[1]
             dx,dt = grid.d[0],self.dt
@@ -592,12 +587,7 @@ class ClawSolver2D(ClawSolver):
 
         if(self.kernel_language == 'Fortran'):
             from dimsp2 import dimsp2
-            # If the user did not call setup function that allocate date for the
-            # fortran call, the function setup will be called in here.
-            try:
-                self.qadd
-            except:
-                self.setup(solutions)
+            self.qadd
             maxmx,maxmy = grid.q.shape[1],grid.q.shape[2]
             maxm = max(maxmx, maxmy)
             mx,my = maxmx,maxmy
