@@ -4,8 +4,6 @@
 import numpy as np
 
 def qinit(grid,width=0.2):
-    # Initialize petsc Structures for q
-    grid.init_q_petsc_structures()
     
     # Create an array with fortran native ordering
     x =grid.x.center
@@ -20,15 +18,23 @@ def qinit(grid,width=0.2):
     grid.q=q
 
 
-def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
+def acoustics2D(iplot=False,htmlplot=False,use_PETSc=True):
     """
     Example python script for solving the 2d acoustics equations.
     """
 
-    from petclaw.grid import Dimension
-    from petclaw.grid import Grid
+    if use_PETSc:
+        from petclaw.grid import Dimension
+        from petclaw.grid import Grid
+        from petclaw.evolve.clawpack import PetClawSolver2D as mySolver
+        output_format='petsc'
+    else:
+        from pyclaw.grid import Dimension
+        from pyclaw.grid import Grid
+        from pyclaw.evolve.clawpack import ClawSolver2D as mySolver
+        output_format='ascii'
+
     from pyclaw.solution import Solution
-    from petclaw.evolve.clawpack import PetClawSolver2D
     from pyclaw.controller import Controller
     from petclaw import plot
 
@@ -52,10 +58,15 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     grid.meqn = 3
     grid.mbc = 2
     tfinal = 0.12
+
+    if use_PETSc:
+        # Initialize petsc Structures for q
+        grid.init_q_petsc_structures()
+
     qinit(grid)
     initial_solution = Solution(grid)
 
-    solver = PetClawSolver2D()
+    solver = mySolver()
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
     solver.mwaves = 2
@@ -65,7 +76,7 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     claw = Controller()
     claw.keep_copy = True
     # The output format MUST be set to petsc!
-    claw.output_format = 'petsc'
+    claw.output_format = output_format
     claw.tfinal = tfinal
     claw.solutions['n'] = initial_solution
     claw.solver = solver
@@ -74,8 +85,7 @@ def acoustics2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     status = claw.run()
 
     if htmlplot:  plot.plotHTML()
-    if petscPlot: plot.plotPetsc(claw)
-    if iplot:     plot.plotInteractive()
+    if iplot:     plot.plotInteractive(format=output_format)
 
     pressure=claw.frames[claw.nout].grid.gqVec.getArray().reshape([grid.local_n[0],grid.local_n[1],grid.meqn])[:,:,0]
     return pressure

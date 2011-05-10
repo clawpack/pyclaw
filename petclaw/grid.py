@@ -181,7 +181,7 @@ class Grid(pyclaw.grid.Grid):
         
         Really we should just do this:
 
-        super(PCGrid,self).__init__(dimensions)
+        super(Grid,self).__init__(dimensions)
 
         But the problem is that Grid.__init__() sets q=None, messing up
         our use of q as a property.  We should find a better way to
