@@ -7,9 +7,6 @@ gamma = 1.4
 gamma1 = gamma - 1.
 
 def qinit(grid,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
-    # Initialize petsc Structures for q
-    grid.init_q_petsc_structures()
-
     rhoout = 1.
     pout   = 1.
     pin    = 1.
@@ -100,21 +97,27 @@ def euler_rad_src(solver,solutions,t,dt):
     q[3,:,:] = q[3,:,:] - dt2*(ndim-1)/rad * v * (qstar[3,:,:] + press)
 
 
-def shockbubble(iplot=False,htmlplot=False):
+def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a bubble of dense gas that is impacted by a shock.
     """
 
-    from petclaw.grid import Dimension
-    from petclaw.grid import Grid
+    if use_PETSc:
+        from petclaw.grid import Dimension, Grid
+        from petclaw.evolve.clawpack import PetClawSolver2D as mySolver
+        output_format = 'petsc'
+    else:
+        from pyclaw.grid import Dimension, Grid
+        from pyclaw.evolve.clawpack import ClawSolver2D as mySolver
+        output_format = 'ascii'
+
     from pyclaw.solution import Solution
-    from petclaw.evolve.clawpack import PetClawSolver2D
     from pyclaw.controller import Controller
     from petclaw import plot
 
     # Initialize grid
-    mx=640; my=160
+    mx=160; my=40
     x = Dimension('x',0.0,2.0,mx,mthbc_lower=0,mthbc_upper=1)
     y = Dimension('y',0.0,0.5,my,mthbc_lower=3,mthbc_upper=1)
     grid = Grid([x,y])
@@ -126,12 +129,17 @@ def shockbubble(iplot=False,htmlplot=False):
 
     grid.meqn = 5
     grid.mbc = 2
-    tfinal = 0.75
+    tfinal = 0.2
+
+    if use_PETSc:
+        # Initialize petsc Structures for q
+        grid.init_q_petsc_structures()
+
     qinit(grid)
     auxinit(grid)
     initial_solution = Solution(grid)
 
-    solver = PetClawSolver2D()
+    solver = mySolver()
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
     solver.mwaves = 5
@@ -144,17 +152,17 @@ def shockbubble(iplot=False,htmlplot=False):
     claw = Controller()
     claw.keep_copy = True
     # The output format MUST be set to petsc!
-    claw.output_format = 'petsc'
+    claw.output_format = output_format
     claw.tfinal = tfinal
     claw.solutions['n'] = initial_solution
     claw.solver = solver
-    claw.nout = 100
+    claw.nout = 10
 
     # Solve
     status = claw.run()
 
-    if htmlplot:  plot.plotHTML()
-    if iplot:     plot.plotInteractive()
+    if htmlplot:  plot.plotHTML(format=output_format)
+    if iplot:     plot.plotInteractive(format=output_format)
 
 
 if __name__=="__main__":

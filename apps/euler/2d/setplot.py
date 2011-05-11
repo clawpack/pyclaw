@@ -7,14 +7,6 @@ function setplot is called to set the plot parameters.
     
 """ 
 
-import os
-if os.path.exists('./1drad/_output'):
-    qref_dir = os.path.abspath('./1drad/_output')
-else:
-    qref_dir = None
-    print "Directory ./1drad/_output not found"
-
-
 #--------------------------
 def setplot(plotdata):
 #--------------------------

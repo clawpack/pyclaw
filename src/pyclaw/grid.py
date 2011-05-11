@@ -121,6 +121,18 @@ class Dimension(object):
         return locals()
     edge = property(**edge())
     _edge = None
+    def centerghost():
+        doc = r"""(ndarrary(:)) - Location of all grid cell center coordinates
+        for this dimension, including ghost cells"""
+        def fget(self): 
+            if self._centerghost is None:
+                self._centerghost = np.empty(self.n+2*self.mbc)
+                for i in xrange(0-self.mbc,self.n+self.mbc):
+                    self.centerghost[i] = self.lower + (i+0.5)*self.d
+            return self._centerghost
+        return locals()
+    centerghost = property(**centerghost())
+    _centerghost = None
     def center():
         doc = r"""(ndarrary(:)) - Location of all grid cell center coordinates
         for this dimension"""
@@ -395,6 +407,8 @@ class Grid(object):
         self._dimensions = []
         for dim in dimensions:
             self.add_dimension(dim)
+        for dim in self.dimensions:
+            dim.mbc=self.mbc
     
     
     def __str__(self):
