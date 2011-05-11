@@ -341,7 +341,7 @@ class ClawSolver1D(ClawSolver):
             exec("self.rp = riemann.rp_%s_1d" % solver_name)
         else:
             logger = logging.getLogger('solver')
-            error_msg = 'Could not find Riemann solver with name %s' % solver_name
+            error_msg = 'Could not find Riemann solver with name %s -- perhaps you need to add the solver to riemann.__init__.py.' % solver_name
             logger.warning(error_msg)
             raise NameError(error_msg)
 
