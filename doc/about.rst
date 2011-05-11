@@ -1,25 +1,29 @@
-=======================
-About PetClaw
-=======================
+.. _about:
 
-PetClaw is an open-source, free project.  If you find PetClaw useful,
-please let us know via a short e-mail (david.ketcheson@kaust.edu.sa).
+=======================
+About PyClaw
+=======================
+PyClaw is an open-source, free project.  If you find PyClaw useful,
+please let us know via a short e-mail to any or all of the following:
+
+    * mandli@uw.edu
+
+    * david.ketcheson@kaust.edu.sa
+
 
 Citing
 =======================
+If you use PyClaw in work that is published, please cite
 
-If you use PetClaw in work that is published, please cite
+  Kyle Mandli, David I. Ketcheson, Amal Alghamdi, and Aron Ahmadia, 
+  PyClaw Software <version number>
 
-  David I. Ketcheson, Amal Alghamdi, and Aron Ahmadia, 
-  PetClaw Software <version number>
 
 Contributing
 =======================
-
 Contributions to the package are most welcome.  If you have 
-used NodePy for research, chances are that others would find your
-code useful.  If you would like to contribute to the project, send us
-an e-mail.
+used PyClaw for research, chances are that others would find your
+code useful.  See :ref:`develop` for more details.
 
 
 License
@@ -30,7 +34,7 @@ reprinted below.
 
 See http://www.opensource.org/licenses/bsd-license.php for more details.
 
-Copyright (c) 2008-2010 David I. Ketcheson.  All rights reserved.
+Copyright (c) 2008-2011 Kyle Mandli and David I. Ketcheson.  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions are met:
@@ -49,5 +53,5 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” 
 Funding
 ==========
 
-PetClaw development has been supported by 
-grants from King Abdullah University of Science & Technology
+PyClaw development has been supported by 
+grants from King Abdullah University of Science & Technology.

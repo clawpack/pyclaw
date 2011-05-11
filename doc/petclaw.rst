@@ -22,7 +22,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   started
+   petclaw/started
    plotting
    tips
    develop

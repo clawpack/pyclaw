@@ -8,12 +8,12 @@ def plotInteractive(outdir='./_output',format='petsc'):
     ip.plotdata.format=format
     ip.plotloop()
 
-def plotHTML(outdir='./_output'):
+def plotHTML(outdir='./_output',format='petsc'):
     """
     Convenience function for creating html page with plots.
     """
     from pyclaw.plotters import plotclaw
-    plotclaw.plotclaw(outdir,format='petsc')
+    plotclaw.plotclaw(outdir,format=format)
 
 def plotPetsc(clawobj,delay=1):
     """
