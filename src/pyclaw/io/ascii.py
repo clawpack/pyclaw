@@ -100,13 +100,13 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
             if grid.ndim == 1:
                 for k in xrange(dims[0].n):
                     for m in xrange(solution.meqn):
-                        q_file.write("%16.8e" % q[m,k])
+                        q_file.write("%18.8e" % q[m,k])
                     q_file.write('\n')
             elif grid.ndim == 2:
                 for j in xrange(dims[1].n):
                     for k in xrange(dims[0].n):
                         for m in xrange(solution.meqn):
-                            q_file.write("%16.8e" % q[m,k,j])
+                            q_file.write("%18.8e" % q[m,k,j])
                         q_file.write('\n')
                     q_file.write('\n')
             elif grid.ndim == 3:
@@ -114,7 +114,7 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
                     for j in xrange(dims[1].n):
                         for k in xrange(dims[0].n):
                             for m in range(solution.meqn):
-                                q_file.write("%16.8e" % q[m,k,j,l])
+                                q_file.write("%18.8e" % q[m,k,j,l])
                             q_file.write('\n')
                     q_file.write('\n')
                 q_file.write('\n')
@@ -138,13 +138,13 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
                 if grid.ndim == 1:
                     for k in xrange(grid.dimensions[0]):
                         for m in xrange(grid.maux):
-                            aux_file.write("%16.8e" % aux[m,k])
+                            aux_file.write("%18.8e" % aux[m,k])
                         aux_file.write('\n')
                 elif grid.ndim == 2:
                     for j in xrange(grid.dimensions[1].n):
                         for k in xrange(grid.dimension[0].n):
                             for m in xrange(grid.maux):
-                                aux_file.write("%16.8e" % aux[m,k,j])
+                                aux_file.write("%18.8e" % aux[m,k,j])
                             aux_file.write('\n')    
                         aux_file.write('\n')
                 elif grid.ndim == 3:
@@ -152,7 +152,7 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
                         for j in xrange(grid.dimensions[1].n):
                             for k in xrange(grid.dimensions[0].n):
                                 for m in xrange(grid.maux):
-                                    aux_file.write("%16.8e" % aux[m,k,j,l])
+                                    aux_file.write("%18.8e" % aux[m,k,j,l])
                                 aux_file.write('\n')
                             aux_file.write('\n')    
                         aux_file.write('\n')
