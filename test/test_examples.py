@@ -1,8 +1,19 @@
+from nose.plugins.attrib import attr
 import util                      
 
 if __name__=="__main__":
     import nose
     nose.main()
+
+@attr(examples='implicit')
+def test_implicit():
+    path           = './test/acoustics/1d/homogeneous'
+    target_name    = 'all'
+    module_name    = 'acoustics_implicit'
+    method_name    = 'acoustics'
+    method_options = {'sclaw': 1, 'petscts': 1}
+    verifier       = lambda error: abs(error-0.00220809553637)<1.e-5
+    yield(util.build_run_verify, path, target_name, module_name, method_name, verifier, method_options)
 
 def test_examples():
     path        = './test/acoustics/1d/homogeneous'
@@ -35,12 +46,6 @@ def test_examples():
     method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : True, 'soltype' : 'sharpclaw'}
     yield(util.build_run_verify, path, target_name, name, name, verifier, method_options)
 
-    target_name  = 'all'
-    module_name         = 'acoustics_implicit'
-    method_name  = 'acoustics'
-    method_options = {'sclaw': 1, 'petscts': 1}
-    verifier    = lambda error: abs(error-0.00220809553637)<1.e-5
-    yield(util.build_run_verify, path, target_name, module_name, method_name, verifier, method_options)
     
     path        = './test/acoustics/2d/homogeneous'
     module_name = 'acoustics'
