@@ -4,8 +4,6 @@
 import numpy as np
 
 def qinit(grid,width=0.2):
-    # Initialize petsc Structures for q
-    grid.init_q_petsc_structures()
     
     # Create an array with fortran native ordering
     x =grid.x.center
@@ -58,6 +56,11 @@ def acoustics2D(use_PETSc=True,kernel_language='Fortran',iplot=False,petscPlot=F
 
     grid.meqn = 3
     tfinal = 0.12
+
+    if use_PETSc:
+        # Initialize petsc Structures for q
+        grid.init_q_petsc_structures()
+
     qinit(grid)
     initial_solution = Solution(grid)
 
@@ -71,7 +74,7 @@ def acoustics2D(use_PETSc=True,kernel_language='Fortran',iplot=False,petscPlot=F
     claw = Controller()
     claw.keep_copy = True
     # The output format MUST be set to petsc!
-    claw.output_format = 'petsc'
+    claw.output_format = output_format
     claw.tfinal = tfinal
     claw.solutions['n'] = initial_solution
     claw.solver = solver
@@ -79,11 +82,14 @@ def acoustics2D(use_PETSc=True,kernel_language='Fortran',iplot=False,petscPlot=F
     # Solve
     status = claw.run()
 
-    if htmlplot:  plot.plotHTML()
+    if htmlplot:  plot.plotHTML(format=output_format)
     if petscPlot: plot.plotPetsc(claw)
-    if iplot:     plot.plotInteractive()
+    if iplot:     plot.plotInteractive(format=output_format)
 
-    pressure=claw.frames[claw.nout].grid.gqVec.getArray().reshape([grid.local_n[0],grid.local_n[1],grid.meqn])[:,:,0]
+    if use_PETSc:
+        pressure=claw.frames[claw.nout].grid.gqVec.getArray().reshape([grid.meqn,grid.local_n[0],grid.local_n[1]],order='F')[0,:,:]
+    else:
+        pressure=claw.frames[claw.nout].grid.q[0,:,:]
     return pressure
 
 

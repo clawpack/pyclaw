@@ -42,19 +42,40 @@ def test_examples():
     verifier    = lambda error: abs(error-0.00220809553637)<1.e-5
     yield(util.build_run_verify, path, target_name, module_name, method_name, verifier, method_options)
     
+#=======================================================
+#    2D tests
+#=======================================================
     path        = './test/acoustics/2d/homogeneous'
     module_name = 'acoustics'
-    target_name = ''
+    target_name = 'dimsp2.so'
     method_name = 'acoustics2D'
 
     def verify_acoustics2D(test_x):
         import numpy
         verify_x=numpy.loadtxt('test/acoustics2D_solution')
-        return (numpy.linalg.norm(test_x-verify_x)<1.e-12)
+        return (numpy.linalg.norm(test_x-verify_x)<1.e-14)
 
-    yield(util.build_run_verify, path, target_name, module_name,
-           method_name, verify_acoustics2D, {})
+    method_options = {'use_PETSc' : True}
+    yield(util.build_run_verify, path, target_name, module_name, method_name, verify_acoustics2D, {})
 
     method_options = {'use_PETSc' : False}
-    yield(util.build_run_verify, path, target_name, module_name,
-           method_name, verify_acoustics2D, {})
+    yield(util.build_run_verify, path, target_name, module_name, method_name, verify_acoustics2D, method_options)    
+
+#=======================================================
+
+    path        = './test/euler/2d'
+    module_name = 'shockbubble'
+    target_name = 'dimsp2.so'
+    method_name = 'shockbubble'
+
+    def verify_shockbubble(test_x):
+        import numpy
+        verify_x=numpy.loadtxt('test/sb_density')
+        print numpy.max(abs(test_x-verify_x))
+        return numpy.max(abs(test_x-verify_x))<1.e-14
+
+    method_options = {'use_PETSc' : False}
+    #yield(util.build_run_verify, path, target_name, module_name, method_name, verify_shockbubble, method_options)
+
+    method_options = {'use_PETSc' : True}
+    #yield(util.build_run_verify, path, target_name, module_name, method_name, verify_shockbubble, method_options)
