@@ -20,10 +20,8 @@ philim.o:
 
 
 clean:
-	rm -f *.o *.so
+	rm -f *.o *.so *.pyc
 	
-clobber:
-	rm -f *.o *.so
+clobber: clean
 	rm -f -R *output*
-
-
+	rm -f -R *.log

@@ -156,7 +156,7 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
     claw.tfinal = tfinal
     claw.solutions['n'] = initial_solution
     claw.solver = solver
-    claw.nout = 10
+    claw.nout = 1
 
     # Solve
     status = claw.run()
@@ -164,6 +164,11 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
     if htmlplot:  plot.plotHTML(format=output_format)
     if iplot:     plot.plotInteractive(format=output_format)
 
+    if use_PETSc:
+        density=claw.frames[claw.nout].grid.gqVec.getArray().reshape([grid.meqn,grid.local_n[0],grid.local_n[1]],order='F')[0,:,:]
+    else:
+        density=claw.frames[claw.nout].grid.q[0,:,:]
+    return density
 
 if __name__=="__main__":
     import sys

@@ -68,7 +68,7 @@ def plotframe(frameno, plotdata, verbose=False):
 
     try:
         framesoln = plotdata.getframe(frameno, plotdata.outdir)
-    except:
+    except IOError:
         print '*** Cannot find frame number ',frameno
         print '*** looking in directory ', plotdata.outdir
         return None

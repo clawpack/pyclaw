@@ -4,8 +4,8 @@ r"""
 Module containg the PetClaw solvers
 
 This module contains the pure and wrapped PetClaw solvers.  All 
-PetClaw solvers inherit from the :class:`ClawSolver` superclass which in turn 
-inherits from the :class:`~petclaw.evolve.solver.Solver` superclass.  As such, 
+PetClaw solvers inherit from the :class:`PetClawSolver` superclass which in turn 
+inherits from the :class:`~petclaw.evolve.solver.PetSolver` superclass.  As such, 
 the only solver classes that should be directly used should be the 
 dimensionally dependent ones such as :class:`PetClawSolver1D`.
 
@@ -23,66 +23,19 @@ dimensionally dependent ones such as :class:`PetClawSolver1D`.
 
 import numpy as np
 
-from pyclaw.evolve.solver import Solver
+from petclaw.evolve.solver import PetSolver
 from pyclaw.evolve.clawpack import ClawSolver, ClawSolver1D, ClawSolver2D
 
-#This should be modified so we don't depend on mpi4py:
-try:
-    from mpi4py import MPI
-except:
-    raise Exception("Unable to communicate cfl")
-
 # ============================================================================
-#  Generic PetClaw solver class
+#  PetClaw generic Solver Class
 # ============================================================================
-class PetSolver(Solver):
-    r"""
-    Generic PetClaw solver
-    
-    All PetClaw solvers inherit from this base class.
-
-    See superclass ClawSolver for documentation of attributes.
-    
-    :Initialization:
-    
-    Input:
-     - *data* - (:class:`~petclaw.data.Data`) Data object, the solver will look 
-       for the named variables to instantiate itself.    
-    Output:
-     - (:class:`PetClawSolver`) - Initialized petclaw solver
-    """
-    
-    # ========== Boundary Conditions ==================================
-    def append_ghost_cells(self,grid,state,q):
-        """
-        Returns q with ghost cells attached.  For PetSolver,
-        this means returning the local vector.  
-        The arguments 'q' and 'grid' are
-        not used here; they are passed only in order to have a common
-        interface for the petclaw and pyclaw versions of this function.
-        """
-        state.q_da.globalToLocal(state.gqVec, state.lqVec)
-        q_dim = [state.local_n[i] + 2*self.mbc for i in xrange(state.ndim)]
-        q_dim.insert(0,state.meqn)
-        ghosted_q=state.lqVec.getArray().reshape(q_dim, order = 'F')
-        return ghosted_q
- 
-    def communicateCFL(self):
-        if self.dt_variable:
-            comm = MPI.COMM_WORLD #Amal:should be consistent with petsc commworld
-            max_cfl = np.array([0.])
-            cfl1 = np.array([self.cfl])
-            comm.Allreduce(cfl1, max_cfl, MPI.MAX)
-            self.cfl = max_cfl[0]
- 
-
 class PetClawSolver(PetSolver,ClawSolver):
     r"""
     Base class for Clawpack solvers with PETSc parallelism.
     """
 
 # ============================================================================
-#  ClawPack 1d Solver Class
+#  PetClaw 1d Solver Class
 # ============================================================================
 class PetClawSolver1D(PetClawSolver,ClawSolver1D):
     r"""
