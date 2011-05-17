@@ -115,6 +115,7 @@ class ClawSolver(Solver):
         self._default_attr_values['src'] = src
         self._default_attr_values['start_step'] = start_step
         self._default_attr_values['kernel_language'] = 'Fortran'
+        self._default_attr_values['verbosity'] = 0
 
         # Call general initialization function
         super(ClawSolver,self).__init__(data)
@@ -366,21 +367,18 @@ class ClawSolver1D(ClawSolver):
           
         if(self.kernel_language == 'Fortran'):
             from step1 import step1
-            self.f
             
-            local_n = q.shape[1]
+            mx = grid.q.shape[1]
             dx,dt = grid.d[0],self.dt
-            dtdx = np.zeros( (local_n) ) + dt/dx
-            maxmx = local_n -mbc*2
-            mx = maxmx
+            dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
             
-            if(aux == None): aux = np.empty( (maux,local_n) )
+            if(aux == None): aux = np.empty( (maux,mx+2*mbc) )
         
             method =np.ones(7, dtype=int) # hardcoded 7
             method[0] = self.dt_variable  # fixed or adjustable timestep
             method[1] = self.order  # order of the method
             method[2] = 0  # hardcoded 0, case of 2d or 3d
-            method[3] = 0  # hardcoded 0 design issue: contorller.verbosity
+            method[3] = self.verbosity
             method[4] = self.src_split  # src term
             if (grid.capa == None):
                 method[5] = 0  
@@ -388,7 +386,7 @@ class ClawSolver1D(ClawSolver):
                 method[5] = 1  
             method[6] = maux  # aux
         
-            q,self.cfl = step1(maxmx,mbc,mx,q,aux,dx,dt,method,self.mthlim,self.f,self.wave,self.s,self.amdq,self.apdq,dtdx)
+            q,self.cfl = step1(mx,mbc,mx,q,aux,dx,dt,method,self.mthlim,self.f,self.wave,self.s,self.amdq,self.apdq,dtdx)
 
         elif(self.kernel_language == 'Python'):
  
@@ -512,9 +510,12 @@ class ClawSolver2D(ClawSolver):
         maxm = max(maxmx, maxmy)
         if self.src_split < 2: narray = 1
         else: narray = 2
-        # work arround solution
-        if(aux == None):
-            maux=1
+
+        #The following is a hack to work around an issue
+        #with f2py.  It involves wastefully allocating a three arrays.
+        #f2py seems not able to handle multiple zero-size arrays being passed.
+        # it appears the bug is related to f2py/src/fortranobject.c line 841.
+        if(aux == None): maux=1
 
         if(self.kernel_language == 'Fortran'):
             self.qadd = np.empty((meqn,maxm+2*mbc))
@@ -535,7 +536,7 @@ class ClawSolver2D(ClawSolver):
             # think the fortran code will complain, but not sure)
             self.work = np.empty((mwork))
 
-        #Initialize (allocate) memory for work arrays that will be passed to the fortran kernel
+        else: raise Exception('Only Fortran kernels are supported in 2D.')
 
 
     # ========== Riemann solver library routines =============================   
@@ -587,20 +588,17 @@ class ClawSolver2D(ClawSolver):
 
         if(self.kernel_language == 'Fortran'):
             from dimsp2 import dimsp2
-            self.qadd
-            maxmx,maxmy = grid.q.shape[1],grid.q.shape[2]
-            maxm = max(maxmx, maxmy)
-            mx,my = maxmx,maxmy
+            mx,my = grid.q.shape[1],grid.q.shape[2]
+            maxm = max(mx,my)
             aux = grid.aux
             
-            #New workaround
             #The following is a hack to work around an issue
             #with f2py.  It involves wastefully allocating a three arrays.
             #f2py seems not able to handle multiple zero-size arrays being passed.
             # it appears the bug is related to f2py/src/fortranobject.c line 841.
             if(aux == None): 
                 maux=1
-                aux=np.empty((0,maxmx+2*mbc,maxmy+2*mbc))
+                aux=np.empty((0,mx+2*mbc,my+2*mbc))
                 
             dx,dy,dt = grid.d[0],grid.d[1],self.dt
 
@@ -608,11 +606,9 @@ class ClawSolver2D(ClawSolver):
             method[0] = self.dt_variable
             method[1] = self.order
             method[2] = -1  # only dimensional splitting for now
-            method[3] = 0  # hardcoded 0 design issue: controller.verbosity
+            method[3] = self.verbosity
             method[4] = self.src_split  # src term
 
-            # mcapa no longer points to the capa components of the aux 
-            # array as in fortran. capa now is a separate array.
             if (grid.capa == None): method[5] = 0
             else: method[5] = 1  
             method[6] = maux
@@ -621,20 +617,17 @@ class ClawSolver2D(ClawSolver):
             cflv[0:2] = [self.cfl_max,self.cfl_desired]
             #cflv[2] and cflv[3] are output values.
 
-            if method[4] < 2: narray = 1
-            else: narray = 2
-
             qold = self.qbc(grid,grid)
             qnew = qold #(input/output)
 
-            q, cfl = dimsp2(maxm,maxmx,maxmy,mbc,mx,my, \
+            q, cfl = dimsp2(maxm,mx,my,mbc,mx,my, \
                       qold,qnew,aux,dx,dy,dt,method,self.mthlim,self.cfl,cflv, \
                       self.qadd,self.fadd,self.gadd,self.q1d,self.dtdx1d,\
                       self.dtdy1d,self.aux1,self.aux2,self.aux3,self.work)
 
 
             self.cfl = cfl
-            grid.q=q[:,mbc:grid.q.shape[1]+mbc,mbc:grid.q.shape[2]+mbc]
+            grid.q=q[:,mbc:mx+mbc,mbc:my+mbc]
 
-        elif(self.kernel_language == 'Python'):
+        else:
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
