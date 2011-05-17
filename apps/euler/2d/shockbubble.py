@@ -31,7 +31,7 @@ def qinit(grid,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
 
 def auxinit(grid):
     """
-    aux[1,i,j] = y-coordinate of cell center for cylindrical source terms
+    aux[0,i,j] = y-coordinate of cell center for cylindrical source terms
     """
     x=grid.x.centerghost
     y=grid.y.centerghost
