@@ -180,7 +180,7 @@ class Grid(pyclaw.grid.Grid):
         Have to override the base class behavior to avoid infinite recursion.
         """
         def fget(self):
-            if self.aux_da is None: return None
+            if self.aux_da is None: return 0
             else: return self.aux_da.dof
         return locals()
 
