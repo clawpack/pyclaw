@@ -147,6 +147,7 @@ class Grid(pyclaw.grid.Grid):
         return locals()
     def q():
         def fget(self):
+            if self.q_da is None: return None
             q_dim = self.local_n
             q_dim.insert(0,self.meqn)
             q=self.gqVec.getArray().reshape(q_dim, order = 'F')
@@ -155,9 +156,39 @@ class Grid(pyclaw.grid.Grid):
             if self.gqVec is None: self.init_q_petsc_structures()
             self.gqVec.setArray(q.reshape([-1], order = 'F'))
         return locals()
+    def aux():
+        """
+        We never communicate aux values; every processor should set its own ghost cell
+        values for the aux array.  The global aux vector is used only for outputting
+        the aux values to file; everywhere else we use the local vector.
+        """
+        def fget(self):
+            if self.aux_da is None: return None
+            aux_dim = [self.local_n[i] + 2*self.mbc for i in xrange(self.ndim)]
+            aux_dim.insert(0,self.maux)
+            aux=self.lauxVec.getArray().reshape(aux_dim, order = 'F')
+            return aux
+        def fset(self,aux):
+            if self.aux_da is None: 
+                maux=aux.shape[0]
+                self.init_aux_da(maux)
+            self.lauxVec.setArray(aux.reshape([-1], order = 'F'))
+            self.aux_da.localToGlobal(self.lauxVec, self.gauxVec)
+        return locals()
+    def maux():
+        """
+        Have to override the base class behavior to avoid infinite recursion.
+        """
+        def fget(self):
+            if self.aux_da is None: return None
+            else: return self.aux_da.dof
+        return locals()
+
 
     local_n     = property(**local_n())
     q           = property(**q())
+    aux         = property(**aux())
+    maux        = property(**maux())
     
     # ========== Class Methods ===============================================
     def __init__(self,dimensions):
@@ -191,9 +222,6 @@ class Grid(pyclaw.grid.Grid):
             ``default = 2``"""
         self.meqn = 1
         r"""(int) - Dimension of q array for this grid, ``default = 1``"""
-        self.aux = None
-        r"""(ndarray(...,maux)) - Auxiliary array for this grid containing per 
-            cell information"""
         self.capa = None
         r"""(ndarray(...)) - Capacity array for this grid, ``default = 1.0``"""
         self.aux_global = {}
@@ -206,11 +234,54 @@ class Grid(pyclaw.grid.Grid):
         self.gqVec = None
         self.lqVec = None
 
+        self.aux_da = None
+        self.gauxVec = None
+        self.lauxVec = None
+
         # Dimension parsing
         if isinstance(dimensions,Dimension): dimensions = [dimensions]
         self._dimensions = []
         for dim in dimensions: self.add_dimension(dim)
 
+
+    def init_aux_da(self,maux):
+        r"""
+        Initializes PETSc DA for q. It initializes aux_da, gauxVec and lauxVec.
+        """
+        from petsc4py import PETSc
+
+        if hasattr(PETSc.DA, 'PeriodicType'):
+            if self.ndim == 1:
+                periodic_type = PETSc.DA.PeriodicType.X
+            elif self.ndim == 2:
+                periodic_type = PETSc.DA.PeriodicType.XY
+            elif self.ndim == 3:
+                periodic_type = PETSc.DA.PeriodicType.XYZ
+            else:
+                raise Exception("Invalid number of dimensions")
+
+            self.aux_da = PETSc.DA().create(dim=self.ndim,
+                                            dof=maux, 
+                                            sizes=self.n,  
+                                            periodic_type = periodic_type,
+                                            #stencil_type=self.STENCIL,
+                                            stencil_width=self.mbc,
+                                            comm=PETSc.COMM_WORLD)
+    
+
+        else:
+            self.aux_da = PETSc.DA().create(dim=self.ndim,
+                                          dof=maux,
+                                          sizes=self.n, 
+                                          boundary_type = PETSc.DA.BoundaryType.PERIODIC,
+                                          #stencil_type=self.STENCIL,
+                                          stencil_width=self.mbc,
+                                          comm=PETSc.COMM_WORLD)
+
+       
+        self.gauxVec = self.aux_da.createGlobalVector()
+        self.lauxVec = self.aux_da.createLocalVector()
+ 
 
     def init_q_petsc_structures(self):
         r"""
@@ -241,6 +312,7 @@ class Grid(pyclaw.grid.Grid):
                                           #stencil_type=self.STENCIL,
                                           stencil_width=self.mbc,
                                           comm=PETSc.COMM_WORLD)
+
         else:
             self.q_da = PETSc.DA().create(dim=self.ndim,
                                           dof=self.meqn,
