@@ -7,7 +7,6 @@ function setplot is called to set the plot parameters.
     
 """ 
 
-
 #--------------------------
 def setplot(plotdata):
 #--------------------------
@@ -20,49 +19,26 @@ def setplot(plotdata):
     """ 
 
 
-    from pyclaw.plotters import colormaps
-
     plotdata.clearfigures()  # clear any old figures,axes,items data
-    
 
-    # Figure for pcolor plot
-    plotfigure = plotdata.new_plotfigure(name='q[0]', figno=0)
-
-    # Set up for axes in this figure:
-    plotaxes = plotfigure.new_plotaxes()
-    plotaxes.xlimits = 'auto'
-    plotaxes.ylimits = 'auto'
-    plotaxes.title = 'q[0]'
-    plotaxes.afteraxes = "pylab.axis('scaled')" 
-
-    # Set up for item on these axes:
-    plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
-    plotitem.plot_var = 0
-    plotitem.pcolor_cmap = colormaps.yellow_red_blue
-    plotitem.pcolor_cmin = 0.0
-    plotitem.pcolor_cmax = 3.5*3.14
-    plotitem.add_colorbar = True
-    plotitem.show = True       # show on plot?
-    
-    # Figure for contour plot
-    plotfigure = plotdata.new_plotfigure(name='contour', figno=1)
+    # Figure for q[0]
+    plotfigure = plotdata.new_plotfigure(name='q', figno=1)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
-    plotaxes.xlimits = 'auto'
-    plotaxes.ylimits = 'auto'
-    plotaxes.title = 'q[0]'
-    plotaxes.afteraxes = "pylab.axis('scaled')" 
+    #plotaxes.xlimits = [0.,150.]
+    plotaxes.ylimits = [-.1,1.1]
+    plotaxes.title = 'q'
 
     # Set up for item on these axes:
-    plotitem = plotaxes.new_plotitem(plot_type='2d_contour')
+    plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
     plotitem.plot_var = 0
-    plotitem.contour_nlevels = 20
-    plotitem.contour_min = 0.01
-    plotitem.contour_max = 3.5*3.15
-    plotitem.amr_contour_colors = ['b','k','r']
+    plotitem.plotstyle = '-o'
+    plotitem.color = 'b'
     plotitem.show = True       # show on plot?
+    plotitem.kwargs = {'linewidth':2,'markersize':5}
     
+
 
     # Parameters used only when creating html and/or latex hardcopy
     # e.g., via pyclaw.plotters.frametools.printframes:
@@ -72,7 +48,7 @@ def setplot(plotdata):
     plotdata.print_framenos = 'all'          # list of frames to print
     plotdata.print_fignos = 'all'            # list of figures to print
     plotdata.html = True                     # create html files of plots?
-    plotdata.html_homelink = '../README.html'   # pointer for top of index
+    plotdata.html_homelink = '../README.html'
     plotdata.latex = True                    # create latex file of plots?
     plotdata.latex_figsperline = 2           # layout of plots
     plotdata.latex_framesperline = 1         # layout of plots
@@ -80,4 +56,4 @@ def setplot(plotdata):
 
     return plotdata
 
-    
+ 

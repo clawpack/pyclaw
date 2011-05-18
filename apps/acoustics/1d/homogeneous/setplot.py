@@ -26,6 +26,8 @@ def setplot(plotdata):
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
+    plotaxes.axescmd = 'subplot(211)'
+    
     #plotaxes.xlimits = [0.,150.]
     plotaxes.ylimits = [-.2,1.0]
     plotaxes.title = 'Pressure'
@@ -40,11 +42,9 @@ def setplot(plotdata):
     
 
 
-    # Figure for q[1]
-    plotfigure = plotdata.new_plotfigure(name='Velocity', figno=2)
-
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
+    plotaxes.axescmd = 'subplot(212)'
     plotaxes.xlimits = 'auto'
     plotaxes.ylimits = [-.5,1.1]
     plotaxes.title = 'Velocity'

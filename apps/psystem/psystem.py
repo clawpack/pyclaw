@@ -110,7 +110,7 @@ def b4step(solver,solutions):
             grid.q[:,0:np.floor(grid.aux_global['mx']/2),:]=0
             solutions['n'].grid.q=grid.q
 
-def psystem2D(iplot=False,petscPlot=True,useController=True):
+def psystem2D(iplot=False,useController=True):
     """
     psystem in 2D with variable coefficients
     """
@@ -213,11 +213,12 @@ def psystem2D(iplot=False,petscPlot=True,useController=True):
     # Solve
     status = claw.run()
 
-    if petscPlot:
-        plot.plotPetsc(claw)
+    htmlplot=True
+    outdir='./_output'
+    output_format='petsc'
 
-    if iplot:
-        plot.plotInteractive()
+    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
+    if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
 
     #eps=claw.frames[claw.nout].grid.gqVec.getArray().reshape([mx,my,grid.meqn])[:,:,0]
     #return eps

@@ -30,7 +30,7 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
     from pyclaw.controller import Controller
 
     # Initialize grids and solutions
-    x = myclaw.grid.Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
+    x = myclaw.grid.Dimension('x',0.0,1.0,100,mthbc_lower=3,mthbc_upper=1)
     grid = myclaw.grid.Grid(x)
     grid.meqn=2
     #This shouldn't be necessary...
@@ -73,7 +73,7 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
 
     claw = Controller()
     claw.keep_copy = True
-    claw.nout = 5
+    claw.nout = 10
 
     claw.output_format = output_format
     claw.outdir = outdir
@@ -84,8 +84,8 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
     # Solve
     status = claw.run()
 
-    if htmlplot:  plot.plotHTML()
-    if iplot:     plot.plotInteractive(format=output_format)
+    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
+    if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
 
     #This test is set up so that the waves pass through the domain
     #exactly once, and the final solution should be equal to the

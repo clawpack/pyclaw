@@ -25,6 +25,6 @@ clean:
 	rm -f *.o *.so *.pyc
 	
 clobber: clean
-	rm -f -r *_output*
-	rm -f -r *_plots*
-	rm -f -r *.log
+	rm -f -R *_output*
+	rm -f -R *_plots*
+	rm -f -R *.log

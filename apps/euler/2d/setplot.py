@@ -42,7 +42,7 @@ def setplot(plotdata):
     plotitem.pcolor_cmax=3.5
     plotitem.plot_var = 0
     plotitem.pcolor_cmap = colormaps.yellow_red_blue
-    plotitem.add_colorbar = True
+    plotitem.add_colorbar = False
     plotitem.show = True       # show on plot?
     
 
@@ -61,7 +61,7 @@ def setplot(plotdata):
     plotitem.pcolor_cmax=1.0
     plotitem.plot_var = 4
     plotitem.pcolor_cmap = colormaps.yellow_red_blue
-    plotitem.add_colorbar = True
+    plotitem.add_colorbar = False
     plotitem.show = True       # show on plot?
     
 
@@ -80,7 +80,7 @@ def setplot(plotdata):
     plotitem.pcolor_cmax=18.0
     plotitem.plot_var = 3
     plotitem.pcolor_cmap = colormaps.yellow_red_blue
-    plotitem.add_colorbar = True
+    plotitem.add_colorbar = False
     plotitem.show = True       # show on plot?
     
 

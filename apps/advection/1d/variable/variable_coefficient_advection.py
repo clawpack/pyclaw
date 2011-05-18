@@ -50,8 +50,9 @@ def auxinit(grid):
     grid.aux[0,:] = np.sin(2.*np.pi*xghost)+2
     
 
-def vc_advection(kernel_language='Python',iplot=False):
+def vc_advection(kernel_language='Python',iplot=False,htmlplot=False,outdir='./_output'):
 # Initialize grids and solutions
+    output_format = 'petsc'
     xlower=0.0; xupper=1.0; mx=100
     x = Dimension('x',xlower,xupper,mx,mthbc_lower=2,mthbc_upper=2,mbc=2)
     grid = Grid(x)
@@ -77,10 +78,10 @@ def vc_advection(kernel_language='Python',iplot=False):
 
 # Controller instantiation
     claw = Controller()
-    claw.outdir = './_output'
+    claw.outdir = outdir
     claw.nout = 10
     claw.outstyle = 1
-    claw.output_format = 'petsc'
+    claw.output_format = output_format
     claw.tfinal = 1.0
     claw.solutions['n'] = init_solution
     claw.solver = solver
@@ -88,11 +89,10 @@ def vc_advection(kernel_language='Python',iplot=False):
 # Solve
     status = claw.run()
 
-    iplot=True
+    from petclaw import plot
 
-    if iplot:
-        from petclaw import plot
-        plot.plotInteractive(format=claw.output_format)
+    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
+    if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
 
 if __name__=="__main__":
     import sys

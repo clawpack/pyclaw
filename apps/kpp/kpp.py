@@ -4,9 +4,6 @@
 import numpy as np
 
 def qinit(grid,rad=1.0):
-    # Initialize petsc Structures for q
-    grid.init_q_petsc_structures()
-    
     # Create an array with fortran native ordering
     x =grid.x.center
     y =grid.y.center
@@ -14,35 +11,45 @@ def qinit(grid,rad=1.0):
     r = np.sqrt(X**2 + Y**2)
 
     q=np.empty([grid.meqn,len(x),len(y)], order = 'F')
-    q[0,:,:] = 0.25*np.pi + 5.25*np.pi*(r<=rad)
+    q[0,:,:] = 0.25*np.pi + 3.25*np.pi*(r<=rad)
     grid.q=q
 
 
-def kpp(iplot=False,petscPlot=False,useController=True,htmlplot=False):
+def kpp(use_PETSc=False,iplot=False,useController=True,htmlplot=False,outdir='./_output'):
     """
     Example python script for solving the 2d acoustics equations.
     """
 
-    from petclaw.grid import Dimension
-    from petclaw.grid import Grid
+    if use_PETSc:
+        from petclaw.grid import Dimension, Grid
+        from petclaw.evolve.clawpack import PetClawSolver2D as mySolver
+        output_format='petsc'
+    else:
+        from pyclaw.grid import Dimension, Grid
+        from pyclaw.evolve.clawpack import ClawSolver2D as mySolver
+        output_format='ascii'
+
     from pyclaw.solution import Solution
-    from petclaw.evolve.clawpack import PetClawSolver2D
     from pyclaw.controller import Controller
     from petclaw import plot
 
     # Initialize grid
-    mx=500; my=500
-    x = Dimension('x',-5.0,5.0,mx,mthbc_lower=1,mthbc_upper=1)
-    y = Dimension('y',-5.0,5.0,my,mthbc_lower=1,mthbc_upper=1)
+    mx=100; my=100
+    x = Dimension('x',-2.0,2.0,mx,mthbc_lower=1,mthbc_upper=1)
+    y = Dimension('y',-2.0,2.0,my,mthbc_lower=1,mthbc_upper=1)
     grid = Grid([x,y])
 
     grid.meqn = 1
     grid.mbc = 2
-    tfinal = 4.0
+    tfinal = 1.0
+
+    if use_PETSc:
+        grid.init_q_petsc_structures()
+
     qinit(grid)
     initial_solution = Solution(grid)
 
-    solver = PetClawSolver2D()
+    solver = mySolver()
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
     solver.mwaves = 2
@@ -51,18 +58,17 @@ def kpp(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     claw = Controller()
     claw.keep_copy = True
     # The output format MUST be set to petsc!
-    claw.output_format = 'petsc'
+    claw.output_format = output_format
     claw.tfinal = tfinal
     claw.solutions['n'] = initial_solution
     claw.solver = solver
-    claw.nout = 100
+    claw.nout = 10
 
     # Solve
     status = claw.run()
 
-    if htmlplot:  plot.plotHTML()
-    if petscPlot: plot.plotPetsc(claw)
-    if iplot:     plot.plotInteractive(format=claw.output_format)
+    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
+    if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
 
 
 if __name__=="__main__":

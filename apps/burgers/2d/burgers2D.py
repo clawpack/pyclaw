@@ -26,7 +26,7 @@ def qinit(grid):
     grid.q=q
 
 
-def burgers2D(iplot=False,petscPlot=True,useController=True,htmlplot=False):
+def burgers2D(iplot=False,petscPlot=True,useController=True,htmlplot=False,outdir='./_output'):
     """
     Example python script for solving the 2d Burgers' equations.
     """
@@ -56,14 +56,13 @@ def burgers2D(iplot=False,petscPlot=True,useController=True,htmlplot=False):
     claw.tfinal = tfinal
     claw.solutions['n'] = inital_solution
     claw.solver = solver
+    claw.outdir = outdir
 
     # Solve
     status = claw.run()
 
-    if htmlplot:  plot.plotHTML()
-    if petscPlot: plot.plotPetsc(output_object)
-    if iplot:     plot.plotInteractive()
-
+    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
+    if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
 
 
 if __name__=="__main__":
