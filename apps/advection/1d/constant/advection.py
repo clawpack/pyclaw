@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-def advection(kernel_language='Python',iplot=True,petscPlot=False,useController=True,use_PETSc=False,soltype='classic'):
+def advection(kernel_language='Python',iplot=False,htmlplot=False,useController=True,use_PETSc=False,soltype='classic',outdir='./_output'):
     """
     Example python script for solving the 1d advection equation.
     """
@@ -34,10 +34,10 @@ def advection(kernel_language='Python',iplot=True,petscPlot=False,useController=
     from pyclaw.solution import Solution
     from pyclaw.controller import Controller
 
-    x = Dimension('x',0.0,1.0,50,mthbc_lower=2,mthbc_upper=2)
+    x = Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
     x.mbc=mbc
     grid = Grid(x)
-    grid.aux_global['u']=-1.
+    grid.aux_global['u']=1.
     grid.meqn = 1
     grid.t = 0.0
     grid.mbc=mbc
@@ -70,19 +70,19 @@ def advection(kernel_language='Python',iplot=True,petscPlot=False,useController=
     claw.dt_variable = True
     claw.outstyle=1
     claw.nout=10
-    claw.tfinal =2.0
+    claw.tfinal =1.0
     claw.solutions['n'] = initial_solution
     claw.solver = solver
+    claw.outdir = outdir
 
     status = claw.run()
 
-    if iplot:
-        from petclaw import plot
-        plot.plotInteractive(format=output_format)
+    from petclaw import plot
+    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
+    if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
 
     output_object=claw
 
-    print np.max(np.abs((claw.solutions['n'].grids[0].q-q0)))*grid.d[0]
     return output_object
 
 if __name__=="__main__":

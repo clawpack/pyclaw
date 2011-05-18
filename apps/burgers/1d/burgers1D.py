@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-def burgers(kernel_language='Fortran',iplot=False,petscPlot=False,useController=True,htmlplot=True):
+def burgers(kernel_language='Fortran',iplot=False,useController=True,htmlplot=True,outdir='./_output',use_PETSc=False):
     """
     Example python script for solving the 1d Burgers equation.
     """
@@ -50,16 +50,18 @@ def burgers(kernel_language='Fortran',iplot=False,petscPlot=False,useController=
 
 
     #===========================================================================
-    # Setup controller and controller paramters. Then solve the problem
+    # Setup controller and controller parameters. Then solve the problem
     #===========================================================================
+    output_format = 'petsc'
     if useController:
         claw = Controller()
         claw.keep_copy = True
         # The output format MUST be set to petsc!
-        claw.output_format = 'petsc'
+        claw.output_format = output_format
         claw.tfinal =0.5
         claw.solutions['n'] = initial_solution
         claw.solver = solver
+        claw.outdir = outdir
 
         status = claw.run()
         output_object=claw
@@ -69,15 +71,8 @@ def burgers(kernel_language='Fortran',iplot=False,petscPlot=False,useController=
         solver.evolve_to_time(sol,0.25)
         output_object=sol["n"]
 
-    if petscPlot:
-        plot.plotPetsc(output_object)
-
-    if iplot:
-        plot.plotInteractive()
-
-    if htmlplot:
-        plot.plotHTML()
-
+    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
+    if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
 
 
 if __name__=="__main__":

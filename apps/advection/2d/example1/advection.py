@@ -31,7 +31,7 @@ def qinit(grid):
                 
     grid.q=q
 
-def advection2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
+def advection2D(iplot=False,useController=True,htmlplot=False,outdir='./_output'):
     """
     Example python script for solving the 2d advection equation.
     """
@@ -42,6 +42,8 @@ def advection2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     from petclaw.evolve.clawpack import PetClawSolver2D
     from pyclaw.controller import Controller
     from petclaw import plot
+
+    output_format = 'petsc'
 
     mx=80; my=80
     # Initialize grids and solutions
@@ -73,17 +75,18 @@ def advection2D(iplot=False,petscPlot=False,useController=True,htmlplot=False):
     claw = Controller()
     claw.keep_copy = True
     claw.nout = 10
-    claw.output_format = 'petsc'
+    claw.output_format = output_format
     claw.tfinal =solver.dt * 200
     claw.solutions['n'] = initial_solution
     claw.solver = solver
+    claw.outdir = outdir
 
     #Solve
     status = claw.run()
 
-    if htmlplot:  plot.plotHTML()
-    if petscPlot: plot.plotPetsc(output_object)
-    if iplot:     plot.plotInteractive()
+    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
+    if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
+
 
 if __name__=="__main__":
     import sys

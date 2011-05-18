@@ -97,7 +97,7 @@ def euler_rad_src(solver,solutions,t,dt):
     q[3,:,:] = q[3,:,:] - dt2*(ndim-1)/rad * v * (qstar[3,:,:] + press)
 
 
-def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
+def shockbubble(use_PETSc=False,iplot=False,htmlplot=False,outdir='./_output'):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a bubble of dense gas that is impacted by a shock.
@@ -117,7 +117,7 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
     from petclaw import plot
 
     # Initialize grid
-    mx=160; my=40
+    mx=320; my=80
     x = Dimension('x',0.0,2.0,mx,mthbc_lower=0,mthbc_upper=1)
     y = Dimension('y',0.0,0.5,my,mthbc_lower=3,mthbc_upper=1)
     grid = Grid([x,y])
@@ -129,7 +129,7 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
 
     grid.meqn = 5
     grid.mbc = 2
-    tfinal = 0.2
+    tfinal = 0.75
 
     if use_PETSc:
         # Initialize petsc Structures for q
@@ -157,12 +157,13 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
     claw.solutions['n'] = initial_solution
     claw.solver = solver
     claw.nout = 10
+    claw.outdir = outdir
 
     # Solve
     status = claw.run()
 
-    if htmlplot:  plot.plotHTML(format=output_format)
-    if iplot:     plot.plotInteractive(format=output_format)
+    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
+    if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
 
 
 if __name__=="__main__":
