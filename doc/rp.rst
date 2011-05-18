@@ -4,9 +4,9 @@
 Riemann Solver Package
 ======================
 
-This package contains all of the Riemann solvers provided with pyclaw.  Each
-module solves a particular type of Riemann solver listed below with but have
-common function signatures that look like::
+This package contains all of the Python-based Riemann solvers.  Each
+module solves the Riemann solver for a particular system of hyperbolic
+equations.  The solvers all have a common function signature::
 
     rp_<name>_<dim>d(q_l,q_r,aux_l,aux_r,aux_global)
     
@@ -28,8 +28,8 @@ the appropriate dimension.
  - *amdq* - (ndarray(...,meqn)) Left going fluctuation
  - *apdq* - (ndarray(...,meqn)) Right going fluctuation
 
-All of the input and output values are arrays except for *aux_global* which 
-are located according to the following scheme
+Except for *aux_global*, all of the input and output values are arrays whose
+elements represent grid values with locations indicated by the following scheme
 ::
 
     Indexing works like this:  here mbc=2 as an example
@@ -50,9 +50,16 @@ are located according to the following scheme
     Again, grid cell boundary quantities are at the top, cell centered
     values are in the cell.
 
-The arrays ``q_l[i]``, ``q_r`` are the left and right state respectively of 
-the ``ith`` Riemann problem.  All of the return values are also indexed by
-cell edge (Riemann problem being solved).
+.. note::
+
+    The values ``q_l[i]``, ``q_r[i]`` are the left and right states, respectively, of 
+    the ``ith`` Riemann problem.  This convention is different than that used in
+    the Fortran Riemann solvers, where ``q_l[i]``, ``q_r[i]`` are the values at the
+    left and right edges of a cell.
+
+All of the return values (waves, speeds, and fluctuations) are indexed by cell edge 
+(Riemann problem being solved), with ``s[i]`` referring to the wave speed at interface
+$i-1/2$.  This follows the same convention used in the Fortran solvers.
 
 See [LeVeque_book_2002]_ for more details.
 
@@ -66,42 +73,42 @@ List of available Riemann solvers:
 
 .. _Acoustics:
 
-:mod:`Acoustics <pyclaw.evolve.rp.rp_acoustics>`
+:mod:`Acoustics <riemann.rp_acoustics>`
 ================================================
 
-.. automodule:: pyclaw.evolve.rp.rp_acoustics
+.. automodule:: riemann.rp_acoustics
    :members:
    
 .. _Advection:
    
-:mod:`Advection <pyclaw.evolve.rp.rp_advection>`
+:mod:`Advection <riemann.rp_advection>`
 ================================================
 
-.. automodule:: pyclaw.evolve.rp.rp_advection
+.. automodule:: riemann.rp_advection
    :members:
    
 .. _`Burgers Equation`:
 
-:mod:`Burgers Equation <pyclaw.evolve.rp.rp_burgers>`
+:mod:`Burgers Equation <riemann.rp_burgers>`
 =====================================================
 
-.. automodule:: pyclaw.evolve.rp.rp_burgers
+.. automodule:: riemann.rp_burgers
    :members:
    
 .. _`Euler Equations`:
 
-:mod:`Euler Equations <pyclaw.evolve.rp.rp_euler>`
+:mod:`Euler Equations <riemann.rp_euler>`
 ==================================================
 
-.. automodule:: pyclaw.evolve.rp.rp_euler
+.. automodule:: riemann.rp_euler
    :members:
    
 .. _`Shallow Water Equations`:
    
-:mod:`Shallow Water Equations <pyclaw.evolve.rp.rp_shallow>`
+:mod:`Shallow Water Equations <riemann.rp_shallow>`
 ============================================================
 
-.. automodule:: pyclaw.evolve.rp.rp_shallow
+.. automodule:: riemann.rp_shallow
     :member-order: groupwise
     :members:
    

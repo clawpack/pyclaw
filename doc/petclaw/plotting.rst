@@ -24,12 +24,3 @@ from within Python, do ::
 
     >>> from petclaw import plot
     >>> plot.plotInteractive()
-
-Plotting with PETSc
-=====================
-For now the PETSc plotting can only be done using a pyclaw.controller object
-in memory (not from PetClaw output files).  Assuming you are in Python
-with a pyclaw.controller object named `claw`, this is done via ::
-
-    >>> from petclaw import plot
-    >>> plot.plotPetsc(claw)

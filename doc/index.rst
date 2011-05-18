@@ -36,11 +36,13 @@ The parallelism is implemented using PETSc and petsc4py.
 PetClaw Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    petclaw/started
+   petclaw/solvers
    petclaw/plotting
    petclaw/tips
+   petclaw/about
 
 
 
@@ -55,11 +57,22 @@ functions that operate with those classes.
    
    controller
    data
-   evolve
+   evolve/solvers
+   evolve/limiters
    io
-   plotting
    solution
    util
+
+Riemann Solvers reference documentation
+========================================
+The Riemann solvers now comprise a separate package.  For convenience,
+documentation of the available pure python Riemann solvers is included
+here.  Many other Fortran-based Riemann solvers are available.
+
+.. toctree::
+   :maxdepth: 3
+   
+   rp
 
 .. Indices and tables
 .. ==================
