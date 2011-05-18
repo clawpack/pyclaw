@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
-def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=False,htmlplot=False,outdir='./_output'):
+def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=False,htmlplot=False,outdir='./_output'):
     """
     1D acoustics example.
     """

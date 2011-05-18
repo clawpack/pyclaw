@@ -33,7 +33,7 @@ def setplot(plotdata):
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
     plotitem.plot_var = stress
-    plotitem.plotstyle = '-o'
+    plotitem.plotstyle = '-'
     plotitem.color = 'b'
     plotitem.show = True       # show on plot?
     plotitem.kwargs = {'linewidth':2,'markersize':5}
@@ -85,7 +85,7 @@ def velocity(current_data):
 def stress(current_data):
     """Compute stress from strain and momentum"""
     from stegoton import setaux
-    from pyclaw.evolve.rp.rp_nel import sigma 
+    from riemann.rp_nonlinear_elasticity import sigma 
     aux=setaux(current_data.x)
     epsilon = current_data.q[0,:]
     stress = sigma(epsilon,aux[1,:])

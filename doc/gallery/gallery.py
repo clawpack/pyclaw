@@ -21,7 +21,7 @@ if clawdir_default is None:
     print "*** Error: set environment variable PYCLAW"
 
 # Location for gallery files:
-gallery_dir_default = os.path.join(clawdir_default,'gallery')  
+gallery_dir_default = os.path.join(clawdir_default,'doc/gallery')  
 
 remake = True   # True ==> remake all thumbnails even if they exist.
 
@@ -192,6 +192,14 @@ def make_1d():
         Burgers' equation with sinusoidal initial data, steepening to
         N-wave.  """
     images = ('frame0000fig0', 'frame0003fig0', 'frame0006fig0')
+    gsec.new_item(appdir, plotdir, description, images)
+    #----------------------------------------------
+    gsec = gallery.new_section("1-dimensional nonlinear elasticity")
+    appdir = 'apps/elasticity/1d/stegoton'
+    description = """
+        Evolution of two trains of solitary waves from an initial gaussian.
+        """
+    images = ('frame0000fig1', 'frame0003fig1', 'frame0005fig1')
     gsec.new_item(appdir, plotdir, description, images)
     #----------------------------------------------
        
