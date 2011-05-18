@@ -8,6 +8,8 @@ LIBOBJ = \
 
 SOURCE = $(RIEMANN)/src/rp1_burgers.f90
 
+all: step1.so
+
 step1.so: $(ONE_D_CLASSIC)/step1.f $(SOURCE) $(LIBOBJ) 
 	f2py  -m step1 -c $(ONE_D_CLASSIC)/step1.f $(SOURCE) $(LIBOBJ)
  

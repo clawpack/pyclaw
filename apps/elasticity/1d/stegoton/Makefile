@@ -12,6 +12,8 @@ LIBOBJ = \
 
 SOURCE = $(RIEMANN)/src/rp1_nonlinear_elasticity.f
 
+all: step1.so
+
 step1.so : $(ONE_D_CLASSIC)/step1fw.f $(SOURCE) $(LIBOBJ)
 	f2py $(F2PYFLAGS) -m step1 -c $(ONE_D_CLASSIC)/step1fw.f $(SOURCE) $(LIBOBJ) 
  

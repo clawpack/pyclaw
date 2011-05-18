@@ -8,6 +8,8 @@ LIBOBJ = \
 
 SOURCE =   $(RIEMANN)/src/rp1_shallow_roe-with-efix.f
 
+all: step1.so
+
 step1.so: $(ONE_D_CLASSIC)/step1.f $(LIBOBJ) $(SOURCE)
 	f2py -m step1 -c $(ONE_D_CLASSIC)/step1.f $(SOURCE) $(LIBOBJ) 
 

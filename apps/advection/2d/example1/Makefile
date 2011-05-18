@@ -11,6 +11,8 @@ LIBOBJ = \
 
 SOURCE = $(RIEMANN)/src/rpt2_advection.f $(RIEMANN)/src/rpn2_advection.f
 
+all: dimsp2.so
+
 dimsp2.so: $(TWO_D_CLASSIC)/dimsp2.f $(SOURCE) $(LIBOBJ)
 	f2py -m dimsp2 -c $(TWO_D_CLASSIC)/dimsp2.f $(LIBOBJ) $(SOURCE)  
 
