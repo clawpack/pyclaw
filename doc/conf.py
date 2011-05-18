@@ -8,7 +8,7 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.append(os.path.abspath('../..'))
+sys.path.append(os.path.abspath('../src'))
 sys.path.append(os.path.abspath('./ext'))
 
 
@@ -22,7 +22,7 @@ sys.path.append(os.path.abspath('./ext'))
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.coverage', 'sphinx.ext.jsmath', 'sphinx.ext.viewcode']
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ['./_templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -89,7 +89,7 @@ html_theme = 'default'
 html_theme_options = {"rightsidebar": False, "stickysidebar":True}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = ['_static']
+html_theme_path = ['./_static']
 
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -119,7 +119,7 @@ html_favicon = '_static/clawicon.ico'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ['./_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
