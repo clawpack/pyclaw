@@ -27,17 +27,9 @@ from petclaw.evolve.solver import PetSolver
 from pyclaw.evolve.clawpack import ClawSolver, ClawSolver1D, ClawSolver2D
 
 # ============================================================================
-#  PetClaw generic Solver Class
-# ============================================================================
-class PetClawSolver(PetSolver,ClawSolver):
-    r"""
-    Base class for Clawpack solvers with PETSc parallelism.
-    """
-
-# ============================================================================
 #  PetClaw 1d Solver Class
 # ============================================================================
-class PetClawSolver1D(PetClawSolver,ClawSolver1D):
+class PetClawSolver1D(PetSolver,ClawSolver1D):
     r"""
     PetClaw solver for 1D problems using classic Clawpack algorithms.
 
@@ -48,7 +40,7 @@ class PetClawSolver1D(PetClawSolver,ClawSolver1D):
 # ============================================================================
 #  PetClaw 2d Solver Class
 # ============================================================================
-class PetClawSolver2D(PetClawSolver,ClawSolver2D):
+class PetClawSolver2D(PetSolver,ClawSolver2D):
     r"""
     PetClaw solver for 2D problems using classic Clawpack algorithms.
 
