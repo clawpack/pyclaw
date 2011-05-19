@@ -21,8 +21,6 @@ dimensionally dependent ones such as :class:`PetClawSolver1D`.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-import numpy as np
-
 from petclaw.evolve.solver import PetSolver
 from pyclaw.evolve.clawpack import ClawSolver, ClawSolver1D, ClawSolver2D
 

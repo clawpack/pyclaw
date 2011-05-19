@@ -9,7 +9,6 @@ PyClaw solver.
 
 """
 
-import numpy as np
 import weno.reconstruct as recon
 
 def weno(k, q):
@@ -18,6 +17,7 @@ def weno(k, q):
     The reconstruction is component based.
     """
 
+    import numpy as np
     # XXX: this should really by a class so that the workspaces (sigma
     # and weights) can be pre-allocated and the 'getattr's can be done
     # once instead of every call

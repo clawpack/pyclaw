@@ -25,10 +25,8 @@ To install either, you must also install the hdf5 library from the website:
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-import os,sys
+import os
 import logging
-
-import numpy as np
 
 import pyclaw.solution
 

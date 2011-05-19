@@ -1,7 +1,7 @@
 #Reconstruction functions for SharpClaw
-import numpy as np
 
 def weno(k, q):
+    import numpy as np
 
     if k != 5:
         raise ValueError, '%d order WENO reconstruction not supported' % k
@@ -55,6 +55,8 @@ def weno(k, q):
     return ql,qr
 
 def weno5_wave(q,wave,s):
+
+    import numpy as np
 
     epweno=1.e-36
 

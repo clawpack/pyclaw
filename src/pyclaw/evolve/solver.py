@@ -18,8 +18,6 @@ import time
 import copy
 import logging
 
-import numpy as np
-
 # Clawpack modules
 from pyclaw.data import Data
 
@@ -181,6 +179,8 @@ class Solver(object):
         to have a common interface for the petclaw and pyclaw versions of
         this function.
         """
+        import numpy as np
+
         dim_string = ','.join( ('2*self.mbc+grid.%s.n' % dim.name for dim in grid.dimensions) )
         exec("qbc = np.zeros( (grid.meqn,%s) )" % dim_string)
         dim_string = ','.join( ('self.mbc:-self.mbc' for dim in grid.dimensions) )
@@ -212,6 +212,8 @@ class Solver(object):
             the boundary condition has not been rolled. 
         """
         
+        import numpy as np
+
         q=state.q
         t=state.t
 
@@ -250,6 +252,8 @@ class Solver(object):
          - *qbc* - (ndarray(...,meqn)) Array with added ghost cells which will
            be set in this routines
         """
+        import numpy as np
+
         # User defined functions
         if dim.mthbc_lower == 0: self.user_bc_lower(grid,dim,qbc)
         # Zero-order extrapolation

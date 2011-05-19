@@ -16,8 +16,6 @@ All parallel solvers inherit from this class.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-import numpy as np
-
 from pyclaw.evolve.solver import Solver
 
 #This should be modified so we don't depend on mpi4py:
@@ -61,6 +59,8 @@ class PetSolver(Solver):
         return ghosted_q
  
     def communicateCFL(self):
+        import numpy as np
+
         if self.dt_variable:
             comm = MPI.COMM_WORLD #Amal:should be consistent with petsc commworld
             max_cfl = np.array([0.])

@@ -16,7 +16,6 @@ Module containing petclaw grid.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-import numpy as np
 import pyclaw.grid
 
 
@@ -50,6 +49,7 @@ class Dimension(pyclaw.grid.Dimension):
         doc = r"""(ndarrary(:)) - Location of all grid cell edge coordinates
         for this dimension"""
         def fget(self): 
+            import numpy as np
             if self._edge is None:
                 self._edge = np.empty(self.nend-self.nstart+1)
                 for i in xrange(self.nstart,self.nend+1):
@@ -63,6 +63,7 @@ class Dimension(pyclaw.grid.Dimension):
         doc = r"""(ndarrary(:)) - Location of all grid cell center coordinates
         for this dimension, including ghost cells"""
         def fget(self): 
+            import numpy as np
             mbc=self.mbc
             if self._centerghost is None:
                 self._centerghost = np.empty(self.nend-self.nstart+2*mbc)
@@ -77,6 +78,7 @@ class Dimension(pyclaw.grid.Dimension):
         doc = r"""(ndarrary(:)) - Location of all grid cell center coordinates
         for this dimension"""
         def fget(self): 
+            import numpy as np
             if self._center is None:
                 self._center = np.empty(self.nend-self.nstart)
                 for i in xrange(self.nstart,self.nend):

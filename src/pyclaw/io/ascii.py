@@ -17,8 +17,6 @@ Routines for reading and writing an ascii output file
 import os,sys
 import logging
 
-import numpy as np
-
 from pyclaw.util import read_data_line
 import pyclaw.solution
 
@@ -191,6 +189,8 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
     
     """
     
+    import numpy as np
+
     # Option parsing
     option_defaults = {}
     

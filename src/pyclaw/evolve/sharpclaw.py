@@ -15,8 +15,6 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-import numpy as np
-
 # Solver superclass
 from pyclaw.evolve.solver import Solver, CFLError
 
@@ -53,6 +51,8 @@ class RKStage(object):
     Otherwise we would need to keep a copy of it with each RK stage.
     """
     def __init__(self,grid):
+        import numpy as np
+
         self.q=np.zeros(grid.q.shape)
         self.t=grid.t
 
@@ -290,6 +290,8 @@ class SharpClawSolver1D(SharpClawSolver):
 
         """
     
+        import numpy as np
+
         # Limiter to use in the pth family
         lim_type=self.lim_type
 
