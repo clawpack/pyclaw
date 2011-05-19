@@ -18,8 +18,6 @@ structure is:
 
 .. inheritance-diagram:: pyclaw.evolve.sharpclaw.SharpClawSolver1D
 
-.. inheritance-diagram:: petclaw.evolve.sharpclaw.PetSharpClawSolver1D
-
 :Example:
     This is a simple example of how to instantiate and evolve a solution to a
     later time ``t_end`` using the linearized 1d acoustics Riemann solver::

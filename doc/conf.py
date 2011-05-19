@@ -220,3 +220,10 @@ man_pages = [
 #jsmath_path = 'http://web.kaust.edu.sa/faculty/davidketcheson/jsMath/easy/load.js'
 jsmath_path = '/Users/ketch/Software/jsmath/easy/load.js'
 keep_warnings = 'True'
+
+inheritance_graph_attrs = dict(rankdir="TB", 
+                               fontsize=12,splines='"true"',penwidth=100)
+
+inheritance_node_attrs = dict(fontsize=12, shape='box3d',
+                              color='black', style='filled', fillcolor='gray')
+
