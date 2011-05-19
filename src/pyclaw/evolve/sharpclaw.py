@@ -99,7 +99,18 @@ class SharpClawSolver(Solver):
         for i in range(nregisters-1):
             self.rk_stages.append(RKStage(grid))
 
+        if self.kernel_language=='Fortran':
+            from flux1 import clawparams
 
+            clawparams.lim_type=2
+            clawparams.char_decomp=0
+            clawparams.tfluct_solver=0
+
+            clawparams.alloc_clawparams(1,self.mwaves)
+            clawparams.xlower[0]=grid.dimensions[0].lower
+            clawparams.xupper[0]=grid.dimensions[0].upper
+            clawparams.dx[0]    =grid.d[0]
+            clawparams.mthlim   =self.mthlim
 
     # ========== Time stepping routines ======================================
     def step(self,solutions):
@@ -292,9 +303,6 @@ class SharpClawSolver1D(SharpClawSolver):
     
         import numpy as np
 
-        # Limiter to use in the pth family
-        lim_type=self.lim_type
-
         # Flux vector
         dtdx = np.zeros( (grid.n[0] + 2*self.mbc) )
 
@@ -316,12 +324,13 @@ class SharpClawSolver1D(SharpClawSolver):
             aux_r = None
    
         ixy=1
+        ndim=1
         aux=grid.aux
         if(aux == None): aux = np.zeros( (grid.maux,grid.n[0]+2*self.mbc) )
 
         if self.kernel_language=='Fortran':
             from flux1 import flux1
-            dq,self.cfl=flux1(q,dq,aux,self.dt,t,dtdx,ixy,mcapa,grid.n[0],self.mbc,grid.n[0],grid.d, 0,0,2,self.mthlim)
+            dq,self.cfl=flux1(q,dq,ndim,aux,self.dt,t,dtdx,ixy,mcapa,grid.n[0],self.mwaves,self.mbc,grid.n[0])
 
         elif self.kernel_language=='Python':
             #Reconstruct (wave reconstruction uses a Riemann solve)

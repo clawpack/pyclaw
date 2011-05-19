@@ -1,16 +1,22 @@
 module ClawParams
 
-! Dimensions of arrays:
-  integer :: ndim,mcapa,maux,meqn,mwaves,mbc,maxnx
-  integer, allocatable :: nx(:)
-
 ! Problem setup:
   double precision, allocatable :: xlower(:),xupper(:),dx(:)
-  integer, allocatable :: mthbc(:)
 
 ! Method-related parameters:
-  integer :: src_term,tfluct_solver,char_decomp,lim_type,multid_recon
+  integer :: tfluct_solver,char_decomp,lim_type,multid_recon
   integer, allocatable :: mthlim(:)
-  integer :: rord
+
+contains
+
+    subroutine alloc_clawparams(ndim,mwaves)
+        integer, intent(in) :: ndim, mwaves
+
+        allocate(xlower(ndim))
+        allocate(xupper(ndim))
+        allocate(dx(ndim))
+        allocate(mthlim(mwaves))
+
+    end subroutine alloc_clawparams
 
 end module

@@ -20,6 +20,7 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
         elif soltype=='sharpclaw':
             from petclaw.evolve.sharpclaw import PetSharpClawSolver1D as mySolver
         else: raise Exception('Unrecognized value of soltype.')
+        from petclaw.controller import Controller
     else: #Pure pyclaw
         import pyclaw as myclaw
         if soltype=='classic':
@@ -27,9 +28,9 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
         elif soltype=='sharpclaw':
             from pyclaw.evolve.sharpclaw import SharpClawSolver1D as mySolver
         else: raise Exception('Unrecognized value of soltype.')
+        from pyclaw.controller import Controller
 
     from pyclaw.solution import Solution
-    from petclaw.controller import Controller
 
     #========================================================================
     # Instantiate the solver and define the system of equations to be solved
@@ -86,6 +87,7 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
 
     claw.solutions['n'] = Solution(grid)
     claw.solver = solver
+    print claw.output_format
 
     claw.nout = 10
     claw.outdir = outdir
