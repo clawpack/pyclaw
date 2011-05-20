@@ -87,37 +87,6 @@ class SharpClawSolver(Solver):
         # Call general initialization function
         super(SharpClawSolver,self).__init__(data)
         
-    def setup(self,solutions):
-        """
-        Allocate RK stage arrays.
-        """
-        if self.time_integrator == 'Euler': nregisters=1
-        elif self.time_integrator == 'SSP33': nregisters=2
- 
-        grid = solutions['n'].grids[0]
-        self.rk_stages = []
-        for i in range(nregisters-1):
-            self.rk_stages.append(RKStage(grid))
-
-        if self.kernel_language=='Fortran':
-            from flux1 import clawparams
-
-            clawparams.ndim          = 1
-            clawparams.lim_type      = 2
-            clawparams.char_decomp   = 0
-            clawparams.tfluct_solver = 0
-            if grid.capa is not None:
-                clawparams.mcapa         = 1
-            else:
-                clawparams.mcapa         = 0
-
-            clawparams.mwaves        = self.mwaves
-            clawparams.alloc_clawparams()
-            clawparams.xlower[0]=grid.dimensions[0].lower
-            clawparams.xupper[0]=grid.dimensions[0].upper
-            clawparams.dx[0]    =grid.d[0]
-            clawparams.mthlim   =self.mthlim
-
     # ========== Time stepping routines ======================================
     def step(self,solutions):
         """Evolve q over one time step.
@@ -217,8 +186,26 @@ class SharpClawSolver(Solver):
         raise Exception("Cannot set a Riemann solver with this class," +
                                         " use one of the derived classes.")
          
+    def dqdt(self,grid,rk_stage):
+        """
+        Evaluate dq/dt.  This routine is used for implicit time stepping.
+        """
 
+        q = self.qbc(grid,rk_stage.q,rk_stage.t)
+
+        self.dt = 1
+        deltaq = self.dq_homogeneous(grid,q,rk_stage.t)
+
+        # Godunov Splitting -- really the source term should be called inside rkstep
+        if self.src_term == 1:
+            deltaq+=self.src(grid,q,rk_stage.t)
+
+        return deltaq.flatten('f')
+
+
+# ========================================================================
 class SharpClawSolver1D(SharpClawSolver):
+# ========================================================================
     """SharpClaw evolution routine in 1D
     
     This class represents the 1d SharpClaw solver.  Note that there are 
@@ -229,7 +216,7 @@ class SharpClawSolver1D(SharpClawSolver):
     """
     def __init__(self, data=None):
         r"""
-        Create 1d Clawpack solver
+        Create 1d SharpClaw solver
         
         See :class:`ClawSolver1D` for more info.
         """   
@@ -244,25 +231,51 @@ class SharpClawSolver1D(SharpClawSolver):
         super(SharpClawSolver1D,self).__init__(data)
 
 
-     # ========== Riemann solver library routines =============================   
-    def list_riemann_solvers(self):
-        r"""
-        List available Riemann solvers 
-        
-        This routine returns a list of available Riemann solvers which is
-        constructed in the Riemann solver package (_pyclaw_rp).  In this case
-        it lists only the 1D Riemann solvers.
-        
-        :Output:
-         - (list) - List of Riemann solver names valid to be used with
-           :meth:`set_riemann_solver`
-        
-        .. note::
-            These Riemann solvers are currently only accessible to the python 
-            time stepping routines.
+    def setup(self,solutions):
         """
-        return riemann.rp_solver_list_1d
-    
+        Allocate RK stage arrays and fortran routine work arrays.
+        """
+        if self.time_integrator == 'Euler': nregisters=1
+        elif self.time_integrator == 'SSP33': nregisters=2
+ 
+        grid = solutions['n'].grids[0]
+        self.rk_stages = []
+        for i in range(nregisters-1):
+            self.rk_stages.append(RKStage(grid))
+
+        if self.kernel_language=='Fortran':
+            self.set_fortran_parameters(grid)
+
+    def set_fortran_parameters(self,grid):
+
+        from flux1 import clawparams, workspace, reconstruct
+
+        clawparams.ndim          = 1
+        clawparams.lim_type      = 2
+        clawparams.char_decomp   = 0
+        clawparams.tfluct_solver = 0
+        if grid.capa is not None:
+            clawparams.mcapa         = 1
+        else:
+            clawparams.mcapa         = 0
+
+        clawparams.mwaves        = self.mwaves
+        clawparams.alloc_clawparams()
+        clawparams.xlower[0]=grid.dimensions[0].lower
+        clawparams.xupper[0]=grid.dimensions[0].upper
+        clawparams.dx[0]    =grid.d[0]
+        clawparams.mthlim   =self.mthlim
+
+        mx=grid.q.shape[1]
+        mbc=self.mbc
+
+        workspace.alloc_workspace(mx+2*mbc,mbc,grid.meqn,self.mwaves)
+
+        reconstruct.alloc_recon_workspace(mx+2*mbc,mbc,grid.meqn,self.mwaves,
+                                                clawparams.lim_type,clawparams.char_decomp)
+
+
+    # ========== Riemann solver library routines =============================   
     def set_riemann_solver(self,solver_name):
         r"""
         Assigns the library solver solver_name as the Riemann solver.
@@ -311,13 +324,15 @@ class SharpClawSolver1D(SharpClawSolver):
 
         dq = np.zeros(q.shape)
 
+        mx = q.shape[1]-2*self.mbc
+
         ixy=1
         aux=grid.aux
-        if(aux == None): aux = np.zeros( (grid.maux,grid.n[0]+2*self.mbc) )
+        if(aux == None): aux = np.zeros( (grid.maux,mx+2*self.mbc) )
 
         if self.kernel_language=='Fortran':
             from flux1 import flux1
-            dq,self.cfl=flux1(q,dq,aux,self.dt,t,ixy,grid.n[0],self.mbc,grid.n[0])
+            dq,self.cfl=flux1(q,dq,aux,self.dt,t,ixy,mx,self.mbc,mx)
 
         elif self.kernel_language=='Python':
 
@@ -389,3 +404,114 @@ class SharpClawSolver1D(SharpClawSolver):
             deltaq+=self.src(grid,q,rk_stage.t)
 
         return deltaq.flatten('f')
+
+
+# ========================================================================
+class SharpClawSolver2D(SharpClawSolver):
+# ========================================================================
+    """SharpClaw evolution routine in 2D
+    
+    This class represents the 2D SharpClaw solver.  Note that there are 
+    routines here for interfacing with the fortran time stepping routines only.
+    """
+    def __init__(self, data=None):
+        r"""
+        Create 2D SharpClaw solver
+        
+        See :class:`SharpClawSolver2D` for more info.
+        """   
+        
+        super(SharpClawSolver2D,self).__init__(data)
+
+
+    def setup(self,solutions):
+        """
+        Allocate RK stage arrays and fortran routine work arrays.
+        """
+        if self.time_integrator == 'Euler': nregisters=1
+        elif self.time_integrator == 'SSP33': nregisters=2
+ 
+        grid = solutions['n'].grids[0]
+        self.rk_stages = []
+        for i in range(nregisters-1):
+            self.rk_stages.append(RKStage(grid))
+
+        if self.kernel_language=='Fortran':
+            self.set_fortran_parameters(grid)
+
+    def set_fortran_parameters(self,grid):
+        from flux2 import clawparams, workspace, reconstruct
+
+        clawparams.ndim          = 2
+        clawparams.lim_type      = 2
+        clawparams.char_decomp   = 0
+        clawparams.tfluct_solver = 0
+        if grid.capa is not None:
+            clawparams.mcapa         = 1
+        else:
+            clawparams.mcapa         = 0
+
+        clawparams.mwaves        = self.mwaves
+        clawparams.alloc_clawparams()
+        clawparams.xlower[0]=grid.dimensions[0].lower
+        clawparams.xupper[0]=grid.dimensions[0].upper
+        clawparams.xlower[1]=grid.dimensions[1].lower
+        clawparams.xupper[1]=grid.dimensions[1].upper
+        clawparams.dx       =grid.d
+        clawparams.mthlim   =self.mthlim
+
+        workspace.alloc_workspace(grid.n[0],grid.n[1],self.mbc,grid.meqn,self.mwaves)
+
+        reconstruct.alloc_recon_workspace(grid.n,self.mbc,grid.meqn,self.mwaves,
+                                            clawparams.lim_type,clawparams.char_decomp)
+
+
+    def dq_homogeneous(self,grid,q, t):
+        """Compute dq/dt * (delta t) for the homogeneous hyperbolic system
+
+        Note that the capa array, if present, should be located in the aux
+        variable.
+
+        Indexing works like this:  here mbc=2 as an example
+         0     1     2     3     4     mx+mbc-2     mx+mbc      mx+mbc+2
+                     |                        mx+mbc-1 |  mx+mbc+1
+         |     |     |     |     |   ...   |     |     |     |     |
+            0     1  |  2     3            mx+mbc-2    |mx+mbc       
+                                                  mx+mbc-1   mx+mbc+1
+
+        The top indices represent the values that are located on the grid
+        cell boundaries such as waves, s and other Riemann problem values, 
+        the bottom for the cell centered values such as q.  In particular
+        the ith grid cell boundary has the following related information:
+                          i-1         i         i+1
+                           |          |          |
+                           |   i-1    |     i    |
+                           |          |          |
+        Again, grid cell boundary quantities are at the top, cell centered
+        values are in the cell.
+
+        """
+    
+        import numpy as np
+
+        dq = np.zeros(q.shape, order='F')
+
+        mbc=self.mbc
+        mx=q.shape[1]-2*mbc
+        my=q.shape[2]-2*mbc
+        maxm = max(mx,my)
+
+        q1d  = np.zeros((grid.meqn,maxm+2*mbc), order='F')
+        dq1d = np.zeros((grid.meqn,maxm+2*mbc), order='F')
+
+        aux=grid.aux
+        if(aux == None): 
+            aux = np.zeros( (grid.maux,mx+2*mbc,my+2*mbc), order='F' )
+
+        if self.kernel_language=='Fortran':
+            from flux2 import flux2
+            dq,self.cfl=flux2(q,dq,q1d,dq1d,aux,self.dt,t,mbc,maxm,mx,my)
+
+        else: raise Exception('Only Fortran kernels are supported in 2D.')
+
+        return dq[:,mbc:-mbc,mbc:-mbc]

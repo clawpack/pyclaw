@@ -16,7 +16,7 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 # ============================================================================
 
 from clawpack import PetSolver
-from pyclaw.evolve.sharpclaw import SharpClawSolver1D
+from pyclaw.evolve.sharpclaw import SharpClawSolver1D, SharpClawSolver2D
 
 class RKStageState(object):
     """
@@ -50,13 +50,16 @@ class RKStageState(object):
     local_n     = property(**local_n())
     q           = property(**q())
  
+
 class PetSharpClawSolver1D(PetSolver,SharpClawSolver1D):
-    """SharpClaw evolution routine in 1D
+    """
     
-    This class represents the 1d SharpClaw solver.  Note that there are 
-    routines here for interfacing with the fortran time stepping routines and
-    the python time stepping routines.  The ones used are dependent on the 
-    argument given to the initialization of the solver (defaults to fortran).
+    1D parallel SharpClaw solver.
+
+    Note that there are routines here for interfacing with the fortran time
+    stepping routines and the python time stepping routines.  The ones used are
+    dependent on the kernel_language argument given to the initialization of
+    the solver (defaults to fortran).
     
     """
     
@@ -73,21 +76,31 @@ class PetSharpClawSolver1D(PetSolver,SharpClawSolver1D):
         for i in range(nregisters-1):
             self.rk_stages.append(RKStageState(grid))
 
+        if self.kernel_language=='Fortran':
+            self.set_fortran_parameters(grid)
 
-    def dqdt(self,grid,rk_stage):
+           
+class PetSharpClawSolver2D(PetSolver,SharpClawSolver2D):
+    """
+    
+    2D parallel SharpClaw solver.  
+    
+    """
+    
+    def setup(self,solutions):
         """
-        Evaluate dq/dt
+        Allocate RK stage arrays.
         """
 
-        q = self.qbc(grid,rk_stage)
+        if self.time_integrator == 'Euler': nregisters=1
+        elif self.time_integrator == 'SSP33': nregisters=2
+ 
+        grid = solutions['n'].grids[0]
+        self.rk_stages = []
+        for i in range(nregisters-1):
+            self.rk_stages.append(RKStageState(grid))
 
-        self.dt = 1
-        deltaq = self.dq_homogeneous(grid,q,rk_stage.t)
+        if self.kernel_language=='Fortran':
+            self.set_fortran_parameters(grid)
 
-        # Godunov Splitting -- really the source term should be called inside rkstep
-        if self.src_term == 1:
-            deltaq+=self.src(grid,q,rk_stage.t)
-
-        return deltaq.flatten('f')
-            
 

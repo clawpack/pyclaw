@@ -1,6 +1,5 @@
 ! ==========================================================
-subroutine flux2(q,dq,ndim,aux,dt,cfl,t,mcapa,maux,meqn,mwaves,mbc,maxnx, &
-                 mx,my)
+subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,maux,meqn,mbc,maxnx,mx,my)
 ! ==========================================================
 
     ! Evaluate (delta t) *dq/dt
@@ -15,10 +14,14 @@ subroutine flux2(q,dq,ndim,aux,dt,cfl,t,mcapa,maux,meqn,mwaves,mbc,maxnx, &
     use ClawParams
     implicit none
 
-    integer :: ndim,mcapa,maux,meqn,mwaves,mbc,maxnx,mx,my
+!f2py intent(in,out) dq  
+!f2py intent(out) cfl  
+
+    integer :: maux,meqn,mbc,maxnx,mx,my
     double precision, target, intent(in) :: q(meqn, 1-mbc:mx+mbc, 1-mbc:my+mbc)
     double precision, intent(inout) :: dq(meqn, 1-mbc:mx+mbc, 1-mbc:my+mbc)
     double precision, target, intent(in) :: aux(maux, 1-mbc:mx+mbc, 1-mbc:my+mbc)
+    double precision :: q1d(meqn,1-mbc:maxnx+mbc), dq1d(meqn,1-mbc:maxnx+mbc)
     double precision, intent(in) :: dt,t
     double precision, intent(out) :: cfl
     integer :: i,j,m
@@ -41,7 +44,7 @@ subroutine flux2(q,dq,ndim,aux,dt,cfl,t,mcapa,maux,meqn,mwaves,mbc,maxnx, &
 
 
         ! compute modification dq1d along this slice:
-        call flux1(q1dp,g,dq1d,auxp,dt,cfl1d,t,rp,tfluct,1)
+        call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,1,maux,meqn,mx,mbc,maxnx)
         cfl = dmax1(cfl,cfl1d)
 
 
@@ -71,10 +74,10 @@ subroutine flux2(q,dq,ndim,aux,dt,cfl,t,mcapa,maux,meqn,mwaves,mbc,maxnx, &
         end forall
 
         if (maux .gt. 0)  then
-            auxp => aux(i,:,:)
+            auxp => aux(:,i,:)
         endif
 
-        call flux1(q1dp,g,dq1d,auxp,dt,cfl1d,t,rp,tfluct,2)
+        call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,2,maux,meqn,my,mbc,maxnx)
         cfl = dmax1(cfl,cfl1d)
 
         if (mcapa.eq.0) then
@@ -85,7 +88,7 @@ subroutine flux2(q,dq,ndim,aux,dt,cfl,t,mcapa,maux,meqn,mwaves,mbc,maxnx, &
         else
             ! with capa array.  Which is correct?
             ! dq(m,i,j) = dq(m,i,j)+dq1d(m,j)/aux(mcapa,i,j)
-            dq(i,:,:) = dq(i,:,:)+dq1d
+            dq(:,i,:) = dq(:,i,:)+dq1d
         endif
     enddo !end y sweeps
 

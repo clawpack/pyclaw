@@ -120,7 +120,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
 
     ! solve Riemann problem at each interface 
     ! -----------------------------------------
-    call rp1(maxnx,meqn,mwaves,mbc,mx,ql,qr,aux,aux, &
+    call rpn2(ixy,maxnx,meqn,mwaves,mbc,mx,ql,qr,aux,aux, &
               wave,s,amdq,apdq)
 
     ! compute maximum wave speed:
@@ -177,7 +177,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
             enddo
         endif
         
-        call rp1(maxnx,meqn,mwaves,mbc,mx,ql,qr, &
+        call rpn2(ixy,maxnx,meqn,mwaves,mbc,mx,ql,qr, &
                  auxl,auxr,wave,s,amdq2,apdq2)
 
         forall(i=1:mx, m=1:meqn)

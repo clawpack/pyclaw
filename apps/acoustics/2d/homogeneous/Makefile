@@ -10,11 +10,14 @@ LIBOBJ = \
 
 SOURCE =   $(RIEMANN)/src/rpn2_acoustics.f $(RIEMANN)/src/rpt2_acoustics.f
 
-all: dimsp2.so
+all: dimsp2.so flux2.so
 
 dimsp2.so: $(TWO_D_CLASSIC)/dimsp2.f $(SOURCE) $(LIBOBJ)
 	f2py -m dimsp2 -c $(TWO_D_CLASSIC)/dimsp2.f $(LIBOBJ) $(SOURCE)  
  
+flux2.so: $(TWO_D_SHARPCLAW)/workspace.f90 $(TWO_D_SHARPCLAW)/ClawParams.f90 $(TWO_D_SHARPCLAW)/flux1.f90 $(ONE_D_SHARPCLAW)/reconstruct.f90 $(TWO_D_SHARPCLAW)/flux2.f90 $(SOURCE)
+	f2py -m flux2 -c $(TWO_D_SHARPCLAW)/workspace.f90 $(TWO_D_SHARPCLAW)/ClawParams.f90 $(TWO_D_SHARPCLAW)/flux1.f90 $(ONE_D_SHARPCLAW)/reconstruct.f90 $(TWO_D_SHARPCLAW)/flux2.f90 $(SOURCE)
+
 limiter.o: 
 	$(FC) -o limiter.o -c $(ONE_D_CLASSIC)/limiter.f
 

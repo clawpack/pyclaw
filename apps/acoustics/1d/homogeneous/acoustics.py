@@ -13,7 +13,6 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
     # Import the appropriate classes
     #======================================================
     if use_PETSc:
-        from petsc4py import PETSc
         import petclaw as myclaw
         if soltype=='classic':
             from petclaw.evolve.clawpack import PetClawSolver1D as mySolver
