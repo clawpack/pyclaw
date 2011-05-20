@@ -1,6 +1,5 @@
 ! ===================================================================
-subroutine flux1(q1d,dq1d,ndim,aux,dt,cfl,t,dtdx,&
-                 ixy,mcapa,maux,meqn,mx,mwaves,mbc,maxnx)
+subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
 ! ===================================================================
 !
 !     # Evaluate (delta t) * dq(t)/dt
@@ -47,8 +46,7 @@ subroutine flux1(q1d,dq1d,ndim,aux,dt,cfl,t,dtdx,&
 !f2py intent(in,out) dq1d  
 !f2py intent(out) cfl  
 
-    integer :: ndim,mcapa,maux,meqn,mwaves,mbc,maxnx,mx
-    double precision :: dtdx(1-mbc:mx+mbc)
+    integer :: maux,meqn,mbc,maxnx,mx
     double precision :: q1d(meqn,1-mbc:mx+mbc)
     double precision :: dq1d(meqn,1-mbc:maxnx+mbc)
     dimension aux(maux,1-mbc:mx+mbc)

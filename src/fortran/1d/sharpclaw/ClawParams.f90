@@ -2,6 +2,7 @@ module ClawParams
 
 ! Problem setup:
   double precision, allocatable :: xlower(:),xupper(:),dx(:)
+  integer :: ndim, mwaves, mcapa
 
 ! Method-related parameters:
   integer :: tfluct_solver,char_decomp,lim_type,multid_recon
@@ -9,8 +10,7 @@ module ClawParams
 
 contains
 
-    subroutine alloc_clawparams(ndim,mwaves)
-        integer, intent(in) :: ndim, mwaves
+    subroutine alloc_clawparams()
 
         allocate(xlower(ndim))
         allocate(xupper(ndim))

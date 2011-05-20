@@ -102,11 +102,17 @@ class SharpClawSolver(Solver):
         if self.kernel_language=='Fortran':
             from flux1 import clawparams
 
-            clawparams.lim_type=2
-            clawparams.char_decomp=0
-            clawparams.tfluct_solver=0
+            clawparams.ndim          = 1
+            clawparams.lim_type      = 2
+            clawparams.char_decomp   = 0
+            clawparams.tfluct_solver = 0
+            if grid.capa is not None:
+                clawparams.mcapa         = 1
+            else:
+                clawparams.mcapa         = 0
 
-            clawparams.alloc_clawparams(1,self.mwaves)
+            clawparams.mwaves        = self.mwaves
+            clawparams.alloc_clawparams()
             clawparams.xlower[0]=grid.dimensions[0].lower
             clawparams.xupper[0]=grid.dimensions[0].upper
             clawparams.dx[0]    =grid.d[0]
@@ -303,36 +309,25 @@ class SharpClawSolver1D(SharpClawSolver):
     
         import numpy as np
 
-        # Flux vector
-        dtdx = np.zeros( (grid.n[0] + 2*self.mbc) )
-
-        # Find local value for dt/dx
-        if grid.capa is not None:
-            dtdx = self.dt / (grid.d[0] * grid.capa)
-            mcapa=1
-        else:
-            dtdx += self.dt/grid.d[0]
-            mcapa=0
-
         dq = np.zeros(q.shape)
 
-        if grid.aux is not None:
-            aux_l=grid.aux[:,:-1]
-            aux_r=grid.aux[:,1: ]
-        else:
-            aux_l = None
-            aux_r = None
-   
         ixy=1
-        ndim=1
         aux=grid.aux
         if(aux == None): aux = np.zeros( (grid.maux,grid.n[0]+2*self.mbc) )
 
         if self.kernel_language=='Fortran':
             from flux1 import flux1
-            dq,self.cfl=flux1(q,dq,ndim,aux,self.dt,t,dtdx,ixy,mcapa,grid.n[0],self.mwaves,self.mbc,grid.n[0])
+            dq,self.cfl=flux1(q,dq,aux,self.dt,t,ixy,grid.n[0],self.mbc,grid.n[0])
 
         elif self.kernel_language=='Python':
+
+            if aux is not None:
+                aux_l=aux[:,:-1]
+                aux_r=aux[:,1: ]
+            else:
+                aux_l = None
+                aux_r = None
+
             #Reconstruct (wave reconstruction uses a Riemann solve)
             if lim_type==-1: #1st-order Godunov
                 ql=q; qr=q;

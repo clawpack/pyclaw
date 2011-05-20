@@ -1,5 +1,5 @@
 module workspace
-    double precision, allocatable  :: ql(:,:), qr(:,:)
+    double precision, allocatable  :: ql(:,:), qr(:,:), dtdx(:)
     double precision, allocatable  :: amdq(:,:), apdq(:,:), amdq2(:,:), apdq2(:,:)
     double precision, allocatable  :: wave(:,:,:), s(:,:)
     logical :: work_alloc = .False.
@@ -17,6 +17,8 @@ contains
         allocate(apdq2(meqn,1-mbc:maxnx+mbc))
         allocate(wave(meqn,mwaves,1-mbc:maxnx+mbc))
         allocate(s(mwaves,1-mbc:maxnx+mbc))
+
+        allocate(dtdx(1-mbc:maxnx+mbc))
 
         work_alloc = .True.
 
