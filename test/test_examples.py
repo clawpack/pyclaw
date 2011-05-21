@@ -18,7 +18,7 @@ def test_implicit():
 def test_examples():
     path        = './test/acoustics/1d/homogeneous'
     name        = 'acoustics'
-    target_name = 'step1.so'
+    target_name = 'classic1.so'
     method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : False, 'soltype' : 'classic'}
     verifier    = lambda error: abs(error-0.00104856594174)<1.e-5
     yield(util.build_run_verify, path, target_name, name, name, verifier, method_options)
@@ -33,7 +33,7 @@ def test_examples():
     yield(util.run_verify, path, name, name, verifier, method_options)
 
     verifier    = lambda error: abs(error-0.000818286913339)<1.e-5
-    target_name = 'flux1.so'
+    target_name = 'sharpclaw1.so'
     method_options = {'kernel_language' : 'Python', 'use_PETSc' : False, 'soltype' : 'sharpclaw'}
     yield(util.run_verify, path, name, name, verifier, method_options)
 
@@ -52,7 +52,7 @@ def test_examples():
 #=======================================================
     path        = './test/acoustics/2d/homogeneous'
     module_name = 'acoustics'
-    target_name = 'dimsp2.so'
+    target_name = 'classic2.so'
     method_name = 'acoustics2D'
 
     def verify_acoustics2D(test_x):
@@ -70,7 +70,7 @@ def test_examples():
 
     path        = './test/euler/2d'
     module_name = 'shockbubble'
-    target_name = 'dimsp2.so'
+    target_name = 'classic2.so'
     method_name = 'shockbubble'
 
     def verify_shockbubble(test_x):

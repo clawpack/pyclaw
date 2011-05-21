@@ -248,7 +248,7 @@ class SharpClawSolver1D(SharpClawSolver):
 
     def set_fortran_parameters(self,grid):
 
-        from flux1 import clawparams, workspace, reconstruct
+        from sharpclaw1 import clawparams, workspace, reconstruct
 
         clawparams.ndim          = 1
         clawparams.lim_type      = 2
@@ -331,11 +331,19 @@ class SharpClawSolver1D(SharpClawSolver):
         if(aux == None): aux = np.zeros( (grid.maux,mx+2*self.mbc) )
 
         if self.kernel_language=='Fortran':
-            from flux1 import flux1
+            from sharpclaw1 import flux1
             dq,self.cfl=flux1(q,dq,aux,self.dt,t,ixy,mx,self.mbc,mx)
 
         elif self.kernel_language=='Python':
 
+            dtdx = np.zeros( (2*self.mbc+grid.n[0]) )
+
+            # Find local value for dt/dx
+            if grid.capa is not None:
+                dtdx = self.dt / (grid.d[0] * grid.capa)
+            else:
+                dtdx += self.dt/grid.d[0]
+ 
             if aux is not None:
                 aux_l=aux[:,:-1]
                 aux_r=aux[:,1: ]
@@ -344,13 +352,13 @@ class SharpClawSolver1D(SharpClawSolver):
                 aux_r = None
 
             #Reconstruct (wave reconstruction uses a Riemann solve)
-            if lim_type==-1: #1st-order Godunov
+            if self.lim_type==-1: #1st-order Godunov
                 ql=q; qr=q;
-            elif lim_type==0: #Unlimited reconstruction
+            elif self.lim_type==0: #Unlimited reconstruction
                 raise NotImplementedError('Unlimited reconstruction not implemented')
-            elif lim_type==1: #TVD Reconstruction
+            elif self.lim_type==1: #TVD Reconstruction
                 raise NotImplementedError('TVD reconstruction not implemented')
-            elif lim_type==2: #WENO Reconstruction
+            elif self.lim_type==2: #WENO Reconstruction
                 if self.char_decomp==0: #No characteristic decomposition
                     ql,qr=recon.weno(5,q)
                 elif self.char_decomp==1: #Wave-based reconstruction

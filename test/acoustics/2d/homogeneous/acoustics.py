@@ -51,7 +51,7 @@ def acoustics2D(use_PETSc=True,kernel_language='Fortran',iplot=False,petscPlot=F
     grid.aux_global['bulk']=bulk
     grid.aux_global['zz']= zz
     grid.aux_global['cc']=cc
-    from dimsp2 import cparam
+    from classic2 import cparam
     for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     grid.meqn = 3
