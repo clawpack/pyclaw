@@ -477,45 +477,6 @@ def construct_function_handle(path,function_name=None):
     else:
         raise Exception("Invalid file path %s" % path)
 
-#-----------------------------
-class FrameCounter:
-#-----------------------------
-    r"""
-    Simple frame counter
-
-    Simple frame counter to keep track of current frame number.  This can
-    also be used to keep multiple runs frames seperated by having multiple 
-    counters at once.
-
-    Initializes to 0
-    """
-    def __init__(self):
-        self.__frame = 0
-
-    def __repr__(self):
-        return str(self.__frame)
-
-    def increment(self):
-        r"""
-        Increment the counter by one
-        """
-        self.__frame += 1
-    def set_counter(self,new_frame_num):
-        r"""
-        Set the counter to new_frame_num
-        """
-        self.__frame = new_frame_num
-    def get_counter(self):
-        r"""
-        Get the current frame number
-        """
-        return self.__frame
-    def reset_counter(self):
-        r"""
-        Reset the counter to 0
-        """
-        self.__frame = 0
-
 
 #---------------------------------------------------------
 def read_data_line(inputfile,num_entries=1,type='float'):
@@ -582,30 +543,6 @@ def current_time(addtz=False):
     if addtz:
         current_time = current_time + ' ' + time.tzname[time.daylight]
     return current_time
-
-
-
-#---------------------------------
-def svn_revision(dir="CLAW"):
-#---------------------------------
-    r"""
-    Determine the svn revision number of the version of code being used.
-    If dir="CLAW" it returns the revision number of the claw directory.
-    This only checks the top most level and assumes this is accurate.
-    """
-   
-    if dir=="CLAW":
-        dir  = os.environ['CLAW']
-    svn_entries = dir + '/.svn/entries'
-    try:
-        f = open(svn_entries,'r')
-        lines = f.readlines()
-        revision = int(lines[3])  # fourth line of file, converted to int
-        f.close()
-    except:
-        revision = None
-    
-    return revision
 
 def _method_info_from_argv(argv=None):
     """Command-line -> method call arg processing.
@@ -686,4 +623,44 @@ def _info_from_argv(argv=None):
         else:
             args.append(value)
     return args, kwargs
+
+#-----------------------------
+class FrameCounter:
+#-----------------------------
+    r"""
+    Simple frame counter
+
+    Simple frame counter to keep track of current frame number.  This can
+    also be used to keep multiple runs frames seperated by having multiple 
+    counters at once.
+
+    Initializes to 0
+    """
+    def __init__(self):
+        self.__frame = 0
+
+    def __repr__(self):
+        return str(self.__frame)
+
+    def increment(self):
+        r"""
+        Increment the counter by one
+        """
+        self.__frame += 1
+    def set_counter(self,new_frame_num):
+        r"""
+        Set the counter to new_frame_num
+        """
+        self.__frame = new_frame_num
+    def get_counter(self):
+        r"""
+        Get the current frame number
+        """
+        return self.__frame
+    def reset_counter(self):
+        r"""
+        Reset the counter to 0
+        """
+        self.__frame = 0
+
 
