@@ -74,7 +74,7 @@ def shallow2D(kernel_language='Fortran',iplot=False,petscPlot=False,useControlle
     ylower = -2.5
     yupper = 2.5
     my = 50
-    x = Dimension('x',xlower,xupper,mx,mthbc_lower=2,mthbc_upper=1)
+    x = Dimension('x',xlower,xupper,mx,mthbc_lower=1,mthbc_upper=1)
     y = Dimension('y',ylower,yupper,my,mthbc_lower=1,mthbc_upper=1)
     grid = Grid([x,y])
 
