@@ -2,7 +2,7 @@ def plotInteractive(outdir='./_output',format='petsc'):
     """
     Convenience function for launching an interactive plotting session.
     """
-    from pyclaw.plotters import Iplotclaw
+    from visclaw.plotters import Iplotclaw
     ip=Iplotclaw.Iplotclaw()
     ip.plotdata.outdir=outdir
     ip.plotdata.format=format
@@ -12,7 +12,7 @@ def plotHTML(outdir='./_output',format='petsc'):
     """
     Convenience function for creating html page with plots.
     """
-    from pyclaw.plotters import plotclaw
+    from visclaw.plotters import plotclaw
     plotclaw.plotclaw(outdir,format=format)
 
 def plotPetsc(clawobj,delay=1):
