@@ -20,8 +20,6 @@ dimensionally dependent ones such as :class:`ClawSolver1D`.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-import numpy as np
-
 from pyclaw.evolve.solver import Solver
 
 import limiters
@@ -297,6 +295,8 @@ class ClawSolver1D(ClawSolver):
         We are initializing (allocating) the working arrays needed by fortran kernels 
         in this routine. These arrays are passed in each call to the fortran kernel step1.
         """
+        import numpy as np
+
         # Grid we will be working on
         grid = solutions['n'].grids[0]
         # Number of equations
@@ -360,6 +360,8 @@ class ClawSolver1D(ClawSolver):
 
         :Version: 1.0 (2009-07-01)
         """
+        import numpy as np
+
         grid = solutions['n'].grids[0]
         q = self.qbc(grid,grid)
 
@@ -502,6 +504,9 @@ class ClawSolver2D(ClawSolver):
         We are initializing (allocating) the working arrays needed by fortran kernels 
         in this routine. These arrays are passed in each call to the fortran kernel dimsp2.
         """
+
+        import numpy as np
+
         # Grid we will be working on
         grid = solutions['n'].grids[0]
         # Number of equations
@@ -580,6 +585,8 @@ class ClawSolver2D(ClawSolver):
         r"""
         
         """
+        import numpy as np
+
         # Grid we will be working on
         grid = solutions['n'].grids[0]
         # Number of equations

@@ -17,7 +17,7 @@ Contributing
 =======================
 
 Contributions to the package are most welcome.  If you have 
-used NodePy for research, chances are that others would find your
+used PetClaw for research, chances are that others would find your
 code useful.  If you would like to contribute to the project, send us
 an e-mail.
 

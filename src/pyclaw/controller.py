@@ -29,8 +29,6 @@ import copy
 import shutil
 import time
 
-import numpy as np
-
 from data import Data
 from solution import Solution
 from evolve.solver import Solver
@@ -55,6 +53,8 @@ class Controller(object):
         See :class:`Controller` for full documentation.
         """
         
+        import numpy as np
+
         self.viewable_attributes = ['xdir','rundir','outdir','overwrite',
                         'xclawcmd','xclawout','xclawerr','runmake','savecode',
                         'solver','keep_copy','write_aux_init',
@@ -197,6 +197,8 @@ class Controller(object):
         :Version: 1.0 (2009-05-01)
         """
         
+        import numpy as np
+
         frame = FrameCounter()
         if self.keep_copy:
             self.frames = []

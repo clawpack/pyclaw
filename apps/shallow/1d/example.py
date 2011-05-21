@@ -84,8 +84,8 @@ status = claw.run()
 
 iplot=True
 
-if iplot: plot.plotInteractive(format='petsc')
-if htmlplot: plot.plotHTML()
+if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
+if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
 
 # Plot
 if claw.keep_copy:

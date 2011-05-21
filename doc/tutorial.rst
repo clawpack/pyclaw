@@ -13,7 +13,7 @@ The basic idea of a pyclaw simulation is to construct a
 solver will take whatever steps are necessary to evolve the solution to the 
 requested time.
 
-.. image:: ../images/pyclaw_architecture_flow.*
+.. image:: images/pyclaw_architecture_flow.*
 
 The bulk of the work in order to run a simulation then is the creation and
 setup of the appropriate :class:`~pyclaw.solution.Solution` objects and the 
@@ -38,7 +38,7 @@ and controls the overall input and output of the entire collection of
 :class:`~pyclaw.solution.Dimension` objects define the extents and basic 
 grids of the :class:`~pyclaw.solution.Grid`.
 
-.. image:: ../images/pyclaw_solution_structure.*
+.. image:: images/pyclaw_solution_structure.*
 
 The process needed to create a :class:`~pyclaw.solution.Solution` object then
 follows from the bottom up.
