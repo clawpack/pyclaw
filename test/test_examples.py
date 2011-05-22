@@ -34,7 +34,7 @@ def test_1D_acoustic_homogeneous_1a():
     target_name    = 'all'
     module_name    = 'acoustics_implicit'
     problem_name    = 'acoustics'
-    method_options = {'sclaw': 1, 'petscts': 1, '-ts_type': theta}
+    method_options = {'sclaw': 1, 'petscts': 1, '-ts_type': 'theta'}
     verifier       = lambda error: abs(error-0.00220809553637)<1.e-5
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
 
