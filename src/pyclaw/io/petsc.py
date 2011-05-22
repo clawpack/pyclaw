@@ -25,7 +25,6 @@ import pyclaw.solution
 logger = logging.getLogger('io')
 
 from petsc4py import PETSc
-#from mpi4py import MPI
 import pickle
 import numpy as np
     
@@ -74,7 +73,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
 
     if solution.maux > 0 and write_aux:
         write_aux = True
-        aux_filename = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
+        aux_filename = os.path.join(path, '%s_aux.ptc' % file_prefix)
     else:
         write_aux = False
         
@@ -157,8 +156,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
-    aux_filename = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
-
+    aux_viewer_filename = os.path.join(path, '%s_aux.ptc' % file_prefix)
     if frame < 0:
         # Don't construct file names with negative frameno values.
         raise IOError("Frame " + str(frame) + " does not exist ***")
@@ -169,8 +167,8 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     # most of this information is explicitly saved in the individual grids
     value_dict = pickle.load(pickle_file)
     ngrids   = value_dict['ngrids']                    
-    read_aux = value_dict['write_aux']
     ndim     = value_dict['ndim']
+    maux     = value_dict['maux']
 
     # now set up the PETSc viewer
     if options['format'] == 'ascii':
@@ -215,17 +213,16 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
 
         grid.gqVec = PETSc.Vec().load(viewer)
         q = grid.gqVec.getArray().copy()
-        q_dim=[grid.meqn]
-        if len(grid.n)==2: 
-            q_dim.append(grid.n[0])
+        q_dim=(grid.meqn,grid.n[0])
+        if len(grid.n)>=2: 
             q_dim.append(grid.n[1])
-            q = q.reshape(q_dim,order='F')
-            #q = np.rollaxis(q,2,1)
-        else: 
-            q_dim.append(grid.n[0])
-            q = q.reshape(q_dim,order='F')
+        if len(grid.n)>=3: 
+            q_dim.append(grid.n[2])
+        q = q.reshape(q_dim,order='F')
         grid.q = q
         
+        # For the aux array, we store the ghost cell values as well.
+        # Is this a good idea?
         if read_aux:
             nbc = [x+(2*grid.mbc) for x in grid.n]
             grid.aux_da = PETSc.DA().create(dim=grid.ndim,
@@ -238,8 +235,9 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
                 comm=PETSc.COMM_WORLD)
             grid.gauxVec = PETSc.Vec().load(aux_viewer)
             grid.aux = grid.gauxVec.getArray().copy()
-            grid.aux.shape = (grid.aux.size/grid.meqn,grid.meqn)
-            
+            aux_dim=[maux]; aux_dim.append(grid.n[0]); aux_dim.append(grid.n[1])
+            grid.aux = grid.aux.reshape(aux_dim,order='F')
+        
         # Add AMR attributes:
         grid.gridno = gridno
         grid.level = level 
