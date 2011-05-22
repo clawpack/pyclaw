@@ -136,6 +136,12 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
         qfinal=claw.frames[claw.nout].grid.gqVec.getArray().reshape([-1])
         dx=claw.frames[0].grid.d[0]
 
+    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
+    if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
+    if petscPlot: plot.plotPetsc(output_object)
+
+    print 'Max error:', np.max(qfinal - q0)
+
     return dx*np.sum(np.abs(qfinal-q0))
 
 
