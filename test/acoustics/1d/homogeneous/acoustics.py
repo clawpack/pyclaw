@@ -43,9 +43,9 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
     grid.aux_global['cc']=np.sqrt(rho/bulk)
     if kernel_language=='Fortran':
         if soltype=='classic':
-            from step1 import cparam 
+            from classic1 import cparam 
         elif soltype=='sharpclaw':
-            from flux1 import cparam
+            from sharpclaw1 import cparam
         for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     # init_q_petsc_structures must be called 

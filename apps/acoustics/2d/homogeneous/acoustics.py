@@ -18,25 +18,35 @@ def qinit(grid,width=0.2):
     grid.q=q
 
 
-def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output'):
+def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',soltype='classic'):
     """
     Example python script for solving the 2d acoustics equations.
     """
 
     if use_PETSc:
-        from petclaw.grid import Dimension
-        from petclaw.grid import Grid
-        from petclaw.evolve.clawpack import PetClawSolver2D as mySolver
-        output_format='petsc'
+        from petclaw.grid import Dimension, Grid
+        if soltype=='classic':
+            from petclaw.evolve.clawpack import PetClawSolver2D as mySolver
+        elif soltype=='sharpclaw':
+            from petclaw.evolve.sharpclaw import PetSharpClawSolver2D as mySolver
+        from petclaw.controller import Controller
     else:
-        from pyclaw.grid import Dimension
-        from pyclaw.grid import Grid
-        from pyclaw.evolve.clawpack import ClawSolver2D as mySolver
-        output_format='ascii'
+        from pyclaw.grid import Dimension, Grid
+        if soltype=='classic':
+            from pyclaw.evolve.clawpack import ClawSolver2D as mySolver
+        elif soltype=='sharpclaw':
+            from pyclaw.evolve.sharpclaw import SharpClawSolver2D as mySolver
+        from pyclaw.controller import Controller
 
     from pyclaw.solution import Solution
-    from pyclaw.controller import Controller
     from petclaw import plot
+
+    solver = mySolver()
+    solver.cfl_max = 0.5
+    solver.cfl_desired = 0.45
+    solver.mwaves = 2
+    solver.mthlim = [4]*solver.mwaves
+
 
     # Initialize grid
     mx=100; my=100
@@ -52,11 +62,16 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output'):
     grid.aux_global['bulk']=bulk
     grid.aux_global['zz']= zz
     grid.aux_global['cc']=cc
-    from dimsp2 import cparam
+    if soltype=='classic':
+        from classic2 import cparam
+    elif soltype=='sharpclaw':
+        from sharpclaw2 import cparam
     for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
+    solver.dt=np.min(grid.d)/grid.aux_global['cc']*solver.cfl_desired
+
     grid.meqn = 3
-    grid.mbc = 2
+    grid.mbc = solver.mbc
     tfinal = 0.12
 
     if use_PETSc:
@@ -66,17 +81,9 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output'):
     qinit(grid)
     initial_solution = Solution(grid)
 
-    solver = mySolver()
-    solver.cfl_max = 0.5
-    solver.cfl_desired = 0.45
-    solver.mwaves = 2
-    solver.mthlim = [4]*solver.mwaves
-    solver.dt=np.min(grid.d)/grid.aux_global['cc']*solver.cfl_desired
-
     claw = Controller()
     claw.keep_copy = True
     # The output format MUST be set to petsc!
-    claw.output_format = output_format
     claw.tfinal = tfinal
     claw.solutions['n'] = initial_solution
     claw.solver = solver
@@ -85,8 +92,8 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output'):
     # Solve
     status = claw.run()
 
-    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
-    if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
+    if htmlplot:  plot.plotHTML(outdir=outdir,format=claw.output_format)
+    if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
 
     if use_PETSc:
         pressure=claw.frames[claw.nout].grid.gqVec.getArray().reshape([grid.local_n[0],grid.local_n[1],grid.meqn])[:,:,0]

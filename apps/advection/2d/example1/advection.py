@@ -47,7 +47,7 @@ def advection2D(iplot=False,useController=True,htmlplot=False,outdir='./_output'
 
     mx=80; my=80
     # Initialize grids and solutions
-    from dimsp2 import comrp
+    from classic2 import comrp
     x = Dimension('x',0.0,1.0,mx,mthbc_lower=2,mthbc_upper=2)
     y = Dimension('y',0.0,1.0,my,mthbc_lower=2,mthbc_upper=2)
     grid = Grid([x,y])

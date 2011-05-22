@@ -293,7 +293,7 @@ class ClawSolver1D(ClawSolver):
         r"""
         See setup doc string in the super class.
         We are initializing (allocating) the working arrays needed by fortran kernels 
-        in this routine. These arrays are passed in each call to the fortran kernel step1.
+        in this routine. These arrays are passed in each call to the fortran kernel classic.
         """
         import numpy as np
 
@@ -368,7 +368,7 @@ class ClawSolver1D(ClawSolver):
         meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,self.mbc,grid.aux
           
         if(self.kernel_language == 'Fortran'):
-            from step1 import step1
+            from classic1 import step1
             
             mx = grid.q.shape[1]
             dx,dt = grid.d[0],self.dt
@@ -594,7 +594,7 @@ class ClawSolver2D(ClawSolver):
 
 
         if(self.kernel_language == 'Fortran'):
-            from dimsp2 import dimsp2
+            from classic2 import dimsp2
             mx,my = grid.q.shape[1],grid.q.shape[2]
             maxm = max(mx,my)
             aux = grid.aux

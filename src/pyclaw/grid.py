@@ -189,6 +189,9 @@ class Dimension(object):
         for (k,v) in kargs.iteritems():
             setattr(self,k,v)
 
+        #These aren't need for PyClaw, but we set them so that
+        # the PyClaw grid has the same attributes as the PetClaw
+        # grid, which allows for simpler programming elsewhere.
         self.nstart = 0
         self.nend = self.n
             

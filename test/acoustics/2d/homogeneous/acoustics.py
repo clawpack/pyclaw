@@ -18,30 +18,42 @@ def qinit(grid,width=0.2):
     grid.q=q
 
 
-def acoustics2D(use_PETSc=True,kernel_language='Fortran',iplot=False,petscPlot=False,useController=True,htmlplot=False):
+def acoustics2D(use_PETSc=False,kernel_language='Fortran',iplot=False,petscPlot=False,useController=True,htmlplot=False,soltype='classic'):
     """
     Example python script for solving the 2d acoustics equations.
     """
     if use_PETSc:
-        from petsc4py import PETSc
         import petclaw as myclaw
         output_format='petsc'
-        from petclaw.evolve.clawpack import PetClawSolver2D as mySolver
+        if soltype=='classic':
+            from petclaw.evolve.clawpack import PetClawSolver2D as mySolver
+        elif soltype=='sharpclaw':
+            from petclaw.evolve.sharpclaw import PetSharpClawSolver2D as mySolver
     else: #Pure pyclaw
         import pyclaw as myclaw
         output_format='ascii'
-        from pyclaw.evolve.clawpack import ClawSolver2D as mySolver
+        if soltype=='classic':
+            from pyclaw.evolve.clawpack import ClawSolver2D as mySolver
+        elif soltype=='sharpclaw':
+            from pyclaw.evolve.sharpclaw import SharpClawSolver2D as mySolver
 
     from pyclaw.solution import Solution
     from pyclaw.controller import Controller
 
     from petclaw import plot
 
+    solver = mySolver()
+    solver.cfl_max = 0.5
+    solver.cfl_desired = 0.45
+    solver.mwaves = 2
+    solver.mthlim = [4]*solver.mwaves
+
     # Initialize grid
     mx=100; my=100
     x = myclaw.grid.Dimension('x',-1.0,1.0,mx,mthbc_lower=1,mthbc_upper=1)
     y = myclaw.grid.Dimension('y',-1.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
     grid = myclaw.grid.Grid([x,y])
+    grid.mbc=solver.mbc
 
     rho = 1.0
     bulk = 4.0
@@ -51,7 +63,11 @@ def acoustics2D(use_PETSc=True,kernel_language='Fortran',iplot=False,petscPlot=F
     grid.aux_global['bulk']=bulk
     grid.aux_global['zz']= zz
     grid.aux_global['cc']=cc
-    from dimsp2 import cparam
+
+    if soltype=='classic':
+        from classic2 import cparam
+    elif soltype=='sharpclaw':
+        from sharpclaw2 import cparam
     for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     grid.meqn = 3
@@ -64,11 +80,6 @@ def acoustics2D(use_PETSc=True,kernel_language='Fortran',iplot=False,petscPlot=F
     qinit(grid)
     initial_solution = Solution(grid)
 
-    solver = mySolver()
-    solver.cfl_max = 0.5
-    solver.cfl_desired = 0.45
-    solver.mwaves = 2
-    solver.mthlim = [4]*solver.mwaves
     solver.dt=np.min(grid.d)/grid.aux_global['cc']*solver.cfl_desired
 
     claw = Controller()
