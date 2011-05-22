@@ -1,4 +1,4 @@
-###############################################################################################
+##################################################################################################
 # This python script contains regression and unit tests for PYCLAW and PETCLAW
 # These test are executed with nose (http://somethingaboutorange.com/mrl/projects/nose/1.0.0/)
 # Attributes are use to tag each regression and unit test. This way nose can run different type 
@@ -11,7 +11,7 @@
 # Use: nosetests -a attribute-1 = string-1 -a attribute-2 = string-2 -a attribute-3 = string-3
 #      for logic OR
 #
-################################################################################################
+##################################################################################################
 
 
 from nose.plugins.attrib import attr
@@ -21,6 +21,10 @@ if __name__=="__main__":
     import nose
     nose.main()
 
+
+#=======================================================
+#    1D tests
+#=======================================================
 
 # Regression test: 1D acoustic in homegeneous material
 #@attr(testType ='regression')
@@ -168,6 +172,108 @@ def test_1D_acoustic_homogeneous_1i():
     method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : True, 'soltype' : 'sharpclaw'}
     verifier       = lambda error: abs(error-0.000818286913339)<1.e-5
     yield(util.build_run_verify, path, target_name, module_name, module_name, verifier, method_options)    
+
+
+
+
+
+#=======================================================
+#    2D tests
+#=======================================================
+
+# Regression test: 2D acoustic in homegeneous material
+#@attr(testType ='regression')
+#@attr(sd='sharpclaw')
+@attr(kernel_language='fortran')
+@attr(petsc=True)
+@attr(ts='explicit')
+@attr(speed='fast')
+def test_2D_acoustic_homogeneous_1a(test_x): 
+    path           = './test/acoustics/2d/homogeneous'
+    target_name    = 'dimsp2.so'
+    module_name    = 'acoustics'
+    problem_name   = 'acoustics2D'
+
+    def verify_acoustics2D(test_x):
+        import numpy
+        verify_x=numpy.loadtxt('test/acoustics2D_solution')
+        return (numpy.linalg.norm(test_x-verify_x)<1.e-14)
+
+    method_options = {'use_PETSc' : True}
+    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D, {})
+   
+
+
+# Regression test: 2D acoustic in homegeneous material
+#@attr(testType ='regression')
+#@attr(sd='sharpclaw')
+#@attr(kernel_language='fortran')
+#@attr(petsc=False)
+#@attr(ts='explicit')
+#@attr(speed='fast')
+def test_2D_acoustic_homogeneous_1b(test_x): 
+    path           = './test/acoustics/2d/homogeneous'
+    target_name    = 'dimsp2.so'
+    module_name    = 'acoustics'
+    problem_name   = 'acoustics2D'
+
+    def verify_acoustics2D(test_x):
+        import numpy
+        verify_x=numpy.loadtxt('test/acoustics2D_solution')
+        return (numpy.linalg.norm(test_x-verify_x)<1.e-14)
+
+    method_options = {'use_PETSc' : False}
+    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D, method_options)   
+
+
+
+# Regression test: 2D acoustic in homegeneous material
+#@attr(testType ='regression')
+#@attr(sd='sharpclaw')
+#@attr(kernel_language='fortran')
+#@attr(petsc=False)
+#@attr(ts='explicit')
+#@attr(speed='fast')
+def test_2D_shockbubble_1a(test_x): 
+    path           = './test/euler/2d'
+    target_name    = 'dimsp2.so'
+    module_name    = 'shockbubble'
+    problem_name   = 'shockbubble'
+
+    def verify_shockbubble(test_x):
+        import numpy
+        verify_x=numpy.loadtxt('test/sb_density')
+        print numpy.max(abs(test_x-verify_x))
+        return numpy.max(abs(test_x-verify_x))<1.e-14
+
+    method_options = {'use_PETSc' : False}
+    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
+
+
+# Regression test: 2D acoustic in homegeneous material
+#@attr(testType ='regression')
+#@attr(sd='sharpclaw')
+#@attr(kernel_language='fortran')
+#@attr(petsc=False)
+#@attr(ts='explicit')
+#@attr(speed='fast')
+def test_2D_shockbubble_1b(test_x): 
+    path           = './test/euler/2d'
+    target_name    = 'dimsp2.so'
+    module_name    = 'shockbubble'
+    problem_name   = 'shockbubble'
+
+    def verify_shockbubble(test_x):
+        import numpy
+        verify_x=numpy.loadtxt('test/sb_density')
+        print numpy.max(abs(test_x-verify_x))
+        return numpy.max(abs(test_x-verify_x))<1.e-14
+
+    method_options = {'use_PETSc' : True}
+    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
+
+
+
 
 
 

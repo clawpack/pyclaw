@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
-def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=False,htmlplot=False,outdir='./_output'):
+def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=False,htmlplot=False,outdir='./_output'):
+    """
+    This example solves the 1-dimensional acoustics equations in a homogeneous
+    medium.
+    """
     import numpy as np
-    """
-    1D acoustics example.
-    """
+    from petclaw import plot
 
-    output_format=None #Suppress output to make tests faster
+    #======================================================
+    # Import the appropriate classes
+    #======================================================
     if use_PETSc:
         from petsc4py import PETSc
         import petclaw as myclaw
@@ -25,16 +29,32 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
         else: raise Exception('Unrecognized value of soltype.')
 
     from pyclaw.solution import Solution
-    from pyclaw.controller import Controller
+    from petclaw.controller import Controller
 
-    # Initialize grids and solutions
-    x = myclaw.grid.Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
+    #========================================================================
+    # Instantiate the solver and define the system of equations to be solved
+    #========================================================================
+    solver = mySolver()
+    solver.mwaves=2
+    solver.kernel_language=kernel_language
+    if kernel_language=='Python': solver.set_riemann_solver('acoustics')
+ 
+    solver.mthlim = [4]*solver.mwaves
+
+    #========================================================================
+    # Instantiate the grid
+    #========================================================================
+    x = myclaw.grid.Dimension('x',0.0,1.0,100,mthbc_lower=3,mthbc_upper=1)
     grid = myclaw.grid.Grid(x)
     grid.meqn=2
+    grid.mbc=solver.mbc
+    # init_q_petsc_structures must be called 
+    # before grid.x.center and such can be accessed.
+    if use_PETSc: grid.init_q_petsc_structures()
 
-    if soltype=='classic': grid.mbc=2
-    elif soltype=='sharpclaw': grid.mbc=3
-
+    #========================================================================
+    # This part should really just depend on the solver, not the grid
+    #========================================================================
     rho = 1.0
     bulk = 1.0
     grid.aux_global['rho']=rho
@@ -48,11 +68,10 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
             from flux1 import cparam
         for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
-    # init_q_petsc_structures must be called 
-    # before grid.x.center and such can be accessed.
-    if use_PETSc:
-        grid.init_q_petsc_structures()
 
+    #========================================================================
+    # Set the initial condition
+    #========================================================================
     xc=grid.x.center
     q=np.zeros([grid.meqn,len(xc)], order = 'F')
     beta=100; gamma=0; x0=0.75
@@ -60,50 +79,27 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
     q[1,:]=0.
     grid.q=q
     
-    init_solution = Solution(grid)
-
-    solver = mySolver()
-
-    solver.mwaves=2
-    solver.kernel_language=kernel_language
-
-    if kernel_language=='Python': 
-        solver.set_riemann_solver('acoustics')
-
-    solver.mthlim = [4]*solver.mwaves
-    solver.dt=grid.d[0]/grid.aux_global['cc']*0.1
-
+    #========================================================================
+    # Set up the controller object
+    #========================================================================
     claw = Controller()
-    claw.keep_copy = True
-    claw.nout = 5
-    
-    claw.output_format = output_format
 
+    claw.solutions['n'] = Solution(grid)
+    claw.solver = solver
+
+    claw.nout = 10
     claw.outdir = outdir
     claw.tfinal = 1.0
-    claw.solutions['n'] = init_solution
-    claw.solver = solver
 
     # Solve
     status = claw.run()
 
-    #This test is set up so that the waves pass through the domain
-    #exactly once, and the final solution should be equal to the
-    #initial condition.  Here we output the 1-norm of their difference.
-    if use_PETSc==True:
-        q0=claw.frames[0].grid.gqVec.getArray().reshape([-1])
-        qfinal=claw.frames[claw.nout].grid.gqVec.getArray().reshape([-1])
-    else:
-        q0=claw.frames[0].grid.q.reshape([-1])
-        qfinal=claw.frames[claw.nout].grid.q.reshape([-1])
-    dx=claw.frames[0].grid.d[0]
-
-    return dx*np.sum(np.abs(qfinal-q0))
-
+    # Plot results
+    if htmlplot:  plot.plotHTML(outdir=outdir,format=claw.output_format)
+    if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
 
 if __name__=="__main__":
     import sys
     from petclaw.util import _info_from_argv
     args, kwargs = _info_from_argv(sys.argv)
     error=acoustics(*args,**kwargs)
-    print '1-norm of difference between initial and final solutions: ',error
