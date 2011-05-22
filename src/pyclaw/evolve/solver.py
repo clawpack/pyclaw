@@ -166,6 +166,16 @@ class Solver(object):
         This function is just a stub here.
         """
         pass
+
+    def teardown(self):
+        r"""
+        Stub for solver teardown routines.
+        
+        This function is called at the end of a simulation.
+        A subclass should override it only if it needs to 
+        perform some cleanup, such as deallocating arrays in a Fortran module.
+        """
+        pass
         
     # ========================================================================
     #  Boundary Conditions

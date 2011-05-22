@@ -124,7 +124,7 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False,outdir='./_output'):
 
     grid.aux_global['gamma']= gamma
     grid.aux_global['gamma1']= gamma1
-    from dimsp2 import cparam
+    from classic2 import cparam
     for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     grid.meqn = 5

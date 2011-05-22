@@ -54,7 +54,7 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
     grid.aux_global['bulk']=bulk
     grid.aux_global['zz']=np.sqrt(rho*bulk)
     grid.aux_global['cc']=np.sqrt(rho/bulk)
-    from step1 import cparam 
+    from classic1 import cparam 
     for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
     grid.meqn=2
     if sclaw:

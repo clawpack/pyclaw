@@ -42,7 +42,7 @@ def test_examples():
 
     method_options = {'kernel_language' : 'Python', 'use_PETSc' : True, 'soltype' : 'sharpclaw'}
     yield(util.run_verify, path, name, name, verifier, method_options)
-
+    
     method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : True, 'soltype' : 'sharpclaw'}
     yield(util.build_run_verify, path, target_name, name, name, verifier, method_options)
 
@@ -80,7 +80,7 @@ def test_examples():
         return numpy.max(abs(test_x-verify_x))<1.e-14
 
     method_options = {'use_PETSc' : False}
-    #yield(util.build_run_verify, path, target_name, module_name, method_name, verify_shockbubble, method_options)
+    yield(util.build_run_verify, path, target_name, module_name, method_name, verify_shockbubble, method_options)
 
     method_options = {'use_PETSc' : True}
-    #yield(util.build_run_verify, path, target_name, module_name, method_name, verify_shockbubble, method_options)
+    yield(util.build_run_verify, path, target_name, module_name, method_name, verify_shockbubble, method_options)

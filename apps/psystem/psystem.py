@@ -184,7 +184,7 @@ def psystem2D(iplot=False,useController=True):
 # parameters that go to the Riemann Solver
 #    grid.aux_global['linearity_mat1']= linearity_mat1
 #    grid.aux_global['linearity_mat2']= linearity_mat2
-#    from dimsp2 import cparam
+#    from classic2 import cparam
 #    for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     inital_solution = Solution(grid)

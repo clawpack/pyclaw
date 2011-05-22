@@ -19,4 +19,13 @@ contains
 
     end subroutine alloc_clawparams
 
+    subroutine dealloc_clawparams()
+
+        deallocate(xlower)
+        deallocate(xupper)
+        deallocate(dx)
+        deallocate(mthlim)
+
+    end subroutine dealloc_clawparams
+
 end module

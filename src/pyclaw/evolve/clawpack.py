@@ -594,7 +594,7 @@ class ClawSolver2D(ClawSolver):
 
 
         if(self.kernel_language == 'Fortran'):
-            from dimsp2 import dimsp2
+            from classic2 import dimsp2
             mx,my = grid.q.shape[1],grid.q.shape[2]
             maxm = max(mx,my)
             aux = grid.aux

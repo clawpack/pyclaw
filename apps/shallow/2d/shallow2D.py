@@ -86,7 +86,7 @@ def shallow2D(kernel_language='Fortran',iplot=False,petscPlot=False,useControlle
     # Parameters
     grav = 1.0
     grid.aux_global['grav'] = grav
-    from dimsp2 import cparam
+    from classic2 import cparam
     for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     # Initial solution

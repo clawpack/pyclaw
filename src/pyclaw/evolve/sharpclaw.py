@@ -274,6 +274,12 @@ class SharpClawSolver1D(SharpClawSolver):
         reconstruct.alloc_recon_workspace(mx+2*mbc,mbc,grid.meqn,self.mwaves,
                                                 clawparams.lim_type,clawparams.char_decomp)
 
+    def teardown(self):
+        if self.kernel_language=='Fortran':
+            from sharpclaw1 import clawparams, workspace, reconstruct
+            clawparams.dealloc_clawparams()
+            workspace.dealloc_workspace()
+            reconstruct.dealloc_recon_workspace(clawparams.lim_type,clawparams.char_decomp)
 
     # ========== Riemann solver library routines =============================   
     def set_riemann_solver(self,solver_name):

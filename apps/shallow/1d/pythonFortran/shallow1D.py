@@ -35,7 +35,7 @@ def shallow1D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
 
     # Parameters
     grid.aux_global['grav'] = 1.0
-    from step1 import cparam
+    from classic1 import cparam
     for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
 

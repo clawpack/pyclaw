@@ -63,7 +63,7 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,useController=
     if solver.kernel_language=='Python': 
         solver.set_riemann_solver('advection')
     else:
-        from step1 import comrp
+        from classic1 import comrp
         comrp.u = grid.aux_global['u']
 
     claw.keep_copy = False

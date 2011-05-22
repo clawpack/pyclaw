@@ -263,6 +263,7 @@ class Controller(object):
             logging.info("Solution %s computed for time t=%f"
                 % (frame,self.solutions['n'].t))
             
+        self.solver.teardown()
         # Return the current status of the solver
         return status
     

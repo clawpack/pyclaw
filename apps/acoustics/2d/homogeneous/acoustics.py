@@ -63,9 +63,9 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',so
     grid.aux_global['zz']= zz
     grid.aux_global['cc']=cc
     if soltype=='classic':
-        from dimsp2 import cparam
+        from classic2 import cparam
     elif soltype=='sharpclaw':
-        from flux2 import cparam
+        from sharpclaw2 import cparam
     for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     solver.dt=np.min(grid.d)/grid.aux_global['cc']*solver.cfl_desired
