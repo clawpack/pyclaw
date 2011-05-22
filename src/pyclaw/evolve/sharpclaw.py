@@ -454,7 +454,7 @@ class SharpClawSolver2D(SharpClawSolver):
             self.set_fortran_parameters(grid)
 
     def set_fortran_parameters(self,grid):
-        from flux2 import clawparams, workspace, reconstruct
+        from sharpclaw2 import clawparams, workspace, reconstruct
 
         clawparams.ndim          = 2
         clawparams.lim_type      = 2
@@ -479,6 +479,12 @@ class SharpClawSolver2D(SharpClawSolver):
         reconstruct.alloc_recon_workspace(grid.n,self.mbc,grid.meqn,self.mwaves,
                                             clawparams.lim_type,clawparams.char_decomp)
 
+    def teardown(self):
+        if self.kernel_language=='Fortran':
+            from sharpclaw2 import clawparams, workspace, reconstruct
+            workspace.dealloc_workspace()
+            reconstruct.dealloc_recon_workspace(clawparams.lim_type,clawparams.char_decomp)
+            clawparams.dealloc_clawparams()
 
     def dq_homogeneous(self,grid,q, t):
         """Compute dq/dt * (delta t) for the homogeneous hyperbolic system
@@ -523,7 +529,7 @@ class SharpClawSolver2D(SharpClawSolver):
             aux = np.zeros( (grid.maux,mx+2*mbc,my+2*mbc), order='F' )
 
         if self.kernel_language=='Fortran':
-            from flux2 import flux2
+            from sharpclaw2 import flux2
             dq,self.cfl=flux2(q,dq,q1d,dq1d,aux,self.dt,t,mbc,maxm,mx,my)
 
         else: raise Exception('Only Fortran kernels are supported in 2D.')

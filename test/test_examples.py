@@ -55,16 +55,32 @@ def test_examples():
     target_name = 'classic2.so'
     method_name = 'acoustics2D'
 
-    def verify_acoustics2D(test_x):
+    def verify_acoustics2D_classic(test_x):
         import numpy
         verify_x=numpy.loadtxt('test/acoustics2D_solution')
         return (numpy.linalg.norm(test_x-verify_x)<1.e-14)
 
-    method_options = {'use_PETSc' : True}
-    yield(util.build_run_verify, path, target_name, module_name, method_name, verify_acoustics2D, {})
+    method_options = {'use_PETSc' : True, 'soltype' : 'classic' }
+    yield(util.build_run_verify, path, target_name, module_name, method_name, verify_acoustics2D_classic, method_options)
 
-    method_options = {'use_PETSc' : False}
-    yield(util.build_run_verify, path, target_name, module_name, method_name, verify_acoustics2D, method_options)    
+    method_options = {'use_PETSc' : False, 'soltype' : 'classic' }
+    yield(util.build_run_verify, path, target_name, module_name, method_name, verify_acoustics2D_classic, method_options)    
+
+
+    target_name = 'sharpclaw2.so'
+
+    def verify_acoustics2D_sharpclaw(test_x):
+        import numpy
+        verify_x=numpy.loadtxt('test/ac_sc_solution')
+        print numpy.linalg.norm(test_x-verify_x)
+        return (numpy.linalg.norm(test_x-verify_x)<1.e-10)
+
+
+    method_options = {'use_PETSc' : True, 'soltype' : 'sharpclaw' }
+    yield(util.build_run_verify, path, target_name, module_name, method_name, verify_acoustics2D_sharpclaw, method_options)
+
+    method_options = {'use_PETSc' : False, 'soltype' : 'sharpclaw' }
+    yield(util.build_run_verify, path, target_name, module_name, method_name, verify_acoustics2D_sharpclaw, method_options)    
 
 #=======================================================
 
@@ -80,7 +96,7 @@ def test_examples():
         return numpy.max(abs(test_x-verify_x))<1.e-14
 
     method_options = {'use_PETSc' : False}
-    yield(util.build_run_verify, path, target_name, module_name, method_name, verify_shockbubble, method_options)
+#    yield(util.build_run_verify, path, target_name, module_name, method_name, verify_shockbubble, method_options)
 
     method_options = {'use_PETSc' : True}
-    yield(util.build_run_verify, path, target_name, module_name, method_name, verify_shockbubble, method_options)
+#    yield(util.build_run_verify, path, target_name, module_name, method_name, verify_shockbubble, method_options)

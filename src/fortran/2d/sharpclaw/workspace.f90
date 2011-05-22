@@ -37,5 +37,21 @@ contains
     end subroutine alloc_workspace
 
 
+    subroutine dealloc_workspace()
+
+        deallocate(amdq)
+        deallocate(apdq)
+        deallocate(amdq2)
+        deallocate(apdq2)
+        deallocate(ql)
+        deallocate(qr)
+        deallocate(wave)
+        deallocate(s)
+
+        deallocate(dtdx)
+
+        work_alloc = .True.
+
+    end subroutine dealloc_workspace
 
 end module
