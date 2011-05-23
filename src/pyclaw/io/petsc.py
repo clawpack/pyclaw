@@ -213,21 +213,16 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
 
         grid.gqVec = PETSc.Vec().load(viewer)
         q = grid.gqVec.getArray().copy()
-        q_dim=(grid.meqn,grid.n[0])
-        if len(grid.n)>=2: 
-            q_dim.append(grid.n[1])
-        if len(grid.n)>=3: 
-            q_dim.append(grid.n[2])
+        q_dim=(grid.meqn)
+        q_dim.extend(grid.n)
         q = q.reshape(q_dim,order='F')
         grid.q = q
         
-        # For the aux array, we store the ghost cell values as well.
-        # Is this a good idea?
         if read_aux:
-            nbc = [x+(2*grid.mbc) for x in grid.n]
-            grid.aux_da = PETSc.DA().create(dim=grid.ndim,
+            grid.aux_da = PETSc.DA().create(
+                dim=grid.ndim,
                 dof=maux, # should be modified to reflect the update
-                sizes=nbc,  #Amal: what about for 2D, 3D
+                sizes=grid.n,  #Amal: what about for 2D, 3D
                 #periodic_type = PETSc.DA.PeriodicType.X,
                 #periodic_type=grid.PERIODIC,
                 #stencil_type=grid.STENCIL,
@@ -235,7 +230,8 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
                 comm=PETSc.COMM_WORLD)
             grid.gauxVec = PETSc.Vec().load(aux_viewer)
             grid.aux = grid.gauxVec.getArray().copy()
-            aux_dim=[maux]; aux_dim.append(grid.n[0]); aux_dim.append(grid.n[1])
+            aux_dim=[maux]; 
+            aux_dim.extend(grid.n)
             grid.aux = grid.aux.reshape(aux_dim,order='F')
         
         # Add AMR attributes:
