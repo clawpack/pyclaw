@@ -41,8 +41,29 @@ Now simply execute ::
     $ cd $PYCLAW
     $ nosetests
 
-If everything is set up correctly, this will compile the Fortran source,
-run a couple of examples, and inform you that the tests passed.
+If everything is set up correctly, this will run all the regression tests (which include pure python code and python/Fortran code) and inform you that the tests passed.
+
+The testing phase can also be performed only on a sub-set of regression tests (e.g. pure python code or python and fortran code, classic clawpack or sharpclaw solver, explicit or implicit time stepping, etc.). This can be accomplished by passing some attributes to nose. The attributes are already defined in the regression tests suite and they are:
+    * solver_type: classic or sharpclaw
+    * kernel_language: python or fortran
+    * petsc: True or False
+    * time_stepping_mode: explicit or implicit
+    * time_stepping_method: ForwardEuler or SSP33 (for the moment)
+    * speed: fast or slow
+
+Both 'time_stepping_mode' and 'time_stepping_method' are actually used in combination with 'solver_type = sharpclaw' because the classic clawpack implements the Lax-Wendroff scheme.
+
+The attributes can be used in the following ways:
+
+    * Logic AND: run only the regression tests that have the listed attributes ::
+    
+        $ nosetests -a attribute-1 = value-1,attribute-2 = value-2,attribute-3 = value-3
+
+    * Logic OR: run the regression tests that have at least one of the listed attributes :: 
+    
+        $ nosetests -a attribute-1 = value-1 -a attribute-2 = value-2 -a attribute-3 = value-3
+
+
 
 Running and plotting an example
 ================================
