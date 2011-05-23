@@ -138,11 +138,11 @@ Installation of mpi4py
 ======================
 `mpi4py <http://mpi4py.scipy.org/docs/usrman/index.html>`_ is a python bindings for MPI. Therefore, make sure that the MPI distributuion used by PETSc and petsc4py in your system is the same one that is used by mpi4py. During the PETSc configuration the option -–download-mpich=1 has been used. The binaries for the mpich used by PETSc can be found in the path $PETSC_DIR/$PETSC_ARCH/bin. This path should also be added to the environment variable PATH in the shell start-up file, i.e.: 
 
-    * for sh, bash, or zsh shells add the following lines to your shell start-up file ::
+    * for sh, bash, or zsh shells add the following line to your shell start-up file ::
         
         $ export PATH=$PETSC_DIR/$PETSC_ARCH/bin:$PATH
 
-    * for csh/tcsh shells add the following lines to your shell start-up file ::
+    * for csh/tcsh shells add the following line to your shell start-up file ::
 
         $ setenv PATH "$PETSC_DIR/$PETSC_ARCH/bin:$PATH"
 
