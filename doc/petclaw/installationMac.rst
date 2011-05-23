@@ -63,14 +63,28 @@ You should get something like
     * Ran 2983 tests in 10.194s
     * OK (KNOWNFAIL=4, SKIP=1) <nose.result.TextTestResult run=2983 errors=0 failures=0>
 
+**NOTE:** Two alternative and easier ways to install numpy are `pip <http://pypi.python.org/pypi/pip>`_ and `easy_install <http://packages.python.org/distribute/easy_install.html>`_, i.e. ::
+    
+    $ cd numpy
+    $ pip install .
 
-**NOTE**:On 2011-05-14 numpy 1.6 has been released. This release has not been tested yet with PetClaw!
+or ::
 
+    $ cd numpy
+    $ easy_install .
+
+
+**NOTE:**:On 2011-05-14 numpy 1.6 has been released. This release has not been tested yet with PetClaw!
+
+
+Installation of the gcc, GNU compiler collection
+================================================
+If you install the Mac OS X developer tools available at `<http://developer.apple.com/mac/>`_, the gcc GNU compiler suite will be installed as part of the package. To download the Mac OS X Developer tools an Apple developer connection login is needed. This can be obtained for free at the same same address.
 
 
 Installation of PETSc
 =====================
-In order to use PetClaw in combination with the implicit time stepping schemes implemented in PETSc the development version of PETSc i needed. PETSc-dev can be obtained using three approaches. Here we use `Mercurial <http://mercurial.selenic.com/>`_ to get it. Look at `<http://www.mcs.anl.gov/petsc/petsc-as/developers/index.html>`_ for more information.
+In order to use PetClaw in combination with the implicit time stepping schemes implemented in PETSc the development version of PETSc is needed. PETSc-dev can be obtained using three approaches. Here we use `Mercurial <http://mercurial.selenic.com/>`_ to get it. Look at `<http://www.mcs.anl.gov/petsc/petsc-as/developers/index.html>`_ for more information.
 
 Do: ::
 
@@ -128,7 +142,7 @@ All the tests cases should pass, i.e. OK should be printed at the screen.
 
 
 
-**NOTE** An alternative easier way to install petsc4py is using `pip <http://pypi.python.org/pypi/pip>`_., i.e. ::
+**NOTE:** An alternative easier way to install petsc4py is using again `pip <http://pypi.python.org/pypi/pip>`_., i.e. ::
     
     $ cd petsc4py-dev
     $ pip install . --user
