@@ -28,10 +28,11 @@ if __name__=="__main__":
 
 # Regression test: 1D acoustics in homogeneous material
 #@attr(testType ='regression')
-@attr(sd='sharpclaw')
+@attr(solver_type='sharpclaw')
 @attr(kernel_language='fortran')
 @attr(petsc=True)
-@attr(ts='implicit')
+@attr(time_stepping_mode='implicit')
+@attr(time_stepping_method='theta')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1a():
     path           = './test/acoustics/1d/homogeneous'
@@ -45,10 +46,10 @@ def test_1D_acoustics_homogeneous_1a():
 
 # Regression test: 1D acoustics in homogeneous material
 #@attr(testType ='regression')
-@attr(sd='classic')
+@attr(solver_type='classic')
 @attr(kernel_language='python')
 @attr(petsc=False)
-@attr(ts='explicit')
+@attr(time_stepping_mode='explicit')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1b():
     path           = './test/acoustics/1d/homogeneous'
@@ -62,10 +63,10 @@ def test_1D_acoustics_homogeneous_1b():
 
 # Regression test: 1D acoustics in homogeneous material
 #@attr(testType ='regression')
-@attr(sd='classic')
+@attr(solver_type='classic')
 @attr(kernel_language='python')
 @attr(petsc=False)
-@attr(ts='explicit')
+@attr(time_stepping_mode='explicit')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1c():
     path           = './test/acoustics/1d/homogeneous'
@@ -78,10 +79,10 @@ def test_1D_acoustics_homogeneous_1c():
 
 # Regression test: 1D acoustics in homogeneous material
 #@attr(testType ='regression')
-@attr(sd='classic')
+@attr(solver_type='classic')
 @attr(kernel_language='fortran')
 @attr(petsc=True)
-@attr(ts='explicit')
+@attr(time_stepping_mode='explicit')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1d():
     path           = './test/acoustics/1d/homogeneous'
@@ -95,10 +96,10 @@ def test_1D_acoustics_homogeneous_1d():
 
 # Regression test: 1D acoustics in homogeneous material
 #@attr(testType ='regression')
-@attr(sd='classic')
+@attr(solver_type='classic')
 @attr(kernel_language='python')
 @attr(petsc=True)
-@attr(ts='explicit')
+@attr(time_stepping_mode='explicit')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1e():
     path           = './test/acoustics/1d/homogeneous'
@@ -110,10 +111,11 @@ def test_1D_acoustics_homogeneous_1e():
 
 # Regression test: 1D acoustics in homogeneous material
 #@attr(testType ='regression')
-@attr(sd='sharpclaw')
+@attr(solver_type='sharpclaw')
 @attr(kernel_language='python')
 @attr(petsc=False)
-@attr(ts='explicit')
+@attr(time_stepping_mode='explicit')
+#@attr(time_stepping_method='')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1f():  
     path           = './test/acoustics/1d/homogeneous'
@@ -127,10 +129,11 @@ def test_1D_acoustics_homogeneous_1f():
 
 # Regression test: 1D acoustics in homogeneous material
 #@attr(testType ='regression')
-@attr(sd='sharpclaw')
+@attr(solver_type='sharpclaw')
 @attr(kernel_language='fortran')
 @attr(petsc=False)
-@attr(ts='explicit')
+@attr(time_stepping_mode='explicit')
+#@attr(time_stepping_method='')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1g():  
     path           = './test/acoustics/1d/homogeneous'
@@ -144,10 +147,11 @@ def test_1D_acoustics_homogeneous_1g():
 
 # Regression test: 1D acoustics in homogeneous material
 #@attr(testType ='regression')
-@attr(sd='sharpclaw')
+@attr(solver_type='sharpclaw')
 @attr(kernel_language='python')
 @attr(petsc=True)
-@attr(ts='explicit')
+@attr(time_stepping_mode='explicit')
+#@attr(time_stepping_method='')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1h():  
     path           = './test/acoustics/1d/homogeneous'
@@ -160,10 +164,11 @@ def test_1D_acoustics_homogeneous_1h():
 
 # Regression test: 1D acoustics in homogeneous material
 #@attr(testType ='regression')
-@attr(sd='sharpclaw')
+@attr(solver_type='sharpclaw')
 @attr(kernel_language='fortran')
 @attr(petsc=True)
-@attr(ts='explicit')
+@attr(time_stepping_mode='explicit')
+#@attr(time_stepping_method='')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1i(): 
     path           = './test/acoustics/1d/homogeneous'
@@ -183,13 +188,14 @@ def test_1D_acoustics_homogeneous_1i():
 #=======================================================
 # Regression test: 2D acoustics in homogeneous material
 #@attr(testType ='regression')
+@attr(solver_type='classic')
 @attr(kernel_language='fortran')
 @attr(petsc=True)
-@attr(ts='explicit')
+@attr(time_stepping_mode='explicit')
 @attr(speed='fast')
 def test_2D_acoustics_homogeneous_1a(): 
     path           = './test/acoustics/2d/homogeneous'
-    target_name = 'classic2.so'
+    target_name    = 'classic2.so'
     module_name    = 'acoustics'
     problem_name   = 'acoustics2D'
 
@@ -202,11 +208,12 @@ def test_2D_acoustics_homogeneous_1a():
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_classic, method_options)
 
 
+# Regression test: 2D acoustics in homogeneous material
 #@attr(testType ='regression')
-@attr(sd='classic')
+@attr(solver_type='classic')
 @attr(kernel_language='fortran')
 @attr(petsc=False)
-@attr(ts='explicit')
+@attr(time_stepping_mode='explicit')
 @attr(speed='fast')
 def test_2D_acoustics_homogeneous_1b(): 
     path           = './test/acoustics/2d/homogeneous'
@@ -223,17 +230,20 @@ def test_2D_acoustics_homogeneous_1b():
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D, method_options)   
 
 
+# Regression test: 2D acoustics in homogeneous material
+#@attr(testType ='regression')
+@attr(solver_type='sharpclaw')
 @attr(kernel_language='fortran')
-@attr(sd='sharpclaw')
 @attr(petsc=True)
-@attr(ts='explicit')
+@attr(time_stepping_mode='explicit')
+#@attr(time_stepping_method='')
 @attr(speed='fast')
 def test_2D_acoustics_homogeneous_1c(): 
     path           = './test/acoustics/2d/homogeneous'
-    target_name = 'sharpclaw2.so'
+    target_name    = 'sharpclaw2.so'
     module_name    = 'acoustics'
     problem_name   = 'acoustics2D'
-    target_name = 'sharpclaw2.so'
+    target_name    = 'sharpclaw2.so'
 
     def verify_acoustics2D_sharpclaw(test_x):
         import numpy
@@ -244,17 +254,20 @@ def test_2D_acoustics_homogeneous_1c():
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_sharpclaw, method_options)
 
 
+# Regression test: 2D acoustics in homogeneous material
+#@attr(testType ='regression')
+@attr(solver_type='sharpclaw')
 @attr(kernel_language='fortran')
-@attr(sd='sharpclaw')
 @attr(petsc=True)
-@attr(ts='explicit')
+@attr(time_stepping_mode='explicit')
+#@attr(time_stepping_method='')
 @attr(speed='fast')
 def test_2D_acoustics_homogeneous_1d(): 
     path           = './test/acoustics/2d/homogeneous'
-    target_name = 'sharpclaw2.so'
+    target_name    = 'sharpclaw2.so'
     module_name    = 'acoustics'
     problem_name   = 'acoustics2D'
-    target_name = 'sharpclaw2.so'
+    target_name    = 'sharpclaw2.so'
 
     def verify_acoustics2D_sharpclaw(test_x):
         import numpy
@@ -268,14 +281,15 @@ def test_2D_acoustics_homogeneous_1d():
 
 # Regression test: 2D acoustics in homogeneous material
 #@attr(testType ='regression')
-#@attr(sd='sharpclaw')
+#@attr(solver_type='sharpclaw')
 #@attr(kernel_language='fortran')
 #@attr(petsc=False)
-#@attr(ts='explicit')
+#@attr(time_stepping_mode='explicit')
+#@attr(time_stepping_method='')
 #@attr(speed='fast')
 def test_2D_shockbubble_1a(): 
     path           = './test/euler/2d'
-    target_name = 'classic2.so'
+    target_name    = 'classic2.so'
     module_name    = 'shockbubble'
     problem_name   = 'shockbubble'
 
@@ -290,10 +304,11 @@ def test_2D_shockbubble_1a():
 
 # Regression test: 2D acoustics in homogeneous material
 #@attr(testType ='regression')
-#@attr(sd='sharpclaw')
+#@attr(solver_type='sharpclaw')
 #@attr(kernel_language='fortran')
 #@attr(petsc=False)
-#@attr(ts='explicit')
+#@attr(time_stepping_mode='explicit')
+#@attr(time_stepping_method='')
 #@attr(speed='fast')
 def test_2D_shockbubble_1b(): 
     path           = './test/euler/2d'
