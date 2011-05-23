@@ -12,7 +12,8 @@ To run PetClaw you'll also need to install
     * `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_  a toolkit for
       parallel scientific computing.  Installation instructions can be found at
       `<http://www.mcs.anl.gov/petsc/petsc-as/documentation/installation.html>`_.
-      The current recommended version is 3.1.
+      The current recommended version is 3.1. We also support PETSc-dev which will be released
+      soon as PETSc 3.2. 
 
     * `petsc4py <http://code.google.com/p/petsc4py/>`_: Python bindings for PETSc.
       The current recommended version is 1.1.2.
@@ -20,6 +21,9 @@ To run PetClaw you'll also need to install
     * `mpi4py <http://mpi4py.scipy.org/docs/usrman/index.html>`_: Python bindings
       for MPI.  This can generally be installed using pip or easy_install as
       detailed here: `<http://mpi4py.scipy.org/docs/usrman/install.html#using-pip-or-easy-install>`_.
+      The current recommended version is 1.2.2.
+
+For detailed instruction on how to install the PetClaw dependencies on a Mac OS X 10.6.x see :ref:`installationDepsPetClawMacOSX`. 
 
 
 Installation
