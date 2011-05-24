@@ -51,7 +51,7 @@ The testing phase can also be performed only on a sub-set of regression tests (e
     * time_stepping_method: ForwardEuler or SSP33 (for the moment)
     * speed: fast or slow
 
-Both 'time_stepping_mode' and 'time_stepping_method' are actually used in combination with 'solver_type = sharpclaw' because the classic clawpack implements the Lax-Wendroff scheme.
+The attribute 'time_stepping_method' is only used in combination with 'solver_type = sharpclaw' because the classic clawpack implements the Lax-Wendroff scheme.
 
 The attributes can be used in the following ways:
 
