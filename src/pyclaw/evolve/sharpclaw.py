@@ -79,10 +79,12 @@ class SharpClawSolver(Solver):
         self._default_attr_values['lim_type'] = 2
         self._default_attr_values['time_integrator'] = 'SSP33'
         self._default_attr_values['char_decomp'] = 0
+        self._default_attr_values['tfluct_solver'] = False
         self._default_attr_values['aux_time_dep'] = False
         self._default_attr_values['src_term'] = False
         self._default_attr_values['kernel_language'] = 'Fortran'
         self._default_attr_values['mbc'] = 3
+        self._default_attr_values['fwave'] = False
         
         # Call general initialization function
         super(SharpClawSolver,self).__init__(data)
@@ -251,9 +253,10 @@ class SharpClawSolver1D(SharpClawSolver):
         from sharpclaw1 import clawparams, workspace, reconstruct
 
         clawparams.ndim          = 1
-        clawparams.lim_type      = 2
-        clawparams.char_decomp   = 0
-        clawparams.tfluct_solver = 0
+        clawparams.lim_type      = self.lim_type
+        clawparams.char_decomp   = self.char_decomp
+        clawparams.tfluct_solver = self.tfluct_solver
+        clawparams.fwave         = self.fwave
         if grid.capa is not None:
             clawparams.mcapa         = 1
         else:
@@ -265,11 +268,12 @@ class SharpClawSolver1D(SharpClawSolver):
         clawparams.xupper[0]=grid.dimensions[0].upper
         clawparams.dx[0]    =grid.d[0]
         clawparams.mthlim   =self.mthlim
+        clawparams.fwave    =self.fwave
 
         mx=grid.q.shape[1]
         mbc=self.mbc
 
-        workspace.alloc_workspace(mx+2*mbc,mbc,grid.meqn,self.mwaves)
+        workspace.alloc_workspace(mx+2*mbc,mbc,grid.meqn,self.mwaves,self.char_decomp)
 
         reconstruct.alloc_recon_workspace(mx+2*mbc,mbc,grid.meqn,self.mwaves,
                                                 clawparams.lim_type,clawparams.char_decomp)
@@ -278,7 +282,7 @@ class SharpClawSolver1D(SharpClawSolver):
         if self.kernel_language=='Fortran':
             from sharpclaw1 import clawparams, workspace, reconstruct
             clawparams.dealloc_clawparams()
-            workspace.dealloc_workspace()
+            workspace.dealloc_workspace(self.char_decomp)
             reconstruct.dealloc_recon_workspace(clawparams.lim_type,clawparams.char_decomp)
 
     # ========== Riemann solver library routines =============================   
@@ -457,9 +461,10 @@ class SharpClawSolver2D(SharpClawSolver):
         from sharpclaw2 import clawparams, workspace, reconstruct
 
         clawparams.ndim          = 2
-        clawparams.lim_type      = 2
-        clawparams.char_decomp   = 0
-        clawparams.tfluct_solver = 0
+        clawparams.lim_type      = self.lim_type
+        clawparams.char_decomp   = self.char_decomp
+        clawparams.tfluct_solver = self.tfluct_solver
+        clawparams.fwave         = self.fwave
         if grid.capa is not None:
             clawparams.mcapa         = 1
         else:

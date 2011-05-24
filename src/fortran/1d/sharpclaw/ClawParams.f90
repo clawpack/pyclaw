@@ -5,8 +5,9 @@ module ClawParams
   integer :: ndim, mwaves, mcapa
 
 ! Method-related parameters:
-  integer :: tfluct_solver,char_decomp,lim_type,multid_recon
+  integer :: char_decomp,lim_type,multid_recon
   integer, allocatable :: mthlim(:)
+  logical :: fwave, tfluct_solver
 
 contains
 
