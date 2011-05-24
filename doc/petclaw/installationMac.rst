@@ -15,8 +15,8 @@ The following softwares will be installed:
       The current recommended version is 1.2.2.
 
 
-Installation of python 2.7 
-==========================
+Installation of python 
+======================
 Enthought python 2.7 academic distribution is considered in this notes. However, other python distributions also work fine. 
 
 At the time of writing this document the most recent stable release is EPD-7.0-2. Download 32- or 64-bit Enthought python distribution from: `<http://download.enthought.com/academic-epd-7.0/>`_.
@@ -29,8 +29,8 @@ Then,
 The installer will install EPD Python 2.7 in your system (typically in /Library/Frameworks/EPD64.framework/) and it will set the path for EPD-7.0-2.
 
 
-Installation of Numpy 1.5 or 1.5.1 
-==================================
+Installation of numpy 
+=====================
 Enthought Python 2.7 comes already with numpy 1.5.1 (see `EPDChangelog <http://www.enthought.com/EPDChangelog.html>`_) which is one of the supported and recommended version for PetClaw. If you have a different Python distribution check if you have numpy 1.5 or 1.5.1 or 1.6.In case you need to install it, you can use three approaches:
 
     * Download and install manually the source file: ::
@@ -65,8 +65,8 @@ You should get something like
     * OK (KNOWNFAIL=4, SKIP=1) <nose.result.TextTestResult run=2983 errors=0 failures=0>
 
 
-Installation of the gcc, GNU compiler collection
-================================================
+Installation of the gcc (GNU compiler collection)
+=================================================
 If you install the Mac OS X developer tools available at `<http://developer.apple.com/mac/>`_, the gcc GNU compiler suite will be installed as part of the package. To download the Mac OS X Developer tools an Apple developer connection login is needed. This can be obtained for free at the same address.
 
 
