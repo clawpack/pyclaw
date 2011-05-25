@@ -71,6 +71,10 @@ in review.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
+minmod = 1
+superbee = 2
+vanleer = 3
+MC = 4
 
 import numpy as np
 

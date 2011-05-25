@@ -39,7 +39,8 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
     solver.kernel_language=kernel_language
     if kernel_language=='Python': solver.set_riemann_solver('acoustics')
  
-    solver.mthlim = [4]*solver.mwaves
+    from pyclaw.evolve import limiters
+    solver.mthlim = limiters.MC
 
     #========================================================================
     # Instantiate the grid
@@ -86,7 +87,6 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
 
     claw.solutions['n'] = Solution(grid)
     claw.solver = solver
-    print claw.output_format
 
     claw.nout = 10
     claw.outdir = outdir
