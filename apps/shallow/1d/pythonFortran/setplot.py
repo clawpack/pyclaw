@@ -23,7 +23,7 @@ def setplot(plotdata):
     
 
     # Figure for q[0]
-    plotfigure = plotdata.new_plotfigure(name='q[0]', figno=0)
+    plotfigure = plotdata.new_plotfigure(name='Water height', figno=0)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
@@ -40,7 +40,7 @@ def setplot(plotdata):
     
 
     # Figure for q[1]
-    plotfigure = plotdata.new_plotfigure(name='q[1]', figno=1)
+    plotfigure = plotdata.new_plotfigure(name='Momentum', figno=1)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()

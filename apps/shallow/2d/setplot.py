@@ -45,7 +45,7 @@ def setplot(plotdata):
     
 
     # Scatter plot of q[0]
-    plotfigure = plotdata.new_plotfigure(name='Scatter', figno=1)
+    plotfigure = plotdata.new_plotfigure(name='Scatter plot of h', figno=1)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
@@ -66,22 +66,15 @@ def setplot(plotdata):
     plotitem.map_2d_to_1d = q_vs_radius
     plotitem.plotstyle = 'o'
 
-    # Plot the 1drad solution on scatter plot:
-    #plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
-    #plotitem.plot_var = 0
-    #import os
-    #plotitem.outdir = os.path.abspath('1dRadialSymm/_output')
-    #plotitem.plotstyle = 'r-'
-
 
     # Figure for q[1]
-    plotfigure = plotdata.new_plotfigure(name='q[1]', figno=2)
+    plotfigure = plotdata.new_plotfigure(name='Momentum in x direction', figno=2)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.xlimits = [-2.5, 2.5]
     plotaxes.ylimits = [-2.5, 2.5]
-    plotaxes.title = 'Momentum'
+    plotaxes.title = 'Momentum in x direction'
     plotaxes.scaled = True
 
     # Set up for item on these axes:
@@ -93,13 +86,13 @@ def setplot(plotdata):
     
 
     # Figure for q[2]
-    plotfigure = plotdata.new_plotfigure(name='q[2]', figno=3)
+    plotfigure = plotdata.new_plotfigure(name='Momentum in y direction', figno=3)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.xlimits = [-2.5, 2.5]
     plotaxes.ylimits = [-2.5, 2.5]
-    plotaxes.title = 'q[2]'
+    plotaxes.title = 'Momentum in y direction'
     plotaxes.scaled = True
 
     # Set up for item on these axes:
