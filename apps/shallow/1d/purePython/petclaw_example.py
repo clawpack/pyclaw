@@ -22,14 +22,7 @@ from petclaw import plot
 
 def qinit(grid):
     """Simple shallow water Riemann problem initial condition"""
-    
-    # Initial condition paramters
-    # hl = grid.aux_global['hl']
-    # hr = grid.aux_global['hr']
-    # ul = grid.aux_global['ul']
-    # ur = grid.aux_global['ur']
-    # sloc = grid.aux_global['sloc']
-    
+        
     # Grid
     q=np.zeros([grid.meqn,grid.n[0]],order='F')
     q[0,:] = hl * (grid.p_center[0] <= sloc) + hr * (grid.p_center[0] > sloc)
@@ -57,7 +50,9 @@ qinit(grid)
 init_solution = Solution(grid)
 
 # Solver setup
-solver = PetClawSolver1D(kernelsType='P')
+kernel_language='Python'
+solver = PetClawSolver1D()
+solver.kernel_language=kernel_language
 solver.dt = 0.1
 solver.max_steps = 500
 solver.mwaves = 2
@@ -68,8 +63,8 @@ solver.mthlim = [3]*solver.mwaves
 # Controller instantiation
 claw = Controller()
 claw.outdir = './_output'
-claw.keep_copy = False
-claw.output_format = 'petsc'
+claw.keep_copy = True
+#claw.output_format = 'petsc'
 claw.nout = 5
 claw.outstyle = 1
 claw.tfinal = 2.0
@@ -81,10 +76,11 @@ status = claw.run()
 
 iplot=True
 
-if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
-if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
-
 # Plot
+if htmlplot:  plot.plotHTML(outdir=claw.outdir,format=claw.output_format)
+if iplot:     plot.plotInteractive(outdir=claw.outdir,format=claw.output_format)
+
+
 if claw.keep_copy:
     import matplotlib.pyplot as plt
     for n in xrange(0,claw.nout+1):
