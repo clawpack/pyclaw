@@ -13,19 +13,19 @@ def setplot(plotdata):
     
     """ 
     Specify what is to be plotted at each frame.
-    Input:  plotdata, an instance of pyclaw.plotters.data.ClawPlotData.
+    Input:  plotdata, an instance of visclaw.plotters.data.ClawPlotData.
     Output: a modified version of plotdata.
     
     """ 
 
 
-    from pyclaw.plotters import colormaps
+    from visclaw.plotters import colormaps
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
     
 
     # Figure for q[0]
-    plotfigure = plotdata.new_plotfigure(name='q[0]', figno=0)
+    plotfigure = plotdata.new_plotfigure(name='Water height', figno=0)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
@@ -45,7 +45,7 @@ def setplot(plotdata):
     
 
     # Scatter plot of q[0]
-    plotfigure = plotdata.new_plotfigure(name='Scatter', figno=10)
+    plotfigure = plotdata.new_plotfigure(name='Scatter', figno=1)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
@@ -75,7 +75,7 @@ def setplot(plotdata):
 
 
     # Figure for q[1]
-    plotfigure = plotdata.new_plotfigure(name='q[1]', figno=1)
+    plotfigure = plotdata.new_plotfigure(name='q[1]', figno=2)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
@@ -93,7 +93,7 @@ def setplot(plotdata):
     
 
     # Figure for q[2]
-    plotfigure = plotdata.new_plotfigure(name='q[2]', figno=2)
+    plotfigure = plotdata.new_plotfigure(name='q[2]', figno=3)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
