@@ -79,6 +79,12 @@ class Solver(object):
     :Version: 1.0 (2008-08-19)
     """
     
+    #Enumeration of boundary condition names
+    custom     = 0
+    outflow    = 1
+    periodic   = 2
+    reflecting = 3
+
     # Note that some of these names are for compatibility with the claw.data
     # files and the data objects, they are not actually required and do not
     # exist past initialization
@@ -207,39 +213,37 @@ class Solver(object):
         approprate dimension.  Valid values for :attr:`mthbc_lower` and 
         :attr:`mthbc_upper` include:
         
-        0. A user defined boundary condition will be used, the appropriate 
-           Dimension method user_bc_lower or user_bc_upper will be called
-        1. Zero-order extrapolation
-        2. Periodic boundary conditions
-        3. Wall boundary conditions, it is assumed that the second equation
-           represents velocity or momentum
+        'custom'     or 0: A user defined boundary condition will be used, the appropriate 
+           Dimension method user_bc_lower or user_bc_upper will be called.
+        'outflow'    or 1: Zero-order extrapolation.
+        'periodic'   or 2: Periodic boundary conditions.
+        'reflecting' or 3: Wall boundary conditions. It is assumed that the second 
+           component of q represents velocity or momentum.
     
         :Output:
          - (ndarray(...,meqn)) q array with boundary ghost cells added and set
          
         .. note:: 
-            Note that for user defined boundary conditions, the array sent to
+
+            Note that for user-defined boundary conditions, the array sent to
             the boundary condition has not been rolled. 
         """
         
         import numpy as np
 
-        q=state.q
-        t=state.t
-
-        qbc=self.append_ghost_cells(grid,state,q)
+        qbc=self.append_ghost_cells(grid,state,state.q)
        
         for (i,dim) in enumerate(grid.dimensions):
             # If a user defined boundary condition is being used, send it on,
             # otherwise roll the axis to front position and operate on it
             if dim.mthbc_lower == 0:
-                self.qbc_lower(grid,dim,t,qbc)
+                self.qbc_lower(grid,dim,state.t,qbc)
             else:
-                self.qbc_lower(grid,dim,t,np.rollaxis(qbc,i+1,1))
+                self.qbc_lower(grid,dim,state.t,np.rollaxis(qbc,i+1,1))
             if dim.mthbc_upper == 0:
-                self.qbc_upper(grid,dim,t,qbc)
+                self.qbc_upper(grid,dim,state.t,qbc)
             else:
-                self.qbc_upper(grid,dim,t,np.rollaxis(qbc,i+1,1))
+                self.qbc_upper(grid,dim,state.t,np.rollaxis(qbc,i+1,1))
             
         return qbc
 
@@ -265,14 +269,14 @@ class Solver(object):
         import numpy as np
 
         # User defined functions
-        if dim.mthbc_lower == 0: self.user_bc_lower(grid,dim,qbc)
+        if dim.mthbc_lower == self.custom: self.user_bc_lower(grid,dim,qbc)
         # Zero-order extrapolation
-        elif dim.mthbc_lower == 1:
+        elif dim.mthbc_lower in ('self.outflow',1):
             if dim.nstart == 0:
                 for i in xrange(self.mbc):
                     qbc[:,i,...] = qbc[:,self.mbc,...]
         # Periodic
-        elif dim.mthbc_lower == 2:
+        elif dim.mthbc_lower == self.periodic:
             if dim.nstart == 0 and dim.nend==dim.n:
                 # This process owns the whole grid
                 qbc[:,:self.mbc,...] = qbc[:,-2*self.mbc:-self.mbc,...]
@@ -280,7 +284,7 @@ class Solver(object):
                 pass #Handled automatically by PETSc
             
         # Solid wall bc
-        elif dim.mthbc_lower == 3:
+        elif dim.mthbc_lower == self.reflecting:
              if dim.nstart == 0:
                 if grid.ndim == 1:
                     for i in xrange(self.mbc):
@@ -291,10 +295,12 @@ class Solver(object):
                          for i in xrange(self.mbc):
                              qbc[:,i,...] = qbc[:,self.mbc+1-i,...]
                              qbc[1,i,...] = -qbc[1,self.mbc+1-i,...] # Negate normal velocity
-                     else: # lower boundary in the y direction
+                     elif dim.name=='y': # lower boundary in the y direction
                          for i in xrange(self.mbc):
                              qbc[:,i,...] = qbc[:,self.mbc+1-i,...]
                              qbc[2,i,...] = -qbc[2,self.mbc+1-i,...]  # Negate normal velocity
+                     else:
+                         raise Exception("No built-in reflecting BCs unless your dimensions are named x and y; this dimension is named %s" % dim.name)
               
                 else:
                     raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
@@ -322,14 +328,15 @@ class Solver(object):
         """
  
         # User defined functions
-        if dim.mthbc_upper == 0: self.user_bc_upper(grid,dim,qbc)
+        if dim.mthbc_upper == self.custom:
+            self.user_bc_upper(grid,dim,qbc)
         # Zero-order extrapolation
-        elif dim.mthbc_upper == 1:
+        elif dim.mthbc_upper == self.outflow:
             if dim.nend == dim.n :
                 for i in xrange(self.mbc):
                     qbc[:,-i-1,...] = qbc[:,-self.mbc-1,...] 
  	    
-        elif dim.mthbc_upper == 2:
+        elif dim.mthbc_upper == self.periodic:
             # Periodic
             if dim.nstart == 0 and dim.nend==dim.n:
                 # This process owns the whole grid
@@ -338,7 +345,7 @@ class Solver(object):
                 pass # this is implemented automatically by petsc4py
 
         # Solid wall bc
-        elif dim.mthbc_upper == 3:
+        elif dim.mthbc_upper == self.reflecting:
             if dim.nend == dim.n:
                 if grid.ndim == 1:
                     for i in xrange(self.mbc):
@@ -349,10 +356,12 @@ class Solver(object):
                          for i in xrange(self.mbc):
                              qbc[:,-i-1,...] = qbc[:,-self.mbc-2+i,...]
                              qbc[1,-i-1,...] = -qbc[1,-self.mbc-2+i,...] # Negate normal velocity
-                     else: # upper boundary in the y direction
+                     elif dim.name == 'y': # upper boundary in the y direction
                          for i in xrange(self.mbc):
                              qbc[:,-i-1,...] = qbc[:,-self.mbc-2+i,...]
                              qbc[2,-i-1,...] = -qbc[2,-self.mbc-2+i,...] # Negate normal velocity
+                     else:
+                         raise Exception("No built-in reflecting BCs unless your dimensions are named x and y; this dimension is named %s" % dim.name)
               
                 else:
                     raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)

@@ -243,6 +243,12 @@ class SharpClawSolver1D(SharpClawSolver):
         for i in range(nregisters-1):
             self.rk_stages.append(RKStage(grid))
 
+        #Set up mthlim array
+        if not isinstance(self.mthlim,list): self.mthlim=[self.mthlim]
+        if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
+        if len(self.mthlim)!=self.mwaves:
+            raise Exception('Length of solver.mthlim is not 1 nor is it equal to solver.mwaves')
+ 
         if self.kernel_language=='Fortran':
             self.set_fortran_parameters(grid)
 
@@ -450,6 +456,12 @@ class SharpClawSolver2D(SharpClawSolver):
         for i in range(nregisters-1):
             self.rk_stages.append(RKStage(grid))
 
+        #Set up mthlim array
+        if not isinstance(self.mthlim,list): self.mthlim=[self.mthlim]
+        if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
+        if len(self.mthlim)!=self.mwaves:
+            raise Exception('Length of solver.mthlim is not 1 nor is it equal to solver.mwaves')
+ 
         if self.kernel_language=='Fortran':
             self.set_fortran_parameters(grid)
 
