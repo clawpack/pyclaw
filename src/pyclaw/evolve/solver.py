@@ -288,17 +288,17 @@ class Solver(object):
              if dim.nstart == 0:
                 if grid.ndim == 1:
                     for i in xrange(self.mbc):
-                        qbc[:,i,...] = qbc[:,self.mbc+1-i,...]
-                        qbc[1,i,...] = -qbc[1,self.mbc+1-i,...] # Negate normal velocity
+                        qbc[:,i,...] = qbc[:,2*self.mbc-1-i,...]
+                        qbc[1,i,...] = -qbc[1,2*self.mbc-1-i,...] # Negate normal velocity
                 elif grid.ndim == 2:
                      if dim.name == 'x':  # left boundary in the x direction
                          for i in xrange(self.mbc):
-                             qbc[:,i,...] = qbc[:,self.mbc+1-i,...]
-                             qbc[1,i,...] = -qbc[1,self.mbc+1-i,...] # Negate normal velocity
+                             qbc[:,i,...] = qbc[:,2*self.mbc-1-i,...]
+                             qbc[1,i,...] = -qbc[1,2*self.mbc-1-i,...] # Negate normal velocity
                      elif dim.name=='y': # lower boundary in the y direction
                          for i in xrange(self.mbc):
-                             qbc[:,i,...] = qbc[:,self.mbc+1-i,...]
-                             qbc[2,i,...] = -qbc[2,self.mbc+1-i,...]  # Negate normal velocity
+                             qbc[:,i,...] = qbc[:,2*self.mbc-1-i,...]
+                             qbc[2,i,...] = -qbc[2,2*self.mbc-1-i,...]  # Negate normal velocity
                      else:
                          raise Exception("No built-in reflecting BCs unless your dimensions are named x and y; this dimension is named %s" % dim.name)
               
@@ -349,17 +349,17 @@ class Solver(object):
             if dim.nend == dim.n:
                 if grid.ndim == 1:
                     for i in xrange(self.mbc):
-                        qbc[:,-i-1,...] = qbc[:,-self.mbc-2+i,...]
-                        qbc[1,-i-1,...] = -qbc[1,-self.mbc-2+i,...] # Negate normal velocity
+                        qbc[:,-i-1,...] = qbc[:,-2*self.mbc+i,...]
+                        qbc[1,-i-1,...] = -qbc[1,-2*self.mbc+i,...] # Negate normal velocity
                 elif grid.ndim == 2:
                      if dim.name == 'x': # right boundary in the x direction
                          for i in xrange(self.mbc):
-                             qbc[:,-i-1,...] = qbc[:,-self.mbc-2+i,...]
-                             qbc[1,-i-1,...] = -qbc[1,-self.mbc-2+i,...] # Negate normal velocity
+                             qbc[:,-i-1,...] = qbc[:,-2*self.mbc+i,...]
+                             qbc[1,-i-1,...] = -qbc[1,-2*self.mbc+i,...] # Negate normal velocity
                      elif dim.name == 'y': # upper boundary in the y direction
                          for i in xrange(self.mbc):
-                             qbc[:,-i-1,...] = qbc[:,-self.mbc-2+i,...]
-                             qbc[2,-i-1,...] = -qbc[2,-self.mbc-2+i,...] # Negate normal velocity
+                             qbc[:,-i-1,...] = qbc[:,-2*self.mbc+i,...]
+                             qbc[2,-i-1,...] = -qbc[2,-2*self.mbc+i,...] # Negate normal velocity
                      else:
                          raise Exception("No built-in reflecting BCs unless your dimensions are named x and y; this dimension is named %s" % dim.name)
               
