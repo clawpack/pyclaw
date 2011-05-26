@@ -76,6 +76,12 @@ class PetSharpClawSolver1D(PetSolver,SharpClawSolver1D):
         for i in range(nregisters-1):
             self.rk_stages.append(RKStageState(grid))
 
+        #Set up mthlim array
+        if not isinstance(self.mthlim,list): self.mthlim=[self.mthlim]
+        if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
+        if len(self.mthlim)!=self.mwaves:
+            raise Exception('Length of solver.mthlim is not 1 nor is it equal to solver.mwaves')
+ 
         if self.kernel_language=='Fortran':
             import sharpclaw1
             grid.set_cparam(sharpclaw1)
@@ -103,6 +109,12 @@ class PetSharpClawSolver2D(PetSolver,SharpClawSolver2D):
         for i in range(nregisters-1):
             self.rk_stages.append(RKStageState(grid))
 
+        #Set up mthlim array
+        if not isinstance(self.mthlim,list): self.mthlim=[self.mthlim]
+        if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
+        if len(self.mthlim)!=self.mwaves:
+            raise Exception('Length of solver.mthlim is not 1 nor is it equal to solver.mwaves')
+ 
         if self.kernel_language=='Fortran':
             import sharpclaw1
             grid.set_cparam(sharpclaw1)
