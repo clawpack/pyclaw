@@ -205,6 +205,37 @@ class SharpClawSolver(Solver):
         return deltaq.flatten('f')
 
 
+    def set_fortran_parameters(self,grid,clawparams,workspace,reconstruct):
+        """
+        Set parameters for Fortran modules used by SharpClaw.
+        The modules should be imported and passed as arguments to this function.
+
+        """
+        clawparams.ndim          = grid.ndim
+        clawparams.lim_type      = self.lim_type
+        clawparams.char_decomp   = self.char_decomp
+        clawparams.tfluct_solver = self.tfluct_solver
+        clawparams.fwave         = self.fwave
+        if grid.capa is not None:
+            clawparams.mcapa         = 1
+        else:
+            clawparams.mcapa         = 0
+
+        clawparams.mwaves        = self.mwaves
+        clawparams.alloc_clawparams()
+        for idim in range(grid.ndim):
+            clawparams.xlower[idim]=grid.dimensions[idim].lower
+            clawparams.xupper[idim]=grid.dimensions[idim].upper
+        clawparams.dx       =grid.d
+        clawparams.mthlim   =self.mthlim
+
+        maxnx = max(grid.n)
+        workspace.alloc_workspace(maxnx,self.mbc,grid.meqn,self.mwaves,self.char_decomp)
+        reconstruct.alloc_recon_workspace(maxnx,self.mbc,grid.meqn,self.mwaves,
+                                            clawparams.lim_type,clawparams.char_decomp)
+
+
+
 # ========================================================================
 class SharpClawSolver1D(SharpClawSolver):
 # ========================================================================
@@ -246,37 +277,8 @@ class SharpClawSolver1D(SharpClawSolver):
             self.rk_stages.append(RKStage(grid))
 
         if self.kernel_language=='Fortran':
-            self.set_fortran_parameters(grid)
-
-    def set_fortran_parameters(self,grid):
-
-        from sharpclaw1 import clawparams, workspace, reconstruct
-
-        clawparams.ndim          = 1
-        clawparams.lim_type      = self.lim_type
-        clawparams.char_decomp   = self.char_decomp
-        clawparams.tfluct_solver = self.tfluct_solver
-        clawparams.fwave         = self.fwave
-        if grid.capa is not None:
-            clawparams.mcapa         = 1
-        else:
-            clawparams.mcapa         = 0
-
-        clawparams.mwaves        = self.mwaves
-        clawparams.alloc_clawparams()
-        clawparams.xlower[0]=grid.dimensions[0].lower
-        clawparams.xupper[0]=grid.dimensions[0].upper
-        clawparams.dx[0]    =grid.d[0]
-        clawparams.mthlim   =self.mthlim
-        clawparams.fwave    =self.fwave
-
-        mx=grid.q.shape[1]
-        mbc=self.mbc
-
-        workspace.alloc_workspace(mx+2*mbc,mbc,grid.meqn,self.mwaves,self.char_decomp)
-
-        reconstruct.alloc_recon_workspace(mx+2*mbc,mbc,grid.meqn,self.mwaves,
-                                                clawparams.lim_type,clawparams.char_decomp)
+            from sharpclaw1 import clawparams, workspace, reconstruct
+            self.set_fortran_parameters(grid,clawparams,workspace,reconstruct)
 
     def teardown(self):
         if self.kernel_language=='Fortran':
@@ -455,39 +457,13 @@ class SharpClawSolver2D(SharpClawSolver):
             self.rk_stages.append(RKStage(grid))
 
         if self.kernel_language=='Fortran':
-            self.set_fortran_parameters(grid)
-
-    def set_fortran_parameters(self,grid):
-        from sharpclaw2 import clawparams, workspace, reconstruct
-
-        clawparams.ndim          = 2
-        clawparams.lim_type      = self.lim_type
-        clawparams.char_decomp   = self.char_decomp
-        clawparams.tfluct_solver = self.tfluct_solver
-        clawparams.fwave         = self.fwave
-        if grid.capa is not None:
-            clawparams.mcapa         = 1
-        else:
-            clawparams.mcapa         = 0
-
-        clawparams.mwaves        = self.mwaves
-        clawparams.alloc_clawparams()
-        clawparams.xlower[0]=grid.dimensions[0].lower
-        clawparams.xupper[0]=grid.dimensions[0].upper
-        clawparams.xlower[1]=grid.dimensions[1].lower
-        clawparams.xupper[1]=grid.dimensions[1].upper
-        clawparams.dx       =grid.d
-        clawparams.mthlim   =self.mthlim
-
-        workspace.alloc_workspace(grid.n[0],grid.n[1],self.mbc,grid.meqn,self.mwaves)
-
-        reconstruct.alloc_recon_workspace(grid.n,self.mbc,grid.meqn,self.mwaves,
-                                            clawparams.lim_type,clawparams.char_decomp)
+            from sharpclaw2 import clawparams, workspace, reconstruct
+            self.set_fortran_parameters(grid,clawparams,workspace,reconstruct)
 
     def teardown(self):
         if self.kernel_language=='Fortran':
             from sharpclaw2 import clawparams, workspace, reconstruct
-            workspace.dealloc_workspace()
+            workspace.dealloc_workspace(self.char_decomp)
             reconstruct.dealloc_recon_workspace(clawparams.lim_type,clawparams.char_decomp)
             clawparams.dealloc_clawparams()
 
