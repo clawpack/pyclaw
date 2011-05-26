@@ -16,10 +16,8 @@ module workspace
 
 contains
 
-    subroutine alloc_workspace(mx,my,mbc,meqn,mwaves)
-        integer,intent(in) :: mx,my,mbc,meqn,mwaves
-
-        maxnx = max(mx,my)
+    subroutine alloc_workspace(maxnx,mbc,meqn,mwaves,char_decomp)
+        integer,intent(in) :: maxnx,mbc,meqn,mwaves,char_decomp
 
         allocate(amdq(meqn,1-mbc:maxnx+mbc))
         allocate(apdq(meqn,1-mbc:maxnx+mbc))
@@ -29,15 +27,19 @@ contains
         allocate(qr(meqn,1-mbc:maxnx+mbc))
         allocate(wave(meqn,mwaves,1-mbc:maxnx+mbc))
         allocate(s(mwaves,1-mbc:maxnx+mbc))
-
         allocate(dtdx(1-mbc:maxnx+mbc))
 
+        if (char_decomp>1) then
+            allocate(evl(meqn,meqn,1-mbc:maxnx+mbc))
+            allocate(evr(meqn,meqn,1-mbc:maxnx+mbc))
+        endif
+            
         work_alloc = .True.
 
     end subroutine alloc_workspace
 
 
-    subroutine dealloc_workspace()
+    subroutine dealloc_workspace(char_decomp)
 
         deallocate(amdq)
         deallocate(apdq)
@@ -47,8 +49,12 @@ contains
         deallocate(qr)
         deallocate(wave)
         deallocate(s)
-
         deallocate(dtdx)
+
+        if (char_decomp>1) then
+            deallocate(evl)
+            deallocate(evr)
+        endif
 
         work_alloc = .True.
 
