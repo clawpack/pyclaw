@@ -77,6 +77,8 @@ class PetSharpClawSolver1D(PetSolver,SharpClawSolver1D):
             self.rk_stages.append(RKStageState(grid))
 
         if self.kernel_language=='Fortran':
+            import sharpclaw1
+            grid.set_cparam(sharpclaw1)
             from sharpclaw1 import clawparams, workspace, reconstruct
             self.set_fortran_parameters(grid,clawparams,workspace,reconstruct)
 
@@ -102,5 +104,7 @@ class PetSharpClawSolver2D(PetSolver,SharpClawSolver2D):
             self.rk_stages.append(RKStageState(grid))
 
         if self.kernel_language=='Fortran':
+            import sharpclaw1
+            grid.set_cparam(sharpclaw1)
             from sharpclaw2 import clawparams, workspace, reconstruct
             self.set_fortran_parameters(grid,clawparams,workspace,reconstruct)

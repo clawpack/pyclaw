@@ -54,23 +54,14 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
     grid.aux_global['bulk']=bulk
     grid.aux_global['zz']=np.sqrt(rho*bulk)
     grid.aux_global['cc']=np.sqrt(rho/bulk)
-    if kernel_language=='Fortran':
-        if soltype=='classic':
-            from classic1 import cparam 
-        elif soltype=='sharpclaw':
-            from sharpclaw1 import cparam
-        for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
-
 
     #========================================================================
     # Set the initial condition
     #========================================================================
     xc=grid.x.center
-    q=np.zeros([grid.meqn,len(xc)], order = 'F')
+    grid.zeros_q()
     beta=100; gamma=0; x0=0.75
-    q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
-    q[1,:]=0.
-    grid.q=q
+    grid.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
     
     #========================================================================
     # Set up the controller object

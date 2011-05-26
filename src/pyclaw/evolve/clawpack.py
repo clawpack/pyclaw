@@ -298,6 +298,9 @@ class ClawSolver1D(ClawSolver):
 
         # Grid we will be working on
         grid = solutions['n'].grids[0]
+        import classic1
+        grid.set_cparam(classic1)
+
         # Number of equations
         meqn,maux,mwaves,mbc = grid.meqn,grid.maux,self.mwaves,self.mbc
         mx = grid.q.shape[1]
@@ -511,50 +514,57 @@ class ClawSolver2D(ClawSolver):
         in this routine. These arrays are passed in each call to the fortran kernel dimsp2.
         """
 
-        import numpy as np
-
-        # Grid we will be working on
-        grid = solutions['n'].grids[0]
-        # Number of equations
-        meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,self.mbc,grid.aux
-        maxmx,maxmy = grid.q.shape[1],grid.q.shape[2]
-        maxm = max(maxmx, maxmy)
-        if self.src_split < 2: narray = 1
-        else: narray = 2
-
         #Set up mthlim array
         if not isinstance(self.mthlim,list): self.mthlim=[self.mthlim]
         if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
         if len(self.mthlim)!=self.mwaves:
             raise Exception('Length of solver.mthlim is not 1 nor is it equal to solver.mwaves')
  
-        #We ought to put method and cflv and many other things in a Fortran
-        #module and set the fortran variables directly here.
-        self.method =np.ones(7, dtype=int)
-        self.method[0] = self.dt_variable
-        self.method[1] = self.order
-        self.method[2] = -1  # only dimensional splitting for now
-        self.method[3] = self.verbosity
-        self.method[4] = self.src_split  # src term
-
-        if (grid.capa == None): 
-            self.method[5] = 0
-        else: 
-            self.method[5] = 1  
-        self.method[6] = maux
-            
-        self.cflv = np.zeros(4)
-        self.cflv[0:2] = [self.cfl_max,self.cfl_desired]
-        #cflv[2] and cflv[3] are output values.
-
-
-        #The following is a hack to work around an issue
-        #with f2py.  It involves wastefully allocating a three arrays.
-        #f2py seems not able to handle multiple zero-size arrays being passed.
-        # it appears the bug is related to f2py/src/fortranobject.c line 841.
-        if(aux == None): maux=1
 
         if(self.kernel_language == 'Fortran'):
+            import numpy as np
+
+            # Grid we will be working on
+            grid = solutions['n'].grids[0]
+
+            import classic2
+            grid.set_cparam(classic2)
+
+            # Number of equations
+            meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,self.mbc,grid.aux
+            maxmx,maxmy = grid.q.shape[1],grid.q.shape[2]
+            maxm = max(maxmx, maxmy)
+
+            #We ought to put method and cflv and many other things in a Fortran
+            #module and set the fortran variables directly here.
+            self.method =np.ones(7, dtype=int)
+            self.method[0] = self.dt_variable
+            self.method[1] = self.order
+            self.method[2] = -1  # only dimensional splitting for now
+            self.method[3] = self.verbosity
+            self.method[4] = self.src_split  # src term
+
+            if (grid.capa == None): 
+                self.method[5] = 0
+            else: 
+                self.method[5] = 1  
+            self.method[6] = maux
+                
+            self.cflv = np.zeros(4)
+            self.cflv[0:2] = [self.cfl_max,self.cfl_desired]
+            #cflv[2] and cflv[3] are output values.
+
+            #The following is a hack to work around an issue
+            #with f2py.  It involves wastefully allocating a three arrays.
+            #f2py seems not able to handle multiple zero-size arrays being passed.
+            # it appears the bug is related to f2py/src/fortranobject.c line 841.
+            if(aux == None): maux=1
+
+            if self.src_split < 2: narray = 1
+            else: narray = 2
+
+            # These work arrays really ought to live inside a fortran module
+            # as is done for sharpclaw
             self.qadd = np.empty((meqn,maxm+2*mbc))
             self.fadd = np.empty((meqn,maxm+2*mbc))
             self.gadd = np.empty((meqn,2,maxm+2*mbc))

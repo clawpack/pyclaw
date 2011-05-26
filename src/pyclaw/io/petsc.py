@@ -134,7 +134,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
      - *path* - (string) Path to the current directory of the file
      - *file_prefix* - (string) Prefix of the files to be read in.  
        ``default = 'fort'``
-     - *read_aux* (bool) Whether or not an auxillary file will try to be read 
+     - *read_aux* (bool) Whether or not an auxiliary file will try to be read 
        in.  ``default = False``
      - *options* - (dict) Optional argument dictionary, see 
        `PETScIO Option Table`_
@@ -170,6 +170,8 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     ndim     = value_dict['ndim']
     maux     = value_dict['maux']
 
+    if maux == 0:
+        read_aux = False
     # now set up the PETSc viewer
     if options['format'] == 'ascii':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.READ)
@@ -213,7 +215,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
 
         grid.gqVec = PETSc.Vec().load(viewer)
         q = grid.gqVec.getArray().copy()
-        q_dim=(grid.meqn)
+        q_dim=[grid.meqn]
         q_dim.extend(grid.n)
         q = q.reshape(q_dim,order='F')
         grid.q = q

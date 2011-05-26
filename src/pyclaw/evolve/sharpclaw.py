@@ -229,7 +229,7 @@ class SharpClawSolver(Solver):
         clawparams.dx       =grid.d
         clawparams.mthlim   =self.mthlim
 
-        maxnx = max(grid.n)
+        maxnx = max(grid.q.shape[1:])+2*self.mbc
         workspace.alloc_workspace(maxnx,self.mbc,grid.meqn,self.mwaves,self.char_decomp)
         reconstruct.alloc_recon_workspace(maxnx,self.mbc,grid.meqn,self.mwaves,
                                             clawparams.lim_type,clawparams.char_decomp)
@@ -284,6 +284,8 @@ class SharpClawSolver1D(SharpClawSolver):
  
         if self.kernel_language=='Fortran':
             from sharpclaw1 import clawparams, workspace, reconstruct
+            import sharpclaw1
+            grid.set_cparam(sharpclaw1)
             self.set_fortran_parameters(grid,clawparams,workspace,reconstruct)
 
     def teardown(self):
@@ -342,6 +344,7 @@ class SharpClawSolver1D(SharpClawSolver):
 
         dq = np.zeros(q.shape)
 
+        # Note that q is passed in with ghost cells attached
         mx = q.shape[1]-2*self.mbc
 
         ixy=1
@@ -354,7 +357,7 @@ class SharpClawSolver1D(SharpClawSolver):
 
         elif self.kernel_language=='Python':
 
-            dtdx = np.zeros( (2*self.mbc+grid.n[0]) )
+            dtdx = np.zeros( (mx+2*self.mbc) )
 
             # Find local value for dt/dx
             if grid.capa is not None:
@@ -470,6 +473,8 @@ class SharpClawSolver2D(SharpClawSolver):
  
         if self.kernel_language=='Fortran':
             from sharpclaw2 import clawparams, workspace, reconstruct
+            import sharpclaw2
+            grid.set_cparam(sharpclaw2)
             self.set_fortran_parameters(grid,clawparams,workspace,reconstruct)
 
     def teardown(self):
