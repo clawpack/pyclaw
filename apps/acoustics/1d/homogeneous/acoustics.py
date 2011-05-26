@@ -13,40 +13,30 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
     # Import the appropriate classes
     #======================================================
     if use_PETSc:
-        import petclaw as myclaw
-        if soltype=='classic':
-            from petclaw.evolve.clawpack import PetClawSolver1D as mySolver
-        elif soltype=='sharpclaw':
-            from petclaw.evolve.sharpclaw import PetSharpClawSolver1D as mySolver
-        else: raise Exception('Unrecognized value of soltype.')
-        from petclaw.controller import Controller
-    else: #Pure pyclaw
-        import pyclaw as myclaw
-        if soltype=='classic':
-            from pyclaw.evolve.clawpack import ClawSolver1D as mySolver
-        elif soltype=='sharpclaw':
-            from pyclaw.evolve.sharpclaw import SharpClawSolver1D as mySolver
-        else: raise Exception('Unrecognized value of soltype.')
-        from pyclaw.controller import Controller
+        import petclaw as pyclaw
+    else:
+        import pyclaw
 
-    from pyclaw.solution import Solution
+    if soltype=='classic':
+        solver = pyclaw.ClawSolver1D()
+    elif soltype=='sharpclaw':
+        solver = pyclaw.SharpClawSolver1D()
+    else: raise Exception('Unrecognized value of soltype.')
 
     #========================================================================
     # Instantiate the solver and define the system of equations to be solved
     #========================================================================
-    solver = mySolver()
     solver.mwaves=2
     solver.kernel_language=kernel_language
     if kernel_language=='Python': solver.set_riemann_solver('acoustics')
  
-    from pyclaw.evolve import limiters
-    solver.mthlim = limiters.MC
+    solver.mthlim = pyclaw.limiters.MC
 
     #========================================================================
     # Instantiate the grid
     #========================================================================
-    x = myclaw.grid.Dimension('x',0.0,1.0,100,mthbc_lower=3,mthbc_upper=1)
-    grid = myclaw.grid.Grid(x)
+    x = pyclaw.Dimension('x',0.0,1.0,100,mthbc_lower=3,mthbc_upper=1)
+    grid = pyclaw.Grid(x)
     grid.meqn=2
     grid.mbc=solver.mbc
     # init_q_petsc_structures must be called 
@@ -83,9 +73,9 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
     #========================================================================
     # Set up the controller object
     #========================================================================
-    claw = Controller()
+    claw = pyclaw.Controller()
 
-    claw.solutions['n'] = Solution(grid)
+    claw.solutions['n'] = pyclaw.Solution(grid)
     claw.solver = solver
 
     claw.nout = 10
