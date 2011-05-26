@@ -9,6 +9,7 @@
 #===========================================================================
 
 import numpy as np
+from petclaw import plot
 #import pdb
 
 
@@ -34,23 +35,8 @@ def qinit(grid,hl,ul,vl,hr,ur,vr,radDam):
     grid.q=q
 
 
-
-
-#def setaux(maxlength):
-#    """
-#    This function "allocate" memory for some arrays that are needed in both rpn2sw.f
-#    and rpt2sw.f Riemann solver. These arrays are not really aux variable in the strict sense.
-#    Therefore, this solution might not be the optimal one.
-#    """
-#    
-#    aux=np.zeros([4,maxlength],order='F')
-#
-#    return aux
-
-
-
     
-def shallow2D(kernel_language='Fortran',iplot=False,petscPlot=False,useController=True,htmlplot=True):
+def shallow2D(use_PETSc=False,kernel_language='Fortran',iplot=True,userController=True,petscPlot=False,htmlplot=False,outdir='./_output'):
     #===========================================================================
     # Import libraries
     #===========================================================================
@@ -95,7 +81,8 @@ def shallow2D(kernel_language='Fortran',iplot=False,petscPlot=False,useControlle
     # This must be called before grid.x.center and such can be accessed.
     grid.init_q_petsc_structures()
 
-    radDam = 0.5
+    # Characteristcs of the dam break problem
+    damRadius = 0.5
     hl = 2.
     ul = 0.
     vl = 0.
@@ -103,13 +90,7 @@ def shallow2D(kernel_language='Fortran',iplot=False,petscPlot=False,useControlle
     ur = 0.
     vr = 0.
     
-    qinit(grid,hl,ul,vl,hr,ur,vl,radDam) # This function is defined above
-
-    # aux array
-#    xCenter = grid.x.center
-#    yCenter = grid.y.center
-#    maxNbrCells = max(len(xCenter),len(yCenter))
-#    grid.aux = setaux(maxNbrCells)
+    qinit(grid,hl,ul,vl,hr,ur,vl,damRadius) # This function is defined above
 
     init_solution = Solution(grid)
 
@@ -126,16 +107,15 @@ def shallow2D(kernel_language='Fortran',iplot=False,petscPlot=False,useControlle
 
 
 
-
     #===========================================================================
     # Setup controller and controller paramters
     #===========================================================================
     claw = Controller()
     claw.keep_copy = True
-    claw.output_format = 'petsc' # The output format MUST be set to petsc!!
     claw.tfinal = 5.0
     claw.solutions['n'] = init_solution
     claw.solver = solver
+    claw.outdir = outdir
 
 
 
@@ -145,10 +125,13 @@ def shallow2D(kernel_language='Fortran',iplot=False,petscPlot=False,useControlle
     status = claw.run()
 
   
-  
-    plot.plotInteractive()
-    if htmlplot: plot.plotHTML()
-    if petscPlot: plot.plotPetsc(output_object)
+
+    #===========================================================================
+    # Plot results
+    #===========================================================================
+    if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
+    if htmlplot:  plot.plotHTML(outdir=outdir,format=claw.output_format)
+
 
 
 

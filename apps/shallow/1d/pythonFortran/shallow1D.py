@@ -6,7 +6,7 @@
 """
 
     
-def shallow1D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
+def shallow1D(use_PETSc=False,kernel_language='Fortran',iplot=True,userController=True,petscPlot=False,htmlplot=False,outdir='./_output'):
     #===========================================================================
     # Import libraries
     #===========================================================================
@@ -44,14 +44,14 @@ def shallow1D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
     xCenter = grid.x.center
     q = np.zeros([grid.meqn, len(xCenter)], order = 'F')
 
-    radDam = 0.0
+    damRadius = 0.0
     hl = 3.
     ul = 0.
     hr = 1.
     ur = 0.
 
-    q[0,:] = hl * (grid.p_center[0] <= radDam) + hr * (grid.p_center[0] > radDam)
-    q[1,:] = hl*ul * (grid.p_center[0] <= radDam) + hr*ur * (grid.p_center[0] > radDam)
+    q[0,:] = hl * (grid.p_center[0] <= damRadius) + hr * (grid.p_center[0] > damRadius)
+    q[1,:] = hl*ul * (grid.p_center[0] <= damRadius) + hr*ur * (grid.p_center[0] > damRadius)
     grid.q=q
 
     init_solution = Solution(grid)
@@ -59,23 +59,25 @@ def shallow1D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
     #===========================================================================
     # Setup solver and solver parameters
     #===========================================================================
-    kernel_language = 'Fortran'
     solver = PetClawSolver1D()
     solver.mwaves = 2
     solver.mthlim = [4]*solver.mwaves
     solver.kernel_language=kernel_language
-    if kernel_language =='Python': solver.set_riemann_solver('shallow_roe')
- 
+    if kernel_language =='Python': 
+        solver.set_riemann_solver('shallow_roe')
+        grid.aux_global['g'] = 1.0
+        grid.aux_global['efix'] = False
+
 
     #===========================================================================
     # Setup controller and controller paramters
     #===========================================================================
     claw = Controller()
     claw.keep_copy = True
-    claw.output_format = 'petsc' # The output format MUST be set to petsc!!
     claw.tfinal = 2.0
     claw.solutions['n'] = init_solution
     claw.solver = solver
+    claw.outdir = outdir
 
 
     #===========================================================================
@@ -83,9 +85,11 @@ def shallow1D(iplot=True,petscPlot=False,useController=True,htmlplot=False):
     #===========================================================================
     status = claw.run()
 
-    if htmlplot: plot.plotHTML()
-    if petscPlot: plot.plotPetsc(output_object)
-    if iplot: plot.plotInteractive()
+    #===========================================================================
+    # Plot results
+    #===========================================================================
+    if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
+    if htmlplot:  plot.plotHTML(outdir=outdir,format=claw.output_format)
 
 
 if __name__=="__main__":

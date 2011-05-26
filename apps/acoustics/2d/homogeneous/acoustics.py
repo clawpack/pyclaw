@@ -84,7 +84,6 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',so
 
     claw = Controller()
     claw.keep_copy = True
-    # The output format MUST be set to petsc!
     claw.tfinal = tfinal
     claw.solutions['n'] = initial_solution
     claw.solver = solver
