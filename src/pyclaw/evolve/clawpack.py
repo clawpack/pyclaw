@@ -314,7 +314,7 @@ class ClawSolver1D(ClawSolver):
         self.method =np.ones(7, dtype=int) # hardcoded 7
         self.method[0] = self.dt_variable  # fixed or adjustable timestep
         self.method[1] = self.order  # order of the method
-        self.method[2] = 0  # hardcoded 0, case of 2d or 3d
+        self.method[2] = 0  # Not used in 1D
         self.method[3] = self.verbosity
         self.method[4] = self.src_split  # src term
         if (grid.capa == None):
@@ -504,6 +504,8 @@ class ClawSolver2D(ClawSolver):
         # Import Riemann solvers
         exec('import riemann',globals())
             
+        self._default_attr_values['dim_split'] = True
+
         super(ClawSolver2D,self).__init__(data)
 
     # ========== Setup routine =============================   
@@ -540,7 +542,10 @@ class ClawSolver2D(ClawSolver):
             self.method =np.ones(7, dtype=int)
             self.method[0] = self.dt_variable
             self.method[1] = self.order
-            self.method[2] = -1  # only dimensional splitting for now
+            if self.dim_split:
+                self.method[2] = -1  # Godunov dimensional splitting
+            else:
+                self.method[2] = 1   # 
             self.method[3] = self.verbosity
             self.method[4] = self.src_split  # src term
 
@@ -636,7 +641,7 @@ class ClawSolver2D(ClawSolver):
 
 
         if(self.kernel_language == 'Fortran'):
-            from classic2 import dimsp2
+            from classic2 import dimsp2, step2
             mx,my = grid.q.shape[1],grid.q.shape[2]
             maxm = max(mx,my)
             aux = grid.aux
@@ -654,8 +659,14 @@ class ClawSolver2D(ClawSolver):
             qold = self.qbc(grid,grid)
             qnew = qold #(input/output)
 
-            q, cfl = dimsp2(maxm,mx,my,mbc,mx,my, \
+            if self.dim_split:
+                q, cfl = dimsp2(maxm,mx,my,mbc,mx,my, \
                       qold,qnew,aux,dx,dy,dt,self.method,self.mthlim,self.cfl,self.cflv, \
+                      self.qadd,self.fadd,self.gadd,self.q1d,self.dtdx1d,\
+                      self.dtdy1d,self.aux1,self.aux2,self.aux3,self.work)
+            else:
+                q, cfl = step2(maxm,mx,my,mbc,mx,my, \
+                      qold,qnew,aux,dx,dy,dt,self.method,self.mthlim,self.cfl, \
                       self.qadd,self.fadd,self.gadd,self.q1d,self.dtdx1d,\
                       self.dtdy1d,self.aux1,self.aux2,self.aux3,self.work)
 

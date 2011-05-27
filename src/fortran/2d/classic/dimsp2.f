@@ -1,5 +1,3 @@
-c
-c
 c     ==========================================================
       subroutine dimsp2(maxm,maxmx,maxmy,meqn,mwaves,maux,mbc,mx,my,
      &                  qold,qnew,aux,dx,dy,dt,method,mthlim,cfl,
