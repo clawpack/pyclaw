@@ -11,12 +11,12 @@ def acoustics2D(use_PETSc=True,kernel_language='Fortran',iplot=False,petscPlot=F
 
     # clean the previous output
     run_command = "rm", "-r", outputPath
-    p = subprocess.Popen(run_command)
+    p = subprocess.Popen(run_command, stdout=subprocess.PIPE ,stderr=subprocess.STDOUT)
     (stdout_data, ignore) = p.communicate()
 
     # run subprocess with the required number of processes
     run_command = "mpiexec", "-n", str(np) ,"python","-c", "import sys; sys.path.append('"+str(examplePath)+"'); import acoustics; acoustics.acoustics2D(use_PETSc=True, useController=True, outdir='"+str(outputPath)+"')"
-    p = subprocess.Popen(run_command) 
+    p = subprocess.Popen(run_command, stdout=subprocess.PIPE ,stderr=subprocess.STDOUT) 
     (stdout_data, ignore) = p.communicate()
     
     sol = Solution(10, format='petsc', path=outputPath )
