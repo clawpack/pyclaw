@@ -6,12 +6,11 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
     This example solves the 1-dimensional acoustics equations in a homogeneous
     medium.
     """
-    import numpy as np
-    from petclaw import plot
+    from numpy import sqrt, exp, cos
 
-    #======================================================
-    # Import the appropriate classes
-    #======================================================
+    #=================================================================
+    # Import the appropriate classes, depending on the options passed
+    #=================================================================
     if use_PETSc:
         import petclaw as pyclaw
     else:
@@ -26,24 +25,21 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
     #========================================================================
     # Instantiate the solver and define the system of equations to be solved
     #========================================================================
-    solver.mwaves=2
     solver.kernel_language=kernel_language
-    if kernel_language=='Python': solver.set_riemann_solver('acoustics')
+    from riemann import rp_acoustics
+    solver.mwaves=rp_acoustics.mwaves
+    if kernel_language=='Python': 
+        solver.rp = rp_acoustics.rp_acoustics_1d
  
     solver.mthlim = pyclaw.limiters.MC
-    solver.lim_type = 2
-    solver.char_decomp = 0
 
     #========================================================================
     # Instantiate the grid
     #========================================================================
     x = pyclaw.Dimension('x',0.0,1.0,100,mthbc_lower=3,mthbc_upper=1)
     grid = pyclaw.Grid(x)
-    grid.meqn=2
+    grid.meqn=rp_acoustics.meqn
     grid.mbc=solver.mbc
-    # init_q_petsc_structures must be called 
-    # before grid.x.center and such can be accessed.
-    if use_PETSc: grid.init_q_petsc_structures()
 
     #========================================================================
     # This part should really just depend on the solver, not the grid
@@ -52,26 +48,23 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
     bulk = 1.0
     grid.aux_global['rho']=rho
     grid.aux_global['bulk']=bulk
-    grid.aux_global['zz']=np.sqrt(rho*bulk)
-    grid.aux_global['cc']=np.sqrt(rho/bulk)
+    grid.aux_global['zz']=sqrt(rho*bulk)
+    grid.aux_global['cc']=sqrt(rho/bulk)
 
     #========================================================================
     # Set the initial condition
     #========================================================================
-    xc=grid.x.center
     grid.zeros_q()
+    xc=grid.x.center
     beta=100; gamma=0; x0=0.75
-    grid.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
+    grid.q[0,:] = exp(-beta * (xc-x0)**2) * cos(gamma * (xc - x0))
     
     #========================================================================
     # Set up the controller object
     #========================================================================
     claw = pyclaw.Controller()
-
     claw.solutions['n'] = pyclaw.Solution(grid)
     claw.solver = solver
-
-    claw.nout = 10
     claw.outdir = outdir
     claw.tfinal = 1.0
 
@@ -79,6 +72,7 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
     status = claw.run()
 
     # Plot results
+    from petclaw import plot
     if htmlplot:  plot.plotHTML(outdir=outdir,format=claw.output_format)
     if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
 
