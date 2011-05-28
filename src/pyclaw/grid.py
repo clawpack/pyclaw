@@ -489,7 +489,27 @@ class Grid(object):
         for (k,v) in data.iteritems():
             self.aux_global[k] = v
         
-        
+    def set_cparam(self,fortran_module):
+        """
+        Set the variables in fortran_module.cparam to the corresponding values in
+        grid.aux_global.  This is the mechanism for passing scalar variables to the
+        Fortran Riemann solvers; cparam must be defined as a common block in the
+        Riemann solver.
+
+        This function should be called from solver.setup().  This seems like a fragile
+        interdependency between solver and grid; perhaps aux_global should belong
+        to solver instead of grid.
+
+        This function also checks that the set of variables defined in cparam 
+        all appear in aux_global.
+
+        """
+        if hasattr(fortran_module,'cparam'):
+            if not set(dir(fortran_module.cparam)) <= set(self.aux_global.keys()):
+                raise Exception('Some required value(s) in the cparam common block in the Riemann solver have not been set in aux_global.')
+            for global_var_name,global_var_value in self.aux_global.iteritems(): 
+                setattr(fortran_module.cparam,global_var_name,global_var_value)
+
     # ========== Dimension Manipulation ======================================
     def add_dimension(self,dimension):
         r"""
@@ -558,43 +578,43 @@ class Grid(object):
     
     # ========== Grid Operations =============================================
     # Convenience routines for initialization of q and aux
-    def empty_q(self,order='C'):
+    def empty_q(self,order='F'):
         r"""
         Initialize q to empty
         
         :Input:
          - *order* - (string) Order of array, must be understood by numpy
-           ``default = 'C'``
+           ``default = 'F'``
         """
-        shape = self.get_dim_attribute('n')
+        shape = [dim.nend-dim.nstart for dim in self.dimensions]
         shape.insert(0,self.meqn)
         self.q = np.empty(shape,'d',order=order)
     
-    def ones_q(self,order='C'):
+    def ones_q(self,order='F'):
         r"""
         Initialize q to all ones
         
         :Input:
          - *order* - (string) Order of array, must be understood by numpy
-           ``default = 'C'``
+           ``default = 'F'``
         """
-        shape = self.get_dim_attribute('n')
+        shape = [dim.nend-dim.nstart for dim in self.dimensions]
         shape.insert(0,self.meqn)
         self.q = np.ones(shape,'d',order=order)
         
-    def zeros_q(self,order='C'):
+    def zeros_q(self,order='F'):
         r"""
         Initialize q to all zeros
         
         :Input:
          - *order* - (string) Order of array, must be understood by numpy
-           ``default = 'C'``
+           ``default = 'F'``
         """
-        shape = self.get_dim_attribute('n')
+        shape = [dim.nend-dim.nstart for dim in self.dimensions]
         shape.insert(0,self.meqn)
         self.q = np.zeros(shape,'d',order=order)
     
-    def empty_aux(self,maux,shape=None,order='C'):
+    def empty_aux(self,maux,shape=None,order='F'):
         r"""
         Initialize aux to empty with given shape
         
@@ -603,14 +623,14 @@ class Grid(object):
            array will be ``shape.append(maux)``.  Otherwise it will be
            ``(dim.n, maux)``
          - *order* - (string) Order of array, must be understood by numpy
-           ``default = 'C'``
+           ``default = 'F'``
         """
         if shape is None:
             shape = self.n
         shape.insert(0,maux)
         self.aux = np.empty(shape,'d',order=order)
         
-    def ones_aux(self,maux,shape=None,order='C'):
+    def ones_aux(self,maux,shape=None,order='F'):
         r"""
         Initialize aux to ones with shape
         
@@ -619,14 +639,14 @@ class Grid(object):
            array will be ``shape.append(maux)``.  Otherwise it will be
            ``(dim.n, maux)``
          - *order* - (string) Order of array, must be understood by numpy
-           ``default = 'C'``
+           ``default = 'F'``
         """
         if shape is None:
             shape = self.n
         shape.insert(0,maux)
         self.aux = np.ones(shape,'d',order=order)
         
-    def zeros_aux(self,maux,shape=None,order='C'):
+    def zeros_aux(self,maux,shape=None,order='F'):
         r"""
         Initialize aux to zeros with shape
         
@@ -635,7 +655,7 @@ class Grid(object):
            array will be ``shape.append(maux)``.  Otherwise it will be
            ``(dim.n, maux)``
          - *order* - (string) Order of array, must be understood by numpy
-           ``default = 'C'``
+           ``default = 'F'``
         """
         if shape is None:
             shape = self.n

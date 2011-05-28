@@ -20,13 +20,6 @@ ${MODULE}.so: ${MODULE}.pyx ${MODULE}impl.h ${MODULE}impl.c petscdadef.h
 	CC='${PCC}' CFLAGS='${PCC_FLAGS}' F90='${FC_LINKER}' FFLAGS='${FFLAGS}' LDFLAGS='${FC_LINKER_FLAGS}' ${PYTHON} setup.py -q build_ext --inplace
 	${RM} -r build ${MODULE}_wrap.c
 
-clean:
-	rm -f *.o *.so *.pyc *.log
-
-clobber: clean
-	rm -f -r _output/
-	rm -f -r _plots/
-
 include $(PYCLAWMAKE)
 
 include ${PETSC_DIR}/conf/variables

@@ -134,7 +134,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
      - *path* - (string) Path to the current directory of the file
      - *file_prefix* - (string) Prefix of the files to be read in.  
        ``default = 'fort'``
-     - *read_aux* (bool) Whether or not an auxillary file will try to be read 
+     - *read_aux* (bool) Whether or not an auxiliary file will try to be read 
        in.  ``default = False``
      - *options* - (dict) Optional argument dictionary, see 
        `PETScIO Option Table`_
@@ -178,7 +178,12 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     elif options['format'] == 'binary':
         viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.READ)
         if read_aux:
-            aux_viewer = PETSc.Viewer().createBinary(aux_viewer_filename, PETSc.Viewer.Mode.READ)
+            if os.path.exists(aux_viewer_filename):
+                aux_viewer = PETSc.Viewer().createBinary(aux_viewer_filename, PETSc.Viewer.Mode.READ)
+            else:
+                from warnings import warn
+                warn('Warning: read_aux=True but aux file %s does not exist' % aux_viewer_filename)
+                read_aux=False
     else:
         raise IOError('format type %s not supported' % options['format'])
 
@@ -213,7 +218,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
 
         grid.gqVec = PETSc.Vec().load(viewer)
         q = grid.gqVec.getArray().copy()
-        q_dim=(grid.meqn)
+        q_dim=[grid.meqn]
         q_dim.extend(grid.n)
         q = q.reshape(q_dim,order='F')
         grid.q = q

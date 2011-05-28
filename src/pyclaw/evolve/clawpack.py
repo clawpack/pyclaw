@@ -93,7 +93,6 @@ class ClawSolver(Solver):
     
     :Version: 1.0 (2009-06-01)
     """
-    
     # ========== Generic Init Routine ========================================
     def __init__(self,data=None):
         r"""
@@ -299,10 +298,31 @@ class ClawSolver1D(ClawSolver):
 
         # Grid we will be working on
         grid = solutions['n'].grids[0]
+        import classic1
+        grid.set_cparam(classic1)
+
         # Number of equations
-        meqn,mwaves,mbc = grid.meqn,self.mwaves,self.mbc
+        meqn,maux,mwaves,mbc = grid.meqn,grid.maux,self.mwaves,self.mbc
         mx = grid.q.shape[1]
-        
+
+        #Set up mthlim array
+        if not isinstance(self.mthlim,list): self.mthlim=[self.mthlim]
+        if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
+        if len(self.mthlim)!=self.mwaves:
+            raise Exception('Length of solver.mthlim is not 1 nor is it equal to solver.mwaves')
+ 
+        self.method =np.ones(7, dtype=int) # hardcoded 7
+        self.method[0] = self.dt_variable  # fixed or adjustable timestep
+        self.method[1] = self.order  # order of the method
+        self.method[2] = 0  # Not used in 1D
+        self.method[3] = self.verbosity
+        self.method[4] = self.src_split  # src term
+        if (grid.capa == None):
+            self.method[5] = 0  
+        else:
+            self.method[5] = 1  
+        self.method[6] = maux  # aux
+ 
         if(self.kernel_language == 'Fortran'):
             self.f    = np.empty( (meqn,mx+2*mbc) )
             self.wave = np.empty( (meqn,mwaves,mx+2*mbc) )
@@ -376,19 +396,8 @@ class ClawSolver1D(ClawSolver):
             
             if(aux == None): aux = np.empty( (maux,mx+2*mbc) )
         
-            method =np.ones(7, dtype=int) # hardcoded 7
-            method[0] = self.dt_variable  # fixed or adjustable timestep
-            method[1] = self.order  # order of the method
-            method[2] = 0  # hardcoded 0, case of 2d or 3d
-            method[3] = self.verbosity
-            method[4] = self.src_split  # src term
-            if (grid.capa == None):
-                method[5] = 0  
-            else:
-                method[5] = 1  
-            method[6] = maux  # aux
-        
-            q,self.cfl = step1(mx,mbc,mx,q,aux,dx,dt,method,self.mthlim,self.f,self.wave,self.s,self.amdq,self.apdq,dtdx)
+       
+            q,self.cfl = step1(mx,mbc,mx,q,aux,dx,dt,self.method,self.mthlim,self.f,self.wave,self.s,self.amdq,self.apdq,dtdx)
 
         elif(self.kernel_language == 'Python'):
  
@@ -495,6 +504,8 @@ class ClawSolver2D(ClawSolver):
         # Import Riemann solvers
         exec('import riemann',globals())
             
+        self._default_attr_values['dim_split'] = True
+
         super(ClawSolver2D,self).__init__(data)
 
     # ========== Setup routine =============================   
@@ -505,24 +516,60 @@ class ClawSolver2D(ClawSolver):
         in this routine. These arrays are passed in each call to the fortran kernel dimsp2.
         """
 
-        import numpy as np
-
-        # Grid we will be working on
-        grid = solutions['n'].grids[0]
-        # Number of equations
-        meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,self.mbc,grid.aux
-        maxmx,maxmy = grid.q.shape[1],grid.q.shape[2]
-        maxm = max(maxmx, maxmy)
-        if self.src_split < 2: narray = 1
-        else: narray = 2
-
-        #The following is a hack to work around an issue
-        #with f2py.  It involves wastefully allocating a three arrays.
-        #f2py seems not able to handle multiple zero-size arrays being passed.
-        # it appears the bug is related to f2py/src/fortranobject.c line 841.
-        if(aux == None): maux=1
+        #Set up mthlim array
+        if not isinstance(self.mthlim,list): self.mthlim=[self.mthlim]
+        if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
+        if len(self.mthlim)!=self.mwaves:
+            raise Exception('Length of solver.mthlim is not 1 nor is it equal to solver.mwaves')
+ 
 
         if(self.kernel_language == 'Fortran'):
+            import numpy as np
+
+            # Grid we will be working on
+            grid = solutions['n'].grids[0]
+
+            import classic2
+            grid.set_cparam(classic2)
+
+            # Number of equations
+            meqn,maux,mwaves,mbc,aux = grid.meqn,grid.maux,self.mwaves,self.mbc,grid.aux
+            maxmx,maxmy = grid.q.shape[1],grid.q.shape[2]
+            maxm = max(maxmx, maxmy)
+
+            #We ought to put method and cflv and many other things in a Fortran
+            #module and set the fortran variables directly here.
+            self.method =np.ones(7, dtype=int)
+            self.method[0] = self.dt_variable
+            self.method[1] = self.order
+            if self.dim_split:
+                self.method[2] = -1  # Godunov dimensional splitting
+            else:
+                self.method[2] = 1   # 
+            self.method[3] = self.verbosity
+            self.method[4] = self.src_split  # src term
+
+            if (grid.capa == None): 
+                self.method[5] = 0
+            else: 
+                self.method[5] = 1  
+            self.method[6] = maux
+                
+            self.cflv = np.zeros(4)
+            self.cflv[0:2] = [self.cfl_max,self.cfl_desired]
+            #cflv[2] and cflv[3] are output values.
+
+            #The following is a hack to work around an issue
+            #with f2py.  It involves wastefully allocating a three arrays.
+            #f2py seems not able to handle multiple zero-size arrays being passed.
+            # it appears the bug is related to f2py/src/fortranobject.c line 841.
+            if(aux == None): maux=1
+
+            if self.src_split < 2: narray = 1
+            else: narray = 2
+
+            # These work arrays really ought to live inside a fortran module
+            # as is done for sharpclaw
             self.qadd = np.empty((meqn,maxm+2*mbc))
             self.fadd = np.empty((meqn,maxm+2*mbc))
             self.gadd = np.empty((meqn,2,maxm+2*mbc))
@@ -594,7 +641,7 @@ class ClawSolver2D(ClawSolver):
 
 
         if(self.kernel_language == 'Fortran'):
-            from classic2 import dimsp2
+            from classic2 import dimsp2, step2
             mx,my = grid.q.shape[1],grid.q.shape[2]
             maxm = max(mx,my)
             aux = grid.aux
@@ -609,26 +656,17 @@ class ClawSolver2D(ClawSolver):
                 
             dx,dy,dt = grid.d[0],grid.d[1],self.dt
 
-            method =np.ones(7, dtype=int)
-            method[0] = self.dt_variable
-            method[1] = self.order
-            method[2] = -1  # only dimensional splitting for now
-            method[3] = self.verbosity
-            method[4] = self.src_split  # src term
-
-            if (grid.capa == None): method[5] = 0
-            else: method[5] = 1  
-            method[6] = maux
-            
-            cflv = np.zeros(4)
-            cflv[0:2] = [self.cfl_max,self.cfl_desired]
-            #cflv[2] and cflv[3] are output values.
-
             qold = self.qbc(grid,grid)
             qnew = qold #(input/output)
 
-            q, cfl = dimsp2(maxm,mx,my,mbc,mx,my, \
-                      qold,qnew,aux,dx,dy,dt,method,self.mthlim,self.cfl,cflv, \
+            if self.dim_split:
+                q, cfl = dimsp2(maxm,mx,my,mbc,mx,my, \
+                      qold,qnew,aux,dx,dy,dt,self.method,self.mthlim,self.cfl,self.cflv, \
+                      self.qadd,self.fadd,self.gadd,self.q1d,self.dtdx1d,\
+                      self.dtdy1d,self.aux1,self.aux2,self.aux3,self.work)
+            else:
+                q, cfl = step2(maxm,mx,my,mbc,mx,my, \
+                      qold,qnew,aux,dx,dy,dt,self.method,self.mthlim,self.cfl, \
                       self.qadd,self.fadd,self.gadd,self.q1d,self.dtdx1d,\
                       self.dtdy1d,self.aux1,self.aux2,self.aux3,self.work)
 

@@ -45,7 +45,9 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',so
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
     solver.mwaves = 2
-    solver.mthlim = [4]*solver.mwaves
+    from pyclaw.evolve import limiters
+    solver.mthlim = limiters.MC
+    solver.dim_split=False
 
 
     # Initialize grid

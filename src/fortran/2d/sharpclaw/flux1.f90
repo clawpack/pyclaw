@@ -72,25 +72,25 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
 !                call q2qlqr_poly(q1d,ql,qr,mx)
 !            case(1)
 !                ! wave-based unlimited reconstruction
-!                call rp1(maxnx,meqn,mwaves,mbc,mx,&
+!                call rpn2(maxnx,meqn,mwaves,mbc,mx,&
 !                        q1d,q1d,aux,aux,wave,s,amdq,apdq)
 !                call q2qlqr_poly_wave(q1d,ql,qr,wave,s,mx)
 !        end select
-!        case(1)
-!        select case(char_decomp)
-!            case(0)
-!                ! Fill in TVD reconstruction w/o char. decomp. here
-!                call tvd2(q1d,ql,qr,mthlim)
-!            case(1)
-!                ! wave-based second order reconstruction
-!                call rp1(maxnx,meqn,mwaves,mbc,mx,&
-!                        q1d,q1d,aux,aux,wave,s,amdq,apdq)
-!                call tvd2_wave(q1d,ql,qr,wave,s,mthlim)
-!            case(2)
-!                ! characteristic-wise second order reconstruction
-!                !call evec(mx,meqn,mbc,mx,q1d,aux,aux,evl,evr)
-!                !call tvd2_char(q1d,ql,qr,mthlim,evl,evr)
-!        end select
+        case(1)
+        select case(char_decomp)
+            case(0)
+                ! Fill in TVD reconstruction w/o char. decomp. here
+                call tvd2(q1d,ql,qr,mthlim)
+            case(1)
+                ! wave-based second order reconstruction
+                call rpn2(maxnx,meqn,mwaves,mbc,mx,&
+                        q1d,q1d,aux,aux,wave,s,amdq,apdq)
+                call tvd2_wave(q1d,ql,qr,wave,s,mthlim)
+            case(2)
+                ! characteristic-wise second order reconstruction
+                call evec(mx,meqn,mbc,mx,q1d,aux,aux,evl,evr)
+                call tvd2_char(q1d,ql,qr,mthlim,evl,evr)
+        end select
         case(2)
         select case (char_decomp)
             case (0)
@@ -98,18 +98,18 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
                 call weno5(q1d,ql,qr,meqn,maxnx,mbc)
             case (1)
                 ! wave-based reconstruction
-                !call rp1(maxnx,meqn,mwaves,mbc,mx,&
-                !        q1d,q1d,aux,aux,wave,s,amdq,apdq)
-                !call weno5_wave(q1d,ql,qr,wave)
-                !call weno5_fwave(q1d,ql,qr,wave,s)
+                call rpn2(maxnx,meqn,mwaves,mbc,mx,&
+                        q1d,q1d,aux,aux,wave,s,amdq,apdq)
+                call weno5_wave(q1d,ql,qr,wave)
+                call weno5_fwave(q1d,ql,qr,wave,s)
             case (2)
                 ! characteristic-wise reconstruction
-                !call evec(mx,meqn,mbc,mx,q1d,aux,aux,evl,evr)
-                !call weno5_char(q1d,ql,qr,evl,evr)
+                call evec(mx,meqn,mbc,mx,q1d,aux,aux,evl,evr)
+                call weno5_char(q1d,ql,qr,evl,evr)
             case (3)
                 ! transmission-based reconstruction
-                !call evec(mx,meqn,mbc,mx,q1d,aux,aux,evl,evr)
-                !call weno5_trans(q1d,ql,qr,evl,evr)
+                call evec(mx,meqn,mbc,mx,q1d,aux,aux,evl,evr)
+                call weno5_trans(q1d,ql,qr,evl,evr)
             case default
                 write(*,*) 'ERROR: Unrecognized characteristic decomposition option'
                 write(*,*) 'You should set 0<=char_decomp<=3'
@@ -134,26 +134,26 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
     enddo
 
     ! Find total fluctuation within each cell
-!    if (tfluct_solver==1) then
-!        ! tfluct should be a special solver that uses the parameters aux(i)
-!        ! to solve a Riemann problem with left state ql(i)
-!        ! and right state qr(i), and returns a total fluctuation in amdq2
-!        ! NOTE that here amdq2 is really a total fluctuation (should be
-!        ! called adq); we do it this way just to avoid declaring more storage
-!        call tfluct(ixy,maxnx,meqn,mwaves,mbc,mx,ql,qr, &
-!                     aux,aux,s,amdq2)
-!
-!        ! Modify q using fluctuations:
-!        ! Note this may not correspond to a conservative flux-differencing
-!        ! for equations not in conservation form.  It is conservative if
-!        ! adq = f(qr(i)) - f(ql(i)).
-!
-!        forall (i=1:mx, m=1:meqn)
-!            dq1d(m,i) = dq1d(m,i) - dtdx(i)*(apdq(m,i) + &
-!                            amdq2(m,i) + amdq(m,i+1))
-!        end forall
-!
-!    else
+    if (tfluct_solver.eqv. .True.) then
+        ! tfluct should be a special solver that uses the parameters aux(i)
+        ! to solve a Riemann problem with left state ql(i)
+        ! and right state qr(i), and returns a total fluctuation in amdq2
+        ! NOTE that here amdq2 is really a total fluctuation (should be
+        ! called adq); we do it this way just to avoid declaring more storage
+        call tfluct(ixy,maxnx,meqn,mwaves,mbc,mx,ql,qr, &
+                     aux,aux,s,amdq2)
+
+        ! Modify q using fluctuations:
+        ! Note this may not correspond to a conservative flux-differencing
+        ! for equations not in conservation form.  It is conservative if
+        ! adq = f(qr(i)) - f(ql(i)).
+
+        forall (i=1:mx, m=1:meqn)
+            dq1d(m,i) = dq1d(m,i) - dtdx(i)*(apdq(m,i) + &
+                            amdq2(m,i) + amdq(m,i+1))
+        end forall
+
+    else
         ! Or we can just swap things around and use the usual Riemann solver
         ! This may be more convenient, but is less efficient. 
         ! For the moment the swapping is done working with the element of the 
@@ -184,6 +184,6 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
             dq1d(m,i) = dq1d(m,i)-dtdx(i)*(amdq(m,i+1)+ &
                         apdq(m,i)+amdq2(m,i)+apdq2(m,i))
         end forall
-!    endif
+    endif
 
 end subroutine flux1
