@@ -170,8 +170,6 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     ndim     = value_dict['ndim']
     maux     = value_dict['maux']
 
-    if maux == 0:
-        read_aux = False
     # now set up the PETSc viewer
     if options['format'] == 'ascii':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.READ)
@@ -180,7 +178,12 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     elif options['format'] == 'binary':
         viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.READ)
         if read_aux:
-            aux_viewer = PETSc.Viewer().createBinary(aux_viewer_filename, PETSc.Viewer.Mode.READ)
+            if os.path.exists(aux_viewer_filename):
+                aux_viewer = PETSc.Viewer().createBinary(aux_viewer_filename, PETSc.Viewer.Mode.READ)
+            else:
+                from warnings import warn
+                warn('Warning: read_aux=True but aux file %s does not exist' % aux_viewer_filename)
+                read_aux=False
     else:
         raise IOError('format type %s not supported' % options['format'])
 

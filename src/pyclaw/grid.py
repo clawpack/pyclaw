@@ -500,17 +500,15 @@ class Grid(object):
         interdependency between solver and grid; perhaps aux_global should belong
         to solver instead of grid.
 
-        This function also checks that the set of variables defined in cparam and in
-        aux_global match exactly.
+        This function also checks that the set of variables defined in cparam 
+        all appear in aux_global.
 
         """
         if hasattr(fortran_module,'cparam'):
-            if set(self.aux_global.keys()) != set(dir(fortran_module.cparam)):
-                raise Exception('keys in aux_global do not match the cparam common block in the Riemann solver.')
+            if not set(dir(fortran_module.cparam)) <= set(self.aux_global.keys()):
+                raise Exception('Some required value(s) in the cparam common block in the Riemann solver have not been set in aux_global.')
             for global_var_name,global_var_value in self.aux_global.iteritems(): 
                 setattr(fortran_module.cparam,global_var_name,global_var_value)
-        elif len(self.aux_global.items())>0:
-                raise Exception('aux_global is set but the Riemann solver chosen does not have a cparam common block')
 
     # ========== Dimension Manipulation ======================================
     def add_dimension(self,dimension):
