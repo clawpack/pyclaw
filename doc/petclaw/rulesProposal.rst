@@ -1,6 +1,6 @@
-===================================================
-Programming and documenting petclaw: proposed rules
-===================================================
+======================================
+Programming and documenting in PetClaw
+======================================
 In order to improve and maintain PetClaw and allow more developers or simply users to acces and use it all Python/Fortran code should follow some conventions. As stressed in many books, reports, notes, etc. (see for instance `Wikipedia <http://en.wikipedia.org/wiki/Coding_conventions>`_) code conventions are important to programmers for a number of reasons:
     * A big part of the lifetime cost of a piece of software goes to maintenance
     * Rarely any software is maintained for its whole life by the original authors
@@ -8,7 +8,7 @@ In order to improve and maintain PetClaw and allow more developers or simply use
     * Standards makes the source code look consistent, well-organized, and professional
     * etc.
 
-This page gives some hints for setting up some coding conventions in the PetClaw. Probably it is not our intention to re-invent completely new standards. Therefore, most of the ideas/proposed rules listed here are adapted from some conventions already used by most of the Python, Fortran90/95, C, C++ communities, though different language programmers frequently use different standards. Since PetClaw is an hybrid code because (the high-level code is written in Python whereas the low-level kernels are written in Fortran) we should decide whether we want to use one or two sets of conventions. However, for both languages some common rules can be defined a priori.
+This page gives some hints for setting up some coding conventions in the PetClaw. Probably it is not our intention to re-invent completely new standards. Therefore, most of the ideas/proposed rules listed here are adapted from some conventions already used by most of the Python, Fortran90/95, C, C++ communities. Since PetClaw is an hybrid code (because the high-level code is written in Python whereas the low-level kernels are written in Fortran) we should decide whether we want to use one or two sets of conventions. However, for both languages some common rules can be defined a priori, though there are some technical differences between python and fortran.
 
 Most of the proposed rules listed here has been extracted from the documentation uploaded at following links:
     * `pep-0008 <http://www.python.org/dev/peps/pep-0008/>`_
@@ -41,7 +41,10 @@ these warnings become errors.
 
 Docstring conventions
 =====================
-If you violate these conventions, the worst you'll get is some dirty looks. But some software (such as the `Docutils <http://docutils.sourceforge.net/>`_ docstring processing system) will be aware of the conventions, so following them will get you the best results.
+I think that docstrings is a python feature. For C++ I know `Doxygen <http://www.stack.nl/~dimitri/doxygen/docblocks.html>`_, which can be used also for Fortran.
+
+
+In python, if you violate the docstring conventions, the worst you'll get is some dirty looks. But some software (such as the `Docutils <http://docutils.sourceforge.net/>`_ docstring processing system) will be aware of the conventions, so following them will get you the best results.
 
 A docstring is a string literal that occurs as the first statement in a module, function, class, or method definition. Such a docstring becomes the ``__doc__ special`` attribute of that object.
 
@@ -56,6 +59,16 @@ All modules should normally have docstrings, and all functions and classes expor
         global lim_type
         if lim_type: return lim_type
         ...
+
+.. code-block:: fortran
+
+    subroutine limiter_type(method_data)
+    ! Return the type of limiter.
+    ...
+    ...
+    return lim_type
+    end subroutine limiter_type
+
 
 **NOTES:**
     * Triple quotes are used even though the string fits on one line. This makes it easy to later expand it
@@ -92,6 +105,28 @@ The extended summary should be used to clarify functionality, not to discuss imp
         if imag == 0.0 and real == 0.0: return complex_zero
         ...
 
+.. code-block:: fortran
+    
+    subroutine tfluct(ixy,maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,s,adq)
+
+    ! Solve Riemann problems for the 2D shallow water equations
+    ! using f-wave algorithm and Roe's approximate Riemann solver.  
+    ! 
+    ! Input arguments:
+    ! ql -- left state vector at the left edge of each cell
+    ! qr -- right state vector at the right edge of each cell
+    !
+    ! Output arguments:
+    ! wave -- Riemann problem waves, 
+    ! s    -- Waves speed, 
+    ! amdq -- left-going flux difference  A^- \Delta q
+    ! apdq -- right-going flux difference  A^+ \Delta q
+    !
+    !
+    ! Note that the i'th Riemann problem has left state qr(i-1,:)
+    !                                     and right state ql(i,:)
+    ! From the basic clawpack routine step1, rp is called with ql = qr = q.
+
 
 If it is not necessary to specify a keyword argument, use optional:
 
@@ -125,6 +160,8 @@ Some of the potential benefits that can be obtained by adopting a naming convent
     * to help avoid "naming collisions"
     * to provide better understanding in case of code reuse after a long interval of time
 
+Thus, I would use "self-explaining names for variables, procedures etc."
+
 
 **Multiple-word identifiers:**
     * Delimiter-separated words: hyphen ('-') and the underscore ('_')
@@ -133,6 +170,38 @@ Some of the potential benefits that can be obtained by adopting a naming convent
 
 Order of the test cases instruction
 ===================================
-         
-    
+Probably it would be useful to follow also some rules when preparing the python script of a new test case. Listing  phases and instructions in a logical order could improve the readability of the set-up. One idea could be:
+    * Import libraries needed by all the functions
+    * Define the functions use by the main program, e.g. qinit, setaux, etc.
+      Here the conventions introduce previously for the docstrings should be used
+    * Main function
+        * Import libraries 
+        * Initialize grid, solution and aux array
+        * Setup the solver and solver parameters
+        * Setup controller and controller parameters
+        * Solve problem
+        * Plot results
+
+Add regression test to check new piece of code
+==============================================
+    * Add one or more regression test to check the functionality of the new code
+    * Check with nose if all the tests pass before to commit
+
+Add documentation when new code is added
+========================================
+    * What the new code does
+    * How to use it
+    * Document inputs outputs and  default parameters
+
+Write Comments as You Code
+==========================
+You won't every go back later and document your code. You just won't. So when you do something document it right then and there. When you create a class- document it. When you create a method- document it. And so on. That way when you finish coding you will also be finished documenting.
+Won't this break the flow? No, I think it improves flow because it keeps you mindful of what you are doing, why you are doing, and how it fits in the big picture.
+
+Some fortran tips (??)
+======================
+    * Use always **IMPLICIT NONE**
+    * Allocate and deallocate always memory
+    * A text file explaining how to compile, link, install and use the program (and/or a Makefile).
+
 
