@@ -7,7 +7,7 @@ This module contains the pure and wrapped PetClaw solvers.  All
 PetClaw solvers inherit from the :class:`PetClawSolver` superclass which in turn 
 inherits from the :class:`~petclaw.evolve.solver.PetSolver` superclass.  As such, 
 the only solver classes that should be directly used should be the 
-dimensionally dependent ones such as :class:`PetClawSolver1D`.
+dimensionally dependent ones such as :class:`petclaw.evolve.clawpack.ClawSolver1D`.
 
 :Authors:
     Amal Alghamdi
@@ -22,12 +22,12 @@ dimensionally dependent ones such as :class:`PetClawSolver1D`.
 # ============================================================================
 
 from petclaw.evolve.solver import PetSolver
-from pyclaw.evolve.clawpack import ClawSolver, ClawSolver1D, ClawSolver2D
+import pyclaw.evolve.clawpack
 
 # ============================================================================
 #  PetClaw 1d Solver Class
 # ============================================================================
-class PetClawSolver1D(PetSolver,ClawSolver1D):
+class ClawSolver1D(PetSolver,pyclaw.evolve.clawpack.ClawSolver1D):
     r"""
     PetClaw solver for 1D problems using classic Clawpack algorithms.
 
@@ -38,7 +38,7 @@ class PetClawSolver1D(PetSolver,ClawSolver1D):
 # ============================================================================
 #  PetClaw 2d Solver Class
 # ============================================================================
-class PetClawSolver2D(PetSolver,ClawSolver2D):
+class ClawSolver2D(PetSolver,pyclaw.evolve.clawpack.ClawSolver2D):
     r"""
     PetClaw solver for 2D problems using classic Clawpack algorithms.
 

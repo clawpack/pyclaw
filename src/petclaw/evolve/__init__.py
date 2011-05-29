@@ -11,10 +11,10 @@ Copyright (c) 2008 University of Washington. All rights reserved.
 # should be done depending on the solver needed
 
 __all__ = ['ClawSolver1D','ClawSolver2D','SharpClawSolver1D','SharpClawSolver2D']
-from clawpack import PetClawSolver1D as ClawSolver1D
-from clawpack import PetClawSolver2D as ClawSolver2D
-from sharpclaw import PetSharpClawSolver1D as SharpClawSolver1D
-from sharpclaw import PetSharpClawSolver2D as SharpClawSolver2D
+from clawpack import ClawSolver1D
+from clawpack import ClawSolver2D
+from sharpclaw import SharpClawSolver1D
+from sharpclaw import SharpClawSolver2D
 from riemann import *
 
 __all__.append('limiters')

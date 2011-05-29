@@ -298,8 +298,6 @@ class ClawSolver1D(ClawSolver):
 
         # Grid we will be working on
         grid = solutions['n'].grids[0]
-        import classic1
-        grid.set_cparam(classic1)
 
         # Number of equations
         meqn,maux,mwaves,mbc = grid.meqn,grid.maux,self.mwaves,self.mbc
@@ -324,11 +322,19 @@ class ClawSolver1D(ClawSolver):
         self.method[6] = maux  # aux
  
         if(self.kernel_language == 'Fortran'):
+            import classic1
+            grid.set_cparam(classic1)
             self.f    = np.empty( (meqn,mx+2*mbc) )
             self.wave = np.empty( (meqn,mwaves,mx+2*mbc) )
             self.s    = np.empty( (mwaves,mx+2*mbc) )
             self.amdq = np.empty( (meqn,mx+2*mbc) )
             self.apdq = np.empty( (meqn,mx+2*mbc) )
+
+    def teardown(self):
+        if(self.kernel_language == 'Fortran'):
+            import classic1
+            del classic1
+
 
     # ========== Riemann solver library routines =============================   
     def list_riemann_solvers(self):
@@ -589,6 +595,11 @@ class ClawSolver2D(ClawSolver):
             self.work = np.empty((mwork))
 
         else: raise Exception('Only Fortran kernels are supported in 2D.')
+
+    def teardown(self):
+        if(self.kernel_language == 'Fortran'):
+            import classic2
+            del classic2
 
 
     # ========== Riemann solver library routines =============================   

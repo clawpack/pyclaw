@@ -18,19 +18,19 @@ def qinit(grid,width=0.2):
     grid.q=q
 
 
-def acoustics2D(use_PETSc=False,kernel_language='Fortran',iplot=False,petscPlot=False,useController=True,htmlplot=False,soltype='classic', outdir = './_output'):
+def acoustics2D(use_PETSc=False,kernel_language='Fortran',iplot=False,htmlplot=False,soltype='classic', outdir = './_output'):
     """
     Example python script for solving the 2d acoustics equations.
     """
     if use_PETSc:
-        import petclaw as myclaw
+        import petclaw as pyclaw
         output_format='petsc'
         if soltype=='classic':
-            from petclaw.evolve.clawpack import PetClawSolver2D as mySolver
+            from petclaw.evolve.clawpack import ClawSolver2D as mySolver
         elif soltype=='sharpclaw':
-            from petclaw.evolve.sharpclaw import PetSharpClawSolver2D as mySolver
+            from petclaw.evolve.sharpclaw import SharpClawSolver2D as mySolver
     else: #Pure pyclaw
-        import pyclaw as myclaw
+        import pyclaw
         output_format='ascii'
         if soltype=='classic':
             from pyclaw.evolve.clawpack import ClawSolver2D as mySolver
@@ -50,9 +50,9 @@ def acoustics2D(use_PETSc=False,kernel_language='Fortran',iplot=False,petscPlot=
 
     # Initialize grid
     mx=100; my=100
-    x = myclaw.grid.Dimension('x',-1.0,1.0,mx,mthbc_lower=1,mthbc_upper=1)
-    y = myclaw.grid.Dimension('y',-1.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
-    grid = myclaw.grid.Grid([x,y])
+    x = pyclaw.grid.Dimension('x',-1.0,1.0,mx,mthbc_lower=1,mthbc_upper=1)
+    y = pyclaw.grid.Dimension('y',-1.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
+    grid = pyclaw.grid.Grid([x,y])
     grid.mbc=solver.mbc
 
     rho = 1.0
@@ -63,12 +63,6 @@ def acoustics2D(use_PETSc=False,kernel_language='Fortran',iplot=False,petscPlot=
     grid.aux_global['bulk']=bulk
     grid.aux_global['zz']= zz
     grid.aux_global['cc']=cc
-
-    if soltype=='classic':
-        from classic2 import cparam
-    elif soltype=='sharpclaw':
-        from sharpclaw2 import cparam
-    for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     grid.meqn = 3
     tfinal = 0.12
@@ -95,7 +89,6 @@ def acoustics2D(use_PETSc=False,kernel_language='Fortran',iplot=False,petscPlot=
     status = claw.run()
 
     if htmlplot:  plot.plotHTML(format=output_format)
-    if petscPlot: plot.plotPetsc(claw)
     if iplot:     plot.plotInteractive(format=output_format)
 
     if use_PETSc:

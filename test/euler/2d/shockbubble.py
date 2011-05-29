@@ -105,11 +105,11 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
 
     if use_PETSc:
         from petclaw.grid import Dimension, Grid
-        from petclaw.evolve.clawpack import PetClawSolver2D as mySolver
+        from petclaw.evolve.clawpack import ClawSolver2D 
         output_format = 'petsc'
     else:
         from pyclaw.grid import Dimension, Grid
-        from pyclaw.evolve.clawpack import ClawSolver2D as mySolver
+        from pyclaw.evolve.clawpack import ClawSolver2D 
         output_format = 'ascii'
 
     from pyclaw.solution import Solution
@@ -124,8 +124,6 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
 
     grid.aux_global['gamma']= gamma
     grid.aux_global['gamma1']= gamma1
-    from dimsp2 import cparam
-    for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     grid.meqn = 5
     grid.mbc = 2
@@ -139,7 +137,7 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
     auxinit(grid)
     initial_solution = Solution(grid)
 
-    solver = mySolver()
+    solver = ClawSolver2D()
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
     solver.mwaves = 5

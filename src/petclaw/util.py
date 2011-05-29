@@ -37,7 +37,7 @@ def _method_info_from_argv(argv=None):
         except ValueError:
             pass
         if value=='True': value=True
-        if value=='False': value=False
+        if value.lower()=='false': value=False
         if key:
             kwargs[key] = value
         else:

@@ -34,15 +34,16 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
     solver.mthlim = pyclaw.limiters.MC
 
     #========================================================================
-    # Instantiate the grid
+    # Instantiate the grid and set the boundary conditions
     #========================================================================
-    x = pyclaw.Dimension('x',0.0,1.0,100,mthbc_lower=3,mthbc_upper=1)
+    left_BC =pyclaw.BC.reflecting
+    right_BC=pyclaw.BC.outflow
+    x = pyclaw.Dimension('x',0.0,1.0,100,mthbc_lower=left_BC,mthbc_upper=right_BC)
     grid = pyclaw.Grid(x)
-    grid.meqn=rp_acoustics.meqn
     grid.mbc=solver.mbc
 
     #========================================================================
-    # This part should really just depend on the solver, not the grid
+    # Set problem-specific variables
     #========================================================================
     rho = 1.0
     bulk = 1.0
@@ -54,6 +55,7 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
     #========================================================================
     # Set the initial condition
     #========================================================================
+    grid.meqn=rp_acoustics.meqn
     grid.zeros_q()
     xc=grid.x.center
     beta=100; gamma=0; x0=0.75

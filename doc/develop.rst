@@ -54,3 +54,13 @@ It's helpful to always work in a named branch when
 developing a new feature, and to merge with the --no-ff
 option so that the history shows distinctly the development
 of the feature.
+
+
+Helpful tips
+============================
+When running the tests, if your machine has multiple cores you can take
+advantage of them by doing::
+
+    $ nosetests --processes=2
+
+(replace "2" with the number of processes you want to spawn).

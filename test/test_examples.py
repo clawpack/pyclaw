@@ -215,7 +215,7 @@ def test_2D_acoustics_homogeneous_1a():
 @attr(petsc=True)
 @attr(time_stepping_mode='explicit')
 @attr(speed='fast')
-def test_2D_acoustics_homogeneous_1a():
+def test_2D_acoustics_homogeneous_1a_parallel():
     path           = './test/acoustics/2d/homogeneous'
     target_name    = 'classic2.so'
     module_name    = 'parallelAcoustics'
@@ -300,15 +300,12 @@ def test_2D_acoustics_homogeneous_1d():
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_sharpclaw, method_options)    
    
 
-
-# Regression test: 2D acoustics in homogeneous material
-#@attr(testType ='regression')
-#@attr(solver_type='sharpclaw')
-#@attr(kernel_language='fortran')
-#@attr(petsc=False)
-#@attr(time_stepping_mode='explicit')
-#@attr(time_stepping_method='')
-#@attr(speed='fast')
+# Regression test: 2D Euler shock-bubble interaction
+@attr(testType ='regression')
+@attr(solver_type='classic')
+@attr(kernel_language='fortran')
+@attr(petsc=False)
+@attr(time_stepping_mode='explicit')
 def test_2D_shockbubble_1a(): 
     path           = './test/euler/2d'
     target_name    = 'classic2.so'
@@ -318,20 +315,20 @@ def test_2D_shockbubble_1a():
     def verify_shockbubble(test_x):
         import numpy
         verify_x=numpy.loadtxt('test/sb_density')
+        print (abs(test_x-verify_x))
+        print numpy.max(abs(test_x-verify_x))
         return numpy.max(abs(test_x-verify_x))<1.e-14
 
     method_options = {'use_PETSc' : False}
 #    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
 
 
-# Regression test: 2D acoustics in homogeneous material
-#@attr(testType ='regression')
-#@attr(solver_type='sharpclaw')
-#@attr(kernel_language='fortran')
-#@attr(petsc=False)
-#@attr(time_stepping_mode='explicit')
-#@attr(time_stepping_method='')
-#@attr(speed='fast')
+# Regression test: 2D Euler shock-bubble interaction
+@attr(testType ='regression')
+@attr(solver_type='classic')
+@attr(kernel_language='fortran')
+@attr(petsc=True)
+@attr(time_stepping_mode='explicit')
 def test_2D_shockbubble_1b(): 
     path           = './test/euler/2d'
     target_name    = 'classic2.so'
@@ -344,5 +341,5 @@ def test_2D_shockbubble_1b():
         return numpy.max(abs(test_x-verify_x))<1.e-14
 
     method_options = {'use_PETSc' : True}
-#    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
+    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
 

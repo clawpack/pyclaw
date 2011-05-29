@@ -117,7 +117,7 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False,outdir='./_output'):
     from petclaw import plot
 
     # Initialize grid
-    mx=320; my=80
+    mx=640; my=160
     x = Dimension('x',0.0,2.0,mx,mthbc_lower=0,mthbc_upper=1)
     y = Dimension('y',0.0,0.5,my,mthbc_lower=3,mthbc_upper=1)
     grid = Grid([x,y])
@@ -165,6 +165,7 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False,outdir='./_output'):
     if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
     if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
 
+    return claw.solution.q
 
 if __name__=="__main__":
     import sys

@@ -16,3 +16,6 @@ from sharpclaw import SharpClawSolver1D, SharpClawSolver2D
 
 __all__.append('limiters')
 import limiters
+
+__all__.append('BC')
+from solver import BC

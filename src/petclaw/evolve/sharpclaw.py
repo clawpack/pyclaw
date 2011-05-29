@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 r"""
-Module containing SharpClaw solvers for PyClaw/PetClaw
+Module containing SharpClaw solvers for PetClaw
 
 #  File:        sharpclaw.py
 #  Created:     2010-03-20
@@ -51,7 +51,7 @@ class RKStageState(object):
     q           = property(**q())
  
 
-class PetSharpClawSolver1D(PetSolver,SharpClawSolver1D):
+class SharpClawSolver1D(PetSolver,SharpClawSolver1D):
     """
     
     1D parallel SharpClaw solver.
@@ -89,7 +89,7 @@ class PetSharpClawSolver1D(PetSolver,SharpClawSolver1D):
             self.set_fortran_parameters(grid,clawparams,workspace,reconstruct)
 
            
-class PetSharpClawSolver2D(PetSolver,SharpClawSolver2D):
+class SharpClawSolver2D(PetSolver,SharpClawSolver2D):
     """
     
     2D parallel SharpClaw solver.  
@@ -116,7 +116,7 @@ class PetSharpClawSolver2D(PetSolver,SharpClawSolver2D):
             raise Exception('Length of solver.mthlim is not 1 nor is it equal to solver.mwaves')
  
         if self.kernel_language=='Fortran':
-            import sharpclaw1
-            grid.set_cparam(sharpclaw1)
+            import sharpclaw2
+            grid.set_cparam(sharpclaw2)
             from sharpclaw2 import clawparams, workspace, reconstruct
             self.set_fortran_parameters(grid,clawparams,workspace,reconstruct)

@@ -26,6 +26,14 @@ class CFLError(Exception):
     def __init__(self,msg):
         super(CFLError,self).__init__(msg)
 
+class BC():
+    """Enumeration of boundary condition names."""
+    custom     = 0
+    outflow    = 1
+    periodic   = 2
+    reflecting = 3
+
+
 class Solver(object):
     r"""
     Pyclaw solver superclass
@@ -79,12 +87,6 @@ class Solver(object):
     :Version: 1.0 (2008-08-19)
     """
     
-    #Enumeration of boundary condition names
-    custom     = 0
-    outflow    = 1
-    periodic   = 2
-    reflecting = 3
-
     # Note that some of these names are for compatibility with the claw.data
     # files and the data objects, they are not actually required and do not
     # exist past initialization
@@ -269,14 +271,14 @@ class Solver(object):
         import numpy as np
 
         # User defined functions
-        if dim.mthbc_lower == self.custom: self.user_bc_lower(grid,dim,qbc)
+        if dim.mthbc_lower == BC.custom: self.user_bc_lower(grid,dim,qbc)
         # Zero-order extrapolation
-        elif dim.mthbc_lower in ('self.outflow',1):
+        elif dim.mthbc_lower == BC.outflow:
             if dim.nstart == 0:
                 for i in xrange(self.mbc):
                     qbc[:,i,...] = qbc[:,self.mbc,...]
         # Periodic
-        elif dim.mthbc_lower == self.periodic:
+        elif dim.mthbc_lower == BC.periodic:
             if dim.nstart == 0 and dim.nend==dim.n:
                 # This process owns the whole grid
                 qbc[:,:self.mbc,...] = qbc[:,-2*self.mbc:-self.mbc,...]
@@ -284,7 +286,7 @@ class Solver(object):
                 pass #Handled automatically by PETSc
             
         # Solid wall bc
-        elif dim.mthbc_lower == self.reflecting:
+        elif dim.mthbc_lower == BC.reflecting:
              if dim.nstart == 0:
                 if grid.ndim == 1:
                     for i in xrange(self.mbc):
@@ -328,15 +330,15 @@ class Solver(object):
         """
  
         # User defined functions
-        if dim.mthbc_upper == self.custom:
+        if dim.mthbc_upper == BC.custom:
             self.user_bc_upper(grid,dim,qbc)
         # Zero-order extrapolation
-        elif dim.mthbc_upper == self.outflow:
+        elif dim.mthbc_upper == BC.outflow:
             if dim.nend == dim.n :
                 for i in xrange(self.mbc):
                     qbc[:,-i-1,...] = qbc[:,-self.mbc-1,...] 
  	    
-        elif dim.mthbc_upper == self.periodic:
+        elif dim.mthbc_upper == BC.periodic:
             # Periodic
             if dim.nstart == 0 and dim.nend==dim.n:
                 # This process owns the whole grid
@@ -345,7 +347,7 @@ class Solver(object):
                 pass # this is implemented automatically by petsc4py
 
         # Solid wall bc
-        elif dim.mthbc_upper == self.reflecting:
+        elif dim.mthbc_upper == BC.reflecting:
             if dim.nend == dim.n:
                 if grid.ndim == 1:
                     for i in xrange(self.mbc):
