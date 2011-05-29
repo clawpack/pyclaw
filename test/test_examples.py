@@ -218,15 +218,16 @@ def test_2D_acoustics_homogeneous_1a():
 def test_2D_acoustics_homogeneous_1a_parallel():
     path           = './test/acoustics/2d/homogeneous'
     target_name    = 'classic2.so'
-    module_name    = 'parallelAcoustics'
+    module_name    = 'acoustics'
     problem_name   = 'acoustics2D'
 
-    def verify_acoustics2D_classic(test_x):
+    def verify_acoustics2D_classic(sol):
         import numpy
+        test_x = sol.q[0,:,:]
         verify_x=numpy.loadtxt('test/acoustics2D_solution')
         return (numpy.linalg.norm(test_x-verify_x)<1.e-14)
-        
-    method_options = {'use_PETSc' : True, 'soltype' : 'classic', 'np':6}
+
+    method_options = {'use_PETSc' : True, 'soltype' : 'classic', 'np':6, 'nout':10}
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_classic, method_options)
 
 

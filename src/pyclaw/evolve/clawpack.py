@@ -535,7 +535,11 @@ class ClawSolver2D(ClawSolver):
             # Grid we will be working on
             grid = solutions['n'].grids[0]
 
+            # The reload here is necessary because otherwise the common block
+            # cparam in the Riemann solver doesn't get flushed between running
+            # different tests in a single Python session.
             import classic2
+            reload(classic2)
             grid.set_cparam(classic2)
 
             # Number of equations
@@ -595,11 +599,6 @@ class ClawSolver2D(ClawSolver):
             self.work = np.empty((mwork))
 
         else: raise Exception('Only Fortran kernels are supported in 2D.')
-
-    def teardown(self):
-        if(self.kernel_language == 'Fortran'):
-            import classic2
-            del classic2
 
 
     # ========== Riemann solver library routines =============================   
