@@ -18,7 +18,7 @@ def qinit(grid,width=0.2):
     grid.q=q
 
 
-def acoustics2D(use_PETSc=False,kernel_language='Fortran',iplot=False,petscPlot=False,useController=True,htmlplot=False,soltype='classic', outdir = './_output'):
+def acoustics2D(use_PETSc=False,kernel_language='Fortran',iplot=False,petscPlot=False,useController=True,htmlplot=False,soltype='classic', outdir = './_output', nout = 10):
     """
     Example python script for solving the 2d acoustics equations.
     """
@@ -90,6 +90,7 @@ def acoustics2D(use_PETSc=False,kernel_language='Fortran',iplot=False,petscPlot=
     claw.solutions['n'] = initial_solution
     claw.solver = solver
     claw.outdir = outdir
+    claw.nout = nout
 
     # Solve
     status = claw.run()

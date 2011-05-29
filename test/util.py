@@ -13,6 +13,7 @@ def build_run_verify(path, target_name, module_name, method_name, verifier, opti
         if options.has_key('np') and options['np'] >1:
             verify_it_parallel(run_method, method_name, module_name, verifier, options, path)
         else:
+            if options.has_key('np'): options.pop('np')
             verify_it(run_method, method_name, module_name, verifier, options, path)
     
     finally:
@@ -59,13 +60,12 @@ def verify_it(run_method, method_name, module_name, verifier, options, path):
 
 def verify_it_parallel(run_method, method_name, module_name, verifier, options, path):
     import subprocess
-    outdir = options['outdir']
+    import tempfile
+    import shutil
+    from pyclaw.solution import Solution
+    # Create temp directory to write the output to and read it from
+    outdir =  tempfile.mkdtemp()
     
-    # clean the previous output
-    run_command = "rm", "-r", outdir
-    p = subprocess.Popen(run_command, stdout=subprocess.PIPE ,stderr=subprocess.STDOUT)
-    (stdout_data, ignore) = p.communicate()
-
     # run subprocess with the required number of processes
     option_string= ""
     for k in options:
@@ -75,22 +75,23 @@ def verify_it_parallel(run_method, method_name, module_name, verifier, options, 
             else:
                 option_string += k+"="+str(options[k])+","
 
-    option_string = option_string.strip(',')
+    option_string += 'outdir = "'+outdir+'"' 
 
     run_command = "mpiexec", "-n", str(options['np']) ,"python","-c", "import sys; sys.path.append('"+path+"'); import "+module_name+"; "+module_name+"."+method_name+"("+option_string+")"
     p = subprocess.Popen(run_command, stdout=subprocess.PIPE ,stderr=subprocess.STDOUT)
     (stdout_data, ignore) = p.communicate()
-    
+
     ## example specific, need to generlize frame number which is 10 in this case
-    from pyclaw.solution import Solution
-    output = Solution(10, format='petsc', path=outdir )
+    output = Solution(options['nout'], format='petsc', path=outdir )
+
+    # Remove the temporary output directory
+    shutil.rmtree(outdir) 
     
     if not verifier(output):
         err = "Error verifying %s\n" % method_name
         sys.stderr.write("output: %s\n" % output)
         raise VerifyError(err)
     return
-
 
 
 class Error(Exception):

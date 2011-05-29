@@ -227,7 +227,7 @@ def test_2D_acoustics_homogeneous_1a():
         verify_x=numpy.loadtxt('test/acoustics2D_solution')
         return (numpy.linalg.norm(test_x-verify_x)<1.e-14)
 
-    method_options = {'use_PETSc' : True, 'soltype' : 'classic', 'np':6, 'outdir': path + "/ParallelOutput"}
+    method_options = {'use_PETSc' : True, 'soltype' : 'classic', 'np':6, 'nout':10}
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_classic, method_options)
 
 
