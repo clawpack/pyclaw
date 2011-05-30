@@ -4,21 +4,63 @@
 Pyclaw Tutorial
 ***************
 
+PyClaw is designed to solve general systems of hyperbolic PDEs of the form
+
+.. math::
+   \kappa(x) q_t + A(q,x) q_x = 0.
+
+As an example, in this tutorial we'll set up a simulation that solves 
+the acoustics equations in one dimension:
+
+.. math::
+   p_t + K u_x = 0
+
+   u_t + \frac{1}{\rho} p_x = 0
+
+The key to solving a particular system of equations with PyClaw or other similar
+codes is a Riemann solver.  Riemann solvers for many systems are available as
+part of the clawpack/riemann package.  We'll assume that you've already followed
+the :ref:`installation` instructions.
+
+Now launch an iPython session and import pyclaw::
+
+    >>> import pyclaw
+
+The Solver
+===========
+PyClaw includes various algorithms for solving hyperbolic PDEs; each is implemented
+in a `~pyclaw.evolve.solver.Solver` object.  So the first step is to create a solver::
+
+    >>> solver = pyclaw.ClawSolver1D()
+
+In order to avoid the complication of compiling Fortran code, we'll use a
+Riemann solver implemented in Python::
+
+    >>> solver.kernel_language = 'Python'
+
+Now we import the appropriate solver from the riemann package and set the 
+solver.rp attribute::
+
+    >>> from riemann import rp_acoustics
+    >>> solver.rp = rp_acoustics.rp_acoustics_1d
+
+Next we need to set up the grid.  
+
 Flow of a Pyclaw Simulation
 ===========================
+The basic idea of a pyclaw simulation is to construct a
+:class:`~pyclaw.solution.Solution` object, hand it to a
+:class:`~pyclaw.evolve.solver.Solver` object, and request a solution at a new
+time.  The solver will take whatever steps are necessary to evolve the solution
+to the requested time.
 
-The basic idea of a pyclaw simulation is to construct a 
-:class:`~pyclaw.solution.Solution` object, hand it to a 
-:class:`~pyclaw.evolve.solver.Solver` object with the request new time and the
-solver will take whatever steps are necessary to evolve the solution to the 
-requested time.
-
-.. image:: images/pyclaw_architecture_flow.pdf
+.. figure:: images/pyclaw_architecture_flow.*
+   :align: center
 
 The bulk of the work in order to run a simulation then is the creation and
-setup of the appropriate :class:`~pyclaw.solution.Solution` objects and the 
-:class:`~pyclaw.evolve.solver.Solver` needed to evolve the solution to the
-requested time.
+setup of the appropriate :class:`~pyclaw.grid.Grid`,
+:class:`~pyclaw.solution.Solution`, and :class:`~pyclaw.evolve.solver.Solver`
+objects needed to evolve the solution to the requested time.
 
 .. note::
 
@@ -38,7 +80,8 @@ and controls the overall input and output of the entire collection of
 :class:`~pyclaw.solution.Dimension` objects define the extents and basic 
 grids of the :class:`~pyclaw.solution.Grid`.
 
-.. image:: images/pyclaw_solution_structure.pdf
+.. figure:: images/pyclaw_solution_structure.pdf
+   :align: center
 
 The process needed to create a :class:`~pyclaw.solution.Solution` object then
 follows from the bottom up.
