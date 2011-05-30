@@ -397,11 +397,11 @@ def read_ascii_t(frame,path='./',file_prefix='fort'):
      
     :Output:
      - (list) List of output variables
-      - *t* - (int) Time of frame
-      - *meqn* - (int) Number of equations in the frame
-      - *ngrids* - (int) Number of grids
-      - *maux* - (int) Auxillary value in the frame
-      - *ndim* - (int) Number of dimensions in q and aux
+     - *t* - (int) Time of frame
+     - *meqn* - (int) Number of equations in the frame
+     - *ngrids* - (int) Number of grids
+     - *maux* - (int) Auxillary value in the frame
+     - *ndim* - (int) Number of dimensions in q and aux
     
     """
 

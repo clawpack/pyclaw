@@ -1,4 +1,4 @@
-.. _pyclaw_solver:
+.. _petclaw_solver:
 
 ===========================
 PetClaw Solver Base Classes

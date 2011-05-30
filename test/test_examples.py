@@ -115,7 +115,7 @@ def test_1D_acoustics_homogeneous_1e():
 @attr(kernel_language='python')
 @attr(petsc=False)
 @attr(time_stepping_mode='explicit')
-#@attr(time_stepping_method='')
+@attr(time_stepping_method='SSP33')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1f():  
     path           = './test/acoustics/1d/homogeneous'
@@ -133,7 +133,7 @@ def test_1D_acoustics_homogeneous_1f():
 @attr(kernel_language='fortran')
 @attr(petsc=False)
 @attr(time_stepping_mode='explicit')
-#@attr(time_stepping_method='')
+@attr(time_stepping_method='SSP33')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1g():  
     path           = './test/acoustics/1d/homogeneous'
@@ -151,7 +151,7 @@ def test_1D_acoustics_homogeneous_1g():
 @attr(kernel_language='python')
 @attr(petsc=True)
 @attr(time_stepping_mode='explicit')
-#@attr(time_stepping_method='')
+@attr(time_stepping_method='SSP33')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1h():  
     path           = './test/acoustics/1d/homogeneous'
@@ -168,7 +168,7 @@ def test_1D_acoustics_homogeneous_1h():
 @attr(kernel_language='fortran')
 @attr(petsc=True)
 @attr(time_stepping_mode='explicit')
-#@attr(time_stepping_method='')
+@attr(time_stepping_method='SSP33')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1i(): 
     path           = './test/acoustics/1d/homogeneous'
@@ -259,7 +259,7 @@ def test_2D_acoustics_homogeneous_1b():
 @attr(kernel_language='fortran')
 @attr(petsc=True)
 @attr(time_stepping_mode='explicit')
-#@attr(time_stepping_method='')
+@attr(time_stepping_method='SSP33')
 @attr(speed='fast')
 def test_2D_acoustics_homogeneous_1c(): 
     path           = './test/acoustics/2d/homogeneous'
@@ -283,7 +283,7 @@ def test_2D_acoustics_homogeneous_1c():
 @attr(kernel_language='fortran')
 @attr(petsc=True)
 @attr(time_stepping_mode='explicit')
-#@attr(time_stepping_method='')
+@attr(time_stepping_method='SSP33')
 @attr(speed='fast')
 def test_2D_acoustics_homogeneous_1d(): 
     path           = './test/acoustics/2d/homogeneous'

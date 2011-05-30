@@ -6,7 +6,7 @@ Pyclaw Solutions
 
 All Pyclaw solutions work via the following hierarchy:
 
-.. image:: ../images/pyclaw_solution_structure.*
+.. image:: images/pyclaw_solution_structure.*
 
 Each solution contains a list of Grids which in turn contain a list of 
 Dimensions, each containing higher level attributes.

@@ -667,7 +667,7 @@ class ClawSolver2D(ClawSolver):
             dx,dy,dt = grid.d[0],grid.d[1],self.dt
 
             qold = self.qbc(grid,grid)
-            qnew = qold #(input/output)
+            qnew = qold.copy('F') #(input/output)
 
             if self.dim_split:
                 q, cfl = dimsp2(maxm,mx,my,mbc,mx,my, \
