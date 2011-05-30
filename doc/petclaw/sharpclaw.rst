@@ -1,4 +1,4 @@
-.. _petclaw_clawpack_solvers:
+.. _petclaw_sharpclaw_solvers:
 
 ===============================
 PetClaw SharpClaw Solvers
@@ -29,7 +29,7 @@ structure is:
 
 
 :mod:`petclaw.evolve.sharpclaw`
-=============================
+===============================
 
 .. automodule:: petclaw.evolve.sharpclaw
    :members:

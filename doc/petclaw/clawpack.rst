@@ -30,7 +30,7 @@ structure is:
 
 
 :mod:`petclaw.evolve.clawpack`
-=============================
+==============================
 
 .. automodule:: petclaw.evolve.clawpack
    :members:

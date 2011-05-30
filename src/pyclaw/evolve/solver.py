@@ -213,16 +213,24 @@ class Solver(object):
         approprate dimension.  Valid values for :attr:`mthbc_lower` and 
         :attr:`mthbc_upper` include:
         
-        'custom'     or 0: A user defined boundary condition will be used, the appropriate 
-           Dimension method user_bc_lower or user_bc_upper will be called.
-        'outflow'    or 1: Zero-order extrapolation.
-        'periodic'   or 2: Periodic boundary conditions.
-        'reflecting' or 3: Wall boundary conditions. It is assumed that the second 
-           component of q represents velocity or momentum.
+        - 'custom'     or 0: A user defined boundary condition will be used, the appropriate 
+            Dimension method user_bc_lower or user_bc_upper will be called.
+        - 'outflow'    or 1: Zero-order extrapolation.
+        - 'periodic'   or 2: Periodic boundary conditions.
+        - 'reflecting' or 3: Wall boundary conditions. It is assumed that the second 
+            component of q represents velocity or momentum.
     
+        :Input:
+         -  *grid* - (:class:`Grid`) The grid being operated on.
+         -  *state* - The state being operated on; this may or may not be the
+                      same as *grid*.  Generally it is the same as *grid* for
+                      the classic algorithms and other one-level algorithms, 
+                      but different for method-of-lines algorithms like SharpClaw.
+
         :Output:
-         - (ndarray(...,meqn)) q array with boundary ghost cells added and set
+         - (ndarray(meqn,...)) q array with boundary ghost cells added and set
          
+
         .. note:: 
 
             Note that for user-defined boundary conditions, the array sent to

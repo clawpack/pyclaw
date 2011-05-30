@@ -315,12 +315,14 @@ class SharpClawSolver1D(SharpClawSolver):
 
 
     def dq_homogeneous(self,grid,q, t):
-        """Compute dq/dt * (delta t) for the homogeneous hyperbolic system
+        r"""
+        Compute dq/dt * (delta t) for the homogeneous hyperbolic system.
 
         Note that the capa array, if present, should be located in the aux
         variable.
 
-        Indexing works like this:  here mbc=2 as an example
+        Indexing works like this (here mbc=2 as an example)::
+
          0     1     2     3     4     mx+mbc-2     mx+mbc      mx+mbc+2
                      |                        mx+mbc-1 |  mx+mbc+1
          |     |     |     |     |   ...   |     |     |     |     |
@@ -330,11 +332,13 @@ class SharpClawSolver1D(SharpClawSolver):
         The top indices represent the values that are located on the grid
         cell boundaries such as waves, s and other Riemann problem values, 
         the bottom for the cell centered values such as q.  In particular
-        the ith grid cell boundary has the following related information:
+        the ith grid cell boundary has the following related information::
+
                           i-1         i         i+1
                            |          |          |
                            |   i-1    |     i    |
                            |          |          |
+
         Again, grid cell boundary quantities are at the top, cell centered
         values are in the cell.
 
@@ -490,7 +494,8 @@ class SharpClawSolver2D(SharpClawSolver):
         Note that the capa array, if present, should be located in the aux
         variable.
 
-        Indexing works like this:  here mbc=2 as an example
+        Indexing works like this (here mbc=2 as an example)::
+
          0     1     2     3     4     mx+mbc-2     mx+mbc      mx+mbc+2
                      |                        mx+mbc-1 |  mx+mbc+1
          |     |     |     |     |   ...   |     |     |     |     |
@@ -500,11 +505,13 @@ class SharpClawSolver2D(SharpClawSolver):
         The top indices represent the values that are located on the grid
         cell boundaries such as waves, s and other Riemann problem values, 
         the bottom for the cell centered values such as q.  In particular
-        the ith grid cell boundary has the following related information:
+        the ith grid cell boundary has the following related information::
+
                           i-1         i         i+1
                            |          |          |
                            |   i-1    |     i    |
                            |          |          |
+
         Again, grid cell boundary quantities are at the top, cell centered
         values are in the cell.
 

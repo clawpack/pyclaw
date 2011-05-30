@@ -1,10 +1,10 @@
-.. _pyclaw_clawpack_solvers:
+.. _sharpclaw_solvers:
 
 ===============================
-Pyclaw SharpClaw Solvers
+SharpClaw Solvers
 ===============================
 
-The pyclaw SharpClaw solvers are a collection of solvers that contain the
+The SharpClaw solvers are a collection of solvers that contain the
 functionality of the Fortran code SharpClaw, developed in David Ketcheson's
 thesis.  The 1D SharpClaw solver contains a pure Python implementation as
 well as a wrapped Fortran version.  The 2D solver is in progress but not
@@ -29,7 +29,7 @@ structure is:
 
 
 :mod:`pyclaw.evolve.sharpclaw`
-=============================
+===============================
 
 .. automodule:: pyclaw.evolve.sharpclaw
    :members:
