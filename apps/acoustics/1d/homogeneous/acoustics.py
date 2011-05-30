@@ -32,13 +32,13 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
         solver.rp = rp_acoustics.rp_acoustics_1d
  
     solver.mthlim = pyclaw.limiters.MC
+    solver.mthbc_lower[0] = pyclaw.BC.periodic
+    solver.mthbc_upper[0] = pyclaw.BC.periodic
 
     #========================================================================
     # Instantiate the grid and set the boundary conditions
     #========================================================================
-    left_BC =pyclaw.BC.reflecting
-    right_BC=pyclaw.BC.outflow
-    x = pyclaw.Dimension('x',0.0,1.0,100,mthbc_lower=left_BC,mthbc_upper=right_BC)
+    x = pyclaw.Dimension('x',0.0,1.0,100)
     grid = pyclaw.Grid(x)
     grid.mbc=solver.mbc
 

@@ -47,11 +47,15 @@ def acoustics2D(use_PETSc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     solver.cfl_desired = 0.45
     solver.mwaves = 2
     solver.mthlim = [4]*solver.mwaves
+    solver.mthbc_lower[0] = pyclaw.BC.outflow
+    solver.mthbc_upper[0] = pyclaw.BC.outflow
+    solver.mthbc_lower[1] = pyclaw.BC.outflow
+    solver.mthbc_upper[1] = pyclaw.BC.outflow
 
     # Initialize grid
     mx=100; my=100
-    x = pyclaw.grid.Dimension('x',-1.0,1.0,mx,mthbc_lower=1,mthbc_upper=1)
-    y = pyclaw.grid.Dimension('y',-1.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
+    x = pyclaw.grid.Dimension('x',-1.0,1.0,mx)
+    y = pyclaw.grid.Dimension('y',-1.0,1.0,my)
     grid = pyclaw.grid.Grid([x,y])
     grid.mbc=solver.mbc
 

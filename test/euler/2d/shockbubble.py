@@ -104,23 +104,19 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
     """
 
     if use_PETSc:
-        from petclaw.grid import Dimension, Grid
-        from petclaw.evolve.clawpack import ClawSolver2D 
-        output_format = 'petsc'
-    else:
-        from pyclaw.grid import Dimension, Grid
+        import petclaw as pyclaw
         from pyclaw.evolve.clawpack import ClawSolver2D 
-        output_format = 'ascii'
+    else:
+        import pyclaw
+        from pyclaw.evolve.clawpack import ClawSolver2D 
 
-    from pyclaw.solution import Solution
-    from pyclaw.controller import Controller
     from petclaw import plot
 
     # Initialize grid
     mx=160; my=40
-    x = Dimension('x',0.0,2.0,mx,mthbc_lower=0,mthbc_upper=1)
-    y = Dimension('y',0.0,0.5,my,mthbc_lower=3,mthbc_upper=1)
-    grid = Grid([x,y])
+    x = pyclaw.Dimension('x',0.0,2.0,mx)
+    y = pyclaw.Dimension('y',0.0,0.5,my)
+    grid = pyclaw.Grid([x,y])
 
     grid.aux_global['gamma']= gamma
     grid.aux_global['gamma1']= gamma1
@@ -135,7 +131,7 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
 
     qinit(grid)
     auxinit(grid)
-    initial_solution = Solution(grid)
+    initial_solution = pyclaw.Solution(grid)
 
     solver = ClawSolver2D()
     solver.cfl_max = 0.5
@@ -146,11 +142,14 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
     solver.user_bc_lower=shockbc
     solver.src=euler_rad_src
     solver.src_split = 1
+    solver.mthbc_lower[0]=pyclaw.BC.custom
+    solver.mthbc_upper[0]=pyclaw.BC.outflow
+    solver.mthbc_lower[1]=pyclaw.BC.reflecting
+    solver.mthbc_upper[1]=pyclaw.BC.outflow
 
-    claw = Controller()
+    claw = pyclaw.Controller()
     claw.keep_copy = True
     # The output format MUST be set to petsc!
-    claw.output_format = output_format
     claw.tfinal = tfinal
     claw.solutions['n'] = initial_solution
     claw.solver = solver
@@ -159,8 +158,8 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
     # Solve
     status = claw.run()
 
-    if htmlplot:  plot.plotHTML(format=output_format)
-    if iplot:     plot.plotInteractive(format=output_format)
+    if htmlplot:  plot.plotHTML(format=claw.output_format)
+    if iplot:     plot.plotInteractive(format=claw.output_format)
 
     if use_PETSc:
         density=claw.frames[claw.nout].grid.gqVec.getArray().reshape([grid.meqn,grid.local_n[0],grid.local_n[1]],order='F')[0,:,:]

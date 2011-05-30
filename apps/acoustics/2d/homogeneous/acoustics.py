@@ -24,24 +24,17 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',so
     """
 
     if use_PETSc:
-        from petclaw.grid import Dimension, Grid
-        if soltype=='classic':
-            from petclaw.evolve.clawpack import PetClawSolver2D as mySolver
-        elif soltype=='sharpclaw':
-            from petclaw.evolve.sharpclaw import PetSharpClawSolver2D as mySolver
-        from petclaw.controller import Controller
+        import petclaw as pyclaw
     else:
-        from pyclaw.grid import Dimension, Grid
-        if soltype=='classic':
-            from pyclaw.evolve.clawpack import ClawSolver2D as mySolver
-        elif soltype=='sharpclaw':
-            from pyclaw.evolve.sharpclaw import SharpClawSolver2D as mySolver
-        from pyclaw.controller import Controller
+        import pyclaw
 
-    from pyclaw.solution import Solution
+    if soltype=='classic':
+        solver=pyclaw.evolve.clawpack.ClawSolver2D()
+    elif soltype=='sharpclaw':
+        solver=pyclaw.evolve.clawpack.SharpClawSolver2D()
+
     from petclaw import plot
 
-    solver = mySolver()
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
     solver.mwaves = 2
@@ -49,12 +42,16 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',so
     solver.mthlim = limiters.MC
     solver.dim_split=False
 
+    solver.mthbc_lower[0]=pyclaw.BC.outflow
+    solver.mthbc_upper[0]=pyclaw.BC.outflow
+    solver.mthbc_lower[1]=pyclaw.BC.outflow
+    solver.mthbc_upper[1]=pyclaw.BC.outflow
 
     # Initialize grid
     mx=100; my=100
-    x = Dimension('x',-1.0,1.0,mx,mthbc_lower=1,mthbc_upper=1)
-    y = Dimension('y',-1.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
-    grid = Grid([x,y])
+    x = pyclaw.Dimension('x',-1.0,1.0,mx,mthbc_lower=1,mthbc_upper=1)
+    y = pyclaw.Dimension('y',-1.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
+    grid = pyclaw.Grid([x,y])
 
     rho = 1.0
     bulk = 4.0
@@ -64,11 +61,6 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',so
     grid.aux_global['bulk']=bulk
     grid.aux_global['zz']= zz
     grid.aux_global['cc']=cc
-    if soltype=='classic':
-        from classic2 import cparam
-    elif soltype=='sharpclaw':
-        from sharpclaw2 import cparam
-    for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     solver.dt=np.min(grid.d)/grid.aux_global['cc']*solver.cfl_desired
 
@@ -81,9 +73,9 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',so
         grid.init_q_petsc_structures()
 
     qinit(grid)
-    initial_solution = Solution(grid)
+    initial_solution = pyclaw.Solution(grid)
 
-    claw = Controller()
+    claw = pyclaw.Controller()
     claw.keep_copy = True
     claw.tfinal = tfinal
     claw.solutions['n'] = initial_solution

@@ -284,6 +284,8 @@ class ClawSolver1D(ClawSolver):
         # Import Riemann solvers
         exec('import riemann',globals())
             
+        self.ndim = 1
+
         super(ClawSolver1D,self).__init__(data)
 
 
@@ -511,6 +513,8 @@ class ClawSolver2D(ClawSolver):
         exec('import riemann',globals())
             
         self._default_attr_values['dim_split'] = True
+
+        self.ndim = 2
 
         super(ClawSolver2D,self).__init__(data)
 

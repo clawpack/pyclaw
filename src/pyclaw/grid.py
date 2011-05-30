@@ -34,27 +34,6 @@ def default_mapc2p(grid,x):
     """
     return x
 
-# Boundary condition user defined function default
-def default_user_bc_lower(grid,dim,t,qbc):
-    r"""
-    Fills the values of qbc with the correct boundary values
-    
-    This is a stub function which will return an exception if called.  If you
-    want to use a user defined boundary condition replace this function with
-    one of your own.
-    """
-    raise NotImplementedError("Lower user defined boundary condition unimplemented")
-
-def default_user_bc_upper(grid,dim,t,qbc):
-    r"""
-    Fills the values of qbc with the correct boundary values
-    
-    This is a stub function which will return an exception if called.  If you
-    want to use a user defined boundary condition replace this function with
-    one of your own.
-    """
-    raise NotImplementedError("Lower user defined boundary condition unimplemented")
-
 
 # ============================================================================
 #  Dimension Object
@@ -71,11 +50,7 @@ class Dimension(object):
      - *upper* - (float) Upper extent of dimension
      - *n* - (int) Number of grid cells
      - *units* - (string) Type of units, used for informational purposes only
-     - *mthbc_lower* - (int) Lower boundary condition method to be used
-     - *mthbc_upper* - (int) Upper boundary condition method to be used
-     - *user_bc_lower* - (func) User defined lower boundary condition
-     - *user_bc_upper* - (func) User defined upper boundary condition
-        
+       
     Output:
      - (:class:`Dimension`) - Initialized Dimension object
     """
@@ -162,13 +137,6 @@ class Dimension(object):
         r"""(float) - Lower computational grid extent"""
         self.upper = 1.0
         r"""(float) - Upper computational grid extent"""
-        self.user_bc_lower = default_user_bc_lower
-        r"""(func) - User defined boundary condition function, lower.  
-        ``default = None``
-        """
-        self.user_bc_upper = default_user_bc_upper
-        r"""(func) - User defined boundary condition function, upper. 
-        ``default = None``"""
         self.units = None
         r"""(string) Corresponding physical units of this dimension (e.g. 
         'm/s'), ``default = None``"""
@@ -449,23 +417,6 @@ class Grid(object):
         if self.q is None:
             logger.debug('The array q has not been initialized.')
             valid = False
-        for dim in self.dimensions:
-            if dim.mthbc_lower == 0:
-                try:
-                    dim.user_bc_lower(self,dim,None)
-                except NotImplementedError:
-                    logger.debug('Lower BC function for %s has not been set.' % dim.name)
-                    valid = False
-                except:
-                    pass
-            if dim.mthbc_upper == 0:
-                try:
-                    dim.user_bc_upper(self,dim,None)
-                except NotImplementedError:
-                    logger.debug('Upper BC function for %s has not been set.' % dim.name)
-                    valid = False
-                except:
-                    pass
         return valid
     
     

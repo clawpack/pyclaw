@@ -261,6 +261,8 @@ class SharpClawSolver1D(SharpClawSolver):
         # Import Riemann solvers
         exec('import riemann',globals())
             
+        self.ndim = 1
+
         super(SharpClawSolver1D,self).__init__(data)
 
 
@@ -454,6 +456,8 @@ class SharpClawSolver2D(SharpClawSolver):
         See :class:`SharpClawSolver2D` for more info.
         """   
         
+        self.ndim = 2
+
         super(SharpClawSolver2D,self).__init__(data)
 
 

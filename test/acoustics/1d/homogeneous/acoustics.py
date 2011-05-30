@@ -14,23 +14,17 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
         import pyclaw
 
     if soltype=='classic':
-        from pyclaw.evolve.clawpack import ClawSolver1D 
-        solver = ClawSolver1D()
+        solver = pyclaw.ClawSolver1D()
     elif soltype=='sharpclaw':
-        from pyclaw.evolve.sharpclaw import SharpClawSolver1D
-        solver = SharpClawSolver1D()
+        solver = pyclaw.SharpClawSolver1D()
     else: raise Exception('Unrecognized value of soltype.')
 
-    from pyclaw.solution import Solution
-    from pyclaw.controller import Controller
-
     # Initialize grids and solutions
-    x = pyclaw.grid.Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
-    grid = pyclaw.grid.Grid(x)
+    x = pyclaw.Dimension('x',0.0,1.0,100)
+    grid = pyclaw.Grid(x)
     grid.meqn=2
 
-    if soltype=='classic': grid.mbc=2
-    elif soltype=='sharpclaw': grid.mbc=3
+    grid.mbc = solver.mbc
 
     rho = 1.0
     bulk = 1.0
@@ -51,7 +45,7 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
     q[1,:]=0.
     grid.q=q
     
-    init_solution = Solution(grid)
+    init_solution = pyclaw.Solution(grid)
 
 
     solver.mwaves=2
@@ -62,8 +56,10 @@ def acoustics(use_PETSc=True,kernel_language='Fortran',soltype='classic',iplot=F
 
     solver.mthlim = [4]*solver.mwaves
     solver.dt=grid.d[0]/grid.aux_global['cc']*0.1
+    solver.mthbc_lower[0] = pyclaw.BC.periodic
+    solver.mthbc_upper[0] = pyclaw.BC.periodic
 
-    claw = Controller()
+    claw = pyclaw.Controller()
     claw.keep_copy = True
     claw.nout = 5
     

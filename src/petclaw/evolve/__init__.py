@@ -19,3 +19,6 @@ from riemann import *
 
 __all__.append('limiters')
 from pyclaw.evolve import limiters
+
+__all__.append('BC')
+from pyclaw.evolve.solver import BC

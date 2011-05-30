@@ -33,6 +33,27 @@ class BC():
     periodic   = 2
     reflecting = 3
 
+# Boundary condition user defined function default
+def default_user_bc_lower(grid,dim,t,qbc):
+    r"""
+    Fills the values of qbc with the correct boundary values
+    
+    This is a stub function which will return an exception if called.  If you
+    want to use a user defined boundary condition replace this function with
+    one of your own.
+    """
+    raise NotImplementedError("Lower user defined boundary condition unimplemented")
+
+def default_user_bc_upper(grid,dim,t,qbc):
+    r"""
+    Fills the values of qbc with the correct boundary values
+    
+    This is a stub function which will return an exception if called.  If you
+    want to use a user defined boundary condition replace this function with
+    one of your own.
+    """
+    raise NotImplementedError("Lower user defined boundary condition unimplemented")
+
 
 class Solver(object):
     r"""
@@ -75,6 +96,12 @@ class Solver(object):
     .. attribute:: logger
     
         Default logger for all solvers
+
+    - *mthbc_lower* - (int) Lower boundary condition method to be used
+    - *mthbc_upper* - (int) Upper boundary condition method to be used
+    - *user_bc_lower* - (func) User defined lower boundary condition
+    - *user_bc_upper* - (func) User defined upper boundary condition
+ 
         
     :Initialization:
     
@@ -130,7 +157,18 @@ class Solver(object):
         
         # Profile times
         self.times = []
+
+        self.mthbc_lower = [2]*self.ndim
+        self.mthbc_upper = [2]*self.ndim
         
+        self.user_bc_lower = [default_user_bc_lower]*self.ndim
+        r"""(func) - User defined boundary condition function, lower.  
+        ``default = None``
+        """
+        self.user_bc_upper = [default_user_bc_upper]*self.ndim
+        r"""(func) - User defined boundary condition function, upper. 
+        ``default = None``"""
+
     def __str__(self):
         output = "Solver Status:\n"
         for (k,v) in self.status.iteritems():
@@ -160,6 +198,24 @@ class Solver(object):
             if not self.__dict__.has_key(key):
                 self.logger.info('%s is not present.' % key)
                 valid = False
+        #for i,bcmeth in enumerate(self.mthbc_lower):
+        #    if bcmeth == BC.custom:
+        #        try:
+        #            self.user_bc_lower(self,dim,None)
+        #        except NotImplementedError:
+        #            logger.debug('Lower BC function for %s has not been set.' % dim.name)
+        #            valid = False
+        #        except:
+        #            pass
+        #    if dim.mthbc_upper == 0:
+        #        try:
+        #            dim.user_bc_upper(self,dim,None)
+        #        except NotImplementedError:
+        #            logger.debug('Upper BC function for %s has not been set.' % dim.name)
+        #            valid = False
+        #        except:
+        #            pass
+
         return valid
         
     def setup(self,solutions):
@@ -243,22 +299,39 @@ class Solver(object):
 
         qbc=self.append_ghost_cells(grid,state,state.q)
        
-        for (i,dim) in enumerate(grid.dimensions):
-            # If a user defined boundary condition is being used, send it on,
-            # otherwise roll the axis to front position and operate on it
-            if dim.mthbc_lower == 0:
-                self.qbc_lower(grid,dim,state.t,qbc)
-            else:
-                self.qbc_lower(grid,dim,state.t,np.rollaxis(qbc,i+1,1))
-            if dim.mthbc_upper == 0:
-                self.qbc_upper(grid,dim,state.t,qbc)
-            else:
-                self.qbc_upper(grid,dim,state.t,np.rollaxis(qbc,i+1,1))
+        for idim,dim in enumerate(grid.dimensions):
+            # First check if we are actually on the boundary
+            # (in case of a parallel run)
+            if dim.nstart == 0:
+                # If a user defined boundary condition is being used, send it on,
+                # otherwise roll the axis to front position and operate on it
+                if self.mthbc_lower[idim] == BC.custom:
+                    self.qbc_lower(grid,dim,state.t,qbc,idim)
+                elif self.mthbc_lower[idim] == BC.periodic:
+                    if dim.nend == dim.n:
+                        # This process owns the whole grid
+                        self.qbc_lower(grid,dim,state.t,np.rollaxis(qbc,idim+1,1),idim)
+                    else:
+                        pass #Handled automatically by PETSc
+                else:
+                    self.qbc_lower(grid,dim,state.t,np.rollaxis(qbc,idim+1,1),idim)
+
+            if dim.nend == dim.n :
+                if self.mthbc_upper[idim] == BC.custom:
+                    self.qbc_upper(grid,dim,state.t,qbc,idim)
+                elif self.mthbc_upper[idim] == BC.periodic:
+                    if dim.nstart == 0:
+                        # This process owns the whole grid
+                        self.qbc_upper(grid,dim,state.t,np.rollaxis(qbc,idim+1,1),idim)
+                    else:
+                        pass #Handled automatically by PETSc
+                else:
+                    self.qbc_upper(grid,dim,state.t,np.rollaxis(qbc,idim+1,1),idim)
             
         return qbc
 
 
-    def qbc_lower(self,grid,dim,t,qbc):
+    def qbc_lower(self,grid,dim,t,qbc,idim):
         r"""
         Apply lower boundary conditions to qbc
         
@@ -278,47 +351,23 @@ class Solver(object):
         """
         import numpy as np
 
-        # User defined functions
-        if dim.mthbc_lower == BC.custom: self.user_bc_lower(grid,dim,qbc)
-        # Zero-order extrapolation
-        elif dim.mthbc_lower == BC.outflow:
-            if dim.nstart == 0:
-                for i in xrange(self.mbc):
-                    qbc[:,i,...] = qbc[:,self.mbc,...]
-        # Periodic
-        elif dim.mthbc_lower == BC.periodic:
-            if dim.nstart == 0 and dim.nend==dim.n:
-                # This process owns the whole grid
-                qbc[:,:self.mbc,...] = qbc[:,-2*self.mbc:-self.mbc,...]
-            else:
-                pass #Handled automatically by PETSc
-            
-        # Solid wall bc
-        elif dim.mthbc_lower == BC.reflecting:
-             if dim.nstart == 0:
-                if grid.ndim == 1:
-                    for i in xrange(self.mbc):
-                        qbc[:,i,...] = qbc[:,2*self.mbc-1-i,...]
-                        qbc[1,i,...] = -qbc[1,2*self.mbc-1-i,...] # Negate normal velocity
-                elif grid.ndim == 2:
-                     if dim.name == 'x':  # left boundary in the x direction
-                         for i in xrange(self.mbc):
-                             qbc[:,i,...] = qbc[:,2*self.mbc-1-i,...]
-                             qbc[1,i,...] = -qbc[1,2*self.mbc-1-i,...] # Negate normal velocity
-                     elif dim.name=='y': # lower boundary in the y direction
-                         for i in xrange(self.mbc):
-                             qbc[:,i,...] = qbc[:,2*self.mbc-1-i,...]
-                             qbc[2,i,...] = -qbc[2,2*self.mbc-1-i,...]  # Negate normal velocity
-                     else:
-                         raise Exception("No built-in reflecting BCs unless your dimensions are named x and y; this dimension is named %s" % dim.name)
-              
-                else:
-                    raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
+        if self.mthbc_lower[idim] == BC.custom: 
+            self.user_bc_lower(grid,dim,qbc)
+        elif self.mthbc_lower[idim] == BC.outflow:
+            for i in xrange(self.mbc):
+                qbc[:,i,...] = qbc[:,self.mbc,...]
+        elif self.mthbc_lower[idim] == BC.periodic:
+            # This process owns the whole grid
+            qbc[:,:self.mbc,...] = qbc[:,-2*self.mbc:-self.mbc,...]
+        elif self.mthbc_lower[idim] == BC.reflecting:
+            for i in xrange(self.mbc):
+                qbc[:,i,...] = qbc[:,2*self.mbc-1-i,...]
+                qbc[idim+1,i,...] = -qbc[idim+1,2*self.mbc-1-i,...] # Negate normal velocity
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
 
 
-    def qbc_upper(self,grid,dim,t,qbc):
+    def qbc_upper(self,grid,dim,t,qbc,idim):
         r"""
         Apply upper boundary conditions to qbc
         
@@ -337,44 +386,18 @@ class Solver(object):
            be set in this routines
         """
  
-        # User defined functions
-        if dim.mthbc_upper == BC.custom:
+        if self.mthbc_upper[idim] == BC.custom:
             self.user_bc_upper(grid,dim,qbc)
-        # Zero-order extrapolation
-        elif dim.mthbc_upper == BC.outflow:
-            if dim.nend == dim.n :
-                for i in xrange(self.mbc):
-                    qbc[:,-i-1,...] = qbc[:,-self.mbc-1,...] 
- 	    
-        elif dim.mthbc_upper == BC.periodic:
-            # Periodic
-            if dim.nstart == 0 and dim.nend==dim.n:
-                # This process owns the whole grid
-                qbc[:,-self.mbc:,...] = qbc[:,self.mbc:2*self.mbc,...]
-            else:
-                pass # this is implemented automatically by petsc4py
-
-        # Solid wall bc
-        elif dim.mthbc_upper == BC.reflecting:
-            if dim.nend == dim.n:
-                if grid.ndim == 1:
-                    for i in xrange(self.mbc):
-                        qbc[:,-i-1,...] = qbc[:,-2*self.mbc+i,...]
-                        qbc[1,-i-1,...] = -qbc[1,-2*self.mbc+i,...] # Negate normal velocity
-                elif grid.ndim == 2:
-                     if dim.name == 'x': # right boundary in the x direction
-                         for i in xrange(self.mbc):
-                             qbc[:,-i-1,...] = qbc[:,-2*self.mbc+i,...]
-                             qbc[1,-i-1,...] = -qbc[1,-2*self.mbc+i,...] # Negate normal velocity
-                     elif dim.name == 'y': # upper boundary in the y direction
-                         for i in xrange(self.mbc):
-                             qbc[:,-i-1,...] = qbc[:,-2*self.mbc+i,...]
-                             qbc[2,-i-1,...] = -qbc[2,-2*self.mbc+i,...] # Negate normal velocity
-                     else:
-                         raise Exception("No built-in reflecting BCs unless your dimensions are named x and y; this dimension is named %s" % dim.name)
-              
-                else:
-                    raise NotImplementedError("3D wall boundary condition %s not implemented" % x.mthbc_lower)
+        elif self.mthbc_upper[idim] == BC.outflow:
+            for i in xrange(self.mbc):
+                qbc[:,-i-1,...] = qbc[:,-self.mbc-1,...] 
+        elif self.mthbc_upper[idim] == BC.periodic:
+            # This process owns the whole grid
+            qbc[:,-self.mbc:,...] = qbc[:,self.mbc:2*self.mbc,...]
+        elif self.mthbc_upper[idim] == BC.reflecting:
+            for i in xrange(self.mbc):
+                qbc[:,-i-1,...] = qbc[:,-2*self.mbc+i,...]
+                qbc[idim+1,-i-1,...] = -qbc[idim+1,-2*self.mbc+i,...] # Negate normal velocity
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
 
