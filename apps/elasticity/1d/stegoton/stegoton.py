@@ -71,13 +71,13 @@ def b4step(solver,solutions):
                 grid.aux[1,i]=grid.aux_global['KA']
 
 
-def zero_bc(grid,dim,qbc):
+def zero_bc(grid,dim,t,qbc):
     """Set everything to zero"""
     if dim.mthbc_upper==0:
         if dim.centerghost[-1]>150.:
             qbc[:,-grid.mbc:]=0.
 
-def moving_wall_bc(grid,dim,qbc):
+def moving_wall_bc(grid,dim,t,qbc):
     """Initial pulse generated at left boundary by prescribed motion"""
     if dim.mthbc_lower==0:
         if dim.centerghost[0]<0:

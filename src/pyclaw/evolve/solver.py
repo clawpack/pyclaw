@@ -352,7 +352,7 @@ class Solver(object):
         import numpy as np
 
         if self.mthbc_lower[idim] == BC.custom: 
-            self.user_bc_lower(grid,dim,qbc)
+            self.user_bc_lower(grid,dim,t,qbc)
         elif self.mthbc_lower[idim] == BC.outflow:
             for i in xrange(self.mbc):
                 qbc[:,i,...] = qbc[:,self.mbc,...]
@@ -387,7 +387,7 @@ class Solver(object):
         """
  
         if self.mthbc_upper[idim] == BC.custom:
-            self.user_bc_upper(grid,dim,qbc)
+            self.user_bc_upper(grid,dim,t,qbc)
         elif self.mthbc_upper[idim] == BC.outflow:
             for i in xrange(self.mbc):
                 qbc[:,-i-1,...] = qbc[:,-self.mbc-1,...] 

@@ -40,7 +40,7 @@ def auxinit(grid):
         aux[0,:,j] = ycoord
     grid.aux=aux
 
-def shockbc(grid,dim,qbc):
+def shockbc(grid,dim,t,qbc):
     """
     Incoming shock at left boundary.
     """
