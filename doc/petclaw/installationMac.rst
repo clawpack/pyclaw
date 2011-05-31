@@ -48,6 +48,8 @@ Enthought Python 2.7 comes already with numpy 1.5.1 (see `EPDChangelog <http://w
     * Use `easy_install <http://packages.python.org/distribute/easy_install.html>`_ ::
         
         $ easy_install "numpy==RELEASE-NUMBER"
+
+Both method install numpy in the system, i.e. inside the python distribution installed in the previous step. If you prefer to install numpy locally, i.e. only for your user account, append the option ``--user`` after "RELEASE-NUMBER".
  
 
 To test the numpy functionality open a terminal and run python, i.e. ::
@@ -67,7 +69,14 @@ You should get something like
 
 Installation of the gcc (GNU compiler collection)
 =================================================
-If you install the Mac OS X developer tools available at `<http://developer.apple.com/mac/>`_, the gcc GNU compiler suite will be installed as part of the package. To download the Mac OS X Developer tools an Apple developer connection login is needed. This can be obtained for free at the same address.
+We suggest you to install Xcode. Therefore, sign up at `<https://connect.apple.com/>`_, then download for FREE Xcode from `<http://developer.apple.com/xcode/>`_. 
+
+Although Apple XCode Tools includes gcc 4.X, it is not a complete implementation and lacks `gfortran <http://gcc.gnu.org/wiki/GFortran>`_. However, various implementations of gfortran have been compiled and are available at `GCC Wiki GFortranBinaries <http://gcc.gnu.org/wiki/GFortranBinaries>`_. There are two other possible venues to install gfortran, `Tools - R (and Fortran) for Mac OS X <http://r.research.att.com/tools/>`_, or `High Performance Computing for Mac OS X <http://hpc.sourceforge.net/>`_.  Please take a look at this nice web page `<http://www.webmo.net/support/fortran_osx.html>`_ for more information about fortran and fortran compilers. Here the "GCC Wiki" installation is used. Thus, 
+	* Visit the `GCC Wiki GFortranBinaries <http://gcc.gnu.org/wiki/GFortranBinaries>`_ page and scroll to the MacOS section
+	* Download the gfortran-macosx-{**architecture you need**} (e.g. Intel processors, Tiger and later; Intel 64-bit processors, Snow Leopard; PowerPC Leopard)
+	* Double-click on the .dmg file to mount the image   
+    	* Double-click on the .pkg file to run the installer
+
 
 
 Installation of PETSc
@@ -95,7 +104,7 @@ Then configure PETSc-dev with the following command ::
 
     $ ./config/configure.py --with-cc=gcc --with-cxx=g++ --with-python=1 --download-mpich=1 --with-shared-libraries=1
 
-Note that one of the option is --download-mpich=1. This means that mpich is downloaded. If you do not need/want mpich, remove this option.
+Note that one of the option is --download-mpich=1. This means that mpich is downloaded. If you do not need/want mpich, remove this option. Note that you need MPI when using PETSc. Therefore, if the option –download-mpich=1 is removed you should have MPI installed on your system or in your user account.
 
 Once the configuration phase is completed, build PETSc libraries with ::
 
@@ -167,6 +176,10 @@ The current recommended version is 1.2.2. Download it from `<http://code.google.
 Install it: ::
 
     $ python setup.py install --user
+
+or: ::
+
+    $ pip install . --user 
 
 To check mpi4py installation do: ::
     

@@ -44,7 +44,7 @@ PetClaw Contents:
    petclaw/tips
    petclaw/about
    petclaw/installationMac
-   petclaw/rulesProposal
+#   petclaw/rulesProposal
 
 
 
