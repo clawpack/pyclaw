@@ -20,6 +20,7 @@ http://github.com/clawpack/pyclaw.
 
    started
    tutorial
+   classes
    differences
    develop
    about
