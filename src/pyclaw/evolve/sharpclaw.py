@@ -193,7 +193,7 @@ class SharpClawSolver(Solver):
         Evaluate dq/dt.  This routine is used for implicit time stepping.
         """
 
-        q = self.qbc(grid,rk_stage.q,rk_stage.t)
+        q = self.qbc(grid,rk_stage)
 
         self.dt = 1
         deltaq = self.dq_homogeneous(grid,q,rk_stage.t)
@@ -429,7 +429,7 @@ class SharpClawSolver1D(SharpClawSolver):
         Evaluate dq/dt.  This routine is used for implicit time stepping.
         """
 
-        q = self.qbc(grid,rk_stage.q,rk_stage.t)
+        q = self.qbc(grid,rk_stage)
 
         self.dt = 1
         deltaq = self.dq_homogeneous(grid,q,rk_stage.t)
