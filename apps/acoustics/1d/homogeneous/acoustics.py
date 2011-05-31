@@ -65,7 +65,7 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
     # Set up the controller object
     #========================================================================
     claw = pyclaw.Controller()
-    claw.solutions['n'] = pyclaw.Solution(grid)
+    claw.solution = pyclaw.Solution(grid)
     claw.solver = solver
     claw.outdir = outdir
     claw.tfinal = 1.0
@@ -74,9 +74,8 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
     status = claw.run()
 
     # Plot results
-    from petclaw import plot
-    if htmlplot:  plot.plotHTML(outdir=outdir,format=claw.output_format)
-    if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
+    if htmlplot:  pyclaw.plot.plotHTML(outdir=outdir)
+    if iplot:     pyclaw.plot.plotInteractive(outdir=outdir)
 
 if __name__=="__main__":
     import sys

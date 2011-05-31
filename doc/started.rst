@@ -107,6 +107,4 @@ this `Clawpack interactive python plotting help page <http://kingkong.amath.wash
 
 Next steps
 ================================
-To understand how to set up
-a new problem, please read the `PyClaw tutorial <http://kingkong.amath.washington.edu/clawpack/users/pyclaw/tutorial.html>`_.
-The `PyClaw reference documentation <http://kingkong.amath.washington.edu/clawpack/users/pyclaw/index.html>`_ may also be helpful.
+Now you're ready to set up your own PyClaw simulation.  Try the :ref:`pyclaw_tutorial`!
