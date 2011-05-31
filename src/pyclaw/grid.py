@@ -62,28 +62,6 @@ class Dimension(object):
             return (self.upper-self.lower) / float(self.n)
         return locals()
     d = property(**d())
-    def mthbc_lower():
-        doc = r"""(int) - Lower boundary condition fill method. 
-                  ``default = 1``"""
-        def fget(self): return self._mthbc_lower
-        def fset(self,value):
-            if value == 2:
-                self._mthbc_upper = value
-            self._mthbc_lower = value
-        return locals()
-    mthbc_lower = property(**mthbc_lower())
-    _mthbc_lower = 1
-    def mthbc_upper():
-        doc = r"""(int) - Upper boundary condition fill method. 
-                  ``default = 1``"""
-        def fget(self): return self._mthbc_upper
-        def fset(self,value):
-            if value == 2:
-                self._mthbc_lower = value
-            self._mthbc_upper = value
-        return locals()
-    mthbc_upper = property(**mthbc_upper())
-    _mthbc_upper = 1
     def edge():
         doc = r"""(ndarrary(:)) - Location of all grid cell edge coordinates
         for this dimension"""
@@ -172,7 +150,6 @@ class Dimension(object):
             output += " (%s)" % self.units
         output += ":  (n,d,[lower,upper]) = (%s,%s,[%s,%s])" \
             % (self.n,self.d,self.lower,self.upper)
-        output += "  mthbc = (%s,%s)" % (self.mthbc_lower,self.mthbc_upper)
         return output
         
 
@@ -262,18 +239,6 @@ class Grid(object):
         doc = r"""(list) - List of dimension units"""
         def fget(self): return self.get_dim_attribute('units')
         return locals()
-    def mthbc_lower():
-        doc = r"""(list) - List of lower bc methods"""
-        def fget(self): return self.get_dim_attribute('mthbc_lower')
-        def fset(self, value): 
-            [setattr(getattr(self,dim),'mthbc_lower',value) for dim in self._dimensions]
-        return locals()
-    def mthbc_upper():
-        doc = r"""(list) - List of upper bc methods"""
-        def fget(self): return self.get_dim_attribute('mthbc_upper')
-        def fset(self, value):
-            [setattr(getattr(self,dim),'mthbc_upper',value) for dim in self._dimensions]
-        return locals()
     def center():
         doc = r"""(list) - List of center coordinate arrays"""
         def fget(self): return self.get_dim_attribute('center')
@@ -328,8 +293,6 @@ class Grid(object):
     upper = property(**upper())
     d = property(**d())
     units = property(**units())
-    mthbc_lower = property(**mthbc_lower())
-    mthbc_upper = property(**mthbc_upper())
     center = property(**center())
     edge = property(**edge())
     p_center = property(**p_center())
