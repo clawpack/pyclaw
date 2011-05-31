@@ -54,7 +54,7 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
     grid.aux_global['bulk']=bulk
     grid.aux_global['zz']=np.sqrt(rho*bulk)
     grid.aux_global['cc']=np.sqrt(rho/bulk)
-    from step1 import cparam 
+    from classic1 import cparam 
     for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
     grid.meqn=2
     if sclaw:
@@ -74,17 +74,18 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
     init_solution = Solution(grid)
 
     if sclaw:
-        from petclaw.evolve.sharpclaw import PetSharpClawSolver1D
-        solver = PetSharpClawSolver1D()
+        from petclaw.evolve.sharpclaw import SharpClawSolver1D
+        solver = SharpClawSolver1D()
         solver.lim_type = kwargs.get('lim_type',2)
         solver.time_integrator = 'SSP33'
         solver.mwaves=2
         solver.char_decomp=0
     else:
-        from petclaw.evolve.clawpack import PetClawSolver1D
-        solver = PetClawSolver1D()
+        from petclaw.evolve.clawpack import ClawSolver1D
+        solver = ClawSolver1D()
         solver.mwaves=2
-        solver.mthlim = [4]*solver.mwaves
+        from pyclaw.evolve import limiters
+        solver.mthlim = limiters.MC
 
     if kernel_language=='Python': solver.set_riemann_solver('acoustics')
     solver.dt=grid.d[0]/grid.aux_global['cc']*0.1
