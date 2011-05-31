@@ -1,5 +1,5 @@
 PetClaw is distributed under the terms of the Berkeley Software Distribution
-(BSD) license.  The license is in the file nodepy/LICENSE.txt and
+(BSD) license.  The license is in the file pyclaw/LICENSE.txt and
 reprinted below.
 
 See http://www.opensource.org/licenses/bsd-license.php for more details.
