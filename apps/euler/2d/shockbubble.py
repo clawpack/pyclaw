@@ -21,13 +21,12 @@ def qinit(grid,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
     Y,X = np.meshgrid(y,x)
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
 
-    q=np.empty([grid.meqn,len(x),len(y)], order = 'F')
-    q[0,:,:] = rhoin*(r<=r0) + rhoout*(r>r0)
-    q[1,:,:] = 0.
-    q[2,:,:] = 0.
-    q[3,:,:] = (pin*(r<=r0) + pout*(r>r0))/gamma1
-    q[4,:,:] = 1.*(r<=r0)
-    grid.q=q
+    grid.zeros_q()
+    grid.q[0,:,:] = rhoin*(r<=r0) + rhoout*(r>r0)
+    grid.q[1,:,:] = 0.
+    grid.q[2,:,:] = 0.
+    grid.q[3,:,:] = (pin*(r<=r0) + pout*(r>r0))/gamma1
+    grid.q[4,:,:] = 1.*(r<=r0)
 
 def auxinit(grid):
     """
@@ -35,12 +34,12 @@ def auxinit(grid):
     """
     x=grid.x.centerghost
     y=grid.y.centerghost
-    aux=np.empty([1,len(x),len(y)], order='F')
+    grid.zeros_aux(1)
+    #aux=np.empty([1,len(x),len(y)], order='F')
     for j,ycoord in enumerate(y):
-        aux[0,:,j] = ycoord
-    grid.aux=aux
+        grid.aux[0,:,j] = ycoord
 
-def shockbc(grid,dim,qbc):
+def shockbc(grid,dim,t,qbc):
     """
     Incoming shock at left boundary.
     """
@@ -97,64 +96,52 @@ def euler_rad_src(solver,solutions,t,dt):
     q[3,:,:] = q[3,:,:] - dt2*(ndim-1)/rad * v * (qstar[3,:,:] + press)
 
 
-def shockbubble(use_PETSc=False,iplot=False,htmlplot=False,outdir='./_output'):
+def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='classic'):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a bubble of dense gas that is impacted by a shock.
     """
 
-    if use_PETSc:
-        from petclaw.grid import Dimension, Grid
-        from petclaw.evolve.clawpack import PetClawSolver2D as mySolver
-        output_format = 'petsc'
+    if use_petsc:
+        import petclaw as pyclaw
     else:
-        from pyclaw.grid import Dimension, Grid
-        from pyclaw.evolve.clawpack import ClawSolver2D as mySolver
-        output_format = 'ascii'
+        import pyclaw
 
-    from pyclaw.solution import Solution
-    from pyclaw.controller import Controller
-    from petclaw import plot
+    if solver_type=='sharpclaw':
+        solver = pyclaw.SharpClawSolver2D()
+    else:
+        solver = pyclaw.ClawSolver2D()
+
+    solver.mwaves = 5
+    solver.mthbc_lower[0]=pyclaw.BC.custom
+    solver.mthbc_upper[0]=pyclaw.BC.outflow
+    solver.mthbc_lower[1]=pyclaw.BC.reflecting
+    solver.mthbc_upper[1]=pyclaw.BC.outflow
 
     # Initialize grid
     mx=640; my=160
-    x = Dimension('x',0.0,2.0,mx,mthbc_lower=0,mthbc_upper=1)
-    y = Dimension('y',0.0,0.5,my,mthbc_lower=3,mthbc_upper=1)
-    grid = Grid([x,y])
+    x = pyclaw.Dimension('x',0.0,2.0,mx)
+    y = pyclaw.Dimension('y',0.0,0.5,my)
+    grid = pyclaw.Grid([x,y])
 
     grid.aux_global['gamma']= gamma
     grid.aux_global['gamma1']= gamma1
-    from classic2 import cparam
-    for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
-
     grid.meqn = 5
-    grid.mbc = 2
-    tfinal = 0.75
-
-    if use_PETSc:
-        # Initialize petsc Structures for q
-        grid.init_q_petsc_structures()
+    grid.mbc = solver.mbc
 
     qinit(grid)
     auxinit(grid)
-    initial_solution = Solution(grid)
 
-    solver = mySolver()
-    solver.cfl_max = 0.5
-    solver.cfl_desired = 0.45
-    solver.mwaves = 5
+    solver.dim_split = 0
     solver.mthlim = [4,4,4,4,2]
-    solver.dt=0.005
     solver.user_bc_lower=shockbc
     solver.src=euler_rad_src
     solver.src_split = 1
 
-    claw = Controller()
+    claw = pyclaw.Controller()
     claw.keep_copy = True
-    # The output format MUST be set to petsc!
-    claw.output_format = output_format
-    claw.tfinal = tfinal
-    claw.solutions['n'] = initial_solution
+    claw.tfinal = 0.75
+    claw.solution = pyclaw.Solution(grid)
     claw.solver = solver
     claw.nout = 10
     claw.outdir = outdir
@@ -162,8 +149,9 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False,outdir='./_output'):
     # Solve
     status = claw.run()
 
-    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
-    if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
+    from pyclaw import plot
+    if htmlplot:  plot.plotHTML(outdir=outdir)
+    if iplot:     plot.plotInteractive(outdir=outdir)
 
     return claw.solution.q
 

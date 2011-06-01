@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
-def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=False,htmlplot=False,outdir='./_output'):
+def acoustics(use_PETSc=False,kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False,outdir='./_output'):
     """
     This example solves the 1-dimensional acoustics equations in a homogeneous
     medium.
@@ -16,11 +16,11 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',soltype='classic',iplot=
     else:
         import pyclaw
 
-    if soltype=='classic':
+    if solver_type=='classic':
         solver = pyclaw.ClawSolver1D()
-    elif soltype=='sharpclaw':
+    elif solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D()
-    else: raise Exception('Unrecognized value of soltype.')
+    else: raise Exception('Unrecognized value of solver_type.')
 
     #========================================================================
     # Instantiate the solver and define the system of equations to be solved

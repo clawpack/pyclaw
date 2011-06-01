@@ -1,89 +1,51 @@
 #!/usr/bin/env python
 # encoding: utf-8
-def advection(kernel_language='Python',iplot=False,htmlplot=False,useController=True,use_PETSc=False,soltype='classic',outdir='./_output'):
+def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=False,solver_type='classic',outdir='./_output'):
     """
     Example python script for solving the 1d advection equation.
     """
-
     import numpy as np
-    if use_PETSc:
-        from petsc4py import PETSc
-        from petclaw.grid import Grid, Dimension
-        output_format='petsc'
-        if soltype=='sharpclaw':
-            from petclaw.evolve.sharpclaw import SharpPetClawSolver1D as ClawSolver
-        else:
-            from petclaw.evolve.clawpack import PetClawSolver1D as ClawSolver
-    else: #Pure pyclaw
-        output_format='ascii'
-        from pyclaw.grid import Grid, Dimension
-        if soltype=='sharpclaw':
-            from pyclaw.evolve.sharpclaw import SharpClawSolver1D as ClawSolver
-        else:
-            from pyclaw.evolve.clawpack import ClawSolver1D as ClawSolver
-        solver = ClawSolver()
-        if kernel_language=='Fortran': raise notImplementedError
-    if soltype=='sharpclaw':
-        solver.time_integrator='SSP33'
-        solver.lim_type=2
-        mbc=3
+
+    if use_petsc:
+        import petclaw as pyclaw
     else:
-        mbc=2
+        import pyclaw
 
+    if solver_type=='sharpclaw':
+        solver = pyclaw.SharpClawSolver1D()
+    else:
+        solver = pyclaw.ClawSolver1D()
 
-    from pyclaw.solution import Solution
-    from pyclaw.controller import Controller
+    solver.kernel_language = kernel_language
+    from riemann import rp_advection
+    solver.mwaves = rp_advection.mwaves
+    if solver.kernel_language=='Python': 
+        solver.rp = rp_advection.rp_advection_1d
 
-    x = Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
-    x.mbc=mbc
-    grid = Grid(x)
+    solver.mthbc_lower[0] = 2
+    solver.mthbc_upper[0] = 2
+
+    x = pyclaw.Dimension('x',0.0,1.0,100)
+    grid = pyclaw.Grid(x)
     grid.aux_global['u']=1.
-    grid.meqn = 1
-    grid.t = 0.0
-    grid.mbc=mbc
-
-    if use_PETSc: grid.init_q_petsc_structures()
+    grid.meqn = rp_advection.meqn
+    grid.mbc=solver.mbc
 
     xc=grid.x.center
     beta=100; gamma=0; x0=0.75
-    q=np.zeros([grid.meqn,len(xc)],order='F')
-    q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
-    grid.q = q
-    q0 = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
+    grid.zeros_q()
+    grid.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
 
-    initial_solution = Solution(grid)
-
-    claw = Controller()
-
-    claw.output_format=output_format
-    solver.mwaves = 1
-    solver.cfl_max=0.5
-    solver.cfl_desired=0.45
-    solver.kernel_language='Python'
-    if solver.kernel_language=='Python': 
-        solver.set_riemann_solver('advection')
-    else:
-        from classic1 import comrp
-        comrp.u = grid.aux_global['u']
-
-    claw.keep_copy = False
-    claw.dt_variable = True
-    claw.outstyle=1
-    claw.nout=10
-    claw.tfinal =1.0
-    claw.solutions['n'] = initial_solution
+    claw = pyclaw.Controller()
+    claw.solution = pyclaw.Solution(grid)
     claw.solver = solver
     claw.outdir = outdir
 
+    claw.tfinal =1.0
     status = claw.run()
 
-    from petclaw import plot
-    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
-    if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
-
-    output_object=claw
-
-    return output_object
+    if htmlplot:  pyclaw.plot.plotHTML(outdir=outdir)
+    if iplot:     pyclaw.plot.plotInteractive(outdir=outdir)
 
 if __name__=="__main__":
     import sys

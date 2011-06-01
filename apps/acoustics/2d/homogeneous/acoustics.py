@@ -3,22 +3,7 @@
 
 import numpy as np
 
-def qinit(grid,width=0.2):
-    
-    # Create an array with fortran native ordering
-    x =grid.x.center
-    y =grid.y.center
-    Y,X = np.meshgrid(y,x)
-    r = np.sqrt(X**2 + Y**2)
-
-    q=np.empty([grid.meqn,len(x),len(y)], order = 'F')
-    q[0,:,:] = (np.abs(r-0.5)<=width)*(1.+np.cos(np.pi*(r-0.5)/width))
-    q[1,:,:] = 0.
-    q[2,:,:] = 0.
-    grid.q=q
-
-
-def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',soltype='classic'):
+def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',solver_type='classic'):
     """
     Example python script for solving the 2d acoustics equations.
     """
@@ -28,29 +13,24 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',so
     else:
         import pyclaw
 
-    if soltype=='classic':
+    if solver_type=='classic':
         solver=pyclaw.evolve.clawpack.ClawSolver2D()
-    elif soltype=='sharpclaw':
+    elif solver_type=='sharpclaw':
         solver=pyclaw.evolve.clawpack.SharpClawSolver2D()
 
-    from petclaw import plot
-
-    solver.cfl_max = 0.5
-    solver.cfl_desired = 0.45
-    solver.mwaves = 2
-    from pyclaw.evolve import limiters
-    solver.mthlim = limiters.MC
     solver.dim_split=False
+    solver.mwaves = 2
+    solver.mthlim = pyclaw.limiters.MC
 
-    solver.mthbc_lower[0]=pyclaw.BC.outflow
+    solver.mthbc_lower[0]=pyclaw.BC.reflecting
     solver.mthbc_upper[0]=pyclaw.BC.outflow
-    solver.mthbc_lower[1]=pyclaw.BC.outflow
+    solver.mthbc_lower[1]=pyclaw.BC.reflecting
     solver.mthbc_upper[1]=pyclaw.BC.outflow
 
     # Initialize grid
     mx=100; my=100
-    x = pyclaw.Dimension('x',-1.0,1.0,mx,mthbc_lower=1,mthbc_upper=1)
-    y = pyclaw.Dimension('y',-1.0,1.0,my,mthbc_lower=1,mthbc_upper=1)
+    x = pyclaw.Dimension('x',-1.0,1.0,mx)
+    y = pyclaw.Dimension('y',-1.0,1.0,my)
     grid = pyclaw.Grid([x,y])
 
     rho = 1.0
@@ -62,29 +42,26 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',so
     grid.aux_global['zz']= zz
     grid.aux_global['cc']=cc
 
-    solver.dt=np.min(grid.d)/grid.aux_global['cc']*solver.cfl_desired
-
     grid.meqn = 3
     grid.mbc = solver.mbc
-    tfinal = 0.12
 
-    if use_PETSc:
-        # Initialize petsc Structures for q
-        grid.init_q_petsc_structures()
-
-    qinit(grid)
-    initial_solution = pyclaw.Solution(grid)
+    Y,X = np.meshgrid(grid.y.center,grid.x.center)
+    r = np.sqrt(X**2 + Y**2)
+    width=0.2
+    grid.zeros_q()
+    grid.q[0,:,:] = (np.abs(r-0.5)<=width)*(1.+np.cos(np.pi*(r-0.5)/width))
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
-    claw.tfinal = tfinal
-    claw.solutions['n'] = initial_solution
+    claw.solution = pyclaw.Solution(grid)
     claw.solver = solver
     claw.outdir=outdir
 
     # Solve
+    claw.tfinal = 0.6
     status = claw.run()
 
+    from pyclaw import plot
     if htmlplot:  plot.plotHTML(outdir=outdir,format=claw.output_format)
     if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
 

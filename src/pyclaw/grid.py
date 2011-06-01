@@ -341,7 +341,6 @@ class Grid(object):
         self._dimensions = []
         for dim in dimensions:
             self.add_dimension(dim)
-        for dim in self.dimensions:
             dim.mbc=self.mbc
     
     
@@ -540,7 +539,7 @@ class Grid(object):
            ``default = 'F'``
         """
         if shape is None:
-            shape = self.n
+            shape = [dim.nend-dim.nstart+2*dim.mbc for dim in self.dimensions]
         shape.insert(0,maux)
         self.aux = np.empty(shape,'d',order=order)
         
@@ -556,7 +555,7 @@ class Grid(object):
            ``default = 'F'``
         """
         if shape is None:
-            shape = self.n
+            shape = [dim.nend-dim.nstart+2*dim.mbc for dim in self.dimensions]
         shape.insert(0,maux)
         self.aux = np.ones(shape,'d',order=order)
         
@@ -572,7 +571,7 @@ class Grid(object):
            ``default = 'F'``
         """
         if shape is None:
-            shape = self.n
+            shape = [dim.nend-dim.nstart+2*dim.mbc for dim in self.dimensions]
         shape.insert(0,maux)
         self.aux = np.zeros(shape,'d',order=order)
 

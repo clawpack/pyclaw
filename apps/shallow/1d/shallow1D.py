@@ -6,43 +6,50 @@
 """
 
     
-def shallow1D(use_PETSc=False,kernel_language='Fortran',iplot=True,userController=True,petscPlot=False,htmlplot=False,outdir='./_output'):
+def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=False,outdir='./_output',solver_type='classic'):
     #===========================================================================
     # Import libraries
     #===========================================================================
     import numpy as np
-    from petsc4py import PETSc   
-    from petclaw.grid import Grid
-    from petclaw.grid import Dimension
-    from pyclaw.solution import Solution
-    from petclaw.evolve.clawpack import PetClawSolver1D
-    from pyclaw.controller import Controller
-    from petclaw import plot
+
+    if use_petsc:
+        import petclaw as pyclaw
+    else:
+        import pyclaw
+
+    if solver_type == 'classic':
+        solver = pyclaw.ClawSolver1D()
+    elif solver_type == 'sharpclaw':
+        solver = pyclaw.SharpClawSolver1D()
+
+    #===========================================================================
+    # Setup solver and solver parameters
+    #===========================================================================
+    solver.mwaves = 2
+    solver.mthlim = pyclaw.limiters.MC
+    solver.kernel_language=kernel_language
+    if kernel_language =='Python': 
+        solver.set_riemann_solver('shallow_roe')
+        grid.aux_global['g'] = 1.0
+        grid.aux_global['efix'] = False
+    solver.mthbc_lower[0] = pyclaw.BC.outflow
+    solver.mthbc_upper[0] = pyclaw.BC.outflow
 
     #===========================================================================
     # Initialize grids and then initialize the solution associated to the grid
     #===========================================================================
-
-    # Grid:
     xlower = -5.0
     xupper = 5.0
     mx = 500
-    x = Dimension('x',xlower,xupper,mx,mthbc_lower=1,mthbc_upper=1)
-    grid = Grid(x)
-
+    x = pyclaw.Dimension('x',xlower,xupper,mx)
+    grid = pyclaw.Grid(x)
     grid.meqn = 2
-    grid.t = 0.0
 
     # Parameters
     grid.aux_global['grav'] = 1.0
-    from classic1 import cparam
-    for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
-
-    # Initial solution:
-    grid.init_q_petsc_structures() # This must be called before grid.x.center and such can be accessed.
     xCenter = grid.x.center
-    q = np.zeros([grid.meqn, len(xCenter)], order = 'F')
+    grid.zeros_q()
 
     damRadius = 0.0
     hl = 3.
@@ -50,32 +57,16 @@ def shallow1D(use_PETSc=False,kernel_language='Fortran',iplot=True,userControlle
     hr = 1.
     ur = 0.
 
-    q[0,:] = hl * (grid.p_center[0] <= damRadius) + hr * (grid.p_center[0] > damRadius)
-    q[1,:] = hl*ul * (grid.p_center[0] <= damRadius) + hr*ur * (grid.p_center[0] > damRadius)
-    grid.q=q
-
-    init_solution = Solution(grid)
-
-    #===========================================================================
-    # Setup solver and solver parameters
-    #===========================================================================
-    solver = PetClawSolver1D()
-    solver.mwaves = 2
-    solver.mthlim = [4]*solver.mwaves
-    solver.kernel_language=kernel_language
-    if kernel_language =='Python': 
-        solver.set_riemann_solver('shallow_roe')
-        grid.aux_global['g'] = 1.0
-        grid.aux_global['efix'] = False
-
+    grid.q[0,:] = hl * (grid.p_center[0] <= damRadius) + hr * (grid.p_center[0] > damRadius)
+    grid.q[1,:] = hl*ul * (grid.p_center[0] <= damRadius) + hr*ur * (grid.p_center[0] > damRadius)
 
     #===========================================================================
     # Setup controller and controller paramters
     #===========================================================================
-    claw = Controller()
+    claw = pyclaw.Controller()
     claw.keep_copy = True
     claw.tfinal = 2.0
-    claw.solutions['n'] = init_solution
+    claw.solution = pyclaw.Solution(grid)
     claw.solver = solver
     claw.outdir = outdir
 
@@ -88,6 +79,7 @@ def shallow1D(use_PETSc=False,kernel_language='Fortran',iplot=True,userControlle
     #===========================================================================
     # Plot results
     #===========================================================================
+    from pyclaw import plot
     if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
     if htmlplot:  plot.plotHTML(outdir=outdir,format=claw.output_format)
 

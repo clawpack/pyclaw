@@ -1,78 +1,60 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-def burgers(kernel_language='Fortran',iplot=False,useController=True,htmlplot=True,outdir='./_output',use_PETSc=False):
+def burgers(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=True,outdir='./_output',use_PETSc=False,solver_type='classic'):
     """
     Example python script for solving the 1d Burgers equation.
     """
 
     import numpy as np
-    from petsc4py import PETSc
-    from petclaw.grid import Dimension
-    from petclaw.grid import Grid
-    from pyclaw.solution import Solution
-    from petclaw.evolve.clawpack import PetClawSolver1D
-    from pyclaw.controller import Controller
-    import math
-    from petclaw import plot
 
-    #===========================================================================
-    # Initialize grids and then initialize the solution associated to the grid
-    #===========================================================================
-    
-    # Grid: 
-    x = Dimension('x',0.0,1.0,500,mthbc_lower=2,mthbc_upper=2)
-    grid = Grid(x)
-
-
-    grid.meqn = 1
-    grid.t = 0.0
-
-    # Initial solution
-    grid.init_q_petsc_structures()
-    xc=grid.x.center
-    q=np.zeros([len(xc),grid.meqn], order = 'F')
-    q[:,0] = np.sin(np.pi*2*xc) + 0.50
-    grid.q=q
-    grid.aux_global['efix']=True
-
-    initial_solution = Solution(grid)
+    if use_petsc:
+        import petclaw as pyclaw
+    else:
+        import pyclaw
 
     #===========================================================================
     # Setup solver and solver parameters
     #===========================================================================
-    solver = PetClawSolver1D()
+    if solver_type=='sharpclaw':
+        solver = pyclaw.SharpClawSolver1D()
+    else:
+        solver = pyclaw.ClawSolver1D()
+
     solver.kernel_language = kernel_language
-    solver.mwaves = 1
-    solver.mthlim = [3]
     if kernel_language=='Python': solver.set_riemann_solver('burgers')
+    solver.mwaves = 1
+    solver.mthlim = pyclaw.limiters.vanleer
+    solver.mthbc_lower[0] = 2
+    solver.mthbc_upper[0] = 2
 
+    #===========================================================================
+    # Initialize grids and then initialize the solution associated to the grid
+    #===========================================================================
+    x = pyclaw.Dimension('x',0.0,1.0,500)
+    grid = pyclaw.Grid(x)
+    grid.meqn = 1
 
+    grid.zeros_q()
+    xc=grid.x.center
+    grid.q[0,:] = np.sin(np.pi*2*xc) + 0.50
+    grid.aux_global['efix']=True
 
     #===========================================================================
     # Setup controller and controller parameters. Then solve the problem
     #===========================================================================
     output_format = 'petsc'
-    if useController:
-        claw = Controller()
-        claw.keep_copy = True
-        # The output format MUST be set to petsc!
-        claw.output_format = output_format
-        claw.tfinal =0.5
-        claw.solutions['n'] = initial_solution
-        claw.solver = solver
-        claw.outdir = outdir
+    claw = pyclaw.Controller()
+    claw.keep_copy = True
+    claw.tfinal =0.5
+    claw.solution = pyclaw.Solution(grid)
+    claw.solver = solver
+    claw.outdir = outdir
 
-        status = claw.run()
-        output_object=claw
+    status = claw.run()
 
-    else:
-        sol = {"n":init_solution}
-        solver.evolve_to_time(sol,0.25)
-        output_object=sol["n"]
-
-    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
-    if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
+    if htmlplot:  pyclaw.plot.plotHTML(outdir=outdir)
+    if iplot:     pyclaw.plot.plotInteractive(outdir=outdir)
 
 
 if __name__=="__main__":

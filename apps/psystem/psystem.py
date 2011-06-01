@@ -8,7 +8,7 @@ def qinit(grid,A,x0,y0,varx,vary):
     # Create an array with fortran native ordering
     x =grid.x.center
     y =grid.y.center
-    q=np.empty([grid.meqn,len(x),len(y)], order = 'F')
+    grid.zeros_q()
     
     # Create meshgrid
     # start form left top to right bottom
@@ -20,11 +20,10 @@ def qinit(grid,A,x0,y0,varx,vary):
     E=grid.aux[1,grid.mbc:-grid.mbc,grid.mbc:-grid.mbc]
 
     # initial conditions
-    q[0,:,:]=np.where(linearity_mat==1,1,0)*s/E+np.where(linearity_mat==2,1,0)*np.log(s+1)/E
-    q[1,:,:]=0
-    q[2,:,:]=0
+    grid.q[0,:,:]=np.where(linearity_mat==1,1,0)*s/E+np.where(linearity_mat==2,1,0)*np.log(s+1)/E
+    grid.q[1,:,:]=0
+    grid.q[2,:,:]=0
 
-    grid.q=q
 
 def setaux(grid, x,y,mthbcx,mthbcy,mbc=2,E1=1.,p1=1.,E2=1.,p2=1.,linearity_mat1=1,linearity_mat2=1,alphax=0.5,deltax=1.,alphay=0.5,deltay=1.):
 # Creates a matrix representing every grid cell in the domain, 
@@ -35,7 +34,7 @@ def setaux(grid, x,y,mthbcx,mthbcy,mbc=2,E1=1.,p1=1.,E2=1.,p2=1.,linearity_mat1=
 #     A flag indicating which material the grid is made of
 # The domain pattern is a checkerboard
     maux=3
-    aux=np.empty([maux,len(x),len(y)],order='F')
+    grid.zeros_aux(maux)
     
     # xfrac and yfrac are x and y relative to deltax and deltay resp.
     xfrac=x-np.floor(x/deltax)*deltax

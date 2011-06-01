@@ -19,33 +19,47 @@ def qinit(grid,hl,ul,vl,hr,ur,vr,radDam):
     yCenter = grid.y.center
     Y,X = np.meshgrid(yCenter,xCenter)
 
-    q=np.empty([grid.meqn,len(xCenter),len(yCenter)], order = 'F')
+    grid.zeros_q()
     for i,x in enumerate(xCenter):
         for j,y in enumerate(yCenter):
             #r = np.sqrt(xCenter[i]**2 + yCenter[j]**2)
             if np.sqrt(x**2+y**2)<=radDam: 
-                q[0,i,j] = hl
-                q[1,i,j] = hl*ul
-                q[2,i,j] = hl*vl
+                grid.q[0,i,j] = hl
+                grid.q[1,i,j] = hl*ul
+                grid.q[2,i,j] = hl*vl
             else: 
-                q[0,i,j] = hr
-                q[1,i,j] = hr*ur
-                q[2,i,j] = hr*vr
-    
-    grid.q=q
-
+                grid.q[0,i,j] = hr
+                grid.q[1,i,j] = hr*ur
+                grid.q[2,i,j] = hr*vr
 
     
-def shallow2D(use_PETSc=False,kernel_language='Fortran',iplot=True,userController=True,petscPlot=False,htmlplot=False,outdir='./_output'):
+def shallow2D(use_petsc=False,kernel_language='Fortran',iplot=True,htmlplot=False,outdir='./_output',solver_type='classic'):
     #===========================================================================
     # Import libraries
     #===========================================================================
-    from petclaw.grid import Dimension
-    from petclaw.grid import Grid
-    from pyclaw.solution import Solution
-    from petclaw.evolve.clawpack import PetClawSolver2D
-    from pyclaw.controller import Controller
-    from petclaw import plot
+    import numpy as np
+
+    if use_petsc:
+        import petclaw as pyclaw
+    else:
+        import pyclaw
+
+    #===========================================================================
+    # Setup solver and solver parameters
+    #===========================================================================
+    if solver_type == 'classic':
+        solver = pyclaw.ClawSolver2D()
+    elif solver_type == 'sharpclaw':
+        solver = pyclaw.SharpClawSolver2D()
+
+    solver.mwaves = 3
+    if solver.kernel_language =='Python': solver.set_riemann_solver('shallow_roe')
+    solver.mthlim = pyclaw.limiters.MC
+
+    solver.mthbc_lower[0] = pyclaw.BC.outflow
+    solver.mthbc_upper[0] = pyclaw.BC.outflow
+    solver.mthbc_lower[1] = pyclaw.BC.outflow
+    solver.mthbc_upper[1] = pyclaw.BC.outflow
 
     #===========================================================================
     # Initialize grids, then initialize the solution associated to the grid and
@@ -56,32 +70,23 @@ def shallow2D(use_PETSc=False,kernel_language='Fortran',iplot=True,userControlle
     xlower = -2.5
     xupper = 2.5
     mx = 50
-    
     ylower = -2.5
     yupper = 2.5
     my = 50
-    x = Dimension('x',xlower,xupper,mx,mthbc_lower=1,mthbc_upper=1)
-    y = Dimension('y',ylower,yupper,my,mthbc_lower=1,mthbc_upper=1)
-    grid = Grid([x,y])
+    x = pyclaw.Dimension('x',xlower,xupper,mx)
+    y = pyclaw.Dimension('y',ylower,yupper,my)
+    grid = pyclaw.Grid([x,y])
 
     grid.meqn = 3  # Number of equations
-    grid.mbc = 2   # Number of ghost cells
-    grid.t = 0.    # Initial time
-
+    grid.mbc = solver.mbc   # Number of ghost cells
 
     # Parameters
     grav = 1.0
     grid.aux_global['grav'] = grav
-    from classic2 import cparam
-    for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
 
     # Initial solution
     # ================
-    # Initialize petsc Structures for q. 
-    # This must be called before grid.x.center and such can be accessed.
-    grid.init_q_petsc_structures()
-
-    # Characteristcs of the dam break problem
+    # Riemann states of the dam break problem
     damRadius = 0.5
     hl = 2.
     ul = 0.
@@ -92,47 +97,25 @@ def shallow2D(use_PETSc=False,kernel_language='Fortran',iplot=True,userControlle
     
     qinit(grid,hl,ul,vl,hr,ur,vl,damRadius) # This function is defined above
 
-    init_solution = Solution(grid)
-
-
-
     #===========================================================================
-    # Setup solver and solver parameters
+    # Set up controller and controller parameters
     #===========================================================================
-    solver = PetClawSolver2D()
-    solver.kernel_language = 'Fortran'
-    solver.mwaves = 3
-    if solver.kernel_language =='Python': solver.set_riemann_solver('shallow_roe')
-    solver.mthlim = [4]*solver.mwaves
-
-
-
-    #===========================================================================
-    # Setup controller and controller paramters
-    #===========================================================================
-    claw = Controller()
-    claw.keep_copy = True
+    claw = pyclaw.Controller()
     claw.tfinal = 5.0
-    claw.solutions['n'] = init_solution
+    claw.solution = pyclaw.Solution(grid)
     claw.solver = solver
     claw.outdir = outdir
-
-
 
     #===========================================================================
     # Solve the problem
     #===========================================================================
     status = claw.run()
 
-  
-
     #===========================================================================
     # Plot results
     #===========================================================================
     if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
     if htmlplot:  plot.plotHTML(outdir=outdir,format=claw.output_format)
-
-
 
 
 if __name__=="__main__":

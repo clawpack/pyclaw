@@ -6,7 +6,6 @@ This module is imported by the plotting routines and then the
 function setplot is called to set the plot parameters.
     
 """ 
-import numpy as np
 
 #--------------------------
 def setplot(plotdata):
@@ -19,65 +18,43 @@ def setplot(plotdata):
     
     """ 
 
-    def velocity(cd):
-        h = cd.q[0,:]
-        index = np.nonzero(h > 1e-3)
-        u = np.zeros(h.shape)
-        u[index] = cd.q[1,index] / h[index]
-        return u
-
     plotdata.clearfigures()  # clear any old figures,axes,items data
 
-    # Figure for depth
-    plotfigure = plotdata.new_plotfigure(name='h', figno=1)
+    
+
+    # Figure for q[0]
+    plotfigure = plotdata.new_plotfigure(name='Water height', figno=0)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
-    #plotaxes.xlimits = [0.,150.]
-    #plotaxes.ylimits = [-.2,1.0]
-    plotaxes.title = 'Depth'
+    plotaxes.xlimits = [-5.0,5.0]
+    plotaxes.ylimits = [0,4.0]
+    plotaxes.title = 'Water height'
 
     # Set up for item on these axes:
-    plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
+    plotitem = plotaxes.new_plotitem(plot_type='1d')
     plotitem.plot_var = 0
-    plotitem.plotstyle = '-o'
+    plotitem.plotstyle = '-'
     plotitem.color = 'b'
     plotitem.show = True       # show on plot?
-    plotitem.kwargs = {'linewidth':2,'markersize':5}
     
-    # Momentum
-    plotfigure = plotdata.new_plotfigure(name='hu', figno=2)
+
+    # Figure for q[1]
+    plotfigure = plotdata.new_plotfigure(name='Momentum', figno=1)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
-    #plotaxes.xlimits = [0.,150.]
-    #plotaxes.ylimits = [-.2,1.0]
+    plotaxes.xlimits = [-5.0,5.0]
+    plotaxes.ylimits = [-0.1, 1.4]
     plotaxes.title = 'Momentum'
 
     # Set up for item on these axes:
-    plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
+    plotitem = plotaxes.new_plotitem(plot_type='1d')
     plotitem.plot_var = 1
-    plotitem.plotstyle = '-o'
+    plotitem.plotstyle = '-'
     plotitem.color = 'b'
     plotitem.show = True       # show on plot?
-    plotitem.kwargs = {'linewidth':2,'markersize':5}
     
-    # Velocity
-    plotfigure = plotdata.new_plotfigure(name='u', figno=3)
-
-    # Set up for axes in this figure:
-    plotaxes = plotfigure.new_plotaxes()
-    #plotaxes.xlimits = [0.,150.]
-    #plotaxes.ylimits = [-.2,1.0]
-    plotaxes.title = 'Velocity'
-
-    # Set up for item on these axes:
-    plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
-    plotitem.plot_var = velocity
-    plotitem.plotstyle = '-o'
-    plotitem.color = 'b'
-    plotitem.show = True       # show on plot?
-    plotitem.kwargs = {'linewidth':2,'markersize':5}
 
     # Parameters used only when creating html and/or latex hardcopy
     # e.g., via pyclaw.plotters.frametools.printframes:
@@ -87,7 +64,7 @@ def setplot(plotdata):
     plotdata.print_framenos = 'all'          # list of frames to print
     plotdata.print_fignos = 'all'            # list of figures to print
     plotdata.html = True                     # create html files of plots?
-    plotdata.html_homelink = '../README.html'
+    plotdata.html_homelink = '../README.html'   # pointer for top of index
     plotdata.latex = True                    # create latex file of plots?
     plotdata.latex_figsperline = 2           # layout of plots
     plotdata.latex_framesperline = 1         # layout of plots
@@ -95,4 +72,4 @@ def setplot(plotdata):
 
     return plotdata
 
- 
+    

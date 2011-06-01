@@ -532,6 +532,15 @@ class ClawSolver2D(ClawSolver):
         if len(self.mthlim)!=self.mwaves:
             raise Exception('Length of solver.mthlim is not 1 nor is it equal to solver.mwaves')
  
+        # Check the cfl settings
+        if self.dim_split:
+            cfl_recommended = 0.5
+        else:
+            cfl_recommended = 1.0
+
+        if self.cfl_max > cfl_recommended:
+            import warnings
+            warnings.warn('cfl_max is set higher than the recommended value of %s' % cfl_recommended)
 
         if(self.kernel_language == 'Fortran'):
             import numpy as np

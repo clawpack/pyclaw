@@ -37,9 +37,6 @@ class Dimension(pyclaw.grid.Dimension):
      - *upper* - (float) Upper extent of dimension
      - *n* - (int) Number of grid cells
      - *units* - (string) Type of units, used for informational purposes only
-     - *mthbc_lower* - (int) Lower boundary condition method to be used
-     - *mthbc_upper* - (int) Upper boundary condition method to be used
-     
         
     Output:
      - (:class:`Dimension`) - Initialized Dimension object
@@ -243,7 +240,9 @@ class Grid(pyclaw.grid.Grid):
         # Dimension parsing
         if isinstance(dimensions,Dimension): dimensions = [dimensions]
         self._dimensions = []
-        for dim in dimensions: self.add_dimension(dim)
+        for dim in dimensions: 
+            self.add_dimension(dim)
+            dim.mbc=self.mbc
 
 
     def init_aux_da(self,maux):
@@ -293,6 +292,12 @@ class Grid(pyclaw.grid.Grid):
         """
         from petsc4py import PETSc
 
+        try:
+            self.meqn
+            self.mbc
+        except:
+            raise Exception('You must set grid.meqn and grid.mbc before accessing grid.q')
+
         #Due to the way PETSc works, we just make the grid always periodic,
         #regardless of the boundary conditions actually selected.
         #This works because in solver.qbc() we first call globalToLocal()
@@ -332,4 +337,3 @@ class Grid(pyclaw.grid.Grid):
         for i,nrange in enumerate(ranges):
             self.dimensions[i].nstart=nrange[0]
             self.dimensions[i].nend  =nrange[1]
-            self.dimensions[i].mbc=self.mbc
