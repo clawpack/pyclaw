@@ -18,12 +18,6 @@ All parallel solvers inherit from this class.
 
 from pyclaw.evolve.solver import Solver
 
-#This should be modified so we don't depend on mpi4py:
-try:
-    from mpi4py import MPI
-except:
-    raise Exception("Unable to communicate cfl")
-
 # ============================================================================
 #  Generic PetClaw solver class
 # ============================================================================
@@ -59,12 +53,8 @@ class PetSolver(Solver):
         return ghosted_q
  
     def communicateCFL(self):
-        import numpy as np
+        from petsc4py import PETSc
 
         if self.dt_variable:
-            comm = MPI.COMM_WORLD #Amal:should be consistent with petsc commworld
-            max_cfl = np.array([0.])
-            cfl1 = np.array([self.cfl])
-            comm.Allreduce(cfl1, max_cfl, MPI.MAX)
-            self.cfl = max_cfl[0]
- 
+            cflVec = PETSc.Vec().createWithArray([self.cfl])
+            self.cfl = cflVec.max()[1]
