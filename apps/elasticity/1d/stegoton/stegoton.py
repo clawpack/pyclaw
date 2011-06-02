@@ -3,8 +3,8 @@
 import numpy as np
 
 def qinit(grid,ic=2,a2=1.0,xupper=600.):
-    x =grid.x.center
     grid.zeros_q()
+    x =grid.x.center
     
     if ic==1: #Zero ic
         pass

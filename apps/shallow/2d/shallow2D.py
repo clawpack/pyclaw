@@ -14,12 +14,11 @@ from petclaw import plot
 
 
 def qinit(grid,hl,ul,vl,hr,ur,vr,radDam):
-    # Create an array with fortran native ordering
+    grid.zeros_q()
     xCenter = grid.x.center
     yCenter = grid.y.center
     Y,X = np.meshgrid(yCenter,xCenter)
 
-    grid.zeros_q()
     for i,x in enumerate(xCenter):
         for j,y in enumerate(yCenter):
             #r = np.sqrt(xCenter[i]**2 + yCenter[j]**2)

@@ -4,16 +4,17 @@
 Installation of PetClaw dependencies on Mac OS X 10.6.x
 =======================================================
 This section explains how to install all the PetClaw dependencies on Mac OS X 10.6.x (Snow Leopard).
-The following softwares will be installed:
+The following software will be installed:
 
     * `Python <http://www.python.org/>`_.The current recommended python version is 2.7. 
       Python 3.0 will be supported in the near future.
     * `Numpy <http://numpy.scipy.org/>`_ 1.5 or 1.5.1 or 1.6 
     * `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_-dev. (soon PETSc 3.2)     
     * `petsc4py <http://code.google.com/p/petsc4py/>`_-dev
-    * `mpi4py <http://mpi4py.scipy.org/docs/usrman/index.html>`_. 
-      The current recommended version is 1.2.2.
 
+.. note::
+   
+   PetClaw no longer requires mpi4py.
 
 Installation of python 
 ======================
@@ -143,59 +144,3 @@ All the tests cases should pass, i.e. OK should be printed at the screen.
     
     $ cd petsc4py-dev
     $ pip install . --user
-
-
-Installation of mpi4py
-======================
-`mpi4py <http://mpi4py.scipy.org/docs/usrman/index.html>`_ is a python bindings for MPI. Therefore, make sure that the MPI distributuion used by PETSc and petsc4py in your system is the same one that is used by mpi4py. During the PETSc configuration the option -–download-mpich=1 has been used. The binaries for the mpich used by PETSc can be found in the path $PETSC_DIR/$PETSC_ARCH/bin. This path should also be added to the environment variable PATH in the shell start-up file, i.e.: 
-
-    * for sh, bash, or zsh shells add the following line to your shell start-up file ::
-        
-        $ export PATH=$PETSC_DIR/$PETSC_ARCH/bin:$PATH
-
-    * for csh/tcsh shells add the following line to your shell start-up file ::
-
-        $ setenv PATH "$PETSC_DIR/$PETSC_ARCH/bin:$PATH"
-
-Do the aforementioned step before installing mpi4py to guarantee that mpi4py is using the same binaries of mpich. Overlooking this point might cause errors in importing petsc4py.PETSc mpi4py.MPI modules.
-
-Next, add the following line to your shell start-up file::
-
-    $ export ARCHFLAGS="-arch x86_64"
-
-or ::
-    
-    $ setenv ARCHFLAGS "-arch x86_64"
-
-
-The current recommended version is 1.2.2. Download it from `<http://code.google.com/p/mpi4py/downloads/list>`_. Afterwards go to the directory where you have got mpi4py-1.2.2.tar.gz and do: ::
-    
-    $ tar -xzvf (or -xvf) mpi4py-1.2.2.tar.gz
-    $ cd mpi4py-1.1.2
-
-Install it: ::
-
-    $ python setup.py install --user
-
-or: ::
-
-    $ pip install . --user 
-
-To check mpi4py installation do: ::
-    
-    $ mpiexec -n 4 python test/runalltest.py
-    $ mpiexec -n 4 python demo/helloworld.py
-
-All the tests cases should pass, i.e. you should get
-    * OK 
-and 
-    * Hello, World! I am process 0 of 4 on kl-11638.local. 
-    * Hello, World! I am process 1 of 4 on kl-11638.local.
-    * Hello, World! I am process 2 of 4 on kl-11638.local.
-    * Hello, World! I am process 3 of 4 on kl-11638.local.
-
-for runalltest.py and helloworld.py, respectively.
-
-
-
-

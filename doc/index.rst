@@ -9,8 +9,6 @@ of Clawpack and SharpClaw.
 It has been designed with easy extensibility, performance, and exploration in mind.
 PyClaw is also the basis for PetClaw, a scalable parallel implementation of Clawpack
 using PETSc.
-At present, PyClaw also includes a python
-toolkit containing various other routines to help users use Clawpack.  
 
 You can get the latest development version of PyClaw from
 http://github.com/clawpack/pyclaw.
@@ -20,6 +18,7 @@ http://github.com/clawpack/pyclaw.
 
    started
    tutorial
+   problem
    classes
    differences
    develop
@@ -48,6 +47,7 @@ PetClaw Contents:
 #   petclaw/rulesProposal
 
 
+.. _pyclaw_reference:
 
 PyClaw Modules reference documentation
 ======================================
@@ -65,6 +65,8 @@ functions that operate with those classes.
    io
    solution
    util
+
+.. _riemann_reference:
 
 Riemann Solvers reference documentation
 ========================================

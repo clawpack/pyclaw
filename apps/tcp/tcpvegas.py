@@ -69,7 +69,6 @@ claw.solver = solver
 # Solve
 status = claw.run()
 
-from pyclaw import plot
 iplot=True
-if iplot:     plot.plotInteractive()
-if htmlplot:  plot.plotHTML()
+if iplot:     pyclaw.plot.plotInteractive()
+if htmlplot:  pyclaw.plot.plotHTML()

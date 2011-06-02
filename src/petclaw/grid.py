@@ -18,6 +18,7 @@ Module containing petclaw grid.
 
 import pyclaw.grid
 
+import numpy as np
 
 # ============================================================================
 #  Dimension Object
@@ -337,3 +338,97 @@ class Grid(pyclaw.grid.Grid):
         for i,nrange in enumerate(ranges):
             self.dimensions[i].nstart=nrange[0]
             self.dimensions[i].nend  =nrange[1]
+
+    # ========== Grid Operations =============================================
+    # Convenience routines for initialization of q and aux
+    def empty_q(self,order='F'):
+        r"""
+        Initialize q to empty
+        
+        :Input:
+         - *order* - (string) Order of array, must be understood by numpy
+           ``default = 'F'``
+        """
+        if self.gqVec is None: self.init_q_petsc_structures()
+        shape = [dim.nend-dim.nstart for dim in self.dimensions]
+        shape.insert(0,self.meqn)
+        self.q = np.empty(shape,'d',order=order)
+    
+    def ones_q(self,order='F'):
+        r"""
+        Initialize q to all ones
+        
+        :Input:
+         - *order* - (string) Order of array, must be understood by numpy
+           ``default = 'F'``
+        """
+        if self.gqVec is None: self.init_q_petsc_structures()
+        shape = [dim.nend-dim.nstart for dim in self.dimensions]
+        shape.insert(0,self.meqn)
+        self.q = np.ones(shape,'d',order=order)
+        
+    def zeros_q(self,order='F'):
+        r"""
+        Initialize q to all zeros
+        
+        :Input:
+         - *order* - (string) Order of array, must be understood by numpy
+           ``default = 'F'``
+        """
+        if self.gqVec is None: self.init_q_petsc_structures()
+        shape = [dim.nend-dim.nstart for dim in self.dimensions]
+        shape.insert(0,self.meqn)
+        self.q = np.zeros(shape,'d',order=order)
+    
+    def empty_aux(self,maux,shape=None,order='F'):
+        r"""
+        Initialize aux to empty with given shape
+        
+        :Input:
+         - *shape* - (tuple) If given, the resulting shape of the auxiliary
+           array will be ``shape.append(maux)``.  Otherwise it will be
+           ``(dim.n, maux)``
+         - *order* - (string) Order of array, must be understood by numpy
+           ``default = 'F'``
+        """
+        if self.gauxVec is None: self.init_aux_da()
+        if shape is None:
+            shape = [dim.nend-dim.nstart+2*dim.mbc for dim in self.dimensions]
+        shape.insert(0,maux)
+        self.aux = np.empty(shape,'d',order=order)
+        
+    def ones_aux(self,maux,shape=None,order='F'):
+        r"""
+        Initialize aux to ones with shape
+        
+        :Input:
+         - *shape* - (tuple) If given, the resulting shape of the auxiliary
+           array will be ``shape.append(maux)``.  Otherwise it will be
+           ``(dim.n, maux)``
+         - *order* - (string) Order of array, must be understood by numpy
+           ``default = 'F'``
+        """
+        if self.gauxVec is None: self.init_aux_da()
+        if shape is None:
+            shape = [dim.nend-dim.nstart+2*dim.mbc for dim in self.dimensions]
+        shape.insert(0,maux)
+        self.aux = np.ones(shape,'d',order=order)
+        
+    def zeros_aux(self,maux,shape=None,order='F'):
+        r"""
+        Initialize aux to zeros with shape
+        
+        :Input:
+         - *shape* - (tuple) If given, the resulting shape of the auxiliary
+           array will be ``shape.append(maux)``.  Otherwise it will be
+           ``(dim.n, maux)``
+         - *order* - (string) Order of array, must be understood by numpy
+           ``default = 'F'``
+        """
+        if self.gauxVec is None: self.init_aux_da()
+        if shape is None:
+            shape = [dim.nend-dim.nstart+2*dim.mbc for dim in self.dimensions]
+        shape.insert(0,maux)
+        self.aux = np.zeros(shape,'d',order=order)
+
+

@@ -15,13 +15,12 @@ def qinit(grid,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
     vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
     einf = 0.5*rinf*vinf**2 + pinf/gamma1
     
-    # Create an array with fortran native ordering
+    grid.zeros_q()
     x =grid.x.center
     y =grid.y.center
     Y,X = np.meshgrid(y,x)
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
 
-    grid.zeros_q()
     grid.q[0,:,:] = rhoin*(r<=r0) + rhoout*(r>r0)
     grid.q[1,:,:] = 0.
     grid.q[2,:,:] = 0.
@@ -32,9 +31,9 @@ def auxinit(grid):
     """
     aux[0,i,j] = y-coordinate of cell center for cylindrical source terms
     """
+    grid.zeros_aux(1)
     x=grid.x.centerghost
     y=grid.y.centerghost
-    grid.zeros_aux(1)
     #aux=np.empty([1,len(x),len(y)], order='F')
     for j,ycoord in enumerate(y):
         grid.aux[0,:,j] = ycoord
@@ -149,9 +148,8 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     # Solve
     status = claw.run()
 
-    from pyclaw import plot
-    if htmlplot:  plot.plotHTML(outdir=outdir)
-    if iplot:     plot.plotInteractive(outdir=outdir)
+    if htmlplot:  pyclaw.plot.plotHTML(outdir=outdir)
+    if iplot:     pyclaw.plot.plotInteractive(outdir=outdir)
 
     return claw.solution.q
 

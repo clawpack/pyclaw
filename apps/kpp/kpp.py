@@ -4,13 +4,12 @@
 import numpy as np
 
 def qinit(grid,rad=1.0):
-    # Create an array with fortran native ordering
+    grid.zeros_q()
     x =grid.x.center
     y =grid.y.center
     Y,X = np.meshgrid(y,x)
     r = np.sqrt(X**2 + Y**2)
 
-    grid.zeros_q()
     grid.q[0,:,:] = 0.25*np.pi + 3.25*np.pi*(r<=rad)
 
 
@@ -29,15 +28,15 @@ def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_typ
     else:
         solver = pyclaw.ClawSolver2D()
 
-    solver.mwaves = 5
+    solver.mwaves = 1
     solver.mthbc_lower[0]=pyclaw.BC.outflow
     solver.mthbc_upper[0]=pyclaw.BC.outflow
     solver.mthbc_lower[1]=pyclaw.BC.outflow
     solver.mthbc_upper[1]=pyclaw.BC.outflow
 
     # Initialize grid
-    mx=100; my=50
-    print mx, my
+    mx=400; my=400
+    print mx,my
     x = pyclaw.Dimension('x',-2.0,2.0,mx)
     y = pyclaw.Dimension('y',-2.0,2.0,my)
     grid = pyclaw.Grid([x,y])
@@ -62,9 +61,8 @@ def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_typ
     # Solve
     status = claw.run()
 
-    from pyclaw import plot
-    if htmlplot:  plot.plotHTML(outdir=outdir)
-    if iplot:     plot.plotInteractive(outdir=outdir)
+    if htmlplot:  pyclaw.plot.plotHTML(outdir=outdir)
+    if iplot:     pyclaw.plot.plotInteractive(outdir=outdir)
 
 
 if __name__=="__main__":

@@ -27,18 +27,18 @@ List of classes:
 
 .. _Grid:
 
-:class:`pyclaw.solution.Grid`
+:class:`pyclaw.grid.Grid`
 =============================
    
-.. autoclass:: pyclaw.solution.Grid
+.. autoclass:: pyclaw.grid.Grid
    :members:
    :member-order: groupwise
 
 .. _Dimension:
 
-:class:`pyclaw.solution.Dimension`
+:class:`pyclaw.grid.Dimension`
 ==================================
 
-.. autoclass:: pyclaw.solution.Dimension
+.. autoclass:: pyclaw.grid.Dimension
    :members:
    :member-order: groupwise

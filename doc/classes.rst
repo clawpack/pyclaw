@@ -29,14 +29,14 @@ Creation of a Pyclaw :class:`~pyclaw.solution.Solution`
 =======================================================
 
 A Pyclaw :class:`~pyclaw.solution.Solution` is a container for a collection of
-:class:`~pyclaw.solution.Grid` objects in order to support adaptive mesh 
+:class:`~pyclaw.grid.Grid` objects in order to support adaptive mesh 
 refinement and multi-block simulations. The :class:`~pyclaw.solution.Solution` 
-object keeps track of a list of :class:`~pyclaw.solution.Grid` objects then 
+object keeps track of a list of :class:`~pyclaw.grid.Grid` objects then 
 and controls the overall input and output of the entire collection of 
-:class:`~pyclaw.solution.Grid` objects.  Inside of a 
-:class:`~pyclaw.solution.Grid` object, a set of 
-:class:`~pyclaw.solution.Dimension` objects define the extents and basic 
-grids of the :class:`~pyclaw.solution.Grid`.
+:class:`~pyclaw.grid.Grid` objects.  Inside of a 
+:class:`~pyclaw.grid.Grid` object, a set of 
+:class:`~pyclaw.grid.Dimension` objects define the extents and basic 
+grids of the :class:`~pyclaw.grid.Grid`.
 
 .. image:: images/pyclaw_solution_structure.*
 
@@ -56,13 +56,13 @@ This code creates two dimensions, a dimension ``x``  on the interval
 
 .. note:: 
 
-    Many of the attributes of a :class:`~pyclaw.solution.Dimension`
+    Many of the attributes of a :class:`~pyclaw.grid.Dimension`
     object are set automatically so make sure that the values you want are set
-    by default.  Please refer to the :class:`~pyclaw.solution.Dimension`
+    by default.  Please refer to the :class:`~pyclaw.grid.Dimension`
     classes definition for what the default values are.
 
-Next we have to create a :class:`~pyclaw.solution.Grid` object that will
-contain our :class:`~pyclaw.solution.Dimension` objects.
+Next we have to create a :class:`~pyclaw.grid.Grid` object that will
+contain our :class:`~pyclaw.grid.Dimension` objects.
 
 ::
 
@@ -70,13 +70,13 @@ contain our :class:`~pyclaw.solution.Dimension` objects.
     >>> grid.meqn = 2
 
 Here we create a grid with the dimensions we created earlier to make a single
-2D :class:`~pyclaw.solution.Grid` object and set the number of equations it
+2D :class:`~pyclaw.grid.Grid` object and set the number of equations it
 will represent to 2.  As before, many of the attributes of the
-:class:`~pyclaw.solution.Grid` object are set automatically.
+:class:`~pyclaw.grid.Grid` object are set automatically.
 
 We now need to set the initial condition ``q`` and possibly ``aux`` to the correct
 values.  There are multiple convenience functions to help in this, here we
-will use the method :meth:`~pyclaw.solution.Grid.zeros_q` to set all the
+will use the method :meth:`~pyclaw.grid.Grid.zeros_q` to set all the
 values of ``q`` to zero.
 
 ::
@@ -106,7 +106,7 @@ If you're using a Fortran Riemann solver, these values will automatically get
 copied to the corresponding variables in the cparam common block of the
 Riemann solver.  This is done in solver.setup(), which calls grid.set_cparam().
 
-Last we have to put our :class:`~pyclaw.solution.Grid` object into a 
+Last we have to put our :class:`~pyclaw.grid.Grid` object into a 
 :class:`~pyclaw.solution.Solution` object to complete the process.  In this
 case, since we are not using adaptive mesh refinement or a multi-block
 algorithm, we do not have multiple grids.

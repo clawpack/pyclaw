@@ -48,8 +48,8 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     # Parameters
     grid.aux_global['grav'] = 1.0
 
-    xCenter = grid.x.center
     grid.zeros_q()
+    xCenter = grid.x.center
 
     damRadius = 0.0
     hl = 3.
@@ -79,9 +79,8 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     #===========================================================================
     # Plot results
     #===========================================================================
-    from pyclaw import plot
-    if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
-    if htmlplot:  plot.plotHTML(outdir=outdir,format=claw.output_format)
+    if iplot:     pyclaw.plot.plotInteractive(outdir=outdir,format=claw.output_format)
+    if htmlplot:  pyclaw.plot.plotHTML(outdir=outdir,format=claw.output_format)
 
 
 if __name__=="__main__":

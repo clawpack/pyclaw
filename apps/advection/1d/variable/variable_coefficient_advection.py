@@ -78,10 +78,8 @@ def vc_advection(use_petsc='False',solver_type='classic',kernel_language='Python
     claw.tfinal = 1.0
     status = claw.run()
 
-    from pyclaw import plot
-
-    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
-    if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
+    if htmlplot:  pyclaw.plot.plotHTML(outdir=outdir)
+    if iplot:     pyclaw.plot.plotInteractive(outdir=outdir)
 
 if __name__=="__main__":
     import sys

@@ -31,9 +31,9 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
     grid.meqn = rp_advection.meqn
     grid.mbc=solver.mbc
 
+    grid.zeros_q()
     xc=grid.x.center
     beta=100; gamma=0; x0=0.75
-    grid.zeros_q()
     grid.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
 
     claw = pyclaw.Controller()

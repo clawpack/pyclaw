@@ -1,3 +1,5 @@
+.. _petclaw_start:
+
 ============================
 Getting started with PetClaw
 ============================
@@ -18,12 +20,8 @@ To run PetClaw you'll also need to install
     * `petsc4py <http://code.google.com/p/petsc4py/>`_: Python bindings for PETSc.
       The current recommended version is 1.1.2.
 
-    * `mpi4py <http://mpi4py.scipy.org/docs/usrman/index.html>`_: Python bindings
-      for MPI.  This can generally be installed using pip or easy_install as
-      detailed here: `<http://mpi4py.scipy.org/docs/usrman/install.html#using-pip-or-easy-install>`_.
-      The current recommended version is 1.2.2.
-
-For detailed instruction on how to install the PetClaw dependencies on a Mac OS X 10.6.x see :ref:`installationDepsPetClawMacOSX`. 
+For detailed instruction on how to install the PetClaw dependencies on a Mac running 
+OS X 10.6.x see :ref:`installationDepsPetClawMacOSX`. 
 
 
 Installation
@@ -41,9 +39,22 @@ Now simply execute ::
     $ cd $PYCLAW
     $ nosetests
 
-If everything is set up correctly, this will run all the regression tests (which include pure python code and python/Fortran code) and inform you that the tests passed.
+If everything is set up correctly, this will run all the regression tests
+(which include pure python code and python/Fortran code) and inform you that
+the tests passed.
 
-The testing phase can also be performed only on a sub-set of regression tests (e.g. pure python code or python and fortran code, classic clawpack or sharpclaw solver, explicit or implicit time stepping, etc.). This can be accomplished by passing some attributes to nose. The attributes are already defined in the regression tests suite and they are:
+.. note::
+
+    At the moment, one of the tests requires PETSc-dev.  If you have installed
+    a release version of PETSc, this one test will fail.  This test is related
+    to an experimental feature (implicit time stepping) and will not affect
+    regular functionality of PetClaw.
+
+The testing phase can also be performed only on a sub-set of regression tests
+(e.g. pure python code or python and fortran code, classic clawpack or
+sharpclaw solver, explicit or implicit time stepping, etc.). This can be
+accomplished by passing some attributes to nose. The attributes are already
+defined in the regression tests suite and they are:
     * solver_type: classic or sharpclaw
     * kernel_language: python or fortran
     * petsc: True or False
@@ -51,7 +62,9 @@ The testing phase can also be performed only on a sub-set of regression tests (e
     * time_stepping_method: ForwardEuler or SSP33 (for the moment)
     * speed: fast or slow
 
-The attribute 'time_stepping_method' is only used in combination with 'solver_type = sharpclaw' because the classic clawpack implements the Lax-Wendroff scheme.
+The attribute 'time_stepping_method' is only used in combination with
+'solver_type = sharpclaw' because the classic clawpack implements the
+Lax-Wendroff scheme.
 
 The attributes can be used in the following ways:
 
@@ -81,5 +94,5 @@ this `Clawpack interactive python plotting help page <http://kingkong.amath.wash
 Next steps
 ================================
 PetClaw is based on the PyClaw package.  To understand how to set up
-a new problem, please read the `PyClaw tutorial <http://kingkong.amath.washington.edu/clawpack/users/pyclaw/tutorial.html>`_.
-The `PyClaw reference documentation <http://kingkong.amath.washington.edu/clawpack/users/pyclaw/index.html>`_ may also be helpful.
+a new problem, please read the :ref:`pyclaw_tutorial`.
+The :ref:`pyclaw_reference` and :ref:`riemann_reference` may also be helpful.

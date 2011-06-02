@@ -45,10 +45,10 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',so
     grid.meqn = 3
     grid.mbc = solver.mbc
 
+    grid.zeros_q()
     Y,X = np.meshgrid(grid.y.center,grid.x.center)
     r = np.sqrt(X**2 + Y**2)
     width=0.2
-    grid.zeros_q()
     grid.q[0,:,:] = (np.abs(r-0.5)<=width)*(1.+np.cos(np.pi*(r-0.5)/width))
 
     claw = pyclaw.Controller()
@@ -61,9 +61,8 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',so
     claw.tfinal = 0.6
     status = claw.run()
 
-    from pyclaw import plot
-    if htmlplot:  plot.plotHTML(outdir=outdir,format=claw.output_format)
-    if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
+    if htmlplot:  pyclaw.plot.plotHTML(outdir=outdir,format=claw.output_format)
+    if iplot:     pyclaw.plot.plotInteractive(outdir=outdir,format=claw.output_format)
 
     if use_PETSc:
         pressure=claw.frames[claw.nout].grid.gqVec.getArray().reshape([grid.local_n[0],grid.local_n[1],grid.meqn])[:,:,0]
