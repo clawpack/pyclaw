@@ -7,8 +7,8 @@ The PetClaw solvers function identically to their Pyclaw counterparts (see :ref:
 The only difference is that they additionally inherit from the PetSolver 
 :class:`petclaw.evolve.solver.PetSolver` class, which adds parallel capability.
 
-.. inheritance-diagram:: petclaw.evolve.clawpack.PetClawSolver1D petclaw.evolve.clawpack.PetClawSolver2D petclaw.evolve.sharpclaw.PetSharpClawSolver1D
-   :parts: 2
+.. inheritance-diagram:: petclaw.ClawSolver1D petclaw.ClawSolver2D petclaw.SharpClawSolver1D petclaw.SharpClawSolver2D
+   :parts: 4
 
 .. toctree::
    :maxdepth: 3

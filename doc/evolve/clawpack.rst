@@ -20,11 +20,11 @@ structure is:
     This is a simple example of how to instantiate and evolve a solution to a
     later time ``t_end`` using the linearized 1d acoustics Riemann solver::
     
-        >>> from pyclaw.evolve.clawpack import ClawSolver1D
-        >>> solver = ClawSolver1D()    # Instantiate a default, 1d solver
-        >>> solver.mthlim = [3,3]      # Use the van Leer limiter
-        >>> solver.dt = 0.0001         # Set the initial time step
-        >>> solver.max_steps = 500     # Set the maximum number of time steps
+        >>> import pyclaw
+        >>> solver = pyclaw.ClawSolver1D()           # Instantiate a default, 1d solver
+        >>> solver.mthlim = pyclaw.limiters.vanleer  # Use the van Leer limiter
+        >>> solver.dt = 0.0001                       # Set the initial time step
+        >>> solver.max_steps = 500                   # Set the maximum number of time steps
         
         >>> solver.evolve_to_time(solution,t_end)  # Evolve the solution to t_end
 

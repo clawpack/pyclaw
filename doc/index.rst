@@ -14,7 +14,7 @@ You can get the latest development version of PyClaw from
 http://github.com/clawpack/pyclaw.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    started
    tutorial

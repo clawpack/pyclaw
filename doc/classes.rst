@@ -1,8 +1,10 @@
-  .. _pyclaw_classes:
+.. _pyclaw_classes:
   
-***************
-Pyclaw Classes
-***************
+*****************************************
+Introduction to the main Pyclaw Classes
+*****************************************
+.. contents::
+
 
 Flow of a Pyclaw Simulation
 ===========================

@@ -1,24 +1,19 @@
 #!/usr/bin/env python
 # encoding: utf-8
 r"""
-Module containg the classic Clawpack solvers
+Module containing the classic Clawpack solvers.
 
 This module contains the pure and wrapped classic clawpack solvers.  All 
 clawpack solvers inherit from the :class:`ClawSolver` superclass which in turn 
-inherits from the :class:`~pyclaw.evolve.solver.Solver` superclass.  As such, 
-the only solver classes that should be directly used should be the 
-dimensionally dependent ones such as :class:`ClawSolver1D`.
+inherits from the :class:`~pyclaw.evolve.solver.Solver` superclass.  These
+are both pure virtual classes; the only solver classes that should be instantiated
+are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`.
 
 :Authors:
     Kyle T. Mandli (2008-09-11) Initial version
+    Amal Alghamdi (2010-2011)   Wrapped Fortran routines
+    David I. Ketcheson (2011)   Various refinements, including removing BCs from grid
 """
-# ============================================================================
-#      Copyright (C) 2008 Kyle T. Mandli <mandli@amath.washington.edu>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
 
 from pyclaw.evolve.solver import Solver
 
@@ -55,7 +50,7 @@ class ClawSolver(Solver):
     
     .. attribute:: mthlim 
     
-        Limiter to be used on each wave.  ``Default = [1]``
+        Limiter to be used on each wave.  ``Default = limiters.minmod``
     
     .. attribute:: order
     
@@ -82,7 +77,16 @@ class ClawSolver(Solver):
         Function called before each time step is taken.  Default is the stub
         function
         
+    .. attribute:: kernel_language
+
+        Specifies whether to use wrapped Fortran routines ('Fortran')
+        or pure Python ('Python').  ``Default = 'Fortran'``.
     
+    .. attribute:: verbosity
+
+        The level of detail of logged messages from the Fortran solver.
+        ``Default = 0``.
+
     :Initialization:
     
     Input:
@@ -105,7 +109,7 @@ class ClawSolver(Solver):
         
         # Default required attributes
         self._default_attr_values['mbc'] = 2
-        self._default_attr_values['mthlim'] = [1]
+        self._default_attr_values['mthlim'] = limiters.minmod
         self._default_attr_values['order'] = 2
         self._default_attr_values['src_split'] = 0
         self._default_attr_values['fwave'] = False
