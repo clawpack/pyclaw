@@ -391,7 +391,7 @@ class Grid(pyclaw.grid.Grid):
          - *order* - (string) Order of array, must be understood by numpy
            ``default = 'F'``
         """
-        if self.gauxVec is None: self.init_aux_da()
+        if self.gauxVec is None: self.init_aux_da(maux)
         if shape is None:
             shape = [dim.nend-dim.nstart+2*dim.mbc for dim in self.dimensions]
         shape.insert(0,maux)
@@ -408,7 +408,7 @@ class Grid(pyclaw.grid.Grid):
          - *order* - (string) Order of array, must be understood by numpy
            ``default = 'F'``
         """
-        if self.gauxVec is None: self.init_aux_da()
+        if self.gauxVec is None: self.init_aux_da(maux)
         if shape is None:
             shape = [dim.nend-dim.nstart+2*dim.mbc for dim in self.dimensions]
         shape.insert(0,maux)
@@ -425,7 +425,7 @@ class Grid(pyclaw.grid.Grid):
          - *order* - (string) Order of array, must be understood by numpy
            ``default = 'F'``
         """
-        if self.gauxVec is None: self.init_aux_da()
+        if self.gauxVec is None: self.init_aux_da(maux)
         if shape is None:
             shape = [dim.nend-dim.nstart+2*dim.mbc for dim in self.dimensions]
         shape.insert(0,maux)
