@@ -68,16 +68,16 @@ def verify_it_parallel(run_method, method_name, module_name, verifier, options, 
     
     # run subprocess with the required number of processes
     option_string= ""
+    np = options.pop('np')
     for k in options:
-        if k != 'np':
-            if isinstance(options[k], str):
-                option_string += k+"='"+str(options[k])+"',"
-            else:
-                option_string += k+"="+str(options[k])+","
+        if isinstance(options[k], str):
+            option_string += k+"='"+str(options[k])+"',"
+        else:
+            option_string += k+"="+str(options[k])+","
 
     option_string += 'outdir = "'+outdir+'"' 
 
-    run_command = "mpiexec", "-n", str(options['np']) ,"python","-c", "import sys; sys.path.append('"+path+"'); import "+module_name+"; "+module_name+"."+method_name+"("+option_string+")"
+    run_command = "mpiexec", "-n", str(np) ,"python","-c", "import sys; sys.path.append('"+path+"'); import "+module_name+"; "+module_name+"."+method_name+"("+option_string+")"
     p = subprocess.Popen(run_command, stdout=subprocess.PIPE ,stderr=subprocess.STDOUT)
     (stdout_data, ignore) = p.communicate()
 
