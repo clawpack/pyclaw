@@ -101,9 +101,13 @@ whereas for csh/tcsh shells add the following lines to your shell start-up file:
     $ setenv PETSC_DIR path/to/the/dir/where/you/downloaded/Petsc-dev/petsc-dev
     $ setenv PETSC_ARCH arch-darwin-c-debug
 
-Then configure PETSc-dev with the following command ::
+Then, if you want PETSc-dev configure for 32-bit use the following command: ::
 
     $ ./config/configure.py --with-cc=gcc --with-cxx=g++ --with-python=1 --download-mpich=1 --with-shared-libraries=1
+
+whereas, if you want PETSc-dev 64-bit do: ::
+
+    $ ./config/configure.py --with-cc=gcc --with-cxx=g++ --with-python=1 --download-mpich=1 --with-shared-libraries=1 --with-64-bit-indices=1
 
 Note that one of the option is --download-mpich=1. This means that mpich is downloaded. If you do not need/want mpich, remove this option. Note that you need MPI when using PETSc. Therefore, if the option –download-mpich=1 is removed you should have MPI installed on your system or in your user account.
 
