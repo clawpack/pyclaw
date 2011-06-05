@@ -105,12 +105,11 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
 
     if use_PETSc:
         import petclaw as pyclaw
-        from pyclaw.evolve.clawpack import ClawSolver2D 
     else:
         import pyclaw
-        from pyclaw.evolve.clawpack import ClawSolver2D 
 
-    from petclaw import plot
+    from pyclaw.clawpack import ClawSolver2D 
+
 
     # Initialize grid
     mx=160; my=40
@@ -158,8 +157,8 @@ def shockbubble(use_PETSc=False,iplot=False,htmlplot=False):
     # Solve
     status = claw.run()
 
-    if htmlplot:  plot.plotHTML(format=claw.output_format)
-    if iplot:     plot.plotInteractive(format=claw.output_format)
+    if htmlplot:  pyclaw.plot.plotHTML(format=claw.output_format)
+    if iplot:     pyclaw.plot.plotInteractive(format=claw.output_format)
 
     if use_PETSc:
         density=claw.frames[claw.nout].grid.gqVec.getArray().reshape([grid.meqn,grid.local_n[0],grid.local_n[1]],order='F')[0,:,:]

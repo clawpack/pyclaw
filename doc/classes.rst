@@ -11,7 +11,7 @@ Flow of a Pyclaw Simulation
 
 The basic idea of a pyclaw simulation is to construct a
 :class:`~pyclaw.solution.Solution` object, hand it to a
-:class:`~pyclaw.evolve.solver.Solver` object, and request a solution at a new
+:class:`~pyclaw.solver.Solver` object, and request a solution at a new
 time.  The solver will take whatever steps are necessary to evolve the solution
 to the requested time.
 
@@ -19,7 +19,7 @@ to the requested time.
 
 The bulk of the work in order to run a simulation then is the creation and
 setup of the appropriate :class:`~pyclaw.grid.Grid`,
-:class:`~pyclaw.solution.Solution`, and :class:`~pyclaw.evolve.solver.Solver`
+:class:`~pyclaw.solution.Solution`, and :class:`~pyclaw.solver.Solver`
 objects needed to evolve the solution to the requested time.
 
 .. note::
@@ -118,22 +118,22 @@ algorithm, we do not have multiple grids.
     >>> sol = Solution(grid)
     
 We now have a solution ready to be evolved in a 
-:class:`~pyclaw.evolve.solver.Solver` object.
+:class:`~pyclaw.solver.Solver` object.
 
 
-Creation of a Pyclaw :class:`~pyclaw.evolve.solver.Solver`
+Creation of a Pyclaw :class:`~pyclaw.solver.Solver`
 ==========================================================
 
-A Pyclaw :class:`~pyclaw.evolve.solver.Solver` can represent many different
+A Pyclaw :class:`~pyclaw.solver.Solver` can represent many different
 types of solvers so here we will concentrate on a 1D, classic Clawpack type of
-solver.  This solver is located in the :mod:`~pyclaw.evolve.clawpack` module.
+solver.  This solver is located in the :mod:`~pyclaw.clawpack` module.
 
 First we import the particular solver we want and create it with the default 
 configuration.
 
 ::
 
-    >>> from pyclaw.evolve.clawpack import ClawSolver1D
+    >>> from pyclaw.clawpack import ClawSolver1D
     >>> solver = ClawSolver1D()
     >>> solver.mthbc_lower[0] = pyclaw.BC.periodic
     >>> solver.mthbc_upper[0] = pyclaw.BC.periodic
@@ -141,7 +141,7 @@ configuration.
 Next we need to tell the solver which Riemann solver to use from the
 :doc:`Riemann solver package </pyclaw/evolve/rp>` .  We can always check what 
 Riemann solvers are available to use via the 
-:meth:`~pyclaw.evolve.ClawSolver1D.list_riemann_solvers` method.  Once we have
+:meth:`~pyclaw.ClawSolver1D.list_riemann_solvers` method.  Once we have
 picked one out, we let the solver pick it out for us via:
 
 ::
@@ -150,7 +150,7 @@ picked one out, we let the solver pick it out for us via:
 
 In this case we have decided to use the linear acoustics Riemann solver.  You 
 can also set your own solver by importing the module that contains it and 
-setting it directly to the :attr:`~pyclaw.evolve.clawpack.ClawSolver1D.rp`
+setting it directly to the :attr:`~pyclaw.clawpack.ClawSolver1D.rp`
 attribute to the particular function.
 
 ::
@@ -194,7 +194,7 @@ method.
     >>> claw.solutions['n'] = sol
     
 Here we have imported and created the :class:`~pyclaw.controller.Controller` 
-class, assigned the :class:`~pyclaw.evolve.solver.Solver` and 
+class, assigned the :class:`~pyclaw.solver.Solver` and 
 :class:`~pyclaw.solution.Solution`.
 
 These next commands setup the type of output the controller will output.  The

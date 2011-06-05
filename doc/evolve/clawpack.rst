@@ -14,7 +14,7 @@ Clawpack solvers.  Please refer to each of the inherited classes for more info
 about the methods and attributes they provide each class.  The inheritance
 structure is:
 
-.. inheritance-diagram:: pyclaw.evolve.clawpack.ClawSolver1D pyclaw.evolve.clawpack.ClawSolver2D
+.. inheritance-diagram:: pyclaw.clawpack.ClawSolver1D pyclaw.clawpack.ClawSolver2D
 
 :Example:
     This is a simple example of how to instantiate and evolve a solution to a
@@ -29,9 +29,9 @@ structure is:
         >>> solver.evolve_to_time(solution,t_end)  # Evolve the solution to t_end
 
 
-:mod:`pyclaw.evolve.clawpack`
+:mod:`pyclaw.clawpack`
 =============================
 
-.. automodule:: pyclaw.evolve.clawpack
+.. automodule:: pyclaw.clawpack
    :members:
    :show-inheritance:

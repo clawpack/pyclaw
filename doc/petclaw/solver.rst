@@ -12,8 +12,8 @@ The main method of interest defined in this module is the
 :meth:`evolve_to_time` method which evolves the solutions given to the end 
 time provided.  Details of how this works can be found below.
 
-:mod:`petclaw.evolve.solver`
+:mod:`petclaw.solver`
 ============================
 
-.. automodule:: petclaw.evolve.solver
+.. automodule:: petclaw.solver
    :members:

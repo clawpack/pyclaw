@@ -10,7 +10,7 @@ for a variety of output time specifications, output styles and other ways to
 keep a simulation organized.
 
 The main way to use a Controller object then is to provide it with an
-appropriate :class:`~pyclaw.evolve.solver.Solver` and initial 
+appropriate :class:`~pyclaw.solver.Solver` and initial 
 :class:`~pyclaw.solution.Solution` object.  Then specify what kind of output
 you would like different than the defaults (see 
 :class:`~pyclaw.controller.Controller` for

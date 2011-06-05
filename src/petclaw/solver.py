@@ -16,7 +16,7 @@ All parallel solvers inherit from this class.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-from pyclaw.evolve.solver import Solver
+from pyclaw.solver import Solver
 
 # ============================================================================
 #  Generic PetClaw solver class

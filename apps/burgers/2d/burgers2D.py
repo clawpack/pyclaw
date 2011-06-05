@@ -6,7 +6,7 @@ from petsc4py import PETSc
 from petclaw.grid import Dimension
 from petclaw.grid import Grid
 from pyclaw.solution import Solution
-from petclaw.evolve.clawpack import PetClawSolver2D
+from petclaw.clawpack import PetClawSolver2D
 from pyclaw.controller import Controller
 import math
 from petclaw import plot

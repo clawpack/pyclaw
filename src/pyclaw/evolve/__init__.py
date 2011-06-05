@@ -10,12 +10,6 @@ Copyright (c) 2008 University of Washington. All rights reserved.
 # This __init__ script only imports common utilities, most of the import 
 # should be done depending on the solver needed
 
-__all__ = ['ClawSolver1D','ClawSolver2D','SharpClawSolver1D','SharpClawSolver2D']
-from clawpack import ClawSolver1D, ClawSolver2D
-from sharpclaw import SharpClawSolver1D, SharpClawSolver2D
-
-__all__.append('limiters')
+__all__ =['limiters']
 import limiters
 
-__all__.append('BC')
-from solver import BC

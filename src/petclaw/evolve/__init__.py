@@ -10,15 +10,8 @@ Copyright (c) 2008 University of Washington. All rights reserved.
 # This __init__ script only imports common utilities, most of the import 
 # should be done depending on the solver needed
 
-__all__ = ['ClawSolver1D','ClawSolver2D','SharpClawSolver1D','SharpClawSolver2D']
-from clawpack import ClawSolver1D
-from clawpack import ClawSolver2D
-from sharpclaw import SharpClawSolver1D
-from sharpclaw import SharpClawSolver2D
 from riemann import *
 
-__all__.append('limiters')
+__all__ = ['limiters']
 from pyclaw.evolve import limiters
 
-__all__.append('BC')
-from pyclaw.evolve.solver import BC

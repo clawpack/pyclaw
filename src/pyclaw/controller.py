@@ -31,7 +31,7 @@ import time
 
 from data import Data
 from solution import Solution
-from evolve.solver import Solver
+from solver import Solver
 from util import FrameCounter
 
 class Controller(object):
@@ -92,7 +92,7 @@ class Controller(object):
         # Solver information
         self.solutions = {}              # Solutions dictionary
         self.solver = None
-        r"""(:class:`~pyclaw.evolve.solver.Solver`) - Solver object"""
+        r"""(:class:`~pyclaw.solver.Solver`) - Solver object"""
         
         # Output parameters for run convenience method
         self.keep_copy = False 

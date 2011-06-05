@@ -14,13 +14,13 @@ Clawpack solvers.  Please refer to each of the inherited classes for more info
 about the methods and attributes they provide each class.  The inheritance
 structure is:
 
-.. inheritance-diagram:: petclaw.evolve.clawpack.PetClawSolver1D petclaw.evolve.clawpack.PetClawSolver2D
+.. inheritance-diagram:: petclaw.clawpack.PetClawSolver1D petclaw.clawpack.PetClawSolver2D
 
 :Example:
     This is a simple example of how to instantiate and evolve a solution to a
     later time ``t_end`` using the linearized 1d acoustics Riemann solver::
     
-        >>> from petclaw.evolve.clawpack import PetClawSolver1D
+        >>> from petclaw.clawpack import PetClawSolver1D
         >>> solver = PetClawSolver1D()    # Instantiate a default, 1d solver
         >>> solver.mthlim = [3,3]      # Use the van Leer limiter
         >>> solver.dt = 0.0001         # Set the initial time step
@@ -29,9 +29,9 @@ structure is:
         >>> solver.evolve_to_time(solution,t_end)  # Evolve the solution to t_end
 
 
-:mod:`petclaw.evolve.clawpack`
+:mod:`petclaw.clawpack`
 ==============================
 
-.. automodule:: petclaw.evolve.clawpack
+.. automodule:: petclaw.clawpack
    :members:
    :show-inheritance:

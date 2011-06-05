@@ -26,16 +26,16 @@ def acoustics2D(use_PETSc=False,kernel_language='Fortran',iplot=False,htmlplot=F
         import petclaw as pyclaw
         output_format='petsc'
         if soltype=='classic':
-            from petclaw.evolve.clawpack import ClawSolver2D as mySolver
+            from petclaw.clawpack import ClawSolver2D as mySolver
         elif soltype=='sharpclaw':
-            from petclaw.evolve.sharpclaw import SharpClawSolver2D as mySolver
+            from petclaw.sharpclaw import SharpClawSolver2D as mySolver
     else: #Pure pyclaw
         import pyclaw
         output_format='ascii'
         if soltype=='classic':
-            from pyclaw.evolve.clawpack import ClawSolver2D as mySolver
+            from pyclaw.clawpack import ClawSolver2D as mySolver
         elif soltype=='sharpclaw':
-            from pyclaw.evolve.sharpclaw import SharpClawSolver2D as mySolver
+            from pyclaw.sharpclaw import SharpClawSolver2D as mySolver
 
     from pyclaw.solution import Solution
     from pyclaw.controller import Controller

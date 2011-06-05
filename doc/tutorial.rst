@@ -29,7 +29,7 @@ Now launch an iPython session and import pyclaw::
 The Solver
 ===========
 PyClaw includes various algorithms for solving hyperbolic PDEs; each is implemented
-in a :class:`~pyclaw.evolve.solver.Solver` object.  So the first step is to create a solver::
+in a :class:`~pyclaw.solver.Solver` object.  So the first step is to create a solver::
 
     >>> solver = pyclaw.ClawSolver1D()
 

@@ -4,7 +4,7 @@
 Pyclaw Solvers
 ==========================
 
-.. inheritance-diagram:: pyclaw.evolve.clawpack.ClawSolver1D pyclaw.evolve.clawpack.ClawSolver2D pyclaw.evolve.sharpclaw.SharpClawSolver1D
+.. inheritance-diagram:: pyclaw.clawpack.ClawSolver1D pyclaw.clawpack.ClawSolver2D pyclaw.sharpclaw.SharpClawSolver1D
    :parts: 2
 
 .. toctree::

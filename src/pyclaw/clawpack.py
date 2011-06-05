@@ -5,7 +5,7 @@ Module containing the classic Clawpack solvers.
 
 This module contains the pure and wrapped classic clawpack solvers.  All 
 clawpack solvers inherit from the :class:`ClawSolver` superclass which in turn 
-inherits from the :class:`~pyclaw.evolve.solver.Solver` superclass.  These
+inherits from the :class:`~pyclaw.solver.Solver` superclass.  These
 are both pure virtual classes; the only solver classes that should be instantiated
 are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`.
 
@@ -15,9 +15,9 @@ are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`
     David I. Ketcheson (2011)   Various refinements, including removing BCs from grid
 """
 
-from pyclaw.evolve.solver import Solver
+from pyclaw.solver import Solver
 
-import limiters
+from evolve import limiters
 import riemann
 
 # ========================================================================
@@ -196,7 +196,7 @@ class ClawSolver(Solver):
            (:attr:`src_split` = 1)
 
         This routine is called from the method evolve_to_time defined in the
-        pyclaw.evolve.solver.Solver superclass.
+        pyclaw.solver.Solver superclass.
 
         :Input:
          - *solutions* - (:class:`~pyclaw.solution.Solution`) Dictionary of 

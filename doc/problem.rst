@@ -40,7 +40,7 @@ Writing the initialization script
 This script should:
 
     * Import the appropriate package (pyclaw or petclaw)
-    * Instantiate a :class:`~pyclaw.evolve.solver.Solver` 
+    * Instantiate a :class:`~pyclaw.solver.Solver` 
     * Set the Riemann solver if using a Python Riemann solver
     * Set solver.mwaves
     * Set the boundary conditions

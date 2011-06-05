@@ -16,7 +16,7 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 # ============================================================================
 
 # Solver superclass
-from pyclaw.evolve.solver import Solver, CFLError
+from pyclaw.solver import Solver, CFLError
 
 # Reconstructor
 try:

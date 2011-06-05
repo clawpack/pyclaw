@@ -16,7 +16,7 @@ Module containing SharpClaw solvers for PetClaw
 # ============================================================================
 
 from clawpack import PetSolver
-from pyclaw.evolve.sharpclaw import SharpClawSolver1D, SharpClawSolver2D
+from pyclaw.sharpclaw import SharpClawSolver1D, SharpClawSolver2D
 
 class RKStageState(object):
     """

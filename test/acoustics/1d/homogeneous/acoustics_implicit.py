@@ -6,7 +6,7 @@ from petsc4py import PETSc
 
 class AcousticEquation:
     def __init__(self, grid, solver):
-        from petclaw.evolve.sharpclaw import RKStageState
+        from petclaw.sharpclaw import RKStageState
         self.grid = grid
         self.solver = solver
         self.wrapper = RKStageState(grid)
@@ -74,14 +74,14 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
     init_solution = Solution(grid)
 
     if sclaw:
-        from petclaw.evolve.sharpclaw import SharpClawSolver1D
+        from petclaw.sharpclaw import SharpClawSolver1D
         solver = SharpClawSolver1D()
         solver.lim_type = kwargs.get('lim_type',2)
         solver.time_integrator = 'SSP33'
         solver.mwaves=2
         solver.char_decomp=0
     else:
-        from petclaw.evolve.clawpack import ClawSolver1D
+        from petclaw.clawpack import ClawSolver1D
         solver = ClawSolver1D()
         solver.mwaves=2
         from pyclaw.evolve import limiters

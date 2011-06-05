@@ -27,7 +27,15 @@ from grid import Dimension, Grid
 import riemann
 import plot
 
+__all__.extend(['ClawSolver1D','ClawSolver2D','SharpClawSolver1D','SharpClawSolver2D'])
+from clawpack import ClawSolver1D, ClawSolver2D
+from sharpclaw import SharpClawSolver1D, SharpClawSolver2D
+
+
 # Sub-packages
 import evolve
 from evolve import *
 __all__.extend(evolve.__all__)
+
+__all__.append('BC')
+from solver import BC

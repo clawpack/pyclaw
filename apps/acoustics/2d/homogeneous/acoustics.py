@@ -14,9 +14,9 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',so
         import pyclaw
 
     if solver_type=='classic':
-        solver=pyclaw.evolve.clawpack.ClawSolver2D()
+        solver=pyclaw.ClawSolver2D()
     elif solver_type=='sharpclaw':
-        solver=pyclaw.evolve.clawpack.SharpClawSolver2D()
+        solver=pyclaw.SharpClawSolver2D()
 
     solver.dim_split=False
     solver.mwaves = 2
