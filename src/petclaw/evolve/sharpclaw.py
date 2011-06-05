@@ -68,8 +68,9 @@ class SharpClawSolver1D(PetSolver,SharpClawSolver1D):
         Allocate RK stage arrays.
         """
 
-        if self.time_integrator == 'Euler': nregisters=1
-        elif self.time_integrator == 'SSP33': nregisters=2
+        if self.time_integrator   == 'Euler':  nregisters=1
+        elif self.time_integrator == 'SSP33':  nregisters=2
+        elif self.time_integrator == 'SSP104': nregisters=3
  
         grid = solutions['n'].grids[0]
         self.rk_stages = []

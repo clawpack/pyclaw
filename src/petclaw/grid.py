@@ -51,7 +51,7 @@ class Dimension(pyclaw.grid.Dimension):
             if self._edge is None:
                 self._edge = np.empty(self.nend-self.nstart+1)
                 for i in xrange(self.nstart,self.nend+1):
-                    self.edge[i] = self.lower + i*self.d
+                    self._edge[i] = self.lower + i*self.d
             return self._edge
         return locals()
     edge = property(**edge())
@@ -66,7 +66,7 @@ class Dimension(pyclaw.grid.Dimension):
             if self._centerghost is None:
                 self._centerghost = np.empty(self.nend-self.nstart+2*mbc)
                 for i in xrange(self.nstart-mbc,self.nend+mbc):
-                    self.centerghost[i-self.nstart+mbc] = self.lower + (i+0.5)*self.d
+                    self._centerghost[i-self.nstart+mbc] = self.lower + (i+0.5)*self.d
             return self._centerghost
         return locals()
     centerghost = property(**centerghost())
@@ -80,7 +80,7 @@ class Dimension(pyclaw.grid.Dimension):
             if self._center is None:
                 self._center = np.empty(self.nend-self.nstart)
                 for i in xrange(self.nstart,self.nend):
-                    self.center[i-self.nstart] = self.lower + (i+0.5)*self.d
+                    self._center[i-self.nstart] = self.lower + (i+0.5)*self.d
             return self._center
         return locals()
     center = property(**center())
@@ -184,7 +184,6 @@ class Grid(pyclaw.grid.Grid):
             else: return self.aux_da.dof
         return locals()
 
-
     local_n     = property(**local_n())
     q           = property(**q())
     aux         = property(**aux())
@@ -217,7 +216,7 @@ class Grid(pyclaw.grid.Grid):
         self.t = 0.0
         r"""(float) - Current time represented on this grid, 
             ``default = 0.0``"""
-        self.mbc = 2
+        self._mbc = 2
         r"""(int) - Number of ghost cells along the boundaries, 
             ``default = 2``"""
         self.meqn = 1

@@ -78,7 +78,7 @@ def setplot(plotdata):
 def velocity(current_data):
     """Compute velocity from strain and momentum"""
     from stegoton import setaux
-    aux=setaux(current_data.x)
+    aux=setaux(current_data.x,rhoB=4,KB=4)
     velocity = current_data.q[1,:]/aux[0,:]
     return velocity
 

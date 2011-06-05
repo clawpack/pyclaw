@@ -45,7 +45,7 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
     solver.mthbc_lower[1] = pyclaw.BC.periodic
     solver.mthbc_upper[1] = pyclaw.BC.periodic
 
-    mx=80; my=80
+    mx=50; my=50
     # Initialize grids and solutions
     x = pyclaw.Dimension('x',0.0,1.0,mx)
     y = pyclaw.Dimension('y',0.0,1.0,my)
@@ -53,20 +53,20 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
 
     grid.mbc = solver.mbc
 
-    grid.aux_global['u']=0.6
-    grid.aux_global['v']=0.4
+    grid.aux_global['u']=0.5
+    grid.aux_global['v']=1.0
 
     grid.meqn = 1
     qinit(grid)
 
-    solver.dim_split = 1
-    solver.cfl_max=0.5
-    solver.cfl_desired = 0.45
+    solver.dim_split = 0
+    solver.cfl_max=1.0
+    solver.cfl_desired = 0.9
     solver.mwaves=1
     solver.mthlim = pyclaw.limiters.vanleer
 
     claw = pyclaw.Controller()
-    claw.tfinal = 1.0
+    claw.tfinal = 2.0
     claw.solution = pyclaw.Solution(grid)
     claw.solver = solver
     claw.outdir = outdir

@@ -123,7 +123,7 @@ def test_1D_acoustics_homogeneous_1f():
     problem_name   = 'acoustics'
     target_name = 'sharpclaw1.so'
     method_options = {'kernel_language' : 'Python', 'use_PETSc' : False, 'soltype' : 'sharpclaw'}
-    verifier       = lambda error: abs(error-0.000818286913339)<1.e-5
+    verifier       = lambda error: abs(error-0.00027277815767)<1.e-5
     yield(util.run_verify, path, module_name, problem_name, verifier, method_options)
 
 
@@ -141,7 +141,7 @@ def test_1D_acoustics_homogeneous_1g():
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
     method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : False, 'soltype' : 'sharpclaw'}
-    verifier       = lambda error: abs(error-0.000818286913339)<1.e-5
+    verifier       = lambda error: abs(error-0.00027277815767)<1.e-5
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
     
 
@@ -158,7 +158,7 @@ def test_1D_acoustics_homogeneous_1h():
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
     method_options = {'kernel_language' : 'Python', 'use_PETSc' : True, 'soltype' : 'sharpclaw'}
-    verifier       = lambda error: abs(error-0.000818286913339)<1.e-5
+    verifier       = lambda error: abs(error-0.00027277815767)<1.e-5
     yield(util.run_verify, path, module_name, problem_name, verifier, method_options)
 
 
@@ -176,7 +176,7 @@ def test_1D_acoustics_homogeneous_1i():
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
     method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : True, 'soltype' : 'sharpclaw'}
-    verifier       = lambda error: abs(error-0.000818286913339)<1.e-5
+    verifier       = lambda error: abs(error-0.00027277815767)<1.e-5
     yield(util.build_run_verify, path, target_name, module_name, module_name, verifier, method_options)    
 
 
@@ -316,8 +316,6 @@ def test_2D_shockbubble_1a():
     def verify_shockbubble(test_x):
         import numpy
         verify_x=numpy.loadtxt('test/sb_density')
-        print (abs(test_x-verify_x))
-        print numpy.max(abs(test_x-verify_x))
         return numpy.max(abs(test_x-verify_x))<1.e-14
 
     method_options = {'use_PETSc' : False}

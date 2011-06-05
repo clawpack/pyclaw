@@ -69,7 +69,7 @@ class Dimension(object):
             if self._edge is None:
                 self._edge = np.empty(self.n+1)   
                 for i in xrange(0,self.n+1):
-                    self.edge[i] = self.lower + i*self.d 
+                    self._edge[i] = self.lower + i*self.d 
             return self._edge
         return locals()
     edge = property(**edge())
@@ -81,7 +81,7 @@ class Dimension(object):
             if self._centerghost is None:
                 self._centerghost = np.empty(self.n+2*self.mbc)
                 for i in xrange(0-self.mbc,self.n+self.mbc):
-                    self.centerghost[i] = self.lower + (i+0.5)*self.d
+                    self._centerghost[i+self.mbc] = self.lower + (i+0.5)*self.d
             return self._centerghost
         return locals()
     centerghost = property(**centerghost())
@@ -93,7 +93,7 @@ class Dimension(object):
             if self._center is None:
                 self._center = np.empty(self.n)
                 for i in xrange(0,self.n):
-                    self.center[i] = self.lower + (i+0.5)*self.d
+                    self._center[i] = self.lower + (i+0.5)*self.d
             return self._center
         return locals()
     center = property(**center())
@@ -283,7 +283,17 @@ class Grid(object):
             return self._c_edge
         return locals()
     _c_edge = None
-        
+    def mbc():
+        def fget(self):
+            return self._mbc
+        def fset(self,mbc):
+            self._mbc = mbc
+            for dim in self.dimensions:
+                dim.mbc = mbc
+        return locals()
+
+
+       
     ndim = property(**ndim())
     dimensions = property(**dimensions())
     maux = property(**maux())
@@ -299,6 +309,7 @@ class Grid(object):
     p_edge = property(**p_edge())
     c_center = property(**c_center())
     c_edge = property(**c_edge())
+    mbc = property(**mbc())
     
     
     # ========== Class Methods ===============================================
@@ -317,7 +328,7 @@ class Grid(object):
         self.t = 0.0
         r"""(float) - Current time represented on this grid, 
             ``default = 0.0``"""
-        self.mbc = 2
+        self._mbc = 2
         r"""(int) - Number of ghost cells along the boundaries, 
             ``default = 2``"""
         self.meqn = 1

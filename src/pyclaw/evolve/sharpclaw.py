@@ -27,7 +27,7 @@ except:
     from pyclaw.evolve import recon
 
 
-def start_step(solver,grid,rk_stage):
+def start_step(solver,solutions):
     r"""
     Dummy routine called before each step
     
@@ -85,6 +85,8 @@ class SharpClawSolver(Solver):
         self._default_attr_values['kernel_language'] = 'Fortran'
         self._default_attr_values['mbc'] = 3
         self._default_attr_values['fwave'] = False
+        self._default_attr_values['cfl_desired'] = 0.45
+        self._default_attr_values['cfl_max'] = 0.5
         
         # Call general initialization function
         super(SharpClawSolver,self).__init__(data)
@@ -103,10 +105,13 @@ class SharpClawSolver(Solver):
         # Grid we will be working on
         grid = solutions['n'].grids[0]
 
+        self.start_step(self,solutions)
+
         try:
             if self.time_integrator=='Euler':
                 deltaq=self.dq(grid,grid)
                 grid.q+=deltaq
+
             elif self.time_integrator=='SSP33':
                 deltaq=self.dq(grid,grid)
                 self.rk_stages[0].q=grid.q+deltaq
@@ -116,6 +121,32 @@ class SharpClawSolver(Solver):
                 self.rk_stages[0].t = grid.t+0.5*self.dt
                 deltaq=self.dq(grid,self.rk_stages[0])
                 grid.q = 1./3.*grid.q + 2./3.*(self.rk_stages[0].q+deltaq)
+
+            elif self.time_integrator=='SSP104':
+                s1=self.rk_stages[0]
+                s2=self.rk_stages[1]
+                s1.q = grid.q.copy()
+
+                deltaq=self.dq(grid,grid)
+                s1.q = grid.q + deltaq/6.
+                s1.t = grid.t + self.dt/6.
+
+                for i in range(4):
+                    deltaq=self.dq(grid,s1)
+                    s1.q=s1.q + deltaq/6.
+                    s1.t =s1.t + self.dt/6.
+
+                s2.q = grid.q/25. + 9./25 * s1.q
+                s1.q = 15. * s2.q - 5. * s1.q
+                s1.t = grid.t + self.dt/3.
+
+                for i in range(4):
+                    deltaq=self.dq(grid,s1)
+                    s1.q=s1.q + deltaq/6.
+                    s1.t =s1.t + self.dt/6.
+
+                deltaq = self.dq(grid,s1)
+                grid.q = s2.q + 0.6 * s1.q + 0.1 * deltaq
             else:
                 raise Exception('Unrecognized time integrator')
         except CFLError:
@@ -126,8 +157,6 @@ class SharpClawSolver(Solver):
         """
         Evaluate dq/dt * (delta t)
         """
-
-        start_step(self,grid,rk_stage)
 
         q = self.qbc(grid,rk_stage)
 
@@ -270,8 +299,9 @@ class SharpClawSolver1D(SharpClawSolver):
         """
         Allocate RK stage arrays and fortran routine work arrays.
         """
-        if self.time_integrator == 'Euler': nregisters=1
-        elif self.time_integrator == 'SSP33': nregisters=2
+        if self.time_integrator   == 'Euler':  nregisters=1
+        elif self.time_integrator == 'SSP33':  nregisters=2
+        elif self.time_integrator == 'SSP104': nregisters=3
  
         grid = solutions['n'].grids[0]
         self.rk_stages = []

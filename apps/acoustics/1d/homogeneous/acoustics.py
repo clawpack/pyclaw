@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
-def acoustics(use_PETSc=False,kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False,outdir='./_output'):
+def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False,outdir='./_output'):
     """
     This example solves the 1-dimensional acoustics equations in a homogeneous
     medium.
@@ -11,7 +11,7 @@ def acoustics(use_PETSc=False,kernel_language='Fortran',solver_type='classic',ip
     #=================================================================
     # Import the appropriate classes, depending on the options passed
     #=================================================================
-    if use_PETSc:
+    if use_petsc:
         import petclaw as pyclaw
     else:
         import pyclaw

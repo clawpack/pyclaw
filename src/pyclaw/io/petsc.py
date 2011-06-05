@@ -182,7 +182,8 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
                 aux_viewer = PETSc.Viewer().createBinary(aux_viewer_filename, PETSc.Viewer.Mode.READ)
             else:
                 from warnings import warn
-                warn('Warning: read_aux=True but aux file %s does not exist' % aux_viewer_filename)
+                aux_file_path = os.path.join(path,aux_viewer_filename)
+                warn('read_aux=True but aux file %s does not exist' % aux_file_path)
                 read_aux=False
     else:
         raise IOError('format type %s not supported' % options['format'])
