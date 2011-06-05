@@ -24,7 +24,7 @@ def burgers(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=True,
     solver.kernel_language = kernel_language
     if kernel_language=='Python': solver.set_riemann_solver('burgers')
     solver.mwaves = 1
-    solver.mthlim = pyclaw.limiters.vanleer
+    solver.mthlim = pyclaw.limiters.tvd.vanleer
     solver.mthbc_lower[0] = 2
     solver.mthbc_upper[0] = 2
 

@@ -17,7 +17,7 @@ are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`
 
 from pyclaw.solver import Solver
 
-from evolve import limiters
+import limiters.tvd
 import riemann
 
 # ========================================================================
@@ -50,7 +50,7 @@ class ClawSolver(Solver):
     
     .. attribute:: mthlim 
     
-        Limiter to be used on each wave.  ``Default = limiters.minmod``
+        Limiter to be used on each wave.  ``Default = limiters.tvd.minmod``
     
     .. attribute:: order
     
@@ -109,7 +109,7 @@ class ClawSolver(Solver):
         
         # Default required attributes
         self._default_attr_values['mbc'] = 2
-        self._default_attr_values['mthlim'] = limiters.minmod
+        self._default_attr_values['mthlim'] = limiters.tvd.minmod
         self._default_attr_values['order'] = 2
         self._default_attr_values['src_split'] = 0
         self._default_attr_values['fwave'] = False
@@ -464,7 +464,7 @@ class ClawSolver1D(ClawSolver):
             
                 # Apply Limiters to waves
                 if (limiter > 0).any():
-                    wave = limiters.limit(grid.meqn,wave,s,limiter,dtdx)
+                    wave = limiters.tvd.limit(grid.meqn,wave,s,limiter,dtdx)
 
                 # Compute correction fluxes for second order q_{xx} terms
                 dtdxave = 0.5 * (dtdx[LL-1:UL-1] + dtdx[LL:UL])

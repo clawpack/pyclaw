@@ -26,7 +26,7 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     # Setup solver and solver parameters
     #===========================================================================
     solver.mwaves = 2
-    solver.mthlim = pyclaw.limiters.MC
+    solver.mthlim = pyclaw.limiters.tvd.MC
     solver.kernel_language=kernel_language
     if kernel_language =='Python': 
         solver.set_riemann_solver('shallow_roe')

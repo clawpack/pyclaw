@@ -84,8 +84,8 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
         from petclaw.clawpack import ClawSolver1D
         solver = ClawSolver1D()
         solver.mwaves=2
-        from pyclaw.evolve import limiters
-        solver.mthlim = limiters.MC
+        from pyclaw import limiters
+        solver.mthlim = limiters.tvd.MC
 
     if kernel_language=='Python': solver.set_riemann_solver('acoustics')
     solver.dt=grid.d[0]/grid.aux_global['cc']*0.1

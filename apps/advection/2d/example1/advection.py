@@ -63,7 +63,7 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
     solver.cfl_max=1.0
     solver.cfl_desired = 0.9
     solver.mwaves=1
-    solver.mthlim = pyclaw.limiters.vanleer
+    solver.mthlim = pyclaw.limiters.tvd.vanleer
 
     claw = pyclaw.Controller()
     claw.tfinal = 2.0

@@ -36,9 +36,9 @@ __all__.append('BC')
 from pyclaw.solver import BC
 
 # Sub-packages
-import evolve
-from evolve import *
-__all__.extend(evolve.__all__)
+import limiters
+from limiters import *
+__all__.extend(limiters.__all__)
 
 import plot
 __all__.append('plot')

@@ -53,7 +53,7 @@ def shallow2D(use_petsc=False,kernel_language='Fortran',iplot=True,htmlplot=Fals
 
     solver.mwaves = 3
     if solver.kernel_language =='Python': solver.set_riemann_solver('shallow_roe')
-    solver.mthlim = pyclaw.limiters.MC
+    solver.mthlim = pyclaw.limiters.tvd.MC
 
     solver.mthbc_lower[0] = pyclaw.BC.outflow
     solver.mthbc_upper[0] = pyclaw.BC.outflow

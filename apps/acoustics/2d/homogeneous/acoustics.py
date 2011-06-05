@@ -20,7 +20,7 @@ def acoustics2D(iplot=False,htmlplot=False,use_PETSc=False,outdir='./_output',so
 
     solver.dim_split=False
     solver.mwaves = 2
-    solver.mthlim = pyclaw.limiters.MC
+    solver.mthlim = pyclaw.limiters.tvd.MC
 
     solver.mthbc_lower[0]=pyclaw.BC.reflecting
     solver.mthbc_upper[0]=pyclaw.BC.outflow

@@ -33,9 +33,9 @@ from sharpclaw import SharpClawSolver1D, SharpClawSolver2D
 
 
 # Sub-packages
-import evolve
-from evolve import *
-__all__.extend(evolve.__all__)
+import limiters
+from limiters import *
+__all__.extend(limiters.__all__)
 
 __all__.append('BC')
 from solver import BC

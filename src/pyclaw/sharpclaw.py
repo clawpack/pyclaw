@@ -21,10 +21,10 @@ from pyclaw.solver import Solver, CFLError
 # Reconstructor
 try:
     # load c-based WENO reconstructor (PyWENO)
-    from pyclaw.evolve import reconstruct as recon
+    from pyclaw.limiters import reconstruct as recon
 except:
     # load old WENO5 reconstructor
-    from pyclaw.evolve import recon
+    from pyclaw.limiters import recon
 
 
 def start_step(solver,solutions):

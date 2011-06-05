@@ -49,7 +49,7 @@ def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_typ
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
     solver.mwaves = 2
-    solver.mthlim = pyclaw.limiters.minmod
+    solver.mthlim = pyclaw.limiters.tvd.minmod
 
     claw = pyclaw.Controller()
     claw.keep_copy = True

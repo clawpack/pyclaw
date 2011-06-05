@@ -57,7 +57,7 @@ def vc_advection(use_petsc='False',solver_type='classic',kernel_language='Python
     solver.mwaves = rp_vc_advection.mwaves
     if solver.kernel_language=='Python': 
         solver.rp = rp_vc_advection.rp_vc_advection_1d
-    solver.mthlim = pyclaw.limiters.MC
+    solver.mthlim = pyclaw.limiters.tvd.MC
     solver.mthbc_lower[0] = 2
     solver.mthbc_upper[0] = 2
 
