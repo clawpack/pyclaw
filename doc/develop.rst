@@ -18,7 +18,14 @@ A nice cheat-sheet is available at
 http://www.google.com/url?sa=D&q=http://www.globallinuxsecurity.pro/static/git/cheetsheet.pdf.
 
 Contributions in the form of pull requests are also welcome; this approach
-is probably the most convenient for occasional contributors.
+is probably the most convenient for occasional contributors, or for major new
+contributions like additional solvers.
+
+Bugs
+===============
+If you find a bug, post an issue with as much explanation as possible on the
+Issue tracker at https://github.com/clawpack/pyclaw/issues.  If you're looking 
+for something useful to do, try tackling one of the issues listed there.
 
 Developer communication
 ============================
@@ -26,15 +33,15 @@ Developer communication
 At the moment, developer communication takes place on the following
 google groups:
 
-  * http://groups.google.com/group/petclaw-dev/
+  * http://groups.google.com/group/petclaw-dev/ -- for things relevant only to PyClaw/PetClaw
 
-  * http://groups.google.com/group/claw-dev/
+  * http://groups.google.com/group/claw-dev/ -- for things relevant to the larger Clawpack community
 
 Dependencies
 ============================
 
-In general, additional dependencies on Python packages or other
-software should be avoided.  If you wish to make a change that
+In general, introduction of additional dependencies 
+should be avoided.  If you wish to make a change that
 will introduce a new dependency (including depending on a more
 recent version of a particular package), it should be discussed
 on the Google group first.
@@ -46,7 +53,7 @@ substantially outdated.
 
 Committing
 ============================
-Always run the tests before committing.
+Always make sure the tests pass before committing, even if you are not yet pushing.
 
 Be verbose in your commit messages.
 

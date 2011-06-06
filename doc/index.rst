@@ -1,17 +1,50 @@
 .. _pyclaw:
 
-******
-PyClaw
-******
+*******
+Welcome
+*******
 
 Pyclaw is a Python-based solver for hyperbolic PDEs that includes the algorithms
 of Clawpack and SharpClaw.  
 It has been designed with easy extensibility, performance, and exploration in mind.
-PyClaw is also the basis for PetClaw, a scalable parallel implementation of Clawpack
+The high-level code is written in Python using numpy and based on the 
+PyClaw package.
+The low-level kernels used are the Clawpack and SharpClaw routines, which are written in Fortran.
+The PyClaw package also includes PetClaw, a scalable parallel implementation of Clawpack and SharpClaw,
 using PETSc.
 
-You can get the latest development version of PyClaw from
-http://github.com/clawpack/pyclaw.
+Why use PyClaw?  Because PyClaw
+
+    * Solves general hyperbolic PDEs in 1D and 2D
+    * Includes the full functionality of `Clawpack <www.clawpack.org>`_ and 
+      `SharpClaw <http://web.kaust.edu.sa/faculty/davidketcheson/sharpclaw/>`_
+    * Has a simple and intuitive pythonic interface
+    * Is based on a powerful and modular object-oriented design
+    * Allows you to run your simulation on the world's biggest supercomputers by changing one line of code
+    * Makes it easy to access the powerful PETSc library of solvers for handling stiff source terms or for
+      implicit time stepping (under construction)
+
+PyClaw makes use of the additional Clawpack packages, `Riemann <github.com/clawpack/riemann>`_ and
+`VisClaw <github.com/clawpack/visclaw>`_ for Riemann solvers and visualization, respectively.
+
+Requirements:
+
+    * Python 2.6 or higher
+    * `numpy <http://numpy.scipy.org/>`_ 1.5 or higher
+    * Recommended: `matplotlib <http://matplotlib.sourceforge.net/>`_ (for viewing results)
+
+Additional requirements for PetClaw only: 
+    * `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_  3.1 or higher
+    * `petsc4py <http://code.google.com/p/petsc4py/>`_ 1.1.2
+
+You can get the latest development version of PyClaw from http://github.com/clawpack/pyclaw.
+
+If you have any issues or need help using PyClaw and PetClaw, `send e-mail <petclaw-dev@googlegroups.com>`_
+to the `discussion group <http://groups.google.com/group/petclaw-dev/>`_.
+
+******
+PyClaw
+******
 
 .. toctree::
    :maxdepth: 1
@@ -23,14 +56,12 @@ http://github.com/clawpack/pyclaw.
    differences
    develop
    about
+   future
 
 *********
 PetClaw
 *********
-PetClaw is a parallel version of Clawpack
-The high-level code is written in Python using numpy and based on the 
-PyClaw package.
-The low-level kernels are written in Fortran and based on Clawpack.
+PetClaw is a parallel extension of PyClaw.
 The parallelism is implemented using PETSc and petsc4py.
 
 PetClaw Contents:
