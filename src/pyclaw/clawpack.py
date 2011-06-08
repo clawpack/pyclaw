@@ -328,7 +328,11 @@ class ClawSolver1D(ClawSolver):
             self.method[5] = 1  
         self.method[6] = maux  # aux
  
-        import classic1
+        if self.fwave:
+            import classic1fw as classic1
+        else:
+            import classic1
+
         state.set_cparam(classic1)
         self.f    = np.empty( (meqn,mx+2*mbc) )
         self.wave = np.empty( (meqn,mwaves,mx+2*mbc) )
@@ -339,7 +343,10 @@ class ClawSolver1D(ClawSolver):
 
     def teardown(self):
         if(self.kernel_language == 'Fortran'):
-            import classic1
+            if self.fwave:
+                import classic1fw as classic1
+            else:
+                import classic1
             del classic1
 
 
@@ -405,8 +412,11 @@ class ClawSolver1D(ClawSolver):
             aux = self.auxbc(state)
 
         if(self.kernel_language == 'Fortran'):
-            from classic1 import step1
-            
+            if self.fwave:
+                import classic1fw as classic1
+            else:
+                import classic1
+
             mx = grid.ng[0]
             dx,dt = grid.d[0],self.dt
             dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
@@ -414,7 +424,7 @@ class ClawSolver1D(ClawSolver):
             if(maux == 0): aux = np.empty( (maux,mx+2*mbc) )
         
        
-            q,self.cfl = step1(mx,mbc,mx,q,aux,dx,dt,self.method,self.mthlim,self.f,self.wave,self.s,self.amdq,self.apdq,dtdx)
+            q,self.cfl = classic1.step1(mx,mbc,mx,q,aux,dx,dt,self.method,self.mthlim,self.f,self.wave,self.s,self.amdq,self.apdq,dtdx)
 
         elif(self.kernel_language == 'Python'):
  
@@ -561,7 +571,10 @@ class ClawSolver2D(ClawSolver):
         # The reload here is necessary because otherwise the common block
         # cparam in the Riemann solver doesn't get flushed between running
         # different tests in a single Python session.
-        import classic2
+        if self.fwave:
+            import classic2fw as classic2
+        else:
+            import classic2
         reload(classic2)
         state.set_cparam(classic2)
 
@@ -688,15 +701,18 @@ class ClawSolver2D(ClawSolver):
             qold = self.qbc(state)
             qnew = qold.copy('F') #(input/output)
 
-            from classic2 import dimsp2, step2
+            if self.fwave:
+                import classic2fw as classic2
+            else:
+                import classic2
 
             if self.dim_split:
-                q, cfl = dimsp2(maxm,mx,my,mbc,mx,my, \
+                q, cfl = classic2.dimsp2(maxm,mx,my,mbc,mx,my, \
                       qold,qnew,aux,dx,dy,dt,self.method,self.mthlim,self.cfl,self.cflv, \
                       self.qadd,self.fadd,self.gadd,self.q1d,self.dtdx1d,\
                       self.dtdy1d,self.aux1,self.aux2,self.aux3,self.work)
             else:
-                q, cfl = step2(maxm,mx,my,mbc,mx,my, \
+                q, cfl = classic2.step2(maxm,mx,my,mbc,mx,my, \
                       qold,qnew,aux,dx,dy,dt,self.method,self.mthlim,self.cfl, \
                       self.qadd,self.fadd,self.gadd,self.q1d,self.dtdx1d,\
                       self.dtdy1d,self.aux1,self.aux2,self.aux3,self.work)

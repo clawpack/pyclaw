@@ -21,33 +21,40 @@ TWO_D_SHARPCLAW_SOURCES = $(TWO_D_SHARPCLAW)/workspace.f90 $(TWO_D_SHARPCLAW)/Cl
 
 TWO_D_CLASSIC_SOURCES = $(TWO_D_CLASSIC)/step2.f $(TWO_D_CLASSIC)/dimsp2.f step2ds.o flux2.o limiter.o philim.o
 
+TWO_D_CLASSIC_FWAVE_SOURCES = $(TWO_D_CLASSIC)/step2.f $(TWO_D_CLASSIC)/dimsp2.f step2ds.o flux2fw.o limiter.o philim.o
+
 classic1.so: $(ONE_D_CLASSIC_SOURCES) $(RP_SOURCE)
 	${F2PY} -m classic1 -c $^
 	
 classic1fw.so: $(ONE_D_CLASSIC_FWAVE_SOURCES) $(RP_SOURCE)
-	${F2PY} -m classic1 -c $^
+	${F2PY} -m classic1fw -c $^
 	
 sharpclaw1.so: $(ONE_D_SHARPCLAW_SOURCES) $(RP_SOURCE)
 	${F2PY} -m sharpclaw1 -c $(ONE_D_SHARPCLAW_SOURCES) $(RP_SOURCE)
 
-
 classic2.so: $(TWO_D_CLASSIC_SOURCES) $(RP_SOURCE)
 	${F2PY} -m classic2 -c $(TWO_D_CLASSIC_SOURCES) $(RP_SOURCE)
+	
+classic2fw.so: $(TWO_D_CLASSIC_FWAVE_SOURCES) $(RP_SOURCE)
+	${F2PY} -m classic2fw -c $^
 	
 sharpclaw2.so: $(TWO_D_SHARPCLAW_SOURCES) $(RP_SOURCE)
 	${F2PY} -m sharpclaw2 -c $(TWO_D_SHARPCLAW_SOURCES) $(RP_SOURCE)
 
 step2ds.o: $(TWO_D_CLASSIC)/step2ds.f
-	$(FC) -o step2ds.o -c $(TWO_D_CLASSIC)/step2ds.f
+	$(FC) -O3 -o step2ds.o -c $(TWO_D_CLASSIC)/step2ds.f
 
 flux2.o: $(TWO_D_CLASSIC)/flux2.f
-	$(FC) -o flux2.o -c $(TWO_D_CLASSIC)/flux2.f
+	$(FC) -O3 -o flux2.o -c $(TWO_D_CLASSIC)/flux2.f
+
+flux2fw.o: $(TWO_D_CLASSIC)/flux2fw.f
+	$(FC) -O3 -o flux2fw.o -c $(TWO_D_CLASSIC)/flux2fw.f
 
 limiter.o: $(ONE_D_CLASSIC)/limiter.f
-	$(FC) -o limiter.o -c $(ONE_D_CLASSIC)/limiter.f
+	$(FC) -O3 -o limiter.o -c $(ONE_D_CLASSIC)/limiter.f
 
 philim.o: $(ONE_D_CLASSIC)/philim.f
-	$(FC) -o philim.o -c $(ONE_D_CLASSIC)/philim.f
+	$(FC) -O3 -o philim.o -c $(ONE_D_CLASSIC)/philim.f
 
 clean:
 	rm -f *.o *.so *.pyc *.log
