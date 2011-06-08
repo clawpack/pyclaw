@@ -6,7 +6,7 @@ import numpy as np
 gamma = 1.4
 gamma1 = gamma - 1.
 
-def qinit(grid,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
+def qinit(state,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
     rhoout = 1.
     pout   = 1.
     pin    = 1.
@@ -15,30 +15,29 @@ def qinit(grid,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
     vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
     einf = 0.5*rinf*vinf**2 + pinf/gamma1
     
-    grid.zeros_q()
-    x =grid.x.center
-    y =grid.y.center
+    x =state.grid.x.center
+    y =state.grid.y.center
     Y,X = np.meshgrid(y,x)
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
 
-    grid.q[0,:,:] = rhoin*(r<=r0) + rhoout*(r>r0)
-    grid.q[1,:,:] = 0.
-    grid.q[2,:,:] = 0.
-    grid.q[3,:,:] = (pin*(r<=r0) + pout*(r>r0))/gamma1
-    grid.q[4,:,:] = 1.*(r<=r0)
+    state.q[0,:,:] = rhoin*(r<=r0) + rhoout*(r>r0)
+    state.q[1,:,:] = 0.
+    state.q[2,:,:] = 0.
+    state.q[3,:,:] = (pin*(r<=r0) + pout*(r>r0))/gamma1
+    state.q[4,:,:] = 1.*(r<=r0)
 
-def auxinit(grid):
+def auxinit(state):
     """
     aux[0,i,j] = y-coordinate of cell center for cylindrical source terms
     """
-    grid.zeros_aux(1)
-    x=grid.x.centerghost
-    y=grid.y.centerghost
-    #aux=np.empty([1,len(x),len(y)], order='F')
+    state.maux=1
+    x=state.grid.x.center
+    y=state.grid.y.center
     for j,ycoord in enumerate(y):
-        grid.aux[0,:,j] = ycoord
+        state.aux[0,:,j] = ycoord
 
-def shockbc(grid,dim,t,qbc):
+
+def shockbc(grid,dim,t,qbc,mbc):
     """
     Incoming shock at left boundary.
     """
@@ -49,7 +48,7 @@ def shockbc(grid,dim,t,qbc):
         vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
         einf = 0.5*rinf*vinf**2 + pinf/gamma1
 
-        for i in xrange(grid.mbc):
+        for i in xrange(mbc):
             qbc[0,i,...] = rinf
             qbc[1,i,...] = rinf*vinf
             qbc[2,i,...] = 0.
@@ -65,10 +64,9 @@ def euler_rad_src(solver,solutions,t,dt):
     dt2 = dt/2.
     press = 0.
     ndim = 2
-    mbc=solver.mbc
 
-    aux=solutions['n'].grids[0].aux[:,mbc:-mbc,mbc:-mbc]
-    q = solutions['n'].grids[0].q
+    aux=solutions['n'].states[0].aux
+    q = solutions['n'].states[0].q
 
     rad = aux[0,:,:]
 
@@ -117,30 +115,36 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     solver.mthbc_lower[1]=pyclaw.BC.reflecting
     solver.mthbc_upper[1]=pyclaw.BC.outflow
 
+    #Aux variable in ghost cells doesn't matter
+    solver.mthauxbc_lower[0]=pyclaw.BC.outflow
+    solver.mthauxbc_upper[0]=pyclaw.BC.outflow
+    solver.mthauxbc_lower[1]=pyclaw.BC.outflow
+    solver.mthauxbc_upper[1]=pyclaw.BC.outflow
+
     # Initialize grid
-    mx=640; my=160
+    mx=160; my=40
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
     grid = pyclaw.Grid([x,y])
+    state = pyclaw.State(grid)
 
-    grid.aux_global['gamma']= gamma
-    grid.aux_global['gamma1']= gamma1
-    grid.meqn = 5
-    grid.mbc = solver.mbc
+    state.aux_global['gamma']= gamma
+    state.aux_global['gamma1']= gamma1
+    state.meqn = 5
 
-    qinit(grid)
-    auxinit(grid)
+    qinit(state)
+    auxinit(state)
 
     solver.dim_split = 0
-    solver.mthlim = [4,4,4,4,2]
+    solver.limiters = [4,4,4,4,2]
     solver.user_bc_lower=shockbc
     solver.src=euler_rad_src
     solver.src_split = 1
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
-    claw.tfinal = 0.75
-    claw.solution = pyclaw.Solution(grid)
+    claw.tfinal = 0.25
+    claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.nout = 10
     claw.outdir = outdir
@@ -156,7 +160,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
 if __name__=="__main__":
     import sys
     if len(sys.argv)>1:
-        from petclaw.util import _info_from_argv
+        from pyclaw.util import _info_from_argv
         args, kwargs = _info_from_argv(sys.argv)
         shockbubble(*args,**kwargs)
     else: shockbubble()

@@ -3,50 +3,38 @@
 
 import numpy as np
 
-def qinit(grid,width=0.2):
+def qinit(state,width=0.2):
     
-    # Create an array with fortran native ordering
+    grid = state.grid
     x =grid.x.center
     y =grid.y.center
     Y,X = np.meshgrid(y,x)
     r = np.sqrt(X**2 + Y**2)
 
-    q=np.empty([grid.meqn,len(x),len(y)], order = 'F')
-    q[0,:,:] = (np.abs(r-0.5)<=width)*(1.+np.cos(np.pi*(r-0.5)/width))
-    q[1,:,:] = 0.
-    q[2,:,:] = 0.
-    grid.q=q
+    state.q[0,:,:] = (np.abs(r-0.5)<=width)*(1.+np.cos(np.pi*(r-0.5)/width))
+    state.q[1,:,:] = 0.
+    state.q[2,:,:] = 0.
 
 
-def acoustics2D(use_PETSc=False,kernel_language='Fortran',iplot=False,htmlplot=False,soltype='classic', outdir = './_output', nout = 10):
+def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=False,solver_type='classic', outdir = './_output', nout = 10):
     """
     Example python script for solving the 2d acoustics equations.
     """
-    if use_PETSc:
+    if use_petsc:
         import petclaw as pyclaw
-        output_format='petsc'
-        if soltype=='classic':
-            from petclaw.clawpack import ClawSolver2D as mySolver
-        elif soltype=='sharpclaw':
-            from petclaw.sharpclaw import SharpClawSolver2D as mySolver
-    else: #Pure pyclaw
+    else:
         import pyclaw
-        output_format='ascii'
-        if soltype=='classic':
-            from pyclaw.clawpack import ClawSolver2D as mySolver
-        elif soltype=='sharpclaw':
-            from pyclaw.sharpclaw import SharpClawSolver2D as mySolver
 
-    from pyclaw.solution import Solution
-    from pyclaw.controller import Controller
+    if solver_type=='classic':
+        solver = pyclaw.ClawSolver2D()
+    elif solver_type=='sharpclaw':
+        solver = pyclaw.SharpClawSolver2D()
 
-    from petclaw import plot
-
-    solver = mySolver()
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
     solver.mwaves = 2
-    solver.mthlim = [4]*solver.mwaves
+    solver.dim_split = 1
+    solver.limiters = [4]*solver.mwaves
     solver.mthbc_lower[0] = pyclaw.BC.outflow
     solver.mthbc_upper[0] = pyclaw.BC.outflow
     solver.mthbc_lower[1] = pyclaw.BC.outflow
@@ -57,33 +45,28 @@ def acoustics2D(use_PETSc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     x = pyclaw.grid.Dimension('x',-1.0,1.0,mx)
     y = pyclaw.grid.Dimension('y',-1.0,1.0,my)
     grid = pyclaw.grid.Grid([x,y])
-    grid.mbc=solver.mbc
+    state = pyclaw.State(grid)
 
     rho = 1.0
     bulk = 4.0
     cc = np.sqrt(bulk/rho)
     zz = rho*cc
-    grid.aux_global['rho']= rho
-    grid.aux_global['bulk']=bulk
-    grid.aux_global['zz']= zz
-    grid.aux_global['cc']=cc
+    state.aux_global['rho']= rho
+    state.aux_global['bulk']=bulk
+    state.aux_global['zz']= zz
+    state.aux_global['cc']=cc
 
-    grid.meqn = 3
+    state.meqn = 3
     tfinal = 0.12
 
-    if use_PETSc:
-        # Initialize petsc Structures for q
-        grid.init_q_petsc_structures()
+    qinit(state)
+    initial_solution = pyclaw.Solution(state)
 
-    qinit(grid)
-    initial_solution = Solution(grid)
+    solver.dt=np.min(grid.d)/state.aux_global['cc']*solver.cfl_desired
 
-    solver.dt=np.min(grid.d)/grid.aux_global['cc']*solver.cfl_desired
-
-    claw = Controller()
+    claw = pyclaw.Controller()
     claw.keep_copy = True
     # The output format MUST be set to petsc!
-    claw.output_format = output_format
     claw.tfinal = tfinal
     claw.solutions['n'] = initial_solution
     claw.solver = solver
@@ -93,20 +76,20 @@ def acoustics2D(use_PETSc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     # Solve
     status = claw.run()
 
-    if htmlplot:  plot.plotHTML(format=output_format)
-    if iplot:     plot.plotInteractive(format=output_format)
+    if htmlplot:  pyclaw.plot.plotHTML()
+    if iplot:     pyclaw.plot.plotInteractive()
 
-    if use_PETSc:
-        pressure=claw.frames[claw.nout].grid.gqVec.getArray().reshape([grid.meqn,grid.local_n[0],grid.local_n[1]],order='F')[0,:,:]
+    if use_petsc:
+        pressure=claw.frames[claw.nout].state.gqVec.getArray().reshape([state.meqn,grid.ng[0],grid.ng[0]],order='F')[0,:,:]
     else:
-        pressure=claw.frames[claw.nout].grid.q[0,:,:]
+        pressure=claw.frames[claw.nout].state.q[0,:,:]
     return pressure
 
 
 if __name__=="__main__":
     import sys
     if len(sys.argv)>1:
-        from petclaw.util import _info_from_argv
+        from pyclaw.util import _info_from_argv
         args, kwargs = _info_from_argv(sys.argv)
         acoustics2D(*args,**kwargs)
     else: acoustics2D()

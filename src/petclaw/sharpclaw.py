@@ -18,38 +18,6 @@ Module containing SharpClaw solvers for PetClaw
 from clawpack import PetSolver
 from pyclaw.sharpclaw import SharpClawSolver1D, SharpClawSolver2D
 
-class RKStageState(object):
-    """
-    A single Runge-Kutta stage.
-    """
-    def __init__(self,grid):
-        #Probably we should pass a solver instead of a grid to this function.
-        self.t = grid.t
-        self.q_da=grid.q_da
-        self.gqVec = self.q_da.createGlobalVector()
-        self.lqVec = self.q_da.createLocalVector()
-        self.mbc  = grid.mbc
-        self.meqn = grid.meqn
-        self.ndim = grid.ndim
-
-    def local_n():
-        def fget(self):
-            shape = [i[1]-i[0] for i in self.q_da.getRanges()]
-            return shape
-        return locals()
-    def q():
-        def fget(self):
-            q_dim = self.local_n
-            q_dim.insert(0,self.meqn)
-            q=self.gqVec.getArray().reshape(q_dim, order = 'F')
-            return q
-        def fset(self,q):
-            self.gqVec.setArray(q.reshape([-1], order = 'F'))
-        return locals()
-
-    local_n     = property(**local_n())
-    q           = property(**q())
- 
 
 class SharpClawSolver1D(PetSolver,SharpClawSolver1D):
     """
@@ -62,62 +30,51 @@ class SharpClawSolver1D(PetSolver,SharpClawSolver1D):
     the solver (defaults to fortran).
     
     """
-    
     def setup(self,solutions):
         """
-        Allocate RK stage arrays.
+        Allocate RK stage arrays and fortran routine work arrays.
         """
+        # This is a hack to deal with the fact that petsc4py
+        # doesn't allow us to change the stencil_width (mbc)
+        state = solutions['n'].state
+        state.set_stencil_width(self.mbc)
+        # End hack
 
-        if self.time_integrator   == 'Euler':  nregisters=1
-        elif self.time_integrator == 'SSP33':  nregisters=2
-        elif self.time_integrator == 'SSP104': nregisters=3
- 
-        grid = solutions['n'].grids[0]
-        self.rk_stages = []
-        for i in range(nregisters-1):
-            self.rk_stages.append(RKStageState(grid))
-
-        #Set up mthlim array
-        if not isinstance(self.mthlim,list): self.mthlim=[self.mthlim]
-        if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
-        if len(self.mthlim)!=self.mwaves:
-            raise Exception('Length of solver.mthlim is not 1 nor is it equal to solver.mwaves')
+        self.allocate_rk_stages(solutions)
+        self.set_mthlim()
  
         if self.kernel_language=='Fortran':
-            import sharpclaw1
-            grid.set_cparam(sharpclaw1)
             from sharpclaw1 import clawparams, workspace, reconstruct
-            self.set_fortran_parameters(grid,clawparams,workspace,reconstruct)
+            import sharpclaw1
+            state = solutions['n'].states[0]
+            state.set_cparam(sharpclaw1)
+            self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
 
-           
+
 class SharpClawSolver2D(PetSolver,SharpClawSolver2D):
     """
     
     2D parallel SharpClaw solver.  
     
     """
-    
+
     def setup(self,solutions):
         """
-        Allocate RK stage arrays.
+        Allocate RK stage arrays and fortran routine work arrays.
         """
+        # This is a hack to deal with the fact that petsc4py
+        # doesn't allow us to change the stencil_width (mbc)
+        state = solutions['n'].state
+        state.set_stencil_width(self.mbc)
+        # End hack
 
-        if self.time_integrator == 'Euler': nregisters=1
-        elif self.time_integrator == 'SSP33': nregisters=2
- 
-        grid = solutions['n'].grids[0]
-        self.rk_stages = []
-        for i in range(nregisters-1):
-            self.rk_stages.append(RKStageState(grid))
-
-        #Set up mthlim array
-        if not isinstance(self.mthlim,list): self.mthlim=[self.mthlim]
-        if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
-        if len(self.mthlim)!=self.mwaves:
-            raise Exception('Length of solver.mthlim is not 1 nor is it equal to solver.mwaves')
+        self.allocate_rk_stages(solutions)
+        self.set_mthlim()
  
         if self.kernel_language=='Fortran':
-            import sharpclaw2
-            grid.set_cparam(sharpclaw2)
             from sharpclaw2 import clawparams, workspace, reconstruct
-            self.set_fortran_parameters(grid,clawparams,workspace,reconstruct)
+            import sharpclaw2
+            state.set_cparam(sharpclaw2)
+            self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
+
+

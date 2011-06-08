@@ -20,6 +20,7 @@ import logging
 
 from data import Data
 from grid import Grid, Dimension
+from state import State
 import io
 
 # ============================================================================
@@ -39,19 +40,22 @@ class Solution(object):
     
     :Properties:
     
-        If there is only one grid belonging to this solution, the solution will
-        appear to have many of the attributes assigned to its one grid.  Some
-        parameters that have in the past been parameters for all grids are
-        also reachable although Solution does not check to see if these
-        parameters are truly universal.
+        If there is only one state and grid belonging to this solution, 
+        the solution will appear to have many of the attributes assigned to its
+        one state and grid.  Some parameters that have in the past been
+        parameters for all grids are also reachable although Solution does not
+        check to see if these parameters are truly universal.
 
         Grid Attributes:
-            't','meqn','mbc','q','aux','capa','aux_global','dimensions'
+            'capa','dimensions'
+        State Attributes:
+            't','meqn','q','aux','aux_global'
             
     :Initialization:
         
         The initialization of a Solution can happen on of these ways
             1. args is empty and an empty Solution is created
+            2. args is a single State or list of States
             2. args is a single Grid or list of Grids
             3. args is a single Dimension or list of Dimensions
             4. args is a variable number of arguments that describes the 
@@ -60,9 +64,12 @@ class Solution(object):
         
         Input:
             - if args == () -> Empty Solution object
-            - if args == Grids -> Grids are appended to grids list
+            - if args == States -> States are appended to states list
+            - if args == Grids -> States are initialized with these Grids 
+              and appended to states list
             - if args == Dimensions -> A single Grid with the given
-              Dimensions is created and appended to the grids list
+              Dimensions is created, a state is initalized with this Grid
+              and appended to the states list
             - if args == frame, format='ascii',path='./',file_prefix='fort'
             - if args == Data, Create a new single grid solution based off of 
               what is in args.
@@ -72,127 +79,116 @@ class Solution(object):
     # ========== Attributes ==================================================
     
     # ========== Properties ==================================================
+    def state():
+        doc = r"""(:class:`State`) - Base state is returned"""
+        def fget(self): return self.states[0]
+        return locals()
     def grid():
-        doc = r"""(:class:`Grid`) - Base grid is returned"""
-        def fget(self): return self.grids[0]
+        doc = r"""(:class:`Grid`) - Base state's grid is returned"""
+        def fget(self): return self.states[0].grid
         return locals()
     def t():
-        doc = r"""(float) - :attr:`Grid.t` of base grid"""
-        def fget(self): return self._get_base_grid_attribute('t')
-        def fset(self, value): self.set_all_grids('t',value)
+        doc = r"""(float) - :attr:`State.t` of base state"""
+        def fget(self): return self._get_base_state_attribute('t')
+        def fset(self, value): self.set_all_states('t',value)
         return locals()
     def meqn():
-        doc = r"""(int) - :attr:`Grid.meqn` of base grid"""
-        def fget(self): return self._get_base_grid_attribute('meqn')
-        def fset(self, value): self.set_all_grids('meqn',value)
-        return locals()   
-    def mbc():
-        doc = r"""(int) - :attr:`Grid.mbc` of base grid"""
-        def fget(self): return self._get_base_grid_attribute('mbc')
-        def fset(self, value): self.set_all_grids('mbc',value)
+        doc = r"""(int) - :attr:`State.meqn` of base state"""
+        def fget(self): return self._get_base_state_attribute('meqn')
+        def fset(self, value): self.set_all_states('meqn',value)
         return locals()   
     def q():
-        doc = r"""(ndarray(...,:attr:`Grid.meqn`)) - :attr:`Grid.q` of base 
-                  grid"""
-        def fget(self): return self._get_base_grid_attribute('q')
+        doc = r"""(ndarray(...,:attr:`State.meqn`)) - :attr:`State.q` of base 
+                  state"""
+        def fget(self): return self._get_base_state_attribute('q')
         return locals()
     def aux():
-        doc = r"""(ndarray(...,:attr:`Grid.maux`)) - :attr:`Grid.aux` of base 
-                  grid"""
-        def fget(self): return self._get_base_grid_attribute('aux')
+        doc = r"""(ndarray(...,:attr:`State.maux`)) - :attr:`State.aux` of base 
+                  state"""
+        def fget(self): return self._get_base_state_attribute('aux')
         def fset(self, value): 
-            if len(self.grids) == 1: 
-                setattr(self.grids[0],'aux',value)
+            if len(self.states) == 1: 
+                setattr(self.states[0],'aux',value)
         return locals()  
     def capa():
-        doc = r"""(ndarray(...)) - :attr:`Grid.capa` of base grid"""
+        doc = r"""(ndarray(...)) - :attr:`Grid.capa` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('capa')
         def fset(self, value):
-            if len(self.grids) == 1: 
-                setattr(self.grids[0],'capa',value)
+            if len(self.states) == 1: 
+                setattr(self.states[0].grid,'capa',value)
         return locals()  
     def aux_global():
-        doc = r"""(dict) - :attr:`Grid.aux_global` of base grid"""
-        def fget(self): return self._get_base_grid_attribute('aux_global')
+        doc = r"""(dict) - :attr:`State.aux_global` of base state"""
+        def fget(self): return self._get_base_state_attribute('aux_global')
         def fset(self, value):
-            if len(self.grids) == 1: 
-                setattr(self.grids[0],'aux_global',value)
+            if len(self.states) == 1: 
+                setattr(self.states[0],'aux_global',value)
         return locals()
     def maux():
-        doc = r"""(int) - :attr:`Grid.maux` of base grid"""
-        def fget(self): return self._get_base_grid_attribute('maux')
+        doc = r"""(int) - :attr:`State.maux` of base state"""
+        def fget(self): return self._get_base_state_attribute('maux')
         return locals()
     def ndim():
-        doc = r"""(int) - :attr:`Grid.ndim` of base grid"""
+        doc = r"""(int) - :attr:`Grid.ndim` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('ndim')
         return locals()
     def dimensions():
-        doc = r"""(list) - :attr:`Grid.dimensions` of base grid"""
+        doc = r"""(list) - :attr:`Grid.dimensions` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('dimensions')
         return locals()
     def n():
-        doc = r"""(list) - :attr:`Grid.n` of base grid"""
+        doc = r"""(list) - :attr:`Grid.n` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('n')
         return locals()
     def name():
-        doc = r"""(list) - :attr:`Grid.name` of base grid"""
+        doc = r"""(list) - :attr:`Grid.name` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('name')
         return locals()
     def lower():
-        doc = r"""(list) - :attr:`Grid.lower` of base grid"""
+        doc = r"""(list) - :attr:`Grid.lower` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('lower')
         return locals()
     def upper():
-        doc = r"""(list) - :attr:`Grid.upper` of base grid"""
+        doc = r"""(list) - :attr:`Grid.upper` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('upper')
         return locals()
     def d():
-        doc = r"""(list) - :attr:`Grid.d` of base grid"""
+        doc = r"""(list) - :attr:`Grid.d` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('d')
         return locals()
     def units():
-        doc = r"""(list) - :attr:`Grid.units` of base grid"""
+        doc = r"""(list) - :attr:`Grid.units` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('units')
         return locals()
-    def mthbc_lower():
-        doc = r"""(list) - :attr:`Grid.mthbc_lower` of base grid"""
-        def fget(self): return self._get_base_grid_attribute('mthbc_lower')
-        def fset(self, value): self.set_all_grids('mthbc_lower',value)
-        return locals()
-    def mthbc_upper():
-        doc = r"""(list) - :attr:`Grid.mthbc_upper` of base grid"""
-        def fget(self): return self._get_base_grid_attribute('mthbc_upper')
-        def fset(self, value): self.set_all_grids('mthbc_upper',value)
-        return locals()
     def center():
-        doc = r"""(list) - :attr:`Grid.center` of base grid"""
+        doc = r"""(list) - :attr:`Grid.center` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('center')
         return locals()
     def edge():
-        doc = r"""(list) - :attr:`Grid.edge` of base grid"""
+        doc = r"""(list) - :attr:`Grid.edge` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('edge')
         return locals()
     def p_center():
-        doc = r"""(list) - :attr:`Grid.p_center` of base grid"""
+        doc = r"""(list) - :attr:`Grid.p_center` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('p_center')
         return locals()
     def p_edge():
-        doc = r"""(list) - :attr:`Grid.p_edge` of base grid"""
+        doc = r"""(list) - :attr:`Grid.p_edge` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('p_edge')
         return locals()
     def c_center():
-        doc = r"""(list) - :attr:`Grid.c_center` of base grid"""
+        doc = r"""(list) - :attr:`Grid.c_center` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('c_center')
         return locals()
     def c_edge():
-        doc = r"""(list) - :attr:`Grid.c_edge` of base grid"""
+        doc = r"""(list) - :attr:`Grid.c_edge` of base state.grid"""
         def fget(self): return self._get_base_grid_attribute('c_edge')
         return locals()
         
+    state = property(**state())
     grid = property(**grid())
     t = property(**t())
     meqn = property(**meqn()) 
-    mbc = property(**mbc())
     q = property(**q())
     aux = property(**aux())
     capa = property(**capa())
@@ -206,8 +202,6 @@ class Solution(object):
     upper = property(**upper())
     d = property(**d())
     units = property(**units())
-    mthbc_lower = property(**mthbc_lower())
-    mthbc_upper = property(**mthbc_upper())
     center = property(**center())
     edge = property(**edge())
     p_center = property(**p_center())
@@ -222,24 +216,30 @@ class Solution(object):
         
         See :class:`Solution` for more info.
         """
-        self.grids = []
+        self.states = []
         r"""(list) - List of grids in this solution"""
         # If arg is non-zero, we are reading in a solution, otherwise, we
         # create an empty Solution
         if len(arg) > 0:
+            # Single State
+            if isinstance(arg[0],State):
+                self.states.append(arg[0])
             # Single Grid
-            if isinstance(arg[0],Grid):
-                self.grids.append(arg[0])
+            elif isinstance(arg[0],Grid):
+                self.states.append(State(arg[0]))
             # Single Dimension
             elif isinstance(arg[0],Dimension):
-                self.grids.append(Grid(arg[0]))
+                self.states.append(State(Grid(arg[0])))
             elif isinstance(arg[0],list):
+                # List of States
+                if isinstance(arg[0][0],State):
+                    self.states = arg[0]
                 # List of Grids
                 if isinstance(arg[0][0],Grid):
-                    self.grids = arg[0]
+                    self.states = Grid(arg[0])
                 # List of Dimensions
                 elif isinstance(arg[0][0],Dimension):
-                    self.grids.append(Grid(arg[0]))
+                    self.state.append(State(Grid(arg[0])))
                 else:
                     raise Exception("Invalid argument list")
             elif isinstance(arg[0],int): 
@@ -281,13 +281,13 @@ class Solution(object):
                                     mthbc_upper=data.mthbc_zupper)
                     grid = Grid([x,y,z])
                 
+                state = State(grid)
                 # General grid properties
-                grid.mbc = data.mbc
-                grid.t = data.t0
-                grid.meqn = data.meqn
+                state.t = data.t0
+                state.meqn = data.meqn
                 
                 # Add grid to solution
-                self.grids.append(grid)
+                self.states.append(state)
             else:
                 raise Exception("Invalid argument list")
                 
@@ -297,27 +297,27 @@ class Solution(object):
         Checks to see if this solution is valid
         
         The Solution checks to make sure it is valid by checking each of its
-        grids.  If an invalid grid is found, a message is logged what
+        states.  If an invalid state is found, a message is logged what
         specifically made this solution invalid.
-        
+       
         :Output:
          - (bool) - True if valid, false otherwise
         """
-        return reduce(lambda x,y: x*y,[grid.is_valid() for grid in self.grids])
+        return reduce(lambda x,y: x*y,[state.is_valid() for state in self.states])
 
 
     def __str__(self):
-        output = "Grids:\n"
-        # This is information about each of the grids
-        for grid in self.grids:
-            output = ''.join((output,'  %s:\n' % grid.gridno))
-            output = output + str(grid)
+        output = "states:\n"
+        # This is information about each of the states
+        for state in self.states:
+            output = ''.join((output,'  %s:\n' % state.stateno))
+            output = output + str(state)
         return str(output)
     
     
-    def set_all_grids(self,attr,value,overwrite=True):
+    def set_all_states(self,attr,value,overwrite=True):
         r"""
-        Sets all member grids attribute 'attr' to value
+        Sets all member states attribute 'attr' to value
         
         :Input:
          - *attr* - (string) Attribute name to be set
@@ -325,18 +325,27 @@ class Solution(object):
          - *overwrite* - (bool) Whether to overwrite the attribute if it 
            already exists.  ``default = True``
         """
-        [setattr(grid,attr,value) for grid in self.grids if getattr(grid,attr)
+        [setattr(state,attr,value) for state in self.states if getattr(state,attr)
                     is None or overwrite]
     
                     
-    def _get_base_grid_attribute(self, name):
+    def _get_base_state_attribute(self, name):
         r"""
-        Return base grid attribute name
+        Return base state attribute
         
         :Output:
-         - (id) - Value of attribute from ``grids[0]``
+         - (id) - Value of attribute from ``states[0]``
         """
-        return getattr(self.grids[0],name)
+        return getattr(self.states[0],name)
+    
+    def _get_base_grid_attribute(self, name):
+        r"""
+        Return base state.grid attribute name
+        
+        :Output:
+         - (id) - Value of attribute from ``states[0].grid``
+        """
+        return getattr(self.states[0].grid,name)
     
     
     def __copy__(self):
@@ -348,9 +357,9 @@ class Solution(object):
         result = self.__class__()
         result.__init__()
         
-        # Populate the grids
-        for grid in self.grids:
-            result.grids.append(copy.deepcopy(grid))
+        # Populate the states
+        for state in self.states:
+            result.states.append(copy.deepcopy(state))
         
         return result
     

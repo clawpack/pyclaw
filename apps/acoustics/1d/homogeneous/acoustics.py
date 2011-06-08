@@ -31,7 +31,7 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     if kernel_language=='Python': 
         solver.rp = rp_acoustics.rp_acoustics_1d
  
-    solver.mthlim = pyclaw.limiters.tvd.MC
+    solver.limiters = pyclaw.limiters.tvd.MC
     solver.mthbc_lower[0] = pyclaw.BC.periodic
     solver.mthbc_upper[0] = pyclaw.BC.periodic
 
@@ -40,32 +40,32 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     #========================================================================
     x = pyclaw.Dimension('x',0.0,1.0,100)
     grid = pyclaw.Grid(x)
-    grid.mbc=solver.mbc
+    state = pyclaw.State(grid)
 
     #========================================================================
     # Set problem-specific variables
     #========================================================================
     rho = 1.0
     bulk = 1.0
-    grid.aux_global['rho']=rho
-    grid.aux_global['bulk']=bulk
-    grid.aux_global['zz']=sqrt(rho*bulk)
-    grid.aux_global['cc']=sqrt(rho/bulk)
+    state.aux_global['rho']=rho
+    state.aux_global['bulk']=bulk
+    state.aux_global['zz']=sqrt(rho*bulk)
+    state.aux_global['cc']=sqrt(rho/bulk)
 
     #========================================================================
     # Set the initial condition
     #========================================================================
-    grid.meqn=rp_acoustics.meqn
-    grid.zeros_q()
+    state.meqn=rp_acoustics.meqn
     xc=grid.x.center
     beta=100; gamma=0; x0=0.75
-    grid.q[0,:] = exp(-beta * (xc-x0)**2) * cos(gamma * (xc - x0))
+    state.q[0,:] = exp(-beta * (xc-x0)**2) * cos(gamma * (xc - x0))
+    state.q[1,:] = 0.
     
     #========================================================================
     # Set up the controller object
     #========================================================================
     claw = pyclaw.Controller()
-    claw.solution = pyclaw.Solution(grid)
+    claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir
     claw.tfinal = 1.0
@@ -79,6 +79,6 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
 
 if __name__=="__main__":
     import sys
-    from petclaw.util import _info_from_argv
+    from pyclaw.util import _info_from_argv
     args, kwargs = _info_from_argv(sys.argv)
     error=acoustics(*args,**kwargs)

@@ -88,7 +88,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
     if rank==0:
         pickle_file = open(pickle_filename,'wb')
         # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
-        pickle.dump({'t':solution.t,'meqn':solution.meqn,'ngrids':len(solution.grids),
+        pickle.dump({'t':solution.t,'meqn':solution.meqn,'nstates':len(solution.states),
                      'maux':solution.maux,'ndim':solution.ndim,'write_aux':write_aux}, pickle_file)
 
     # now set up the PETSc viewers
@@ -107,16 +107,17 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
     else:
         raise IOError('format type %s not supported' % options['format'])
     
-    for grid in solution.grids:
+    for state in solution.states:
+        grid = state.grid
         if rank==0:
-            pickle.dump({'gridno':grid.gridno,'level':grid.level,
+            pickle.dump({'stateno':state.stateno,'level':grid.level,
                          'names':grid.name,'lower':grid.lower,
                          'n':grid.n,'d':grid.d}, pickle_file)
 
-        grid.gqVec.view(viewer)
+        state.gqVec.view(viewer)
         
         if write_aux:
-            grid.gauxVec.view(aux_viewer)
+            state.gauxVec.view(aux_viewer)
     
     viewer.flush()
     viewer.destroy()
@@ -163,12 +164,13 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
 
     pickle_file = open(pickle_filename,'rb')
 
-    # this dictionary is mostly holding debugging information, only ngrids is needed
+    # this dictionary is mostly holding debugging information, only nstates is needed
     # most of this information is explicitly saved in the individual grids
     value_dict = pickle.load(pickle_file)
-    ngrids   = value_dict['ngrids']                    
+    nstates   = value_dict['nstates']                    
     ndim     = value_dict['ndim']
     maux     = value_dict['maux']
+    meqn     = value_dict['meqn']
 
     # now set up the PETSc viewer
     if options['format'] == 'ascii':
@@ -188,10 +190,10 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     else:
         raise IOError('format type %s not supported' % options['format'])
 
-    for m in xrange(ngrids):
+    for m in xrange(nstates):
         grid_dict = pickle.load(pickle_file)
 
-        gridno  = grid_dict['gridno']
+        stateno  = grid_dict['stateno']
         level   = grid_dict['level']
         names   = grid_dict['names']
         lower   = grid_dict['lower']
@@ -203,47 +205,39 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
             dimensions.append(
                 pyclaw.solution.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
         grid = pyclaw.solution.Grid(dimensions)
+        grid.level = level 
+        state = pyclaw.state.State(grid)
+        state.stateno = stateno
 
-        grid.t = value_dict['t']
-        grid.meqn = value_dict['meqn']
+        state.t = value_dict['t']
+        state.meqn = meqn
 
-        grid.q_da = PETSc.DA().create(
-            dim=grid.ndim,
-            dof=grid.meqn, # should be modified to reflect the update
-            sizes=grid.n, 
-            #periodic_type = PETSc.DA.PeriodicType.X,
-            #periodic_type=grid.PERIODIC,
-            #stencil_type=grid.STENCIL,
-            stencil_width=grid.mbc,
-            comm=PETSc.COMM_WORLD)
+        state.q_da = PETSc.DA().create(dim=grid.ndim,
+                                       dof=meqn,
+                                       sizes=grid.ng, 
+                                       stencil_width=0,
+                                       comm=PETSc.COMM_WORLD)
 
-        grid.gqVec = PETSc.Vec().load(viewer)
-        q = grid.gqVec.getArray().copy()
-        q_dim=[grid.meqn]
-        q_dim.extend(grid.n)
+        state.gqVec = PETSc.Vec().load(viewer)
+        q = state.gqVec.getArray().copy()
+        q_dim=[state.meqn]
+        q_dim.extend(grid.ng)
         q = q.reshape(q_dim,order='F')
-        grid.q = q
+        state.q = q
         
         if read_aux:
-            grid.aux_da = PETSc.DA().create(
-                dim=grid.ndim,
-                dof=maux, # should be modified to reflect the update
-                sizes=grid.n,  #Amal: what about for 2D, 3D
-                #periodic_type = PETSc.DA.PeriodicType.X,
-                #periodic_type=grid.PERIODIC,
-                #stencil_type=grid.STENCIL,
-                stencil_width=grid.mbc,
-                comm=PETSc.COMM_WORLD)
-            grid.gauxVec = PETSc.Vec().load(aux_viewer)
-            grid.aux = grid.gauxVec.getArray().copy()
+            state.aux_da = PETSc.DA().create(dim=grid.ndim,
+                                             dof=maux,
+                                             sizes=grid.ng,
+                                             stencil_width=0,
+                                             comm=PETSc.COMM_WORLD)
+            state.gauxVec = PETSc.Vec().load(aux_viewer)
+            state.aux = state.gauxVec.getArray().copy()
             aux_dim=[maux]; 
-            aux_dim.extend(grid.n)
-            grid.aux = grid.aux.reshape(aux_dim,order='F')
+            aux_dim.extend(grid.ng)
+            state.aux = state.aux.reshape(aux_dim,order='F')
         
-        # Add AMR attributes:
-        grid.gridno = gridno
-        grid.level = level 
-        solution.grids.append(grid)
+        solution.states.append(state)
 
     pickle_file.close()
     viewer.destroy()
@@ -276,11 +270,11 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
         logger.debug("Opening %s file." % path)
         grid_dict = pickle.load(f)
 
-        t = grid_dict['t']
-        meqn = grid_dict['meqn']
-        ngrids   = grid_dict['ngrids']                    
+        t      = grid_dict['t']
+        meqn   = grid_dict['meqn']
+        ngrids = grid_dict['ngrids']                    
         maux   = grid_dict['maux']                    
-        ndim     = grid_dict['ndim']
+        ndim   = grid_dict['ndim']
 
         f.close()
     except(IOError):

@@ -322,6 +322,7 @@ def current_time(addtz=False):
         current_time = current_time + ' ' + time.tzname[time.daylight]
     return current_time
 
+
 def _method_info_from_argv(argv=None):
     """Command-line -> method call arg processing.
     
@@ -356,6 +357,8 @@ def _method_info_from_argv(argv=None):
             value = json.loads(value) 
         except ValueError:
             pass
+        if value=='True': value=True
+        if value.lower()=='false': value=False
         if key:
             kwargs[key] = value
         else:
@@ -396,6 +399,8 @@ def _info_from_argv(argv=None):
             value = json.loads(value) 
         except ValueError:
             pass
+        if value=='True': value=True
+        if value=='False': value=False
         if key:
             kwargs[key] = value
         else:

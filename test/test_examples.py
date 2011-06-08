@@ -56,7 +56,7 @@ def test_1D_acoustics_homogeneous_1b():
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
     target_name    = 'classic1.so'
-    method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : False, 'soltype' : 'classic'}
+    method_options = {'kernel_language' : 'Fortran', 'use_petsc' : False, 'solver_type' : 'classic'}
     verifier       = lambda error: abs(error-0.00104856594174)<1.e-5
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
     
@@ -72,7 +72,7 @@ def test_1D_acoustics_homogeneous_1c():
     path           = './test/acoustics/1d/homogeneous'
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
-    method_options = {'kernel_language' : 'Python', 'use_PETSc' : False, 'soltype' : 'classic'}
+    method_options = {'kernel_language' : 'Python', 'use_petsc' : False, 'solver_type' : 'classic'}
     verifier       = lambda error: abs(error-0.00104856594174)<1.e-5
     yield(util.run_verify, path, module_name, problem_name, verifier, method_options)
     
@@ -89,7 +89,7 @@ def test_1D_acoustics_homogeneous_1d():
     target_name    = 'classic1.so'
     module_name    = 'acoustics'
     problem_name    = 'acoustics'
-    method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : True, 'soltype' : 'classic'}
+    method_options = {'kernel_language' : 'Fortran', 'use_petsc' : True, 'solver_type' : 'classic'}
     verifier       = lambda error: abs(error-0.00104856594174)<1.e-5
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
     
@@ -105,7 +105,7 @@ def test_1D_acoustics_homogeneous_1e():
     path           = './test/acoustics/1d/homogeneous'
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
-    method_options = {'kernel_language' : 'Python', 'use_PETSc' : True, 'soltype' : 'classic'}
+    method_options = {'kernel_language' : 'Python', 'use_petsc' : True, 'solver_type' : 'classic'}
     verifier       = lambda error: abs(error-0.00104856594174)<1.e-5
     yield(util.run_verify, path, module_name, problem_name, verifier, method_options)
 
@@ -122,8 +122,8 @@ def test_1D_acoustics_homogeneous_1f():
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
     target_name = 'sharpclaw1.so'
-    method_options = {'kernel_language' : 'Python', 'use_PETSc' : False, 'soltype' : 'sharpclaw'}
-    verifier       = lambda error: abs(error-0.00027277815767)<1.e-5
+    method_options = {'kernel_language' : 'Python', 'use_petsc' : False, 'solver_type' : 'sharpclaw'}
+    verifier       = lambda error: abs(error-0.000298935748775)<1.e-5
     yield(util.run_verify, path, module_name, problem_name, verifier, method_options)
 
 
@@ -140,8 +140,8 @@ def test_1D_acoustics_homogeneous_1g():
     target_name    = 'sharpclaw1.so'
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
-    method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : False, 'soltype' : 'sharpclaw'}
-    verifier       = lambda error: abs(error-0.00027277815767)<1.e-5
+    method_options = {'kernel_language' : 'Fortran', 'use_petsc' : False, 'solver_type' : 'sharpclaw'}
+    verifier       = lambda error: abs(error-0.000298935748775)<1.e-5
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
     
 
@@ -157,8 +157,8 @@ def test_1D_acoustics_homogeneous_1h():
     path           = './test/acoustics/1d/homogeneous'
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
-    method_options = {'kernel_language' : 'Python', 'use_PETSc' : True, 'soltype' : 'sharpclaw'}
-    verifier       = lambda error: abs(error-0.00027277815767)<1.e-5
+    method_options = {'kernel_language' : 'Python', 'use_petsc' : True, 'solver_type' : 'sharpclaw'}
+    verifier       = lambda error: abs(error-0.000298935748775)<1.e-5
     yield(util.run_verify, path, module_name, problem_name, verifier, method_options)
 
 
@@ -175,8 +175,8 @@ def test_1D_acoustics_homogeneous_1i():
     target_name    = 'sharpclaw1.so'
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
-    method_options = {'kernel_language' : 'Fortran', 'use_PETSc' : True, 'soltype' : 'sharpclaw'}
-    verifier       = lambda error: abs(error-0.00027277815767)<1.e-5
+    method_options = {'kernel_language' : 'Fortran', 'use_petsc' : True, 'solver_type' : 'sharpclaw'}
+    verifier       = lambda error: abs(error-0.000298935748775)<1.e-5
     yield(util.build_run_verify, path, target_name, module_name, module_name, verifier, method_options)    
 
 
@@ -202,9 +202,12 @@ def test_2D_acoustics_homogeneous_1a():
     def verify_acoustics2D_classic(test_x):
         import numpy
         verify_x=numpy.loadtxt('test/acoustics2D_solution')
-        return (numpy.linalg.norm(test_x-verify_x)<1.e-14)
+        diff = numpy.linalg.norm(test_x-verify_x)
+        if diff>1.e-14:
+            raise Exception('Difference between expected and computed solutions: %s' % diff)
+        else: return True
 
-    method_options = {'use_PETSc' : True, 'soltype' : 'classic' }
+    method_options = {'use_petsc' : True, 'solver_type' : 'classic' }
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_classic, method_options)
 
 
@@ -227,7 +230,7 @@ def test_2D_acoustics_homogeneous_1a_parallel():
         verify_x=numpy.loadtxt('test/acoustics2D_solution')
         return (numpy.linalg.norm(test_x-verify_x)<1.e-14)
 
-    method_options = {'use_PETSc' : True, 'soltype' : 'classic', 'np':6, 'nout':10}
+    method_options = {'use_petsc' : True, 'solver_type' : 'classic', 'np':6, 'nout':10}
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_classic, method_options)
 
 
@@ -249,7 +252,7 @@ def test_2D_acoustics_homogeneous_1b():
         verify_x=numpy.loadtxt('test/acoustics2D_solution')
         return (numpy.linalg.norm(test_x-verify_x)<1.e-14)
 
-    method_options = {'use_PETSc' : False, 'soltype' : 'classic' }
+    method_options = {'use_petsc' : False, 'solver_type' : 'classic' }
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D, method_options)   
 
 
@@ -271,9 +274,13 @@ def test_2D_acoustics_homogeneous_1c():
     def verify_acoustics2D_sharpclaw(test_x):
         import numpy
         verify_x=numpy.loadtxt('test/ac_sc_solution')
-        return (numpy.linalg.norm(test_x-verify_x)<1.e-10)
+        diff = numpy.linalg.norm(test_x-verify_x)
+        if diff>1.e-10:
+            raise Exception('In test_2D_acoustics_homogeneous_1c: 
+                        Difference between expected and computed solutions: %s' % diff)
+        else: return True
 
-    method_options = {'use_PETSc' : True, 'soltype' : 'sharpclaw' }
+    method_options = {'use_petsc' : True, 'solver_type' : 'sharpclaw' }
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_sharpclaw, method_options)
 
 
@@ -297,7 +304,7 @@ def test_2D_acoustics_homogeneous_1d():
         verify_x=numpy.loadtxt('test/ac_sc_solution')
         return (numpy.linalg.norm(test_x-verify_x)<1.e-10)
 
-    method_options = {'use_PETSc' : False, 'soltype' : 'sharpclaw' }
+    method_options = {'use_petsc' : False, 'solver_type' : 'sharpclaw' }
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_sharpclaw, method_options)    
    
 
@@ -318,7 +325,7 @@ def test_2D_shockbubble_1a():
         verify_x=numpy.loadtxt('test/sb_density')
         return numpy.max(abs(test_x-verify_x))<1.e-14
 
-    method_options = {'use_PETSc' : False}
+    method_options = {'use_petsc' : False}
 #    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
 
 
@@ -339,6 +346,6 @@ def test_2D_shockbubble_1b():
         verify_x=numpy.loadtxt('test/sb_density')
         return numpy.max(abs(test_x-verify_x))<1.e-14
 
-    method_options = {'use_PETSc' : True}
+    method_options = {'use_petsc' : True}
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
 

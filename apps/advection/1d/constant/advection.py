@@ -27,17 +27,16 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
 
     x = pyclaw.Dimension('x',0.0,1.0,100)
     grid = pyclaw.Grid(x)
-    grid.aux_global['u']=1.
-    grid.meqn = rp_advection.meqn
-    grid.mbc=solver.mbc
+    state = pyclaw.State(grid)
+    state.aux_global['u']=1.
+    state.meqn = rp_advection.meqn
 
-    grid.zeros_q()
     xc=grid.x.center
     beta=100; gamma=0; x0=0.75
-    grid.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
+    state.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
 
     claw = pyclaw.Controller()
-    claw.solution = pyclaw.Solution(grid)
+    claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir
 
