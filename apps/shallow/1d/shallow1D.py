@@ -26,7 +26,7 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     # Setup solver and solver parameters
     #===========================================================================
     solver.mwaves = 2
-    solver.mthlim = pyclaw.limiters.tvd.MC
+    solver.limiters = pyclaw.limiters.tvd.MC
     solver.kernel_language=kernel_language
     if kernel_language =='Python': 
         solver.set_riemann_solver('shallow_roe')
@@ -43,12 +43,12 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     mx = 500
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     grid = pyclaw.Grid(x)
-    grid.meqn = 2
+    state = pyclaw.State(grid)
+    state.meqn = 2
 
     # Parameters
-    grid.aux_global['grav'] = 1.0
+    state.aux_global['grav'] = 1.0
 
-    grid.zeros_q()
     xCenter = grid.x.center
 
     damRadius = 0.0
@@ -57,8 +57,8 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     hr = 1.
     ur = 0.
 
-    grid.q[0,:] = hl * (grid.p_center[0] <= damRadius) + hr * (grid.p_center[0] > damRadius)
-    grid.q[1,:] = hl*ul * (grid.p_center[0] <= damRadius) + hr*ur * (grid.p_center[0] > damRadius)
+    state.q[0,:] = hl * (grid.p_center[0] <= damRadius) + hr * (grid.p_center[0] > damRadius)
+    state.q[1,:] = hl*ul * (grid.p_center[0] <= damRadius) + hr*ur * (grid.p_center[0] > damRadius)
 
     #===========================================================================
     # Setup controller and controller paramters
@@ -66,7 +66,7 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     claw = pyclaw.Controller()
     claw.keep_copy = True
     claw.tfinal = 2.0
-    claw.solution = pyclaw.Solution(grid)
+    claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir
 
@@ -85,10 +85,9 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
 
 if __name__=="__main__":
     import sys
-    from petclaw.util import _info_from_argv
+    from pyclaw.util import _info_from_argv
     args, kwargs = _info_from_argv(sys.argv)
-    error=shallow1D(*args,**kwargs)
-    print 'Error: ',error
+    shallow1D(*args,**kwargs)
     
 
    

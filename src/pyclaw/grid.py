@@ -5,14 +5,9 @@ Module containing all Pyclaw solution objects
 
 :Authors:
     Kyle T. Mandli (2008-08-07) Initial version
+    David I. Ketcheson
+    Amal Alghamdi
 """
-# ============================================================================
-#      Copyright (C) 2008 Kyle T. Mandli <mandli@amath.washington.edu>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
 
 import copy
 import logging
@@ -56,6 +51,12 @@ class Dimension(object):
     """
     
     # ========== Property Definitions ========================================
+    def ng():
+        doc = r"""(int) - Size of this process' grid in given dimension."""
+        def fget(self):
+            return self.n
+        return locals()
+    ng = property(**ng())
     def d():
         doc = r"""(float) - Size of an individual, computational grid cell"""
         def fget(self):
@@ -74,18 +75,6 @@ class Dimension(object):
         return locals()
     edge = property(**edge())
     _edge = None
-    def centerghost():
-        doc = r"""(ndarrary(:)) - Location of all grid cell center coordinates
-        for this dimension, including ghost cells"""
-        def fget(self): 
-            if self._centerghost is None:
-                self._centerghost = np.empty(self.n+2*self.mbc)
-                for i in xrange(0-self.mbc,self.n+self.mbc):
-                    self._centerghost[i+self.mbc] = self.lower + (i+0.5)*self.d
-            return self._centerghost
-        return locals()
-    centerghost = property(**centerghost())
-    _centerghost = None
     def center():
         doc = r"""(ndarrary(:)) - Location of all grid cell center coordinates
         for this dimension"""
@@ -109,7 +98,7 @@ class Dimension(object):
         # ========== Class Data Attributes ===================================
         self.name = 'x'
         r"""(string) Name of this coordinate dimension (e.g. 'x')"""
-        self.n = 1
+        self.n = None
         r"""(int) - Number of grid cells in this dimension :attr:`units`"""
         self.lower = 0.0
         r"""(float) - Lower computational grid extent"""
@@ -168,20 +157,14 @@ class Grid(object):
     
     :Global Grid information:
     
-        Each grid has a value for :attr:`level`, :attr:`gridno`, :attr:`t`, 
-        :attr:`mbc`, :attr:`meqn` and :attr:`aux_global`.  These correspond
-        to global grid traits and determine many of the properties and sizes
-        of the data arrays.
+        Each grid has a value for :attr:`level` and :attr:`gridno`.
         
     :Grid Data:
     
-        The arrays :attr:`q`, :attr:`aux` and :attr:`capa` have variable 
+        The array :attr:`capa` has variable 
         extents based on the set of dimensions present and the values of 
-        :attr:`meqn` and :attr:`maux`.  Note that these are initialy set to 
-        None so need to be instantiated.  For convenience, the methods
-        :meth:`emtpy_q`, :meth:`ones_q`, and :meth:`zeros_q` for ``q`` and
-        :meth:`emtpy_aux`, :meth:`ones_aux`, and :meth:`zeros_aux` for ``aux``
-        are provided to initialize these arrays.  The :attr:`capa` array is 
+        :attr:`meqn` and :attr:`maux`.  
+        The :attr:`capa` array is 
         initially set to all ``1.0`` and needs to be manually set.
         
     :Properties:
@@ -209,15 +192,13 @@ class Grid(object):
                 grid's extent and resolution"""
         def fget(self): return [getattr(self,name) for name in self._dimensions]
         return locals()
-    def maux():
-        doc = r"""(int) - Rank of auxiliary array"""
-        def fget(self):
-            if self.aux is not None: return self.aux.shape[0]
-            else: return 0
-        return locals()
     def n():
         doc = r"""(list) - List of the number of grid cells in each dimension"""
         def fget(self): return self.get_dim_attribute('n')
+        return locals()
+    def ng():
+        doc = r"""(list) - List of the number of grid cells for this process in each dimension"""
+        def fget(self): return self.get_dim_attribute('ng')
         return locals()
     def name():
         doc = r"""(list) - List of names of each dimension"""
@@ -283,21 +264,12 @@ class Grid(object):
             return self._c_edge
         return locals()
     _c_edge = None
-    def mbc():
-        def fget(self):
-            return self._mbc
-        def fset(self,mbc):
-            self._mbc = mbc
-            for dim in self.dimensions:
-                dim.mbc = mbc
-        return locals()
-
 
        
     ndim = property(**ndim())
     dimensions = property(**dimensions())
-    maux = property(**maux())
     n = property(**n())
+    ng = property(**ng())
     name = property(**name())
     lower = property(**lower())
     upper = property(**upper())
@@ -309,7 +281,6 @@ class Grid(object):
     p_edge = property(**p_edge())
     c_center = property(**c_center())
     c_edge = property(**c_edge())
-    mbc = property(**mbc())
     
     
     # ========== Class Methods ===============================================
@@ -325,24 +296,8 @@ class Grid(object):
         r"""(int) - AMR level this grid belongs to, ``default = 1``"""
         self.gridno = 1
         r"""(int) - Grid number of current grid, ``default = 0``"""
-        self.t = 0.0
-        r"""(float) - Current time represented on this grid, 
-            ``default = 0.0``"""
-        self._mbc = 2
-        r"""(int) - Number of ghost cells along the boundaries, 
-            ``default = 2``"""
-        self.meqn = 1
-        r"""(int) - Dimension of q array for this grid, ``default = 1``"""
-        self.q = None
-        r"""(ndarray(...,meqn)) - Cell averaged quantity being evolved."""
-        self.aux = None
-        r"""(ndarray(...,maux)) - Auxiliary array for this grid containing per 
-            cell information"""
         self.capa = None
         r"""(ndarray(...)) - Capacity array for this grid, ``default = 1.0``"""
-        self.aux_global = {}
-        r"""(dict) - Dictionary of global values for this grid, 
-            ``default = {}``"""
         self.mapc2p = default_mapc2p
         r"""(func) - Grid mapping function"""
         
@@ -352,18 +307,12 @@ class Grid(object):
         self._dimensions = []
         for dim in dimensions:
             self.add_dimension(dim)
-            dim.mbc=self.mbc
     
     
     def __str__(self):
         output = "Grid %s:\n" % self.gridno
-        output += "  t=%s mbc=%s meqn=%s\n  " % (self.t,self.mbc,self.meqn)
         output += '\n  '.join((str(getattr(self,dim)) for dim in self._dimensions))
         output += '\n'
-        if self.q is not None:
-            output += "  q.shape=%s" % str(self.q.shape)
-        if self.aux is not None:
-            output += " aux.shape=%s" % str(self.aux.shape)
         if self.capa is not None:
             output += " capa.shape=%s" % str(self.capa.shape)
         return output
@@ -373,67 +322,16 @@ class Grid(object):
         r"""
         Checks to see if this grid is valid
         
-        The grid is declared valid based on the following criteria:
-            - :attr:`q` is not None
-            - All dimensions with boundary conditions set to 0 have valid bc 
-              functions
-            
-        A debug logger message will be sent documenting exactly what was not 
-        valid.
+        Nothing to do here, since both q and mbc have been moved out of grid.
             
         :Output:
          - (bool) - True if valid, false otherwise.
         
         """
         valid = True
-        logger = logging.getLogger('solution')
-        if self.q is None:
-            logger.debug('The array q has not been initialized.')
-            valid = False
         return valid
     
     
-    def set_aux_global(self,data_path):
-        r"""
-        Convenience routine for parsing data files into the aux_global dict
-        
-        Puts the data from the file at path and puts it into the aux_global
-        dictionary using :class:`Data`.  This assumes that all values in the
-        file are to be put into the :attr:`aux_global` dictionary and the file
-        conforms to that which :class:`Data` can read.
-        
-        :Input:
-         - *data_path* - (string) Path to the file to be read in
-         
-        .. note:: 
-            This will not replace the :attr:`aux_global` dictionary but add to
-            or replace any values already in it.
-        """
-        data = Data(data_files=data_path)
-        for (k,v) in data.iteritems():
-            self.aux_global[k] = v
-        
-    def set_cparam(self,fortran_module):
-        """
-        Set the variables in fortran_module.cparam to the corresponding values in
-        grid.aux_global.  This is the mechanism for passing scalar variables to the
-        Fortran Riemann solvers; cparam must be defined as a common block in the
-        Riemann solver.
-
-        This function should be called from solver.setup().  This seems like a fragile
-        interdependency between solver and grid; perhaps aux_global should belong
-        to solver instead of grid.
-
-        This function also checks that the set of variables defined in cparam 
-        all appear in aux_global.
-
-        """
-        if hasattr(fortran_module,'cparam'):
-            if not set(dir(fortran_module.cparam)) <= set(self.aux_global.keys()):
-                raise Exception('Some required value(s) in the cparam common block in the Riemann solver have not been set in aux_global.')
-            for global_var_name,global_var_value in self.aux_global.iteritems(): 
-                setattr(fortran_module.cparam,global_var_name,global_var_value)
-
     # ========== Dimension Manipulation ======================================
     def add_dimension(self,dimension):
         r"""
@@ -483,17 +381,12 @@ class Grid(object):
         result = self.__class__(copy.deepcopy(self.dimensions))
         result.__init__(copy.deepcopy(self.dimensions))
         
-        for attr in ('level','gridno','t','mbc','meqn','_p_center','_p_edge',
+        for attr in ('level','gridno','_p_center','_p_edge',
                         '_c_center','_c_edge'):
             setattr(result,attr,copy.deepcopy(getattr(self,attr)))
         
-        if self.q is not None:
-            result.q = copy.deepcopy(self.q)
-        if self.aux is not None:
-            result.aux = copy.deepcopy(self.aux)
         if self.capa is not None:
             result.capa = copy.deepcopy(self.capa)
-        result.aux_global = copy.deepcopy(self.aux_global)
         
         result.mapc2p = self.mapc2p
         
@@ -501,91 +394,6 @@ class Grid(object):
         
     
     # ========== Grid Operations =============================================
-    # Convenience routines for initialization of q and aux
-    def empty_q(self,order='F'):
-        r"""
-        Initialize q to empty
-        
-        :Input:
-         - *order* - (string) Order of array, must be understood by numpy
-           ``default = 'F'``
-        """
-        shape = [dim.nend-dim.nstart for dim in self.dimensions]
-        shape.insert(0,self.meqn)
-        self.q = np.empty(shape,'d',order=order)
-    
-    def ones_q(self,order='F'):
-        r"""
-        Initialize q to all ones
-        
-        :Input:
-         - *order* - (string) Order of array, must be understood by numpy
-           ``default = 'F'``
-        """
-        shape = [dim.nend-dim.nstart for dim in self.dimensions]
-        shape.insert(0,self.meqn)
-        self.q = np.ones(shape,'d',order=order)
-        
-    def zeros_q(self,order='F'):
-        r"""
-        Initialize q to all zeros
-        
-        :Input:
-         - *order* - (string) Order of array, must be understood by numpy
-           ``default = 'F'``
-        """
-        shape = [dim.nend-dim.nstart for dim in self.dimensions]
-        shape.insert(0,self.meqn)
-        self.q = np.zeros(shape,'d',order=order)
-    
-    def empty_aux(self,maux,shape=None,order='F'):
-        r"""
-        Initialize aux to empty with given shape
-        
-        :Input:
-         - *shape* - (tuple) If given, the resulting shape of the auxiliary
-           array will be ``shape.append(maux)``.  Otherwise it will be
-           ``(dim.n, maux)``
-         - *order* - (string) Order of array, must be understood by numpy
-           ``default = 'F'``
-        """
-        if shape is None:
-            shape = [dim.nend-dim.nstart+2*self.mbc for dim in self.dimensions]
-        shape.insert(0,maux)
-        self.aux = np.empty(shape,'d',order=order)
-        
-    def ones_aux(self,maux,shape=None,order='F'):
-        r"""
-        Initialize aux to ones with shape
-        
-        :Input:
-         - *shape* - (tuple) If given, the resulting shape of the auxiliary
-           array will be ``shape.append(maux)``.  Otherwise it will be
-           ``(dim.n, maux)``
-         - *order* - (string) Order of array, must be understood by numpy
-           ``default = 'F'``
-        """
-        if shape is None:
-            shape = [dim.nend-dim.nstart+2*self.mbc for dim in self.dimensions]
-        shape.insert(0,maux)
-        self.aux = np.ones(shape,'d',order=order)
-        
-    def zeros_aux(self,maux,shape=None,order='F'):
-        r"""
-        Initialize aux to zeros with shape
-        
-        :Input:
-         - *shape* - (tuple) If given, the resulting shape of the auxiliary
-           array will be ``shape.append(maux)``.  Otherwise it will be
-           ``(dim.n, maux)``
-         - *order* - (string) Order of array, must be understood by numpy
-           ``default = 'F'``
-        """
-        if shape is None:
-            shape = [dim.nend-dim.nstart+2*self.mbc for dim in self.dimensions]
-        shape.insert(0,maux)
-        self.aux = np.zeros(shape,'d',order=order)
-
     def compute_p_center(self, recompute=False):
         r"""Calculates the :attr:`p_center` array
         

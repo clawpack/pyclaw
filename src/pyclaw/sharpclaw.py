@@ -44,19 +44,6 @@ def src(solver,grid,q,t):
     pass
 
  
-class RKStage(object):
-    """
-    A single Runge-Kutta stage.
-    Here we have assumed the aux array is time-independent.
-    Otherwise we would need to keep a copy of it with each RK stage.
-    """
-    def __init__(self,grid):
-        import numpy as np
-
-        self.q=np.zeros(grid.q.shape)
-        self.t=grid.t
-
-
 class SharpClawSolver(Solver):
     r""""""
     
@@ -69,15 +56,15 @@ class SharpClawSolver(Solver):
         """
         
         # Required attributes for this solver
-        for attr in ['mthlim','start_step','lim_type','time_integrator',
+        for attr in ['limiters','start_step','lim_type','time_integrator',
                      'char_decomp','src_term','aux_time_dep','mwaves']:
             self._required_attrs.append(attr)
         
         # Defaults for required attributes
-        self._default_attr_values['mthlim'] = [1]
+        self._default_attr_values['limiters'] = [1]
         self._default_attr_values['start_step'] = start_step
         self._default_attr_values['lim_type'] = 2
-        self._default_attr_values['time_integrator'] = 'SSP33'
+        self._default_attr_values['time_integrator'] = 'SSP104'
         self._default_attr_values['char_decomp'] = 0
         self._default_attr_values['tfluct_solver'] = False
         self._default_attr_values['aux_time_dep'] = False
@@ -85,8 +72,8 @@ class SharpClawSolver(Solver):
         self._default_attr_values['kernel_language'] = 'Fortran'
         self._default_attr_values['mbc'] = 3
         self._default_attr_values['fwave'] = False
-        self._default_attr_values['cfl_desired'] = 0.45
-        self._default_attr_values['cfl_max'] = 0.5
+        self._default_attr_values['cfl_desired'] = 2.45
+        self._default_attr_values['cfl_max'] = 2.5
         
         # Call general initialization function
         super(SharpClawSolver,self).__init__(data)
@@ -103,64 +90,71 @@ class SharpClawSolver(Solver):
         """
         from pyclaw.solution import Solution
         # Grid we will be working on
-        grid = solutions['n'].grids[0]
+        state = solutions['n'].states[0]
+        grid  = state.grid
 
         self.start_step(self,solutions)
 
         try:
             if self.time_integrator=='Euler':
-                deltaq=self.dq(grid,grid)
-                grid.q+=deltaq
+                deltaq=self.dq(state)
+                state.q+=deltaq
 
             elif self.time_integrator=='SSP33':
-                deltaq=self.dq(grid,grid)
-                self.rk_stages[0].q=grid.q+deltaq
-                self.rk_stages[0].t =grid.t+self.dt
-                deltaq=self.dq(grid,self.rk_stages[0])
-                self.rk_stages[0].q= 0.75*grid.q + 0.25*(self.rk_stages[0].q+deltaq)
-                self.rk_stages[0].t = grid.t+0.5*self.dt
-                deltaq=self.dq(grid,self.rk_stages[0])
-                grid.q = 1./3.*grid.q + 2./3.*(self.rk_stages[0].q+deltaq)
+                deltaq=self.dq(state)
+                self.rk_stages[0].q=state.q+deltaq
+                self.rk_stages[0].t =state.t+self.dt
+                deltaq=self.dq(self.rk_stages[0])
+                self.rk_stages[0].q= 0.75*state.q + 0.25*(self.rk_stages[0].q+deltaq)
+                self.rk_stages[0].t = state.t+0.5*self.dt
+                deltaq=self.dq(self.rk_stages[0])
+                state.q = 1./3.*state.q + 2./3.*(self.rk_stages[0].q+deltaq)
 
             elif self.time_integrator=='SSP104':
                 s1=self.rk_stages[0]
                 s2=self.rk_stages[1]
-                s1.q = grid.q.copy()
+                s1.q = state.q.copy()
 
-                deltaq=self.dq(grid,grid)
-                s1.q = grid.q + deltaq/6.
-                s1.t = grid.t + self.dt/6.
+                deltaq=self.dq(state)
+                s1.q = state.q + deltaq/6.
+                s1.t = state.t + self.dt/6.
 
                 for i in range(4):
-                    deltaq=self.dq(grid,s1)
+                    deltaq=self.dq(s1)
                     s1.q=s1.q + deltaq/6.
                     s1.t =s1.t + self.dt/6.
 
-                s2.q = grid.q/25. + 9./25 * s1.q
+                s2.q = state.q/25. + 9./25 * s1.q
                 s1.q = 15. * s2.q - 5. * s1.q
-                s1.t = grid.t + self.dt/3.
+                s1.t = state.t + self.dt/3.
 
                 for i in range(4):
-                    deltaq=self.dq(grid,s1)
+                    deltaq=self.dq(s1)
                     s1.q=s1.q + deltaq/6.
                     s1.t =s1.t + self.dt/6.
 
-                deltaq = self.dq(grid,s1)
-                grid.q = s2.q + 0.6 * s1.q + 0.1 * deltaq
+                deltaq = self.dq(s1)
+                state.q = s2.q + 0.6 * s1.q + 0.1 * deltaq
             else:
                 raise Exception('Unrecognized time integrator')
         except CFLError:
             return False
 
-        
-    def dq(self,grid,rk_stage):
+
+    def set_mthlim(self):
+        self.mthlim = self.limiters
+        if not isinstance(self.limiters,list): self.mthlim=[self.mthlim]
+        if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
+        if len(self.mthlim)!=self.mwaves:
+            raise Exception('Length of solver.limiters is not equal to 1 or to solver.mwaves')
+ 
+       
+    def dq(self,state):
         """
         Evaluate dq/dt * (delta t)
         """
 
-        q = self.qbc(grid,rk_stage)
-
-        deltaq = self.dq_homogeneous(grid,q,rk_stage.t)
+        deltaq = self.dq_homogeneous(state)
 
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
@@ -171,11 +165,11 @@ class SharpClawSolver(Solver):
 
         # Godunov Splitting -- really the source term should be called inside rkstep
         if self.src_term == 1:
-            deltaq+=self.src(grid,q,rk_stage.t)
+            deltaq+=self.src(state,q,state.t)
 
         return deltaq
 
-    def dq_homogeneous(grid,q,t):
+    def dq_homogeneous(state):
         raise NotImplementedError('You must subclass SharpClawSolver.')
 
     def list_riemann_solvers(self):
@@ -217,29 +211,28 @@ class SharpClawSolver(Solver):
         raise Exception("Cannot set a Riemann solver with this class," +
                                         " use one of the derived classes.")
          
-    def dqdt(self,grid,rk_stage):
+    def dqdt(self,state):
         """
         Evaluate dq/dt.  This routine is used for implicit time stepping.
         """
 
-        q = self.qbc(grid,rk_stage)
-
         self.dt = 1
-        deltaq = self.dq_homogeneous(grid,q,rk_stage.t)
+        deltaq = self.dq_homogeneous(state)
 
         # Godunov Splitting -- really the source term should be called inside rkstep
         if self.src_term == 1:
-            deltaq+=self.src(grid,q,rk_stage.t)
+            deltaq+=self.src(grid,q,state.t)
 
         return deltaq.flatten('f')
 
 
-    def set_fortran_parameters(self,grid,clawparams,workspace,reconstruct):
+    def set_fortran_parameters(self,state,clawparams,workspace,reconstruct):
         """
         Set parameters for Fortran modules used by SharpClaw.
         The modules should be imported and passed as arguments to this function.
 
         """
+        grid = state.grid
         clawparams.ndim          = grid.ndim
         clawparams.lim_type      = self.lim_type
         clawparams.char_decomp   = self.char_decomp
@@ -258,9 +251,9 @@ class SharpClawSolver(Solver):
         clawparams.dx       =grid.d
         clawparams.mthlim   =self.mthlim
 
-        maxnx = max(grid.q.shape[1:])+2*self.mbc
-        workspace.alloc_workspace(maxnx,self.mbc,grid.meqn,self.mwaves,self.char_decomp)
-        reconstruct.alloc_recon_workspace(maxnx,self.mbc,grid.meqn,self.mwaves,
+        maxnx = max(grid.ng)+2*self.mbc
+        workspace.alloc_workspace(maxnx,self.mbc,state.meqn,self.mwaves,self.char_decomp)
+        reconstruct.alloc_recon_workspace(maxnx,self.mbc,state.meqn,self.mwaves,
                                             clawparams.lim_type,clawparams.char_decomp)
 
 
@@ -299,26 +292,15 @@ class SharpClawSolver1D(SharpClawSolver):
         """
         Allocate RK stage arrays and fortran routine work arrays.
         """
-        if self.time_integrator   == 'Euler':  nregisters=1
-        elif self.time_integrator == 'SSP33':  nregisters=2
-        elif self.time_integrator == 'SSP104': nregisters=3
- 
-        grid = solutions['n'].grids[0]
-        self.rk_stages = []
-        for i in range(nregisters-1):
-            self.rk_stages.append(RKStage(grid))
-
-        #Set up mthlim array
-        if not isinstance(self.mthlim,list): self.mthlim=[self.mthlim]
-        if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
-        if len(self.mthlim)!=self.mwaves:
-            raise Exception('Length of solver.mthlim is not 1 nor is it equal to solver.mwaves')
+        self.allocate_rk_stages(solutions)
+        self.set_mthlim()
  
         if self.kernel_language=='Fortran':
             from sharpclaw1 import clawparams, workspace, reconstruct
             import sharpclaw1
-            grid.set_cparam(sharpclaw1)
-            self.set_fortran_parameters(grid,clawparams,workspace,reconstruct)
+            state = solutions['n'].states[0]
+            state.set_cparam(sharpclaw1)
+            self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
 
     def teardown(self):
         if self.kernel_language=='Fortran':
@@ -346,7 +328,7 @@ class SharpClawSolver1D(SharpClawSolver):
             raise NameError(error_msg)
 
 
-    def dq_homogeneous(self,grid,q, t):
+    def dq_homogeneous(self,state):
         r"""
         Compute dq/dt * (delta t) for the homogeneous hyperbolic system.
 
@@ -378,18 +360,25 @@ class SharpClawSolver1D(SharpClawSolver):
     
         import numpy as np
 
+        q = self.qbc(state)
+
         dq = np.zeros(q.shape)
+        grid = state.grid
 
         # Note that q is passed in with ghost cells attached
-        mx = q.shape[1]-2*self.mbc
+        mx = grid.ng[0]
 
         ixy=1
-        aux=grid.aux
-        if(aux == None): aux = np.zeros( (grid.maux,mx+2*self.mbc) )
+        aux=state.aux
+        if state.maux == 0: 
+            aux = np.zeros( (state.maux,mx+2*self.mbc) )
+        else:
+            aux = self.auxbc(state)
+
 
         if self.kernel_language=='Fortran':
             from sharpclaw1 import flux1
-            dq,self.cfl=flux1(q,dq,aux,self.dt,t,ixy,mx,self.mbc,mx)
+            dq,self.cfl=flux1(q,dq,aux,self.dt,state.t,ixy,mx,self.mbc,mx)
 
         elif self.kernel_language=='Python':
 
@@ -421,7 +410,7 @@ class SharpClawSolver1D(SharpClawSolver):
                 elif self.char_decomp==1: #Wave-based reconstruction
                     q_l=q[:,:-1]
                     q_r=q[:,1: ]
-                    wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,grid.aux_global)
+                    wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.aux_global)
                     ql,qr=recon.weno5_wave(q,wave,s)
                 elif self.char_decomp==2: #Characteristic-wise reconstruction
                     raise NotImplementedError
@@ -429,24 +418,25 @@ class SharpClawSolver1D(SharpClawSolver):
             # Solve Riemann problem at each interface
             q_l=qr[:,:-1]
             q_r=ql[:,1: ]
-            wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,grid.aux_global)
+            wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.aux_global)
 
-            # Loop limits for local potion of grid
+            # Loop limits for local portion of grid
+            # THIS WON'T WORK IN PARALLEL!
             LL = self.mbc - 1
             UL = grid.n[0] + self.mbc + 1
 
             # Compute maximum wave speed
             self.cfl = 0.0
             for mw in xrange(self.mwaves):
-                smax1 = np.max(dtdx[LL:UL]*s[mw,LL-1:UL-1])
+                smax1 = np.max( dtdx[LL  :UL]  *s[mw,LL-1:UL-1])
                 smax2 = np.max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
                 self.cfl = max(self.cfl,smax1,smax2)
 
             #Find total fluctuation within each cell
-            wave,s,amdq2,apdq2 = self.rp(ql,qr,grid.aux,grid.aux,grid.aux_global)
+            wave,s,amdq2,apdq2 = self.rp(ql,qr,aux,aux,state.aux_global)
 
             # Compute dq
-            for m in xrange(grid.meqn):
+            for m in xrange(state.meqn):
                 dq[m,LL:UL] = -dtdx[LL:UL]*(amdq[m,LL:UL] + apdq[m,LL-1:UL-1] \
                                 + apdq2[m,LL:UL] + amdq2[m,LL:UL])
 
@@ -454,22 +444,6 @@ class SharpClawSolver1D(SharpClawSolver):
         
         return dq[:,self.mbc:-self.mbc]
     
-    def dqdt(self,grid,rk_stage):
-        """
-        Evaluate dq/dt.  This routine is used for implicit time stepping.
-        """
-
-        q = self.qbc(grid,rk_stage)
-
-        self.dt = 1
-        deltaq = self.dq_homogeneous(grid,q,rk_stage.t)
-
-        # Godunov Splitting -- really the source term should be called inside rkstep
-        if self.src_term == 1:
-            deltaq+=self.src(grid,q,rk_stage.t)
-
-        return deltaq.flatten('f')
-
 
 # ========================================================================
 class SharpClawSolver2D(SharpClawSolver):
@@ -495,25 +469,16 @@ class SharpClawSolver2D(SharpClawSolver):
         """
         Allocate RK stage arrays and fortran routine work arrays.
         """
-        if self.time_integrator == 'Euler': nregisters=1
-        elif self.time_integrator == 'SSP33': nregisters=2
- 
-        grid = solutions['n'].grids[0]
-        self.rk_stages = []
-        for i in range(nregisters-1):
-            self.rk_stages.append(RKStage(grid))
-
-        #Set up mthlim array
-        if not isinstance(self.mthlim,list): self.mthlim=[self.mthlim]
-        if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
-        if len(self.mthlim)!=self.mwaves:
-            raise Exception('Length of solver.mthlim is not 1 nor is it equal to solver.mwaves')
+        self.allocate_rk_stages(solutions)
+        self.set_mthlim()
  
         if self.kernel_language=='Fortran':
             from sharpclaw2 import clawparams, workspace, reconstruct
             import sharpclaw2
-            grid.set_cparam(sharpclaw2)
-            self.set_fortran_parameters(grid,clawparams,workspace,reconstruct)
+            state = solutions['n'].states[0]
+            state.set_cparam(sharpclaw2)
+            self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
+
 
     def teardown(self):
         if self.kernel_language=='Fortran':
@@ -522,7 +487,8 @@ class SharpClawSolver2D(SharpClawSolver):
             reconstruct.dealloc_recon_workspace(clawparams.lim_type,clawparams.char_decomp)
             clawparams.dealloc_clawparams()
 
-    def dq_homogeneous(self,grid,q, t):
+
+    def dq_homogeneous(self,state):
         """Compute dq/dt * (delta t) for the homogeneous hyperbolic system
 
         Note that the capa array, if present, should be located in the aux
@@ -553,23 +519,28 @@ class SharpClawSolver2D(SharpClawSolver):
     
         import numpy as np
 
+        q = self.qbc(state)
+
         dq = np.zeros(q.shape, order='F')
+        grid = state.grid
 
         mbc=self.mbc
-        mx=q.shape[1]-2*mbc
-        my=q.shape[2]-2*mbc
+        mx=grid.ng[0]
+        my=grid.ng[1]
         maxm = max(mx,my)
 
-        q1d  = np.zeros((grid.meqn,maxm+2*mbc), order='F')
-        dq1d = np.zeros((grid.meqn,maxm+2*mbc), order='F')
+        q1d  = np.zeros((state.meqn,maxm+2*mbc), order='F')
+        dq1d = np.zeros((state.meqn,maxm+2*mbc), order='F')
 
-        aux=grid.aux
-        if(aux == None): 
-            aux = np.zeros( (grid.maux,mx+2*mbc,my+2*mbc), order='F' )
+        aux=state.aux
+        if state.maux == 0:
+            aux = np.zeros( (state.maux,mx+2*mbc,my+2*mbc), order='F' )
+        else:
+            aux = self.auxbc(state)
 
         if self.kernel_language=='Fortran':
             from sharpclaw2 import flux2
-            dq,self.cfl=flux2(q,dq,q1d,dq1d,aux,self.dt,t,mbc,maxm,mx,my)
+            dq,self.cfl=flux2(q,dq,q1d,dq1d,aux,self.dt,state.t,mbc,maxm,mx,my)
 
         else: raise Exception('Only Fortran kernels are supported in 2D.')
 

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# encoding: utf-8
 r"""
 Module containg the PetClaw solvers
 
@@ -13,14 +11,6 @@ dimensionally dependent ones such as :class:`petclaw.clawpack.ClawSolver1D`.
     Amal Alghamdi
     David Ketcheson
 """
-# ============================================================================
-#      Copyright (C) 2010 David I. Ketcheson <david.ketcheson@kaust.edu.sa>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
-
 from petclaw.solver import PetSolver
 import pyclaw.clawpack
 
@@ -34,6 +24,21 @@ class ClawSolver1D(PetSolver,pyclaw.clawpack.ClawSolver1D):
     This class implements nothing; it just inherits from PetClawSolver and
     ClawSolver1D.
     """
+    def setup(self,solutions):
+        r"""
+        We are initializing (allocating) the working arrays needed by fortran kernels 
+        in this routine. These arrays are passed in each call to the fortran kernel classic.
+        """
+        # This is a hack to deal with the fact that petsc4py
+        # doesn't allow us to change the stencil_width (mbc)
+        state = solutions['n'].state
+        state.set_stencil_width(self.mbc)
+        # End hack
+
+        self.set_mthlim()
+        
+        if(self.kernel_language == 'Fortran'):
+            self.set_fortran_parameters(solutions)
 
 # ============================================================================
 #  PetClaw 2d Solver Class
@@ -47,3 +52,32 @@ class ClawSolver2D(PetSolver,pyclaw.clawpack.ClawSolver2D):
     
     Note that only the fortran routines are supported for now in 2D.
     """
+    def setup(self,solutions):
+        r"""
+        See setup doc string in the super class.
+        We are initializing (allocating) the working arrays needed by fortran kernels 
+        in this routine. These arrays are passed in each call to the fortran kernel dimsp2.
+        """
+        # This is a hack to deal with the fact that petsc4py
+        # doesn't allow us to change the stencil_width (mbc)
+        state = solutions['n'].state
+        state.set_stencil_width(self.mbc)
+        # End hack
+
+        self.set_mthlim()
+
+        # Check the cfl settings
+        if self.dim_split:
+            cfl_recommended = 0.5
+        else:
+            cfl_recommended = 1.0
+
+        if self.cfl_max > cfl_recommended:
+            import warnings
+            warnings.warn('cfl_max is set higher than the recommended value of %s' % cfl_recommended)
+
+        if(self.kernel_language == 'Fortran'):
+            self.set_fortran_parameters(solutions)
+        else: raise Exception('Only Fortran kernels are supported in 2D.')
+
+

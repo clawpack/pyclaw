@@ -19,11 +19,12 @@ logging.config.fileConfig(_DEFAULT_LOG_CONFIG_PATH)
 __all__ = []
 
 # Module imports
-__all__.extend(['Controller','Data','Dimension','Grid','Solution','riemann','plot'])
+__all__.extend(['Controller','Data','Dimension','Grid','Solution','State','riemann','plot'])
 from controller import Controller
 from data import Data
 from solution import Solution
 from grid import Dimension, Grid
+from state import State
 import riemann
 import plot
 

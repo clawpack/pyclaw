@@ -34,7 +34,7 @@ class BC():
     reflecting = 3
 
 # Boundary condition user defined function default
-def default_user_bc_lower(grid,dim,t,qbc):
+def default_user_bc_lower(grid,dim,t,qbc,mbc):
     r"""
     Fills the values of qbc with the correct boundary values
     
@@ -44,7 +44,7 @@ def default_user_bc_lower(grid,dim,t,qbc):
     """
     raise NotImplementedError("Lower user defined boundary condition unimplemented")
 
-def default_user_bc_upper(grid,dim,t,qbc):
+def default_user_bc_upper(grid,dim,t,qbc,mbc):
     r"""
     Fills the values of qbc with the correct boundary values
     
@@ -160,14 +160,19 @@ class Solver(object):
 
         self.mthbc_lower = [2]*self.ndim
         self.mthbc_upper = [2]*self.ndim
+        self.mthauxbc_lower = [2]*self.ndim
+        self.mthauxbc_upper = [2]*self.ndim
         
-        self.user_bc_lower = [default_user_bc_lower]*self.ndim
+        self.user_bc_lower = default_user_bc_lower
         r"""(func) - User defined boundary condition function, lower.  
         ``default = None``
         """
-        self.user_bc_upper = [default_user_bc_upper]*self.ndim
+        self.user_bc_upper = default_user_bc_upper
         r"""(func) - User defined boundary condition function, upper. 
         ``default = None``"""
+
+        self.user_aux_bc_lower = default_user_bc_lower
+        self.user_aux_bc_upper = default_user_bc_upper
 
     def __str__(self):
         output = "Solver Status:\n"
@@ -241,27 +246,45 @@ class Solver(object):
         """
         pass
         
+
+    def allocate_rk_stages(self,solutions):
+        from pyclaw.state import State
+
+        if self.time_integrator   == 'Euler':  nregisters=1
+        elif self.time_integrator == 'SSP33':  nregisters=2
+        elif self.time_integrator == 'SSP104': nregisters=3
+ 
+        state = solutions['n'].states[0]
+        self.rk_stages = []
+        for i in range(nregisters-1):
+            self.rk_stages.append(State(state.grid))
+            self.rk_stages[-1].meqn = state.meqn
+            self.rk_stages[-1].maux = state.maux
+            self.rk_stages[-1].aux_global       = state.aux_global
+            self.rk_stages[-1].t                = state.t
+            if state.maux > 0:
+                self.rk_stages[-1].aux              = state.aux
+
+
     # ========================================================================
     #  Boundary Conditions
     # ========================================================================    
-    def append_ghost_cells(self,grid,state,q):
+    def append_ghost_cells(self,state):
         """
         Returns q with ghost cells attached.  For Solver, this means
         just creating a copy of q with extra cells.
 
-        The argument 'state' is not used here; it is passed only in order
-        to have a common interface for the petclaw and pyclaw versions of
-        this function.
         """
         import numpy as np
 
-        dim_string = ','.join( ('2*self.mbc+grid.%s.n' % dim.name for dim in grid.dimensions) )
-        exec("qbc = np.zeros( (grid.meqn,%s) )" % dim_string)
+        grid = state.grid
+        dim_string = ','.join( ('2*self.mbc+grid.%s.ng' % dim.name for dim in grid.dimensions) )
+        exec("qbc = np.zeros( (state.meqn,%s) )" % dim_string)
         dim_string = ','.join( ('self.mbc:-self.mbc' for dim in grid.dimensions) )
-        exec("qbc[:,%s] = q" % dim_string)
+        exec("qbc[:,%s] = state.q" % dim_string)
         return qbc
  
-    def qbc(self,grid,state):
+    def qbc(self,state):
         r"""
         Appends boundary cells to q and fills them with appropriate values.
     
@@ -297,7 +320,8 @@ class Solver(object):
         
         import numpy as np
 
-        qbc=self.append_ghost_cells(grid,state,state.q)
+        qbc=self.append_ghost_cells(state)
+        grid = state.grid
        
         for idim,dim in enumerate(grid.dimensions):
             # First check if we are actually on the boundary
@@ -352,7 +376,7 @@ class Solver(object):
         import numpy as np
 
         if self.mthbc_lower[idim] == BC.custom: 
-            self.user_bc_lower(grid,dim,t,qbc)
+            self.user_bc_lower(grid,dim,t,qbc,self.mbc)
         elif self.mthbc_lower[idim] == BC.outflow:
             for i in xrange(self.mbc):
                 qbc[:,i,...] = qbc[:,self.mbc,...]
@@ -387,7 +411,7 @@ class Solver(object):
         """
  
         if self.mthbc_upper[idim] == BC.custom:
-            self.user_bc_upper(grid,dim,t,qbc)
+            self.user_bc_upper(grid,dim,t,qbc,self.mbc)
         elif self.mthbc_upper[idim] == BC.outflow:
             for i in xrange(self.mbc):
                 qbc[:,-i-1,...] = qbc[:,-self.mbc-1,...] 
@@ -400,6 +424,161 @@ class Solver(object):
                 qbc[idim+1,-i-1,...] = -qbc[idim+1,-2*self.mbc+i,...] # Negate normal velocity
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
+
+
+    def append_ghost_cells_to_aux(self,state):
+        """
+        Returns aux with ghost cells attached.  For the serial Solver, this means
+        just creating a copy of aux with extra cells.
+
+        """
+        import numpy as np
+
+        grid = state.grid
+        dim_string = ','.join( ('2*self.mbc+grid.%s.ng' % dim.name for dim in grid.dimensions) )
+        exec("auxbc = np.zeros( (state.maux,%s) )" % dim_string)
+        dim_string = ','.join( ('self.mbc:-self.mbc' for dim in grid.dimensions) )
+        exec("auxbc[:,%s] = state.aux" % dim_string)
+        return auxbc
+ 
+    def auxbc(self,state):
+        r"""
+        Appends boundary cells to aux and fills them with appropriate values.
+    
+        This function returns an array of dimension determined by the 
+        :attr:`mbc` attribute.  The type of boundary condition set is 
+        determined by :attr:`mthauxbc_lower` and :attr:`mthauxbc_upper` for the 
+        approprate dimension.  Valid values for :attr:`mthauxbc_lower` and 
+        :attr:`mthauxbc_upper` include:
+        
+        - 'custom'     or 0: A user defined boundary condition will be used, the appropriate 
+            Dimension method user_aux_bc_lower or user_aux_bc_upper will be called.
+        - 'outflow'    or 1: Zero-order extrapolation.
+        - 'periodic'   or 2: Periodic boundary conditions.
+        - 'reflecting' or 3: Wall boundary conditions. It is assumed that the second 
+            component of q represents velocity or momentum.
+    
+        :Input:
+         -  *grid* - (:class:`Grid`) The grid being operated on.
+         -  *state* - The state being operated on; this may or may not be the
+                      same as *grid*.  Generally it is the same as *grid* for
+                      the classic algorithms and other one-level algorithms, 
+                      but different for method-of-lines algorithms like SharpClaw.
+
+        :Output:
+         - (ndarray(maux,...)) q array with boundary ghost cells added and set
+         
+
+        .. note:: 
+
+            Note that for user-defined boundary conditions, the array sent to
+            the boundary condition has not been rolled. 
+        """
+        
+        import numpy as np
+
+        auxbc=self.append_ghost_cells_to_aux(state)
+        grid = state.grid
+       
+        for idim,dim in enumerate(grid.dimensions):
+            # First check if we are actually on the boundary
+            # (in case of a parallel run)
+            if dim.nstart == 0:
+                # If a user defined boundary condition is being used, send it on,
+                # otherwise roll the axis to front position and operate on it
+                if self.mthauxbc_lower[idim] == BC.custom:
+                    self.auxbc_lower(grid,dim,state.t,auxbc,idim)
+                elif self.mthauxbc_lower[idim] == BC.periodic:
+                    if dim.nend == dim.n:
+                        # This process owns the whole grid
+                        self.auxbc_lower(grid,dim,state.t,np.rollaxis(auxbc,idim+1,1),idim)
+                    else:
+                        pass #Handled automatically by PETSc
+                else:
+                    self.auxbc_lower(grid,dim,state.t,np.rollaxis(auxbc,idim+1,1),idim)
+
+            if dim.nend == dim.n :
+                if self.mthauxbc_upper[idim] == BC.custom:
+                    self.auxbc_upper(grid,dim,state.t,auxbc,idim)
+                elif self.mthauxbc_upper[idim] == BC.periodic:
+                    if dim.nstart == 0:
+                        # This process owns the whole grid
+                        self.auxbc_upper(grid,dim,state.t,np.rollaxis(auxbc,idim+1,1),idim)
+                    else:
+                        pass #Handled automatically by PETSc
+                else:
+                    self.auxbc_upper(grid,dim,state.t,np.rollaxis(auxbc,idim+1,1),idim)
+            
+        return auxbc
+
+
+    def auxbc_lower(self,grid,dim,t,auxbc,idim):
+        r"""
+        Apply lower boundary conditions to auxbc
+        
+        Sets the lower coordinate's ghost cells of *auxbc* depending on what 
+        :attr:`mthauxbc_lower` is.  If :attr:`mthauxbc_lower` = 0 then the user 
+        boundary condition specified by :attr:`user_aux_bc_lower` is used.  Note 
+        that in this case the function :attr:`user_aux_bc_lower` belongs only to 
+        this dimension but :attr:`user_aux_bc_lower` could set all user boundary 
+        conditions at once with the appropriate calling sequence.
+        
+        :Input:
+         - *grid* - (:class:`Grid`) Grid that the dimension belongs to
+         
+        :Input/Ouput:
+         - *auxbc* - (ndarray(maux,...)) Array with added ghost cells which will
+           be set in this routines
+        """
+        import numpy as np
+
+        if self.mthauxbc_lower[idim] == BC.custom: 
+            self.user_aux_bc_lower(grid,dim,t,auxbc,self.mbc)
+        elif self.mthauxbc_lower[idim] == BC.outflow:
+            for i in xrange(self.mbc):
+                auxbc[:,i,...] = auxbc[:,self.mbc,...]
+        elif self.mthauxbc_lower[idim] == BC.periodic:
+            # This process owns the whole grid
+            auxbc[:,:self.mbc,...] = auxbc[:,-2*self.mbc:-self.mbc,...]
+        elif self.mthauxbc_lower[idim] == BC.reflecting:
+            for i in xrange(self.mbc):
+                auxbc[:,i,...] = auxbc[:,2*self.mbc-1-i,...]
+        else:
+            raise NotImplementedError("Boundary condition %s not implemented" % x.mthauxbc_lower)
+
+
+    def auxbc_upper(self,grid,dim,t,auxbc,idim):
+        r"""
+        Apply upper boundary conditions to auxbc
+        
+        Sets the upper coordinate's ghost cells of *auxbc* depending on what 
+        :attr:`mthauxbc_upper` is.  If :attr:`mthauxbc_upper` = 0 then the user 
+        boundary condition specified by :attr:`user_aux_bc_upper` is used.  Note 
+        that in this case the function :attr:`user_aux_bc_upper` belongs only to 
+        this dimension but :attr:`user_aux_bc_upper` could set all user boundary 
+        conditions at once with the appropriate calling sequence.
+        
+        :Input:
+         - *grid* - (:class:`Grid`) Grid that the dimension belongs to
+         
+        :Input/Ouput:
+         - *auxbc* - (ndarray(maux,...)) Array with added ghost cells which will
+           be set in this routines
+        """
+ 
+        if self.mthauxbc_upper[idim] == BC.custom:
+            self.user_aux_bc_upper(grid,dim,t,auxbc,self.mbc)
+        elif self.mthauxbc_upper[idim] == BC.outflow:
+            for i in xrange(self.mbc):
+                auxbc[:,-i-1,...] = auxbc[:,-self.mbc-1,...] 
+        elif self.mthauxbc_upper[idim] == BC.periodic:
+            # This process owns the whole grid
+            auxbc[:,-self.mbc:,...] = auxbc[:,self.mbc:2*self.mbc,...]
+        elif self.mthauxbc_upper[idim] == BC.reflecting:
+            for i in xrange(self.mbc):
+                auxbc[:,-i-1,...] = auxbc[:,-2*self.mbc+i,...]
+        else:
+            raise NotImplementedError("Boundary condition %s not implemented" % x.mthauxbc_lower)
 
 
     # ========================================================================
@@ -475,7 +654,7 @@ class Solver(object):
                 # pass
                 #Temporarily HACKed to avoid slowdown!
                 #old_solution = copy.deepcopy(solutions["n"])
-                qold = copy.copy(solutions["n"].grid.q)
+                qold = copy.copy(solutions["n"].state.q)
                 told = solutions["n"].t
             retake_step = False  # Reset flag
             
@@ -504,7 +683,7 @@ class Solver(object):
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
                 if self.dt_variable:
-                    solutions['n'].grid.q = qold
+                    solutions['n'].state.q = qold
                     solutions['n'].t = told
                     # Retake step
                     retake_step = True

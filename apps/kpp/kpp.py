@@ -3,14 +3,13 @@
 
 import numpy as np
 
-def qinit(grid,rad=1.0):
-    grid.zeros_q()
-    x =grid.x.center
-    y =grid.y.center
+def qinit(state,rad=1.0):
+    x = state.grid.x.center
+    y = state.grid.y.center
     Y,X = np.meshgrid(y,x)
     r = np.sqrt(X**2 + Y**2)
 
-    grid.q[0,:,:] = 0.25*np.pi + 3.25*np.pi*(r<=rad)
+    state.q[0,:,:] = 0.25*np.pi + 3.25*np.pi*(r<=rad)
 
 
 def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='classic'):
@@ -35,26 +34,24 @@ def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_typ
     solver.mthbc_upper[1]=pyclaw.BC.outflow
 
     # Initialize grid
-    mx=400; my=400
-    print mx,my
+    mx=200; my=200
     x = pyclaw.Dimension('x',-2.0,2.0,mx)
     y = pyclaw.Dimension('y',-2.0,2.0,my)
     grid = pyclaw.Grid([x,y])
-    grid.meqn = 1
-    grid.mbc = solver.mbc
+    state = pyclaw.State(grid)
+    state.meqn = 1
 
-    qinit(grid)
+    qinit(state)
 
     solver.dim_split = 1
-    solver.cfl_max = 0.5
-    solver.cfl_desired = 0.45
+    solver.cfl_max = 1.0
+    solver.cfl_desired = 0.9
     solver.mwaves = 2
-    solver.mthlim = pyclaw.limiters.tvd.minmod
+    solver.limiters = pyclaw.limiters.tvd.minmod
 
     claw = pyclaw.Controller()
-    claw.keep_copy = True
     claw.tfinal = 1.0
-    claw.solution = pyclaw.Solution(grid)
+    claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.nout = 10
 
@@ -68,7 +65,7 @@ def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_typ
 if __name__=="__main__":
     import sys
     if len(sys.argv)>1:
-        from petclaw.util import _info_from_argv
+        from pyclaw.util import _info_from_argv
         args, kwargs = _info_from_argv(sys.argv)
         kpp(*args,**kwargs)
     else: kpp()

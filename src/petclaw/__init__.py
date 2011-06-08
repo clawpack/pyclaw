@@ -20,11 +20,12 @@ logging.config.fileConfig(_DEFAULT_LOG_CONFIG_PATH)
 __all__ = []
 
 # Module imports
-__all__.extend(['Controller','Data','Dimension','Grid','Solution','riemann'])
+__all__.extend(['Controller','Data','Dimension','Grid','Solution','State','riemann'])
 from controller import Controller
 from grid import Dimension, Grid 
 from pyclaw.data import Data
 from pyclaw.solution import Solution
+from state import State
 
 __all__.extend(['ClawSolver1D','ClawSolver2D','SharpClawSolver1D','SharpClawSolver2D'])
 from clawpack import ClawSolver1D

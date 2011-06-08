@@ -16,12 +16,12 @@ All parallel solvers inherit from this class.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-from pyclaw.solver import Solver
+import pyclaw.solver
 
 # ============================================================================
 #  Generic PetClaw solver class
 # ============================================================================
-class PetSolver(Solver):
+class PetSolver(pyclaw.solver.Solver):
     r"""
     Generic PetClaw solver
     
@@ -38,19 +38,27 @@ class PetSolver(Solver):
     """
     
     # ========== Boundary Conditions ==================================
-    def append_ghost_cells(self,grid,state,q):
+    def append_ghost_cells(self,state):
         """
         Returns q with ghost cells attached.  For PetSolver,
         this means returning the local vector.  
-        The arguments 'q' and 'grid' are
-        not used here; they are passed only in order to have a common
-        interface for the petclaw and pyclaw versions of this function.
         """
         state.q_da.globalToLocal(state.gqVec, state.lqVec)
-        q_dim = [state.local_n[i] + 2*self.mbc for i in xrange(state.ndim)]
+        q_dim = [n + 2*self.mbc for n in state.grid.ng]
         q_dim.insert(0,state.meqn)
         ghosted_q=state.lqVec.getArray().reshape(q_dim, order = 'F')
         return ghosted_q
+
+    def append_ghost_cells_to_aux(self,state):
+        """
+        Returns aux with ghost cells attached.  For PetSolver,
+        this means returning the local vector.  
+        """
+        state.aux_da.globalToLocal(state.gauxVec, state.lauxVec)
+        aux_dim = [n + 2*self.mbc for n in state.grid.ng]
+        aux_dim.insert(0,state.maux)
+        ghosted_aux=state.lauxVec.getArray().reshape(aux_dim, order = 'F')
+        return ghosted_aux
  
     def communicateCFL(self):
         from petsc4py import PETSc
@@ -58,3 +66,31 @@ class PetSolver(Solver):
         if self.dt_variable:
             cflVec = PETSc.Vec().createWithArray([self.cfl])
             self.cfl = cflVec.max()[1]
+
+    def allocate_rk_stages(self,solutions):
+        r"""We could eliminate this function and just use
+        the version in pyclaw.solver.Solver, if we were willing to
+        check there whether the solver is a PetSolver.  But this
+        would mean putting parallel-aware code in PyClaw, so for
+        now we duplicate the function here.
+        """
+        from state import State
+
+        if self.time_integrator   == 'Euler':  nregisters=1
+        elif self.time_integrator == 'SSP33':  nregisters=2
+        elif self.time_integrator == 'SSP104': nregisters=3
+ 
+        state = solutions['n'].states[0]
+        self.rk_stages = []
+        for i in range(nregisters-1):
+            self.rk_stages.append(State(state.grid))
+            self.rk_stages[-1].meqn = state.meqn
+            self.rk_stages[-1].maux = state.maux
+            self.rk_stages[-1].set_stencil_width(self.mbc)
+            self.rk_stages[-1].aux_global       = state.aux_global
+            self.rk_stages[-1].t                = state.t
+            if state.maux > 0:
+                self.rk_stages[-1].aux              = state.aux
+
+
+
