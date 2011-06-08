@@ -276,8 +276,8 @@ def test_2D_acoustics_homogeneous_1c():
         verify_x=numpy.loadtxt('test/ac_sc_solution')
         diff = numpy.linalg.norm(test_x-verify_x)
         if diff>1.e-10:
-            raise Exception('In test_2D_acoustics_homogeneous_1c: 
-                        Difference between expected and computed solutions: %s' % diff)
+            raise Exception("""In test_2D_acoustics_homogeneous_1c: 
+                        Difference between expected and computed solutions: %s""" % diff)
         else: return True
 
     method_options = {'use_petsc' : True, 'solver_type' : 'sharpclaw' }
