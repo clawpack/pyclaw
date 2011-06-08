@@ -5,7 +5,6 @@ Introduction to the main Pyclaw Classes
 *****************************************
 .. contents::
 
-
 Flow of a Pyclaw Simulation
 ===========================
 
@@ -18,27 +17,30 @@ to the requested time.
 .. image:: images/pyclaw_architecture_flow.*
 
 The bulk of the work in order to run a simulation then is the creation and
-setup of the appropriate :class:`~pyclaw.grid.Grid`,
+setup of the appropriate :class:`~pyclaw.grid.Grid`, :class:`~pyclaw.state.State`,
 :class:`~pyclaw.solution.Solution`, and :class:`~pyclaw.solver.Solver`
 objects needed to evolve the solution to the requested time.
-
-.. note::
-
-    Here we will assume that you have run ``import numpy as np`` before we do
-    any of the tutorial commands.
 
 Creation of a Pyclaw :class:`~pyclaw.solution.Solution`
 =======================================================
 
 A Pyclaw :class:`~pyclaw.solution.Solution` is a container for a collection of
-:class:`~pyclaw.grid.Grid` objects in order to support adaptive mesh 
+:class:`~pyclaw.grid.Grid` and :class:`~pyclaw.state.State` objects in order to
+support adaptive mesh 
 refinement and multi-block simulations. The :class:`~pyclaw.solution.Solution` 
-object keeps track of a list of :class:`~pyclaw.grid.Grid` objects then 
+object keeps track of a list of :class:`~pyclaw.state.State` objects
 and controls the overall input and output of the entire collection of 
-:class:`~pyclaw.grid.Grid` objects.  Inside of a 
-:class:`~pyclaw.grid.Grid` object, a set of 
-:class:`~pyclaw.grid.Dimension` objects define the extents and basic 
-grids of the :class:`~pyclaw.grid.Grid`.
+:class:`~pyclaw.state.State` objects.  Each
+:class:`~pyclaw.state.State` object inhabits a `~pyclaw.grid.Grid`, composed of
+:class:`~pyclaw.grid.Dimension` objects that define the extents 
+of the :class:`~pyclaw.grid.Grid`.  Multiple states can inhabit the same
+grid.
+.. , but each :class:`~pyclaw.state.State` inhabits a single grid.
+
+.. warning::
+
+    This figure is out of date.  Much of the Grid functionality has recently
+    been move to the State class.
 
 .. image:: images/pyclaw_solution_structure.*
 
@@ -47,7 +49,7 @@ follows from the bottom up.
 
 ::
 
-    >>> from pyclaw.solution import Solution, Grid, Dimension
+    >>> from pyclaw import Solution, State, Grid, Dimension
     
     >>> x = Dimension('x', -1.0, 1.0, 200)
     >>> y = Dimension('y', 0.0, 1.0, 100)
@@ -69,25 +71,25 @@ contain our :class:`~pyclaw.grid.Dimension` objects.
 ::
 
     >>> grid = Grid([x,y])
-    >>> grid.meqn = 2
+    >>> state = State(grid)
+    >>> state.meqn = 2
 
 Here we create a grid with the dimensions we created earlier to make a single
-2D :class:`~pyclaw.grid.Grid` object and set the number of equations it
+2D :class:`~pyclaw.grid.Grid` object.  Then we create a `~pyclaw.state.State`
+that inhabits this Grid. Finally, we set the number of equations the State
 will represent to 2.  As before, many of the attributes of the
-:class:`~pyclaw.grid.Grid` object are set automatically.
+:class:`~pyclaw.grid.Grid` and State objects are set automatically.
 
 We now need to set the initial condition ``q`` and possibly ``aux`` to the correct
-values.  There are multiple convenience functions to help in this, here we
-will use the method :meth:`~pyclaw.grid.Grid.zeros_q` to set all the
-values of ``q`` to zero.
+values.  
 
 ::
 
-    >> sigma = 0.2
-    >> omega = np.pi
-    >> grid.zeros_q()
-    >> q[:,0] = np.cos(omega * grid.x.center)
-    >> q[:,1] = np.exp(-grid.x.center**2 / sigma**2)
+    >>> import numpy as np
+    >>> sigma = 0.2
+    >>> omega = np.pi
+    >>> q[:,0] = np.cos(omega * grid.x.center)
+    >>> q[:,1] = np.exp(-grid.x.center**2 / sigma**2)
     
 We now have initialized the first entry of q to a cosine function 
 evaluated at the cell centers and the second entry of q to a gaussian, again
@@ -101,21 +103,21 @@ directly as in:
 
 ::
 
-    >>> grid.aux_global['c'] = 1.0
-    >>> grid.aux_global[`Z`] = 0.25
+    >>> state.aux_global['c'] = 1.0
+    >>> state.aux_global[`Z`] = 0.25
     
 If you're using a Fortran Riemann solver, these values will automatically get
 copied to the corresponding variables in the cparam common block of the
 Riemann solver.  This is done in solver.setup(), which calls grid.set_cparam().
 
-Last we have to put our :class:`~pyclaw.grid.Grid` object into a 
+Last we have to put our :class:`~pyclaw.state.State` object into a 
 :class:`~pyclaw.solution.Solution` object to complete the process.  In this
 case, since we are not using adaptive mesh refinement or a multi-block
 algorithm, we do not have multiple grids.
 
 ::
 
-    >>> sol = Solution(grid)
+    >>> sol = Solution(state)
     
 We now have a solution ready to be evolved in a 
 :class:`~pyclaw.solver.Solver` object.
@@ -125,8 +127,8 @@ Creation of a Pyclaw :class:`~pyclaw.solver.Solver`
 ==========================================================
 
 A Pyclaw :class:`~pyclaw.solver.Solver` can represent many different
-types of solvers so here we will concentrate on a 1D, classic Clawpack type of
-solver.  This solver is located in the :mod:`~pyclaw.clawpack` module.
+types of solvers; here we will use a 1D, classic Clawpack type of
+solver.  This solver is defined in the :mod:`~pyclaw.clawpack` module.
 
 First we import the particular solver we want and create it with the default 
 configuration.
@@ -158,13 +160,10 @@ attribute to the particular function.
     >>> import my_rp_module
     >>> solver.rp = my_rp_module.my_acoustics_rp
 
-Last we finish up by specifying the specific values for our solver to use.
+Last we finish up by specifying solver options, if we want to override the
+defaults.  For instance, we might want to specify a particular limiter::
 
-::
-
-    >>> solver.mthlim = pyclaw.limiters.vanleer
-    >>> solver.dt = 0.01
-    >>> solver.cfl_desired = 0.9
+    >>> solver.limiters = pyclaw.limiters.vanleer
     
 If we wanted to control the simulation we could at this point by issuing the 
 following commands:
@@ -203,14 +202,14 @@ format.
 
 ::
 
-    >> claw.outstyle = 1
-    >> claw.nout = 10
-    >> claw.tfinal = 1.0
+    >>> claw.outstyle = 1
+    >>> claw.nout = 10
+    >>> claw.tfinal = 1.0
     
 When we are ready to run the simulation, we can call the 
 :meth:`~pyclaw.controller.Controller.run` method.  It will then run the
 simulation and output the appropriate time points.  If the 
 :attr:`~pyclaw.controller.Controller.keep_copy` is set to *True* the 
-controller will keep a copy of each solution output in the frames array.  For
+controller will keep a copy of each solution output in memory in the frames array.  For
 instance, you can then immediately plot the solutions output into the *frames*
 array.

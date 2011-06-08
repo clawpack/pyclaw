@@ -17,10 +17,8 @@ the acoustics equations in one dimension:
 
    u_t + \frac{1}{\rho} p_x = 0
 
-The key to solving a particular system of equations with PyClaw or other similar
-codes is a Riemann solver.  Riemann solvers for many systems are available as
-part of the clawpack/riemann package.  We'll assume that you've already followed
-the :ref:`installation` instructions.
+.. The key to solving a particular system of equations with PyClaw or other similar codes is a Riemann solver.  Riemann solvers for many systems are available as part of the clawpack/riemann package.  
+We'll assume that you've already followed the :ref:`installation` instructions.
 
 Now launch an iPython session and import pyclaw::
 
@@ -51,8 +49,8 @@ condition at the right boundary::
     >>> solver.mthbc_lower[0] = pyclaw.BC.reflecting
     >>> solver.mthbc_upper[0] = pyclaw.BC.outflow
 
-The Grid
-=============
+Dimension, Grid, and State
+===========================
 Next we need to set up the grid.  A PyClaw grid is built from dimensions;
 in our case, we only need 1 dimension::
 
@@ -65,13 +63,33 @@ command, except that the first argument is the name of the dimension.
 ::
 
     >>> grid = pyclaw.Grid(x)
-    >>> grid.mbc = solver.mbc
-    >>> grid.meqn = solver.rp.meqn
 
 This creates a grid object, which holds information about the cell center
-and edge coordinates, and potentially several other things.  It's important
-to set the number of ghost cells (mbc) and unknowns (meqn) for the
-grid to agree with those of the solver.
+and edge coordinates.  Finally, we set up a :class:`~pyclaw.state.State`
+object, which will hold the solution itself::
+
+    >>> state = pyclaw.State(grid)
+    >>> state.meqn = 2
+
+The attribute meqn indicates the number of equations in the hyperbolic
+system we're solving.
+
+Initial condition
+======================
+Now we will set the initial value of the solution::
+
+    >>> xc = grid.x.center
+    >>> from numpy import exp
+    >>> state.q[0,:] = exp(-100 * (xc-0.75)**2)
+    >>> state.q[1,:] = 0.
+
+The pressure (grid.q[0,:]) is set to a Gaussian centered at $x=0.75$.
+The velocity (grid.q[1,:]) is set to zero everywhere.
+
+Finally, we put the state into a Solution object::
+
+    >>> solution = pyclaw.Solution(state)
+
 
 Problem-specific parameters
 ============================
@@ -80,32 +98,15 @@ bulk modulus $K$ and density $\rho$ -- that must be defined.
 Furthermore, checking the code for the Riemann solver we've chosen
 reveals that it expects us to provide values for the impedance $Z$
 and sound speed $c$.  These values are stored in a Python dictionary
-called aux_global that is a member of the :class:`~pyclaw.grid.Grid`::
+called aux_global that is a member of the :class:`~pyclaw.state.State`::
 
     >>> from math import sqrt
     >>> rho = 1.0
     >>> bulk = 1.0
-    >>> grid.aux_global['rho'] = rho
-    >>> grid.aux_global['bulk'] = bulk
-    >>> grid.aux_global['zz'] = sqrt(rho*bulk)
-    >>> grid.aux_global['cc'] = sqrt(rho/bulk)
-
-Initial condition
-======================
-Now we will set the initial value of the solution::
-
-    >>> grid.zeros_q()
-    >>> xc = grid.x.center
-    >>> from numpy import exp
-    >>> grid.q[0,:] = exp(-100 * (xc-0.75)**2)
-
-This code first sets the solution value (grid.q) to zero everywhere.
-Then the pressure (grid.q[0,:]) is set to a Gaussian centered at $x=0.75$.
-The velocity (grid.q[1,:]) is left as zero everywhere.
-
-Finally, we put the grid into a Solution object::
-
-    >>> solution = pyclaw.Solution(grid)
+    >>> state.aux_global['rho'] = rho
+    >>> state.aux_global['bulk'] = bulk
+    >>> state.aux_global['zz'] = sqrt(rho*bulk)
+    >>> state.aux_global['cc'] = sqrt(rho/bulk)
 
 The controller
 ===================
