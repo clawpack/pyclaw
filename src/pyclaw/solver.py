@@ -273,17 +273,43 @@ class Solver(object):
         """
         Returns q with ghost cells attached.  For Solver, this means
         just creating a copy of q with extra cells.
-
         """
         import numpy as np
 
         grid = state.grid
-        dim_string = ','.join( ('2*self.mbc+grid.%s.ng' % dim.name for dim in grid.dimensions) )
-        exec("qbc = np.zeros( (state.meqn,%s) )" % dim_string)
-        dim_string = ','.join( ('self.mbc:-self.mbc' for dim in grid.dimensions) )
-        exec("qbc[:,%s] = state.q" % dim_string)
+        mbc = self.mbc
+        dims = [n + 2*mbc for n in grid.ng]
+        dims.insert(0,state.meqn)
+        qbc = np.zeros(dims)
+        if grid.ndim == 1:
+            qbc[:,mbc:-mbc] = state.q
+        elif grid.ndim == 2:
+            qbc[:,mbc:-mbc,mbc:-mbc] = state.q
+        elif grid.ndim == 3:
+            qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = state.q
         return qbc
  
+    def append_ghost_cells_to_aux(self,state):
+        """
+        Returns aux with ghost cells attached.  For the serial Solver, this means
+        just creating a copy of aux with extra cells.
+        """
+        import numpy as np
+
+        grid = state.grid
+        mbc = self.mbc
+        dims = [n + 2*self.mbc for n in grid.ng]
+        dims.insert(0,state.maux)
+        auxbc = np.zeros(dims)
+        if grid.ndim == 1:
+            auxbc[:,mbc:-mbc] = state.aux
+        elif grid.ndim == 2:
+            auxbc[:,mbc:-mbc,mbc:-mbc] = state.aux
+        elif grid.ndim == 3:
+            auxbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = state.aux
+        return auxbc
+
+
     def qbc(self,state):
         r"""
         Appends boundary cells to q and fills them with appropriate values.
@@ -426,21 +452,7 @@ class Solver(object):
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
 
 
-    def append_ghost_cells_to_aux(self,state):
-        """
-        Returns aux with ghost cells attached.  For the serial Solver, this means
-        just creating a copy of aux with extra cells.
 
-        """
-        import numpy as np
-
-        grid = state.grid
-        dim_string = ','.join( ('2*self.mbc+grid.%s.ng' % dim.name for dim in grid.dimensions) )
-        exec("auxbc = np.zeros( (state.maux,%s) )" % dim_string)
-        dim_string = ','.join( ('self.mbc:-self.mbc' for dim in grid.dimensions) )
-        exec("auxbc[:,%s] = state.aux" % dim_string)
-        return auxbc
- 
     def auxbc(self,state):
         r"""
         Appends boundary cells to aux and fills them with appropriate values.
