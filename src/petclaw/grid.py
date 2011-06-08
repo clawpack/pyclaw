@@ -10,6 +10,7 @@ Module containing petclaw grid.
 """
 
 import pyclaw.grid
+from pyclaw.grid import Grid
 
 import numpy as np
 
@@ -37,7 +38,7 @@ class Dimension(pyclaw.grid.Dimension):
 
     We could use ng, nstart, and nend in the edge and center properties in 
     PyClaw and then nothing would need to be overridden here.  But it would
-    put some parallel code in PyClaw.
+    put some parallel-ish code in PyClaw, which is undesirable.
     """
     def ng():
         doc = r"""Size of this processes' piece of grid in given dimension."""
@@ -73,49 +74,3 @@ class Dimension(pyclaw.grid.Dimension):
         return locals()
     center = property(**center())
     _center = None
-
-
-
-# ============================================================================
-#  petclaw Grid object definition
-# ============================================================================
-class Grid(pyclaw.grid.Grid):
-    r"""
-    Basic representation of a single grid in petclaw
-
-    The only difference between PetClaw grid and PyClaw grid is
-    the definition of q(), local_n(), __getstate__(), 
-    and __setstate__().
-    
-    :Dimension information:
-    
-        Each dimension has an associated name with it that can be accessed via
-        that name such as ``grid.x.n`` which would access the x dimension's
-        number of grid cells.
-    
-    :Global Grid information:
-    
-        Each grid has a value for :attr:`level` and :attr:`gridno`.
-        
-    :Grid Data:
-    
-        The array :attr:`capa` has variable 
-        extents based on the set of dimensions present and the values of 
-        :attr:`meqn` and :attr:`maux`.  
-        The :attr:`capa` array is 
-        initially set to all ``1.0`` and needs to be manually set.
-        
-    :Properties:
-
-        If the requested property has multiple values, a list will be returned
-        with the corresponding property belonging to the dimensions in order.
-         
-    :Initialization:
-    
-        Input:
-         - *dimensions* - (list of :class:`Dimension`) Dimensions that are to 
-           be associated with this grid
-            
-        Output:
-         - (:class:`Grid`) Initialized grid object
-    """

@@ -22,7 +22,8 @@ __all__ = []
 # Module imports
 __all__.extend(['Controller','Data','Dimension','Grid','Solution','State','riemann'])
 from controller import Controller
-from grid import Dimension, Grid 
+from grid import Dimension
+from pyclaw.grid import Grid 
 from pyclaw.data import Data
 from pyclaw.solution import Solution
 from state import State
