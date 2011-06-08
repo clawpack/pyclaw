@@ -53,6 +53,10 @@ class PetSolver(pyclaw.solver.Solver):
         """
         Returns aux with ghost cells attached.  For PetSolver,
         this means returning the local vector.  
+
+        The globalToLocal call here could be wasteful if the aux variables
+        don't change in time.  We should add a flag for this and just
+        do it once.
         """
         state.aux_da.globalToLocal(state.gauxVec, state.lauxVec)
         aux_dim = [n + 2*self.mbc for n in state.grid.ng]
