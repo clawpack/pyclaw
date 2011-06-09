@@ -159,14 +159,7 @@ class Grid(object):
     
         Each grid has a value for :attr:`level` and :attr:`gridno`.
         
-    :Grid Data:
-    
-        The array :attr:`capa` has variable 
-        extents based on the set of dimensions present and the values of 
-        :attr:`meqn` and :attr:`maux`.  
-        The :attr:`capa` array is 
-        initially set to all ``1.0`` and needs to be manually set.
-        
+       
     :Properties:
 
         If the requested property has multiple values, a list will be returned
@@ -296,8 +289,6 @@ class Grid(object):
         r"""(int) - AMR level this grid belongs to, ``default = 1``"""
         self.gridno = 1
         r"""(int) - Grid number of current grid, ``default = 0``"""
-        self.capa = None
-        r"""(ndarray(...)) - Capacity array for this grid, ``default = 1.0``"""
         self.mapc2p = default_mapc2p
         r"""(func) - Grid mapping function"""
         
@@ -313,8 +304,6 @@ class Grid(object):
         output = "Grid %s:\n" % self.gridno
         output += '\n  '.join((str(getattr(self,dim)) for dim in self._dimensions))
         output += '\n'
-        if self.capa is not None:
-            output += " capa.shape=%s" % str(self.capa.shape)
         return output
     
     
@@ -384,9 +373,6 @@ class Grid(object):
         for attr in ('level','gridno','_p_center','_p_edge',
                         '_c_center','_c_edge'):
             setattr(result,attr,copy.deepcopy(getattr(self,attr)))
-        
-        if self.capa is not None:
-            result.capa = copy.deepcopy(self.capa)
         
         result.mapc2p = self.mapc2p
         

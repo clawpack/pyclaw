@@ -47,9 +47,9 @@ class Solution(object):
         check to see if these parameters are truly universal.
 
         Grid Attributes:
-            'capa','dimensions'
+            'dimensions'
         State Attributes:
-            't','meqn','q','aux','aux_global'
+            't','meqn','q','aux','capa','aux_global'
             
     :Initialization:
         
@@ -111,11 +111,11 @@ class Solution(object):
                 setattr(self.states[0],'aux',value)
         return locals()  
     def capa():
-        doc = r"""(ndarray(...)) - :attr:`Grid.capa` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('capa')
+        doc = r"""(ndarray(...)) - :attr:`State.capa` of base state"""
+        def fget(self): return self._get_base_state_attribute('capa')
         def fset(self, value):
             if len(self.states) == 1: 
-                setattr(self.states[0].grid,'capa',value)
+                setattr(self.states[0],'capa',value)
         return locals()  
     def aux_global():
         doc = r"""(dict) - :attr:`State.aux_global` of base state"""
@@ -303,7 +303,7 @@ class Solution(object):
         :Output:
          - (bool) - True if valid, false otherwise
         """
-        return reduce(lambda x,y: x*y,[state.is_valid() for state in self.states])
+        return all([state.is_valid() for state in self.states])
 
 
     def __str__(self):

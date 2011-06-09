@@ -238,7 +238,7 @@ class SharpClawSolver(Solver):
         clawparams.char_decomp   = self.char_decomp
         clawparams.tfluct_solver = self.tfluct_solver
         clawparams.fwave         = self.fwave
-        if grid.capa is not None:
+        if state.capa is not None:
             clawparams.mcapa         = 1
         else:
             clawparams.mcapa         = 0
@@ -385,8 +385,8 @@ class SharpClawSolver1D(SharpClawSolver):
             dtdx = np.zeros( (mx+2*self.mbc) )
 
             # Find local value for dt/dx
-            if grid.capa is not None:
-                dtdx = self.dt / (grid.d[0] * grid.capa)
+            if state.capa is not None:
+                dtdx = self.dt / (grid.d[0] * state.capa)
             else:
                 dtdx += self.dt/grid.d[0]
  

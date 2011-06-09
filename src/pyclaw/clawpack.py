@@ -322,7 +322,7 @@ class ClawSolver1D(ClawSolver):
         self.method[2] = 0  # Not used in 1D
         self.method[3] = self.verbosity
         self.method[4] = self.src_split
-        if (grid.capa == None):
+        if (state.capa == None):
             self.method[5] = 0  
         else:
             self.method[5] = 1  
@@ -434,8 +434,8 @@ class ClawSolver1D(ClawSolver):
             dtdx = np.zeros( (2*self.mbc+grid.ng[0]) )
 
             # Find local value for dt/dx
-            if grid.capa is not None:
-                dtdx = self.dt / (grid.d[0] * grid.capa)
+            if state.capa is not None:
+                dtdx = self.dt / (grid.d[0] * state.capa)
             else:
                 dtdx += self.dt/grid.d[0]
         
@@ -595,7 +595,7 @@ class ClawSolver2D(ClawSolver):
         self.method[3] = self.verbosity
         self.method[4] = self.src_split  # src term
 
-        if (grid.capa == None): 
+        if (state.capa == None): 
             self.method[5] = 0
         else: 
             self.method[5] = 1  

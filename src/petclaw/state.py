@@ -97,6 +97,8 @@ class State(pyclaw.state.State):
             ``default = 0.0``"""
         self.stateno = 1
         r"""(int) - State number of current state, ``default = 1``"""
+        self.capa = None
+        r"""(ndarray(...)) - Capacity array for this grid, ``default = 1.0``"""
 
 
     def init_aux_da(self,maux,mbc=0):

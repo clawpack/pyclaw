@@ -2,7 +2,7 @@ r"""
 Module containing all Pyclaw solution objects
 
 :Authors:
-    David I. Ketcheson -- Initial version
+    David I. Ketcheson -- Initial version (June 2011)
 """
 
 import numpy as np
@@ -17,12 +17,14 @@ class State(object):
 
     :State Data:
     
-        The arrays :attr:`q` and :attr:`aux` have variable 
+        The arrays :attr:`q`, :attr:`capa`, and :attr:`aux` have variable 
         extents based on the grid dimensions and the values of 
         :attr:`meqn` and :attr:`maux`.  Note that these are initialy set to 
         None and later set to appropriately sized empty numpy arrays when
         :attr:`meqn` and :attr:`maux` are set.
-
+        The :attr:`capa` array is 
+        initially set to all ``1.0`` and needs to be manually set.
+ 
     Typical usage, assuming a 1D grid::
 
         >>> state = State(grid)
@@ -87,6 +89,8 @@ class State(object):
             ``default = 0.0``"""
         self.stateno = 1
         r"""(int) - State number of current state, ``default = 1``"""
+        self.capa = None
+        r"""(ndarray(...)) - Capacity array for this grid, ``default = 1.0``"""
 
     def __str__(self):
         output = "State %s:\n" % self.stateno
@@ -96,6 +100,8 @@ class State(object):
             output += "  q.shape=%s" % str(self.q.shape)
         if self.aux is not None:
             output += " aux.shape=%s" % str(self.aux.shape)
+        if self.capa is not None:
+            output += " capa.shape=%s" % str(self.capa.shape)
         return output
 
     def is_valid(self):
@@ -104,6 +110,7 @@ class State(object):
         
         The state is declared valid based on the following criteria:
             - :attr:`q` is not None
+            - :attr:`meqn` > 0
             
         A debug logger message will be sent documenting exactly what was not 
         valid.
@@ -117,6 +124,9 @@ class State(object):
         logger = logging.getLogger('solution')
         if self.q is None:
             logger.debug('The array q has not been initialized.')
+            valid = False
+        if self.meqn == 0:
+            logger.debug('State.meqn has not been set.')
             valid = False
         return valid
  
@@ -161,5 +171,7 @@ class State(object):
             result.aux = copy.deepcopy(self.aux)
         result.aux_global = copy.deepcopy(self.aux_global)
         
+        if self.capa is not None:
+            result.capa = copy.deepcopy(self.capa)
+        
         return result
- 
