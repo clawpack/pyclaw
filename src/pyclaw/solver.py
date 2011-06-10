@@ -280,7 +280,7 @@ class Solver(object):
         mbc = self.mbc
         dims = [n + 2*mbc for n in grid.ng]
         dims.insert(0,state.meqn)
-        qbc = np.zeros(dims)
+        qbc = np.zeros(dims,order = 'F')
         if grid.ndim == 1:
             qbc[:,mbc:-mbc] = state.q
         elif grid.ndim == 2:
