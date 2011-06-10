@@ -22,25 +22,27 @@ c     # since it typically works as well, is faster, and boundary
 c     # conditions are handled properly.
 c
       implicit double precision (a-h,o-z)
-cf2py intent(in,out) cfl
       external rpn2,rpt2
-      dimension qold(meqn, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
-      dimension qnew(meqn, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
-cf2py intent(in,out) qnew  
-      dimension  q1d(meqn, 1-mbc:maxm+mbc)
-      dimension cflv(4)
-      dimension qadd(meqn, 1-mbc:maxm+mbc)
-      dimension fadd(meqn, 1-mbc:maxm+mbc)
-      dimension gadd(meqn, 2, 1-mbc:maxm+mbc)
-      dimension aux(maux,1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
-      dimension aux1(maux,1-mbc:maxm+mbc)
-      dimension aux2(maux,1-mbc:maxm+mbc)
-      dimension aux3(maux,1-mbc:maxm+mbc)
+      double precision qold(meqn, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
+      double precision qnew(meqn, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
+      double precision  q1d(meqn, 1-mbc:maxm+mbc)
+      double precision cflv(4)
+      double precision qadd(meqn, 1-mbc:maxm+mbc)
+      double precision fadd(meqn, 1-mbc:maxm+mbc)
+      double precision gadd(meqn, 2, 1-mbc:maxm+mbc)
+      double precision aux(maux,1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
+      double precision aux1(maux,1-mbc:maxm+mbc)
+      double precision aux2(maux,1-mbc:maxm+mbc)
+      double precision aux3(maux,1-mbc:maxm+mbc)
 
-      dimension dtdx1d(1-mbc:maxm+mbc)
-      dimension dtdy1d(1-mbc:maxm+mbc)
-      dimension method(7),mthlim(mwaves)
-      dimension work(mwork)
+      double precision dtdx1d(1-mbc:maxm+mbc)
+      double precision dtdy1d(1-mbc:maxm+mbc)
+      integer method(7),mthlim(mwaves)
+      double precision work(mwork)
+
+cf2py intent(in,out) cfl
+cf2py intent(in,out) qnew  
+cf2py optional q1d, qadd, fadd, gadd, dtdx1d, dtdy1d
 
 c
 c     # If method(3) = -1, take a full time step in x.

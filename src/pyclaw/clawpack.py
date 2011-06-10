@@ -309,12 +309,6 @@ class ClawSolver1D(ClawSolver):
         import numpy as np
 
         state = solutions['n'].state
-        grid  = state.grid
-
-        # Number of equations
-        meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
-        mx = grid.ng[0]
-
 
         self.method =np.ones(7, dtype=int)
         self.method[0] = self.dt_variable
@@ -326,19 +320,13 @@ class ClawSolver1D(ClawSolver):
             self.method[5] = 0  
         else:
             self.method[5] = 1  
-        self.method[6] = maux  # aux
+        self.method[6] = state.maux  # aux
  
         if self.fwave:
             import classic1fw as classic1
         else:
             import classic1
-
         state.set_cparam(classic1)
-        self.f    = np.empty( (meqn,mx+2*mbc) )
-        self.wave = np.empty( (meqn,mwaves,mx+2*mbc) )
-        self.s    = np.empty( (mwaves,mx+2*mbc) )
-        self.amdq = np.empty( (meqn,mx+2*mbc) )
-        self.apdq = np.empty( (meqn,mx+2*mbc) )
 
 
     def teardown(self):
@@ -424,7 +412,7 @@ class ClawSolver1D(ClawSolver):
             if(maux == 0): aux = np.empty( (maux,mx+2*mbc) )
         
        
-            q,self.cfl = classic1.step1(mx,mbc,mx,q,aux,dx,dt,self.method,self.mthlim,self.f,self.wave,self.s,self.amdq,self.apdq,dtdx)
+            q,self.cfl = classic1.step1(mx,mbc,mx,q,aux,dx,dt,self.method,self.mthlim)
 
         elif(self.kernel_language == 'Python'):
  
@@ -616,12 +604,6 @@ class ClawSolver2D(ClawSolver):
 
         # These work arrays really ought to live inside a fortran module
         # as is done for sharpclaw
-        self.qadd = np.empty((meqn,maxm+2*mbc))
-        self.fadd = np.empty((meqn,maxm+2*mbc))
-        self.gadd = np.empty((meqn,2,maxm+2*mbc))
-        self.q1d  = np.empty((meqn,maxm+2*mbc))
-        self.dtdx1d = np.empty((maxm+2*mbc))
-        self.dtdy1d = np.empty((maxm+2*mbc))
         self.aux1 = np.empty((maux,maxm+2*mbc))
         self.aux2 = np.empty((maux,maxm+2*mbc))
         self.aux3 = np.empty((maux,maxm+2*mbc))
@@ -709,13 +691,11 @@ class ClawSolver2D(ClawSolver):
             if self.dim_split:
                 q, cfl = classic2.dimsp2(maxm,mx,my,mbc,mx,my, \
                       qold,qnew,aux,dx,dy,dt,self.method,self.mthlim,self.cfl,self.cflv, \
-                      self.qadd,self.fadd,self.gadd,self.q1d,self.dtdx1d,\
-                      self.dtdy1d,self.aux1,self.aux2,self.aux3,self.work)
+                      self.aux1,self.aux2,self.aux3,self.work)
             else:
                 q, cfl = classic2.step2(maxm,mx,my,mbc,mx,my, \
                       qold,qnew,aux,dx,dy,dt,self.method,self.mthlim,self.cfl, \
-                      self.qadd,self.fadd,self.gadd,self.q1d,self.dtdx1d,\
-                      self.dtdy1d,self.aux1,self.aux2,self.aux3,self.work)
+                      self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl = cfl
             state.q=q[:,mbc:mx+mbc,mbc:my+mbc]
