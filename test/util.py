@@ -63,26 +63,24 @@ def verify_it_parallel(run_method, method_name, module_name, verifier, options, 
     import tempfile
     import shutil
     from pyclaw.solution import Solution
+    from pyclaw.util import _arguments_str_from_dictionary
     # Create temp directory to write the output to and read it from
     outdir =  tempfile.mkdtemp()
     
     # run subprocess with the required number of processes
-    option_string= ""
     np = options.pop('np')
-    for k in options:
-        if isinstance(options[k], str):
-            option_string += k+"='"+str(options[k])+"',"
-        else:
-            option_string += k+"="+str(options[k])+","
-
-    option_string += 'outdir = "'+outdir+'"' 
-
-    run_command = "mpiexec", "-n", str(np) ,"python","-c", "import sys; sys.path.append('"+path+"'); import "+module_name+"; "+module_name+"."+method_name+"("+option_string+")"
+    options['outdir']=outdir
+    option_string = _arguments_str_from_dictionary(options)
+    
+    run_command = "mpiexec", "-n", str(np) ,"python","-c",\
+    "import sys; sys.path.append('"+path+"'); import "+module_name+"; "\
+    +module_name+"."+method_name+"("+option_string+")"
+    
     p = subprocess.Popen(run_command, stdout=subprocess.PIPE ,stderr=subprocess.STDOUT)
     (stdout_data, ignore) = p.communicate()
 
-    ## example specific, need to generlize frame number which is 10 in this case
-    output = Solution(options['nout'], format='petsc', path=outdir )
+    # Read the last frame from the output files
+    output = Solution(options['nout'], format='petsc', path=outdir, read_aux=False )
 
     # Remove the temporary output directory
     shutil.rmtree(outdir) 
