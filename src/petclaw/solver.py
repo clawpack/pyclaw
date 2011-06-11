@@ -51,9 +51,8 @@ class PetSolver(pyclaw.solver.Solver):
     
     def update_global_q(self,state,ghosted_q):
         """
-        update the value of q. for PetSolver, if ghosted_q address is the same
-        as the address of the local vector array, this is a local to global
-        communication, otherwise it will be setting the value of q 
+        Update the value of q. for PetSolver, this involves setting ghosted_q
+        as the local vector array then perform a local to global communication. 
         """
         state.lqVec.placeArray(ghosted_q)
         state.q_da.localToGlobal(state.lqVec,state.gqVec)
