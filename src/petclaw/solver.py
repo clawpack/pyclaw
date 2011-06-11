@@ -48,6 +48,17 @@ class PetSolver(pyclaw.solver.Solver):
         q_dim.insert(0,state.meqn)
         ghosted_q=state.lqVec.getArray().reshape(q_dim, order = 'F')
         return ghosted_q
+    
+    def update_global_q(self,state,ghosted_q):
+        """
+        update the value of q. for PetSolver, if ghosted_q address is the same
+        as the address of the local vector array, this is a local to global
+        communication, otherwise it will be setting the value of q 
+        """
+        state.lqVec.placeArray(ghosted_q)
+        state.q_da.localToGlobal(state.lqVec,state.gqVec)
+        state.lqVec.resetArray() # This call is required because placeArray is
+                                 # intended to be temporarly placement
 
     def append_ghost_cells_to_aux(self,state):
         """

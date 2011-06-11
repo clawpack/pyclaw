@@ -289,6 +289,19 @@ class Solver(object):
             qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = state.q
         return qbc
  
+    def update_global_q(self,state,ghosted_q):
+        """
+        update the value of q. for PySolver, it is only setting the
+        value of q with proper slice of ghosted_q
+        """
+        grid = state.grid
+        if grid.ndim == 2:
+            mbc, mx, my = self.mbc, grid.ng[0],grid.ng[1]
+            state.q=ghosted_q[:,mbc:mx+mbc,mbc:my+mbc]
+        else:
+            raise NotImplementedError("The case of 1d,3D is not handled in "\
+            +"this function yet")
+    
     def append_ghost_cells_to_aux(self,state):
         """
         Returns aux with ghost cells attached.  For the serial Solver, this means

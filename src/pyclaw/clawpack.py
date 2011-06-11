@@ -698,7 +698,7 @@ class ClawSolver2D(ClawSolver):
                       self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl = cfl
-            state.q=q[:,mbc:mx+mbc,mbc:my+mbc]
+            self.update_global_q(state, q)
 
         else:
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
