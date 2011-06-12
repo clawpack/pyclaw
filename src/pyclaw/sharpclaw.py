@@ -362,27 +362,24 @@ class SharpClawSolver1D(SharpClawSolver):
 
         q = self.qbc(state)
 
-        dq = np.zeros(q.shape)
         grid = state.grid
-
-        # Note that q is passed in with ghost cells attached
         mx = grid.ng[0]
 
         ixy=1
         aux=state.aux
         if state.maux == 0: 
-            aux = np.zeros( (state.maux,mx+2*self.mbc) )
+            aux = np.empty( (state.maux,mx+2*self.mbc) ,'F')
         else:
             aux = self.auxbc(state)
 
 
         if self.kernel_language=='Fortran':
             from sharpclaw1 import flux1
-            dq,self.cfl=flux1(q,dq,aux,self.dt,state.t,ixy,mx,self.mbc,mx)
+            dq,self.cfl=flux1(q,aux,self.dt,state.t,ixy,mx,self.mbc,mx)
 
         elif self.kernel_language=='Python':
 
-            dtdx = np.zeros( (mx+2*self.mbc) )
+            dtdx = np.zeros( (mx+2*self.mbc) ,'F')
 
             # Find local value for dt/dx
             if grid.capa is not None:
@@ -521,7 +518,6 @@ class SharpClawSolver2D(SharpClawSolver):
 
         q = self.qbc(state)
 
-        dq = np.zeros(q.shape, order='F')
         grid = state.grid
 
         mbc=self.mbc
@@ -529,18 +525,15 @@ class SharpClawSolver2D(SharpClawSolver):
         my=grid.ng[1]
         maxm = max(mx,my)
 
-        q1d  = np.zeros((state.meqn,maxm+2*mbc), order='F')
-        dq1d = np.zeros((state.meqn,maxm+2*mbc), order='F')
-
         aux=state.aux
         if state.maux == 0:
-            aux = np.zeros( (state.maux,mx+2*mbc,my+2*mbc), order='F' )
+            aux = np.empty( (state.maux,mx+2*mbc,my+2*mbc), order='F' )
         else:
             aux = self.auxbc(state)
 
         if self.kernel_language=='Fortran':
             from sharpclaw2 import flux2
-            dq,self.cfl=flux2(q,dq,q1d,dq1d,aux,self.dt,state.t,mbc,maxm,mx,my)
+            dq,self.cfl=flux2(q,aux,self.dt,state.t,mbc,maxm,mx,my)
 
         else: raise Exception('Only Fortran kernels are supported in 2D.')
 

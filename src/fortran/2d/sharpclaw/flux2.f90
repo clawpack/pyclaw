@@ -14,9 +14,6 @@ subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,maux,meqn,mbc,maxnx,mx,my)
     use ClawParams
     implicit none
 
-!f2py intent(in,out) dq  
-!f2py intent(out) cfl  
-
     integer :: maux,meqn,mbc,maxnx,mx,my
     double precision, target, intent(in) :: q(meqn, 1-mbc:mx+mbc, 1-mbc:my+mbc)
     double precision, intent(inout) :: dq(meqn, 1-mbc:mx+mbc, 1-mbc:my+mbc)
@@ -28,6 +25,10 @@ subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,maux,meqn,mbc,maxnx,mx,my)
     double precision :: cfl1d
     double precision, pointer :: auxp(:,:),q1dp(:,:)
     
+!f2py intent(in,out) dq  
+!f2py intent(out) cfl  
+!f2py optional dq, q1d, dq1d
+
     cfl = 0.d0
 
     ! perform x-sweeps
