@@ -170,7 +170,7 @@ class ClawSolver(Solver):
                                         " use one of the derived classes.")
          
     # ========== Time stepping routines ======================================
-    def step(self,solutions):
+    def step(self,solutions,qold):
         r"""
         Evolve solutions one time step
 
@@ -209,7 +209,7 @@ class ClawSolver(Solver):
             self.src(self,solutions,solutions['n'].t, self.dt/2.0)
     
         # Take a step on the homogeneous problem
-        self.homogeneous_step(solutions)
+        self.homogeneous_step(solutions,qold)
 
         # Putting this here now for PetClaw.  We should think about the best way
         # to handle CFL communication.
@@ -231,7 +231,7 @@ class ClawSolver(Solver):
             
         return True
             
-    def homogeneous_step(self,solutions):
+    def homogeneous_step(self,solutions,qold):
         r"""
         Take one homogeneous step on the solutions
         
@@ -375,7 +375,7 @@ class ClawSolver1D(ClawSolver):
             raise NameError(error_msg)
 
     # ========== Homogeneous Step =====================================
-    def homogeneous_step(self,solutions):
+    def homogeneous_step(self,solutions,qold):
         r"""
         Take one time step on the homogeneous hyperbolic system
 
@@ -392,7 +392,17 @@ class ClawSolver1D(ClawSolver):
 
         state = solutions['n'].states[0]
         grid = state.grid
-        q = self.qbc(state)
+
+        if qold is None: # this is expected to happen in case dt_variable
+                         # is not set
+            q = self.qbc(state) # in this case if petsc used q might still
+                                # point to the local vector array
+        else:
+            q = qold.copy('F') # in this case if petsc used q will no longer
+                               # point to the local vector array but this might
+                               # not matter because we will do globalToLocal
+                               # communication before using the local vector
+
 
         meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
           
@@ -490,7 +500,7 @@ class ClawSolver1D(ClawSolver):
                     q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1]) 
 
         else: raise Exception("Unrecognized kernel_language; choose 'Fortran' or 'Python'")
-            
+        # Amal: this line need to be replcaed by update_global_q    
         state.q = q[:,self.mbc:-self.mbc]
 
    
@@ -654,7 +664,7 @@ class ClawSolver2D(ClawSolver):
             raise NameError(error_msg)
 
     # ========== Homogeneous Step =====================================
-    def homogeneous_step(self,solutions):
+    def homogeneous_step(self,solutions,qold):
         r"""
         
         """
@@ -680,7 +690,9 @@ class ClawSolver2D(ClawSolver):
                 
             dx,dy,dt = grid.d[0],grid.d[1],self.dt
 
-            qold = self.qbc(state)
+            if qold is None: # this is expected to happen in case dt_variable is not set
+                qold = self.qbc(state) 
+            
             qnew = qold.copy('F') #(input/output)
 
             if self.fwave:

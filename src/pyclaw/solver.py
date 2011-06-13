@@ -669,6 +669,8 @@ class Solver(object):
                 
         # Main time stepping loop
         for n in xrange(self.max_steps):
+            # Initialize qold
+            qold = None
         
             # Adjust dt so that we hit tend exactly if we are near tend
             if solutions['n'].t + self.dt > tend and tstart < tend and not take_one_step:
@@ -679,12 +681,12 @@ class Solver(object):
                 # pass
                 #Temporarily HACKed to avoid slowdown!
                 #old_solution = copy.deepcopy(solutions["n"])
-                qold = copy.copy(solutions["n"].state.q)
+                qold = self.qbc(solutions["n"].state)#.copy('F')
                 told = solutions["n"].t
             retake_step = False  # Reset flag
             
             # Take one time step defined by the subclass
-            self.step(solutions)
+            self.step(solutions, qold)
 
             # Check to make sure that the Courant number was not too large
             if self.cfl <= self.cfl_max:
@@ -708,7 +710,7 @@ class Solver(object):
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
                 if self.dt_variable:
-                    solutions['n'].state.q = qold
+                    self.update_global_q(solutions['n'].state, qold)
                     solutions['n'].t = told
                     # Retake step
                     retake_step = True
