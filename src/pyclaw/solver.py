@@ -300,7 +300,7 @@ class Solver(object):
         mbc = self.mbc
         dims = [n + 2*self.mbc for n in grid.ng]
         dims.insert(0,state.maux)
-        auxbc = np.zeros(dims)
+        auxbc = np.zeros(dims,order = 'F')
         if grid.ndim == 1:
             auxbc[:,mbc:-mbc] = state.aux
         elif grid.ndim == 2:

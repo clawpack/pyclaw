@@ -9,5 +9,4 @@ class Controller(pyclawController):
     def __init__(self):
         super(Controller,self).__init__()
 
-        print self.xdir
         self.output_format = 'petsc'
