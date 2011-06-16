@@ -62,7 +62,7 @@ class PetSolver(pyclaw.solver.Solver):
                                  # intended to be temporarly placement
         grid = state.grid
         if grid.ndim == 1:
-            state.q = q[:,self.mbc:-self.mbc]
+            state.q = ghosted_q[:,self.mbc:-self.mbc]
         elif grid.ndim == 2:
             mbc, mx, my = self.mbc, grid.ng[0],grid.ng[1]
             state.q=ghosted_q[:,mbc:mx+mbc,mbc:my+mbc]
