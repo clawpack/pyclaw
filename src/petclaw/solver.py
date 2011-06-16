@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# encoding: utf-8
 r"""
 This module contains the most abstract parallel solver class, PetSolver.
 All parallel solvers inherit from this class.
@@ -8,14 +6,6 @@ All parallel solvers inherit from this class.
     Amal Alghamdi
     David Ketcheson
 """
-# ============================================================================
-#      Copyright (C) 2010 David I. Ketcheson <david.ketcheson@kaust.edu.sa>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
-
 import pyclaw.solver
 
 # ============================================================================
@@ -26,15 +16,7 @@ class PetSolver(pyclaw.solver.Solver):
     Generic PetClaw solver
     
     All PetClaw solvers inherit from this base class.
-    See superclass Solver for documentation of attributes.
-    
-    :Initialization:
-    
-    Input:
-     - *data* - (:class:`~petclaw.data.Data`) Data object, the solver will look 
-       for the named variables to instantiate itself.    
-    Output:
-     - (:class:`PetClawSolver`) - Initialized petclaw solver
+    See superclass pyclaw.solver.Solver for documentation of attributes.
     """
     
     # ========== Boundary Conditions ==================================
@@ -65,6 +47,12 @@ class PetSolver(pyclaw.solver.Solver):
         return ghosted_aux
  
     def communicateCFL(self):
+        r"""
+        Compute the maximum CFL number over all processes.
+
+        This is used to determine whether the CFL condition was
+        violated and adjust the timestep.
+        """
         from petsc4py import PETSc
 
         if self.dt_variable:

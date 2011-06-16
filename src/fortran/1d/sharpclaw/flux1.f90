@@ -43,9 +43,6 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
 
     implicit double precision (a-h,o-z)
 
-!f2py intent(in,out) dq1d  
-!f2py intent(out) cfl  
-
     integer :: maux,meqn,mbc,maxnx,mx
     double precision :: q1d(meqn,1-mbc:mx+mbc)
     double precision :: dq1d(meqn,1-mbc:maxnx+mbc)
@@ -55,6 +52,9 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
     integer, intent(in) :: ixy
     integer t
 
+!f2py intent(in,out) dq1d  
+!f2py intent(out) cfl  
+!f2py optional dq1d
 
     if (mcapa.gt.0) then
         dtdx = dt / (dx(ixy)*aux(mcapa,:))

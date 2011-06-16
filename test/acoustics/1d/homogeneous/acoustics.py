@@ -44,7 +44,8 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
     solver.kernel_language=kernel_language
 
     if kernel_language=='Python': 
-        solver.set_riemann_solver('acoustics')
+        from riemann import rp_acoustics
+        solver.rp = rp_acoustics.rp_acoustics_1d
 
     solver.limiters = [4]*solver.mwaves
     solver.dt=grid.d[0]/state.aux_global['cc']*0.1

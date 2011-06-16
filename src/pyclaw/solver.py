@@ -1,19 +1,10 @@
-#!/usr/bin/env python
-# encoding: utf-8
 r"""
-Module specifying the interface to every solver in pyclaw.
+Module specifying the interface to every solver in PyClaw.
 
 :Authors:
     Kyle T. Mandli (2008-08-19) Initial version
+    David I. Ketcheson (2011)   Enumeration of BCs; aux array BCs
 """
-# ============================================================================
-#      Copyright (C) 2008 Kyle T. Mandli <mandli@amath.washington.edu>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
-
 import time
 import copy
 import logging
@@ -22,7 +13,6 @@ import logging
 from pyclaw.data import Data
 
 class CFLError(Exception):
-
     def __init__(self,msg):
         super(CFLError,self).__init__(msg)
 
@@ -248,6 +238,13 @@ class Solver(object):
         
 
     def allocate_rk_stages(self,solutions):
+        r"""
+        Instantiate State objects for Runge--Kutta stages.
+
+        This routine is only used by method-of-lines solvers (SharpClaw),
+        not by the Classic solvers.  It allocates additional State objects
+        to store the intermediate stages used by Runge--Kutta time integrators.
+        """
         from pyclaw.state import State
 
         if self.time_integrator   == 'Euler':  nregisters=1

@@ -7,12 +7,12 @@ Pyclaw Limiters
 .. note::
     Need to provide short explanation of limiters here.
 
-.. autofunction:: pyclaw.evolve.limiters.limit
+.. autofunction:: pyclaw.limiters.tvd.limit
 
-:mod:`pyclaw.evolve.limiters`
+:mod:`pyclaw.limiters.tvd`
 =============================
 
-.. automodule:: pyclaw.evolve.limiters
+.. automodule:: pyclaw.limiters.tvd
     :exclude-members: limit
     :members:
    
