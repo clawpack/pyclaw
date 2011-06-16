@@ -61,7 +61,7 @@ def euler_rad_src(solver,solutions,t,dt):
     Geometric source terms for Euler equations with radial symmetry.
     Integrated using a 2-stage, 2nd-order Runge-Kutta method.
     """
-    srcterm_language = 'Python'
+    srcterm_language = 'Fortran'
     state = solutions['n'].states[0]
     aux=state.aux
     grid = state.grid
@@ -98,14 +98,12 @@ def euler_rad_src(solver,solutions,t,dt):
         q[3,:,:] = q[3,:,:] - dt2*(ndim-1)/rad * v * (qstar[3,:,:] + press)
     else:
         from classic2 import src2
-        qbc = solver.append_ghost_cells(state)
-        auxbc = solver.append_ghost_cells_to_aux(state)
         maxmx, maxmy, mx, my = grid.ng[0], grid.ng[1], grid.ng[0], grid.ng[1]
-        mbc = solver.mbc
         xlower, ylower, dx, dy =0,0,0,0 # it is not used
         #t, dt = passed
-        qbc = src2(maxmx,maxmy,mbc,mx,my,xlower,ylower,dx,dy,qbc,auxbc,t,dt)
-        solver.set_global_q(state, qbc)
+        
+        q = src2(mx,my,xlower,ylower,dx,dy,q,aux,t,dt)
+        
 
 def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='classic'):
     """

@@ -1,12 +1,12 @@
 c
 c
 c =========================================================
-      subroutine src2(maxmx,maxmy,meqn,mbc,mx,my,xlower,ylower,
+      subroutine src2(maxmx,maxmy,meqn,mx,my,xlower,ylower,
      &                 dx,dy,q,maux,aux,t,dt)
 c =========================================================
       implicit double precision(a-h,o-z)
-      dimension    q(meqn, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
-      dimension  aux(maux, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
+      dimension    q(meqn, 1:maxmx, 1:maxmy)
+      dimension  aux(maux, 1:maxmx, 1:maxmy)
 cf2py intent(in,out) q 
 c
 c     # source terms for cylindrical symmetry in 2d Euler equations
