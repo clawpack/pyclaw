@@ -33,14 +33,14 @@ classic1fw.so: $(ONE_D_CLASSIC_FWAVE_SOURCES) $(RP_SOURCE)
 sharpclaw1.so: $(ONE_D_SHARPCLAW_SOURCES) $(RP_SOURCE)
 	${F2PY} -m sharpclaw1 -c $(ONE_D_SHARPCLAW_SOURCES) $(RP_SOURCE)
 
-classic2.so: $(TWO_D_CLASSIC_SOURCES) $(RP_SOURCE)
-	${F2PY} -m classic2 -c $(TWO_D_CLASSIC_SOURCES) $(RP_SOURCE)
+classic2.so: $(TWO_D_CLASSIC_SOURCES) $(RP_SOURCE) $(SRCTERM_SOURCE)
+	${F2PY} -m classic2 -c $(TWO_D_CLASSIC_SOURCES) $(RP_SOURCE) $(SRCTERM_SOURCE)
 	
 classic2fw.so: $(TWO_D_CLASSIC_FWAVE_SOURCES) $(RP_SOURCE)
 	${F2PY} -m classic2fw -c $^
 	
-sharpclaw2.so: $(TWO_D_SHARPCLAW_SOURCES) $(RP_SOURCE)
-	${F2PY} -m sharpclaw2 -c $(TWO_D_SHARPCLAW_SOURCES) $(RP_SOURCE)
+sharpclaw2.so: $(TWO_D_SHARPCLAW_SOURCES) $(RP_SOURCE) $(SRCTERM_SOURCE)
+	${F2PY} -m sharpclaw2 -c $(TWO_D_SHARPCLAW_SOURCES) $(RP_SOURCE) $(SRCTERM_SOURCE)
 
 step2ds.o: $(TWO_D_CLASSIC)/step2ds.f
 	$(FC) $(FFLAGS) -o step2ds.o -c $(TWO_D_CLASSIC)/step2ds.f
