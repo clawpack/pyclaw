@@ -26,8 +26,8 @@ class ClawSolver1D(PetSolver,pyclaw.clawpack.ClawSolver1D):
     """
     def setup(self,solutions):
         r"""
-        We are initializing (allocating) the working arrays needed by fortran kernels 
-        in this routine. These arrays are passed in each call to the fortran kernel classic.
+        Set Fortran data structures (for Clawpack) and set up a DA with
+        the appropriate stencil width.
         """
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (mbc)

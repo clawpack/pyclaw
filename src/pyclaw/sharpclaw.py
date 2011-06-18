@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# encoding: utf-8
 r"""
 Module containing SharpClaw solvers for PyClaw/PetClaw
 
@@ -7,14 +5,6 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 #  Created:     2010-03-20
 #  Author:      David Ketcheson
 """
-# ============================================================================
-#      Copyright (C) 2010 David I. Ketcheson <david.ketcheson@kaust.edu.sa>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
-
 # Solver superclass
 from pyclaw.solver import Solver, CFLError
 
@@ -45,14 +35,21 @@ def src(solver,grid,q,t):
 
  
 class SharpClawSolver(Solver):
-    r""""""
+    r"""
+    Superclass for all SharpClawND solvers.
+
+    Implements Runge-Kutta time stepping and the basic form of a 
+    semi-discrete step (the dq() function).  If another method-of-lines
+    solver is implemented in the future, it should be based on this class,
+    which then ought to be renamed to something like "MOLSolver".
+    """
     
     # ========================================================================
     #   Initialization routines
     # ========================================================================
     def __init__(self, data=None):
         r"""
-        Here we just set the flag for using Python or Fortran kernels.
+        Set default options for SharpClawSolvers and call the super's __init__().
         """
         
         # Required attributes for this solver
@@ -82,16 +79,15 @@ class SharpClawSolver(Solver):
     def step(self,solutions):
         """Evolve q over one time step.
 
-        Takes the appropriate times steps to reach tend.  This is done based 
-        on the current solution attributes set in the object.
+        Take on Runge-Kutta time step using the method specified by
+        self..time_integrator.  Currently implemented methods:
 
-        Arguments:
-          tend - Target time step to reach
+        'Euler'  : 1st-order Forward Euler integration
+        'SSP33'  : 3rd-order strong stability preserving method of Shu & Osher
+        'SSP104' : 4th-order strong stability preserving method Ketcheson
         """
         from pyclaw.solution import Solution
-        # Grid we will be working on
         state = solutions['n'].states[0]
-        grid  = state.grid
 
         self.start_step(self,solutions)
 
@@ -200,16 +196,6 @@ class SharpClawSolver(Solver):
         
         return rp_solver_list
     
-    def set_riemann_solver(self,solver_name):
-        r"""
-        Assigns the library solver solver_name as the Riemann solver.
-        
-        :Input:
-         - *solver_name* - (string) Name of the solver to be used, raises a 
-           NameError if the solver does not exist.
-        """
-        raise Exception("Cannot set a Riemann solver with this class," +
-                                        " use one of the derived classes.")
          
     def dqdt(self,state):
         """
@@ -221,7 +207,7 @@ class SharpClawSolver(Solver):
 
         # Godunov Splitting -- really the source term should be called inside rkstep
         if self.src_term == 1:
-            deltaq+=self.src(grid,q,state.t)
+            deltaq+=self.src(state.grid,q,state.t)
 
         return deltaq.flatten('f')
 
@@ -257,34 +243,20 @@ class SharpClawSolver(Solver):
                                             clawparams.lim_type,clawparams.char_decomp)
 
 
-
 # ========================================================================
 class SharpClawSolver1D(SharpClawSolver):
 # ========================================================================
-    """SharpClaw evolution routine in 1D
+    """
+    SharpClaw solver for one-dimensional problems.
     
-    This class represents the 1d SharpClaw solver.  Note that there are 
-    routines here for interfacing with the fortran time stepping routines and
-    the python time stepping routines.  The ones used are dependent on the 
-    argument given to the initialization of the solver (defaults to fortran).
-    
+    Used to solve 1D hyperbolic systems using the SharpClaw algorithms,
+    which are based on WENO reconstruction and Runge-Kutta time stepping.
     """
     def __init__(self, data=None):
         r"""
-        Create 1d SharpClaw solver
-        
-        See :class:`ClawSolver1D` for more info.
+        See :class:`SharpClawSolver1D` for more info.
         """   
-        
-        # Add the functions as required attributes
-        self._required_attrs.append('rp')
-        self._default_attr_values['rp'] = None
-        
-        # Import Riemann solvers
-        exec('import riemann',globals())
-            
         self.ndim = 1
-
         super(SharpClawSolver1D,self).__init__(data)
 
 
@@ -303,29 +275,14 @@ class SharpClawSolver1D(SharpClawSolver):
             self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
 
     def teardown(self):
+        r"""
+        Deallocate F90 module arrays.
+        """
         if self.kernel_language=='Fortran':
             from sharpclaw1 import clawparams, workspace, reconstruct
             clawparams.dealloc_clawparams()
             workspace.dealloc_workspace(self.char_decomp)
             reconstruct.dealloc_recon_workspace(clawparams.lim_type,clawparams.char_decomp)
-
-    # ========== Riemann solver library routines =============================   
-    def set_riemann_solver(self,solver_name):
-        r"""
-        Assigns the library solver solver_name as the Riemann solver.
-        
-        :Input:
-         - *solver_name* - (string) Name of the solver to be used, raises a 
-           ``NameError`` if the solver does not exist.
-        """
-        import logging
-        if solver_name in riemann.rp_solver_list_1d:
-            self.rp = getattr(riemann,'rp_%s_1d' % solver_name)
-        else:
-            logger = logging.getLogger('solver')
-            error_msg = 'Could not find Riemann solver with name %s' % solver_name
-            logger.warning(error_msg)
-            raise NameError(error_msg)
 
 
     def dq_homogeneous(self,state):
@@ -362,7 +319,6 @@ class SharpClawSolver1D(SharpClawSolver):
 
         q = self.qbc(state) # Can we make use of state.qbc instead
                             # of calling self.qbc() again?
-
         grid = state.grid
         mx = grid.ng[0]
 
@@ -372,7 +328,6 @@ class SharpClawSolver1D(SharpClawSolver):
             aux = np.empty( (state.maux,mx+2*self.mbc) ,'F')
         else:
             aux = self.auxbc(state)
-
 
         if self.kernel_language=='Fortran':
             from sharpclaw1 import flux1
@@ -480,6 +435,9 @@ class SharpClawSolver2D(SharpClawSolver):
 
 
     def teardown(self):
+        r"""
+        Deallocate F90 module arrays.
+        """
         if self.kernel_language=='Fortran':
             from sharpclaw2 import clawparams, workspace, reconstruct
             workspace.dealloc_workspace(self.char_decomp)

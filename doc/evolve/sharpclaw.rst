@@ -16,21 +16,21 @@ Clawpack solvers.  Please refer to each of the inherited classes for more info
 about the methods and attributes they provide each class.  The inheritance
 structure is:
 
-.. inheritance-diagram:: pyclaw.evolve.sharpclaw.SharpClawSolver1D
+.. inheritance-diagram:: pyclaw.sharpclaw.SharpClawSolver1D
 
 :Example:
     This is a simple example of how to instantiate and evolve a solution to a
     later time ``t_end`` using the linearized 1d acoustics Riemann solver::
     
-        >>> from pyclaw.evolve.sharpclaw import SharpClawSolver1D
+        >>> from pyclaw.sharpclaw import SharpClawSolver1D
         >>> solver = SharpClawSolver1D()    # Instantiate a default, 1d solver
         
         >>> solver.evolve_to_time(solution,t_end)  # Evolve the solution to t_end
 
 
-:mod:`pyclaw.evolve.sharpclaw`
+:mod:`pyclaw.sharpclaw`
 ===============================
 
-.. automodule:: pyclaw.evolve.sharpclaw
+.. automodule:: pyclaw.sharpclaw
    :members:
    :show-inheritance:

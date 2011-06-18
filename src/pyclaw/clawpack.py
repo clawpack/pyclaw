@@ -296,6 +296,10 @@ class ClawSolver1D(ClawSolver):
 
     # ========== Setup routine =============================   
     def setup(self,solutions):
+        r"""
+        Perform essential solver setup.  This routine must be called before
+        solver.step() may be called.
+        """
         self.set_mthlim()
         if(self.kernel_language == 'Fortran'):
             self.set_fortran_parameters(solutions)
@@ -303,8 +307,9 @@ class ClawSolver1D(ClawSolver):
 
     def set_fortran_parameters(self,solutions):
         r"""
-        We are initializing (allocating) the working arrays needed by fortran kernels 
-        in this routine. These arrays are passed in each call to the fortran kernel classic.
+        Pack parameters into format recognized by Clawpack (Fortran) code.
+
+        Sets the method array and the cparam common block for the Riemann solver.
         """
         import numpy as np
 
@@ -330,6 +335,9 @@ class ClawSolver1D(ClawSolver):
 
 
     def teardown(self):
+        r"""
+        Delete Fortran objects, which otherwise tend to persist in Python sessions.
+        """
         if(self.kernel_language == 'Fortran'):
             if self.fwave:
                 import classic1fw as classic1
@@ -529,9 +537,8 @@ class ClawSolver2D(ClawSolver):
     # ========== Setup routine =============================   
     def setup(self,solutions):
         r"""
-        See setup doc string in the super class.
-        We are initializing (allocating) the working arrays needed by fortran kernels 
-        in this routine. These arrays are passed in each call to the fortran kernel dimsp2.
+        Perform essential solver setup.  This routine must be called before
+        solver.step() may be called.
         """
         self.set_mthlim()
 
@@ -551,6 +558,11 @@ class ClawSolver2D(ClawSolver):
 
 
     def set_fortran_parameters(self,solutions):
+        r"""
+        Pack parameters into format recognized by Clawpack (Fortran) code.
+
+        Sets the method array and the cparam common block for the Riemann solver.
+        """
         import numpy as np
 
         # Grid we will be working on
@@ -657,7 +669,11 @@ class ClawSolver2D(ClawSolver):
     # ========== Homogeneous Step =====================================
     def homogeneous_step(self,solutions):
         r"""
-        
+        Take a step on the homogeneous hyperbolic system using the Clawpack
+        algorithm.
+
+        Clawpack is based on the Lax-Wendroff method, combined with Riemann
+        solvers and TVD limiters applied to waves.
         """
         import numpy as np
 
