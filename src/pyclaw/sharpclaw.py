@@ -381,6 +381,7 @@ class SharpClawSolver1D(SharpClawSolver):
         elif self.kernel_language=='Python':
 
             dtdx = np.zeros( (mx+2*self.mbc) ,'F')
+            dq   = np.zeros( (state.meqn,mx+2*self.mbc) ,'F')
 
             # Find local value for dt/dx
             if state.capa is not None:
