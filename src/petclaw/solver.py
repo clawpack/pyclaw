@@ -37,10 +37,20 @@ class PetSolver(pyclaw.solver.Solver):
         involves setting ghosted_q as the local vector array then perform
         a local to global communication. 
         """
-        state.lqVec.placeArray(ghosted_q)
-        state.q_da.localToGlobal(state.lqVec,state.gqVec)
-        state.lqVec.resetArray() # This call is required because placeArray is
+        
+        #state.lqVec.placeArray(ghosted_q)
+        #state.q_da.localToGlobal(state.lqVec,state.gqVec)
+        #state.lqVec.resetArray() # This call is required because placeArray is
                                  # intended to be temporarly placement
+        grid = state.grid
+        if grid.ndim == 1:
+            state.q = ghosted_q[:,self.mbc:-self.mbc]
+        elif grid.ndim == 2:
+            mbc, mx, my = self.mbc, grid.ng[0],grid.ng[1]
+            state.q=ghosted_q[:,mbc:mx+mbc,mbc:my+mbc]
+        else:
+            raise NotImplementedError("The case of 3D is not handled in "\
+            +"this function yet")
 
     def append_ghost_cells_to_aux(self,state):
         """
