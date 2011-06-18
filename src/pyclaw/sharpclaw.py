@@ -317,7 +317,8 @@ class SharpClawSolver1D(SharpClawSolver):
     
         import numpy as np
 
-        q = self.qbc(state)
+        q = self.qbc(state) # Can we make use of state.qbc instead
+                            # of calling self.qbc() again?
         grid = state.grid
         mx = grid.ng[0]
 
@@ -475,7 +476,9 @@ class SharpClawSolver2D(SharpClawSolver):
     
         import numpy as np
 
-        q = self.qbc(state)
+        q = self.qbc(state) # Can we make use of state.qbc instead
+                            # of calling self.qbc() again?
+
 
         dq = np.zeros(q.shape, order='F')
         grid = state.grid

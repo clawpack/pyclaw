@@ -77,10 +77,10 @@ class State(object):
         self.grid = grid
         r"""pyclaw.Grid.grid - The grid this state lives on"""
         self.aux = None
-        r"""(ndarray(...,maux)) - Auxiliary array for this grid containing per 
+        r"""(ndarray(maux,...)) - Auxiliary array for this grid containing per 
             cell information"""
         self.q   = None
-        r"""(ndarray(...,meqn)) - Cell averaged quantity being evolved."""
+        r"""(ndarray(meqn,...)) - Cell averaged quantity being evolved."""
         self.aux_global = {}
         r"""(dict) - Dictionary of global values for this grid, 
             ``default = {}``"""
@@ -91,10 +91,20 @@ class State(object):
         r"""(int) - State number of current state, ``default = 1``"""
         self.capa = None
         r"""(ndarray(...)) - Capacity array for this grid, ``default = 1.0``"""
+        self.qbc   = None
+        r"""(ndarray(meqn,...)) - q with ghost cells (boundaries). It is
+        intended to be populated by method Solver.evolve_to_time. It can be
+        used and modified by solvers"""
+        self.qbc_backup   = None
+        r"""(ndarray(meqn,...)) - A backup copy of qbc. It is intended to
+        be populated by method Solver.evolve_to_time in case Solver.dt_variable
+        is set to be used when rejecting step. It can be used by solvers but
+        should not be changed"""
+
 
     def __str__(self):
         output = "State %s:\n" % self.stateno
-        output += "  t=%s mbc=%s meqn=%s\n  " % (self.t,self.mbc,self.meqn)
+        output += "  t=%s meqn=%s\n  " % (self.t,self.meqn)
         output += '\n'
         if self.q is not None:
             output += "  q.shape=%s" % str(self.q.shape)

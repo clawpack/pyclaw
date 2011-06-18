@@ -1,10 +1,10 @@
 all : limiter.o philim.o 
 	
 limiter.o:
-	$(FC) -o limiter.o -c limiter.f
+	$(FC) $(FFLAGS) -o limiter.o -c limiter.f
 
 philim.o:
-	$(FC) -o philim.o -c philim.f
+	$(FC) $(FFLAGS) -o philim.o -c philim.f
 
 clean:
 	rm *.o *.so

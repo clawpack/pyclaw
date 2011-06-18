@@ -16,14 +16,14 @@ Clawpack solvers.  Please refer to each of the inherited classes for more info
 about the methods and attributes they provide each class.  The inheritance
 structure is:
 
-.. inheritance-diagram:: petclaw.sharpclaw.PetSharpClawSolver1D
+.. inheritance-diagram:: petclaw.sharpclaw.SharpClawSolver1D
 
 :Example:
     This is a simple example of how to instantiate and evolve a solution to a
     later time ``t_end`` using the linearized 1d acoustics Riemann solver::
     
-        >>> from petclaw.sharpclaw import PetSharpClawSolver1D
-        >>> solver = PetSharpClawSolver1D()    # Instantiate a default, 1d solver
+        >>> from petclaw.sharpclaw import SharpClawSolver1D
+        >>> solver = SharpClawSolver1D()    # Instantiate a default, 1d solver
         
         >>> solver.evolve_to_time(solution,t_end)  # Evolve the solution to t_end
 

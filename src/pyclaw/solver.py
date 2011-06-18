@@ -286,6 +286,22 @@ class Solver(object):
             qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = state.q
         return qbc
  
+    def set_global_q(self,state,ghosted_q):
+        """
+        set the value of q using the arrayghosted_q. 
+        for PySolver, it is only setting the value
+        of q with proper slice of ghosted_q
+        """
+        grid = state.grid
+        if grid.ndim == 1:
+            state.q = q[:,self.mbc:-self.mbc]
+        elif grid.ndim == 2:
+            mbc, mx, my = self.mbc, grid.ng[0],grid.ng[1]
+            state.q=ghosted_q[:,mbc:mx+mbc,mbc:my+mbc]
+        else:
+            raise NotImplementedError("The case of 3D is not handled in "\
+            +"this function yet")
+    
     def append_ghost_cells_to_aux(self,state):
         """
         Returns aux with ghost cells attached.  For the serial Solver, this means
@@ -653,6 +669,12 @@ class Solver(object):
                 
         # Main time stepping loop
         for n in xrange(self.max_steps):
+            
+            state = solutions["n"].state
+            
+            # update boundary conditions
+            state.qbc = self.qbc(state)
+
         
             # Adjust dt so that we hit tend exactly if we are near tend
             if solutions['n'].t + self.dt > tend and tstart < tend and not take_one_step:
@@ -663,7 +685,7 @@ class Solver(object):
                 # pass
                 #Temporarily HACKed to avoid slowdown!
                 #old_solution = copy.deepcopy(solutions["n"])
-                qold = copy.copy(solutions["n"].state.q)
+                state.qbc_backup = state.qbc.copy('F')
                 told = solutions["n"].t
             retake_step = False  # Reset flag
             
@@ -692,7 +714,7 @@ class Solver(object):
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
                 if self.dt_variable:
-                    solutions['n'].state.q = qold
+                    self.set_global_q(state, state.qbc_backup)
                     solutions['n'].t = told
                     # Retake step
                     retake_step = True

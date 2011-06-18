@@ -407,6 +407,20 @@ def _info_from_argv(argv=None):
             args.append(value)
     return args, kwargs
 
+def _arguments_str_from_dictionary(options):
+    """
+    Convert method options passed as a dictionary to a str object
+    having the form of the method arguments
+    """
+    option_string = ""
+    for k in options:
+        if isinstance(options[k], str):
+            option_string += k+"='"+str(options[k])+"',"
+        else:
+            option_string += k+"="+str(options[k])+","
+    option_string = option_string.strip(',')
+
+    return option_string
 #-----------------------------
 class FrameCounter:
 #-----------------------------

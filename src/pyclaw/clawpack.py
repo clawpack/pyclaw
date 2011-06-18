@@ -400,8 +400,9 @@ class ClawSolver1D(ClawSolver):
 
         state = solutions['n'].states[0]
         grid = state.grid
-        q = self.qbc(state)
 
+        q = state.qbc
+            
         meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
           
         if maux>0:
@@ -498,7 +499,7 @@ class ClawSolver1D(ClawSolver):
                     q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1]) 
 
         else: raise Exception("Unrecognized kernel_language; choose 'Fortran' or 'Python'")
-            
+        # Amal: this line need to be replcaed by set_global_q    
         state.q = q[:,self.mbc:-self.mbc]
 
    
@@ -693,12 +694,18 @@ class ClawSolver2D(ClawSolver):
             else:
                 aux = self.auxbc(state)
 
-                
+            
             dx,dy,dt = grid.d[0],grid.d[1],self.dt
-
-            qold = self.qbc(state)
-            qnew = qold.copy('F') #(input/output)
-
+            
+            qnew = state.qbc #(input/output)
+            if self.dt_variable:
+                qold = state.qbc_backup # Solver should quarantee that 
+                                        # state.qbc_backup will not be
+                                        # changed so that it can be used in
+                                        # case of step rejection.
+            else:
+                qold = qnew.copy('F')
+            
             if self.fwave:
                 import classic2fw as classic2
             else:
@@ -714,7 +721,7 @@ class ClawSolver2D(ClawSolver):
                       self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl = cfl
-            state.q=q[:,mbc:mx+mbc,mbc:my+mbc]
+            self.set_global_q(state, q)
 
         else:
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
