@@ -309,12 +309,6 @@ class ClawSolver1D(ClawSolver):
         import numpy as np
 
         state = solutions['n'].state
-        grid  = state.grid
-
-        # Number of equations
-        meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
-        mx = grid.ng[0]
-
 
         self.method =np.ones(7, dtype=int)
         self.method[0] = self.dt_variable
@@ -322,23 +316,17 @@ class ClawSolver1D(ClawSolver):
         self.method[2] = 0  # Not used in 1D
         self.method[3] = self.verbosity
         self.method[4] = self.src_split
-        if (grid.capa == None):
+        if (state.capa == None):
             self.method[5] = 0  
         else:
             self.method[5] = 1  
-        self.method[6] = maux  # aux
+        self.method[6] = state.maux  # aux
  
         if self.fwave:
             import classic1fw as classic1
         else:
             import classic1
-
         state.set_cparam(classic1)
-        self.f    = np.empty( (meqn,mx+2*mbc) )
-        self.wave = np.empty( (meqn,mwaves,mx+2*mbc) )
-        self.s    = np.empty( (mwaves,mx+2*mbc) )
-        self.amdq = np.empty( (meqn,mx+2*mbc) )
-        self.apdq = np.empty( (meqn,mx+2*mbc) )
 
 
     def teardown(self):
@@ -404,8 +392,9 @@ class ClawSolver1D(ClawSolver):
 
         state = solutions['n'].states[0]
         grid = state.grid
-        q = self.qbc(state)
 
+        q = state.qbc
+            
         meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
           
         if maux>0:
@@ -424,7 +413,7 @@ class ClawSolver1D(ClawSolver):
             if(maux == 0): aux = np.empty( (maux,mx+2*mbc) )
         
        
-            q,self.cfl = classic1.step1(mx,mbc,mx,q,aux,dx,dt,self.method,self.mthlim,self.f,self.wave,self.s,self.amdq,self.apdq,dtdx)
+            q,self.cfl = classic1.step1(mx,mbc,mx,q,aux,dx,dt,self.method,self.mthlim)
 
         elif(self.kernel_language == 'Python'):
  
@@ -434,8 +423,8 @@ class ClawSolver1D(ClawSolver):
             dtdx = np.zeros( (2*self.mbc+grid.ng[0]) )
 
             # Find local value for dt/dx
-            if grid.capa is not None:
-                dtdx = self.dt / (grid.d[0] * grid.capa)
+            if state.capa is not None:
+                dtdx = self.dt / (grid.d[0] * state.capa)
             else:
                 dtdx += self.dt/grid.d[0]
         
@@ -502,7 +491,7 @@ class ClawSolver1D(ClawSolver):
                     q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1]) 
 
         else: raise Exception("Unrecognized kernel_language; choose 'Fortran' or 'Python'")
-            
+        # Amal: this line need to be replcaed by set_global_q    
         state.q = q[:,self.mbc:-self.mbc]
 
    
@@ -595,7 +584,7 @@ class ClawSolver2D(ClawSolver):
         self.method[3] = self.verbosity
         self.method[4] = self.src_split  # src term
 
-        if (grid.capa == None): 
+        if (state.capa == None): 
             self.method[5] = 0
         else: 
             self.method[5] = 1  
@@ -616,12 +605,6 @@ class ClawSolver2D(ClawSolver):
 
         # These work arrays really ought to live inside a fortran module
         # as is done for sharpclaw
-        self.qadd = np.empty((meqn,maxm+2*mbc))
-        self.fadd = np.empty((meqn,maxm+2*mbc))
-        self.gadd = np.empty((meqn,2,maxm+2*mbc))
-        self.q1d  = np.empty((meqn,maxm+2*mbc))
-        self.dtdx1d = np.empty((maxm+2*mbc))
-        self.dtdy1d = np.empty((maxm+2*mbc))
         self.aux1 = np.empty((maux,maxm+2*mbc))
         self.aux2 = np.empty((maux,maxm+2*mbc))
         self.aux3 = np.empty((maux,maxm+2*mbc))
@@ -695,12 +678,18 @@ class ClawSolver2D(ClawSolver):
             else:
                 aux = self.auxbc(state)
 
-                
+            
             dx,dy,dt = grid.d[0],grid.d[1],self.dt
-
-            qold = self.qbc(state)
-            qnew = qold.copy('F') #(input/output)
-
+            
+            qnew = state.qbc #(input/output)
+            if self.dt_variable:
+                qold = state.qbc_backup # Solver should quarantee that 
+                                        # state.qbc_backup will not be
+                                        # changed so that it can be used in
+                                        # case of step rejection.
+            else:
+                qold = qnew.copy('F')
+            
             if self.fwave:
                 import classic2fw as classic2
             else:
@@ -709,16 +698,14 @@ class ClawSolver2D(ClawSolver):
             if self.dim_split:
                 q, cfl = classic2.dimsp2(maxm,mx,my,mbc,mx,my, \
                       qold,qnew,aux,dx,dy,dt,self.method,self.mthlim,self.cfl,self.cflv, \
-                      self.qadd,self.fadd,self.gadd,self.q1d,self.dtdx1d,\
-                      self.dtdy1d,self.aux1,self.aux2,self.aux3,self.work)
+                      self.aux1,self.aux2,self.aux3,self.work)
             else:
                 q, cfl = classic2.step2(maxm,mx,my,mbc,mx,my, \
                       qold,qnew,aux,dx,dy,dt,self.method,self.mthlim,self.cfl, \
-                      self.qadd,self.fadd,self.gadd,self.q1d,self.dtdx1d,\
-                      self.dtdy1d,self.aux1,self.aux2,self.aux3,self.work)
+                      self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl = cfl
-            state.q=q[:,mbc:mx+mbc,mbc:my+mbc]
+            self.set_global_q(state, q)
 
         else:
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")

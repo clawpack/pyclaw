@@ -12,15 +12,9 @@ running of compiled fortran binaries.
     Kyle T. Mandli (2008-02-15) Initial version
     
     Randall J. LeVeque and Kyle T Mandli (2009) Plotting and run updates
+
+    David I. Ketcheson (2011) Minor additional functionality
 """
-# ============================================================================
-#      Copyright (C) 2009 Kyle T. Mandli <mandli@amath.washington.edu>
-#      Copyright (C) 2009 Randall J. LeVeque <rjl@amath.washington.edu>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
 
 import logging
 import sys
@@ -168,15 +162,6 @@ class Controller(object):
     solution = property(**solution())
     
     # ========== Plotting methods ============================================    
-    def plotclaw(self, datadir='.'):
-        pydir = '/home/rjl/claw/trunk/claw/python'
-        if sys.platform in ['cygwin', 'win32']:
-            syscmd = " C:/Python25/python.exe C:/cygwin%s/pyclaw/plotclaw.py  %s" \
-                   % (pydir, datadir) 
-        else:
-            syscmd = " python %s/pyclaw/plotclaw.py  %s" \
-                   % (pydir, datadir) 
-        os.system(syscmd)
     
     # ========== Solver convenience methods ==================================
     def run(self):
@@ -215,8 +200,7 @@ class Controller(object):
         self.solver.setup(self.solutions)
             
         # Check to make sure the initial solutions are valid
-        if not reduce(lambda x,y: x*y,[sol.is_valid() for sol in 
-                        self.solutions.itervalues()]):
+        if not all([sol.is_valid() for sol in self.solutions.itervalues()]):
             raise Exception("Initial solutions are not valid.")
         
         # Output styles
@@ -250,8 +234,8 @@ class Controller(object):
                 for n in xrange(self.nstepout):
                     status = self.solver.evolve_to_time(self.solutions)
             frame.increment()
-            # Save current solution to dictionary with frame as key
             if self.keep_copy:
+                # Save current solution to dictionary with frame as key
                 self.frames.append(copy.deepcopy(self.solutions['n']))
             if self.output_format is not None:
                 self.solutions['n'].write(frame,self.outdir,

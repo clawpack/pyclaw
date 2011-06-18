@@ -1,3 +1,5 @@
+r"""Convenience routines for easily plotting with VisClaw."""
+
 def plotInteractive(outdir='./_output',format='ascii'):
     """
     Convenience function for launching an interactive plotting session.

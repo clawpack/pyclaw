@@ -34,18 +34,24 @@ c            f(m,i) = mth component of flux at left edge of ith cell
 c     --------------------------------------------------------------------
 c
       implicit double precision (a-h,o-z)    
-      dimension q(meqn,1-mbc:maxmx+mbc)
+      double precision q(meqn,1-mbc:maxmx+mbc)
+      double precision aux(maux,1-mbc:maxmx+mbc)
+      double precision f(meqn,1-mbc:maxmx+mbc)
+      double precision s(mwaves,1-mbc:maxmx+mbc)
+      double precision wave(meqn, mwaves,1-mbc:maxmx+mbc)
+      double precision amdq(meqn,1-mbc:maxmx+mbc)
+      double precision apdq(meqn,1-mbc:maxmx+mbc)
+      double precision dtdx(1-mbc:maxmx+mbc)
+      integer          method(7),mthlim(mwaves)
+      logical limit
+
 cf2py intent(in,out) q  
 cf2py intent(out) cfl  
-      dimension  aux(maux,1-mbc:maxmx+mbc)
-      dimension    f(meqn,1-mbc:maxmx+mbc)
-      dimension    s(mwaves,1-mbc:maxmx+mbc)
-      dimension wave(meqn, mwaves,1-mbc:maxmx+mbc)
-      dimension amdq(meqn,1-mbc:maxmx+mbc)
-      dimension apdq(meqn,1-mbc:maxmx+mbc)
-      dimension dtdx(1-mbc:maxmx+mbc)
-      dimension method(7),mthlim(mwaves)
-      logical limit
+cf2py intent(in) meqn  
+cf2py intent(in) mbc  
+cf2py intent(in) maxmx  
+cf2py optional f, amdq, apdq, dtdx, s, wave
+
 c
 c     # check if any limiters are used:
       limit = .false.

@@ -1,5 +1,6 @@
-FC ?= gfortran -O3
-F2PY ?= f2py --opt="-O3" --f90flags="-O3" --f77flags="-O3"
+FC ?= gfortran
+F2PY ?= f2py
+FFLAGS ?=
 
 ONE_D_CLASSIC = $(PYCLAW)/src/fortran/1d/classic
 
@@ -42,19 +43,19 @@ sharpclaw2.so: $(TWO_D_SHARPCLAW_SOURCES) $(RP_SOURCE)
 	${F2PY} -m sharpclaw2 -c $(TWO_D_SHARPCLAW_SOURCES) $(RP_SOURCE)
 
 step2ds.o: $(TWO_D_CLASSIC)/step2ds.f
-	$(FC) -o step2ds.o -c $(TWO_D_CLASSIC)/step2ds.f
+	$(FC) $(FFLAGS) -o step2ds.o -c $(TWO_D_CLASSIC)/step2ds.f
 
 flux2.o: $(TWO_D_CLASSIC)/flux2.f
-	$(FC) -o flux2.o -c $(TWO_D_CLASSIC)/flux2.f
+	$(FC) $(FFLAGS) -o flux2.o -c $(TWO_D_CLASSIC)/flux2.f
 
 flux2fw.o: $(TWO_D_CLASSIC)/flux2fw.f
-	$(FC) -o flux2fw.o -c $(TWO_D_CLASSIC)/flux2fw.f
+	$(FC) $(FFLAGS) -o flux2fw.o -c $(TWO_D_CLASSIC)/flux2fw.f
 
 limiter.o: $(ONE_D_CLASSIC)/limiter.f
-	$(FC) -o limiter.o -c $(ONE_D_CLASSIC)/limiter.f
+	$(FC) $(FFLAGS) -o limiter.o -c $(ONE_D_CLASSIC)/limiter.f
 
 philim.o: $(ONE_D_CLASSIC)/philim.f
-	$(FC) -o philim.o -c $(ONE_D_CLASSIC)/philim.f
+	$(FC) $(FFLAGS) -o philim.o -c $(ONE_D_CLASSIC)/philim.f
 
 clean:
 	rm -f *.o *.so *.pyc *.log
