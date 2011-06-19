@@ -40,22 +40,11 @@ def run(test_suite='all',verbosity=2,debug=False):
     solver_suite.addTest(BurgersTest())
     solver_suite.addTest(EulerTest())
     solver_suite.addTest(ShallowTest())
-    
-    # Plotting tests
-    plotter_suite = unittest.TestSuite()
-    
-    # Utility function tests
-    data_manip_suite = unittest.TestLoader().loadTestsFromTestCase(DataManipulationTestCase)
-    util_suite = unittest.TestSuite([data_manip_suite])
 
     if test_suite == 'solver':
         suite = solver_suite
-    elif test_suite == 'plotting':
-        suite = plotter_suite
-    elif test_suite == 'util':
-        suite = util_suite
     elif test_suite == 'all':
-        suite = unittest.TestSuite([solver_suite,plotter_suite,util_suite])
+        suite = unittest.TestSuite([solver_suite])
     
     # Run suites
     if not debug:
