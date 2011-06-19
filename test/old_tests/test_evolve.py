@@ -25,6 +25,11 @@ import pyclaw.solution
 
 _DATA_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__),'data'))
 
+# This is prevents nose from running these tests
+from nose.plugins.skip import Skip,SkipTest
+Skip()
+raise SkipTest()
+
 class SolverTestCase(unittest.TestCase):
     r"""Base solver test class"""
     
