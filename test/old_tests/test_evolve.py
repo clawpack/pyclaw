@@ -19,9 +19,9 @@ import os
 
 import numpy as np
 
-import pyclaw.controller
-import pyclaw.evolve.clawpack
-import pyclaw.solution
+#import pyclaw.controller
+#import pyclaw.evolve.clawpack
+#import pyclaw.solution
 
 _DATA_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__),'data'))
 
