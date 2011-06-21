@@ -229,6 +229,7 @@ class Controller(object):
         for t in output_times[1:]:
             if self.outstyle < 3:
                 status = self.solver.evolve_to_time(self.solutions,t)
+                print 'steps', status['numsteps']
             else:
                 # Take nstepout steps and output
                 for n in xrange(self.nstepout):
