@@ -244,6 +244,9 @@ class Solution(object):
                     raise Exception("Invalid argument list")
             elif isinstance(arg[0],int): 
                 frame = arg[0]
+                #DANGER!  The path applied here is on top of anything
+                #specified in outdir!
+                #(BUG!)
                 defaults = {'format':'ascii','path':'./','file_prefix':None,
                     'read_aux':True,'options':{}}
    

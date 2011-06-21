@@ -89,7 +89,8 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
         pickle_file = open(pickle_filename,'wb')
         # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
         pickle.dump({'t':solution.t,'meqn':solution.meqn,'nstates':len(solution.states),
-                     'maux':solution.maux,'ndim':solution.ndim,'write_aux':write_aux}, pickle_file)
+                     'maux':solution.maux,'ndim':solution.ndim,'write_aux':write_aux,
+                     'aux_global' : solution.aux_global}, pickle_file)
 
     # now set up the PETSc viewers
     if options['format'] == 'ascii':
@@ -199,39 +200,41 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         lower   = grid_dict['lower']
         n       = grid_dict['n']
         d       = grid_dict['d']
-                
+
+        import petclaw ##
         dimensions = []
         for i in xrange(ndim):
             dimensions.append(
-                pyclaw.solution.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
-        grid = pyclaw.solution.Grid(dimensions)
+                petclaw.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
+        grid = petclaw.Grid(dimensions)
         grid.level = level 
-        state = pyclaw.state.State(grid)
+        state = petclaw.State(grid)
         state.stateno = stateno
-
         state.t = value_dict['t']
         state.meqn = meqn
-
+        state.aux_global = value_dict['aux_global']
         state.q_da = PETSc.DA().create(dim=grid.ndim,
-                                       dof=meqn,
-                                       sizes=grid.ng, 
+                                      dof=meqn,
+                                       sizes=grid.n, 
                                        stencil_width=0,
                                        comm=PETSc.COMM_WORLD)
-
-        state.gqVec = PETSc.Vec().load(viewer)
+ 
+        #state.gqVec = PETSc.Vec().load(viewer)
+        state.gqVec.load(viewer)
         q = state.gqVec.getArray().copy()
         q_dim=[state.meqn]
         q_dim.extend(grid.ng)
         q = q.reshape(q_dim,order='F')
         state.q = q
-        
+                
         if read_aux:
             state.aux_da = PETSc.DA().create(dim=grid.ndim,
                                              dof=maux,
-                                             sizes=grid.ng,
+                                             sizes=grid.n,
                                              stencil_width=0,
                                              comm=PETSc.COMM_WORLD)
-            state.gauxVec = PETSc.Vec().load(aux_viewer)
+            #state.gauxVec = PETSc.Vec().load(aux_viewer)
+            state.gauxVec.load(aux_viewer)
             state.aux = state.gauxVec.getArray().copy()
             aux_dim=[maux]; 
             aux_dim.extend(grid.ng)
