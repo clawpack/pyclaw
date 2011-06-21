@@ -400,6 +400,8 @@ class Solution(object):
             format_list = [format]
         elif isinstance(format,list):
             format_list = format
+        if 'petsc' in format_list:
+            from petclaw import io
         # Loop over list of formats requested
         for form in format_list:
             write_func = eval('io.write_%s' % form)
@@ -445,6 +447,8 @@ class Solution(object):
          - (bool) - True if read was successful, False otherwise
         """
         
+        if format=='petsc':
+            from petclaw import io
         path = os.path.expandvars(os.path.expanduser(path))
         read_func = eval('io.read_%s' % format)
         if file_prefix is None:
