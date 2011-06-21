@@ -111,8 +111,6 @@ class Controller(object):
         data in output_format's format.  ``default = {}``"""
         
         # Classic output parameters, used in run convenience method
-        self.t0 = 0.0
-        r"""(float) - Starting time, ``default = 0.0``"""
         self.tfinal = 1.0
         r"""(float) - Final time output, ``default = 1.0``"""
         self.outstyle = 1
@@ -204,8 +202,10 @@ class Controller(object):
             raise Exception("Initial solutions are not valid.")
         
         # Output styles
+        # We ought to have a check confirming that all solutions
+        # are at the same time t
         if self.outstyle == 1:
-            output_times = np.linspace(self.t0,
+            output_times = np.linspace(self.solution.t,
                     self.tfinal,self.nout+1)
         elif self.outstyle == 2:
             output_times = self.out_times
