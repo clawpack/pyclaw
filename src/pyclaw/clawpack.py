@@ -454,8 +454,9 @@ class ClawSolver1D(ClawSolver):
             #        LL    |                               |     UL
             #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
             #              |                               |
+
             LL = self.mbc - 1
-            UL = self.mbc + grid.n[0] + 1 
+            UL = self.mbc + grid.ng[0] + 1 
 
             # Update q for Godunov update
             for m in xrange(meqn):

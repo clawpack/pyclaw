@@ -325,7 +325,7 @@ class SharpClawSolver1D(SharpClawSolver):
         ixy=1
         aux=state.aux
         if state.maux == 0: 
-            aux = np.empty( (state.maux,mx+2*self.mbc) ,'F')
+            aux = np.empty( (state.maux,mx+2*self.mbc) ,order='F')
         else:
             aux = self.auxbc(state)
 
@@ -335,8 +335,8 @@ class SharpClawSolver1D(SharpClawSolver):
 
         elif self.kernel_language=='Python':
 
-            dtdx = np.zeros( (mx+2*self.mbc) ,'F')
-            dq   = np.zeros( (state.meqn,mx+2*self.mbc) ,'F')
+            dtdx = np.zeros( (mx+2*self.mbc) ,order='F')
+            dq   = np.zeros( (state.meqn,mx+2*self.mbc) ,order='F')
 
             # Find local value for dt/dx
             if state.capa is not None:
@@ -377,7 +377,7 @@ class SharpClawSolver1D(SharpClawSolver):
             # Loop limits for local portion of grid
             # THIS WON'T WORK IN PARALLEL!
             LL = self.mbc - 1
-            UL = grid.n[0] + self.mbc + 1
+            UL = grid.ng[0] + self.mbc + 1
 
             # Compute maximum wave speed
             self.cfl = 0.0
