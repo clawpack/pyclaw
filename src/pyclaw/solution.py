@@ -97,10 +97,20 @@ class Solution(object):
         def fget(self): return self._get_base_state_attribute('meqn')
         def fset(self, value): self.set_all_states('meqn',value)
         return locals()   
+    def mp():
+        doc = r"""(int) - :attr:`State.mp` of base state"""
+        def fget(self): return self._get_base_state_attribute('mp')
+        def fset(self, value): self.set_all_states('mp',value)
+        return locals()
     def q():
         doc = r"""(ndarray(...,:attr:`State.meqn`)) - :attr:`State.q` of base 
                   state"""
         def fget(self): return self._get_base_state_attribute('q')
+        return locals()
+    def p():
+        doc = r"""(ndarray(...,:attr:`State.meqn`)) - :attr:`State.p` 
+                   of base state"""
+        def fget(self): return self._get_base_state_attribute('p')
         return locals()
     def aux():
         doc = r"""(ndarray(...,:attr:`State.maux`)) - :attr:`State.aux` of base 
@@ -188,8 +198,10 @@ class Solution(object):
     state = property(**state())
     grid = property(**grid())
     t = property(**t())
-    meqn = property(**meqn()) 
+    meqn = property(**meqn())
+    mp = property(**mp())
     q = property(**q())
+    p = property(**p())
     aux = property(**aux())
     capa = property(**capa())
     aux_global = property(**aux_global())
@@ -244,10 +256,7 @@ class Solution(object):
                     raise Exception("Invalid argument list")
             elif isinstance(arg[0],int): 
                 frame = arg[0]
-                #DANGER!  The path applied here is on top of anything
-                #specified in outdir!
-                #(BUG!)
-                defaults = {'format':'ascii','path':'./','file_prefix':None,
+                defaults = {'format':'ascii','path':'./_output/','file_prefix':None,
                     'read_aux':True,'options':{}}
    
                 for (k,v) in defaults.iteritems():    
@@ -288,6 +297,7 @@ class Solution(object):
                 # General grid properties
                 state.t = data.t0
                 state.meqn = data.meqn
+                state.mp = data.mp
                 
                 # Add grid to solution
                 self.states.append(state)
@@ -369,7 +379,7 @@ class Solution(object):
     
     # ========== IO Functions ================================================
     def write(self,frame,path='./',format='ascii',file_prefix=None,
-                write_aux=False,options={}):
+                write_aux=False,options={},write_p=False):
         r"""
         Write out a representation of the solution
 
@@ -410,13 +420,13 @@ class Solution(object):
             write_func = eval('io.write_%s' % form)
             if file_prefix is None:
                 write_func(self,frame,path,write_aux=write_aux,
-                            options=options)
+                            options=options,write_p=write_p)
             else:
                 write_func(self,frame,path,file_prefix=file_prefix,
-                                write_aux=write_aux,options=options)
+                                write_aux=write_aux,options=options,
+                           write_p=write_p)
             msg = "Wrote out solution in format %s for time t=%s" % (form,self.t)
             logging.getLogger('io').info(msg)
-        
         
     def read(self,frame,path='./',format='ascii',file_prefix=None,
                 read_aux=False,options={}):

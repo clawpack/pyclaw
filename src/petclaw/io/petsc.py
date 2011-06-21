@@ -29,13 +29,13 @@ import pickle
 import numpy as np
     
 
-def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,options={}):
+def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,options={},write_p=False):
     r"""
         Write out pickle and PETSc data files representing the
         solution.  Common data is written from process 0 in pickle
         files.  Shared data is written from all processes into PETSc
         data files.
-    
+        
     :Input:
      - *solution* - (:class:`~pyclaw.solution.Solution`) pyclaw
        object to be output
@@ -52,8 +52,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
     
     format   : one of 'ascii' or 'binary'
     clobber  : if True (Default), files will be overwritten
-    """
-
+    """    
     # Option parsing
     option_defaults = {'format':'binary','clobber':True}
 
@@ -88,9 +87,14 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
     if rank==0:
         pickle_file = open(pickle_filename,'wb')
         # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
-        pickle.dump({'t':solution.t,'meqn':solution.meqn,'nstates':len(solution.states),
-                     'maux':solution.maux,'ndim':solution.ndim,'write_aux':write_aux,
-                     'aux_global' : solution.aux_global}, pickle_file)
+        if write_p:
+            pickle.dump({'t':solution.t,'meqn':solution.mp,'nstates':len(solution.states),
+                         'maux':solution.maux,'ndim':solution.ndim,'write_aux':write_aux,
+                         'aux_global' : solution.aux_global}, pickle_file)
+        else:
+            pickle.dump({'t':solution.t,'meqn':solution.meqn,'nstates':len(solution.states),
+                         'maux':solution.maux,'ndim':solution.ndim,'write_aux':write_aux,
+                         'aux_global' : solution.aux_global}, pickle_file)
 
     # now set up the PETSc viewers
     if options['format'] == 'ascii':
@@ -114,8 +118,10 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
             pickle.dump({'stateno':state.stateno,'level':grid.level,
                          'names':grid.name,'lower':grid.lower,
                          'n':grid.n,'d':grid.d}, pickle_file)
-
-        state.gqVec.view(viewer)
+        if write_p:
+            state.gpVec.view(viewer)
+        else:
+            state.gqVec.view(viewer)
         
         if write_aux:
             state.gauxVec.view(aux_viewer)
@@ -205,20 +211,22 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         dimensions = []
         for i in xrange(ndim):
             dimensions.append(
+                #pyclaw.solution.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
                 petclaw.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
-        grid = petclaw.Grid(dimensions)
+        #grid = pyclaw.solution.Grid(dimensions)
+        grid = petclaw.Grid(dimensions) ##
         grid.level = level 
-        state = petclaw.State(grid)
+        #state = pyclaw.state.State(grid)
+        state = petclaw.State(grid) ##
         state.stateno = stateno
         state.t = value_dict['t']
         state.meqn = meqn
-        state.aux_global = value_dict['aux_global']
         state.q_da = PETSc.DA().create(dim=grid.ndim,
                                       dof=meqn,
                                        sizes=grid.n, 
                                        stencil_width=0,
                                        comm=PETSc.COMM_WORLD)
- 
+
         #state.gqVec = PETSc.Vec().load(viewer)
         state.gqVec.load(viewer)
         q = state.gqVec.getArray().copy()
@@ -226,6 +234,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         q_dim.extend(grid.ng)
         q = q.reshape(q_dim,order='F')
         state.q = q
+        state.aux_global = value_dict['aux_global']
                 
         if read_aux:
             state.aux_da = PETSc.DA().create(dim=grid.ndim,

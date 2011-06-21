@@ -74,6 +74,7 @@ class Controller(object):
         if sys.platform == 'cygwin':
              self.xclawcmd = 'xclaw.exe'
 
+        self.start_frame = 0
         self.xclawout = None
         r"""(string) - Where to write timestep messages"""
         self.xclawerr = None
@@ -134,7 +135,11 @@ class Controller(object):
         :class:`~pyclaw.plotters.data.ClawPlotData` object defining the 
         objects plot parameters."""
         
-        
+        # Derived quantity p
+        self.file_prefix_p = 'claw_p'
+        self.p_function = None
+        self.outdir_p = self.outdir+'/_p'
+
     # ========== Access methods ===============================================
     def __str__(self):        
         output = "Controller attributes:\n"
@@ -159,8 +164,7 @@ class Controller(object):
         return locals()
     solution = property(**solution())
     
-    # ========== Plotting methods ============================================    
-    
+    # ========== Plotting methods ============================================        
     # ========== Solver convenience methods ==================================
     def run(self):
         r"""
@@ -183,6 +187,7 @@ class Controller(object):
         import numpy as np
 
         frame = FrameCounter()
+        frame.set_counter(self.start_frame)
         if self.keep_copy:
             self.frames = []
                     
@@ -218,15 +223,25 @@ class Controller(object):
         if self.keep_copy:
             self.frames.append(copy.deepcopy(self.solutions['n']))
         if self.output_format is not None:
+            if self.p_function is not None:
+                self.p_function(self.solution.state)
+                self.solutions['n'].write(0,self.outdir_p,
+                                        self.output_format,
+                                        self.file_prefix_p,
+                                        write_aux = False,
+                                        options = self.output_options,
+                                        write_p = True) 
+
             self.solutions['n'].write(0,self.outdir,
                                         self.output_format,
                                         self.output_file_prefix,
                                         self.write_aux_init,
-                                        self.output_options)                            
+                                        self.output_options)
+
         logging.info("Solution %s computed for time t=%f" % 
                         (0,self.solutions['n'].t) )
-        
-        for t in output_times[1:]:
+
+        for t in output_times[1:]:                
             if self.outstyle < 3:
                 status = self.solver.evolve_to_time(self.solutions,t)
             else:
@@ -238,6 +253,15 @@ class Controller(object):
                 # Save current solution to dictionary with frame as key
                 self.frames.append(copy.deepcopy(self.solutions['n']))
             if self.output_format is not None:
+                if self.p_function is not None:
+                    self.p_function(self.solution.state)
+                    self.solutions['n'].write(frame,self.outdir_p,
+                                            self.output_format,
+                                            self.file_prefix_p,
+                                            write_aux = False, 
+                                            options = self.output_options,
+                                            write_p = True) 
+                
                 self.solutions['n'].write(frame,self.outdir,
                                             self.output_format,
                                             self.output_file_prefix,

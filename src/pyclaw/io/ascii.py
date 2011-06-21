@@ -23,7 +23,7 @@ import pyclaw.solution
 logger = logging.getLogger('io')
 
 def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
-                    options={}):
+                    options={},write_p=False):
     r"""
     Write out ascii data file
     
@@ -94,7 +94,11 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
             q_file.write("\n")
             
             # Write data from q
-            q = state.q
+            if write_p:
+                q = state.p
+            else:
+                q = state.q
+
             dims = grid.dimensions
             if grid.ndim == 1:
                 for k in xrange(dims[0].n):
