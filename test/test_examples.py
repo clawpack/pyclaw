@@ -15,7 +15,9 @@
 
 
 from nose.plugins.attrib import attr
-import util                      
+import util 
+
+from nose.plugins.skip import Skip, SkipTest
 
 if __name__=="__main__":
     import nose
@@ -35,6 +37,7 @@ if __name__=="__main__":
 @attr(time_stepping_method='theta')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1a():
+    raise SkipTest
     path           = './test/acoustics/1d/homogeneous'
     target_name    = 'all'
     module_name    = 'acoustics_implicit'
@@ -42,7 +45,7 @@ def test_1D_acoustics_homogeneous_1a():
     method_options = {'sclaw': 1, 'petscts': 1, '-ts_type': 'theta'}
     verifier       = lambda error: abs(error-0.00220809553637)<1.e-5
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
-
+   
 
 # Regression test: 1D acoustics in homogeneous material
 #@attr(testType ='regression')
