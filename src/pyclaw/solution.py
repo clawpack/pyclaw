@@ -102,15 +102,25 @@ class Solution(object):
         def fget(self): return self._get_base_state_attribute('mp')
         def fset(self, value): self.set_all_states('mp',value)
         return locals()
+    def mF():
+        doc = r"""(int) - :attr:`State.mF` of base state"""
+        def fget(self): return self._get_base_state_attribute('mF')
+        def fset(self, value): self.set_all_states('mF',value)
+        return locals()
     def q():
         doc = r"""(ndarray(...,:attr:`State.meqn`)) - :attr:`State.q` of base 
                   state"""
         def fget(self): return self._get_base_state_attribute('q')
         return locals()
     def p():
-        doc = r"""(ndarray(...,:attr:`State.meqn`)) - :attr:`State.p` 
+        doc = r"""(ndarray(...,:attr:`State.mp`)) - :attr:`State.p` 
                    of base state"""
         def fget(self): return self._get_base_state_attribute('p')
+        return locals()
+    def F():
+        doc = r"""(ndarray(...,:attr:`State.mF`)) - :attr:`State.F` of base 
+                  state"""
+        def fget(self): return self._get_base_state_attribute('F')
         return locals()
     def aux():
         doc = r"""(ndarray(...,:attr:`State.maux`)) - :attr:`State.aux` of base 
@@ -200,8 +210,10 @@ class Solution(object):
     t = property(**t())
     meqn = property(**meqn())
     mp = property(**mp())
+    mF = property(**mF())
     q = property(**q())
     p = property(**p())
+    F = property(**F())
     aux = property(**aux())
     capa = property(**capa())
     aux_global = property(**aux_global())
@@ -298,6 +310,7 @@ class Solution(object):
                 state.t = data.t0
                 state.meqn = data.meqn
                 state.mp = data.mp
+                state.mF = data.mF
                 
                 # Add grid to solution
                 self.states.append(state)

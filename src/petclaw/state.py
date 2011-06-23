@@ -22,13 +22,26 @@ class State(pyclaw.state.State):
             if self.p_da is not None:
                 raise Exception('You cannot change state.mp after p is initialized.')
             else:
-                self.init_p_da(mp)
+                self.p_da,self.gpVec = self.DA_and_gVec(mp)
         def fget(self):
             if self.p_da is None:
                 raise Exception('state.mp has not been set.')
             else: return self.p_da.dof
         return locals()
     mp = property(**mp())
+    def mF():
+        doc = r"""(int) - Number of derived quantities (components of p)"""
+        def fset(self,mF):
+            if self.F_da is not None:
+                raise Exception('You cannot change state.mp after p is initialized.')
+            else:
+                self.F_da,self.gFVec = self.DA_and_gVec(mF)
+        def fget(self):
+            if self.F_da is None:
+                raise Exception('state.mF has not been set.')
+            else: return self.F_da.dof
+        return locals()
+    mF = property(**mF())
     def maux():
         doc = r"""(int) - Number of auxiliary fields"""
         def fset(self,maux):
@@ -68,6 +81,19 @@ class State(pyclaw.state.State):
             self.gpVec.setArray(p.reshape([-1], order = 'F'))
         return locals()
     p = property(**p())
+    def F():
+        def fget(self):
+            if self.F_da is None: return 0
+            q_dim = self.grid.ng
+            q_dim.insert(0,self.mF)
+            F=self.gFVec.getArray().reshape(q_dim, order = 'F')
+            return F
+        def fset(self,F):
+            mF = F.shape[0]
+            if self.gFVec is None: self.init_F_da(mF)
+            self.gFVec.setArray(F.reshape([-1], order = 'F'))
+        return locals()
+    F = property(**F())
     def aux():
         """
         We never communicate aux values; every processor should set its own ghost cell
@@ -115,6 +141,9 @@ class State(pyclaw.state.State):
         self.p_da = None
         self.gpVec = None
 
+        self.F_da = None
+        self.gFVec = None
+
         # ========== Attribute Definitions ===================================
         self.grid = grid
         r"""pyclaw.Grid.grid - The grid this state lives on"""
@@ -161,7 +190,6 @@ class State(pyclaw.state.State):
                                             stencil_width=mbc,
                                             comm=PETSc.COMM_WORLD)
 
-       
         self.gauxVec = self.aux_da.createGlobalVector()
         self.lauxVec = self.aux_da.createLocalVector()
  
@@ -213,9 +241,9 @@ class State(pyclaw.state.State):
             self.grid.dimensions[i].nstart=nrange[0]
             self.grid.dimensions[i].nend  =nrange[1]
 
-    def init_p_da(self,mp,mbc=0):
-        r"""Initializes PETSc structures for derived quantities.  Note
-        that no local vector is required.
+    def DA_and_gVec(self,dof,mbc=0):
+        r"""Returns a PETSc DA and associated global Vec.
+        Note that no local vector is returned.
         """
         from petsc4py import PETSc
 
@@ -228,22 +256,22 @@ class State(pyclaw.state.State):
                 periodic_type = PETSc.DA.PeriodicType.XYZ
             else:
                 raise Exception("Invalid number of dimensions")
-            self.p_da = PETSc.DA().create(dim=self.ndim,
-                                          dof=mp,
+            DA = PETSc.DA().create(dim=self.ndim,
+                                          dof=dof,
                                           sizes=self.grid.n,
                                           periodic_type = periodic_type,
-                                          #stencil_type=self.STENCIL,
                                           stencil_width=mbc,
                                           comm=PETSc.COMM_WORLD)
         else:
-            self.p_da = PETSc.DA().create(dim=self.ndim,
-                                          dof=mp,
+            DA = PETSc.DA().create(dim=self.ndim,
+                                          dof=dof,
                                           sizes=self.grid.n,
                                           boundary_type = PETSc.DA.BoundaryType.PERIODIC,
-                                          #stencil_type=self.STENCIL,
                                           stencil_width=mbc,
                                           comm=PETSc.COMM_WORLD)
-        self.gpVec = self.p_da.createGlobalVector()
+        gVec = DA.createGlobalVector()
+
+        return DA, gVec
 
 
     def set_stencil_width(self,mbc):

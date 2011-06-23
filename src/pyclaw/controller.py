@@ -137,8 +137,27 @@ class Controller(object):
         
         # Derived quantity p
         self.file_prefix_p = 'claw_p'
-        self.p_function = None
+        r"""(string) - File prefix to be prepended to derived quantity output files"""
+        self.compute_p = None
+        r"""(function) - function that computes derived quantities"""
         self.outdir_p = self.outdir+'/_p'
+        r"""(string) - Directory to use for writing derived quantity files"""
+
+        # functionals
+        self.compute_F = None
+        r"""(function) - Function that computes F"""
+        self.F_file_name = 'F'
+        r"""(string) - Name of text file containing functionals"""
+        self.F_path = './_output/'+self.F_file_name+'.txt'
+        r"""(string) - Full path to output file for functionals"""
+
+        # gauges
+        self.gauges = []
+        r"""(list) - List of gauges"""
+        self.gauge_path = './_output/_gauges/'
+        r"""(string) - Full path to output directory for gauges"""
+        self.gauge_pfunction = None
+        r"""(function) - Function that computes quantities to be recorded at gaugues"""
 
     # ========== Access methods ===============================================
     def __str__(self):        
@@ -206,6 +225,10 @@ class Controller(object):
         if not all([sol.is_valid() for sol in self.solutions.itervalues()]):
             raise Exception("Initial solutions are not valid.")
         
+        # Assign gauges and determine their grid indices
+        if self.gauges is not None:
+            self.set_gauges()
+
         # Output styles
         # We ought to have a check confirming that all solutions
         # are at the same time t
@@ -223,8 +246,8 @@ class Controller(object):
         if self.keep_copy:
             self.frames.append(copy.deepcopy(self.solutions['n']))
         if self.output_format is not None:
-            if self.p_function is not None:
-                self.p_function(self.solution.state)
+            if self.compute_p is not None:
+                self.compute_p(self.solution.state)
                 self.solutions['n'].write(0,self.outdir_p,
                                         self.output_format,
                                         self.file_prefix_p,
@@ -237,6 +260,22 @@ class Controller(object):
                                         self.output_file_prefix,
                                         self.write_aux_init,
                                         self.output_options)
+
+        if self.compute_F is not None:
+            from petsc4py import PETSc
+            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD)
+            self.compute_F(self.solution.state)
+            F = np.zeros(self.solution.state.mF)
+            for i in xrange(self.solution.state.mF):
+                #Sum across all processors
+                #Warning: this actually computes the absolute sum!
+                #Can this line be moved to after the if?
+                F[i] = self.solution.state.gFVec.strideNorm(i,0)
+            if rank == 0:
+                F_file = open(self.F_path,'w')
+                F_file.write(' '.join(str(j) for j in F) + '\n')
+                F_file.close()
+
 
         logging.info("Solution %s computed for time t=%f" % 
                         (0,self.solutions['n'].t) )
@@ -253,8 +292,8 @@ class Controller(object):
                 # Save current solution to dictionary with frame as key
                 self.frames.append(copy.deepcopy(self.solutions['n']))
             if self.output_format is not None:
-                if self.p_function is not None:
-                    self.p_function(self.solution.state)
+                if self.compute_p is not None:
+                    self.compute_p(self.solution.state)
                     self.solutions['n'].write(frame,self.outdir_p,
                                             self.output_format,
                                             self.file_prefix_p,
@@ -267,14 +306,60 @@ class Controller(object):
                                             self.output_file_prefix,
                                             self.write_aux_always,
                                             self.output_options)
+            if self.compute_F is not None:
+                rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) 
+                self.compute_F(self.solution.state) 
+                F = np.zeros(self.solution.state.mF)
+                for i in xrange(self.solution.state.mF):
+                    F[i] = self.solution.state.gFVec.strideNorm(i,0)
+                if rank == 0:
+                    F_file = open(self.F_path,'a')
+                    F_file.write(' '.join(str(j) for j in F) + '\n')
+                    F_file.close()
 
             logging.info("Solution %s computed for time t=%f"
                 % (frame,self.solutions['n'].t))
             
         self.solver.teardown()
+        for file in self.solver.gauge_files: file.close()
+
         # Return the current status of the solver
         return status
     
+    def set_gauges(self):
+        from numpy import floor
+        if not os.path.exists(self.gauge_path):
+            try:
+                os.makedirs(self.gauge_path)
+            except OSError:
+                print "gauge directory already exists, ignoring"
+        mygauges=[] #List of gauges: for each processor that owns a gauge
+        gauge_files=[]  #List of files: for each processor that owns a gauge
+        
+        grid = self.solution.state.grid
+        gauge_ind = [0]*self.solution.ndim
+
+        for gauge in self.gauges: 
+            for n in xrange(self.solution.ndim): 
+                # Determine gauge locations in units of grid spacing
+                gauge_ind[n] = int(floor(gauge[n]/grid.d[n]))
+                istart = grid.dimensions[n].nstart
+                iend   = grid.dimensions[n].nend
+                # append the gauge to mygauges and create a file for it
+                # mygauges and gauge_files  are Lists because 
+                #      one processor may have several gauges
+                mygauges.append(list(gauge_ind))
+                gauge_path = self.gauge_path+'gauge'+'_'.join(str(coord) for coord in gauge)+'.txt'
+                # Is this a good idea???  It should depend on self.overwrite.
+                if os.path.isfile(gauge_path): os.remove(gauge_path)
+                gauge_files.append(open(gauge_path,'a'))
+
+        self.solver.gauges = mygauges #pass to the solver
+        self.solver.gauge_files = gauge_files
+        self.solver.gauge_pfunction = self.gauge_pfunction
+        self.solver.write_gauges(self.solution)
+
+
     # ========== Output Data object based on solver and solutions['n'] =======
     def get_data(self,claw_path=None):
         r"""
