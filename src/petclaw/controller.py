@@ -52,4 +52,19 @@ class Controller(pyclawController):
         self.solver.gauge_pfunction = self.gauge_pfunction
         self.solver.write_gauges(self.solution)
 
+    def write_F(self):
+        if self.compute_F is not None:
+            self.compute_F(self.solution.state)
+            F = [0]*self.solution.state.mF
+            for i in xrange(self.solution.state.mF):
+                #Sum across all processors
+                #Warning: this actually computes the absolute sum!
+                #Can this line be moved to after the if?
+                F[i] = self.solution.state.gFVec.strideNorm(i,0)
 
+            from petsc4py import PETSc
+            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD)
+            if rank == 0:
+                F_file = open(self.F_path,'a')
+                F_file.write(' '.join(str(j) for j in F) + '\n')
+                F_file.close()

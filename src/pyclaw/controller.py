@@ -261,21 +261,7 @@ class Controller(object):
                                         self.write_aux_init,
                                         self.output_options)
 
-        if self.compute_F is not None:
-            from petsc4py import PETSc
-            rank = PETSc.Comm.getRank(PETSc.COMM_WORLD)
-            self.compute_F(self.solution.state)
-            F = np.zeros(self.solution.state.mF)
-            for i in xrange(self.solution.state.mF):
-                #Sum across all processors
-                #Warning: this actually computes the absolute sum!
-                #Can this line be moved to after the if?
-                F[i] = self.solution.state.gFVec.strideNorm(i,0)
-            if rank == 0:
-                F_file = open(self.F_path,'w')
-                F_file.write(' '.join(str(j) for j in F) + '\n')
-                F_file.close()
-
+        self.write_F()
 
         logging.info("Solution %s computed for time t=%f" % 
                         (0,self.solutions['n'].t) )
@@ -306,16 +292,7 @@ class Controller(object):
                                             self.output_file_prefix,
                                             self.write_aux_always,
                                             self.output_options)
-            if self.compute_F is not None:
-                rank = PETSc.Comm.getRank(PETSc.COMM_WORLD) 
-                self.compute_F(self.solution.state) 
-                F = np.zeros(self.solution.state.mF)
-                for i in xrange(self.solution.state.mF):
-                    F[i] = self.solution.state.gFVec.strideNorm(i,0)
-                if rank == 0:
-                    F_file = open(self.F_path,'a')
-                    F_file.write(' '.join(str(j) for j in F) + '\n')
-                    F_file.close()
+            self.write_F()
 
             logging.info("Solution %s computed for time t=%f"
                 % (frame,self.solutions['n'].t))
@@ -358,6 +335,18 @@ class Controller(object):
         self.solver.gauge_files = gauge_files
         self.solver.gauge_pfunction = self.gauge_pfunction
         self.solver.write_gauges(self.solution)
+
+
+    def write_F(self):
+        if self.compute_F is not None:
+            self.compute_F(self.solution.state)
+            F = [0]*self.solution.state.mF
+            for i in xrange(self.solution.state.mF):
+                F[i] = np.sum(np.abs(self.solution.state.F[i,:,:]))
+            F_file = open(self.F_path,'a')
+            F_file.write(' '.join(str(j) for j in F) + '\n')
+            F_file.close()
+
 
 
     # ========== Output Data object based on solver and solutions['n'] =======
