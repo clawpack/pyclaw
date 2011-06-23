@@ -14,24 +14,18 @@ from petclaw import plot
 
 
 def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
+    x0=0.
+    y0=0.
     xCenter = state.grid.x.center
     yCenter = state.grid.y.center
     Y,X = np.meshgrid(yCenter,xCenter)
-
-    for i,x in enumerate(xCenter):
-        for j,y in enumerate(yCenter):
-            #r = np.sqrt(xCenter[i]**2 + yCenter[j]**2)
-            if np.sqrt(x**2+y**2)<=radDam: 
-                state.q[0,i,j] = hl
-                state.q[1,i,j] = hl*ul
-                state.q[2,i,j] = hl*vl
-            else: 
-                state.q[0,i,j] = hr
-                state.q[1,i,j] = hr*ur
-                state.q[2,i,j] = hr*vr
+    r = np.sqrt((X-x0)**2 + (Y-y0)**2)
+    state.q[0,:,:] = hl*(r<=radDam) + hr*(r>radDam)
+    state.q[1,:,:] = hl*ul*(r<=radDam) + hr*ur*(r>radDam)
+    state.q[2,:,:] = hl*vl*(r<=radDam) + hr*vr*(r>radDam)
 
     
-def shallow2D(use_petsc=False,kernel_language='Fortran',iplot=True,htmlplot=False,outdir='./_output',solver_type='classic'):
+def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
     #===========================================================================
     # Import libraries
     #===========================================================================
@@ -51,13 +45,13 @@ def shallow2D(use_petsc=False,kernel_language='Fortran',iplot=True,htmlplot=Fals
         solver = pyclaw.SharpClawSolver2D()
 
     solver.mwaves = 3
-    if solver.kernel_language =='Python': solver.set_riemann_solver('shallow_roe')
     solver.limiters = pyclaw.limiters.tvd.MC
 
     solver.mthbc_lower[0] = pyclaw.BC.outflow
-    solver.mthbc_upper[0] = pyclaw.BC.outflow
+    solver.mthbc_upper[0] = pyclaw.BC.reflecting
     solver.mthbc_lower[1] = pyclaw.BC.outflow
-    solver.mthbc_upper[1] = pyclaw.BC.outflow
+    solver.mthbc_upper[1] = pyclaw.BC.reflecting
+    solver.dim_split=1
 
     #===========================================================================
     # Initialize grids, then initialize the solution associated to the grid and
@@ -67,10 +61,10 @@ def shallow2D(use_petsc=False,kernel_language='Fortran',iplot=True,htmlplot=Fals
     # Grid:
     xlower = -2.5
     xupper = 2.5
-    mx = 150
+    mx = 600
     ylower = -2.5
     yupper = 2.5
-    my = 150
+    my = 600
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
     grid = pyclaw.Grid([x,y])
@@ -99,10 +93,11 @@ def shallow2D(use_petsc=False,kernel_language='Fortran',iplot=True,htmlplot=Fals
     # Set up controller and controller parameters
     #===========================================================================
     claw = pyclaw.Controller()
-    claw.tfinal = 5.0
+    claw.tfinal = 2.5
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir
+    claw.nout = 1
 
     #===========================================================================
     # Solve the problem
