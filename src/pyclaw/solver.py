@@ -164,6 +164,10 @@ class Solver(object):
         self.user_aux_bc_lower = default_user_bc_lower
         self.user_aux_bc_upper = default_user_bc_upper
 
+        self.gauges          = []
+        self.gauge_files     = []
+        self.gauge_pfunction = None
+
     def __str__(self):
         output = "Solver Status:\n"
         for (k,v) in self.status.iteritems():
@@ -733,7 +737,10 @@ class Solver(object):
                     self.status['dtmax'] = max(self.dt, self.status['dtmax'])
                 else:
                     self.dt = self.dt_max
-        
+            # gauges
+            if (not retake_step):
+                self.write_gauges(solutions['n'])
+      
         # End of main time stepping loop -------------------------------------
 
         if self.dt_variable and solutions['n'].t < tend \
@@ -744,6 +751,15 @@ class Solver(object):
         self.times.append(time.time() - timing)
         
         return self.status
+
+    def write_gauges(self,solution):
+        for i,gauge in enumerate(self.gauges):
+            x=gauge[0]; y=gauge[1]
+            aux=solution.state.aux[:,x,y]
+            q=solution.state.q[:,x,y]
+            p=self.gauge_pfunction(q,aux)
+            t=solution.t
+            self.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
 
     def step(self):
         r"""
