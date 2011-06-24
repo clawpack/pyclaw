@@ -217,8 +217,8 @@ man_pages = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 #intersphinx_mapping = {'http://docs.python.org/': None}
-#jsmath_path = 'http://web.kaust.edu.sa/faculty/davidketcheson/jsMath/easy/load.js'
-jsmath_path = '/Users/ketch/Software/jsmath/easy/load.js'
+#jsmath_path = 'http://numerics.kaust.edu.sa/jsMath/easy/load.js'
+jsmath_path = '/Users/ketch/Software/jsMath/easy/load.js'
 keep_warnings = 'True'
 
 inheritance_graph_attrs = dict(rankdir="TB", 

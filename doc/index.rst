@@ -17,7 +17,7 @@ Why use PyClaw?  Because PyClaw
 
     * Solves general hyperbolic PDEs in 1D and 2D
     * Includes the full functionality of `Clawpack <www.clawpack.org>`_ and 
-      `SharpClaw <http://web.kaust.edu.sa/faculty/davidketcheson/sharpclaw/>`_
+      `SharpClaw <http://numerics.kaust.edu.sa/sharpclaw/>`_
     * Has a simple and intuitive pythonic interface
     * Is based on a powerful and modular object-oriented design
     * Allows you to run your simulation on the world's biggest supercomputers by changing one line of code
@@ -53,6 +53,7 @@ PyClaw
    tutorial
    problem
    classes
+   output
    differences
    develop
    about

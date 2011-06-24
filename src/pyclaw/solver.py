@@ -23,6 +23,11 @@ class BC():
     periodic   = 2
     reflecting = 3
 
+def default_compute_gauge_values(q,aux):
+    r"""By default, record values of q at gauges.
+    """
+    return q
+
 # Boundary condition user defined function default
 def default_user_bc_lower(grid,dim,t,qbc,mbc):
     r"""
@@ -164,9 +169,10 @@ class Solver(object):
         self.user_aux_bc_lower = default_user_bc_lower
         self.user_aux_bc_upper = default_user_bc_upper
 
-        self.gauges          = []
-        self.gauge_files     = []
-        self.gauge_pfunction = None
+        # gauges
+        self.compute_gauge_values = default_compute_gauge_values
+        r"""(function) - Function that computes quantities to be recorded at gaugues"""
+
 
     def __str__(self):
         output = "Solver Status:\n"
@@ -739,7 +745,7 @@ class Solver(object):
                     self.dt = self.dt_max
             # gauges
             if (not retake_step):
-                self.write_gauges(solutions['n'])
+                self.write_gauge_values(solutions['n'])
       
         # End of main time stepping loop -------------------------------------
 
@@ -751,15 +757,6 @@ class Solver(object):
         self.times.append(time.time() - timing)
         
         return self.status
-
-    def write_gauges(self,solution):
-        for i,gauge in enumerate(self.gauges):
-            x=gauge[0]; y=gauge[1]
-            aux=solution.state.aux[:,x,y]
-            q=solution.state.q[:,x,y]
-            p=self.gauge_pfunction(q,aux)
-            t=solution.t
-            self.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
 
     def step(self):
         r"""
@@ -776,5 +773,20 @@ class Solver(object):
         """
         pass
             
+    # ========================================================================
+    #  Gauges
+    # ========================================================================
+    def write_gauge_values(self,solution):
+        r"""Write solution (or derived quantity) values at each gauge coordinate
+            to file.
+        """
+        for i,gauge in enumerate(solution.state.grid.gauges):
+            x=gauge[0]; y=gauge[1]
+            aux=solution.state.aux[:,x,y]
+            q=solution.state.q[:,x,y]
+            p=self.compute_gauge_values(q,aux)
+            t=solution.t
+            solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
+
 
 

@@ -193,6 +193,14 @@ class Grid(object):
         doc = r"""(list) - List of the number of grid cells for this process in each dimension"""
         def fget(self): return self.get_dim_attribute('ng')
         return locals()
+    def nstart():
+        doc = r"""(list) - List of the number of grid cells in each dimension"""
+        def fget(self): return self.get_dim_attribute('nstart')
+        return locals()
+    def nend():
+        doc = r"""(list) - List of the number of grid cells in each dimension"""
+        def fget(self): return self.get_dim_attribute('nend')
+        return locals()
     def name():
         doc = r"""(list) - List of names of each dimension"""
         def fget(self): return self._dimensions
@@ -263,6 +271,8 @@ class Grid(object):
     dimensions = property(**dimensions())
     n = property(**n())
     ng = property(**ng())
+    nstart = property(**nstart())
+    nend = property(**nend())
     name = property(**name())
     lower = property(**lower())
     upper = property(**upper())
@@ -291,7 +301,12 @@ class Grid(object):
         r"""(int) - Grid number of current grid, ``default = 0``"""
         self.mapc2p = default_mapc2p
         r"""(func) - Grid mapping function"""
-        
+        self.gauges = []
+        r"""(list) - List of gauges"""
+        self.gauge_files     = []
+        r"""(list) - List of files to write gauge values to"""
+        self.gauge_path = './_output/_gauges/'
+        r"""(string) - Full path to output directory for gauges"""
         # Dimension parsing
         if isinstance(dimensions,Dimension):
             dimensions = [dimensions]
@@ -546,5 +561,35 @@ class Grid(object):
                 for i in xrange(self.ndim):
                     exec("self._c_edge[i] = self.dimensions[i].edge[index[i,%s]]" % index_str)
 
+    # ========================================================================
+    #  Gauges
+    # ========================================================================
+    def add_gauges(self,gauge_coords):
+        r"""
+        Determine the grid indices of each gauge and make a list of all gauges
+        with their grid indices.  
+        
+        For PetClaw, first check whether each gauge is in the part of the grid
+        corresponding to this processor.
+        """
+        import os
+        from numpy import floor
+        if not os.path.exists(self.gauge_path):
+            try:
+                os.makedirs(self.gauge_path)
+            except OSError:
+                print "gauge directory already exists, ignoring"
+        
+        for gauge in gauge_coords: 
+            # Determine gauge locations in units of grid spacing
+            gauge_ind = [int(floor(gauge[n]/self.d[n])) for n in xrange(self.ndim)]
+            if all(self.nstart[n]<=gauge_ind[n]<=self.nend[n] for n in range(self.ndim)):
+                #Set indices relative to this processor's part of grid
+                gauge_ind = [gauge_ind[n] - self.nstart[n] for n in range(self.ndim)]
+                gauge_path = self.gauge_path+'gauge'+'_'.join(str(coord) for coord in gauge)+'.txt'
+                # Is this a good idea???  It should depend on self.overwrite.
+                if os.path.isfile(gauge_path): os.remove(gauge_path)
+                self.gauges.append(list(gauge_ind))
+                self.gauge_files.append(open(gauge_path,'a'))
 
 

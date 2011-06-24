@@ -226,14 +226,4 @@ frame from a previous run; for example, to restart from frame 3::
     It is necessary to specify the output format ('petsc' or 'ascii').
 
 
-Outputting derived quantities
-===============================
-It is sometimes desirable to output quantities other than those
-in the vector q.  To do so, just add a function `p_function` to 
-the controller that accepts the state and sets the derived quantities
-in state.p::
 
-    >>> state.mp = 1
-    >>> claw.p_function = stress
-    >>> def stress(state):
-    >>>     state.p[0,:,:] = np.exp(state.q[0,:,:]*state.aux[1,:,:]) - 1.

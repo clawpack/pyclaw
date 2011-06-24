@@ -151,14 +151,6 @@ class Controller(object):
         self.F_path = './_output/'+self.F_file_name+'.txt'
         r"""(string) - Full path to output file for functionals"""
 
-        # gauges
-        self.gauges = []
-        r"""(list) - List of gauges"""
-        self.gauge_path = './_output/_gauges/'
-        r"""(string) - Full path to output directory for gauges"""
-        self.gauge_pfunction = None
-        r"""(function) - Function that computes quantities to be recorded at gaugues"""
-
     # ========== Access methods ===============================================
     def __str__(self):        
         output = "Controller attributes:\n"
@@ -225,9 +217,8 @@ class Controller(object):
         if not all([sol.is_valid() for sol in self.solutions.itervalues()]):
             raise Exception("Initial solutions are not valid.")
         
-        # Assign gauges and determine their grid indices
-        if self.gauges is not None:
-            self.set_gauges()
+        # Write initial gauge values
+        self.solver.write_gauge_values(self.solution)
 
         # Output styles
         # We ought to have a check confirming that all solutions
@@ -298,56 +289,29 @@ class Controller(object):
                 % (frame,self.solutions['n'].t))
             
         self.solver.teardown()
-        for file in self.solver.gauge_files: file.close()
+        for file in self.solution.state.grid.gauge_files: file.close()
 
         # Return the current status of the solver
         return status
     
-    def set_gauges(self):
-        from numpy import floor
-        if not os.path.exists(self.gauge_path):
-            try:
-                os.makedirs(self.gauge_path)
-            except OSError:
-                print "gauge directory already exists, ignoring"
-        mygauges=[] #List of gauges: for each processor that owns a gauge
-        gauge_files=[]  #List of files: for each processor that owns a gauge
-        
-        grid = self.solution.state.grid
-        gauge_ind = [0]*self.solution.ndim
-
-        for gauge in self.gauges: 
-            for n in xrange(self.solution.ndim): 
-                # Determine gauge locations in units of grid spacing
-                gauge_ind[n] = int(floor(gauge[n]/grid.d[n]))
-                istart = grid.dimensions[n].nstart
-                iend   = grid.dimensions[n].nend
-                # append the gauge to mygauges and create a file for it
-                # mygauges and gauge_files  are Lists because 
-                #      one processor may have several gauges
-                mygauges.append(list(gauge_ind))
-                gauge_path = self.gauge_path+'gauge'+'_'.join(str(coord) for coord in gauge)+'.txt'
-                # Is this a good idea???  It should depend on self.overwrite.
-                if os.path.isfile(gauge_path): os.remove(gauge_path)
-                gauge_files.append(open(gauge_path,'a'))
-
-        self.solver.gauges = mygauges #pass to the solver
-        self.solver.gauge_files = gauge_files
-        self.solver.gauge_pfunction = self.gauge_pfunction
-        self.solver.write_gauges(self.solution)
-
+    # ========== Advanced output methods ==================================
 
     def write_F(self):
         if self.compute_F is not None:
             self.compute_F(self.solution.state)
             F = [0]*self.solution.state.mF
             for i in xrange(self.solution.state.mF):
-                F[i] = np.sum(np.abs(self.solution.state.F[i,:,:]))
-            F_file = open(self.F_path,'a')
-            F_file.write(' '.join(str(j) for j in F) + '\n')
-            F_file.close()
+                F[i] = self.sum_F_over_grid(self.solution.state,i)
+            if self.is_proc_0():
+                F_file = open(self.F_path,'a')
+                F_file.write(' '.join(str(j) for j in F) + '\n')
+                F_file.close()
+    
+    def sum_F_over_grid(self,Vec,i):
+        return np.sum(np.abs(Vec[i,...]))
 
-
+    def is_proc_0(self):
+        return True
 
     # ========== Output Data object based on solver and solutions['n'] =======
     def get_data(self,claw_path=None):
