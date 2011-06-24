@@ -173,6 +173,13 @@ class Solver(object):
         self.compute_gauge_values = default_compute_gauge_values
         r"""(function) - Function that computes quantities to be recorded at gaugues"""
 
+        self.qbc_backup   = None
+        r"""(ndarray(meqn,...)) - A backup copy of qbc. It is intended to
+        be populated by method Solver.evolve_to_time in case Solver.dt_variable
+        is set to be used when rejecting step. It can be used by solvers but
+        should not be changed"""
+
+
 
     def __str__(self):
         output = "Solver Status:\n"
@@ -695,7 +702,7 @@ class Solver(object):
                 # pass
                 #Temporarily HACKed to avoid slowdown!
                 #old_solution = copy.deepcopy(solutions["n"])
-                state.qbc_backup = state.qbc.copy('F')
+                self.qbc_backup = state.qbc.copy('F')
                 told = solutions["n"].t
             retake_step = False  # Reset flag
             
@@ -724,7 +731,7 @@ class Solver(object):
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
                 if self.dt_variable:
-                    self.set_global_q(state, state.qbc_backup)
+                    self.set_global_q(state, self.qbc_backup)
                     solutions['n'].t = told
                     # Retake step
                     retake_step = True

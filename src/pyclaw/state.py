@@ -95,12 +95,6 @@ class State(object):
         r"""(ndarray(meqn,...)) - q with ghost cells (boundaries). It is
         intended to be populated by method Solver.evolve_to_time. It can be
         used and modified by solvers"""
-        self.qbc_backup   = None
-        r"""(ndarray(meqn,...)) - A backup copy of qbc. It is intended to
-        be populated by method Solver.evolve_to_time in case Solver.dt_variable
-        is set to be used when rejecting step. It can be used by solvers but
-        should not be changed"""
-
 
     def __str__(self):
         output = "State %s:\n" % self.stateno
@@ -138,9 +132,11 @@ class State(object):
         if self.meqn == 0:
             logger.debug('State.meqn has not been set.')
             valid = False
+        if not self.q.flags['F_CONTIGUOUS']:
+            logger.debug('q array is not Fortran contiguous.')
+            valid = False
         return valid
  
-        
     def set_cparam(self,fortran_module):
         """
         Set the variables in fortran_module.cparam to the corresponding values in
@@ -150,15 +146,16 @@ class State(object):
 
         This function should be called from solver.setup().  This seems like a fragile
         interdependency between solver and grid; perhaps aux_global should belong
-        to solver instead of grid.
+        to solver instead of state.
 
         This function also checks that the set of variables defined in cparam 
         all appear in aux_global.
-
         """
         if hasattr(fortran_module,'cparam'):
             if not set(dir(fortran_module.cparam)) <= set(self.aux_global.keys()):
-                raise Exception('Some required value(s) in the cparam common block in the Riemann solver have not been set in aux_global.')
+                raise Exception("""Some required value(s) in the cparam common 
+                                   block in the Riemann solver have not been 
+                                   set in aux_global.""")
             for global_var_name,global_var_value in self.aux_global.iteritems(): 
                 setattr(fortran_module.cparam,global_var_name,global_var_value)
 
@@ -185,3 +182,7 @@ class State(object):
             result.capa = copy.deepcopy(self.capa)
         
         return result
+
+    def sum_F(self,i):
+        return np.sum(np.abs(self.F[i,...]))
+

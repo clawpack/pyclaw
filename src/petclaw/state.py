@@ -9,7 +9,7 @@ class State(pyclaw.state.State):
             if self.q_da is not None:
                 raise Exception('You cannot change state.meqn after q is initialized.')
             else:
-                self.init_q_da(meqn)
+                self._init_q_da(meqn)
         def fget(self):
             if self.q_da is None:
                 raise Exception('state.meqn has not been set.')
@@ -20,30 +20,30 @@ class State(pyclaw.state.State):
     def mp():
         doc = r"""(int) - Number of derived quantities (components of p)"""
         def fset(self,mp):
-            if self.p_da is not None:
+            if self._p_da is not None:
                 raise Exception('You cannot change state.mp after p is initialized.')
             else:
-                self.p_da = self.create_DA(mp)
-                self.gpVec = self.p_da.createGlobalVector()
+                self._p_da = self._create_DA(mp)
+                self.gpVec = self._p_da.createGlobalVector()
         def fget(self):
-            if self.p_da is None:
+            if self._p_da is None:
                 raise Exception('state.mp has not been set.')
-            else: return self.p_da.dof
+            else: return self._p_da.dof
         return locals()
     mp = property(**mp())
 
     def mF():
         doc = r"""(int) - Number of derived quantities (components of p)"""
         def fset(self,mF):
-            if self.F_da is not None:
+            if self._F_da is not None:
                 raise Exception('You cannot change state.mp after p is initialized.')
             else:
-                self.F_da = self.create_DA(mF)
-                self.gFVec = self.F_da.createGlobalVector()
+                self._F_da = self._create_DA(mF)
+                self.gFVec = self._F_da.createGlobalVector()
         def fget(self):
-            if self.F_da is None:
+            if self._F_da is None:
                 raise Exception('state.mF has not been set.')
-            else: return self.F_da.dof
+            else: return self._F_da.dof
         return locals()
     mF = property(**mF())
 
@@ -54,7 +54,7 @@ class State(pyclaw.state.State):
                 raise Exception('You cannot change state.maux after aux is initialized.')
             else:
                 if maux>0:
-                    self.init_aux_da(maux)
+                    self._init_aux_da(maux)
         def fget(self):
             if self.aux_da is None: return 0
             else: return self.aux_da.dof
@@ -76,7 +76,7 @@ class State(pyclaw.state.State):
             return q
         def fset(self,q):
             meqn = q.shape[0]
-            if self.gqVec is None: self.init_q_da(meqn)
+            if self.gqVec is None: self._init_q_da(meqn)
             self.gqVec.setArray(q.reshape([-1], order = 'F'))
         return locals()
     q = property(**q())
@@ -86,7 +86,7 @@ class State(pyclaw.state.State):
         Array containing values of derived quantities for output.
         """
         def fget(self):
-            if self.p_da is None: return 0
+            if self._p_da is None: return 0
             q_dim = self.grid.ng
             q_dim.insert(0,self.mp)
             p=self.gpVec.getArray().reshape(q_dim, order = 'F')
@@ -104,7 +104,7 @@ class State(pyclaw.state.State):
         This is just used as temporary workspace before summing.
         """
         def fget(self):
-            if self.F_da is None: return 0
+            if self._F_da is None: return 0
             q_dim = self.grid.ng
             q_dim.insert(0,self.mF)
             F=self.gFVec.getArray().reshape(q_dim, order = 'F')
@@ -131,7 +131,7 @@ class State(pyclaw.state.State):
         def fset(self,aux):
             if self.aux_da is None: 
                 maux=aux.shape[0]
-                self.init_aux_da(maux)
+                self._init_aux_da(maux)
             self.gauxVec.setArray(aux.reshape([-1], order = 'F'))
         return locals()
     aux = property(**aux())
@@ -160,10 +160,10 @@ class State(pyclaw.state.State):
         self.gauxVec = None
         self.lauxVec = None
 
-        self.p_da = None
+        self._p_da = None
         self.gpVec = None
 
-        self.F_da = None
+        self._F_da = None
         self.gFVec = None
 
         # ========== Attribute Definitions ===================================
@@ -180,25 +180,25 @@ class State(pyclaw.state.State):
         self.capa = None
         r"""(ndarray(...)) - Capacity array for this grid, ``default = 1.0``"""
 
-    def init_aux_da(self,maux,mbc=0):
+    def _init_aux_da(self,maux,mbc=0):
         r"""
         Initializes PETSc DA and global & local Vectors for handling the
         auxiliary array, aux. 
         
         Initializes aux_da, gauxVec and lauxVec.
         """
-        self.aux_da = self.create_DA(maux,mbc)
+        self.aux_da = self._create_DA(maux,mbc)
         self.gauxVec = self.aux_da.createGlobalVector()
         self.lauxVec = self.aux_da.createLocalVector()
  
-    def init_q_da(self,meqn,mbc=0):
+    def _init_q_da(self,meqn,mbc=0):
         r"""
         Initializes PETSc DA and Vecs for handling the solution, q. 
         
         Initializes q_da, gqVec and lqVec,
         and also sets up nstart, nend, and mbc for the dimensions.
         """
-        self.q_da = self.create_DA(meqn,mbc)
+        self.q_da = self._create_DA(meqn,mbc)
         self.gqVec = self.q_da.createGlobalVector()
         self.lqVec = self.q_da.createLocalVector()
 
@@ -208,7 +208,7 @@ class State(pyclaw.state.State):
             self.grid.dimensions[i].nstart=nrange[0]
             self.grid.dimensions[i].nend  =nrange[1]
 
-    def create_DA(self,dof,mbc=0):
+    def _create_DA(self,dof,mbc=0):
         r"""Returns a PETSc DA and associated global Vec.
         Note that no local vector is returned.
         """
@@ -259,10 +259,14 @@ class State(pyclaw.state.State):
         """
 
         q0 = self.q.copy()
-        self.init_q_da(self.meqn,mbc)
+        self._init_q_da(self.meqn,mbc)
         self.q = q0
 
         if self.aux is not None:
             aux0 = self.aux.copy()
-            self.init_aux_da(self.maux,mbc)
+            self._init_aux_da(self.maux,mbc)
             self.aux = aux0
+
+    def sum_F(self,i):
+        return self.gFVec.strideNorm(i,0)
+

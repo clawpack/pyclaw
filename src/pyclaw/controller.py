@@ -175,6 +175,26 @@ class Controller(object):
         return locals()
     solution = property(**solution())
     
+    def check_validity(self):
+        r"""Check that the controller has been properly set up and is ready to run.
+
+            Checks validity of the solver
+        """
+        # Check to make sure we have a valid solver to use
+        if self.solver is None:
+            raise Exception("No solver set in controller.")
+        if not isinstance(self.solver,Solver):
+            raise Exception("Solver is not of correct type.")
+        if not self.solver.is_valid():
+            raise Exception("The solver failed to initialize properly.") 
+            
+        # Check to make sure the initial solutions are valid
+        if not all([sol.is_valid() for sol in self.solutions.itervalues()]):
+            raise Exception("Initial solutions are not valid.")
+        if not all([sol.state.is_valid() for sol in self.solutions.itervalues()]):
+            raise Exception("Initial states are not valid.")
+        
+ 
     # ========== Plotting methods ============================================        
     # ========== Solver convenience methods ==================================
     def run(self):
@@ -202,21 +222,10 @@ class Controller(object):
         if self.keep_copy:
             self.frames = []
                     
-        # Check to make sure we have a valid solver to use
-        if self.solver is None:
-            raise Exception("No solver set in controller.")
-        if not isinstance(self.solver,Solver):
-            raise Exception("Solver is not of correct type.")
-        if not self.solver.is_valid():
-            raise Exception("The solver failed to initialize properly.") 
-            
-        # Call solver's setup routine
         self.solver.setup(self.solutions)
             
-        # Check to make sure the initial solutions are valid
-        if not all([sol.is_valid() for sol in self.solutions.itervalues()]):
-            raise Exception("Initial solutions are not valid.")
-        
+        self.check_validity()
+
         # Write initial gauge values
         self.solver.write_gauge_values(self.solution)
 
@@ -301,15 +310,12 @@ class Controller(object):
             self.compute_F(self.solution.state)
             F = [0]*self.solution.state.mF
             for i in xrange(self.solution.state.mF):
-                F[i] = self.sum_F_over_grid(self.solution.state,i)
+                F[i] = self.solution.state.sum_F(i)
             if self.is_proc_0():
                 F_file = open(self.F_path,'a')
                 F_file.write(' '.join(str(j) for j in F) + '\n')
                 F_file.close()
     
-    def sum_F_over_grid(self,Vec,i):
-        return np.sum(np.abs(Vec[i,...]))
-
     def is_proc_0(self):
         return True
 

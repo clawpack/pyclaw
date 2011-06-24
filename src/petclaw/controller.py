@@ -11,9 +11,6 @@ class Controller(pyclawController):
 
         self.output_format = 'petsc'
 
-    def sum_F_over_grid(self,state,i):
-        return state.gFVec.strideNorm(i,0)
-
     def is_proc_0(self):
         from petsc4py import PETSc
         rank = PETSc.Comm.getRank(PETSc.COMM_WORLD)
