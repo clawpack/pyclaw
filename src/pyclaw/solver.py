@@ -289,18 +289,18 @@ class Solver(object):
             qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = state.q
         return qbc
  
-    def set_global_q(self,state,ghosted_q):
+    def set_global_q(self,state,qbc):
         """
         set the value of q using the arrayghosted_q. 
         for PySolver, it is only setting the value
-        of q with proper slice of ghosted_q
+        of q with proper slice of qbc
         """
         grid = state.grid
         if grid.ndim == 1:
-            state.q = q[:,self.mbc:-self.mbc]
+            state.q = qbc[:,self.mbc:-self.mbc]
         elif grid.ndim == 2:
             mbc, mx, my = self.mbc, grid.ng[0],grid.ng[1]
-            state.q=ghosted_q[:,mbc:mx+mbc,mbc:my+mbc]
+            state.q=qbc[:,mbc:mx+mbc,mbc:my+mbc]
         else:
             raise NotImplementedError("The case of 3D is not handled in "\
             +"this function yet")
