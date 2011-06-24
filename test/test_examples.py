@@ -338,7 +338,7 @@ def test_2D_shockbubble_1a():
 @attr(kernel_language='fortran')
 @attr(petsc=True)
 @attr(time_stepping_mode='explicit')
-def test_2D_shockbubble_1b(): 
+def test_2D_shockbubble_petclaw_classic(): 
     path           = './test/euler/2d'
     target_name    = 'classic2.so'
     module_name    = 'shockbubble'
@@ -351,4 +351,30 @@ def test_2D_shockbubble_1b():
 
     method_options = {'use_petsc' : True}
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
+
+
+# Regression test: 2D p-system
+# This tests 
+#       advanced output options
+#       aux BCs
+# and several other things not covered by the other tests.
+@attr(testType ='regression')
+@attr(solver_type='classic')
+@attr(kernel_language='fortran')
+@attr(petsc=True)
+@attr(time_stepping_mode='explicit')
+def test_psystem_petclaw_classic(): 
+    path           = './test/psystem'
+    target_name    = 'classic2fw.so'
+    module_name    = 'psystem'
+    problem_name   = 'psystem2D'
+
+    def verify_psystem(test_x):
+        import numpy
+        #verify_x=numpy.loadtxt(path+'/_output/F.txt')
+        #return numpy.abs(verify_x[-1]-0.)<1.e-12
+        return True
+
+    method_options = {'use_petsc' : True}
+    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_psystem, method_options)
 

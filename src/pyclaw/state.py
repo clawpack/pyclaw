@@ -44,11 +44,9 @@ class State(object):
             else: return self.q.shape[0]
         def fset(self,meqn):
             if self.q is None:
-                shape = [meqn]
-                shape.extend(self.grid.n)
-                self.q = np.empty(shape,order='F')
+                self.q = self.new_array(meqn)
             else:
-                raise Exception('You cannot change state.meqn after q is initialized.')
+                raise Exception('Cannot change state.meqn after q is initialized.')
         return locals()
     meqn = property(**meqn())
 
@@ -56,11 +54,9 @@ class State(object):
         doc = r"""(int) - Number of auxiliary fields"""
         def fset(self,maux):
             if self.aux is not None:
-                raise Exception('You cannot change state.maux after aux is initialized.')
+                raise Exception('Cannot change state.maux after aux is initialized.')
             else:
-                shape = [maux]
-                shape.extend(self.grid.n)
-                self.aux = np.empty(shape,order='F')
+                self.aux = self.new_array(maux)
         def fget(self):
             if self.aux is not None: return self.aux.shape[0]
             else: return 0
@@ -71,11 +67,9 @@ class State(object):
         doc = r"""(int) - Number of auxiliary fields"""
         def fset(self,mp):
             if self.p is not None:
-                raise Exception('You cannot change state.mp after aux is initialized.')
+                raise Exception('Cannot change state.mp after aux is initialized.')
             else:
-                shape = [mp]
-                shape.extend(self.grid.n)
-                self.p = np.empty(shape,order='F')
+                self.p = self.new_array(mp)
         def fget(self):
             if self.aux is not None: return self.aux.shape[0]
             else: return 0
@@ -86,11 +80,9 @@ class State(object):
         doc = r"""(int) - Number of auxiliary fields"""
         def fset(self,mF):
             if self.F is not None:
-                raise Exception('You cannot change state.mF after aux is initialized.')
+                raise Exception('Cannot change state.mF after aux is initialized.')
             else:
-                shape = [mF]
-                shape.extend(self.grid.n)
-                self.F = np.empty(shape,order='F')
+                self.F = self.new_array(mF)
         def fget(self):
             if self.F is not None: return self.F.shape[0]
             else: return 0
@@ -221,3 +213,7 @@ class State(object):
     def sum_F(self,i):
         return np.sum(np.abs(self.F[i,...]))
 
+    def new_array(self,dof):
+        shape = [dof]
+        shape.extend(self.grid.n)
+        return np.empty(shape,order='F')
