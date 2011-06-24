@@ -699,9 +699,6 @@ class Solver(object):
 
             # In case we need to retake a time step
             if self.dt_variable:
-                # pass
-                #Temporarily HACKed to avoid slowdown!
-                #old_solution = copy.deepcopy(solutions["n"])
                 self.qbc_backup = state.qbc.copy('F')
                 told = solutions["n"].t
             retake_step = False  # Reset flag
@@ -722,6 +719,7 @@ class Solver(object):
                 self.logger.debug("Step %i  CFL = %f   dt = %f   t = %f"
                     % (n,self.cfl,self.dt,solutions['n'].t))
                     
+                self.write_gauge_values(solutions['n'])
                 # Increment number of time steps completed
                 self.status['numsteps'] += 1
                 # See if we are finished yet
@@ -750,9 +748,6 @@ class Solver(object):
                     self.status['dtmax'] = max(self.dt, self.status['dtmax'])
                 else:
                     self.dt = self.dt_max
-            # gauges
-            if (not retake_step):
-                self.write_gauge_values(solutions['n'])
       
         # End of main time stepping loop -------------------------------------
 

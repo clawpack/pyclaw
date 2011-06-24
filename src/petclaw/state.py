@@ -269,4 +269,3 @@ class State(pyclaw.state.State):
 
     def sum_F(self,i):
         return self.gFVec.strideNorm(i,0)
-

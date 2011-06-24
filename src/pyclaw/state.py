@@ -44,27 +44,58 @@ class State(object):
             else: return self.q.shape[0]
         def fset(self,meqn):
             if self.q is None:
-                q_shape = [meqn]
-                q_shape.extend(self.grid.n)
-                self.q = np.empty(q_shape,order='F')
+                shape = [meqn]
+                shape.extend(self.grid.n)
+                self.q = np.empty(shape,order='F')
             else:
                 raise Exception('You cannot change state.meqn after q is initialized.')
         return locals()
     meqn = property(**meqn())
+
     def maux():
         doc = r"""(int) - Number of auxiliary fields"""
         def fset(self,maux):
             if self.aux is not None:
                 raise Exception('You cannot change state.maux after aux is initialized.')
             else:
-                aux_shape = [maux]
-                aux_shape.extend(self.grid.n)
-                self.aux = np.empty(aux_shape,order='F')
+                shape = [maux]
+                shape.extend(self.grid.n)
+                self.aux = np.empty(shape,order='F')
         def fget(self):
             if self.aux is not None: return self.aux.shape[0]
             else: return 0
         return locals()
     maux = property(**maux())
+
+    def mp():
+        doc = r"""(int) - Number of auxiliary fields"""
+        def fset(self,mp):
+            if self.p is not None:
+                raise Exception('You cannot change state.mp after aux is initialized.')
+            else:
+                shape = [mp]
+                shape.extend(self.grid.n)
+                self.p = np.empty(shape,order='F')
+        def fget(self):
+            if self.aux is not None: return self.aux.shape[0]
+            else: return 0
+        return locals()
+    mp = property(**mp())
+
+    def mF():
+        doc = r"""(int) - Number of auxiliary fields"""
+        def fset(self,mF):
+            if self.F is not None:
+                raise Exception('You cannot change state.mF after aux is initialized.')
+            else:
+                shape = [mF]
+                shape.extend(self.grid.n)
+                self.F = np.empty(shape,order='F')
+        def fget(self):
+            if self.F is not None: return self.F.shape[0]
+            else: return 0
+        return locals()
+    mF = property(**mF())
 
     # ========== Class Methods ===============================================
     def __init__(self,grid):
@@ -80,7 +111,11 @@ class State(object):
         r"""(ndarray(maux,...)) - Auxiliary array for this grid containing per 
             cell information"""
         self.q   = None
-        r"""(ndarray(meqn,...)) - Cell averaged quantity being evolved."""
+        r"""(ndarray(meqn,...)) - Cell averages of dependent variables."""
+        self.p   = None
+        r"""(ndarray(mp,...)) - Cell averages of derived quantities."""
+        self.F   = None
+        r"""(ndarray(mF,...)) - Cell averages of output functional densities."""
         self.aux_global = {}
         r"""(dict) - Dictionary of global values for this grid, 
             ``default = {}``"""

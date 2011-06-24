@@ -735,7 +735,7 @@ class ClawSolver2D(ClawSolver):
             qnew = state.qbc #(input/output)
             if self.dt_variable:
                 qold = self.qbc_backup # Solver should quarantee that 
-                                        # state.qbc_backup will not be
+                                        # qbc_backup will not be
                                         # changed so that it can be used in
                                         # case of step rejection.
             else:

@@ -261,7 +261,7 @@ class Controller(object):
                                         self.write_aux_init,
                                         self.output_options)
 
-        self.write_F()
+        self.write_F('w')
 
         logging.info("Solution %s computed for time t=%f" % 
                         (0,self.solutions['n'].t) )
@@ -305,14 +305,14 @@ class Controller(object):
     
     # ========== Advanced output methods ==================================
 
-    def write_F(self):
+    def write_F(self,mode='a'):
         if self.compute_F is not None:
             self.compute_F(self.solution.state)
             F = [0]*self.solution.state.mF
             for i in xrange(self.solution.state.mF):
                 F[i] = self.solution.state.sum_F(i)
             if self.is_proc_0():
-                F_file = open(self.F_path,'a')
+                F_file = open(self.F_path,mode)
                 F_file.write(' '.join(str(j) for j in F) + '\n')
                 F_file.close()
     
