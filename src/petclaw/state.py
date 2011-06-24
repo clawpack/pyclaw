@@ -1,8 +1,8 @@
-
 import pyclaw.state
 
 class State(pyclaw.state.State):
     r"""  See the corresponding PyClaw class documentation."""
+
     def meqn():
         doc = r"""(int) - Number of unknowns (components of q)"""
         def fset(self,meqn):
@@ -16,32 +16,37 @@ class State(pyclaw.state.State):
             else: return self.q_da.dof
         return locals()
     meqn = property(**meqn())
+
     def mp():
         doc = r"""(int) - Number of derived quantities (components of p)"""
         def fset(self,mp):
             if self.p_da is not None:
                 raise Exception('You cannot change state.mp after p is initialized.')
             else:
-                self.p_da,self.gpVec = self.DA_and_gVec(mp)
+                self.p_da = self.create_DA(mp)
+                self.gpVec = self.p_da.createGlobalVector()
         def fget(self):
             if self.p_da is None:
                 raise Exception('state.mp has not been set.')
             else: return self.p_da.dof
         return locals()
     mp = property(**mp())
+
     def mF():
         doc = r"""(int) - Number of derived quantities (components of p)"""
         def fset(self,mF):
             if self.F_da is not None:
                 raise Exception('You cannot change state.mp after p is initialized.')
             else:
-                self.F_da,self.gFVec = self.DA_and_gVec(mF)
+                self.F_da = self.create_DA(mF)
+                self.gFVec = self.F_da.createGlobalVector()
         def fget(self):
             if self.F_da is None:
                 raise Exception('state.mF has not been set.')
             else: return self.F_da.dof
         return locals()
     mF = property(**mF())
+
     def maux():
         doc = r"""(int) - Number of auxiliary fields"""
         def fset(self,maux):
@@ -55,7 +60,14 @@ class State(pyclaw.state.State):
             else: return self.aux_da.dof
         return locals()
     maux = property(**maux())
+
     def q():
+        r"""
+        Array to store solution (q) values.
+
+        Settting state.meqn automatically allocates space for q, as does
+        setting q itself.
+        """
         def fget(self):
             if self.q_da is None: return 0
             q_dim = self.grid.ng
@@ -68,7 +80,11 @@ class State(pyclaw.state.State):
             self.gqVec.setArray(q.reshape([-1], order = 'F'))
         return locals()
     q = property(**q())
+
     def p():
+        r"""
+        Array containing values of derived quantities for output.
+        """
         def fget(self):
             if self.p_da is None: return 0
             q_dim = self.grid.ng
@@ -81,7 +97,12 @@ class State(pyclaw.state.State):
             self.gpVec.setArray(p.reshape([-1], order = 'F'))
         return locals()
     p = property(**p())
+
     def F():
+        r"""
+        Array containing pointwise values (densities) of output functionals.
+        This is just used as temporary workspace before summing.
+        """
         def fget(self):
             if self.F_da is None: return 0
             q_dim = self.grid.ng
@@ -94,6 +115,7 @@ class State(pyclaw.state.State):
             self.gFVec.setArray(F.reshape([-1], order = 'F'))
         return locals()
     F = property(**F())
+
     def aux():
         """
         We never communicate aux values; every processor should set its own ghost cell
@@ -160,44 +182,35 @@ class State(pyclaw.state.State):
 
     def init_aux_da(self,maux,mbc=0):
         r"""
-        Initializes PETSc DA for q. It initializes aux_da, gauxVec and lauxVec.
+        Initializes PETSc DA and global & local Vectors for handling the
+        auxiliary array, aux. 
+        
+        Initializes aux_da, gauxVec and lauxVec.
         """
-        from petsc4py import PETSc
-
-        if hasattr(PETSc.DA, 'PeriodicType'):
-            if self.ndim == 1:
-                periodic_type = PETSc.DA.PeriodicType.X
-            elif self.ndim == 2:
-                periodic_type = PETSc.DA.PeriodicType.XY
-            elif self.ndim == 3:
-                periodic_type = PETSc.DA.PeriodicType.XYZ
-            else:
-                raise Exception("Invalid number of dimensions")
-
-            self.aux_da = PETSc.DA().create(dim=self.ndim,
-                                            dof=maux, 
-                                            sizes=self.grid.n,  
-                                            periodic_type = periodic_type,
-                                            stencil_width=mbc,
-                                            comm=PETSc.COMM_WORLD)
-    
-
-        else:
-            self.aux_da = PETSc.DA().create(dim=self.ndim,
-                                            dof=maux,
-                                            sizes=self.grid.n, 
-                                            boundary_type = PETSc.DA.BoundaryType.PERIODIC,
-                                            stencil_width=mbc,
-                                            comm=PETSc.COMM_WORLD)
-
+        self.aux_da = self.create_DA(maux,mbc)
         self.gauxVec = self.aux_da.createGlobalVector()
         self.lauxVec = self.aux_da.createLocalVector()
  
     def init_q_da(self,meqn,mbc=0):
         r"""
-        Initializes PETSc structures for q. It initializes q_da, gqVec and lqVec,
-        and also sets up nstart, nend, and mbc for the dimensions.
+        Initializes PETSc DA and Vecs for handling the solution, q. 
         
+        Initializes q_da, gqVec and lqVec,
+        and also sets up nstart, nend, and mbc for the dimensions.
+        """
+        self.q_da = self.create_DA(meqn,mbc)
+        self.gqVec = self.q_da.createGlobalVector()
+        self.lqVec = self.q_da.createLocalVector()
+
+        #Now set the local indices for the Dimension objects:
+        ranges = self.q_da.getRanges()
+        for i,nrange in enumerate(ranges):
+            self.grid.dimensions[i].nstart=nrange[0]
+            self.grid.dimensions[i].nend  =nrange[1]
+
+    def create_DA(self,dof,mbc=0):
+        r"""Returns a PETSc DA and associated global Vec.
+        Note that no local vector is returned.
         """
         from petsc4py import PETSc
 
@@ -215,47 +228,6 @@ class State(pyclaw.state.State):
                 periodic_type = PETSc.DA.PeriodicType.XYZ
             else:
                 raise Exception("Invalid number of dimensions")
-            self.q_da = PETSc.DA().create(dim=self.ndim,
-                                          dof=meqn,
-                                          sizes=self.grid.n, 
-                                          periodic_type = periodic_type,
-                                          #stencil_type=self.STENCIL,
-                                          stencil_width=mbc,
-                                          comm=PETSc.COMM_WORLD)
-
-        else:
-            self.q_da = PETSc.DA().create(dim=self.ndim,
-                                          dof=meqn,
-                                          sizes=self.grid.n, 
-                                          boundary_type = PETSc.DA.BoundaryType.PERIODIC,
-                                          #stencil_type=self.STENCIL,
-                                          stencil_width=mbc,
-                                          comm=PETSc.COMM_WORLD)
-
-        self.gqVec = self.q_da.createGlobalVector()
-        self.lqVec = self.q_da.createLocalVector()
-
-        #Now set up the local indices:
-        ranges = self.q_da.getRanges()
-        for i,nrange in enumerate(ranges):
-            self.grid.dimensions[i].nstart=nrange[0]
-            self.grid.dimensions[i].nend  =nrange[1]
-
-    def DA_and_gVec(self,dof,mbc=0):
-        r"""Returns a PETSc DA and associated global Vec.
-        Note that no local vector is returned.
-        """
-        from petsc4py import PETSc
-
-        if hasattr(PETSc.DA, 'PeriodicType'):
-            if self.ndim == 1:
-                periodic_type = PETSc.DA.PeriodicType.X
-            elif self.ndim == 2:
-                periodic_type = PETSc.DA.PeriodicType.XY
-            elif self.ndim == 3:
-                periodic_type = PETSc.DA.PeriodicType.XYZ
-            else:
-                raise Exception("Invalid number of dimensions")
             DA = PETSc.DA().create(dim=self.ndim,
                                           dof=dof,
                                           sizes=self.grid.n,
@@ -269,9 +241,8 @@ class State(pyclaw.state.State):
                                           boundary_type = PETSc.DA.BoundaryType.PERIODIC,
                                           stencil_width=mbc,
                                           comm=PETSc.COMM_WORLD)
-        gVec = DA.createGlobalVector()
 
-        return DA, gVec
+        return DA
 
 
     def set_stencil_width(self,mbc):
@@ -282,6 +253,9 @@ class State(pyclaw.state.State):
         Instead, we initially create DAs with stencil_width=0.
         Then, in solver.setup(), we call this function to replace
         those DAs with new ones that have the right stencil width.
+
+        This could be made more efficient using some PETSc calls,
+        but it only happens once so it seems not to be worth it.
         """
 
         q0 = self.q.copy()
