@@ -248,14 +248,14 @@ class Controller(object):
         if self.output_format is not None:
             if self.compute_p is not None:
                 self.compute_p(self.solution.state)
-                self.solutions['n'].write(0,self.outdir_p,
+                self.solutions['n'].write(frame,self.outdir_p,
                                         self.output_format,
                                         self.file_prefix_p,
                                         write_aux = False,
                                         options = self.output_options,
                                         write_p = True) 
 
-            self.solutions['n'].write(0,self.outdir,
+            self.solutions['n'].write(frame,self.outdir,
                                         self.output_format,
                                         self.output_file_prefix,
                                         self.write_aux_init,
@@ -264,7 +264,7 @@ class Controller(object):
         self.write_F('w')
 
         logging.info("Solution %s computed for time t=%f" % 
-                        (0,self.solutions['n'].t) )
+                        (frame,self.solutions['n'].t) )
 
         for t in output_times[1:]:                
             if self.outstyle < 3:
@@ -312,8 +312,9 @@ class Controller(object):
             for i in xrange(self.solution.state.mF):
                 F[i] = self.solution.state.sum_F(i)
             if self.is_proc_0():
+                t=self.solution.t
                 F_file = open(self.F_path,mode)
-                F_file.write(' '.join(str(j) for j in F) + '\n')
+                F_file.write(str(t)+' '+' '.join(str(j) for j in F) + '\n')
                 F_file.close()
     
     def is_proc_0(self):
