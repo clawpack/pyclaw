@@ -102,9 +102,15 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
         if write_aux:
             aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE) 
     elif options['format'] == 'binary':
-        viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.WRITE)
+        if hasattr(PETSc.Viewer,'createMPIIO'):
+            viewer = PETSc.Viewer().createMPIIO(viewer_filename, PETSc.Viewer.Mode.WRITE)
+        else:
+            viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.WRITE)
         if write_aux:
-            aux_viewer = PETSc.Viewer().createBinary(aux_filename, PETSc.Viewer.Mode.WRITE)
+            if hasattr(PETSc.Viewer,'createMPIIO'):
+                aux_viewer = PETSc.Viewer().createMPIIO(aux_filename, PETSc.Viewer.Mode.WRITE)
+            else:
+                aux_viewer = PETSc.Viewer().createBinary(aux_filename, PETSc.Viewer.Mode.WRITE)
     elif options['format'] == 'vtk':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.WRITE, format=PETSc.Viewer.Format.ASCII_VTK)
         if write_aux:
@@ -185,10 +191,16 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         if read_aux:
             aux_viewer = PETSc.Viewer().createASCII(aux_viewer_filename, PETSc.Viewer.Mode.READ)
     elif options['format'] == 'binary':
-        viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.READ)
+        if hasattr(PETSc.Viewer,'createMPIIO'):
+            viewer = PETSc.Viewer().createMPIIO(viewer_filename, PETSc.Viewer.Mode.READ)
+        else:
+            viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.READ)
         if read_aux:
             if os.path.exists(aux_viewer_filename):
-                aux_viewer = PETSc.Viewer().createBinary(aux_viewer_filename, PETSc.Viewer.Mode.READ)
+                if hasattr(PETSc.Viewer,'createMPIIO'):
+                    aux_viewer = PETSc.Viewer().createMPIIO(aux_viewer_filename, PETSc.Viewer.Mode.READ)
+                else:
+                    aux_viewer = PETSc.Viewer().createBinary(aux_viewer_filename, PETSc.Viewer.Mode.READ)
             else:
                 from warnings import warn
                 aux_file_path = os.path.join(path,aux_viewer_filename)
