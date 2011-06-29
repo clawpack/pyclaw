@@ -61,8 +61,8 @@ def burgers2D(iplot=False,petscPlot=True,useController=True,htmlplot=False,outdi
     # Solve
     status = claw.run()
 
-    if htmlplot:  plot.plotHTML(outdir=outdir,format=output_format)
-    if iplot:     plot.plotInteractive(outdir=outdir,format=output_format)
+    if htmlplot:  plot.html_plot(outdir=outdir,format=output_format)
+    if iplot:     plot.interactive_plot(outdir=outdir,format=output_format)
 
 
 if __name__=="__main__":

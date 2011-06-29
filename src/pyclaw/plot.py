@@ -1,6 +1,6 @@
 r"""Convenience routines for easily plotting with VisClaw."""
 
-def plotInteractive(outdir='./_output',format='ascii'):
+def interactive_plot(outdir='./_output',format='ascii'):
     """
     Convenience function for launching an interactive plotting session.
     """
@@ -10,7 +10,7 @@ def plotInteractive(outdir='./_output',format='ascii'):
     ip.plotdata.format=format
     ip.plotloop()
 
-def plotHTML(outdir='./_output',format='ascii'):
+def html_plot(outdir='./_output',format='ascii'):
     """
     Convenience function for creating html page with plots.
     """

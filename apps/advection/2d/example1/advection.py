@@ -74,8 +74,8 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
     #Solve
     status = claw.run()
 
-    if htmlplot:  pyclaw.plot.plotHTML(outdir=outdir)
-    if iplot:     pyclaw.plot.plotInteractive(outdir=outdir)
+    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
+    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 
 if __name__=="__main__":

@@ -221,8 +221,8 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
     #strain=claw.frames[claw.nout].state.gqVec.getArray().reshape([grid.ng[0],grid.ng[1],state.meqn])[:,:,0]
     #return strain
 
-    if iplot:    pyclaw.plot.plotInteractive()
-    if htmlplot: pyclaw.plot.plotHTML()
+    if iplot:    pyclaw.plot.interactive_plot()
+    if htmlplot: pyclaw.plot.html_plot()
 
 if __name__=="__main__":
     import sys

@@ -43,8 +43,8 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
     claw.tfinal =1.0
     status = claw.run()
 
-    if htmlplot:  pyclaw.plot.plotHTML(outdir=outdir)
-    if iplot:     pyclaw.plot.plotInteractive(outdir=outdir)
+    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
+    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 if __name__=="__main__":
     import sys

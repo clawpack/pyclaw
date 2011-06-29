@@ -70,5 +70,5 @@ claw.solver = solver
 status = claw.run()
 
 iplot=True
-if iplot:     pyclaw.plot.plotInteractive()
-if htmlplot:  pyclaw.plot.plotHTML()
+if iplot:     pyclaw.plot.interactive_plot()
+if htmlplot:  pyclaw.plot.html_plot()
