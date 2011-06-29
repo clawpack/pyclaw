@@ -226,40 +226,28 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
                 #pyclaw.solution.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
                 petclaw.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
         #grid = pyclaw.solution.Grid(dimensions)
-        grid = petclaw.Grid(dimensions) ##
+        grid = petclaw.Grid(dimensions)
         grid.level = level 
         #state = pyclaw.state.State(grid)
         state = petclaw.State(grid) ##
         state.stateno = stateno
         state.t = value_dict['t']
-        state.meqn = meqn
-        state.q_da = PETSc.DA().create(dim=grid.ndim,
-                                      dof=meqn,
-                                       sizes=grid.n, 
-                                       stencil_width=0,
-                                       comm=PETSc.COMM_WORLD)
-
-        #state.gqVec = PETSc.Vec().load(viewer)
-        state.gqVec.load(viewer)
-        q = state.gqVec.getArray().copy()
-        q_dim=[state.meqn]
-        q_dim.extend(grid.ng)
-        q = q.reshape(q_dim,order='F')
-        state.q = q
         state.aux_global = value_dict['aux_global']
-                
+
+        da = state._create_DA(meqn)
+        gVec = da.createGlobalVector()
+        gVec.load(viewer)
+        dim=[meqn]
+        dim.extend(grid.ng)
+        state.q = gVec.getArray().reshape(dim,order='F')
+        
         if read_aux:
-            state.aux_da = PETSc.DA().create(dim=grid.ndim,
-                                             dof=maux,
-                                             sizes=grid.n,
-                                             stencil_width=0,
-                                             comm=PETSc.COMM_WORLD)
-            #state.gauxVec = PETSc.Vec().load(aux_viewer)
-            state.gauxVec.load(aux_viewer)
-            state.aux = state.gauxVec.getArray().copy()
-            aux_dim=[maux]; 
-            aux_dim.extend(grid.ng)
-            state.aux = state.aux.reshape(aux_dim,order='F')
+            da = state._create_DA(maux)
+            gVec = da.createGlobalVector()
+            gVec.load(aux_viewer)
+            dim=[maux]; 
+            dim.extend(grid.ng)
+            state.aux = gVec.getArray().reshape(dim,order='F')
         
         solution.states.append(state)
 

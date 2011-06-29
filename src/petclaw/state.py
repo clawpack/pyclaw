@@ -129,6 +129,8 @@ class State(pyclaw.state.State):
             aux=self.gauxVec.getArray().reshape(aux_dim, order = 'F')
             return aux
         def fset(self,aux):
+            # It would be nice to make this work also for parallel
+            # loading from a file.
             if self.aux_da is None: 
                 maux=aux.shape[0]
                 self._init_aux_da(maux)
