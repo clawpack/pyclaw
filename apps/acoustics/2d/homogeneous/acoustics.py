@@ -62,8 +62,8 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     claw.tfinal = 0.6
     status = claw.run()
 
-    if htmlplot:  pyclaw.plot.plotHTML(outdir=outdir,format=claw.output_format)
-    if iplot:     pyclaw.plot.plotInteractive(outdir=outdir,format=claw.output_format)
+    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,format=claw.output_format)
+    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,format=claw.output_format)
 
     if use_petsc:
         pressure=claw.frames[claw.nout].state.gqVec.getArray().reshape([grid.ng[0],grid.ng[1],state.meqn])[:,:,0]

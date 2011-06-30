@@ -107,8 +107,8 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     #===========================================================================
     # Plot results
     #===========================================================================
-    if iplot:     plot.plotInteractive(outdir=outdir,format=claw.output_format)
-    if htmlplot:  plot.plotHTML(outdir=outdir,format=claw.output_format)
+    if iplot:     plot.interactive_plot(outdir=outdir,format=claw.output_format)
+    if htmlplot:  plot.html_plot(outdir=outdir,format=claw.output_format)
 
 
 if __name__=="__main__":

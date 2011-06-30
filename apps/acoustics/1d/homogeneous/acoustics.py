@@ -74,8 +74,8 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     status = claw.run()
 
     # Plot results
-    if htmlplot:  pyclaw.plot.plotHTML(outdir=outdir)
-    if iplot:     pyclaw.plot.plotInteractive(outdir=outdir)
+    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
+    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 if __name__=="__main__":
     import sys

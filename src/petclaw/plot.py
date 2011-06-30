@@ -1,4 +1,4 @@
-def plotInteractive(outdir='./_output',format='petsc'):
+def interactive_plot(outdir='./_output',format='petsc'):
     """
     Convenience function for launching an interactive plotting session.
     """
@@ -8,7 +8,7 @@ def plotInteractive(outdir='./_output',format='petsc'):
     ip.plotdata.format=format
     ip.plotloop()
 
-def plotHTML(outdir='./_output',format='petsc'):
+def html_plot(outdir='./_output',format='petsc'):
     """
     Convenience function for creating html page with plots.
     """

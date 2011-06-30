@@ -176,8 +176,8 @@ def stegoton(use_petsc=1,kernel_language='Fortran',solver_type='classic',iplot=0
         # Solve
         status = claw.run()
 
-    if htmlplot:  pyclaw.plot.plotHTML(outdir=outdir)
-    if iplot:     pyclaw.plot.plotInteractive(outdir=outdir)
+    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
+    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 
 if __name__=="__main__":

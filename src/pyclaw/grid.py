@@ -583,7 +583,7 @@ class Grid(object):
         for gauge in gauge_coords: 
             # Determine gauge locations in units of grid spacing
             gauge_ind = [int(floor(gauge[n]/self.d[n])) for n in xrange(self.ndim)]
-            if all(self.nstart[n]<=gauge_ind[n]<=self.nend[n] for n in range(self.ndim)):
+            if all(self.nstart[n]<=gauge_ind[n]<self.nend[n] for n in range(self.ndim)):
                 #Set indices relative to this processor's part of grid
                 gauge_ind = [gauge_ind[n] - self.nstart[n] for n in range(self.ndim)]
                 gauge_path = self.gauge_path+'gauge'+'_'.join(str(coord) for coord in gauge)+'.txt'
