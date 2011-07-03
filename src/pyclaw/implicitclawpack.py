@@ -458,17 +458,14 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
             # Consequently, f must be manipulated to push correctly the 
             # contribution of the hyperbolic part to the nonlinear function: f ---> fun
             ##################################################################################
-
             fun = np.zeros( (mx*meqn) )
 
-            for icell in xrange(mx):
-                for ieqn in xrange(meqn):
-                    fun[icell*meqn+ieqn] = f[ieqn,icell]
-
+            for icell in xrange(0,mx):
+                    fun[icell*meqn:(icell+1)*meqn] = f[:,icell]
 
 
         elif(self.kernel_language == 'Python'):
-            raise NotImplementedError('You must subclass ImplicitClawSolver.')
+            raise NotImplementedError('kernel_language = Python not implemented!')
 
         else: raise Exception("Unrecognized kernel_language; choose 'Fortran' or 'Python'")
 
