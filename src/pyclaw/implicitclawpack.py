@@ -236,7 +236,7 @@ class ImplicitClawSolver(Solver):
         """
         
         # Compute the contribution of the hyperbolic term (divergence of the flux) 
-        funflux = self.dq_homogeneous(state)
+        funflux = self.homogeneous_part(state)
         ######################################################
         # TODO: Usually the src function returns a multidimensional array and not a vector.
         # A vector is the correct entity that must be used for the nonlinear function. 
@@ -350,12 +350,9 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         self.method[6] = state.maux  # aux
  
         ######################################################
-        # TODO: I SHOULD MODIFY IMPORT AND THE MAKE FILE!!!!!
-        ######################################################
-        if self.fwave:
-            import classic1fw as classic1
-        else:
-            import classic1
+        # IMPORT classicimplicit1 
+        #####################################################
+        import classicimplicit1 as classic1
         state.set_cparam(classic1)
 
 
@@ -364,10 +361,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         Delete Fortran objects, which otherwise tend to persist in Python sessions.
         """
         if(self.kernel_language == 'Fortran'):
-            if self.fwave:
-                import classic1fw as classic1
-            else:
-                import classic1
+            import classicimplicit1 as classic1
             del classic1
 
 
@@ -409,7 +403,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
 
 
 
-    def homogeneous_step(self,solutions):
+    def homogeneous_part(self,solutions):
         r"""
         Take one time step on the homogeneous hyperbolic system and return the 
         contribution to the nonlinear function.
@@ -435,13 +429,10 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
             aux = self.auxbc(state)
 
         ######################################################
-        # TODO: I SHOULD MODIFY IMPORT AND THE MAKE FILE!!!!!
+        # IMPORT classicimplicit1 
         ######################################################
         if(self.kernel_language == 'Fortran'):
-            if self.fwave:
-                import classic1fw as classic1
-            else:
-                import classic1
+            import classicimplicit1 as classic1
 
             mx = grid.ng[0]
             dx,dt = grid.d[0],self.dt
@@ -450,7 +441,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
             if(maux == 0): aux = np.empty( (maux,mx+2*mbc) )
         
        
-            f,self.cfl = classic1.step1implicit(mx,mbc,mx,q,aux,dx,dt,self.method,self.mthlim)
+            f,self.cfl = classic1.spatdisc1(mx,mbc,mx,q,aux,dx,dt,self.method,self.mthlim)
 
             ##################################################################################
             # NOTE:  f is a multidimensional array and not a 1D array.
