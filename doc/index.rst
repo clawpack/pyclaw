@@ -53,11 +53,12 @@ PyClaw
    tutorial
    problem
    classes
-   output
    differences
    develop
    about
    future
+..   output
+
 
 *********
 PetClaw
@@ -76,7 +77,7 @@ PetClaw Contents:
    petclaw/tips
    petclaw/about
    petclaw/installationMac
-#   petclaw/rulesProposal
+..   petclaw/rulesProposal
 
 
 .. _pyclaw_reference:

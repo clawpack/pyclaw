@@ -55,6 +55,7 @@ The testing phase can also be performed only on a sub-set of regression tests
 sharpclaw solver, explicit or implicit time stepping, etc.). This can be
 accomplished by passing some attributes to nose. The attributes are already
 defined in the regression tests suite and they are:
+
     * solver_type: classic or sharpclaw
     * kernel_language: python or fortran
     * petsc: True or False

@@ -7,17 +7,20 @@ Pyclaw Tutorial
 PyClaw is designed to solve general systems of hyperbolic PDEs of the form
 
 .. math::
+
    \kappa(x) q_t + A(q,x) q_x = 0.
 
 As an example, in this tutorial we'll set up a simulation that solves 
 the acoustics equations in one dimension:
 
 .. math::
+
    p_t + K u_x = 0
 
    u_t + \frac{1}{\rho} p_x = 0
 
-.. The key to solving a particular system of equations with PyClaw or other similar codes is a Riemann solver.  Riemann solvers for many systems are available as part of the clawpack/riemann package.  
+.. The key to solving a particular system of equations with PyClaw or other similar codes is a Riemann solver.  Riemann solvers for many systems are available as part of the clawpack/riemann package. 
+
 We'll assume that you've already followed the :ref:`installation` instructions.
 
 Now launch an iPython session and import pyclaw::

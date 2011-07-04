@@ -34,15 +34,14 @@ and controls the overall input and output of the entire collection of
 :class:`~pyclaw.state.State` object inhabits a `~pyclaw.grid.Grid`, composed of
 :class:`~pyclaw.grid.Dimension` objects that define the extents 
 of the :class:`~pyclaw.grid.Grid`.  Multiple states can inhabit the same
-grid.
-.. , but each :class:`~pyclaw.state.State` inhabits a single grid.
+grid, but each :class:`~pyclaw.state.State` inhabits a single grid.
 
-.. warning::
+.. .. warning::
 
-    This figure is out of date.  Much of the Grid functionality has recently
+..     This figure is out of date.  Much of the Grid functionality has recently
     been move to the State class.
 
-.. image:: images/pyclaw_solution_structure.*
+.. .. image:: images/pyclaw_solution_structure.*
 
 The process needed to create a :class:`~pyclaw.solution.Solution` object then
 follows from the bottom up.
@@ -88,8 +87,8 @@ values.
     >>> import numpy as np
     >>> sigma = 0.2
     >>> omega = np.pi
-    >>> q[:,0] = np.cos(omega * grid.x.center)
-    >>> q[:,1] = np.exp(-grid.x.center**2 / sigma**2)
+    >>> state.q[:,0] = np.cos(omega * grid.x.center)
+    >>> state.q[:,1] = np.exp(-grid.x.center**2 / sigma**2)
     
 We now have initialized the first entry of q to a cosine function 
 evaluated at the cell centers and the second entry of q to a gaussian, again
