@@ -124,6 +124,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
             pickle.dump({'stateno':state.stateno,'level':grid.level,
                          'names':grid.name,'lower':grid.lower,
                          'n':grid.n,'d':grid.d}, pickle_file)
+        state.q_da.view(viewer)
         if write_p:
             state.gpVec.view(viewer)
         else:
