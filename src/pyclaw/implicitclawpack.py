@@ -117,7 +117,7 @@ class ImplicitClawSolver(Solver):
         This routine will be called once before the solver is used via the
         :class:`~pyclaw.controller.Controller`.
         """
-        pass 
+    b.set(0)    pass 
     
     # ========== Riemann solver library routines =============================   
     def list_riemann_solvers(self):
@@ -162,19 +162,7 @@ class ImplicitClawSolver(Solver):
     # ========== Time stepping routines ======================================
     def step(self,solutions):
         r"""
-        Evolve solutions one time step
-
-        This routine encodes the generic order in a full time step in this
-        order:
-        
-        1. The :meth:`start_step` function is called
-        
-        2. The hyperbolic part of the problem (divergence of the flux function) 
-           is discretized, i.e. :math:`f(q)_x` in :math:`q_t + f(q)_x = 0`. 
-           This is the first term that contributes to the nonlinear function.
-        
-        3. The source term, if any, is discretized using :fun:`src`. This is 
-           the second contributions to the nonlinear function
+        Evolve q of one time step
         
 
         This routine is called from the method evolve_to_time defined in the
@@ -190,7 +178,14 @@ class ImplicitClawSolver(Solver):
 
         # Call b4step, pyclaw should be subclassed if this is needed
         self.start_step(self,solutions)
- 
+
+
+        # Get state object
+        state = solutions['n'].states[0]
+
+        # Compute slution at the new time level
+        self.updatesolution(state)
+
         
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new dt. 
@@ -202,9 +197,18 @@ class ImplicitClawSolver(Solver):
         if self.cfl >= self.cfl_max:
             raise CFLError('cfl_max exceeded')
 
-
         return True
-            
+
+
+    def updatesolution(self,state):
+        r"""
+        Compute slution at the new time level for the 1D implicit
+        Lax-Wendroff scheme.
+        
+        This is a dummy routine and must be overridden.
+        """
+        raise Exception("Dummy routine, please override!")   
+
 
     def set_mthlim(self):
         self.mthlim = self.limiters
@@ -212,47 +216,6 @@ class ImplicitClawSolver(Solver):
         if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
         if len(self.mthlim)!=self.mwaves:
             raise Exception('Length of solver.limiters is not equal to 1 or to solver.mwaves')
-
-
-    def implicitLW(self,state):
-        """
-        Construct the nonlinear function F for the solution of the implicit Lax-Wendroff scheme. 
-        :math:`F = q^(n+1) - q^(n) - R(q^(n+1)) = 0`, where :math:`R(q^(n+1))` is a vector containing 
-        the contributions of the hyperbolic part and the source term. :math:`R(q^(n+1))` is a nonlinear
-        function of :math:`q^(n+1)`
-        """
-        
-        # Compute the contribution of the hyperbolic term (divergence of the flux) 
-        funflux = self.homogeneous_part(state)
-        ######################################################
-        # TODO: Usually the src function returns a multidimensional array and not a vector.
-        # A vector is the correct entity that must be used for the nonlinear function. 
-        # Consequently, the output of src must be manipulated to push correctly the source term's
-        # contribution to the nonlinear function: disc_src ---> funsrc
-            ######################################################
-
-
-
-        # Compute the contribution of the source term, if any
-        if self.src_term == 1:
-            disc_src = self.src(state,q,state.t)
-            ######################################################
-            # TODO: Usually the src function returns a multidimensional array and not a vector.
-            # A vector is the correct entity that must be used for the nonlinear function. 
-            # Consequently, the output of src must be manipulated to push correctly the source term's
-            # contribution to the nonlinear function: disc_src ---> funsrc
-            ######################################################
-
-        
-        # Here I have to summ all the contributions for the calculation of the nonlinear function
-        # This fun = qvec^(n+1) - qvec^(n) - funflux - funsrc
-        # NOTE: With qvec^(n+1) - qvec^(n) are 1D arrays of length (number of cells * number of equations).
-
-
-
-
-    def dq_homogeneous(state):
-        raise NotImplementedError('You must subclass ImplicitClawSolver.')
 
 
 
@@ -388,8 +351,67 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
             raise NameError(error_msg)
 
 
+    def updatesolution(self,state):
+        r"""
+        Compute slution at the new time level for the 1D
+        Lax-Wendroff scheme
+        """
 
-    def homogeneous_part(self,solutions):
+        # Get grid object
+        grid = state.grid
+
+        # Get dimensionality of the problem
+        ndim = grid.ndim
+
+        # Get number of equations
+        meqn = state.meqn
+
+        # Get number of ghost cells
+        mbc = self.mbc
+
+        # Number of cells
+        mx = state.ng[0]
+
+        # Length of the 1D array
+        vl = mx*meqn+2*mbc
+            
+        # Create PETSc nonlinear solver
+        snes = PETSc.SNES()
+        snes.create(PETSc.COMM_SELF)
+
+        # Define the vector in charge of containing the solution of the nonlinear system
+        x = PETSc.Vec().createSeq(vl)
+
+        # Define the function in charge of computing the nonlinear residual
+        f = PETSc.Vec().createSeq(vl)
+
+        # Define the constant part of the equation.
+        # For the implicit LW scheme this could either zero or the solution at the current time level (q^n) 
+        b = PETSc.Vec().createSeq(vl)
+
+        #  Register the function in charge of computing the nonlinear residual
+        self.snes.setFunction(???, f) #TODO!!!!!
+         
+        # Initial guess x = q^n, i.e. solution at the current time level
+        x = reshape(state.qbc,(mx*meqn+2*mbc,1))
+        #for icell in xrange(0,mx):     
+        #    x[icell*meqn:(icell+1)*meqn] = state.qbc[:,icell]
+
+
+        # Configure the nonlinear solver to use a matrix-free Jacobian
+        snes.setUseMF(True)
+        snes.getKSP().setType('cg')
+        snes.setFromOptions()
+
+
+        # Solve the nonlinear problem
+        b.set(0)
+        snes.solve(b, x)
+
+
+
+
+    def homogeneous_part(self,solutions, qnext):
         r"""
         Take one time step on the homogeneous hyperbolic system and return the 
         contribution to the nonlinear function.
@@ -406,8 +428,6 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
 
         state = solutions['n'].states[0]
         grid = state.grid
-
-        q = state.qbc
             
         meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
           
@@ -427,7 +447,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
             if(maux == 0): aux = np.empty( (maux,mx+2*mbc) )
         
        
-            f,self.cfl = classic1.homodisc1(mx,mbc,mx,q,aux,dx,dt,self.method,self.mthlim)
+            f,self.cfl = classic1.homodisc1(mx,mbc,mx,qnext,aux,dx,dt,self.method,self.mthlim)
 
             ##################################################################################
             # NOTE:  f is a multidimensional array and not a 1D array.
@@ -437,8 +457,9 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
             ##################################################################################
             fun = np.zeros( (mx*meqn) )
 
-            for icell in xrange(0,mx):
-                    fun[icell*meqn:(icell+1)*meqn] = f[:,icell]
+            fun = reshape(f,(mx*meqn+2*mbc,1))
+            #for icell in xrange(0,mx):
+            #        fun[icell*meqn:(icell+1)*meqn] = f[:,icell]
 
 
         elif(self.kernel_language == 'Python'):
@@ -451,9 +472,11 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
 
 
 
+ 
 
 
 
+ 
 
 
 
