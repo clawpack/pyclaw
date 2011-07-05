@@ -34,7 +34,7 @@ classic1fw.so: $(ONE_D_CLASSIC_FWAVE_SOURCES) $(RP_SOURCE)
 
 classicimplicit1.so: $(ONE_D_CLASSIC_IMPLICIT_SOURCES) $(RP_SOURCE)
 	${F2PY} -m classicimplicit1 -c $^
-make
+
 sharpclaw1.so: $(ONE_D_SHARPCLAW_SOURCES) $(RP_SOURCE)
 	${F2PY} -m sharpclaw1 -c $(ONE_D_SHARPCLAW_SOURCES) $(RP_SOURCE)
 
