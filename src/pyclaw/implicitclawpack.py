@@ -1,9 +1,9 @@
 r"""
 Module containing the implicit classic Clawpack solvers.
 
-This module contains the pure and wrapped implicit clawpack solvers (implicit Lax-Wendroff).  
-All clawpack solvers inherit from the :class:`ImplicitClawSolver` superclass which in turn 
-inherits from the :class:`~pyclaw.solver.Solver` superclass.  These
+This module contains the implicit clawpack solvers (implicit Lax-Wendroff scheme).  
+All implicit clawpack solvers inherit from the :class:`ImplicitClawSolver` superclass which in turn 
+inherits from the :class:`~pyclaw.solver.Solver` superclass. These
 are both pure virtual classes; the only solver classes that should be instantiated
 are the dimension-specific ones, :class:`ImplicitClawSolver1D` and :class:`ImplicitClawSolver2D`.
 
@@ -190,21 +190,8 @@ class ImplicitClawSolver(Solver):
 
         # Call b4step, pyclaw should be subclassed if this is needed
         self.start_step(self,solutions)
-
-
-        # TODO: HERE WE SHOULD CALL THE PETSc's ALGEBRAIC SOLVER
-        # petsc4py should be able to provide the SNES interface
-        # The function that defines the nonlinear function is implicitLW(solutions)
-        #
-        # #########################################################################
-
-            # 1) Set initial guess for PESTc SNES
-            #    Here I should set the initial guess. That means that we should have a 1D array 'qguess' 
-            #    of length (number of cells * number of equations).
-            #
-            # 2) Nonlinear solve --> solution at the new time level, i.e. q^(n+1)
-
-
+ 
+        
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new dt. 
         # Even for steady state calculations the control of the CFL is important, especially
@@ -266,7 +253,6 @@ class ImplicitClawSolver(Solver):
 
     def dq_homogeneous(state):
         raise NotImplementedError('You must subclass ImplicitClawSolver.')
-
 
 
 
@@ -441,7 +427,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
             if(maux == 0): aux = np.empty( (maux,mx+2*mbc) )
         
        
-            f,self.cfl = classic1.spatdisc1(mx,mbc,mx,q,aux,dx,dt,self.method,self.mthlim)
+            f,self.cfl = classic1.homodisc1(mx,mbc,mx,q,aux,dx,dt,self.method,self.mthlim)
 
             ##################################################################################
             # NOTE:  f is a multidimensional array and not a 1D array.
@@ -462,6 +448,10 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
 
 
         return fun[:]
+
+
+
+
 
 
 
