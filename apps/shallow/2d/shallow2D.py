@@ -10,7 +10,7 @@
 
 import numpy as np
 from petclaw import plot
-#import pdb
+#import pdb  # Debugger
 
 
 def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
@@ -68,12 +68,12 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
     grid = pyclaw.Grid([x,y])
-    state = pyclaw.State(grid)
 
+    # Sate:
+    state = pyclaw.State(grid)
     state.meqn = 3  # Number of equations
 
-    # Parameters
-    grav = 1.0
+    grav = 1.0 # Parameter (global auxiliary variable)
     state.aux_global['grav'] = grav
 
     # Initial solution
