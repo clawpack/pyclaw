@@ -202,7 +202,7 @@ class ImplicitClawSolver(Solver):
 
     def updatesolution(self,state):
         r"""
-        Compute slution at the new time level for the 1D implicit
+        Compute slution at the new time level for the implicit
         Lax-Wendroff scheme.
         
         This is a dummy routine and must be overridden.
@@ -353,8 +353,14 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
 
     def updatesolution(self,state):
         r"""
-        Compute slution at the new time level for the 1D
-        Lax-Wendroff scheme
+        Compute slution at the new time level for the implicit 1D
+        Lax-Wendroff scheme, i.e.
+
+        q^(n+1) = q^(n) + R(q^(n+1)),
+
+        where q^(n)      = solution at the current time level
+              q^(n+1)    = solution at the new time level (solution of the nonlinear system)
+              R(q^(n+1)) = nonlinear function arising from the spatial/time discretization
         """
 
         # Get grid object
@@ -372,7 +378,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         # Number of cells
         mx = state.ng[0]
 
-        # Length of the 1D array
+        # Length of the 1D arrays that must be passed to PETSc's SNES
         vl = mx*meqn+2*mbc
             
         # Create PETSc nonlinear solver
@@ -386,17 +392,17 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         f = PETSc.Vec().createSeq(vl)
 
         # Define the constant part of the equation.
-        # For the implicit LW scheme this could either zero or the solution at the current time level (q^n) 
+        # For the implicit LW scheme this could either zero or the solution at the current time level (q^n).
+        # In this case we set it equal to the solution at the current time level q^(n)
         b = PETSc.Vec().createSeq(vl)
+        b.set(reshape(state.qbc,(mx*meqn+2*mbc,1))
+
 
         #  Register the function in charge of computing the nonlinear residual
         self.snes.setFunction(???, f) #TODO!!!!!
          
         # Initial guess x = q^n, i.e. solution at the current time level
         x = reshape(state.qbc,(mx*meqn+2*mbc,1))
-        #for icell in xrange(0,mx):     
-        #    x[icell*meqn:(icell+1)*meqn] = state.qbc[:,icell]
-
 
         # Configure the nonlinear solver to use a matrix-free Jacobian
         snes.setUseMF(True)
@@ -405,7 +411,6 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
 
 
         # Solve the nonlinear problem
-        b.set(0)
         snes.solve(b, x)
 
 
