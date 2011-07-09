@@ -1,7 +1,7 @@
 c
 c
 c ===================================================================
-      subroutine step1(maxmx,meqn,mwaves,mbc,maux,mx, q,aux,dx,dt,
+      subroutine step1(maxmx,meqn,mwaves,mbc,maux,mx,q,aux,dx,dt,
      &              method,mthlim,cfl,f,wave,s,amdq,apdq,dtdx)
 c ===================================================================
 c

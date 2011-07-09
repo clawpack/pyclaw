@@ -15,8 +15,6 @@ def qinit(state):
     # Sample scalar equation with data that is piecewise constant with
     # q = 1.0  if  0.1 < x < 0.6   and   0.1 < y < 0.6
     #     0.1  otherwise
-
-    #state.zeros_q()
     
     x = state.grid.x.center
     y = state.grid.y.center
@@ -47,16 +45,19 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
     elif solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
 
-    solver.mwaves = 1
 
     solver.mthbc_lower[0] = pyclaw.BC.periodic
     solver.mthbc_upper[0] = pyclaw.BC.periodic
     solver.mthbc_lower[1] = pyclaw.BC.periodic
     solver.mthbc_upper[1] = pyclaw.BC.periodic
 
+    solver.mwaves = 1
+
     solver.dim_split = 0
+
     solver.cfl_max=1.0
     solver.cfl_desired = 0.9
+
     solver.mthlim = pyclaw.limiters.tvd.vanleer
 
 
