@@ -1,8 +1,8 @@
 PYCLAWMAKE = $(PYCLAW)/Makefile.common
 
-RP_SOURCE = $(RIEMANN)/src/rp1_nonlinear_elasticity.f
+RP_SOURCE = $(RIEMANN)/src/rp1_nonlinear_elasticity_fwave.f
 
-all: classic1fw.so classic1.so sharpclaw1.so
+all: classic1fw.so sharpclaw1.so
 
 include $(PYCLAWMAKE)
 
