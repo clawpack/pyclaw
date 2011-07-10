@@ -54,8 +54,8 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     solver.dim_split=1
 
     #===========================================================================
-    # Initialize grids, then initialize the solution associated to the grid and
-    # finally initialize aux array
+    # Initialize grid and state, then initialize the solution associated to the 
+    # state and finally initialize aux array
     #===========================================================================
 
     # Grid:
