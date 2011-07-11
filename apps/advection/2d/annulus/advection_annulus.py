@@ -21,16 +21,15 @@ def mapc2p_annulus(self,mC):
     Output: pC = list composed by two array [array ([xp1, xp2, ...]), array([yp1, yp2, ...])]
     """  
 
-    import copy
-
     # Polar coordinates (x coordinate = radius,  y coordinate = theta)
     nbrCells = len(mC[0])
 
-    pC = copy.copy(mC)
+    # Define new empty list
+    pC = []
 
-    for iC in range(nbrCells):
-        pC[0][iC] = mC[0][iC]*np.cos(mC[1][iC])
-        pC[1][iC] = mC[0][iC]*np.sin(mC[1][iC])
+    # Populate it with the physical coordinates 
+    pC.append(mC[0][:]*np.cos(mC[1][:]))
+    pC.append(mC[0][:]*np.sin(mC[1][:]))
     
     return pC
 
@@ -88,12 +87,8 @@ def setaux(state,mx,my):
 
     # Set auxiliary array
     # aux[0,i,j] is edge velocity at "left" boundary of grid point (i,j)
-    # aux[1,i,j,] is edge velocity at "bottom" boundary of grid point (i,j)
+    # aux[1,i,j] is edge velocity at "bottom" boundary of grid point (i,j)
     # aux[2,i,j] = kappa  is ratio of cell area to (dxc * dyc)
-    #print state.grid.p_edge[0]
-
-    #print state.grid.p_edge[1]
-
     for j in range(0,my):
         for i in range(0,mx):
             xp[0] = state.grid.p_edge[0][i][j]
@@ -115,7 +110,7 @@ def setaux(state,mx,my):
             xp[3] = state.grid.p_edge[0][i+1][j]
             yp[3] = state.grid.p_edge[1][i+1][j]
 
-            print xp[3],yp[3]
+            #print xp[3],yp[3]
 
             aux[0,i,j] = (stream(xp[1],yp[1])- stream(xp[0],yp[0]))/dyc
             aux[1,i,j] = -(stream(xp[3],yp[3])- stream(xp[0],yp[0]))/dxc
@@ -199,8 +194,6 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     state = pyclaw.State(grid)
     state.meqn = 1  # Number of equations
 
-    state.grid.compute_p_edge(recompute=True)
-
 
     # Set initial solution
     # ====================
@@ -216,7 +209,7 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     # Set up controller and controller parameters
     #===========================================================================
     claw = pyclaw.Controller()
-    claw.tfinal = 0.00
+    claw.tfinal = 0.1
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir
@@ -231,8 +224,6 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     #===========================================================================
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
-
-
 
 
 
