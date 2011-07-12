@@ -71,8 +71,6 @@ def setplot(plotdata):
     plotitem.show = True       # show on plot?
 
 
-
-
     # Parameters used only when creating html and/or latex hardcopy
     # e.g., via visclaw.plotters.frametools.printframes:
 

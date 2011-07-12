@@ -9,7 +9,7 @@ from petsc4py import PETSc
 import petclaw
 
 
-def mapc2p_annulus(self,mC):
+def mapc2p_annulus(grid,mC):
     """
     Specifies the mapping to curvilinear coordinates.
 
@@ -65,8 +65,14 @@ def qinit(state,mx,my):
                            + A2*np.exp(-beta2*(np.square(xp-x2) + np.square(yp-y2)))
 
 
+    #print state.q[0,0,0],state.q[0,0,1],state.q[0,0,2],state.q[0,0,3],state.q[0,0,4]
+    #print state.q[0,1,0],state.q[0,1,1],state.q[0,1,2],state.q[0,1,3],state.q[0,1,4]
+    #print state.q[0,2,0],state.q[0,2,1],state.q[0,2,2],state.q[0,2,3],state.q[0,2,4]
+    #print state.q[0,3,0],state.q[0,3,1],state.q[0,3,2],state.q[0,3,3],state.q[0,3,4]
+    #print state.q[0,4,0],state.q[0,4,1],state.q[0,4,2],state.q[0,4,3],state.q[0,4,4]
+
    
-def setaux(state,mx,my):
+def setauxcapa(state,mx,my):
     """ 
     Set auxiliary array
     """    
@@ -74,8 +80,11 @@ def setaux(state,mx,my):
     # Compute location of all grid cell edge coordinates and store them
     state.grid.compute_p_edge(recompute=True)
 
-    # Define the auxiliary vector
+    # Define the auxiliary array
     aux = np.empty((3,mx,my), order='F')
+
+    # Define the capa array
+    capa = np.empty((1,mx,my), order='F')
 
     # Define array that will contain the four nodes of a cell
     xp = np.zeros([5,1])
@@ -106,7 +115,6 @@ def setaux(state,mx,my):
 
             #print xp[2],yp[2]
 
-
             xp[3] = state.grid.p_edge[0][i+1][j]
             yp[3] = state.grid.p_edge[1][i+1][j]
 
@@ -120,9 +128,25 @@ def setaux(state,mx,my):
             area = 0.
 
             for iNode in range(0,4):
-                area = area + 1./2.*(yp[iNode]+yp[iNode+1])*(xp[iNode+1]-xp[iNode])
-        	    
+                area = area + 1./2.*(yp[iNode]+yp[iNode+1])*(xp[iNode+1]-xp[iNode]) 
+            
+            capa[0,i,j] = area/(dxc*dyc)
             aux[2,i,j] = area/(dxc*dyc)
+
+    #print aux[1,0,0],aux[1,0,1],aux[1,0,2],aux[1,0,3],aux[1,0,4]
+    #print aux[1,1,0],aux[1,1,1],aux[1,1,2],aux[1,1,3],aux[1,1,4]
+    #print aux[1,2,0],aux[1,2,1],aux[1,2,2],aux[1,2,3],aux[1,2,4]
+    #print aux[1,3,0],aux[1,3,1],aux[1,3,2],aux[1,3,3],aux[1,3,4]
+    #print aux[1,4,0],aux[1,4,1],aux[1,4,2],aux[1,4,3],aux[1,4,4]
+
+    #print capa[0,0,0],capa[0,0,1],capa[0,0,2],capa[0,0,3],capa[0,0,4]
+    #print capa[0,1,0],capa[0,1,1],capa[0,1,2],capa[0,1,3],capa[0,1,4]
+    #print capa[0,2,0],capa[0,2,1],capa[0,2,2],capa[0,2,3],capa[0,2,4]
+    #print capa[0,3,0],capa[0,3,1],capa[0,3,2],capa[0,3,3],capa[0,3,4]
+    #print capa[0,4,0],capa[0,4,1],capa[0,4,2],capa[0,4,3],capa[0,4,4]
+
+
+    return aux,capa
   
 
 def stream(xp,yp):
@@ -133,8 +157,6 @@ def stream(xp,yp):
     streamValue = np.pi*(np.square(xp) + np.square(yp))
 
     return streamValue
-
-
 
 
 def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
@@ -162,14 +184,13 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
 
     solver.mwaves = 1
 
-    solver.dim_split = 0
+    solver.dim_split = 1
 
     solver.dt_initial = 0.1
     solver.cfl_max = 1.0
-    solver.cfl_desired = 0.9
+    solver.cfl_desired = 0.1
 
     solver.limiters = pyclaw.limiters.tvd.vanleer
-
 
     #===========================================================================
     # Initialize grid and state, then initialize the solution associated to the 
@@ -178,21 +199,26 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     # Grid:
     xlower = 0.2
     xupper = 1.0
-    mx = 10
+    mx = 40
 
     ylower = 0.0
     yupper = np.pi*2.0
-    my = 20
+    my = 120
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
     grid = pyclaw.Grid([x,y])
     grid.mapc2p = mapc2p_annulus # Override default_mapc2p function implemented in grid.py
 
+    #print grid.d[0],grid.d[1]
+
 
     # Sate:
     state = pyclaw.State(grid)
     state.meqn = 1  # Number of equations
+
+    
+    #print state.capa
 
 
     # Set initial solution
@@ -201,15 +227,20 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
 
     # Set auxiliary array
     # ===================
-    state.aux = setaux(state,mx,my) # This function is defined above
+    state.aux,state.capa = setauxcapa(state,mx,my) # This function is defined above
 
+
+    #print state.capa
 
     
     #===========================================================================
     # Set up controller and controller parameters
     #===========================================================================
     claw = pyclaw.Controller()
-    claw.tfinal = 0.1
+    claw.keep_copy = False
+    claw.outstyle = 1
+    claw.nout = 10
+    claw.tfinal = 20
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir

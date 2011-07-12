@@ -33,6 +33,8 @@ c
       double precision dtdy1d(1-mbc:maxm+mbc)
       integer method(7),mthlim(mwaves)
       double precision work(mwork)
+      double precision capa(1, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
+
 
 cf2py intent(in,out) cfl
 cf2py intent(in,out) qnew
@@ -82,7 +84,8 @@ c     ==================
 c
       do 50 j = 0,my+1
 c
-c        # copy data along a slice into 1d arrays:
+c        # copy data along a slice into 1d arrays:aux(mcapa,i,j)
+
          do 21 m=1,meqn
             do 20 i = 1-mbc, mx+mbc
                q1d(m,i) = qold(m,i,j)
@@ -91,7 +94,8 @@ c        # copy data along a slice into 1d arrays:
 c
          if (mcapa.gt.0)  then
             do 22 i = 1-mbc, mx+mbc
-               dtdx1d(i) = dtdx / aux(mcapa,i,j)
+               dtdx1d(i) = dtdx/aux(3,i,j)
+c               write(*,*) dtdx,dtdx1d(i)
    22       continue
          endif
 c
