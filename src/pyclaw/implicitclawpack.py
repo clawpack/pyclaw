@@ -177,13 +177,17 @@ class ImplicitClawSolver(Solver):
         """
 
         # Call b4step, pyclaw should be subclassed if this is needed
+        # NOTE: THIS IS NOT THE RIGHT PLACE WHEN WE HAVE AN IMPLICIT  
+        # TIME STEPPING BECAUSE, FOR INSTANCE, THE AUX ARRAY COULD DEPENDS ON THE SOLUTION ITSELF.
+        # THEN start_step FUNCTION SHOULD BE PLACED IN THE PART OF THE CODE WHERE THE
+        # NONLINEAR FUNCTION IS COMPUTED!!!!!!!!!
         self.start_step(self,solutions)
 
 
         # Get state object
         state = solutions['n'].states[0]
 
-        # Compute slution at the new time level
+        # Compute solution at the new time level
         self.updatesolution(state)
 
         
@@ -220,11 +224,79 @@ class ImplicitClawSolver(Solver):
 
 
 # ============================================================================
+#  Application context for PETSc SNES; 1D implicit Lax-Wendroff
+# ============================================================================
+class ImplicitLW1D:
+    r"""
+    Application context for the nonlinear problem arising by the implicit Lax-Wendroff scheme.
+    It contains some parametes and knows how to compute the nonlinear function.     
+    """
+    def __init__(self,state,mwaves,mbc,method,mthlim,dt,aux,kernel_language='Fortran'):
+        self.state = state  
+        self.mwaves = mwaves
+        self.mbc = mbc
+        self.method = method
+        self.mthlim = mathlim
+        self.dt = dt
+        self.aux = aux
+        self.kernel_language = kernel_language
+
+        self.grid = self.state.grid
+        self.meqn = self.state.meqn
+        self.maux = self.state.maux
+
+        self.mx = self.grid.ng[0]
+        self.dx = self.grid.d[0]
+
+    # ========== Evaluation of the nonlinear function =============================  
+    def evalNonLinearFunction(self,snes,X,F):
+        mx = self.mx
+        mbc = self.mbc
+        aux = self.aux
+        dx = self.dx
+        dt = self.dt
+        method = self.method
+        mthlim = self.mthlim
+        meqn = self.meqn
+
+
+        if impl == 'Fortran':
+            import classicimplicit1 as classic1
+
+            # Compute the contribution of the homegeneous PDE to the nonlinear function
+            ###########################################################################
+            dtdx = np.zeros((mx+2*mbc)) + dt/dx
+            
+            # Reshape array X before passing it to the fortran code which works with multidimensional array
+            qapprox = reshape(X,(meqn,mx),order='F')
+            fhomo,self.cfl = classic1.homodisc1(mx,mbc,mx,qapprox,aux,dx,dt,method,mthlim)
+
+
+            # Compute the contribution of the source term to the nonlinear function
+            fsrc = self.src(state,qapprox,state.t)
+
+            # Sum the two contribution
+            ftot = fhomo + fsrc
+
+            # NOTE: ftot is a multidimensional array and not a 1D array.
+            # A 1D array is the correct entity that must be used for the nonlinear function. 
+            # Consequently, ftot must be reshaped. 
+            F.setArray(reshape(ftot,(meqn*(mx+2*mbc),1),order='F'))
+
+
+        elif impl == 'Python':
+            raise ValueError('Python implementation for the calculation of the nonlinear function not available')
+        else:
+            raise ValueError('Unknown implementation for the calculation of the nonlinear function')
+
+
+            
+# ============================================================================
 #  Implicit ClawPack 1d Solver Class
 # ============================================================================
 class ImplicitClawSolver1D(ImplicitClawSolver):
     r"""
-    Implicit Clawpack evolution routine in 1D
+    Implicit Clawpack evolution routine in 1D.
     
     This class represents the 1d implicit clawpack solver on a single grid.  Note that 
     there are routines here for interfacing with the fortran time stepping 
@@ -268,7 +340,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
     # ========== Setup routine =============================   
     def setup(self,solutions):
         r"""
-        Perform essential solver setup.  This routine must be called before
+        Perform essential solver setup. This routine must be called before
         solver.step() may be called.
         """
         self.set_mthlim()
@@ -379,12 +451,18 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         mx = state.ng[0]
 
         # Length of the 1D arrays that must be passed to PETSc's SNES
-        vl = mx*meqn+2*mbc
-            
-        # Create PETSc nonlinear solver
-        snes = PETSc.SNES()
-        snes.create(PETSc.COMM_SELF)
+        vl = meqn*(mx+2*mbc)
 
+        # Create application context and PETSc nonlinear solver
+        maux = state.maux
+        if maux>0:
+            aux = self.auxbc(state)
+        else:
+            aux=np.empty((maux,mx+2*mbc))
+
+        appc = ImplicitLW1D(state,mwaves,mbc,method,mthlim,dt,aux,self.kernel_language)
+        snes = PETSc.SNES().create()
+        
         # Define the vector in charge of containing the solution of the nonlinear system
         x = PETSc.Vec().createSeq(vl)
 
@@ -393,87 +471,33 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
 
         # Define the constant part of the equation.
         # For the implicit LW scheme this could either zero or the solution at the current time level (q^n).
-        # In this case we set it equal to the solution at the current time level q^(n)
+        # In this case we set it equal to the solution at the current time level q^(n).
+        # TODO URGENTLY: decide how to reshape state.qbc and assign to b!!!!!!!!
+        # THIS IS ALSO URGENT FOR THE ImplicitLW1 class!!!!!!!!!
         b = PETSc.Vec().createSeq(vl)
-        b.set(reshape(state.qbc,(mx*meqn+2*mbc,1))
-
+        b.setArray(reshape(state.qbc,(vl,1),order='F'))
 
         #  Register the function in charge of computing the nonlinear residual
-        self.snes.setFunction(???, f) #TODO!!!!!
+        self.snes.setFunction(appc.evalNonLinearFunction, f)
          
         # Initial guess x = q^n, i.e. solution at the current time level
-        x = reshape(state.qbc,(mx*meqn+2*mbc,1))
+        x.setArray(reshape(state.qbc,(vl,1),order='F'))
 
         # Configure the nonlinear solver to use a matrix-free Jacobian
         snes.setUseMF(True)
         snes.getKSP().setType('cg')
         snes.setFromOptions()
 
-
         # Solve the nonlinear problem
         snes.solve(b, x)
 
+        # Assign to q the new value after reshaping the solution of the nonlinear system x.
+        state.q = reshape(x,(meqn,mx),order='F')
 
 
 
-    def homogeneous_part(self,solutions, qnext):
-        r"""
-        Take one time step on the homogeneous hyperbolic system and return the 
-        contribution to the nonlinear function.
-
-        Takes one time step of size dt on the hyperbolic system defined in the
-        appropriate Riemann solver rp.
-
-        :Input:
-         - *solutions* - (:class:`~pyclaw.solution.Solution`) Solution that 
-           will be evolved
-
-        """
-        import numpy as np
-
-        state = solutions['n'].states[0]
-        grid = state.grid
-            
-        meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
-          
-        if maux>0:
-            aux = self.auxbc(state)
-
-        ######################################################
-        # IMPORT classicimplicit1 
-        ######################################################
-        if(self.kernel_language == 'Fortran'):
-            import classicimplicit1 as classic1
-
-            mx = grid.ng[0]
-            dx,dt = grid.d[0],self.dt
-            dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
-            
-            if(maux == 0): aux = np.empty( (maux,mx+2*mbc) )
-        
-       
-            f,self.cfl = classic1.homodisc1(mx,mbc,mx,qnext,aux,dx,dt,self.method,self.mthlim)
-
-            ##################################################################################
-            # NOTE:  f is a multidimensional array and not a 1D array.
-            # A 1D array is the correct entity that must be used for the nonlinear function. 
-            # Consequently, f must be manipulated to push correctly the 
-            # contribution of the hyperbolic part to the nonlinear function: f ---> fun
-            ##################################################################################
-            fun = np.zeros( (mx*meqn) )
-
-            fun = reshape(f,(mx*meqn+2*mbc,1))
-            #for icell in xrange(0,mx):
-            #        fun[icell*meqn:(icell+1)*meqn] = f[:,icell]
 
 
-        elif(self.kernel_language == 'Python'):
-            raise NotImplementedError('kernel_language = Python not implemented!')
-
-        else: raise Exception("Unrecognized kernel_language; choose 'Fortran' or 'Python'")
-
-
-        return fun[:]
 
 
 
