@@ -95,7 +95,7 @@ c        # copy data along a slice into 1d arrays:
 c
          if (mcapa.gt.0)  then
             do 22 i = 1-mbc, mx+mbc
-               dtdx1d(i) = dtdx / aux(3,i,j)
+               dtdx1d(i) = dtdx / aux(mcapa,i,j)
    22       continue
          endif
 c
@@ -153,7 +153,7 @@ c            # with capa array.
             forall (m=1:meqn, i=1:mx)
 	           qnew(m,i,j) = qnew(m,i,j) + qadd(m,i)
      &                        - dtdx * (fadd(m,i+1) - fadd(m,i))
-     &                        / aux(3,i,j)
+     &                        / aux(mcapa,i,j)
             end forall
          endif
    50 continue
@@ -175,7 +175,7 @@ c        # copy data along a slice into 1d arrays:
 c
          if (mcapa.gt.0)  then
             do 72 j = 1-mbc, my+mbc
-               dtdy1d(j) = dtdy / aux(3,i,j)
+               dtdy1d(j) = dtdy / aux(mcapa,i,j)
    72       continue
          endif
 c
@@ -236,7 +236,7 @@ c            # with capa array.
             forall (m=1:meqn, j=1:my)  
 	           qnew(m,i,j) = qnew(m,i,j) + qadd(m,j)
      &                  - dtdy * (fadd(m,j+1) - fadd(m,j))
-     &                        / aux(3,i,j)
+     &                        / aux(mcapa,i,j)
 			end forall
 
          endif

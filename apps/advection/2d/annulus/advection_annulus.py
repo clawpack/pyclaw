@@ -57,12 +57,10 @@ def qinit(state,mx,my):
     # Compute location of all grid cell center coordinates and store them
     state.grid.compute_p_center(recompute=True)
 
-    for i in range(0,mx):
-        for j in range(0,my):
-            xp = state.grid.p_center[0][i][j] 
-            yp = state.grid.p_center[1][i][j]
-            state.q[0,i,j] = A1*np.exp(-beta1*(np.square(xp-x1) + np.square(yp-y1)))\
-                           + A2*np.exp(-beta2*(np.square(xp-x2) + np.square(yp-y2)))
+    xp = state.grid.p_center[0]
+    yp = state.grid.p_center[1]
+    state.q[0,:,:] = A1*np.exp(-beta1*(np.square(xp-x1) + np.square(yp-y1)))\
+                   + A2*np.exp(-beta2*(np.square(xp-x2) + np.square(yp-y2)))
 
 
     #print state.q[0,0,0],state.q[0,0,1],state.q[0,0,2],state.q[0,0,3],state.q[0,0,4]
@@ -72,7 +70,7 @@ def qinit(state,mx,my):
     #print state.q[0,4,0],state.q[0,4,1],state.q[0,4,2],state.q[0,4,3],state.q[0,4,4]
 
    
-def setauxcapa(state,mx,my):
+def setaux(state,mx,my):
     """ 
     Set auxiliary array
     """    
@@ -82,9 +80,6 @@ def setauxcapa(state,mx,my):
 
     # Define the auxiliary array
     aux = np.empty((3,mx,my), order='F')
-
-    # Define the capa array
-    capa = np.empty((1,mx,my), order='F')
 
     # Define array that will contain the four nodes of a cell
     xp = np.zeros([5,1])
@@ -98,27 +93,19 @@ def setauxcapa(state,mx,my):
     # aux[0,i,j] is edge velocity at "left" boundary of grid point (i,j)
     # aux[1,i,j] is edge velocity at "bottom" boundary of grid point (i,j)
     # aux[2,i,j] = kappa  is ratio of cell area to (dxc * dyc)
-    for j in range(0,my):
-        for i in range(0,mx):
-            xp[0] = state.grid.p_edge[0][i][j]
-            yp[0] = state.grid.p_edge[1][i][j]
+    for j in range(my):
+        for i in range(mx):
+            xp[0] = state.grid.p_edge[0][i,j]
+            yp[0] = state.grid.p_edge[1][i,j]
 
-            #print xp[0],yp[0]
+            xp[1] = state.grid.p_edge[0][i,j+1]
+            yp[1] = state.grid.p_edge[1][i,j+1]
 
-            xp[1] = state.grid.p_edge[0][i][j+1]
-            yp[1] = state.grid.p_edge[1][i][j+1]
+            xp[2] = state.grid.p_edge[0][i+1,j+1]
+            yp[2] = state.grid.p_edge[1][i+1,j+1]
 
-            #print xp[1],yp[1]
-
-            xp[2] = state.grid.p_edge[0][i+1][j+1]
-            yp[2] = state.grid.p_edge[1][i+1][j+1]
-
-            #print xp[2],yp[2]
-
-            xp[3] = state.grid.p_edge[0][i+1][j]
-            yp[3] = state.grid.p_edge[1][i+1][j]
-
-            #print xp[3],yp[3]
+            xp[3] = state.grid.p_edge[0][i+1,j]
+            yp[3] = state.grid.p_edge[1][i+1,j]
 
             aux[0,i,j] = (stream(xp[1],yp[1])- stream(xp[0],yp[0]))/dyc
             aux[1,i,j] = -(stream(xp[3],yp[3])- stream(xp[0],yp[0]))/dxc
@@ -127,11 +114,14 @@ def setauxcapa(state,mx,my):
             yp[4] = yp[0]
             area = 0.
 
-            for iNode in range(0,4):
+            for iNode in range(4):
                 area = area + 1./2.*(yp[iNode]+yp[iNode+1])*(xp[iNode+1]-xp[iNode]) 
             
-            capa[0,i,j] = area/(dxc*dyc)
             aux[2,i,j] = area/(dxc*dyc)
+
+    #import matplotlib.pyplot as plt
+    #plt.quiver(state.grid.p_center[0],state.grid.p_center[1],aux[0,:,:],aux[1,:,:])
+    #plt.draw()
 
     #print aux[1,0,0],aux[1,0,1],aux[1,0,2],aux[1,0,3],aux[1,0,4]
     #print aux[1,1,0],aux[1,1,1],aux[1,1,2],aux[1,1,3],aux[1,1,4]
@@ -139,14 +129,7 @@ def setauxcapa(state,mx,my):
     #print aux[1,3,0],aux[1,3,1],aux[1,3,2],aux[1,3,3],aux[1,3,4]
     #print aux[1,4,0],aux[1,4,1],aux[1,4,2],aux[1,4,3],aux[1,4,4]
 
-    #print capa[0,0,0],capa[0,0,1],capa[0,0,2],capa[0,0,3],capa[0,0,4]
-    #print capa[0,1,0],capa[0,1,1],capa[0,1,2],capa[0,1,3],capa[0,1,4]
-    #print capa[0,2,0],capa[0,2,1],capa[0,2,2],capa[0,2,3],capa[0,2,4]
-    #print capa[0,3,0],capa[0,3,1],capa[0,3,2],capa[0,3,3],capa[0,3,4]
-    #print capa[0,4,0],capa[0,4,1],capa[0,4,2],capa[0,4,3],capa[0,4,4]
-
-
-    return aux,capa
+    return aux
   
 
 def stream(xp,yp):
@@ -184,11 +167,12 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
 
     solver.mwaves = 1
 
-    solver.dim_split = 1
+    solver.dim_split = 0
+    solver.order_trans = 2
 
     solver.dt_initial = 0.1
     solver.cfl_max = 1.0
-    solver.cfl_desired = 0.1
+    solver.cfl_desired = 0.9
 
     solver.limiters = pyclaw.limiters.tvd.vanleer
 
@@ -218,19 +202,14 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     state.meqn = 1  # Number of equations
 
     
-    #print state.capa
-
-
     # Set initial solution
     # ====================
     qinit(state,mx,my) # This function is defined above
 
     # Set auxiliary array
     # ===================
-    state.aux,state.capa = setauxcapa(state,mx,my) # This function is defined above
-
-
-    #print state.capa
+    state.aux = setaux(state,mx,my) # This function is defined above
+    state.mcapa = 2
 
     
     #===========================================================================
@@ -239,8 +218,8 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     claw = pyclaw.Controller()
     claw.keep_copy = False
     claw.outstyle = 1
-    claw.nout = 10
-    claw.tfinal = 20
+    claw.nout = 20
+    claw.tfinal = 0.5
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir
