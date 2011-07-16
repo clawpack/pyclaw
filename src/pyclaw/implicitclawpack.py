@@ -271,17 +271,16 @@ class ImplicitLW1D:
             qapprox = reshape(X,(meqn,mx),order='F')
             fhomo,self.cfl = classic1.homodisc1(mx,mbc,mx,qapprox,aux,dx,dt,method,mthlim)
 
-
             # Compute the contribution of the source term to the nonlinear function
             fsrc = self.src(state,qapprox,state.t)
 
             # Sum the two contribution
-            ftot = fhomo + fsrc
+            ftot = fhomo
+            ftot += fsrc
 
-            # NOTE: ftot is a multidimensional array and not a 1D array.
-            # A 1D array is the correct entity that must be used for the nonlinear function. 
-            # Consequently, ftot must be reshaped. 
-            F.setArray(reshape(ftot,(meqn*(mx+2*mbc),1),order='F'))
+            assert ftot.flags['F_CONTIGUOUS']
+            F.setArray(ftot)
+            
 
 
         elif impl == 'Python':
