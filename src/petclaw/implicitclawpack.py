@@ -264,11 +264,13 @@ class ImplicitLW1D:
         if impl == 'Fortran':
             import classicimplicit1 as classic1
 
-            # Compute the contribution of the homegeneous PDE to the nonlinear function
-            ###########################################################################
+            # Compute the contribution of the homegeneous PDE to the nonlinear 
+            # function
+            ###################################################################
             dtdx = np.zeros((mx+2*mbc)) + dt/dx
             
-            # Reshape array X before passing it to the fortran code which works with multidimensional array
+            # Reshape array X before passing it to the fortran code which works 
+            # with multidimensional array
             qapprox = reshape(qnew,(meqn,mx),order='F')
             fhomo,self.cfl = classic1.homodisc1(mx,mbc,mx,qapprox,aux,dx,dt,method,mthlim)
 
@@ -434,22 +436,22 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         """
 
         # Get grid object
-        grid = state.grid
+        #grid = state.grid
 
         # Get dimensionality of the problem
-        ndim = grid.ndim
+        #ndim = grid.ndim
 
         # Get number of equations
-        meqn = state.meqn
+        #meqn = state.meqn
 
         # Get number of ghost cells
-        mbc = self.mbc
+        #mbc = self.mbc
 
         # Number of cells
-        mx = state.ng[0]
+        #mx = state.ng[0]
 
         # Length of the 1D arrays that must be passed to PETSc's SNES
-        vl = meqn*(mx+2*mbc)
+        #vl = meqn*(mx+2*mbc)
 
         # Create application context and PETSc nonlinear solver
         maux = state.maux
@@ -458,7 +460,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         else:
             aux=np.empty((maux,mx+2*mbc))
 
-        appc = ImplicitLW1D(state,mwaves,mbc,method,mthlim,dt,aux,self.kernel_language)
+        appc = ImplicitLW1D(state,self.mwaves,mbc,method,mthlim,dt,aux,self.kernel_language)
         snes = PETSc.SNES().create()
         
         # Define the vector in charge of containing the solution of the 
@@ -466,10 +468,10 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         # current time level.
         #x = PETSc.Vec().createSeq(vl)
         #x.setArray(reshape(state.qbc,(vl,1),order='F'))
-        qnew = qbc.copy()
+        qnew = state.qbc.copy()
                 
         # Define the function in charge of computing the nonlinear residual
-        f = PETSc.Vec().createSeq(vl)
+        f = PETSc.Vec().createSeq(qnew.size)
 
         # Define the constant part of the equation.
         # For the implicit LW scheme this could either zero or the solution at the current time level (q^n).
@@ -478,7 +480,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         # THIS IS ALSO URGENT FOR THE ImplicitLW1 class!!!!!!!!!
         #b = PETSc.Vec().createSeq(vl)
         #b.setArray(reshape(state.qbc,(vl,1),order='F'))
-        b = qbc.copy()
+        b = qnew.copy()
 
         #  Register the function in charge of computing the nonlinear residual
         self.snes.setFunction(appc.evalNonLinearFunction, f)
@@ -489,10 +491,11 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         snes.setFromOptions()
 
         # Solve the nonlinear problem
-        snes.solve(b, x)
+        snes.solve(b, qnew)
 
-        # Assign to q the new value after reshaping the solution of the nonlinear system x.
-        state.q = reshape(x,(meqn,mx),order='F')
+        # Assign to q the new value qnew.
+        # state.q = reshape(x,(meqn,mx),order='F')
+        qbc = qnew
 
 
 
