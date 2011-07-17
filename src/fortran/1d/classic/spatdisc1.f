@@ -138,7 +138,7 @@ c
 c     # (Note:  Godunov update has already been performed above)
 c
       forall(i=1:mx+1, m=1:meqn)
-            hypdisc(m,i) = dtdx(i) * (f(m,i+1) - f(m,i))
+            hypdisc(m,i) = hypdisc(m,i) + dtdx(i) * (f(m,i+1) - f(m,i))
       end forall
 c
   900 continue

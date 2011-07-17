@@ -228,8 +228,9 @@ class ImplicitClawSolver(Solver):
 # ============================================================================
 class ImplicitLW1D:
     r"""
-    Application context for the nonlinear problem arising by the implicit Lax-Wendroff scheme.
-    It contains some parametes and knows how to compute the nonlinear function.     
+    Application context for the nonlinear problem arising by the implicit 
+    Lax-Wendroff scheme. It contains some parametes and knows how to compute the 
+    nonlinear function.     
     """
     def __init__(self,state,mwaves,mbc,method,mthlim,dt,aux,kernel_language='Fortran'):
         self.state = state  
@@ -249,7 +250,7 @@ class ImplicitLW1D:
         self.dx = self.grid.d[0]
 
     # ========== Evaluation of the nonlinear function =============================  
-    def evalNonLinearFunction(self,snes,X,F):
+    def evalNonLinearFunction(self,snes,qnew,F):
         mx = self.mx
         mbc = self.mbc
         aux = self.aux
@@ -268,20 +269,18 @@ class ImplicitLW1D:
             dtdx = np.zeros((mx+2*mbc)) + dt/dx
             
             # Reshape array X before passing it to the fortran code which works with multidimensional array
-            qapprox = reshape(X,(meqn,mx),order='F')
+            qapprox = reshape(qnew,(meqn,mx),order='F')
             fhomo,self.cfl = classic1.homodisc1(mx,mbc,mx,qapprox,aux,dx,dt,method,mthlim)
 
             # Compute the contribution of the source term to the nonlinear function
             fsrc = self.src(state,qapprox,state.t)
 
-            # Sum the two contribution
-            ftot = fhomo
-            ftot += fsrc
+            # Sum the two contribution without creating an additional array
+            fhomo += fsrc
 
             assert ftot.flags['F_CONTIGUOUS']
-            F.setArray(ftot)
+            F.setArray(fhomo)
             
-
 
         elif impl == 'Python':
             raise ValueError('Python implementation for the calculation of the nonlinear function not available')
@@ -462,9 +461,13 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         appc = ImplicitLW1D(state,mwaves,mbc,method,mthlim,dt,aux,self.kernel_language)
         snes = PETSc.SNES().create()
         
-        # Define the vector in charge of containing the solution of the nonlinear system
-        x = PETSc.Vec().createSeq(vl)
-
+        # Define the vector in charge of containing the solution of the 
+        # nonlinear system. The initial guess qnew = q^n, i.e. solution at the 
+        # current time level.
+        #x = PETSc.Vec().createSeq(vl)
+        #x.setArray(reshape(state.qbc,(vl,1),order='F'))
+        qnew = qbc.copy()
+                
         # Define the function in charge of computing the nonlinear residual
         f = PETSc.Vec().createSeq(vl)
 
@@ -473,15 +476,13 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         # In this case we set it equal to the solution at the current time level q^(n).
         # TODO URGENTLY: decide how to reshape state.qbc and assign to b!!!!!!!!
         # THIS IS ALSO URGENT FOR THE ImplicitLW1 class!!!!!!!!!
-        b = PETSc.Vec().createSeq(vl)
-        b.setArray(reshape(state.qbc,(vl,1),order='F'))
+        #b = PETSc.Vec().createSeq(vl)
+        #b.setArray(reshape(state.qbc,(vl,1),order='F'))
+        b = qbc.copy()
 
         #  Register the function in charge of computing the nonlinear residual
         self.snes.setFunction(appc.evalNonLinearFunction, f)
          
-        # Initial guess x = q^n, i.e. solution at the current time level
-        x.setArray(reshape(state.qbc,(vl,1),order='F'))
-
         # Configure the nonlinear solver to use a matrix-free Jacobian
         snes.setUseMF(True)
         snes.getKSP().setType('cg')
