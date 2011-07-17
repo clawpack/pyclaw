@@ -11,9 +11,9 @@ are the dimension-specific ones, :class:`ImplicitClawSolver1D` and :class:`Impli
     Matteo Parsani -- Initial version (July 2011)
 """
 
-from pyclaw.solver import Solver
+import petclaw.solver
 
-import limiters.tvd
+import pyclaw.limiters.tvd
 import riemann
 
 # ========================================================================
@@ -38,15 +38,15 @@ def src(solver,solutions,t,dt):
 # ============================================================================
 #  Generic implicit Clawpack solver class
 # ============================================================================
-class ImplicitClawSolver(Solver):
+class ImplicitClawSolver(petclaw.solver.PetSolver):
     r"""
-    Generic implicit Clawpack solver
+    Generic implicit Clawpack solver.
     
     All implicit Clawpack solvers inherit from this base class.
     
     .. attribute:: mthlim 
     
-        Limiter to be used on each wave.  ``Default = limiters.tvd.minmod``
+        Limiter to be used on each wave.  ``Default = pyclaw.limiters.tvd.minmod``
     
     .. attribute:: order
     
@@ -98,7 +98,7 @@ class ImplicitClawSolver(Solver):
         
         # Default required attributes
         self._default_attr_values['mbc'] = 2
-        self._default_attr_values['limiters'] = limiters.tvd.minmod
+        self._default_attr_values['limiters'] = pyclaw.limiters.tvd.minmod
         self._default_attr_values['order'] = 2
         self._default_attr_values['fwave'] = False
         self._default_attr_values['src'] = src
@@ -117,7 +117,7 @@ class ImplicitClawSolver(Solver):
         This routine will be called once before the solver is used via the
         :class:`~pyclaw.controller.Controller`.
         """
-    b.set(0)    pass 
+    pass 
     
     # ========== Riemann solver library routines =============================   
     def list_riemann_solvers(self):
@@ -224,7 +224,7 @@ class ImplicitClawSolver(Solver):
 
 
 # ============================================================================
-#  Application context for PETSc SNES; 1D implicit Lax-Wendroff
+#  Application context (appc) for PETSc SNES; 1D implicit Lax-Wendroff
 # ============================================================================
 class ImplicitLW1D:
     r"""
@@ -249,7 +249,7 @@ class ImplicitLW1D:
         self.mx = self.grid.ng[0]
         self.dx = self.grid.d[0]
 
-    # ========== Evaluation of the nonlinear function =============================  
+    # ========== Evaluation of the nonlinear function ==========================  
     def evalNonLinearFunction(self,snes,qnew,F):
         mx = self.mx
         mbc = self.mbc
@@ -435,15 +435,15 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
               q^(n+1)    = solution at the new time level (solution of the nonlinear system)
               R(q^(n+1)) = nonlinear function arising from the spatial/time discretization
         """
-
-        # Create application context and PETSc nonlinear solver
+        
+        # Define aux array
         maux = state.maux
         if maux>0:
             aux = self.auxbc(state)
         else:
             aux=np.empty((maux,mx+2*mbc))
 
-
+        # Create application context (appc) and PETSc nonlinear solver
         mwaves,mbc = self.mwaves,self.mbc
 
         appc = ImplicitLW1D(state,mwaves,mbc,self.method,self.mthlim,self.dt,aux,self.kernel_language)
@@ -475,7 +475,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         snes.solve(b, qnew)
 
         # Assign to q the new value qnew.
-        qbc = qnew
+        state.qbc = qnew
 
 
 
