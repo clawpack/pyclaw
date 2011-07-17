@@ -274,7 +274,8 @@ class ImplicitLW1D:
             qapprox = reshape(qnew,(meqn,mx),order='F')
             fhomo,self.cfl = classic1.homodisc1(mx,mbc,mx,qapprox,aux,dx,dt,method,mthlim)
 
-            # Compute the contribution of the source term to the nonlinear function
+            # Compute the contribution of the source term to the nonlinear 
+            # function
             fsrc = self.src(state,qapprox,state.t)
 
             # Sum the two contribution without creating an additional array
@@ -435,24 +436,6 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
               R(q^(n+1)) = nonlinear function arising from the spatial/time discretization
         """
 
-        # Get grid object
-        #grid = state.grid
-
-        # Get dimensionality of the problem
-        #ndim = grid.ndim
-
-        # Get number of equations
-        #meqn = state.meqn
-
-        # Get number of ghost cells
-        #mbc = self.mbc
-
-        # Number of cells
-        #mx = state.ng[0]
-
-        # Length of the 1D arrays that must be passed to PETSc's SNES
-        #vl = meqn*(mx+2*mbc)
-
         # Create application context and PETSc nonlinear solver
         maux = state.maux
         if maux>0:
@@ -460,26 +443,24 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         else:
             aux=np.empty((maux,mx+2*mbc))
 
-        appc = ImplicitLW1D(state,self.mwaves,mbc,method,mthlim,dt,aux,self.kernel_language)
+
+        mwaves,mbc = self.mwaves,self.mbc
+
+        appc = ImplicitLW1D(state,mwaves,mbc,self.method,self.mthlim,self.dt,aux,self.kernel_language)
         snes = PETSc.SNES().create()
         
         # Define the vector in charge of containing the solution of the 
-        # nonlinear system. The initial guess qnew = q^n, i.e. solution at the 
-        # current time level.
-        #x = PETSc.Vec().createSeq(vl)
-        #x.setArray(reshape(state.qbc,(vl,1),order='F'))
+        # nonlinear system. The initial guess is qnew = q^n, i.e. solution at 
+        # the current time level t^n.
         qnew = state.qbc.copy()
                 
-        # Define the function in charge of computing the nonlinear residual
+        # Define the function in charge of computing the nonlinear residual.
         f = PETSc.Vec().createSeq(qnew.size)
 
         # Define the constant part of the equation.
-        # For the implicit LW scheme this could either zero or the solution at the current time level (q^n).
-        # In this case we set it equal to the solution at the current time level q^(n).
-        # TODO URGENTLY: decide how to reshape state.qbc and assign to b!!!!!!!!
-        # THIS IS ALSO URGENT FOR THE ImplicitLW1 class!!!!!!!!!
-        #b = PETSc.Vec().createSeq(vl)
-        #b.setArray(reshape(state.qbc,(vl,1),order='F'))
+        # For the implicit LW scheme this could either zero or the solution at 
+        # the current time level (q^n). In this case we set it equal to the 
+        # solution at the current time level.
         b = qnew.copy()
 
         #  Register the function in charge of computing the nonlinear residual
@@ -494,7 +475,6 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         snes.solve(b, qnew)
 
         # Assign to q the new value qnew.
-        # state.q = reshape(x,(meqn,mx),order='F')
         qbc = qnew
 
 
