@@ -28,6 +28,7 @@ class PetSolver(pyclaw.solver.Solver):
         state.q_da.globalToLocal(state.gqVec, state.lqVec)
         q_dim = [n + 2*self.mbc for n in state.grid.ng]
         q_dim.insert(0,state.meqn)
+        test=state.lqVec.getArray()
         ghosted_q=state.lqVec.getArray().reshape(q_dim, order = 'F')
         return ghosted_q
     

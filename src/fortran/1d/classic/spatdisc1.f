@@ -89,11 +89,6 @@ c     # for equations not in conservation form.  It is conservative if
 c     # amdq + apdq = f(q(i)) - f(q(i-1)).
 c
 
-
-
-      
-c     print *,"q before, from fortran",q(24,1)
-
       forall(i=1:mx+1, m=1:meqn)
          hypdisc(m,i) =  dtdx(i)*apdq(m,i)
          hypdisc(m,i-1) = dtdx(i-1)*amdq(m,i)
