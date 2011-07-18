@@ -7,7 +7,7 @@
 import numpy as np
 
 
-def advection_implicitLW(iplot=False,htmlplot=False,use_petsc=True,solver_type='classic',outdir='./_output'):
+def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='classic',outdir='./_output'):
     """
     Example python script for solving the 1d advection equation using the 
     implicit Lax-Wendroff scheme.
@@ -17,12 +17,15 @@ def advection_implicitLW(iplot=False,htmlplot=False,use_petsc=True,solver_type='
     #===========================================================================
     # Import only petclaw because the implicit LW always uses SNES to solve the
     # nonlinear algebraic system
-    import petclaw
+    if use_petsc:
+        import petclaw as pyclaw
+    else:
+        raise Exception('The Implicit LW method requires PETSc!!')
 
     #===========================================================================
     # Setup solver and solver parameters
     #=========================================================================== 
-    solver = petclaw.ImplicitClawSolver1D()
+    solver = pyclaw.ImplicitClawSolver1D()
 
     solver.kernel_language = 'Fortran'
     
@@ -32,13 +35,14 @@ def advection_implicitLW(iplot=False,htmlplot=False,use_petsc=True,solver_type='
     solver.mthbc_lower[0] = 2
     solver.mthbc_upper[0] = 2
 
+    
     #===========================================================================
     # Initialize grid and state, then initialize the solution associated to the 
     # state and finally initialize aux array
     #===========================================================================
-    x = petclaw.Dimension('x',0.0,1.0,100)
-    grid = petclaw.Grid(x)
-    state = petclaw.State(grid)
+    x = pyclaw.Dimension('x',0.0,1.0,100)
+    grid = pyclaw.Grid(x)
+    state = pyclaw.State(grid)
     state.aux_global['u']=1.
     state.meqn = rp_advection.meqn
 
@@ -51,12 +55,12 @@ def advection_implicitLW(iplot=False,htmlplot=False,use_petsc=True,solver_type='
     #===========================================================================
     # Set up controller and controller parameters
     #===========================================================================
-    claw = petclaw.Controller()
-    claw.solution = petclaw.Solution(state)
+    claw = pyclaw.Controller()
+    claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir
 
-    claw.tfinal =1.0
+    claw.tfinal = 1.0
 
     #===========================================================================
     # Solve the problem

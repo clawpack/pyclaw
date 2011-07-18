@@ -16,6 +16,7 @@ import petclaw.solver
 import pyclaw.limiters.tvd
 import riemann
 
+
 # ========================================================================
 #  User-defined routines
 # ========================================================================
@@ -93,7 +94,7 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         """
         
         # Required attributes for this solver
-        for attr in ['limiters','order','fwave','src','start_step']:
+        for attr in ['limiters','order','src_split','fwave','src','start_step']:
             self._required_attrs.append(attr)
         
         # Default required attributes
@@ -176,7 +177,13 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         :Output: 
          - (bool) - True if full step succeeded, False otherwise
         """
+        
+        from pyclaw.solution import Solution
 
+        # Get state object
+        state = solutions['n'].states[0]
+
+        
         # Call b4step, pyclaw should be subclassed if this is needed
         # NOTE: THIS IS NOT THE RIGHT PLACE WHEN WE HAVE AN IMPLICIT  
         # TIME STEPPING BECAUSE, FOR INSTANCE, THE AUX ARRAY COULD DEPENDS ON THE SOLUTION ITSELF.
@@ -184,9 +191,6 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         # NONLINEAR FUNCTION IS COMPUTED!!!!!!!!!
         self.start_step(self,solutions)
 
-
-        # Get state object
-        state = solutions['n'].states[0]
 
         # Compute solution at the new time level
         self.updatesolution(state)
@@ -238,7 +242,7 @@ class ImplicitLW1D:
         self.mwaves = mwaves
         self.mbc = mbc
         self.method = method
-        self.mthlim = mathlim
+        self.mthlim = mthlim
         self.dt = dt
         self.aux = aux
         self.kernel_language = kernel_language
@@ -384,6 +388,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         # IMPORT classicimplicit1 
         #####################################################
         import classicimplicit1 as classic1
+
         state.set_cparam(classic1)
 
 
@@ -444,17 +449,24 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
               q^(n+1)    = solution at the new time level (solution of the nonlinear system)
               R(q^(n+1)) = nonlinear function arising from the spatial/time discretization
         """
+
+        import numpy as np
+        import sys, petsc4py
+        petsc4py.init(sys.argv)
+        from petsc4py import PETSc
+        
         
         # Define aux array
         maux = state.maux
+        mx = state.grid.ng[0]
+        mwaves,mbc = self.mwaves,self.mbc
+
         if maux>0:
             aux = self.auxbc(state)
         else:
             aux=np.empty((maux,mx+2*mbc))
 
         # Create application context (appc) and PETSc nonlinear solver
-        mwaves,mbc = self.mwaves,self.mbc
-
         appc = ImplicitLW1D(state,mwaves,mbc,self.method,self.mthlim,self.dt,aux,self.kernel_language)
         snes = PETSc.SNES().create()
         
@@ -473,7 +485,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         b = qnew.copy()
 
         #  Register the function in charge of computing the nonlinear residual
-        self.snes.setFunction(appc.evalNonLinearFunction, f)
+        snes.setFunction(appc.evalNonLinearFunction, f)
          
         # Configure the nonlinear solver to use a matrix-free Jacobian
         snes.setUseMF(True)
