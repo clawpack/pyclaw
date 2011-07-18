@@ -364,7 +364,6 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         self.method[1] = self.order 
         self.method[2] = 0  # Not used in 1D
         self.method[3] = self.verbosity
-        self.method[4] = self.src_split
         if (state.capa == None):
             self.method[5] = 0  
         else:
