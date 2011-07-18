@@ -100,6 +100,7 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         self._default_attr_values['mbc'] = 2
         self._default_attr_values['limiters'] = pyclaw.limiters.tvd.minmod
         self._default_attr_values['order'] = 2
+        self._default_attr_values['src_split'] = 0
         self._default_attr_values['fwave'] = False
         self._default_attr_values['src'] = src
         self._default_attr_values['start_step'] = start_step
@@ -250,7 +251,15 @@ class ImplicitLW1D:
         self.dx = self.grid.d[0]
 
     # ========== Evaluation of the nonlinear function ==========================  
-    def evalNonLinearFunction(self,snes,qnew,F):
+    def evalNonLinearFunction(self,snes,qin,F):
+        r"""
+        Computes the contribution of the spatial-temporal discretization and the 
+        source term to the nonlinear function.
+
+        :Input:
+         - *qin* - Current approximation of the solution at the next time level,
+         i.e. solution of the previous nonlinear solver's iteration.
+        """
         mx = self.mx
         mbc = self.mbc
         aux = self.aux
@@ -271,7 +280,7 @@ class ImplicitLW1D:
             
             # Reshape array X before passing it to the fortran code which works 
             # with multidimensional array
-            qapprox = reshape(qnew,(meqn,mx),order='F')
+            qapprox = reshape(qin,(meqn,mx),order='F')
             fhomo,self.cfl = classic1.homodisc1(mx,mbc,mx,qapprox,aux,dx,dt,method,mthlim)
 
             # Compute the contribution of the source term to the nonlinear 
@@ -364,6 +373,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         self.method[1] = self.order 
         self.method[2] = 0  # Not used in 1D
         self.method[3] = self.verbosity
+        self.method[4] = self.src_split
         if (state.capa == None):
             self.method[5] = 0  
         else:
@@ -450,7 +460,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         
         # Define the vector in charge of containing the solution of the 
         # nonlinear system. The initial guess is qnew = q^n, i.e. solution at 
-        # the current time level t^n.
+        # the current time level t^n. 
         qnew = state.qbc.copy()
                 
         # Define the function in charge of computing the nonlinear residual.
