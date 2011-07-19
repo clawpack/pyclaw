@@ -137,7 +137,7 @@ def stream(xp,yp):
     Calculates the stream function in physical space.
     Clockwise rotation. One full rotation corresponds to 1 (second).
     """
-    streamValue = np.pi*(np.square(xp) + np.square(yp))
+    streamValue = np.pi*(xp**2 + yp**2)
 
     return streamValue
 
@@ -165,10 +165,16 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     solver.mthbc_lower[1] = pyclaw.BC.periodic
     solver.mthbc_upper[1] = pyclaw.BC.periodic
 
+    solver.mthauxbc_lower[0] = pyclaw.BC.outflow
+    solver.mthauxbc_upper[0] = pyclaw.BC.outflow
+    solver.mthauxbc_lower[1] = pyclaw.BC.periodic
+    solver.mthauxbc_upper[1] = pyclaw.BC.periodic
+
     solver.mwaves = 1
 
     solver.dim_split = 0
     solver.order_trans = 2
+    solver.order = 2
 
     solver.dt_initial = 0.1
     solver.cfl_max = 1.0

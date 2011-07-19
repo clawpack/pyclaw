@@ -33,7 +33,6 @@ c
       double precision dtdy1d(1-mbc:maxm+mbc)
       integer method(7),mthlim(mwaves)
       double precision work(mwork)
-      double precision capa(1, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
 
 
 cf2py intent(in,out) cfl
@@ -84,8 +83,7 @@ c     ==================
 c
       do 50 j = 0,my+1
 c
-c        # copy data along a slice into 1d arrays:aux(mcapa,i,j)
-
+c        # copy data along a slice into 1d arrays:
          do 21 m=1,meqn
             do 20 i = 1-mbc, mx+mbc
                q1d(m,i) = qold(m,i,j)
@@ -95,7 +93,6 @@ c
          if (mcapa.gt.0)  then
             do 22 i = 1-mbc, mx+mbc
                dtdx1d(i) = dtdx/aux(mcapa,i,j)
-c               write(*,*) dtdx,dtdx1d(i)
    22       continue
          endif
 c
@@ -209,7 +206,6 @@ c        # Note that the roles of fadd and gadd are reversed for
 c        # the y-sweeps -- fadd is the modification to g-fluxes and
 c        # gadd is the modification to f-fluxes to the left and right.
 c
-         write(*,*) mcapa
          if (mcapa.eq.0) then
 c
 c            # no capa array.  Standard flux differencing:
