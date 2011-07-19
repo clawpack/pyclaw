@@ -285,8 +285,8 @@ class ImplicitLW1D:
         
         # Reshape array X before passing it to the fortran code which works 
         # with multidimensional array
-        print qin.shape, meqn, mx
-        qapprox = reshape(qin,(meqn,mx),order='F')
+        print qin.getLocalSize(), meqn, mx
+        qapprox = reshape(qin,(meqn,mx+2*mbc),order='F')
         fhomo,self.cfl = classic1.homodisc1(mx,mbc,mx,qapprox,aux,dx,dt,method,mthlim)
 
         # Compute the contribution of the source term to the nonlinear 
