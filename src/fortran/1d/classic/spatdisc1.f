@@ -1,7 +1,7 @@
 c
 c
 c ===================================================================
-      subroutine homodisc1(maxmx,meqn,mwaves,mbc,maux,mx, q,aux,dx,dt,
+      subroutine homodisc1(maxmx,meqn,mwaves,mbc,maux,mx,q,dq,aux,dx,dt,
      &              method,mthlim,cfl,f,wave,s,amdq,apdq,dtdx)
 c ===================================================================
 c
@@ -37,7 +37,7 @@ c     --------------------------------------------------------------------
 c
       implicit double precision (a-h,o-z)    
       double precision q(meqn,1-mbc:maxmx+mbc)
-      double precision hypdisc(meqn,1-mbc:maxmx+mbc)
+      double precision dq(meqn,1-mbc:maxmx+mbc)
       double precision aux(maux,1-mbc:maxmx+mbc)
       double precision f(meqn,1-mbc:maxmx+mbc)
       double precision s(mwaves,1-mbc:maxmx+mbc)
@@ -49,12 +49,12 @@ c
       logical limit
 
 cf2py intent(in) q 
-cf2py intent(out) hypdisc
+cf2py intent(out) dq
 cf2py intent(out) cfl  
 cf2py intent(in) meqn  
 cf2py intent(in) mbc  
 cf2py intent(in) maxmx  
-cf2py optional f, amdq, apdq, dtdx, s, wave
+cf2py optional f, amdq, apdq, dtdx, s, wave, dq
 
 c
 c     # check if any limiters are used:
@@ -90,8 +90,8 @@ c     # amdq + apdq = f(q(i)) - f(q(i-1)).
 c
 
       forall(i=1:mx+1, m=1:meqn)
-         hypdisc(m,i) =  dtdx(i)*apdq(m,i)
-         hypdisc(m,i-1) = dtdx(i-1)*amdq(m,i)
+         dq(m,i) =  dtdx(i)*apdq(m,i)
+         dq(m,i-1) = dtdx(i-1)*amdq(m,i)
       end forall
 
 c
@@ -133,7 +133,7 @@ c
 c     # (Note:  Godunov update has already been performed above)
 c
       forall(i=1:mx+1, m=1:meqn)
-            hypdisc(m,i) = hypdisc(m,i) + dtdx(i) * (f(m,i+1) - f(m,i))
+            dq(m,i) = dq(m,i) + dtdx(i) * (f(m,i+1) - f(m,i))
       end forall
 c
   900 continue

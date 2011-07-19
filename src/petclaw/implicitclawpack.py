@@ -16,25 +16,7 @@ import petclaw.solver
 import pyclaw.limiters.tvd
 import riemann
 
-
-# ========================================================================
-#  User-defined routines
-# ========================================================================
-def start_step(solver,solutions):
-    r"""
-    Dummy routine called before each step
-    
-    Replace this routine if you want to do something before each time step.
-    """
-    pass
-
-def src(solver,solutions,t,dt):
-    r"""
-    Dummy routine called to calculate a source term
-    
-    Replace this routine if you want to include a source term.
-    """
-    pass
+from pyclaw.clawpack import start_step, src
 
 # ============================================================================
 #  Generic implicit Clawpack solver class
@@ -237,7 +219,7 @@ class ImplicitLW1D:
     Lax-Wendroff scheme. It contains some parametes and knows how to compute the 
     nonlinear function.     
     """
-    def __init__(self,state,mwaves,mbc,method,mthlim,dt,aux,kernel_language='Fortran'):
+    def __init__(self,state,mwaves,mbc,method,mthlim,dt,aux,src,kernel_language='Fortran'):
         self.state = state  
         self.mwaves = mwaves
         self.mbc = mbc
@@ -253,6 +235,8 @@ class ImplicitLW1D:
 
         self.mx = self.grid.ng[0]
         self.dx = self.grid.d[0]
+
+        self.src = src
 
     # ========== Evaluation of the nonlinear function ==========================  
     def evalNonLinearFunction(self,snes,qin,F):
@@ -275,7 +259,6 @@ class ImplicitLW1D:
         mthlim = self.mthlim
         meqn = self.meqn
 
-
         import classicimplicit1 as classic1
 
         # Compute the contribution of the homegeneous PDE to the nonlinear 
@@ -285,18 +268,17 @@ class ImplicitLW1D:
         
         # Reshape array X before passing it to the fortran code which works 
         # with multidimensional array
-        print qin.getLocalSize(), meqn, mx
         qapprox = reshape(qin,(meqn,mx+2*mbc),order='F')
         fhomo,self.cfl = classic1.homodisc1(mx,mbc,mx,qapprox,aux,dx,dt,method,mthlim)
 
         # Compute the contribution of the source term to the nonlinear 
         # function
-        fsrc = self.src(state,qapprox,state.t)
+        #fsrc = self.src(self.state,qapprox,self.state.t)
 
         # Sum the two contribution without creating an additional array
-        fhomo += fsrc
+        #fhomo += fsrc
 
-        assert ftot.flags['F_CONTIGUOUS']
+        assert fhomo.flags['F_CONTIGUOUS']
         F.setArray(fhomo)
         
 
@@ -474,7 +456,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
             aux=np.empty((maux,mx+2*mbc))
 
         # Create application context (appc) and PETSc nonlinear solver
-        appc = ImplicitLW1D(state,mwaves,mbc,self.method,self.mthlim,self.dt,aux,self.kernel_language)
+        appc = ImplicitLW1D(state,mwaves,mbc,self.method,self.mthlim,self.dt,aux,self.src,self.kernel_language)
         snes = PETSc.SNES().create()
         
         # Define the vector in charge of containing the solution of the 
@@ -503,21 +485,4 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         snes.solve(self.bVec, self.qnewVec)
 
         # Assign to q the new value qnew.
-        state.qbc = qnew
-
-
-
-
-
-
-
-
- 
-
-
-
- 
-
-
-
-
+        state.qbc = self.qnewVec.getArray()
