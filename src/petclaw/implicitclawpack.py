@@ -219,7 +219,7 @@ class ImplicitLW1D:
     Lax-Wendroff scheme. It contains some parametes and knows how to compute the 
     nonlinear function.     
     """
-    def __init__(self,state,mwaves,mbc,method,mthlim,dt,aux,src,kernel_language='Fortran'):
+    def __init__(self,state,mwaves,mbc,method,mthlim,dt,aux,src):
         self.state = state  
         self.mwaves = mwaves
         self.mbc = mbc
@@ -227,7 +227,6 @@ class ImplicitLW1D:
         self.mthlim = mthlim
         self.dt = dt
         self.aux = aux
-        self.kernel_language = kernel_language
 
         self.grid = self.state.grid
         self.meqn = self.state.meqn
@@ -456,7 +455,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
             aux=np.empty((maux,mx+2*mbc))
 
         # Create application context (appc) and PETSc nonlinear solver
-        appc = ImplicitLW1D(state,mwaves,mbc,self.method,self.mthlim,self.dt,aux,self.src,self.kernel_language)
+        appc = ImplicitLW1D(state,mwaves,mbc,self.method,self.mthlim,self.dt,aux,self.src)
         snes = PETSc.SNES().create()
         
         # Define the vector in charge of containing the solution of the 
