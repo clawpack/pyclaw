@@ -73,51 +73,46 @@ def qinit(state,mx,my):
 def setaux(state,mx,my):
     """ 
     Set auxiliary array
+    aux[0,i,j] is edge velocity at "left" boundary of grid point (i,j)
+    aux[1,i,j] is edge velocity at "bottom" boundary of grid point (i,j)
+    aux[2,i,j] = kappa  is ratio of cell area to (dxc * dyc)
     """    
     
-    # Compute location of all grid cell edge coordinates and store them
+    # Compute location of all grid cell corner coordinates and store them
     state.grid.compute_p_edge(recompute=True)
 
-    # Define the auxiliary array
     aux = np.empty((3,mx,my), order='F')
-
-    # Define array that will contain the four nodes of a cell
-    xp = np.zeros([5,1])
-    yp = np.zeros([5,1])
 
     # Get grid spacing
     dxc = state.grid.d[0]
     dyc = state.grid.d[1]
+    pcorners = state.grid.p_edge
 
-    # Set auxiliary array
-    # aux[0,i,j] is edge velocity at "left" boundary of grid point (i,j)
-    # aux[1,i,j] is edge velocity at "bottom" boundary of grid point (i,j)
-    # aux[2,i,j] = kappa  is ratio of cell area to (dxc * dyc)
-    for j in range(my):
-        for i in range(mx):
-            xp[0] = state.grid.p_edge[0][i,j]
-            yp[0] = state.grid.p_edge[1][i,j]
+    #Bottom-left corner
+    xp0 = pcorners[0][:mx,:my]
+    yp0 = pcorners[1][:mx,:my]
 
-            xp[1] = state.grid.p_edge[0][i,j+1]
-            yp[1] = state.grid.p_edge[1][i,j+1]
+    #Top-left corner
+    xp1 = pcorners[0][:mx,1:]
+    yp1 = pcorners[1][:mx,1:]
 
-            xp[2] = state.grid.p_edge[0][i+1,j+1]
-            yp[2] = state.grid.p_edge[1][i+1,j+1]
+    #Top-right corner
+    xp2 = pcorners[0][1:,1:]
+    yp2 = pcorners[1][1:,1:]
 
-            xp[3] = state.grid.p_edge[0][i+1,j]
-            yp[3] = state.grid.p_edge[1][i+1,j]
+    #Top-left corner
+    xp3 = pcorners[0][1:,:my]
+    yp3 = pcorners[1][1:,:my]
 
-            aux[0,i,j] = (stream(xp[1],yp[1])- stream(xp[0],yp[0]))/dyc
-            aux[1,i,j] = -(stream(xp[3],yp[3])- stream(xp[0],yp[0]))/dxc
+    aux[0,:mx,:my] = (stream(xp1,yp1)- stream(xp0,yp0))/dyc
+    aux[1,:mx,:my] = -(stream(xp3,yp3)- stream(xp0,yp0))/dxc
 
-            xp[4] = xp[0]
-            yp[4] = yp[0]
-            area = 0.
-
-            for iNode in range(4):
-                area = area + 1./2.*(yp[iNode]+yp[iNode+1])*(xp[iNode+1]-xp[iNode]) 
-            
-            aux[2,i,j] = area/(dxc*dyc)
+    area = 1./2.*( (yp0+yp1)*(xp1-xp0) +
+                   (yp1+yp2)*(xp2-xp1) +
+                   (yp2+yp3)*(xp3-xp2) +
+                   (yp3+yp0)*(xp0-xp3) )
+    
+    aux[2,:mx,:my] = area/(dxc*dyc)
 
     #import matplotlib.pyplot as plt
     #plt.quiver(state.grid.p_center[0],state.grid.p_center[1],aux[0,:,:],aux[1,:,:])
