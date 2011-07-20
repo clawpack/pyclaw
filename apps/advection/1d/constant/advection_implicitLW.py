@@ -60,7 +60,7 @@ def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='
     claw.solver = solver
     claw.outdir = outdir
 
-    claw.tfinal = 1.0
+    claw.tfinal = 0.4
 
     #===========================================================================
     # Solve the problem
@@ -70,8 +70,8 @@ def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='
     #===========================================================================
     # Plot results
     #===========================================================================
-    #if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    #if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
+    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
+    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 if __name__=="__main__":
     import sys

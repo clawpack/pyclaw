@@ -17,6 +17,7 @@ import pyclaw.limiters.tvd
 import riemann
 
 from pyclaw.clawpack import start_step, src
+from pyclaw.solver import CFLError
 
 # ============================================================================
 #  Generic implicit Clawpack solver class
@@ -103,51 +104,10 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         """
     pass 
     
-    # ========== Riemann solver library routines =============================   
-    def list_riemann_solvers(self):
-        r"""
-        List available Riemann solvers 
-        
-        This routine returns a list of available Riemann solvers which is
-        constructed in the Riemann solver package (:ref:`pyclaw_rp`).  In this 
-        case it lists all Riemann solvers.
-        
-        :Output:
-         - (list) - List of Riemann solver names valid to be used with
-           :meth:`set_riemann_solver`
-        
-        .. note::
-            These Riemann solvers are currently only accessible to the python 
-            time stepping routines.
-        """
-        rp_solver_list = []
-        
-        # Construct list from each dimension list
-        for rp_solver in rp_solver_list_1d:
-            rp_solver_list.append('%s_1d' % rp_solver)
-        for rp_solver in rp_solver_list_2d:
-            rp_solver_list.append('%s_2d' % rp_solver)
-        for rp_solver in rp_solver_list_3d:
-            rp_solver_list.append('%s_3d' % rp_solver)
-        
-        return rp_solver_list
-    
-    def set_riemann_solver(self,solver_name):
-        r"""
-        Assigns the library solver solver_name as the Riemann solver.
-        
-        :Input:
-         - *solver_name* - (string) Name of the solver to be used, raises a 
-           NameError if the solver does not exist.
-        """
-        raise Exception("Cannot set a Riemann solver with this class," +
-                                        " use one of the derived classes.")
-         
     # ========== Time stepping routines ======================================
     def step(self,solutions):
         r"""
-        Evolve q of one time step
-        
+        Evolve q for one time step
 
         This routine is called from the method evolve_to_time defined in the
         pyclaw.solver.Solver superclass.
@@ -168,7 +128,7 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         
         # Call b4step, pyclaw should be subclassed if this is needed
         # NOTE: THIS IS NOT THE RIGHT PLACE WHEN WE HAVE AN IMPLICIT  
-        # TIME STEPPING BECAUSE, FOR INSTANCE, THE AUX ARRAY COULD DEPENDS ON THE SOLUTION ITSELF.
+        # TIME STEPPING BECAUSE, FOR INSTANCE, THE AUX ARRAY COULD DEPEND ON THE SOLUTION ITSELF.
         # THEN start_step FUNCTION SHOULD BE PLACED IN THE PART OF THE CODE WHERE THE
         # NONLINEAR FUNCTION IS COMPUTED!!!!!!!!!
         self.start_step(self,solutions)
@@ -177,7 +137,6 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         # Compute solution at the new time level
         self.updatesolution(state)
 
-        
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new dt. 
         # Even for steady state calculations the control of the CFL is important, especially
@@ -185,8 +144,9 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         # be damped out and expelled from the computational domain. 
         # TODO: implement a CFL-law
         self.communicateCFL()
-        if self.cfl >= self.cfl_max:
-            raise CFLError('cfl_max exceeded')
+
+        #if self.cfl >= self.cfl_max:
+        #    raise CFLError('cfl_max exceeded')
 
         return True
 
@@ -209,77 +169,6 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
             raise Exception('Length of solver.limiters is not equal to 1 or to solver.mwaves')
 
 
-
-# ============================================================================
-#  Application context (appc) for PETSc SNES; 1D implicit Lax-Wendroff
-# ============================================================================
-class ImplicitLW1D:
-    r"""
-    Application context for the nonlinear problem arising by the implicit 
-    Lax-Wendroff scheme. It contains some parametes and knows how to compute the 
-    nonlinear function.     
-    """
-    def __init__(self,state,mwaves,mbc,method,mthlim,dt,aux,src):
-        self.state = state  
-        self.mwaves = mwaves
-        self.mbc = mbc
-        self.method = method
-        self.mthlim = mthlim
-        self.dt = dt
-        self.aux = aux
-
-        self.grid = self.state.grid
-        self.meqn = self.state.meqn
-        self.maux = self.state.maux
-
-        self.mx = self.grid.ng[0]
-        self.dx = self.grid.d[0]
-
-        self.src = src
-
-    # ========== Evaluation of the nonlinear function ==========================  
-    def evalNonLinearFunction(self,snes,qin,F):
-        r"""
-        Computes the contribution of the spatial-temporal discretization and the 
-        source term to the nonlinear function.
-
-        :Input:
-         - *qin* - Current approximation of the solution at the next time level,
-         i.e. solution of the previous nonlinear solver's iteration.
-        """
-        from numpy import zeros, reshape
-
-        mx = self.mx
-        mbc = self.mbc
-        aux = self.aux
-        dx = self.dx
-        dt = self.dt
-        method = self.method
-        mthlim = self.mthlim
-        meqn = self.meqn
-
-        import classicimplicit1 as classic1
-
-        # Compute the contribution of the homegeneous PDE to the nonlinear 
-        # function
-        ###################################################################
-        dtdx = zeros((mx+2*mbc)) + dt/dx
-        
-        # Reshape array X before passing it to the fortran code which works 
-        # with multidimensional array
-        qapprox = reshape(qin,(meqn,mx+2*mbc),order='F')
-        fhomo,self.cfl = classic1.homodisc1(mx,mbc,mx,qapprox,aux,dx,dt,method,mthlim)
-
-        # Compute the contribution of the source term to the nonlinear 
-        # function
-        #fsrc = self.src(self.state,qapprox,self.state.t)
-
-        # Sum the two contribution without creating an additional array
-        #fhomo += fsrc
-
-        assert fhomo.flags['F_CONTIGUOUS']
-        F.setArray(fhomo)
-        
 
 # ============================================================================
 #  Implicit ClawPack 1d Solver Class
@@ -315,13 +204,6 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         See :class:`ImplicitClawSolver1D` for more info.
         """   
         
-        # Add the functions as required attributes
-        self._required_attrs.append('rp')
-        self._default_attr_values['rp'] = None
-        
-        # Import Riemann solvers
-        exec('import riemann',globals())
-            
         self.ndim = 1
 
         super(ImplicitClawSolver1D,self).__init__(data)
@@ -336,6 +218,9 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         Set Fortran data structures (for Clawpack) and set up a DA with
         the appropriate stencil width.
         """
+        from petsc4py import PETSc
+        from numpy import empty
+
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (mbc)
         state = solutions['n'].state
@@ -350,6 +235,14 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         self.qnewVec = state.lqVec.duplicate()
 
 
+        # Create application context (appc) and PETSc nonlinear solver
+        #appc = ImplicitLW1D(state,self.mwaves,self.mbc,self.method,self.mthlim,self.dt,state.aux,self.src)
+        # Define the function in charge of computing the nonlinear residual.
+        self.f = state.lqVec.duplicate()
+
+        self.snes = PETSc.SNES().create()
+
+        
     def set_fortran_parameters(self,solutions):
         r"""
         Pack parameters into format recognized by implicit Clawpack (Fortran) code.
@@ -389,43 +282,6 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
             del classic1
 
 
-    # ========== Riemann solver library routines =============================   
-    def list_riemann_solvers(self):
-        r"""
-        List available Riemann solvers 
-        
-        This routine returns a list of available Riemann solvers which is
-        constructed in the Riemann solver package (_pyclaw_rp).  In this case
-        it lists only the 1D Riemann solvers.
-        
-        :Output:
-         - (list) - List of Riemann solver names valid to be used with
-           :meth:`set_riemann_solver`
-        
-        .. note::
-            These Riemann solvers are currently only accessible to the python 
-            time stepping routines.
-        """
-        return riemann.rp_solver_list_1d
-    
-    def set_riemann_solver(self,solver_name):
-        r"""
-        Assigns the library solver solver_name as the Riemann solver.
-        
-        :Input:
-         - *solver_name* - (string) Name of the solver to be used, raises a 
-           ``NameError`` if the solver does not exist.
-        """
-        import logging
-        if solver_name in riemann.rp_solver_list_1d:
-            exec("self.rp = riemann.rp_%s_1d" % solver_name)
-        else:
-            logger = logging.getLogger('solver')
-            error_msg = 'Could not find Riemann solver with name %s -- perhaps you need to add the solver to riemann.__init__.py.' % solver_name
-            logger.warning(error_msg)
-            raise NameError(error_msg)
-
-
     def updatesolution(self,state):
         r"""
         Compute slution at the new time level for the implicit 1D
@@ -443,29 +299,11 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         petsc4py.init(sys.argv)
         from petsc4py import PETSc
         
-        
-        # Define aux array
-        maux = state.maux
-        mx = state.grid.ng[0]
-        mwaves,mbc = self.mwaves,self.mbc
-
-        if maux>0:
-            aux = self.auxbc(state)
-        else:
-            aux=np.empty((maux,mx+2*mbc))
-
-        # Create application context (appc) and PETSc nonlinear solver
-        appc = ImplicitLW1D(state,mwaves,mbc,self.method,self.mthlim,self.dt,aux,self.src)
-        snes = PETSc.SNES().create()
-        
         # Define the vector in charge of containing the solution of the 
         # nonlinear system. The initial guess is qnew = q^n, i.e. solution at 
         # the current time level t^n. 
         self.qnewVec.setArray(state.qbc)
                 
-        # Define the function in charge of computing the nonlinear residual.
-        f = PETSc.Vec().createSeq(state.qbc.size)
-
         # Define the constant part of the equation.
         # For the implicit LW scheme this could either zero or the solution at 
         # the current time level (q^n). In this case we set it equal to the 
@@ -473,15 +311,67 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         self.bVec.setArray(state.qbc)
 
         #  Register the function in charge of computing the nonlinear residual
-        snes.setFunction(appc.evalNonLinearFunction, f)
-         
+        self.snes.setFunction(self.evalNonLinearFunction, self.f)
+ 
         # Configure the nonlinear solver to use a matrix-free Jacobian
-        snes.setUseMF(True)
-        snes.getKSP().setType('cg')
-        snes.setFromOptions()
+        self.snes.setUseMF(True)
+        self.snes.getKSP().setType('cg')
+        self.snes.setFromOptions()
+
+        self.snes.appctx=(state)
 
         # Solve the nonlinear problem
-        snes.solve(self.bVec, self.qnewVec)
+        self.snes.solve(self.bVec, self.qnewVec)
 
         # Assign to q the new value qnew.
-        state.qbc = self.qnewVec.getArray()
+        qnew = self.qnewVec.getArray().reshape((state.meqn,-1),order='F')
+        #print state.qbc - qnew
+
+        self.set_global_q(state, self.qnewVec.getArray().reshape((state.meqn,-1),order='F'))
+
+
+    def evalNonLinearFunction(self,snes,qin,F):
+        r"""
+        Computes the contribution of the spatial-temporal discretization and the 
+        source term to the nonlinear function.
+
+        :Input:
+         - *qin* - Current approximation of the solution at the next time level,
+         i.e. solution of the previous nonlinear solver's iteration.
+        """
+        from numpy import zeros, reshape, empty
+
+        state = snes.appctx
+
+        mx = state.grid.ng[0]
+        dx = state.grid.d[0]
+        mbc = self.mbc
+        dt = self.dt
+
+        if state.maux>0:
+            state.aux = self.auxbc(state)
+        else:
+            aux=empty((state.maux,mx+2*mbc))
+
+        import classicimplicit1 as classic1
+
+        # Compute the contribution of the homegeneous PDE to the nonlinear 
+        # function
+        ###################################################################
+        dtdx = zeros((mx+2*mbc)) + dt/dx
+        
+        # Reshape array X before passing it to the fortran code which works 
+        # with multidimensional array
+        qapprox = reshape(qin,(state.meqn,mx+2*mbc),order='F')
+        fhomo,self.cfl = classic1.homodisc1(mx,mbc,mx,qapprox,aux,dx,dt,self.method,self.mthlim)
+
+        # Compute the contribution of the source term to the nonlinear 
+        # function
+        #fsrc = self.src(self.state,qapprox,self.state.t)
+
+        # Sum the two contribution without creating an additional array
+        #fhomo += fsrc
+
+        assert fhomo.flags['F_CONTIGUOUS']
+        F.setArray(qapprox-fhomo)
+        #print F.getArray()
