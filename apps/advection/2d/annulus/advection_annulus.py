@@ -118,6 +118,7 @@ def setaux(state,mx,my):
     #plt.quiver(state.grid.p_center[0],state.grid.p_center[1],aux[0,:,:],aux[1,:,:])
     #plt.draw()
 
+
     #print aux[1,0,0],aux[1,0,1],aux[1,0,2],aux[1,0,3],aux[1,0,4]
     #print aux[1,1,0],aux[1,1,1],aux[1,1,2],aux[1,1,3],aux[1,1,4]
     #print aux[1,2,0],aux[1,2,1],aux[1,2,2],aux[1,2,3],aux[1,2,4]
@@ -125,7 +126,103 @@ def setaux(state,mx,my):
     #print aux[1,4,0],aux[1,4,1],aux[1,4,2],aux[1,4,3],aux[1,4,4]
 
     return aux
-  
+
+    
+def user_aux_bc_lower(grid,dim,t,auxbc,mbc):
+    """
+    Set the custom lower BC to auxbc.
+    """
+    from mapc2p import mapc2p
+
+    my = grid.ng[1]
+
+    xlower = grid.lower[0]
+    ylower = grid.lower[1]
+
+    dxc = grid.d[0]
+    dyc = grid.d[1]
+
+    if dim == 0:
+        for i in range(2):        
+            xc[0] = xlower + (i-1-1)*dx           
+            xc[1] = xc[0]
+            xc[2] = xc[0] + dx
+            xc[3] = xc[2]
+
+            for j in range(my+2*mbc):
+                yc[0] = ylower + (j-1-1)*dy
+                yc[1] = yc[0] + dy
+                yc[2] = yc[1]
+                yc[3] = yc[0]
+
+                xp[0],yp[0] = mapc2p(xc[0],yc[0])
+                xp[1],yp[1] = mapc2p(xc[1],yc[1])
+                xp[2],yp[2] = mapc2p(xc[2],yc[2])
+                xp[3],yp[3] = mapc2p(xc[3],yc[3])
+
+                xp[4] = xp[0]
+                yp[4] = yp[0]
+
+                auxbc[0,i,j] = (stream(xp[1],yp[1])- stream(xp[0],yp[0]))/dyc
+                auxbc[1,i,j] = -(stream(xp[3],yp[3])- stream(xp[0],yp[0]))/dxc
+                
+                area = 0.
+
+                for iNode in range(4):
+                    area = area + 1./2.*(yp[iNode]+yp[iNode+1])*(xp[iNode+1]-xp[iNode]) 
+                    aux[2,i,j] = area/(dxc*dyc)
+    else:
+        raise Error('Custum BC for this boundary is not appropriate!')
+
+
+def user_aux_bc_upper(grid,dim,t,auxbc,mbc):
+    """
+    Set the custom upper BC to auxbc.
+    """
+    from mapc2p import mapc2p
+
+    mx = grid.ng[0]
+    my = grid.ng[1]
+
+    xupper = grid.upper[0]
+    ylower = grid.lower[1]
+
+    dxc = grid.d[0]
+    dyc = grid.d[1]
+
+    if dim == 0:
+        for i in range(2):        
+            xc[0] = xupper + (mx+i)*dx           
+            xc[1] = xc[0]
+            xc[2] = xc[0] + dx
+            xc[3] = xc[2]
+
+            for j in range(my+2*mbc):
+                yc[0] = ylower + (j-1-1)*dy
+                yc[1] = yc[0] + dy
+                yc[2] = yc[1]
+                yc[3] = yc[0]
+
+                xp[0],yp[0] = mapc2p(xc[0],yc[0])
+                xp[1],yp[1] = mapc2p(xc[1],yc[1])
+                xp[2],yp[2] = mapc2p(xc[2],yc[2])
+                xp[3],yp[3] = mapc2p(xc[3],yc[3])
+
+                xp[4] = xp[0]
+                yp[4] = yp[0]
+
+                auxbc[0,i,j] = (stream(xp[1],yp[1])- stream(xp[0],yp[0]))/dyc
+                auxbc[1,i,j] = -(stream(xp[3],yp[3])- stream(xp[0],yp[0]))/dxc
+                
+                area = 0.
+
+                for iNode in range(4):
+                    area = area + 1./2.*(yp[iNode]+yp[iNode+1])*(xp[iNode+1]-xp[iNode]) 
+                    aux[2,i,j] = area/(dxc*dyc)
+    else:
+        raise Error('Custum BC for this boundary is not appropriate!')
+          
+
 
 def stream(xp,yp):
     """ 
@@ -194,6 +291,8 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     y = pyclaw.Dimension('y',ylower,yupper,my)
     grid = pyclaw.Grid([x,y])
     grid.mapc2p = mapc2p_annulus # Override default_mapc2p function implemented in grid.py
+
+    print grid.lower[0]
 
     #print grid.d[0],grid.d[1]
 
