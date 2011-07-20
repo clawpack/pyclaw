@@ -220,6 +220,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         """
         from petsc4py import PETSc
         from numpy import empty
+        from pyclaw.state import State
 
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (mbc)
@@ -231,16 +232,18 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         if(self.kernel_language == 'Fortran'):
             self.set_fortran_parameters(solutions)
 
-        self.bVec = state.lqVec.duplicate()
-        self.qnewVec = state.lqVec.duplicate()
+        self.bVec    = state.gqVec.duplicate()
+        self.fVec    = state.gqVec.duplicate()
+        self.snes    = PETSc.SNES().create()
 
-
-        # Create application context (appc) and PETSc nonlinear solver
-        #appc = ImplicitLW1D(state,self.mwaves,self.mbc,self.method,self.mthlim,self.dt,state.aux,self.src)
-        # Define the function in charge of computing the nonlinear residual.
-        self.f = state.lqVec.duplicate()
-
-        self.snes = PETSc.SNES().create()
+        #Ought to implement a copy constructor for State
+        self.impsol_stage = State(state.grid)
+        self.impsol_stage.meqn             = state.meqn
+        self.impsol_stage.maux             = state.maux
+        self.impsol_stage.aux_global       = state.aux_global
+        self.impsol_stage.t                = state.t
+        if state.maux > 0:
+            self.impsol_stage.aux          = state.aux
 
         
     def set_fortran_parameters(self,solutions):
@@ -299,35 +302,28 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         petsc4py.init(sys.argv)
         from petsc4py import PETSc
         
-        # Define the vector in charge of containing the solution of the 
-        # nonlinear system. The initial guess is qnew = q^n, i.e. solution at 
-        # the current time level t^n. 
-        self.qnewVec.setArray(state.qbc)
-                
         # Define the constant part of the equation.
         # For the implicit LW scheme this could either zero or the solution at 
         # the current time level (q^n). In this case we set it equal to the 
         # solution at the current time level.
-        self.bVec.setArray(state.qbc)
+        self.bVec.setArray(state.q)
 
         #  Register the function in charge of computing the nonlinear residual
-        self.snes.setFunction(self.evalNonLinearFunction, self.f)
- 
+        self.snes.setFunction(self.evalNonLinearFunction, self.fVec)
+
         # Configure the nonlinear solver to use a matrix-free Jacobian
         self.snes.setUseMF(True)
-        self.snes.getKSP().setType('cg')
+        #self.snes.getKSP().setType('cg')
         self.snes.setFromOptions()
 
         self.snes.appctx=(state)
 
         # Solve the nonlinear problem
-        self.snes.solve(self.bVec, self.qnewVec)
+        self.snes.solve(self.bVec, state.gqVec)
 
-        # Assign to q the new value qnew.
-        qnew = self.qnewVec.getArray().reshape((state.meqn,-1),order='F')
-        #print state.qbc - qnew
+        print self.bVec.getArray() - state.gqVec.getArray()
 
-        self.set_global_q(state, self.qnewVec.getArray().reshape((state.meqn,-1),order='F'))
+        #self.set_global_q(state, self.qnewVec.getArray().reshape((state.meqn,-1),order='F'))
 
 
     def evalNonLinearFunction(self,snes,qin,F):
@@ -353,16 +349,13 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         else:
             aux=empty((state.maux,mx+2*mbc))
 
-        import classicimplicit1 as classic1
-
-        # Compute the contribution of the homegeneous PDE to the nonlinear 
-        # function
-        ###################################################################
         dtdx = zeros((mx+2*mbc)) + dt/dx
-        
-        # Reshape array X before passing it to the fortran code which works 
-        # with multidimensional array
-        qapprox = reshape(qin,(state.meqn,mx+2*mbc),order='F')
+
+        #Have to do this because of how qbc works...
+        state.q = reshape(qin,(state.meqn,mx),order='F') 
+        qapprox = self.qbc(state)
+
+        import classicimplicit1 as classic1
         fhomo,self.cfl = classic1.homodisc1(mx,mbc,mx,qapprox,aux,dx,dt,self.method,self.mthlim)
 
         # Compute the contribution of the source term to the nonlinear 
@@ -373,5 +366,5 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         #fhomo += fsrc
 
         assert fhomo.flags['F_CONTIGUOUS']
-        F.setArray(qapprox-fhomo)
-        #print F.getArray()
+        F.setArray(qapprox[:,mbc:-mbc]-fhomo[:,mbc:-mbc])
+        print F.getArray()

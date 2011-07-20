@@ -46,6 +46,8 @@ def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='
     state.aux_global['u']=1.
     state.meqn = rp_advection.meqn
 
+    solver.order = 1
+
     xc = grid.x.center
     beta = 100
     gamma = 0
@@ -75,9 +77,18 @@ def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='
 
 if __name__=="__main__":
     import sys
+    import petsc4py
+    print sys.argv
+    petclaw_args = [arg for arg in sys.argv[1:] if '=' in arg]
+    petsc_args = [arg for arg in sys.argv[1:] if '=' not in arg]
+    petsc4py.init(petsc_args)
+    petclaw_args.insert(0,sys.argv[0])
+    print petclaw_args
     if len(sys.argv)>1:
         from pyclaw.util import _info_from_argv
-        args, kwargs = _info_from_argv(sys.argv)
-        error=advection_implicitLW(*args,**kwargs)
+        args, kwargs = _info_from_argv(petclaw_args)
+        print args
+        print kwargs
+        advection_implicitLW(*args,**kwargs)
         print 'Error: ',error
     else: advection_implicitLW()
