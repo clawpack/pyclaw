@@ -36,7 +36,7 @@ def mapc2p_annulus(grid,mC):
 
 def qinit(state,mx,my):
     """
-    Computes the initial condition.
+    Initialize with two Gaussian pulses.
     """
 
     # The following parameters match the vaules used in clawpack
@@ -63,13 +63,6 @@ def qinit(state,mx,my):
                    + A2*np.exp(-beta2*(np.square(xp-x2) + np.square(yp-y2)))
 
 
-    #print state.q[0,0,0],state.q[0,0,1],state.q[0,0,2],state.q[0,0,3],state.q[0,0,4]
-    #print state.q[0,1,0],state.q[0,1,1],state.q[0,1,2],state.q[0,1,3],state.q[0,1,4]
-    #print state.q[0,2,0],state.q[0,2,1],state.q[0,2,2],state.q[0,2,3],state.q[0,2,4]
-    #print state.q[0,3,0],state.q[0,3,1],state.q[0,3,2],state.q[0,3,3],state.q[0,3,4]
-    #print state.q[0,4,0],state.q[0,4,1],state.q[0,4,2],state.q[0,4,3],state.q[0,4,4]
-
-   
 def setaux(state,mx,my):
     """ 
     Set auxiliary array
@@ -81,38 +74,93 @@ def setaux(state,mx,my):
     # Compute location of all grid cell corner coordinates and store them
     state.grid.compute_p_edge(recompute=True)
 
-    aux = np.empty((3,mx,my), order='F')
-
     # Get grid spacing
     dxc = state.grid.d[0]
     dyc = state.grid.d[1]
     pcorners = state.grid.p_edge
 
-    #Bottom-left corner
-    xp0 = pcorners[0][:mx,:my]
-    yp0 = pcorners[1][:mx,:my]
+    aux = velocities(pcorners[0],pcorners[1],dxc,dyc)
+    return aux
 
-    #Top-left corner
-    xp1 = pcorners[0][:mx,1:]
-    yp1 = pcorners[1][:mx,1:]
 
-    #Top-right corner
-    xp2 = pcorners[0][1:,1:]
-    yp2 = pcorners[1][1:,1:]
+def velocities_upper(grid,dim,t,auxbc,mbc):
+    """
+    Set the velocities for the ghost cells outside the outer radius of the annulus.
+    """
+    from mapc2p import mapc2p
 
-    #Top-left corner
-    xp3 = pcorners[0][1:,:my]
-    yp3 = pcorners[1][1:,:my]
+    mx = grid.ng[0]
+    my = grid.ng[1]
+    dxc = grid.d[0]
+    dyc = grid.d[1]
 
-    aux[0,:mx,:my] = (stream(xp1,yp1)- stream(xp0,yp0))/dyc
-    aux[1,:mx,:my] = -(stream(xp3,yp3)- stream(xp0,yp0))/dxc
+    if dim == grid.dimensions[0]:
+        xc1d = grid.lower[0]+dxc*(np.arange(mx+mbc,mx+2*mbc+1)-mbc)
+        yc1d = grid.lower[1]+dyc*(np.arange(my+2*mbc+1)-mbc)
+        yc,xc = np.meshgrid(yc1d,xc1d)
+
+        xp,yp = mapc2p(xc,yc)
+
+        auxbc[:,-mbc:,:] = velocities(xp,yp,dxc,dyc)
+
+    else:
+        raise Exception('Custum BC for this boundary is not appropriate!')
+
+
+def velocities_lower(grid,dim,t,auxbc,mbc):
+    """
+    Set the velocities for the ghost cells outside the inner radius of the annulus.
+    """
+    from mapc2p import mapc2p
+
+    my = grid.ng[1]
+    dxc = grid.d[0]
+    dyc = grid.d[1]
+
+    if dim == grid.dimensions[0]:
+        xc1d = grid.lower[0]+dxc*(np.arange(mbc+1)-mbc)
+        yc1d = grid.lower[1]+dyc*(np.arange(my+2*mbc+1)-mbc)
+        yc,xc = np.meshgrid(yc1d,xc1d)
+
+        xp,yp = mapc2p(xc,yc)
+
+        auxbc[:,0:mbc,:] = velocities(xp,yp,dxc,dyc)
+
+    else:
+        raise Exception('Custum BC for this boundary is not appropriate!')
+
+
+def velocities(xp,yp,dx,dy):
+
+    mx = xp.shape[0]-1
+    my = xp.shape[1]-1
+    aux = np.empty((3,mx,my), order='F')
+
+    #Bottom-left corners
+    xp0 = xp[:mx,:my]
+    yp0 = yp[:mx,:my]
+
+    #Top-left corners
+    xp1 = xp[:mx,1:]
+    yp1 = yp[:mx,1:]
+
+    #Top-right corners
+    xp2 = xp[1:,1:]
+    yp2 = yp[1:,1:]
+
+    #Top-left corners
+    xp3 = xp[1:,:my]
+    yp3 = yp[1:,:my]
+
+    aux[0,:mx,:my] = (stream(xp1,yp1)- stream(xp0,yp0))/dy
+    aux[1,:mx,:my] = -(stream(xp3,yp3)- stream(xp0,yp0))/dx
 
     area = 1./2.*( (yp0+yp1)*(xp1-xp0) +
                    (yp1+yp2)*(xp2-xp1) +
                    (yp2+yp3)*(xp3-xp2) +
                    (yp3+yp0)*(xp0-xp3) )
     
-    aux[2,:mx,:my] = area/(dxc*dyc)
+    aux[2,:mx,:my] = area/(dx*dy)
 
     #import matplotlib.pyplot as plt
     #plt.quiver(state.grid.p_center[0],state.grid.p_center[1],aux[0,:,:],aux[1,:,:])
@@ -128,102 +176,6 @@ def setaux(state,mx,my):
     return aux
 
     
-def user_aux_bc_lower(grid,dim,t,auxbc,mbc):
-    """
-    Set the custom lower BC to auxbc.
-    """
-    from mapc2p import mapc2p
-
-    my = grid.ng[1]
-
-    xlower = grid.lower[0]
-    ylower = grid.lower[1]
-
-    dxc = grid.d[0]
-    dyc = grid.d[1]
-
-    if dim == 0:
-        for i in range(2):        
-            xc[0] = xlower + (i-1-1)*dx           
-            xc[1] = xc[0]
-            xc[2] = xc[0] + dx
-            xc[3] = xc[2]
-
-            for j in range(my+2*mbc):
-                yc[0] = ylower + (j-1-1)*dy
-                yc[1] = yc[0] + dy
-                yc[2] = yc[1]
-                yc[3] = yc[0]
-
-                xp[0],yp[0] = mapc2p(xc[0],yc[0])
-                xp[1],yp[1] = mapc2p(xc[1],yc[1])
-                xp[2],yp[2] = mapc2p(xc[2],yc[2])
-                xp[3],yp[3] = mapc2p(xc[3],yc[3])
-
-                xp[4] = xp[0]
-                yp[4] = yp[0]
-
-                auxbc[0,i,j] = (stream(xp[1],yp[1])- stream(xp[0],yp[0]))/dyc
-                auxbc[1,i,j] = -(stream(xp[3],yp[3])- stream(xp[0],yp[0]))/dxc
-                
-                area = 0.
-
-                for iNode in range(4):
-                    area = area + 1./2.*(yp[iNode]+yp[iNode+1])*(xp[iNode+1]-xp[iNode]) 
-                    aux[2,i,j] = area/(dxc*dyc)
-    else:
-        raise Error('Custum BC for this boundary is not appropriate!')
-
-
-def user_aux_bc_upper(grid,dim,t,auxbc,mbc):
-    """
-    Set the custom upper BC to auxbc.
-    """
-    from mapc2p import mapc2p
-
-    mx = grid.ng[0]
-    my = grid.ng[1]
-
-    xupper = grid.upper[0]
-    ylower = grid.lower[1]
-
-    dxc = grid.d[0]
-    dyc = grid.d[1]
-
-    if dim == 0:
-        for i in range(2):        
-            xc[0] = xupper + (mx+i)*dx           
-            xc[1] = xc[0]
-            xc[2] = xc[0] + dx
-            xc[3] = xc[2]
-
-            for j in range(my+2*mbc):
-                yc[0] = ylower + (j-1-1)*dy
-                yc[1] = yc[0] + dy
-                yc[2] = yc[1]
-                yc[3] = yc[0]
-
-                xp[0],yp[0] = mapc2p(xc[0],yc[0])
-                xp[1],yp[1] = mapc2p(xc[1],yc[1])
-                xp[2],yp[2] = mapc2p(xc[2],yc[2])
-                xp[3],yp[3] = mapc2p(xc[3],yc[3])
-
-                xp[4] = xp[0]
-                yp[4] = yp[0]
-
-                auxbc[0,i,j] = (stream(xp[1],yp[1])- stream(xp[0],yp[0]))/dyc
-                auxbc[1,i,j] = -(stream(xp[3],yp[3])- stream(xp[0],yp[0]))/dxc
-                
-                area = 0.
-
-                for iNode in range(4):
-                    area = area + 1./2.*(yp[iNode]+yp[iNode+1])*(xp[iNode+1]-xp[iNode]) 
-                    aux[2,i,j] = area/(dxc*dyc)
-    else:
-        raise Error('Custum BC for this boundary is not appropriate!')
-          
-
-
 def stream(xp,yp):
     """ 
     Calculates the stream function in physical space.
@@ -257,8 +209,10 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     solver.mthbc_lower[1] = pyclaw.BC.periodic
     solver.mthbc_upper[1] = pyclaw.BC.periodic
 
-    solver.mthauxbc_lower[0] = pyclaw.BC.outflow
-    solver.mthauxbc_upper[0] = pyclaw.BC.outflow
+    solver.mthauxbc_lower[0] = pyclaw.BC.custom
+    solver.mthauxbc_upper[0] = pyclaw.BC.custom
+    solver.user_aux_bc_lower = velocities_lower
+    solver.user_aux_bc_upper = velocities_upper
     solver.mthauxbc_lower[1] = pyclaw.BC.periodic
     solver.mthauxbc_upper[1] = pyclaw.BC.periodic
 
