@@ -57,6 +57,10 @@ cf2py intent(in) maxmx
 cf2py optional f, amdq, apdq, dtdx, s, wave, dq
 
 c
+      forall(i=1:mx+1, m=1:meqn)
+         dq(m,i) =  0.d0
+      end forall
+
 c     # check if any limiters are used:
       limit = .false.
       do 5 mw=1,mwaves
@@ -90,8 +94,8 @@ c     # amdq + apdq = f(q(i)) - f(q(i-1)).
 c
 
       forall(i=1:mx+1, m=1:meqn)
-         dq(m,i) =  dtdx(i)*apdq(m,i)
-         dq(m,i-1) = dtdx(i-1)*amdq(m,i)
+         dq(m,i) =   dq(m,i) + dtdx(i)*apdq(m,i)
+         dq(m,i-1) = dq(m,i) + dtdx(i-1)*amdq(m,i)
       end forall
 
 c

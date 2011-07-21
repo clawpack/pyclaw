@@ -321,7 +321,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         # Solve the nonlinear problem
         self.snes.solve(self.bVec, state.gqVec)
 
-        print self.bVec.getArray() - state.gqVec.getArray()
+        #print self.bVec.getArray() - state.gqVec.getArray()
 
         #self.set_global_q(state, self.qnewVec.getArray().reshape((state.meqn,-1),order='F'))
 
@@ -367,4 +367,4 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
 
         assert fhomo.flags['F_CONTIGUOUS']
         F.setArray(qapprox[:,mbc:-mbc]-fhomo[:,mbc:-mbc])
-        print F.getArray()
+        #print fhomo
