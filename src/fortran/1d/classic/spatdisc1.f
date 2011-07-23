@@ -95,7 +95,7 @@ c
 
       forall(i=1:mx+1, m=1:meqn)
          dq(m,i) =   dq(m,i) + dtdx(i)*apdq(m,i)
-         dq(m,i-1) = dq(m,i) + dtdx(i-1)*amdq(m,i)
+         dq(m,i-1) = dq(m,i-1) + dtdx(i-1)*amdq(m,i)
       end forall
 
 c
