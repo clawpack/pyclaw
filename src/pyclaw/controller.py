@@ -296,11 +296,11 @@ class Controller(object):
 
             logging.info("Solution %s computed for time t=%f"
                 % (frame,self.solutions['n'].t))
-            for file in self.solution.state.grid.gauge_files: 
+            for file in self.solution.grid.gauge_files: 
                 file.flush()
             
         self.solver.teardown()
-        for file in self.solution.state.grid.gauge_files: file.close()
+        for file in self.solution.grid.gauge_files: file.close()
 
         # Return the current status of the solver
         return status

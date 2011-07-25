@@ -399,7 +399,7 @@ class ClawSolver1D(ClawSolver):
         import numpy as np
 
         state = solutions['n'].states[0]
-        grid = state.grid
+        grid = solutions['n'].grids[0]
 
         q = state.qbc
             
@@ -414,7 +414,7 @@ class ClawSolver1D(ClawSolver):
             else:
                 import classic1
 
-            mx = grid.ng[0]
+            mx = grid.n[0]
             dx,dt = grid.d[0],self.dt
             dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
             
@@ -428,7 +428,7 @@ class ClawSolver1D(ClawSolver):
             # Limiter to use in the pth family
             limiter = np.array(self.mthlim,ndmin=1)  
         
-            dtdx = np.zeros( (2*self.mbc+grid.ng[0]) )
+            dtdx = np.zeros( (2*self.mbc+grid.n[0]) )
 
             # Find local value for dt/dx
             if state.capa is not None:
@@ -456,7 +456,7 @@ class ClawSolver1D(ClawSolver):
             #              |                               |
 
             LL = self.mbc - 1
-            UL = self.mbc + grid.ng[0] + 1 
+            UL = self.mbc + grid.n[0] + 1 
 
             # Update q for Godunov update
             for m in xrange(meqn):
@@ -616,7 +616,7 @@ class ClawSolver2D(ClawSolver):
 
         # Number of equations
         meqn,maux,mwaves,mbc,aux = state.meqn,state.maux,self.mwaves,self.mbc,state.aux
-        maxmx,maxmy = grid.ng[0],grid.ng[1]
+        maxmx,maxmy = grid.n[0],grid.n[1]
         maxm = max(maxmx, maxmy)
 
         #We ought to put method and cflv and many other things in a Fortran
@@ -717,7 +717,7 @@ class ClawSolver2D(ClawSolver):
             state = solutions['n'].states[0]
             grid = state.grid
             meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
-            mx,my = grid.ng[0],grid.ng[1]
+            mx,my = grid.n[0],grid.n[1]
             maxm = max(mx,my)
             
             #The following is a hack to work around an issue

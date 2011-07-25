@@ -81,11 +81,11 @@ class Solution(object):
     # ========== Properties ==================================================
     def state():
         doc = r"""(:class:`State`) - Base state is returned"""
-        def fget(self): return self.states[0]
+        def fget(self): return self.grids[0].states[0]
         return locals()
     def grid():
         doc = r"""(:class:`Grid`) - Base state's grid is returned"""
-        def fget(self): return self.states[0].grid
+        def fget(self): return self.grids[0]
         return locals()
     def t():
         doc = r"""(float) - :attr:`State.t` of base state"""
@@ -240,30 +240,24 @@ class Solution(object):
         
         See :class:`Solution` for more info.
         """
-        self.states = []
+        self.grids = []
         r"""(list) - List of grids in this solution"""
         # If arg is non-zero, we are reading in a solution, otherwise, we
         # create an empty Solution
         if len(arg) > 0:
-            # Single State
-            if isinstance(arg[0],State):
-                self.states.append(arg[0])
             # Single Grid
-            elif isinstance(arg[0],Grid):
-                self.states.append(State(arg[0]))
+            if isinstance(arg[0],Grid):
+                self.grids.append(arg[0])
             # Single Dimension
             elif isinstance(arg[0],Dimension):
-                self.states.append(State(Grid(arg[0])))
+                self.states.append(Grid(arg[0]))
             elif isinstance(arg[0],list):
-                # List of States
-                if isinstance(arg[0][0],State):
-                    self.states = arg[0]
                 # List of Grids
                 if isinstance(arg[0][0],Grid):
-                    self.states = Grid(arg[0])
+                    self.grids = arg[0]
                 # List of Dimensions
                 elif isinstance(arg[0][0],Dimension):
-                    self.state.append(State(Grid(arg[0])))
+                    self.grids.append((Grid(arg[0])))
                 else:
                     raise Exception("Invalid argument list")
             elif isinstance(arg[0],int): 
@@ -277,43 +271,6 @@ class Solution(object):
                     else:
                         exec('%s = v' % k)
                 self.read(frame,path,format,file_prefix,read_aux,options)
-            elif isinstance(arg[0],Data):
-                data = arg[0] 
-                # Create dimensions
-                if data.ndim == 1:
-                    x = Dimension('x',data.xlower,data.xupper,data.mx,
-                                    mthbc_lower=data.mthbc_xlower,
-                                    mthbc_upper=data.mthbc_xupper)
-                    grid = Grid([x])
-                elif data.ndim == 2:
-                    x = Dimension('x',data.xlower,data.xupper,data.mx,
-                                    mthbc_lower=data.mthbc_xlower,
-                                    mthbc_upper=data.mthbc_xupper)
-                    y = Dimension('y',data.ylower,data.yupper,data.my,
-                                    mthbc_lower=data.mthbc_ylower,
-                                    mthbc_upper=data.mthbc_yupper)
-                    grid = Grid([x,y])
-                elif data.ndim == 3:
-                    x = Dimension('x',data.xlower,data.xupper,data.mx,
-                                    mthbc_lower=data.mthbc_xlower,
-                                    mthbc_upper=data.mthbc_xupper)
-                    y = Dimension('y',data.ylower,data.yupper,data.my,
-                                    mthbc_lower=data.mthbc_ylower,
-                                    mthbc_upper=data.mthbc_yupper)
-                    z = Dimension('z',data.zlower,data.zupper,data.mz,
-                                    mthbc_lower=data.mthbc_zlower,
-                                    mthbc_upper=data.mthbc_zupper)
-                    grid = Grid([x,y,z])
-                
-                state = State(grid)
-                # General grid properties
-                state.t = data.t0
-                state.meqn = data.meqn
-                state.mp = data.mp
-                state.mF = data.mF
-                
-                # Add grid to solution
-                self.states.append(state)
             else:
                 raise Exception("Invalid argument list")
                 
@@ -329,7 +286,7 @@ class Solution(object):
         :Output:
          - (bool) - True if valid, false otherwise
         """
-        return all([state.is_valid() for state in self.states])
+        return all([grid.is_valid() for grid in self.grids])
 
 
     def __str__(self):
@@ -357,21 +314,21 @@ class Solution(object):
                     
     def _get_base_state_attribute(self, name):
         r"""
-        Return base state attribute
+        Return base grid.state attribute
         
         :Output:
-         - (id) - Value of attribute from ``states[0]``
+         - (id) - Value of attribute from ``grids[0].states[0]``
         """
-        return getattr(self.states[0],name)
+        return getattr(self.grids[0].states[0],name)
     
     def _get_base_grid_attribute(self, name):
         r"""
-        Return base state.grid attribute name
+        Return base grid attribute name
         
         :Output:
-         - (id) - Value of attribute from ``states[0].grid``
+         - (id) - Value of attribute from ``grid``
         """
-        return getattr(self.states[0].grid,name)
+        return getattr(self.grids[0],name)
     
     
     def __copy__(self):

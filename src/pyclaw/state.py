@@ -42,29 +42,20 @@ class State(object):
             if self.q is None:
                 raise Exception('state.meqn has not been set.')
             else: return self.q.shape[0]
-        def fset(self,meqn):
-            if self.q is None:
-                self.q = self.new_array(meqn)
-            else:
-                raise Exception('Cannot change state.meqn after q is initialized.')
         return locals()
     meqn = property(**meqn())
 
     def maux():
         doc = r"""(int) - Number of auxiliary fields"""
-        def fset(self,maux):
-            if self.aux is not None:
-                raise Exception('Cannot change state.maux after aux is initialized.')
-            else:
-                self.aux = self.new_array(maux)
         def fget(self):
             if self.aux is not None: return self.aux.shape[0]
             else: return 0
         return locals()
     maux = property(**maux())
 
+    ######## MOVE THIS STUFF ###########
     def mp():
-        doc = r"""(int) - Number of auxiliary fields"""
+        doc = r"""(int) - Number of derived quantities"""
         def fset(self,mp):
             if self.p is not None:
                 raise Exception('Cannot change state.mp after aux is initialized.')
@@ -77,7 +68,7 @@ class State(object):
     mp = property(**mp())
 
     def mF():
-        doc = r"""(int) - Number of auxiliary fields"""
+        doc = r"""(int) - Number of output functionals"""
         def fset(self,mF):
             if self.F is not None:
                 raise Exception('Cannot change state.mF after aux is initialized.')
@@ -88,40 +79,35 @@ class State(object):
             else: return 0
         return locals()
     mF = property(**mF())
+    ######## MOVE THIS STUFF ###########
 
     # ========== Class Methods ===============================================
-    def __init__(self,grid):
+    def __init__(self,grid,meqn,maux):
         import pyclaw.grid
         if not isinstance(grid,pyclaw.grid.Grid):
             raise Exception("""A PyClaw State object must be initialized with
                              a PyClaw Grid object.""")
 
         # ========== Attribute Definitions ===================================
-        self.grid = grid
-        r"""pyclaw.Grid.grid - The grid this state lives on"""
-        self.aux = None
-        r"""(ndarray(maux,...)) - Auxiliary array for this grid containing per 
-            cell information"""
-        self.q   = None
-        r"""(ndarray(meqn,...)) - Cell averages of dependent variables."""
+        ############# MOVE THIS STUFF ####################
         self.p   = None
         r"""(ndarray(mp,...)) - Cell averages of derived quantities."""
         self.F   = None
         r"""(ndarray(mF,...)) - Cell averages of output functional densities."""
+        self.qbc   = None
+        r"""(ndarray(meqn,...)) - q with ghost cells (boundaries). It is
+        intended to be populated by method Solver.evolve_to_time. It can be
+        used and modified by solvers"""
+        ############# MOVE THIS STUFF ####################
         self.aux_global = {}
         r"""(dict) - Dictionary of global values for this grid, 
             ``default = {}``"""
         self.t=0.
         r"""(float) - Current time represented on this grid, 
             ``default = 0.0``"""
-        self.stateno = 1
-        r"""(int) - State number of current state, ``default = 1``"""
-        self.capa = None
-        r"""(ndarray(...)) - Capacity array for this grid, ``default = 1.0``"""
-        self.qbc   = None
-        r"""(ndarray(meqn,...)) - q with ghost cells (boundaries). It is
-        intended to be populated by method Solver.evolve_to_time. It can be
-        used and modified by solvers"""
+
+        self.q   = self.new_array(meqn,grid.n)
+        self.aux = self.new_array(maux,grid.n)
 
     def __str__(self):
         output = "State %s:\n" % self.stateno
@@ -131,8 +117,6 @@ class State(object):
             output += "  q.shape=%s" % str(self.q.shape)
         if self.aux is not None:
             output += " aux.shape=%s" % str(self.aux.shape)
-        if self.capa is not None:
-            output += " capa.shape=%s" % str(self.capa.shape)
         return output
 
     def is_valid(self):
@@ -210,10 +194,12 @@ class State(object):
         
         return result
 
+    ###### MOVE THIS STUFF ##########
     def sum_F(self,i):
         return np.sum(np.abs(self.F[i,...]))
+    ###### MOVE THIS STUFF ##########
 
-    def new_array(self,dof):
+    def new_array(self,dof,n):
         shape = [dof]
-        shape.extend(self.grid.n)
+        shape.extend(n)
         return np.empty(shape,order='F')

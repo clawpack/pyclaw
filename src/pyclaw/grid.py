@@ -51,12 +51,12 @@ class Dimension(object):
     """
     
     # ========== Property Definitions ========================================
-    def ng():
-        doc = r"""(int) - Size of this process' grid in given dimension."""
+    def n():
+        doc = r"""(int) - Number of grid cells in this dimension :attr:`units`"""
         def fget(self):
-            return self.n
+            return self._n
         return locals()
-    ng = property(**ng())
+    n = property(**n())
     def d():
         doc = r"""(float) - Size of an individual, computational grid cell"""
         def fget(self):
@@ -98,8 +98,7 @@ class Dimension(object):
         # ========== Class Data Attributes ===================================
         self.name = 'x'
         r"""(string) Name of this coordinate dimension (e.g. 'x')"""
-        self.n = None
-        r"""(int) - Number of grid cells in this dimension :attr:`units`"""
+        self._n = None
         self.lower = 0.0
         r"""(float) - Lower computational grid extent"""
         self.upper = 1.0
@@ -112,12 +111,12 @@ class Dimension(object):
         if isinstance(args[0],float):
             self.lower = float(args[0])
             self.upper = float(args[1])
-            self.n = int(args[2])
+            self._n = int(args[2])
     	elif isinstance(args[0],basestring):
             self.name = args[0]
             self.lower = float(args[1])
             self.upper = float(args[2])
-            self.n = int(args[3])
+            self._n = int(args[3])
     	else:
     	    raise Exception("Invalid initializer for Dimension.")
         
@@ -189,9 +188,9 @@ class Grid(object):
         doc = r"""(list) - List of the number of grid cells in each dimension"""
         def fget(self): return self.get_dim_attribute('n')
         return locals()
-    def ng():
+    def n():
         doc = r"""(list) - List of the number of grid cells for this process in each dimension"""
-        def fget(self): return self.get_dim_attribute('ng')
+        def fget(self): return self.get_dim_attribute('n')
         return locals()
     def nstart():
         doc = r"""(list) - List of the number of grid cells in each dimension"""
@@ -266,11 +265,51 @@ class Grid(object):
         return locals()
     _c_edge = None
 
+    def q():
+        def fget(self):
+            return self.states[0].q
+        def fset(self,q):
+            self.states[0].q = q
+        return locals()
+
+    def aux():
+        def fget(self):
+            return self.states[0].aux
+        def fset(self,aux):
+            self.states[0].aux = aux
+        return locals()
+
+    def aux_global():
+        def fget(self):
+            return self.states[0].aux_global
+        return locals()
+
+    def meqn():
+        def fget(self):
+            return self.states[0].meqn
+        return locals()
+
+    def maux():
+        def fget(self):
+            return self.states[0].maux
+        return locals()
+
+    def state():
+        def fget(self):
+            return self.states[0]
+        return locals()
+
+
        
+    q = property(**q())
+    aux = property(**aux())
+    aux_global = property(**aux_global())
+    meqn = property(**meqn())
+    maux = property(**maux())
+    state = property(**state())
     ndim = property(**ndim())
     dimensions = property(**dimensions())
     n = property(**n())
-    ng = property(**ng())
     nstart = property(**nstart())
     nend = property(**nend())
     name = property(**name())
@@ -301,12 +340,16 @@ class Grid(object):
         r"""(int) - Grid number of current grid, ``default = 0``"""
         self.mapc2p = default_mapc2p
         r"""(func) - Grid mapping function"""
+        self.states = []
+        r"""(list) - States that live on this grid"""
+        ############# STUFF THAT SHOULD BE MOVED#########################
         self.gauges = []
         r"""(list) - List of gauges"""
         self.gauge_files     = []
         r"""(list) - List of files to write gauge values to"""
         self.gauge_path = './_output/_gauges/'
         r"""(string) - Full path to output directory for gauges"""
+        ############# STUFF THAT SHOULD BE MOVED#########################
         # Dimension parsing
         if isinstance(dimensions,Dimension):
             dimensions = [dimensions]
@@ -332,8 +375,7 @@ class Grid(object):
          - (bool) - True if valid, false otherwise.
         
         """
-        valid = True
-        return valid
+        return all([state.is_valid() for state in self.states])
     
     
     # ========== Dimension Manipulation ======================================
@@ -350,25 +392,6 @@ class Grid(object):
         setattr(self,dimension.name,dimension)
         
         
-    def remove_dimension(self, name):
-        r"""
-        Remove the dimension named name
-        
-        :Input:
-         - *name* - (string) removes the dimension named name
-        """
-        
-        # Remove coordinate array
-        self._p_center.pop(self._dimension.index(name))
-        self._c_center.pop(self._dimension.index(name))
-        self._p_edge.pop(self._dimension.index(name))
-        self._c_edge.pop(self._dimension.index(name))
-        
-        # Delete the dimension
-        self._dimensions.remove(name)
-        exec('del(self.%s)' % name)
-    
-    
     def get_dim_attribute(self,attr):
         r"""
         Returns a tuple of all dimensions' attribute attr
@@ -562,7 +585,7 @@ class Grid(object):
                     exec("self._c_edge[i] = self.dimensions[i].edge[index[i,%s]]" % index_str)
 
     # ========================================================================
-    #  Gauges
+    #  Gauges --- MOVE THIS STUFF
     # ========================================================================
     def add_gauges(self,gauge_coords):
         r"""
@@ -591,5 +614,3 @@ class Grid(object):
                 if os.path.isfile(gauge_path): os.remove(gauge_path)
                 self.gauges.append(list(gauge_ind))
                 self.gauge_files.append(open(gauge_path,'a'))
-
-

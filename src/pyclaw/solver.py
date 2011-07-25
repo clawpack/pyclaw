@@ -782,13 +782,14 @@ class Solver(object):
         r"""Write solution (or derived quantity) values at each gauge coordinate
             to file.
         """
-        for i,gauge in enumerate(solution.state.grid.gauges):
-            x=gauge[0]; y=gauge[1]
-            aux=solution.state.aux[:,x,y]
-            q=solution.state.q[:,x,y]
-            p=self.compute_gauge_values(q,aux)
-            t=solution.t
-            solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
+        pass
+        #for i,gauge in enumerate(solution.grid.state.gauges):
+        #    x=gauge[0]; y=gauge[1]
+        #    aux=solution.state.aux[:,x,y]
+        #    q=solution.state.q[:,x,y]
+        #    p=self.compute_gauge_values(q,aux)
+        #    t=solution.t
+        #    solution.grid.state.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
 
 
 

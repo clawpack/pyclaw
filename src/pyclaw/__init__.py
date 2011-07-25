@@ -1,8 +1,4 @@
-#  =====================================================================
-#  Package:     pyclaw
-#  File:        __init__.py
-#  Created:     Feb 19, 2008
-#  Author:      Kyle Mandli
+#  Authors:      Kyle Mandli
 #  ======================================================================
 """Main pyclaw package"""
 

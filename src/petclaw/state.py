@@ -2,14 +2,8 @@ import pyclaw.state
 
 class State(pyclaw.state.State):
     r"""  See the corresponding PyClaw class documentation."""
-
     def meqn():
         doc = r"""(int) - Number of unknowns (components of q)"""
-        def fset(self,meqn):
-            if self.q_da is not None:
-                raise Exception('You cannot change state.meqn after q is initialized.')
-            else:
-                self._init_q_da(meqn)
         def fget(self):
             if self.q_da is None:
                 raise Exception('state.meqn has not been set.')
@@ -17,6 +11,7 @@ class State(pyclaw.state.State):
         return locals()
     meqn = property(**meqn())
 
+    ###### MOVE THIS STUFF ###############
     def mp():
         doc = r"""(int) - Number of derived quantities (components of p)"""
         def fset(self,mp):
@@ -46,15 +41,10 @@ class State(pyclaw.state.State):
             else: return self._F_da.dof
         return locals()
     mF = property(**mF())
+    ###### MOVE THIS STUFF ###############
 
     def maux():
         doc = r"""(int) - Number of auxiliary fields"""
-        def fset(self,maux):
-            if self.aux_da is not None:
-                raise Exception('You cannot change state.maux after aux is initialized.')
-            else:
-                if maux>0:
-                    self._init_aux_da(maux)
         def fget(self):
             if self.aux_da is None: return 0
             else: return self.aux_da.dof
@@ -144,7 +134,7 @@ class State(pyclaw.state.State):
     ndim = property(**ndim())
 
 
-    def __init__(self,grid):
+    def __init__(self,grid,meqn,mbc):
         r"""
         Here we don't call super because q and aux must be properties in PetClaw
         but should not be properties in PyClaw.
@@ -154,33 +144,26 @@ class State(pyclaw.state.State):
         if not isinstance(grid,petclaw.grid.Grid):
             raise Exception("""A PetClaw State object must be initialized with
                              a PetClaw Grid object.""")
-        self.q_da = None
-        self.gqVec = None
-        self.lqVec = None
 
-        self.aux_da = None
-        self.gauxVec = None
-        self.lauxVec = None
-
+        ###### MOVE THIS STUFF #######
         self._p_da = None
         self.gpVec = None
 
         self._F_da = None
         self.gFVec = None
+        ###### MOVE THIS STUFF #######
 
         # ========== Attribute Definitions ===================================
-        self.grid = grid
-        r"""pyclaw.Grid.grid - The grid this state lives on"""
         self.aux_global = {}
         r"""(dict) - Dictionary of global values for this grid, 
             ``default = {}``"""
         self.t=0.
         r"""(float) - Current time represented on this grid, 
             ``default = 0.0``"""
-        self.stateno = 1
-        r"""(int) - State number of current state, ``default = 1``"""
-        self.capa = None
-        r"""(ndarray(...)) - Capacity array for this grid, ``default = 1.0``"""
+
+        self._init_q_da(meqn)
+        self._init_aux_da(maux)
+
 
     def _init_aux_da(self,maux,mbc=0):
         r"""
@@ -191,7 +174,9 @@ class State(pyclaw.state.State):
         """
         self.aux_da = self._create_DA(maux,mbc)
         self.gauxVec = self.aux_da.createGlobalVector()
+        ###### MOVE THIS STUFF #####
         self.lauxVec = self.aux_da.createLocalVector()
+        ###### MOVE THIS STUFF #####
  
     def _init_q_da(self,meqn,mbc=0):
         r"""
@@ -202,7 +187,9 @@ class State(pyclaw.state.State):
         """
         self.q_da = self._create_DA(meqn,mbc)
         self.gqVec = self.q_da.createGlobalVector()
+        ###### MOVE THIS STUFF #####
         self.lqVec = self.q_da.createLocalVector()
+        ###### MOVE THIS STUFF #####
 
         #Now set the local indices for the Dimension objects:
         ranges = self.q_da.getRanges()
