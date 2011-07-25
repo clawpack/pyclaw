@@ -94,8 +94,8 @@ c     # amdq + apdq = f(q(i)) - f(q(i-1)).
 c
 
       forall(i=1:mx+1, m=1:meqn)
-         dq(m,i) =   dq(m,i) + dtdx(i)*apdq(m,i)
-         dq(m,i-1) = dq(m,i-1) + dtdx(i-1)*amdq(m,i)
+         dq(m,i) =   dq(m,i) - dtdx(i)*apdq(m,i)
+         dq(m,i-1) = dq(m,i-1) - dtdx(i-1)*amdq(m,i)
       end forall
 
 c
@@ -126,7 +126,7 @@ c
             do 110 mw=1,mwaves
          dtdxave = 0.5d0 * (dtdx(i-1) + dtdx(i))
          f(m,i) = f(m,i) + 0.5d0 * dabs(s(mw,i))
-     &             * (1.d0 - dabs(s(mw,i))*dtdxave) * wave(m,mw,i)
+     &             * (1.d0 + dabs(s(mw,i))*dtdxave) * wave(m,mw,i)
   110          continue
   120       continue
 c
@@ -137,7 +137,7 @@ c
 c     # (Note:  Godunov update has already been performed above)
 c
       forall(i=1:mx+1, m=1:meqn)
-            dq(m,i) = dq(m,i) + dtdx(i) * (f(m,i+1) - f(m,i))
+            dq(m,i) = dq(m,i) - dtdx(i) * (f(m,i+1) - f(m,i))
       end forall
 c
   900 continue

@@ -35,6 +35,8 @@ def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='
     solver.mthbc_lower[0] = 2
     solver.mthbc_upper[0] = 2
 
+    solver.cfl_desired=0.4
+    solver.cfl_max=0.5
     
     #===========================================================================
     # Initialize grid and state, then initialize the solution associated to the 
@@ -46,7 +48,7 @@ def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='
     state.aux_global['u']=1.
     state.meqn = rp_advection.meqn
 
-    solver.order = 1
+    solver.order = 2
 
     xc = grid.x.center
     beta = 100
@@ -62,7 +64,7 @@ def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='
     claw.solver = solver
     claw.outdir = outdir
 
-    claw.tfinal = 0.4
+    claw.tfinal = 1.0
 
     #===========================================================================
     # Solve the problem
@@ -78,17 +80,12 @@ def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='
 if __name__=="__main__":
     import sys
     import petsc4py
-    print sys.argv
     petclaw_args = [arg for arg in sys.argv[1:] if '=' in arg]
     petsc_args = [arg for arg in sys.argv[1:] if '=' not in arg]
     petsc4py.init(petsc_args)
     petclaw_args.insert(0,sys.argv[0])
-    print petclaw_args
     if len(sys.argv)>1:
         from pyclaw.util import _info_from_argv
         args, kwargs = _info_from_argv(petclaw_args)
-        print args
-        print kwargs
         advection_implicitLW(*args,**kwargs)
-        print 'Error: ',error
     else: advection_implicitLW()
