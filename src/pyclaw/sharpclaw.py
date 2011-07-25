@@ -80,7 +80,7 @@ class SharpClawSolver(Solver):
         """Evolve q over one time step.
 
         Take on Runge-Kutta time step using the method specified by
-        self..time_integrator.  Currently implemented methods:
+        self.time_integrator.  Currently implemented methods:
 
         'Euler'  : 1st-order Forward Euler integration
         'SSP33'  : 3rd-order strong stability preserving method of Shu & Osher

@@ -32,8 +32,10 @@ def advection_implicitSharpClawBE(use_petsc=True,iplot=False,htmlplot=False,solv
     from riemann import rp_advection
     solver.mwaves = rp_advection.mwaves
  
-    solver.mthbc_lower[0] = 2
-    solver.mthbc_upper[0] = 2
+    solver.mthbc_lower[0] = pyclaw.BC.periodic
+    solver.mthbc_upper[0] = pyclaw.BC.periodic
+
+    solver.time_integrator ='BEuler'
 
     solver.cfl_desired=1
     solver.cfl_max=1.1
@@ -47,8 +49,6 @@ def advection_implicitSharpClawBE(use_petsc=True,iplot=False,htmlplot=False,solv
     state = pyclaw.State(grid)
     state.aux_global['u']=1.
     state.meqn = rp_advection.meqn
-
-    #solver.order = 2
 
     xc = grid.x.center
     beta = 100

@@ -1,21 +1,17 @@
 r"""
-This module contains the implicit sharpclaw solvers which requires PETSc toolkit.
-
-Currently only the bacward Euler (BE) scheme is implemented for the time 
-discretization. This is the initial version and the structure of the solver is
-based on BE discretization. Next step must be the generalization for "any"
-implicit TS.
-
+This module contains the implicit sharpclaw solvers which requires PETSc toolkit
+library.
 
 All implicit sharpclaw solvers inherit from the :class:`ImplicitSharpClawSolver` 
-superclass which in turn inherits from the :class:`~petclaw.solver.Solver` superclass. 
-These are both pure virtual classes; the only solver classes that should be instantiated
-are the dimension-specific ones, :class:`ImplicitSharpClawSolver1D` and 
-:class:`ImplicitSharpClawSolver2D`.
+superclass which in turn inherits from the :class:`~petclaw.solver.Solver` 
+superclass. These are both pure virtual classes; the only solver classes that 
+should be instantiated are the dimension-specific ones, 
+:class:`ImplicitSharpClawSolver1D` and :class:`ImplicitSharpClawSolver2D`.
 
 Authors: Matteo Parsani
          David Ketcheson
 """
+
 # Solver superclass
 import petclaw.solver
 
@@ -55,10 +51,10 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
     r"""
     Superclass for all ImplicitSharpClawND solvers.
 
-    Implements backward Euler time stepping combined with the PETSc's nonlinear
-    algebraic solver library SNES. If another method-of-lines solver is 
-    implemented in the future, it should be based on this class,which then ought 
-    to be renamed to something like "ImplicitMOLSolver".
+    Implements implicit time stepping methods combined with the PETSc's 
+    nonlinear solver SNES. If another method-of-lines solver is implemented in 
+    the future, it should be based on this class,which then ought to be renamed 
+    to something like "ImplicitMOLSolver".
     """
     
     # ========================================================================
@@ -79,7 +75,7 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
         self._default_attr_values['limiters'] = [1]
         self._default_attr_values['start_step'] = start_step
         self._default_attr_values['lim_type'] = 2
-        self._default_attr_values['time_integrator'] = 'SSP104'
+        self._default_attr_values['time_integrator'] = 'BEuler'
         self._default_attr_values['char_decomp'] = 0
         self._default_attr_values['tfluct_solver'] = False
         self._default_attr_values['aux_time_dep'] = False
@@ -94,13 +90,69 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
         super(ImplicitSharpClawSolver,self).__init__(data)
 
 
+    # ========== Setup Routine ===============================================
+    def setup(self,solutions):
+        r"""
+        Called before any set of time steps.
+        
+        This routine will be called once before the solver is used via the
+        :class:`~pyclaw.controller.Controller`.
+        """
+        
+        # Import libraries
+        from petsc4py import PETSc
+        from numpy import empty
+        from pyclaw.state import State
+
+        # Call b4step
+        self.start_step(self,solutions)
+
+        # Get state
+        state = solutions['n'].state
+    
+
+        # This is a hack to deal with the fact that petsc4py
+        # doesn't allow us to change the stencil_width (mbc)
+        state.set_stencil_width(self.mbc)
+        # End hack
+
+        # Set mthlim
+        self.set_mthlim()
+
+        # Get state
+        state = solutions['n'].state
+
+        # Create PETSc vectors in charge of containig:
+        # bVec: the constant part of the nonlinear algebraic system of equations
+        # fVec: nonlinear vector-valued function
+        self.bVec    = state.gqVec.duplicate()
+        self.fVec    = state.gqVec.duplicate()
+
+        # Create PETSc nonlinear solver
+        self.snes    = PETSc.SNES().create()
+
+        # Ought to implement a copy constructor for State
+        self.impsol_stage = State(state.grid)
+        self.impsol_stage.meqn             = state.meqn
+        self.impsol_stage.maux             = state.maux
+        self.impsol_stage.aux_global       = state.aux_global
+        self.impsol_stage.t                = state.t
+        if state.maux > 0:
+            self.impsol_stage.aux          = state.aux
+
+
+
     # ========== Time stepping routines ======================================
     def step(self,solutions):
         r"""
-        Evolve q for one time step.
+        Evolve q for one time step using the method specified by
+        self.time_integrator. Currently implemented methods:
+
+        'BEuler': 1st-order backward Euler integration
+
 
         This routine is called from the method evolve_to_time defined in the
-        pyclaw.solver.Solver superclass.
+        pyclaw.solver.Solver superclass. 
 
         :Input:
          - *solutions* - (:class:`~pyclaw.solution.Solution`) Dictionary of 
@@ -118,32 +170,61 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
         
         # Call b4step, pyclaw should be subclassed if this is needed
         # NOTE: THIS IS NOT THE RIGHT PLACE WHEN WE HAVE AN IMPLICIT  
-        # TIME STEPPING BECAUSE, FOR INSTANCE, THE AUX ARRAY COULD DEPEND ON THE SOLUTION ITSELF.
-        # THEN start_step FUNCTION SHOULD BE PLACED IN THE PART OF THE CODE WHERE THE
-        # NONLINEAR FUNCTION IS COMPUTED!!!!!!!!!
+        # TIME STEPPING BECAUSE, FOR INSTANCE, THE AUX ARRAY COULD DEPEND ON
+        # THE SOLUTION ITSELF.
+        # THEN start_step FUNCTION SHOULD BE PLACED IN THE PART OF THE CODE 
+        # WHERE THE NONLINEAR FUNCTION IS COMPUTED!!!!!!!!!
         self.start_step(self,solutions)
 
-
+        ########################################
         # Compute solution at the new time level
-        self.updatesolution(state)
+        ########################################
+        import sys, petsc4py
+        petsc4py.init(sys.argv)
+        from petsc4py import PETSc
+        
+        # Set the constant part of the equation and register the function in 
+        # charge of computing the nonlinear residual specified by
+        # self.time_integrator.
+        if self.time_integrator=='BEuler':
+            self.set_bVecBEuler(state)
+            self.snes.setFunction(self.nonlinearFunctionBEuler, self.fVec)
+        else:
+            raise Exception('Unrecognized time integrator!')
+
+
+        # Configure the nonlinear solver to use a matrix-free Jacobian
+        self.snes.setUseMF(True)
+        self.snes.setFromOptions()
+
+        # Pass additinal properties to SNES.
+        self.snes.appctx=(state)
+
+        # Solve the nonlinear problem
+        self.snes.solve(self.bVec, state.gqVec)
 
         # Check here if we violated the CFL condition, if we did, return 
-        # immediately to evolve_to_time and let it deal with picking a new dt. 
-        # Even for steady state calculations the control of the CFL is important, especially
-        # in the first few pseudo time steps, where high frequency errors components must
-        # be damped out and expelled from the computational domain. 
+        # immediately to evolve_to_time and let it pick pick up a new dt. 
+        # Even for steady state calculations the control of the CFL is important
+        # because in the first few pseudo time steps, where high frequency 
+        # errors components must be damped out and expelled from the 
+        # computational domain. 
         # TODO: implement a CFL-law
         self.communicateCFL()
 
+        if self.cfl >= self.cfl_max:
+            return False
+        else:
+            return True
 
-    def updatesolution(self,state):
+    def set_bVec(self,state):
         r"""
-        Compute slution at the new time level for the implicit
-        SharpClaw solver.
-        
+        Set the constant part of the nonlinear algebraic system arisng from the
+        implicit time discretization  specified by self.time_integrator.
+
         This is a dummy routine and must be overridden.
         """
-        raise Exception("Dummy routine, please override!")   
+        raise Exception("Dummy routine, please override!")
 
 
     def set_mthlim(self):
@@ -186,7 +267,7 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
 
 
 # ============================================================================
-#  Implicit ClawPack 1d Solver Class
+#  Implicit SharpClaw 1d Solver Class
 # ============================================================================
 class ImplicitSharpClawSolver1D(ImplicitSharpClawSolver):
     """
@@ -198,13 +279,14 @@ class ImplicitSharpClawSolver1D(ImplicitSharpClawSolver):
 
     def __init__(self,data=None):
         r"""
-        Create 1d implicit SharpClawpack solver
+        Create 1d implicit SharpClawpack solver.
         
         See :class:`ImplicitSharpClawSolver1D` for more info.
         """   
         
         self.ndim = 1
 
+        # Call superclass __init__
         super(ImplicitSharpClawSolver1D,self).__init__(data)
 
 
@@ -214,20 +296,13 @@ class ImplicitSharpClawSolver1D(ImplicitSharpClawSolver):
         Perform essential solver setup. This routine must be called before
         solver.step() may be called.
 
-        Set Fortran data structures (for Clawpack) and set up a DA with
-        the appropriate stencil width.
+        Set Fortran data structures (for Clawpack). 
         """
-        from petsc4py import PETSc
-        from numpy import empty
-        from pyclaw.state import State
+        
+        # Call setup of the superclass 
+        super(ImplicitSharpClawSolver1D,self).setup(solutions)
 
-        # This is a hack to deal with the fact that petsc4py
-        # doesn't allow us to change the stencil_width (mbc)
-        state = solutions['n'].state
-        state.set_stencil_width(self.mbc)
-        # End hack
-
-        self.set_mthlim()
+        # Set Fortran data structure for the 1D implicit SharpClaw solver
         if(self.kernel_language == 'Fortran'):
             from sharpclaw1 import clawparams, workspace, reconstruct
             import sharpclaw1
@@ -235,18 +310,6 @@ class ImplicitSharpClawSolver1D(ImplicitSharpClawSolver):
             state.set_cparam(sharpclaw1)
             self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
 
-        self.bVec    = state.gqVec.duplicate()
-        self.fVec    = state.gqVec.duplicate()
-        self.snes    = PETSc.SNES().create()
-
-        #Ought to implement a copy constructor for State
-        self.impsol_stage = State(state.grid)
-        self.impsol_stage.meqn             = state.meqn
-        self.impsol_stage.maux             = state.maux
-        self.impsol_stage.aux_global       = state.aux_global
-        self.impsol_stage.t                = state.t
-        if state.maux > 0:
-            self.impsol_stage.aux          = state.aux
 
     def teardown(self):
         r"""
@@ -259,118 +322,64 @@ class ImplicitSharpClawSolver1D(ImplicitSharpClawSolver):
             reconstruct.dealloc_recon_workspace(clawparams.lim_type,clawparams.char_decomp)
 
 
-
-    def updatesolution(self,state):
+    # ========== Backward Euler time stepping functions =======================
+    def set_bVecBEuler(self,state):
         r"""
-        Compute slution at the new time level for the implicit 1D
-        Lax-Wendroff scheme, i.e.
+        Set the constant part of the nonlinear algebraic system arisng from the
+        implicit time discretization  specified by self.time_integrator.
 
-        q^(n+1) = q^(n) + R(q^(n+1)),
-
-        where q^(n)      = solution at the current time level
-              q^(n+1)    = solution at the new time level (solution of the nonlinear system)
-              R(q^(n+1)) = nonlinear function arising from the spatial/time discretization
+        This is a dummy routine and must be overridden.
         """
 
-        import numpy as np
-        import sys, petsc4py
-        petsc4py.init(sys.argv)
-        from petsc4py import PETSc
-        
-        # Define the constant part of the equation.
-        # For the implicit LW scheme this could either zero or the solution at 
-        # the current time level (q^n). In this case we set it equal to the 
+        # set the constant part of the nonlinear algebraic system equal to the 
         # solution at the current time level.
         self.bVec.setArray(state.q)
 
-        # NOTE: HERE WE SHOULD PROBABLY PUT AN IF STATEMENT (?) THE ALLOWS TO SELECT
-        #THE IMPLICIT TIME INTEGRATOR THE USER HAS SELECTED. ALL THE IMPLICIT 
-        #TIME INTEGRATORS REQUIRE THE SOLUTION OF A NONLINEAR ALGEBRAIC SYSTEM.
-        #THE DIFFERENCE AMONG THEM IS THE BUILDING BLOCKS OF THE NONLINEAR
-        #FUNCTION INDICATED BY THE LETTER "nlF". FOR INSTANCE FOR THE BACKWARD 
-        #EULER SCHEME, I.E.
 
-        #(q^(n+1) - q^(n))/dt + SD(q^(n+1)) = 0 with sd(q^(n+1)) is a nonlinear
-        #term arising from the spatial discretization (MOL).
-
-        #THE NONLINEAR FUNCTION IS:
-
-        #nlF = q^(n+1) + dt * sd(q^(n+1)) 
-
-        #THEREFORE THE NONLINEAR SYSTEM TO BE SOLVED IS:
-
-        #nlF = q^(n)
-
-        #WHERE q^(n) DEFINES THE CONSTANT PART OF THE SYSTEM.
-
-        #CAN WE DO BETTER? I MEAN COULD WE DEFINE THE TS INDEPENDENTLY OF THE 
-        #SPATIAL DIMENSION OF THE PROBLEM (LOOK AT evalNonLinearFunction)? 
-        #YES, WE COULD! BUT IT WOULD REQUIRE TO CHANGE evalNonLinearFunction
-
-
-
-        #  Register the function in charge of computing the nonlinear residual
-        self.snes.setFunction(self.evalNonLinearFunctionBE, self.fVec)
-
-        # Configure the nonlinear solver to use a matrix-free Jacobian
-        self.snes.setUseMF(True)
-        #self.snes.getKSP().setType('cg')
-        self.snes.setFromOptions()
-
-        self.snes.appctx=(state)
-
-        # Solve the nonlinear problem
-        self.snes.solve(self.bVec, state.gqVec)
-
-
-    def evalNonLinearFunctionBE(self,snes,qin,F):
+    def nonlinearFunctionBEuler(self,snes,qin,F):
         r"""
         Computes the nonlinear function for the backward Euler scheme.
-
 
         :Input:
          - *qin* - Current approximation of the solution at the next time level,
          i.e. solution of the previous nonlinear solver's iteration.
         """
-        
+
+        # Import libraries
         import numpy as np
         from numpy import zeros, reshape, empty
 
+        # Get state
         state = snes.appctx
 
+        # Get some quantities used later on by the 
         mx = state.grid.ng[0]
         dx = state.grid.d[0]
         mbc = self.mbc
         dt = self.dt
+        
+        # Define and set to zero the ratio between dt and dx 
+        dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
 
+        # Auxbc is set here and not outside of this function because it is 
+        # more general. Indeed aux could depend on q which changes at each 
+        # nonlinear iteration!
         if state.maux>0:
             state.aux = self.auxbc(state)
         else:
             aux=np.empty((state.maux,mx+2*mbc), order='F')
 
-        dtdx = np.zeros((mx+2*mbc))
-
-        #Have to do this because of how qbc works...
+        # Have to do this because of how qbc works...
         state.q = reshape(qin,(state.meqn,mx),order='F') 
         qapprox = self.qbc(state)
 
+        # Import library
         from sharpclaw1 import flux1
+
+        # Call fortran routine 
         ixy = 1
         sd,self.cfl=flux1(qapprox,aux,dt,state.t,ixy,mx,mbc,mx)
 
-
+        # Compute the nonlinear vector-valued function
         assert sd.flags['F_CONTIGUOUS']
         F.setArray(qapprox[:,mbc:-mbc]-sd[:,mbc:-mbc])
-
-
-
-
-
-
-
-
-
-
-
-
-
