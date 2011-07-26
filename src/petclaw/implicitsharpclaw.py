@@ -91,7 +91,7 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
 
 
     # ========== Setup Routine ===============================================
-    def setup(self,solutions):
+    def initiate(self,solutions):
         r"""
         Called before any set of time steps.
         
@@ -217,16 +217,6 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
         else:
             return True
 
-    def set_bVec(self,state):
-        r"""
-        Set the constant part of the nonlinear algebraic system arisng from the
-        implicit time discretization  specified by self.time_integrator.
-
-        This is a dummy routine and must be overridden.
-        """
-        raise Exception("Dummy routine, please override!")
-
-
     def set_mthlim(self):
         self.mthlim = self.limiters
         if not isinstance(self.limiters,list): self.mthlim=[self.mthlim]
@@ -299,8 +289,8 @@ class ImplicitSharpClawSolver1D(ImplicitSharpClawSolver):
         Set Fortran data structures (for Clawpack). 
         """
         
-        # Call setup of the superclass 
-        super(ImplicitSharpClawSolver1D,self).setup(solutions)
+        # Call parent's "setup" 
+        self.initiate(solutions)
 
         # Set Fortran data structure for the 1D implicit SharpClaw solver
         if(self.kernel_language == 'Fortran'):
