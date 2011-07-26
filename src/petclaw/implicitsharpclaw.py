@@ -128,8 +128,13 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
         self.bVec    = state.gqVec.duplicate()
         self.fVec    = state.gqVec.duplicate()
 
+        self.Jac     = PETSc.Mat().create()
+        self.Jac.setSizes((self.bVec.size,self.bVec.size))
+        self.Jac.setFromOptions()
+
         # Create PETSc nonlinear solver
         self.snes    = PETSc.SNES().create()
+        self.snes.setJacobian(None, self.Jac) 
 
         # Ought to implement a copy constructor for State
         self.impsol_stage = State(state.grid)
@@ -182,16 +187,6 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
         import sys, petsc4py
         petsc4py.init(sys.argv)
         from petsc4py import PETSc
-
-        # Set some option to output SNES's performance
-        PETSc.Options().setValue('snes_monitor',1)
-        PETSc.Options().setValue('ksp_monitor',1)
-        PETSc.Options().setValue('ksp_view',1)
-        PETSc.Options().setValue('snes_view',1)
-        PETSc.Options().setValue('log_summary',1)
-        PETSc.Options().setValue('snes_fd',1)
-        PETSc.Options().setValue('mat_fd_type=','ds')
-        
         
         # Set the constant part of the equation and register the function in 
         # charge of computing the nonlinear residual specified by
