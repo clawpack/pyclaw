@@ -128,13 +128,13 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
         self.bVec    = state.gqVec.duplicate()
         self.fVec    = state.gqVec.duplicate()
 
-        self.Jac     = PETSc.Mat().create()
-        self.Jac.setSizes((self.bVec.size,self.bVec.size))
-        self.Jac.setFromOptions()
+        #self.Jac     = PETSc.Mat().create()
+        #self.Jac.setSizes((self.bVec.size,self.bVec.size))
+        #self.Jac.setFromOptions()
 
         # Create PETSc nonlinear solver
         self.snes    = PETSc.SNES().create()
-        self.snes.setJacobian(None, self.Jac) 
+        #self.snes.setJacobian(None, self.Jac) 
 
         # Ought to implement a copy constructor for State
         self.impsol_stage = State(state.grid)
