@@ -149,59 +149,59 @@ class Solution(object):
         def fget(self): return self._get_base_state_attribute('maux')
         return locals()
     def ndim():
-        doc = r"""(int) - :attr:`Grid.ndim` of base state.grid"""
+        doc = r"""(int) - :attr:`Grid.ndim` of base grid"""
         def fget(self): return self._get_base_grid_attribute('ndim')
         return locals()
     def dimensions():
-        doc = r"""(list) - :attr:`Grid.dimensions` of base state.grid"""
+        doc = r"""(list) - :attr:`Grid.dimensions` of base grid"""
         def fget(self): return self._get_base_grid_attribute('dimensions')
         return locals()
     def n():
-        doc = r"""(list) - :attr:`Grid.n` of base state.grid"""
+        doc = r"""(list) - :attr:`Grid.n` of base grid"""
         def fget(self): return self._get_base_grid_attribute('n')
         return locals()
     def name():
-        doc = r"""(list) - :attr:`Grid.name` of base state.grid"""
+        doc = r"""(list) - :attr:`Grid.name` of base grid"""
         def fget(self): return self._get_base_grid_attribute('name')
         return locals()
     def lower():
-        doc = r"""(list) - :attr:`Grid.lower` of base state.grid"""
+        doc = r"""(list) - :attr:`Grid.lower` of base grid"""
         def fget(self): return self._get_base_grid_attribute('lower')
         return locals()
     def upper():
-        doc = r"""(list) - :attr:`Grid.upper` of base state.grid"""
+        doc = r"""(list) - :attr:`Grid.upper` of base grid"""
         def fget(self): return self._get_base_grid_attribute('upper')
         return locals()
     def d():
-        doc = r"""(list) - :attr:`Grid.d` of base state.grid"""
+        doc = r"""(list) - :attr:`Grid.d` of base grid"""
         def fget(self): return self._get_base_grid_attribute('d')
         return locals()
     def units():
-        doc = r"""(list) - :attr:`Grid.units` of base state.grid"""
+        doc = r"""(list) - :attr:`Grid.units` of base grid"""
         def fget(self): return self._get_base_grid_attribute('units')
         return locals()
     def center():
-        doc = r"""(list) - :attr:`Grid.center` of base state.grid"""
+        doc = r"""(list) - :attr:`Grid.center` of base grid"""
         def fget(self): return self._get_base_grid_attribute('center')
         return locals()
     def edge():
-        doc = r"""(list) - :attr:`Grid.edge` of base state.grid"""
+        doc = r"""(list) - :attr:`Grid.edge` of base grid"""
         def fget(self): return self._get_base_grid_attribute('edge')
         return locals()
     def p_center():
-        doc = r"""(list) - :attr:`Grid.p_center` of base state.grid"""
+        doc = r"""(list) - :attr:`Grid.p_center` of base grid"""
         def fget(self): return self._get_base_grid_attribute('p_center')
         return locals()
     def p_edge():
-        doc = r"""(list) - :attr:`Grid.p_edge` of base state.grid"""
+        doc = r"""(list) - :attr:`Grid.p_edge` of base grid"""
         def fget(self): return self._get_base_grid_attribute('p_edge')
         return locals()
     def c_center():
-        doc = r"""(list) - :attr:`Grid.c_center` of base state.grid"""
+        doc = r"""(list) - :attr:`Grid.c_center` of base grid"""
         def fget(self): return self._get_base_grid_attribute('c_center')
         return locals()
     def c_edge():
-        doc = r"""(list) - :attr:`Grid.c_edge` of base state.grid"""
+        doc = r"""(list) - :attr:`Grid.c_edge` of base grid"""
         def fget(self): return self._get_base_grid_attribute('c_edge')
         return locals()
         

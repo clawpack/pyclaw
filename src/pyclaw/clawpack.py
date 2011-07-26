@@ -406,7 +406,7 @@ class ClawSolver1D(ClawSolver):
         meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
           
         if maux>0:
-            aux = self.auxbc(state)
+            aux = self.auxbc(grid,state)
 
         if(self.kernel_language == 'Fortran'):
             if self.fwave:
@@ -602,7 +602,7 @@ class ClawSolver2D(ClawSolver):
 
         # Grid we will be working on
         state = solutions['n'].states[0]
-        grid  = state.grid
+        grid  = solutions['n'].grids[0]
 
         # The reload here is necessary because otherwise the common block
         # cparam in the Riemann solver doesn't get flushed between running
@@ -715,7 +715,7 @@ class ClawSolver2D(ClawSolver):
 
         if(self.kernel_language == 'Fortran'):
             state = solutions['n'].states[0]
-            grid = state.grid
+            grid  = solutions['n'].grids[0]
             meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
             mx,my = grid.n[0],grid.n[1]
             maxm = max(mx,my)
@@ -727,7 +727,7 @@ class ClawSolver2D(ClawSolver):
             if maux == 0: 
                 aux=np.empty((0,mx+2*mbc,my+2*mbc))
             else:
-                aux = self.auxbc(state)
+                aux = self.auxbc(grid,state)
 
             
             dx,dy,dt = grid.d[0],grid.d[1],self.dt

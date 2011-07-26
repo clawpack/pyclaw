@@ -271,7 +271,8 @@ class Solver(object):
         state = solutions['n'].states[0]
         self.rk_stages = []
         for i in range(nregisters-1):
-            self.rk_stages.append(State(state.grid))
+            state = solutions.state
+            self.rk_stages.append(State(solutions.grid,state.meqn,state.maux))
             self.rk_stages[-1].meqn = state.meqn
             self.rk_stages[-1].maux = state.maux
             self.rk_stages[-1].aux_global       = state.aux_global
@@ -290,16 +291,16 @@ class Solver(object):
         """
         import numpy as np
 
-        grid = state.grid
         mbc = self.mbc
-        dims = [n + 2*mbc for n in grid.ng]
+        dims = [n + 2*mbc for n in state.q.shape[1:]]
         dims.insert(0,state.meqn)
         qbc = np.zeros(dims,order = 'F')
-        if grid.ndim == 1:
+        ndim = len(state.q.shape)-1
+        if ndim == 1:
             qbc[:,mbc:-mbc] = state.q
-        elif grid.ndim == 2:
+        elif ndim == 2:
             qbc[:,mbc:-mbc,mbc:-mbc] = state.q
-        elif grid.ndim == 3:
+        elif ndim == 3:
             qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = state.q
         return qbc
  
@@ -309,11 +310,12 @@ class Solver(object):
         for PySolver, it is only setting the value
         of q with proper slice of ghosted_q
         """
-        grid = state.grid
-        if grid.ndim == 1:
+        ndim = len(state.q.shape)-1
+        n = state.q.shape[1:]
+        if ndim == 1:
             state.q = ghosted_q[:,self.mbc:-self.mbc]
-        elif grid.ndim == 2:
-            mbc, mx, my = self.mbc, grid.ng[0],grid.ng[1]
+        elif ndim == 2:
+            mbc, mx, my = self.mbc, n[0],n[1]
             state.q=ghosted_q[:,mbc:mx+mbc,mbc:my+mbc]
         else:
             raise NotImplementedError("The case of 3D is not handled in "\
@@ -326,21 +328,21 @@ class Solver(object):
         """
         import numpy as np
 
-        grid = state.grid
         mbc = self.mbc
-        dims = [n + 2*self.mbc for n in grid.ng]
+        dims = [n + 2*self.mbc for n in state.q.shape[1:]]
         dims.insert(0,state.maux)
         auxbc = np.zeros(dims,order = 'F')
-        if grid.ndim == 1:
+        ndim = len(state.aux.shape[1:]
+        if ndim == 1:
             auxbc[:,mbc:-mbc] = state.aux
-        elif grid.ndim == 2:
+        elif ndim == 2:
             auxbc[:,mbc:-mbc,mbc:-mbc] = state.aux
-        elif grid.ndim == 3:
+        elif ndim == 3:
             auxbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = state.aux
         return auxbc
 
 
-    def qbc(self,state):
+    def qbc(self,grid,state):
         r"""
         Appends boundary cells to q and fills them with appropriate values.
     
@@ -377,7 +379,6 @@ class Solver(object):
         import numpy as np
 
         qbc=self.append_ghost_cells(state)
-        grid = state.grid
        
         for idim,dim in enumerate(grid.dimensions):
             # First check if we are actually on the boundary
@@ -483,7 +484,7 @@ class Solver(object):
 
 
 
-    def auxbc(self,state):
+    def auxbc(self,grid,state):
         r"""
         Appends boundary cells to aux and fills them with appropriate values.
     
@@ -520,7 +521,6 @@ class Solver(object):
         import numpy as np
 
         auxbc=self.append_ghost_cells_to_aux(state)
-        grid = state.grid
        
         for idim,dim in enumerate(grid.dimensions):
             # First check if we are actually on the boundary
@@ -688,9 +688,10 @@ class Solver(object):
         for n in xrange(self.max_steps):
             
             state = solutions["n"].state
+            grid = solutions['n'].grid
             
             # update boundary conditions
-            state.qbc = self.qbc(state)
+            state.qbc = self.qbc(grid,state)
 
         
             # Adjust dt so that we hit tend exactly if we are near tend
