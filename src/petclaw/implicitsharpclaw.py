@@ -182,6 +182,14 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
         import sys, petsc4py
         petsc4py.init(sys.argv)
         from petsc4py import PETSc
+
+        # Set some option to output SNES's performance
+        PETSc.Options().setValue('snes_monitor',1)
+        PETSc.Options().setValue('ksp_monitor',1)
+        PETSc.Options().setValue('ksp_view',1)
+        PETSc.Options().setValue('snes_view',1)
+        PETSc.Options().setValue('log_summary',1)
+        
         
         # Set the constant part of the equation and register the function in 
         # charge of computing the nonlinear residual specified by
@@ -289,7 +297,7 @@ class ImplicitSharpClawSolver1D(ImplicitSharpClawSolver):
         Set Fortran data structures (for Clawpack). 
         """
         
-        # Call parent's "setup" 
+        # Call parent's "setup" function
         self.initiate(solutions)
 
         # Set Fortran data structure for the 1D implicit SharpClaw solver
