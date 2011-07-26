@@ -91,3 +91,4 @@ if __name__=="__main__":
     else: advection_implicitSharpClawBE()
 
 # python advection_implicitSharpClawBE.py -snes_fd -ksp_type preonly -pc_type lu -snes_view
+# python advection_implicitSharpClawBE.py -snes_mf -snes_view
