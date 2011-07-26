@@ -189,6 +189,8 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
         PETSc.Options().setValue('ksp_view',1)
         PETSc.Options().setValue('snes_view',1)
         PETSc.Options().setValue('log_summary',1)
+        PETSc.Options().setValue('snes_fd',1)
+        PETSc.Options().setValue('mat_fd_type=','ds')
         
         
         # Set the constant part of the equation and register the function in 
