@@ -66,16 +66,6 @@ class ClawSolver2D(PetSolver,pyclaw.clawpack.ClawSolver2D):
 
         self.set_mthlim()
 
-        # Check the cfl settings
-        if self.dim_split:
-            cfl_recommended = 0.5
-        else:
-            cfl_recommended = 1.0
-
-        if self.cfl_max > cfl_recommended:
-            import warnings
-            warnings.warn('cfl_max is set higher than the recommended value of %s' % cfl_recommended)
-
         if(self.kernel_language == 'Fortran'):
             self.set_fortran_parameters(solution)
         else: raise Exception('Only Fortran kernels are supported in 2D.')

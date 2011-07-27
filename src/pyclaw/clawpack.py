@@ -210,10 +210,6 @@ class ClawSolver(Solver):
         # Take a step on the homogeneous problem
         self.homogeneous_step(solution)
 
-        # Putting this here now for PetClaw.  We should think about the best way
-        # to handle CFL communication.
-        self.communicateCFL()
-
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
         # dt

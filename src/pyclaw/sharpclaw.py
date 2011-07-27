@@ -155,7 +155,6 @@ class SharpClawSolver(Solver):
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
         # dt
-        self.communicateCFL()
         if self.cfl >= self.cfl_max:
             raise CFLError('cfl_max exceeded')
 

@@ -201,7 +201,6 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         # in the first few pseudo time steps, where high frequency errors components must
         # be damped out and expelled from the computational domain. 
         # TODO: implement a CFL-law
-        self.communicateCFL()
         if self.cfl >= self.cfl_max:
             raise CFLError('cfl_max exceeded')
 

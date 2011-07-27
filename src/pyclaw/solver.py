@@ -142,7 +142,7 @@ class Solver(object):
         
         # Initialize time stepper values
         self.dt = self._default_attr_values['dt_initial']
-        self.cfl = self._default_attr_values['cfl_desired']
+        self._cfl = self._default_attr_values['cfl_desired']
         
         # Status Dictionary
         self.status = {'cflmax':self.cfl,
@@ -178,6 +178,14 @@ class Solver(object):
         be populated by method Solver.evolve_to_time in case Solver.dt_variable
         is set to be used when rejecting step. It can be used by solvers but
         should not be changed"""
+
+    def cfl():
+        def fget(self):
+                return self._cfl
+        def fset(self,cflnum):
+            self._cfl = cflnum
+        return locals()
+    cfl = property(**cfl())
 
 
 
@@ -764,12 +772,6 @@ class Solver(object):
         """
         raise NotImplementedError("No stepping routine has been defined!")
 
-    def communicateCFL(self):
-        r"""
-        Dummy function, only here for PetClaw to override.
-        """
-        pass
-            
     # ========================================================================
     #  Gauges
     # ========================================================================
