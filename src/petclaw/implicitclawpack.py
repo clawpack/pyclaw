@@ -1,26 +1,28 @@
 r"""
 Module containing the implicit classic Clawpack solvers.
 
-This module contains the implicit clawpack solvers (implicit Lax-Wendroff scheme).  
-All implicit clawpack solvers inherit from the :class:`ImplicitClawSolver` superclass which in turn 
-inherits from the :class:`~pyclaw.solver.Solver` superclass. These
-are both pure virtual classes; the only solver classes that should be instantiated
-are the dimension-specific ones, :class:`ImplicitClawSolver1D` and :class:`ImplicitClawSolver2D`.
+This module contains the implicit clawpack solvers, i.e. implicit Lax-Wendroff
+scheme.
+
+All implicit clawpack solvers inherit from the :class:`ImplicitClawSolver` 
+superclass which in turn inherits from the :class:`~pyclaw.solver.Solver` 
+superclass. These are both pure virtual classes; the only solver classes that 
+should be instantiated are the dimension-specific ones, 
+:class:`ImplicitClawSolver1D` and :class:`ImplicitClawSolver2D`.
 
 :Authors:
-    Matteo Parsani -- Initial version (July 2011)
-    David Ketcheson
+    Matteo Parsani  -- July 2011
+    David Ketcheson -- July 2011
 """
 
+# Import modules
 import petclaw.solver
-
 import pyclaw.limiters.tvd
+from pyclaw.solver import CFLError
 import riemann
 
-from pyclaw.clawpack import start_step, src
-from pyclaw.solver import CFLError
 
-
+# Define some default functions
 def start_step(solver,solutions):
     r"""
     Dummy routine called before each step.
@@ -31,12 +33,11 @@ def start_step(solver,solutions):
 
 def src(solver,grid,q,t):
     r"""
-    Dummy routine called to calculate a source term
+    Dummy routine called to calculate a source term.
     
     Replace this routine if you want to include a source term.
     """
     pass
-
 
 # ============================================================================
 #  Generic implicit Clawpack solver class
@@ -89,7 +90,7 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
      - (:class:`ImplicitClawSolver`) - Initialized implicit clawpack solver
     
     """
-    # ========== Generic Init Routine ========================================
+
     def __init__(self,data=None):
         r"""
         See :class:`ImplicitClawSolver` for full documentation.
@@ -112,8 +113,8 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
 
         # Call general initialization function
         super(ImplicitClawSolver,self).__init__(data)
+
     
-    # ========== Setup Routine ===============================================
     def initiate(self,solutions):
         r"""
         Called before any set of time steps.
@@ -122,7 +123,7 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         :class:`~pyclaw.controller.Controller`.
         """
 
-        # Import libraries
+        # Import modules
         from petsc4py import PETSc
         from numpy import empty
         from pyclaw.state import State
@@ -139,21 +140,14 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         # Set mthlim
         self.set_mthlim()
 
-        # Get state
-        state = solutions['n'].state
-
-        if(self.kernel_language == 'Fortran'):
-            self.set_fortran_parameters(solutions)
-
         # Create PETSc vectors in charge of containig:
         # bVec: the constant part of the nonlinear algebraic system of equations
         # fVec: nonlinear vector-valued function
-        self.bVec    = state.gqVec.duplicate()
-        self.fVec    = state.gqVec.duplicate()
+        self.bVec = state.gqVec.duplicate()
+        self.fVec = state.gqVec.duplicate()
 
         # Create PETSc nonlinear solver
-        self.snes    = PETSc.SNES().create()
-        #self.snes.setJacobian(None, self.Jac) 
+        self.snes = PETSc.SNES().create()
 
         # Ought to implement a copy constructor for State
         self.impsol_stage = State(state.grid)
@@ -165,48 +159,47 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
             self.impsol_stage.aux          = state.aux
 
 
-    # ========== Time stepping routines ======================================
     def step(self,solutions):
         r"""
-        Evolve q for one time step
+        Evolve q for one time step.
 
         This routine is called from the method evolve_to_time defined in the
         pyclaw.solver.Solver superclass.
 
         :Input:
          - *solutions* - (:class:`~pyclaw.solution.Solution`) Dictionary of 
-           solutions to be evolved
+           solutions to be evolved.
          
         :Output: 
-         - (bool) - True if full step succeeded, False otherwise
+         - (bool) - True if full step succeeded, False otherwise.
         """
-        
+
+        # Import library
         from pyclaw.solution import Solution
 
-        # Get state object
+        # Get state
         state = solutions['n'].states[0]
-
         
         # Call b4step, pyclaw should be subclassed if this is needed
         # NOTE: THIS IS NOT THE RIGHT PLACE WHEN WE HAVE AN IMPLICIT  
-        # TIME STEPPING BECAUSE, FOR INSTANCE, THE AUX ARRAY COULD DEPEND ON THE SOLUTION ITSELF.
-        # THEN start_step FUNCTION SHOULD BE PLACED IN THE PART OF THE CODE WHERE THE
-        # NONLINEAR FUNCTION IS COMPUTED!!!!!!!!!
+        # TIME STEPPING BECAUSE, FOR INSTANCE, THE AUX ARRAY COULD DEPEND ON 
+        # THE SOLUTION ITSELF.
+        # THEN start_step FUNCTION SHOULD BE PLACED IN THE PART OF THE CODE 
+        # WHERE THE NONLINEAR FUNCTION IS COMPUTED!!!!!!!!!
         self.start_step(self,solutions)
 
-
-  
         ########################################
         # Compute solution at the new time level
         ########################################
+        # Import libraries
         import sys, petsc4py
-        petsc4py.init(sys.argv)
         from petsc4py import PETSc
-        
+        petsc4py.init(sys.argv)
+
         # Set the constant part of the equation and register the function in 
-        # charge of computing the nonlinear residual
+        # charge of computing the nonlinear vector-valued function
         self.set_bVec(state)
-        self.snes.setFunction(self.nonlinearFunction, self.fVec)
+        self.snes.setFunction(self.nonlinearfunction, self.fVec)
 
         # Configure the nonlinear solver to use a matrix-free Jacobian
         self.snes.setUseMF(True)
@@ -233,36 +226,27 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
             return True
 
 
+    def set_bVec(self,state):
+        r"""
+        Set the constant part of the nonlinear algebraic system arising from the
+        implicit Lax-Wendroff discretization. 
+
+        :Input:
+         - *state* -
+
+        """
+
+        # Set the constant part of the nonlinear algebraic system equal to the 
+        # solution at the current time level.
+        self.bVec.setArray(state.q)
+
+
     def set_mthlim(self):
         self.mthlim = self.limiters
         if not isinstance(self.limiters,list): self.mthlim=[self.mthlim]
         if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
         if len(self.mthlim)!=self.mwaves:
             raise Exception('Length of solver.limiters is not equal to 1 or to solver.mwaves')
-
-    def set_fortran_parameters(self,solutions):
-        """
-        Set parameters for Fortran modules used by SharpClaw.
-        The modules should be imported and passed as arguments to this function.
-        """
-
-        # Import libraries
-        import numpy as np
-
-        # Get state
-        state = solutions['n'].state
-
-        self.method =np.ones(7, dtype=int)
-        self.method[0] = self.dt_variable
-        self.method[1] = self.order 
-        self.method[2] = 0  # Not used in 1D
-        self.method[3] = self.verbosity
-        self.method[4] = self.src_split
-        if (state.capa == None):
-            self.method[5] = 0  
-        else:
-            self.method[5] = 1  
-        self.method[6] = state.maux  # aux
 
 
 # ============================================================================
@@ -272,9 +256,9 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
     r"""
     Implicit Clawpack evolution routine in 1D.
     
-    This class represents the 1d implicit clawpack solver on a single grid.  Note that 
-    there are routines here for interfacing with the fortran time stepping 
-    routines and the python time stepping routines.  The ones used are 
+    This class represents the 1d implicit clawpack solver on a single grid.  
+    Note that there are routines here for interfacing with the fortran time 
+    stepping routines and the python time stepping routines.  The ones used are 
     dependent on the argument given to the initialization of the solver 
     (defaults to python).
     
@@ -293,18 +277,14 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
     """
 
     def __init__(self,data=None):
-        r"""
-        Create 1d implicit Clawpack solver
-        
-        See :class:`ImplicitClawSolver1D` for more info.
-        """   
-        
+
+        # Set physical dimensions
         self.ndim = 1
 
+        # Call superclass __init__
         super(ImplicitClawSolver1D,self).__init__(data)
 
-
-    # ========== Setup routine =============================   
+  
     def setup(self,solutions):
         r"""
         Perform essential solver setup. This routine must be called before
@@ -316,60 +296,76 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         # Call parent's "setup" function
         self.initiate(solutions)
 
+        # Set Fortran data structure for the 1D implicit ClawPack solver
+        if(self.kernel_language == 'Fortran'):
+            self.set_fortran_parameters(solutions)
+
+
+    def set_fortran_parameters(self,solutions):
+        r"""
+        Pack parameters into format recognized by implicit Clawpack (Fortran) 
+        code.
+
+        Sets the method array and the cparam common block for the Riemann 
+        solver.
+        """
+        
+        # Import module
+        import numpy as np
+
         # Get state
         state = solutions['n'].state
 
+        # Set parameters that will be use in the Fortran routine
+        self.method =np.ones(7, dtype=int)
+        self.method[0] = self.dt_variable
+        self.method[1] = self.order 
+        self.method[2] = 0  # Not used in 1D
+        self.method[3] = self.verbosity
+        self.method[4] = self.src_split
+        if (state.capa == None):
+            self.method[5] = 0  
+        else:
+            self.method[5] = 1  
+        self.method[6] = state.maux  # aux
 
-        # Set Fortran data structure for the 1D implicit ClawPack solver
         import classicimplicit1 as classic1
         state.set_cparam(classic1)
 
 
-
     def teardown(self):
         r"""
-        Delete Fortran objects, which otherwise tend to persist in Python sessions.
+        Delete Fortran objects, which otherwise tend to persist in Python 
+        sessions.
         """
+
         if(self.kernel_language == 'Fortran'):
             import classicimplicit1 as classic1
             del classic1
 
-    # ========== Time stepping functions =======================
-    def set_bVec(self,state):
+
+    def nonlinearfunction(self,snes,qin,nlf):
         r"""
-        Set the constant part of the nonlinear algebraic system.
-        """
-
-        # Set the constant part of the nonlinear algebraic system equal to the 
-        # solution at the current time level.
-        self.bVec.setArray(state.q)
-
-
-    def nonlinearFunction(self,snes,qin,F):
-        r"""
-        Computes the contribution of the spatial-temporal discretization and the
+        Computes the contribution of the spatial-temporal discretization and the 
         source term to the nonlinear function.
 
         :Input:
          - *qin* - Current approximation of the solution at the next time level,
          i.e. solution of the previous nonlinear solver's iteration.
         """
-        # Import libraries
+
+        # Import module
         import numpy as np
         from numpy import zeros, reshape, empty
 
         # Get state
         state = snes.appctx
 
-
-        # Get some quantities used later on.
+        # Get some parameters that will be used in the Fortran routine 
         mx = state.grid.ng[0]
         dx = state.grid.d[0]
         mbc = self.mbc
         dt = self.dt
-
-        # Define and set to zero the ratio between dt and dx 
-        dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
 
         # Auxbc is set here and not outside of this function because it is 
         # more general. Indeed aux could depend on q which changes at each 
@@ -377,17 +373,22 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         if state.maux>0:
             state.aux = self.auxbc(state)
         else:
-            aux=empty((state.maux,mx+2*mbc))
+            aux = empty((state.maux,mx+2*mbc))
 
- 
+        # Define and set to zero the ratio between dt and dx 
+        dtdx = zeros((mx+2*mbc)) + dt/dx
+
         #Have to do this because of how qbc works...
         state.q = reshape(qin,(state.meqn,mx),order='F') 
         qapprox = self.qbc(state)
 
+        # Import module
         import classicimplicit1 as classic1
+
+        # Call Fortran routine
         fhomo,self.cfl = classic1.homodisc1(mx,mbc,mx,qapprox,aux,dx,dt,self.method,self.mthlim)
 
-       # Compute the nonlinear vector-valued function
+        # Compute the nonlinear vector-valued function
         assert fhomo.flags['F_CONTIGUOUS']
-        F.setArray(qapprox[:,mbc:-mbc]-fhomo[:,mbc:-mbc])
-        #print fhomo
+        nlf.setArray(qapprox[:,mbc:-mbc]-fhomo[:,mbc:-mbc])
+
