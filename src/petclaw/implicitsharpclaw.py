@@ -30,7 +30,7 @@ except:
 
 def start_step(solver,solutions):
     r"""
-    Dummy routine called before each step
+    Dummy routine called before each step.
     
     Replace this routine if you want to do something before each time step.
     """
@@ -110,11 +110,8 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
         # Get state
         state = solutions['n'].state
     
-
-        # This is a hack to deal with the fact that petsc4py
-        # doesn't allow us to change the stencil_width (mbc)
+        # Set up a DA with the appropriate stencil width.
         state.set_stencil_width(self.mbc)
-        # End hack
 
         # Set mthlim
         self.set_mthlim()
@@ -125,12 +122,9 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
         # Create PETSc vectors in charge of containig:
         # bVec: the constant part of the nonlinear algebraic system of equations
         # fVec: nonlinear vector-valued function
+
         self.bVec    = state.gqVec.duplicate()
         self.fVec    = state.gqVec.duplicate()
-
-        #self.Jac     = PETSc.Mat().create()
-        #self.Jac.setSizes((self.bVec.size,self.bVec.size))
-        #self.Jac.setFromOptions()
 
         # Create PETSc nonlinear solver
         self.snes    = PETSc.SNES().create()
