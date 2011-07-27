@@ -54,7 +54,7 @@ def burgers2D(iplot=False,petscPlot=True,useController=True,htmlplot=False,outdi
     # The output format MUST be set to petsc!
     claw.output_format = 'petsc'
     claw.tfinal = tfinal
-    claw.solutions['n'] = inital_solution
+    claw.solution = inital_solution
     claw.solver = solver
     claw.outdir = outdir
 

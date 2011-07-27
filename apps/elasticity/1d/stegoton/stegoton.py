@@ -25,14 +25,14 @@ def setaux(x,rhoB=4,KB=4,rhoA=1,KA=1,alpha=0.5,xlower=0.,xupper=600.,mthbc=2):
     return aux
 
     
-def b4step(solver,solutions):
+def b4step(solver,solution):
     #Reverse velocity at trtime
     #Note that trtime should be an output point
-    state = solutions['n'].states[0]
+    state = solution.states[0]
     if state.t>=state.aux_global['trtime']-1.e-10 and not state.aux_global['trdone']:
         #print 'Time reversing'
         state.q[1,:]=-state.q[1,:]
-        solutions['n'].state.q=state.q
+        solution.state.q=state.q
         state.aux_global['trdone']=True
         if state.t>state.aux_global['trtime']:
             print 'WARNING: trtime is '+str(state.aux_global['trtime'])+\
@@ -165,8 +165,8 @@ def stegoton(use_petsc=1,kernel_language='Fortran',solver_type='classic',iplot=0
             state.t = 0.0
             qinit(state,ic=2,a2=a2)
             init_solution = Solution(state)
-            claw.solutions['n'] = init_solution
-            claw.solutions['n'].t = 0.0
+            claw.solution = init_solution
+            claw.solution.t = 0.0
 
             claw.tfinal = tfinal
             claw.outdir = './_output_Z'+str(Z)+'_'+str(cellsperlayer)

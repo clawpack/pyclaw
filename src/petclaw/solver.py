@@ -80,7 +80,7 @@ class PetSolver(pyclaw.solver.Solver):
             cflVec = PETSc.Vec().createWithArray([self.cfl])
             self.cfl = cflVec.max()[1]
 
-    def allocate_rk_stages(self,solutions):
+    def allocate_rk_stages(self,solution):
         r"""We could eliminate this function and just use
         the version in pyclaw.solver.Solver, if we were willing to
         check there whether the solver is a PetSolver.  But this
@@ -93,7 +93,7 @@ class PetSolver(pyclaw.solver.Solver):
         elif self.time_integrator == 'SSP33':  nregisters=2
         elif self.time_integrator == 'SSP104': nregisters=3
  
-        state = solutions['n'].states[0]
+        state = solution.states[0]
         self.rk_stages = []
         for i in range(nregisters-1):
             self.rk_stages.append(State(state.grid))

@@ -44,7 +44,7 @@ class SolverTestCase(unittest.TestCase):
         self.controller.keep_copy = True
         self.controller.outstyle = 2
         self.controller.out_times = [0.0,1.0]
-        self.controller.solutions['n'] = self.true_solution(0.0)
+        self.controller.solution = self.true_solution(0.0)
         
         # Setup solver, using mainly defaults so should be setup later        
         self.controller.solver = pyclaw.evolve.clawpack.ClawSolver1D()
@@ -55,14 +55,14 @@ class SolverTestCase(unittest.TestCase):
         
     def runTest(self):
         # Run code
-        self.controller.solutions['n'] = self.true_solution(0.0)
+        self.controller.solution = self.true_solution(0.0)
         status = self.controller.run()
         
         # Compare each time output skipping the initial condition
         for sol in self.controller.frames[1:]:
             
             if self.controller.verbosity > 2:
-                self.plot_solutions()
+                self.plot_solution()
             
             # Check the error for each frame
             self.assertTrue(np.all(self.error(sol,self.true_solution(sol.t)) 
@@ -77,22 +77,18 @@ class SolverTestCase(unittest.TestCase):
         return np.linalg.norm(solution.grids[0].q[index,...] 
                     - true_solution.grids[0].q[index,...])
         
-    def plot_solutions(self,solutions,markers=['k','xb','xg','xr','xc','xm'],
+    def plot_solution(self,solution,markers=['k','xb','xg','xr','xc','xm'],
                             output=None,path="./",prefix="test",format="png"):
-        r"""Plot the solutions in the list.
-        
-        
-        """
+        r"""Plot the solution."""
         
         import matplotlib.pyplot as plt
         
         plt.clf()
-        for (i,solution) in solutions:
-            for m in solution.grids[0].q.shape[0]:
-                plt.figure(m)
-                plt.hold(True)
-                plt.plot(solution.grids[0].dimensions[0].center,
-                         solution.grids[0].q[m,:],'%s%s' % markers[m])
+        for m in solution.grids[0].q.shape[0]:
+            plt.figure(m)
+            plt.hold(True)
+            plt.plot(solution.grids[0].dimensions[0].center,
+                     solution.grids[0].q[m,:],'%s%s' % markers[m])
         if output == None:
             plt.show()
         else:
@@ -101,8 +97,8 @@ class SolverTestCase(unittest.TestCase):
                 name = '%s%s.%s' % (prefix,str(m).zfill(4),format)
                 plt.savefig(os.path.join(path,name))
         
-    def write_solutions(self,solutions,**kargs):
-        r"""Write out the solutions to specify a new base test comparisons.
+    def write_solution(self,solution,**kargs):
+        r"""Write out the solution to specify a new base test comparisons.
         
         """
         for (frame,solution) in enumerate(solutions):
@@ -180,7 +176,7 @@ class LimiterTest(AdvectionTest):
         limiters.remove(21)
         limiters.remove(22)
         for limiter in limiters:
-            self.controller.solutions['n'] = self.true_solution(0.0)
+            self.controller.solution = self.true_solution(0.0)
             self.controller.solver.mthlim = limiter
             status = self.controller.run()
             
@@ -188,7 +184,7 @@ class LimiterTest(AdvectionTest):
                             path=os.path.join(_DATA_PATH,'limiter_test'))
                                    
             print limiter
-            self.assertTrue(abs(self.error(self.controller.solutions['n'],
+            self.assertTrue(abs(self.error(self.controller.solution,
                 computed_solution)) < self.tolerance)
 
 

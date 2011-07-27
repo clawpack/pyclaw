@@ -121,7 +121,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
     for state in solution.states:
         grid = state.grid
         if rank==0:
-            pickle.dump({'stateno':state.stateno,'level':grid.level,
+            pickle.dump({'level':grid.level,
                          'names':grid.name,'lower':grid.lower,
                          'n':grid.n,'d':grid.d}, pickle_file)
         state.q_da.view(viewer)
@@ -213,7 +213,6 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     for m in xrange(nstates):
         grid_dict = pickle.load(pickle_file)
 
-        stateno  = grid_dict['stateno']
         level   = grid_dict['level']
         names   = grid_dict['names']
         lower   = grid_dict['lower']
@@ -231,7 +230,6 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         grid.level = level 
         #state = pyclaw.state.State(grid)
         state = petclaw.State(grid) ##
-        state.stateno = stateno
         state.t = value_dict['t']
         state.aux_global = value_dict['aux_global']
 

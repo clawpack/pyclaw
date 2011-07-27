@@ -213,6 +213,7 @@ controller will keep a copy of each solution output in memory in the frames arra
 instance, you can then immediately plot the solutions output into the *frames*
 array.
 
+
 Restarting a simulation
 =========================
 To restart a simulation, simply initialize a Solution object using an output
@@ -225,4 +226,15 @@ frame from a previous run; for example, to restart from frame 3::
     It is necessary to specify the output format ('petsc' or 'ascii').
 
 
+Outputting derived quantities
+===============================
+It is sometimes desirable to output quantities other than those
+in the vector q.  To do so, just add a function `compute_p` to 
+the controller that accepts the state and sets the derived quantities
+in state.p::
+
+    >>> state.mp = 1
+    >>> claw.compute_p = stress
+    >>> def stress(state):
+    >>>     state.p[0,:,:] = np.exp(state.q[0,:,:]*state.aux[1,:,:]) - 1.
 

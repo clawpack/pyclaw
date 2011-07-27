@@ -80,9 +80,9 @@ def setaux(x,y):
         aux[2,:,:]=linearity_mat1
     return aux
 
-def b4step(solver,solutions):
+def b4step(solver,solution):
     r"""put in aux[3,:,:] the value of q[0,:,:] (eps). This is required in rptpv.f"""
-    state = solutions['n'].states[0]   
+    state = solution.states[0]   
     state.aux[3,:,:] = state.q[0,:,:]
 
     # To set to 0 1st 1/2 of the domain. Used in rect domains with PBC in x

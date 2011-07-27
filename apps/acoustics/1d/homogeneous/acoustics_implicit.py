@@ -42,7 +42,7 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
 
     petscts = kwargs.get('petscts', False)
 
-    # Initialize grids and solutions
+    # Initialize grids and solution
     xmin = 0.0
     xmax = 1.0
     ncells = kwargs.get('ncells',100)
@@ -99,7 +99,7 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
     claw.output_format = 'ascii'
     claw.outdir = outdir
     claw.tfinal = 1.0
-    claw.solutions['n'] = init_solution
+    claw.solution = init_solution
     claw.solver = solver
 
     # Solve

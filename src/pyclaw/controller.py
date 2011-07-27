@@ -85,7 +85,7 @@ class Controller(object):
         r"""(bool) - Save a copy of \*.f files in outdir"""
         
         # Solver information
-        self.solutions = {}              # Solutions dictionary
+        self.solution = None
         self.solver = None
         r"""(:class:`~pyclaw.solver.Solver`) - Solver object"""
         
@@ -169,11 +169,6 @@ class Controller(object):
         return output
         
     # ========== Properties ==================================================
-    def solution():
-        def fget(self): return self.solutions['n']
-        def fset(self, value): self.solutions['n'] = value
-        return locals()
-    solution = property(**solution())
     
     def check_validity(self):
         r"""Check that the controller has been properly set up and is ready to run.
@@ -188,10 +183,10 @@ class Controller(object):
         if not self.solver.is_valid():
             raise Exception("The solver failed to initialize properly.") 
             
-        # Check to make sure the initial solutions are valid
-        if not all([sol.is_valid() for sol in self.solutions.itervalues()]):
-            raise Exception("Initial solutions are not valid.")
-        if not all([sol.state.is_valid() for sol in self.solutions.itervalues()]):
+        # Check to make sure the initial solution is valid
+        if not self.solution.is_valid():
+            raise Exception("Initial solution is not valid.")
+        if not all([state.is_valid() for state in self.solution.states]):
             raise Exception("Initial states are not valid.")
         
  
@@ -199,7 +194,7 @@ class Controller(object):
     # ========== Solver convenience methods ==================================
     def run(self):
         r"""
-        Convenience routine that will evolve solutions['n'] based on the 
+        Convenience routine that will evolve solution based on the 
         traditional clawpack output and run parameters.
         
         This function uses the run parameters and solver parameters to evolve
@@ -222,7 +217,7 @@ class Controller(object):
         if self.keep_copy:
             self.frames = []
                     
-        self.solver.setup(self.solutions)
+        self.solver.setup(self.solution)
             
         self.check_validity()
 
@@ -230,8 +225,6 @@ class Controller(object):
         self.solver.write_gauge_values(self.solution)
 
         # Output styles
-        # We ought to have a check confirming that all solutions
-        # are at the same time t
         if self.outstyle == 1:
             output_times = np.linspace(self.solution.t,
                     self.tfinal,self.nout+1)
@@ -244,18 +237,18 @@ class Controller(object):
          
         # Output and save initial time
         if self.keep_copy:
-            self.frames.append(copy.deepcopy(self.solutions['n']))
+            self.frames.append(copy.deepcopy(self.solution))
         if self.output_format is not None:
             if self.compute_p is not None:
                 self.compute_p(self.solution.state)
-                self.solutions['n'].write(frame,self.outdir_p,
+                self.solution.write(frame,self.outdir_p,
                                         self.output_format,
                                         self.file_prefix_p,
                                         write_aux = False,
                                         options = self.output_options,
                                         write_p = True) 
 
-            self.solutions['n'].write(frame,self.outdir,
+            self.solution.write(frame,self.outdir,
                                         self.output_format,
                                         self.output_file_prefix,
                                         self.write_aux_init,
@@ -264,30 +257,30 @@ class Controller(object):
         self.write_F('w')
 
         logging.info("Solution %s computed for time t=%f" % 
-                        (frame,self.solutions['n'].t) )
+                        (frame,self.solution.t) )
 
         for t in output_times[1:]:                
             if self.outstyle < 3:
-                status = self.solver.evolve_to_time(self.solutions,t)
+                status = self.solver.evolve_to_time(self.solution,t)
             else:
                 # Take nstepout steps and output
                 for n in xrange(self.nstepout):
-                    status = self.solver.evolve_to_time(self.solutions)
+                    status = self.solver.evolve_to_time(self.solution)
             frame.increment()
             if self.keep_copy:
                 # Save current solution to dictionary with frame as key
-                self.frames.append(copy.deepcopy(self.solutions['n']))
+                self.frames.append(copy.deepcopy(self.solution))
             if self.output_format is not None:
                 if self.compute_p is not None:
                     self.compute_p(self.solution.state)
-                    self.solutions['n'].write(frame,self.outdir_p,
+                    self.solution.write(frame,self.outdir_p,
                                             self.output_format,
                                             self.file_prefix_p,
                                             write_aux = False, 
                                             options = self.output_options,
                                             write_p = True) 
                 
-                self.solutions['n'].write(frame,self.outdir,
+                self.solution.write(frame,self.outdir,
                                             self.output_format,
                                             self.output_file_prefix,
                                             self.write_aux_always,
@@ -295,7 +288,7 @@ class Controller(object):
             self.write_F()
 
             logging.info("Solution %s computed for time t=%f"
-                % (frame,self.solutions['n'].t))
+                % (frame,self.solution.t))
             for file in self.solution.state.grid.gauge_files: 
                 file.flush()
             
@@ -322,12 +315,12 @@ class Controller(object):
     def is_proc_0(self):
         return True
 
-    # ========== Output Data object based on solver and solutions['n'] =======
+    # ========== Output Data object based on solver and solution =======
     def get_data(self,claw_path=None):
         r"""
-        Create a data object from this controller's solver and solutions
+        Create a data object from this controller's solver and solution
         
-        This function will take the current solver and solutions['n'] and
+        This function will take the current solver and solution and
         create a data object that can be read in via classic clawpack.
         
         If claw_path is provided, then the data that should be written to the

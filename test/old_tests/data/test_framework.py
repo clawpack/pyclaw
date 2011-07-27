@@ -47,10 +47,10 @@ controller.solver.dt = 0.0001
 controller.solver.max_steps = 5000
 controller.solver.mwaves = 1
 
-controller.solutions['n'] = true_solution(0.0)
+controller.solution = true_solution(0.0)
 controller.run()
 
-controller.solutions['n'].write(0,path='./burgers_test/')
+controller.solution.write(0,path='./burgers_test/')
 
 import matplotlib.pyplot as plt
 for (i,sol) in enumerate(controller.frames):

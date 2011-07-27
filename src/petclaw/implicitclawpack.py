@@ -20,7 +20,7 @@ import riemann
 # ========================================================================
 #  User-defined routines
 # ========================================================================
-def start_step(solver,solutions):
+def start_step(solver,solution):
     r"""
     Dummy routine called before each step
     
@@ -28,7 +28,7 @@ def start_step(solver,solutions):
     """
     pass
 
-def src(solver,solutions,t,dt):
+def src(solver,solution,t,dt):
     r"""
     Dummy routine called to calculate a source term
     
@@ -112,7 +112,7 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         super(ImplicitClawSolver,self).__init__(data)
     
     # ========== Setup Routine ===============================================
-    def setup(self,solutions):
+    def setup(self,solution):
         r"""
         Called before any set of time steps.
         
@@ -162,7 +162,7 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
                                         " use one of the derived classes.")
          
     # ========== Time stepping routines ======================================
-    def step(self,solutions):
+    def step(self,solution):
         r"""
         Evolve q of one time step
         
@@ -171,8 +171,7 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         pyclaw.solver.Solver superclass.
 
         :Input:
-         - *solutions* - (:class:`~pyclaw.solution.Solution`) Dictionary of 
-           solutions to be evolved
+         - *solution* - (:class:`~pyclaw.solution.Solution`) solution to be evolved
          
         :Output: 
          - (bool) - True if full step succeeded, False otherwise
@@ -181,7 +180,7 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         from pyclaw.solution import Solution
 
         # Get state object
-        state = solutions['n'].states[0]
+        state = solution.states[0]
 
         
         # Call b4step, pyclaw should be subclassed if this is needed
@@ -189,7 +188,7 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         # TIME STEPPING BECAUSE, FOR INSTANCE, THE AUX ARRAY COULD DEPENDS ON THE SOLUTION ITSELF.
         # THEN start_step FUNCTION SHOULD BE PLACED IN THE PART OF THE CODE WHERE THE
         # NONLINEAR FUNCTION IS COMPUTED!!!!!!!!!
-        self.start_step(self,solutions)
+        self.start_step(self,solution)
 
 
         # Compute solution at the new time level
@@ -352,17 +351,17 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
 
 
     # ========== Setup routine =============================   
-    def setup(self,solutions):
+    def setup(self,solution):
         r"""
         Perform essential solver setup. This routine must be called before
         solver.step() may be called.
         """
         self.set_mthlim()
         if(self.kernel_language == 'Fortran'):
-            self.set_fortran_parameters(solutions)
+            self.set_fortran_parameters(solution)
 
 
-    def set_fortran_parameters(self,solutions):
+    def set_fortran_parameters(self,solution):
         r"""
         Pack parameters into format recognized by implicit Clawpack (Fortran) code.
 
@@ -370,7 +369,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         """
         import numpy as np
 
-        state = solutions['n'].state
+        state = solution.state
 
         self.method =np.ones(7, dtype=int)
         self.method[0] = self.dt_variable
