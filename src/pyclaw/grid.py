@@ -411,39 +411,23 @@ class Grid(object):
         
         if recompute or not len(self._p_center) == len(self._dimensions):
             # Initialize array
-            self._p_center = [None for i in xrange(self.ndim)]
+            self._p_center = [None]*self.ndim
 
             # Special case
             if self.ndim == 1:
                 self._p_center[0] = self.mapc2p(self,self.dimensions[0].center)
             # Higer dimensional calculate center arrays
-            else:    
-                # Produce ndim mesh grid function
+            else:
                 mgrid = np.lib.index_tricks.nd_grid()
-            
-                # Calculate length of full arrays and indexing string
-                array_length = reduce(lambda x,y: x*y, self.get_dim_attribute('n'))
-                index_str = ','.join(('0:self.%s.n' % dim for dim in self._dimensions))
-
-                # Produce index arrays
-                exec('index = mgrid[%s]' % index_str)
-                index_str = ','.join((':' for dim in self._dimensions))
-            
-                # Create meshgrid like arrays
+                index = np.indices(self.n)
                 array_list = []
-                i = 0
-                for center_array in self.get_dim_attribute('center'):
-                    exec("array_list.append(np.reshape(center_array[index[%i,%s]],(array_length)))" % (i,index_str))
-                    i += 1
+                for i,center_array in enumerate(self.get_dim_attribute('center')):
+                    #We could just use indices directly and deal with
+                    #numpy arrays instead of lists of numpy arrays
+                    array_list.append(center_array[index[i,...]])
             
-                # Actual mapping
-                p = self.mapc2p(self,array_list)
-            
-                # Reshape arrays for storage
-                for i in xrange(self.ndim):
-                    self._p_center[i] = np.reshape(p[i], 
-                                                self.get_dim_attribute('n'))
-
+                self._p_center = self.mapc2p(self,array_list)
+ 
 
     def compute_p_edge(self, recompute=False):
         r"""Calculates the :attr:`p_edge` array
@@ -493,7 +477,7 @@ class Grid(object):
         """
         
         if recompute or not len(self._c_center) == len(self._dimensions):
-            self._c_center = [None for i in xrange(self.ndim)]
+            self._c_center = [None]*self.ndim
             
             # For one dimension, the center and edge arrays are equivalent
             if self.ndim == 1:
@@ -501,17 +485,13 @@ class Grid(object):
             else:
                 # Produce ndim mesh grid function
                 mgrid = np.lib.index_tricks.nd_grid()
-            
-                # Create index arrays
-                index_str = ','.join(('0:self.%s.n' % dim for dim in self._dimensions))
-                exec('index = mgrid[%s]' % index_str)
-            
-                # Create c_center array
-                index_str = ','.join((':' for dim in self._dimensions))
-                for i in xrange(self.ndim):
-                    exec("self._c_center[i] = self.dimensions[i].center[index[i,%s]]" % index_str)
-                    
-                    
+                index = np.indices(self.n)
+                self._c_center = []
+                for i,center_array in enumerate(self.get_dim_attribute('center')):
+                    #We could just use indices directly and deal with
+                    #numpy arrays instead of lists of numpy arrays
+                    self._c_center.append(center_array[index[i,...]])
+
     def compute_c_edge(self, recompute=False):
         r"""
         Calculate the :attr:`c_edge` array
@@ -526,24 +506,20 @@ class Grid(object):
         :Input:
          - *recompute* - (bool) Whether to force a recompute of the arrays
         """
-
         if recompute or not len(self._c_edge) == len(self._dimensions):
             self._c_edge = [None for i in xrange(self.ndim)]
             
             if self.ndim == 1:
                 self._c_edge[0] = self.dimensions[0].edge
             else:
-                # Produce ndim mesh grid function
                 mgrid = np.lib.index_tricks.nd_grid()
+                index = np.indices([n+1 for n in self.n])
+                self._c_edge = []
+                for i,edge_array in enumerate(self.get_dim_attribute('edge')):
+                    #We could just use indices directly and deal with
+                    #numpy arrays instead of lists of numpy arrays
+                    self._c_edge.append(edge_array[index[i,...]])
             
-                # Create index arrays
-                index_str = ','.join(('0:self.%s.n+1' % dim for dim in self._dimensions))
-                exec('index = mgrid[%s]' % index_str)
-            
-                # Create c_center array
-                index_str = ','.join((':' for dim in self._dimensions))
-                for i in xrange(self.ndim):
-                    exec("self._c_edge[i] = self.dimensions[i].edge[index[i,%s]]" % index_str)
 
     # ========================================================================
     #  Gauges
