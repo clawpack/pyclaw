@@ -386,9 +386,9 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         import classicimplicit1 as classic1
 
         # Call Fortran routine
-        fhomo,self.cfl = classic1.homodisc1(mx,mbc,mx,qapprox,aux,dx,dt,self.method,self.mthlim)
+        dq,self.cfl = classic1.step1imp(mx,mbc,mx,qapprox,aux,dx,dt,self.method,self.mthlim)
 
         # Compute the nonlinear vector-valued function
-        assert fhomo.flags['F_CONTIGUOUS']
-        nlf.setArray(qapprox[:,mbc:-mbc]-fhomo[:,mbc:-mbc])
+        assert dq.flags['F_CONTIGUOUS']
+        nlf.setArray(qapprox[:,mbc:-mbc]-dq[:,mbc:-mbc])
 
