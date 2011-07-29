@@ -79,6 +79,10 @@ In csh/tcsh, use ::
     $ setenv PYCLAW $CLAW/pyclaw
     $ setenv PYTHONPATH $PYCLAW/src:$RIEMANN/:$VISCLAW/src
 
+In addition, you may need:
+
+  * Your Fortran compiler to be specified in `FC`
+  * On a 64-bit Mac, you will need `ARCHFLAGS="-arch x86_64"`
     
 Testing your installation
 ============================
