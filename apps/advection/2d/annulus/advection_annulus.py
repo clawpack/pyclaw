@@ -79,7 +79,7 @@ def setaux(state,mx,my):
     dyc = state.grid.d[1]
     pcorners = state.grid.p_edge
 
-    aux = velocities(pcorners[0],pcorners[1],dxc,dyc)
+    aux = velocities_capa(pcorners[0],pcorners[1],dxc,dyc)
     return aux
 
 
@@ -101,7 +101,7 @@ def velocities_upper(grid,dim,t,auxbc,mbc):
 
         xp,yp = mapc2p(xc,yc)
 
-        auxbc[:,-mbc:,:] = velocities(xp,yp,dxc,dyc)
+        auxbc[:,-mbc:,:] = velocities_capa(xp,yp,dxc,dyc)
 
     else:
         raise Exception('Custum BC for this boundary is not appropriate!')
@@ -124,54 +124,46 @@ def velocities_lower(grid,dim,t,auxbc,mbc):
 
         xp,yp = mapc2p(xc,yc)
 
-        auxbc[:,0:mbc,:] = velocities(xp,yp,dxc,dyc)
+        auxbc[:,0:mbc,:] = velocities_capa(xp,yp,dxc,dyc)
 
     else:
         raise Exception('Custum BC for this boundary is not appropriate!')
 
 
-def velocities(xp,yp,dx,dy):
+def velocities_capa(xp,yp,dx,dy):
 
     mx = xp.shape[0]-1
     my = xp.shape[1]-1
     aux = np.empty((3,mx,my), order='F')
 
-    #Bottom-left corners
+    # Bottom-left corners
     xp0 = xp[:mx,:my]
     yp0 = yp[:mx,:my]
 
-    #Top-left corners
+    # Top-left corners
     xp1 = xp[:mx,1:]
     yp1 = yp[:mx,1:]
 
-    #Top-right corners
+    # Top-right corners
     xp2 = xp[1:,1:]
     yp2 = yp[1:,1:]
 
-    #Top-left corners
+    # Top-left corners
     xp3 = xp[1:,:my]
     yp3 = yp[1:,:my]
 
+    # Compute velocity component
     aux[0,:mx,:my] = (stream(xp1,yp1)- stream(xp0,yp0))/dy
     aux[1,:mx,:my] = -(stream(xp3,yp3)- stream(xp0,yp0))/dx
 
+    # Compute area of the physical element
     area = 1./2.*( (yp0+yp1)*(xp1-xp0) +
                    (yp1+yp2)*(xp2-xp1) +
                    (yp2+yp3)*(xp3-xp2) +
                    (yp3+yp0)*(xp0-xp3) )
     
+    # Compute capa 
     aux[2,:mx,:my] = area/(dx*dy)
-
-    #import matplotlib.pyplot as plt
-    #plt.quiver(state.grid.p_center[0],state.grid.p_center[1],aux[0,:,:],aux[1,:,:])
-    #plt.draw()
-
-
-    #print aux[1,0,0],aux[1,0,1],aux[1,0,2],aux[1,0,3],aux[1,0,4]
-    #print aux[1,1,0],aux[1,1,1],aux[1,1,2],aux[1,1,3],aux[1,1,4]
-    #print aux[1,2,0],aux[1,2,1],aux[1,2,2],aux[1,2,3],aux[1,2,4]
-    #print aux[1,3,0],aux[1,3,1],aux[1,3,2],aux[1,3,3],aux[1,3,4]
-    #print aux[1,4,0],aux[1,4,1],aux[1,4,2],aux[1,4,3],aux[1,4,4]
 
     return aux
 
@@ -223,8 +215,8 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     solver.order = 2
 
     solver.dt_initial = 0.1
-    solver.cfl_max = 1.0
-    solver.cfl_desired = 0.9
+    solver.cfl_max = 0.5
+    solver.cfl_desired = 0.2
 
     solver.limiters = pyclaw.limiters.tvd.vanleer
 
@@ -245,11 +237,6 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     y = pyclaw.Dimension('y',ylower,yupper,my)
     grid = pyclaw.Grid([x,y])
     grid.mapc2p = mapc2p_annulus # Override default_mapc2p function implemented in grid.py
-
-    print grid.lower[0]
-
-    #print grid.d[0],grid.d[1]
-
 
     # Sate:
     state = pyclaw.State(grid)
@@ -272,8 +259,8 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     claw = pyclaw.Controller()
     claw.keep_copy = False
     claw.outstyle = 1
-    claw.nout = 20
-    claw.tfinal = 0.5
+    claw.nout = 25
+    claw.tfinal = 1.0
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir
