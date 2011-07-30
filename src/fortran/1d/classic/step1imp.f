@@ -58,7 +58,7 @@ cf2py optional f, amdq, apdq, dtdx, s, wave, deltaq
 
 c
       forall(i=1:mx+1, m=1:meqn)
-         deltaq(m,i) =  0.d0
+         deltaq(m,i) =  0.0
       end forall
 
 c     # check if any limiters are used:
@@ -92,10 +92,10 @@ c     # Note this may not correspond to a conservative flux-differencing
 c     # for equations not in conservation form.  It is conservative if
 c     # amdq + apdq = f(q(i)) - f(q(i-1)).
 c
-
+c     Note the difference
       forall(i=1:mx+1, m=1:meqn)
-         deltaq(m,i) =   deltaq(m,i) - dtdx(i)*apdq(m,i)
-         deltaq(m,i-1) = deltaq(m,i-1) - dtdx(i-1)*amdq(m,i)
+         deltaq(m,i) =   deltaq(m,i) - dtdx(i)*amdq(m,i)
+         deltaq(m,i-1) = deltaq(m,i-1)  - dtdx(i-1)*apdq(m,i)
       end forall
 
 c
@@ -126,7 +126,7 @@ c
             do 110 mw=1,mwaves
          dtdxave = 0.5d0 * (dtdx(i-1) + dtdx(i))
          f(m,i) = f(m,i) + 0.5d0 * dabs(s(mw,i))
-     &             * (1.d0 + dabs(s(mw,i))*dtdxave) * wave(m,mw,i)
+     &             * (1.d0 - dabs(s(mw,i))*dtdxave) * wave(m,mw,i)
   110          continue
   120       continue
 c

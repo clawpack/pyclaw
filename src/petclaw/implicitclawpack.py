@@ -206,7 +206,8 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         self.snes.setFromOptions()
 
         # Pass additinal properties to SNES.
-        self.snes.appctx=(state)
+        qold = state.q.copy()
+        self.snes.appctx=(state,qold)
 
         # Solve the nonlinear problem
         self.snes.solve(self.bVec, state.gqVec)
@@ -236,9 +237,8 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
 
         """
 
-        # Set the constant part of the nonlinear algebraic system equal to the 
-        # solution at the current time level.
-        self.bVec.setArray(state.q)
+        # Set the constant part of the nonlinear algebraic system equal to zero.
+        self.bVec.setArray(0)
 
 
     def set_mthlim(self):
@@ -359,7 +359,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         from numpy import zeros, reshape, empty
 
         # Get state
-        state = snes.appctx
+        state,qold = snes.appctx
 
         # Get some parameters that will be used in the Fortran routine 
         mx = state.grid.ng[0]
@@ -390,5 +390,5 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
 
         # Compute the nonlinear vector-valued function
         assert dq.flags['F_CONTIGUOUS']
-        nlf.setArray(qapprox[:,mbc:-mbc]-dq[:,mbc:-mbc])
+        nlf.setArray(qapprox[:,mbc:-mbc]-dq[:,mbc:-mbc]-qold[:,:])
 

@@ -32,11 +32,12 @@ def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='
     from riemann import rp_advection
     solver.mwaves = rp_advection.mwaves
  
-    solver.mthbc_lower[0] = 2
-    solver.mthbc_upper[0] = 2
+    solver.mthbc_lower[0] = pyclaw.BC.periodic
+    solver.mthbc_upper[0] = pyclaw.BC.periodic
 
-    solver.cfl_desired=0.4
-    solver.cfl_max=0.5
+    # Stable for CFL>1.0
+    solver.cfl_desired = 2.0
+    solver.cfl_max = 2.1
     
     #===========================================================================
     # Initialize grid and state, then initialize the solution associated to the 
@@ -49,6 +50,9 @@ def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='
     state.meqn = rp_advection.meqn
 
     solver.order = 2
+    #solver.dim_split = 1
+    #solver.trans_order = 2
+
 
     xc = grid.x.center
     beta = 100
