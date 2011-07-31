@@ -46,7 +46,7 @@ def src(solver,grid,q,t):
 # ============================================================================
 #  Generic implicit Clawpack solver class
 # ============================================================================
-class ImplicitClawSolver(petclaw.solver.PetSolver):
+class ImplicitClawSolverfsolve(petclaw.solver.PetSolver):
     r"""
     Generic implicit Clawpack solver.
     
@@ -116,7 +116,7 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
         self._default_attr_values['verbosity'] = 0
 
         # Call general initialization function
-        super(ImplicitClawSolver,self).__init__(data)
+        super(ImplicitClawSolverfsolve,self).__init__(data)
 
     
     def initiate(self,solutions):
@@ -226,7 +226,7 @@ class ImplicitClawSolver(petclaw.solver.PetSolver):
 # ============================================================================
 #  Implicit ClawPack 1d Solver Class
 # ============================================================================
-class ImplicitClawSolver1D(ImplicitClawSolver):
+class  ImplicitClawSolverfsolve1D(ImplicitClawSolverfsolve):
     r"""
     Implicit Clawpack evolution routine in 1D.
     
@@ -256,7 +256,7 @@ class ImplicitClawSolver1D(ImplicitClawSolver):
         self.ndim = 1
 
         # Call superclass __init__
-        super(ImplicitClawSolver1D,self).__init__(data)
+        super(ImplicitClawSolverfsolve1D,self).__init__(data)
 
   
     def setup(self,solutions):
