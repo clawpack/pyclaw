@@ -143,3 +143,24 @@ important options that haven't been discussed here.  To get an
 idea, take a look through the pyclaw/apps directory and try running
 some other examples.  It's also a good idea to get more deeply
 acquainted with the main :ref:`pyclaw_classes`.
+
+Using PETSc
+===================
+PyClaw uses PETSc for parallel lienar algebra, and also for some algebraic solvers. In order to turn on PETSc
+functionality, you use the PetClaw extension of PyClaw:
+
+    >>> import petclaw as pyclaw
+
+You must also initialize PETSc, which also initializes MPI. PETSc operates using command line arguments, and this is the
+place to pass them in. We discriminate PETSc arguments by the absence of an :math:`=`,
+
+    >>> import sys
+    >>> import petsc4py
+    >>> petsc_args = [arg for arg in sys.argv[1:] if '=' not in arg]
+    >>> petsc4py.init(petsc_args)
+
+You can then use an implicit solver, such as SharpClaw which uses the Method of Lines,
+
+    >>> solver = pyclaw.ImplicitSharpClawSolver1D()
+
+The rest of your example can remain the same, and you are ready to go.
