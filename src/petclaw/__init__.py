@@ -35,6 +35,7 @@ from sharpclaw import SharpClawSolver1D
 from sharpclaw import SharpClawSolver2D
 from implicitclawpack import ImplicitClawSolver1D
 from implicitsharpclaw import ImplicitSharpClawSolver1D
+from implicitsharpclawfsolve import ImplicitSharpClawSolverfsolve1D
 
 
 __all__.append('BC')
