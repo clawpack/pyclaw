@@ -7,7 +7,7 @@
 import numpy as np
 
 
-def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='classic',outdir='./_output'):
+def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='implicitLW',outdir='./_output'):
     """
     Example python script for solving the 1d advection equation using the 
     implicit Lax-Wendroff scheme.

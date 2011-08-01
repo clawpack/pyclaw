@@ -7,7 +7,7 @@
 import numpy as np
 
 
-def advection_implicitSharpClawBE(use_petsc=True,iplot=False,htmlplot=False,solver_type='sharpclaw',outdir='./_output'):
+def advection_implicitSharpClawBE(use_petsc=True,iplot=False,htmlplot=False,solver_type='sharpclawBE',outdir='./_output'):
     """
     Example python script for solving the 1d advection equation using the 
     fifth-order WENO scheme and the backward Euler method for time stepping.
