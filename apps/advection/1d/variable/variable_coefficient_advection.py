@@ -78,7 +78,5 @@ def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 if __name__=="__main__":
-    import sys
-    from pyclaw.util import _info_from_argv
-    args, kwargs = _info_from_argv(sys.argv)
-    output=vc_advection(*args,**kwargs)
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(vc_advection)

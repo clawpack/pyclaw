@@ -106,9 +106,5 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
 
 
 if __name__=="__main__":
-    import sys
-    if len(sys.argv)>1:
-        from pyclaw.util import _info_from_argv
-        args, kwargs = _info_from_argv(sys.argv)
-        advection2D(*args,**kwargs)
-    else: advection2D()
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(advection2D)
