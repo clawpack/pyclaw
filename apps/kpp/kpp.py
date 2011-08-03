@@ -63,9 +63,5 @@ def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_typ
 
 
 if __name__=="__main__":
-    import sys
-    if len(sys.argv)>1:
-        from pyclaw.util import _info_from_argv
-        args, kwargs = _info_from_argv(sys.argv)
-        kpp(*args,**kwargs)
-    else: kpp()
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(kpp)

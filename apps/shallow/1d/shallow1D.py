@@ -84,10 +84,8 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
 
 
 if __name__=="__main__":
-    import sys
-    from pyclaw.util import _info_from_argv
-    args, kwargs = _info_from_argv(sys.argv)
-    shallow1D(*args,**kwargs)
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(shallow1D)
     
 
    

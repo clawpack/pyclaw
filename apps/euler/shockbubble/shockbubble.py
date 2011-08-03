@@ -158,9 +158,5 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     return claw.solution.q
 
 if __name__=="__main__":
-    import sys
-    if len(sys.argv)>1:
-        from pyclaw.util import _info_from_argv
-        args, kwargs = _info_from_argv(sys.argv)
-        shockbubble(*args,**kwargs)
-    else: shockbubble()
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(shockbubble)

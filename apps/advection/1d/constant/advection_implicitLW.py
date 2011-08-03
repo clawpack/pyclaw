@@ -74,10 +74,8 @@ def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='
     #if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 if __name__=="__main__":
-    import sys
-    if len(sys.argv)>1:
-        from pyclaw.util import _info_from_argv
-        args, kwargs = _info_from_argv(sys.argv)
-        error=advection_implicitLW(*args,**kwargs)
-        print 'Error: ',error
-    else: advection_implicitLW()
+
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(advection_implicitLW)
+    print 'Error: ',output
+

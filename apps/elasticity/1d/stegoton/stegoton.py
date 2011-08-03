@@ -181,7 +181,5 @@ def stegoton(use_petsc=1,kernel_language='Fortran',solver_type='classic',iplot=0
 
 
 if __name__=="__main__":
-    import sys
-    from pyclaw.util import _info_from_argv
-    args, kwargs = _info_from_argv(sys.argv)
-    stegoton(*args,**kwargs)
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(stegoton)
