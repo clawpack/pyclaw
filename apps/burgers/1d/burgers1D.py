@@ -56,9 +56,7 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
 
 
 if __name__=="__main__":
-    import sys
-    from pyclaw.util import _info_from_argv
-    args, kwargs = _info_from_argv(sys.argv)
-    error=burgers(*args,**kwargs)
-    print 'Error: ',error
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(burgers)
+    print 'Error: ',output
 

@@ -112,14 +112,9 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
 
 
 if __name__=="__main__":
-    import sys
-    if len(sys.argv)>1:
-        from pyclaw.util import _info_from_argv
-        args, kwargs = _info_from_argv(sys.argv)
-        error=shallow2D(*args,**kwargs)
-        print 'Error: ',error
-    else: shallow2D()
-
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(shallow2D)
+    print 'Error: ', output
 
 
 

@@ -47,7 +47,5 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 if __name__=="__main__":
-    import sys
-    from pyclaw.util import _info_from_argv
-    args, kwargs = _info_from_argv(sys.argv)
-    output=advection(*args,**kwargs)
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(advection)
