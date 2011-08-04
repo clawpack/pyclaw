@@ -33,6 +33,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
 
     if use_petsc:
         import petclaw as pyclaw
+        print "yes"
     else:
         import pyclaw
 
@@ -114,13 +115,24 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
 
 if __name__=="__main__":
     import sys
+    from time import time
     if len(sys.argv)>1:
         from pyclaw.util import _info_from_argv
         args, kwargs = _info_from_argv(sys.argv)
+        t1= time()
+        error=shallow2D(*args,**kwargs)
+        t2 = time()
         error=shallow2D(*args,**kwargs)
         print 'Error: ',error
-    else: shallow2D()
+    else:
+        t1 = time()
+        shallow2D()
+        t2 = time()
+        shallow2D()
+    t3 = time()
+    print "first call", t2-t1, "second call", t3-t2
 
+    
 
 
 
