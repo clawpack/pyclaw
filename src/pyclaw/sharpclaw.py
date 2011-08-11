@@ -223,10 +223,7 @@ class SharpClawSolver(Solver):
         clawparams.char_decomp   = self.char_decomp
         clawparams.tfluct_solver = self.tfluct_solver
         clawparams.fwave         = self.fwave
-        if state.capa is not None:
-            clawparams.mcapa         = 1
-        else:
-            clawparams.mcapa         = 0
+        clawparams.mcapa         = state.mcapa+1
 
         clawparams.mwaves        = self.mwaves
         clawparams.alloc_clawparams()

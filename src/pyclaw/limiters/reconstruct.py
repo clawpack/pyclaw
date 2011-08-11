@@ -63,6 +63,3 @@ def weno(k, q):
     qr[:,-k+1:] = qr[:,k-1:2*k-2]
 
     return ql, qr
-
-
-

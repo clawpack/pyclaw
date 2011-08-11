@@ -1,7 +1,3 @@
-c
-c
-c
-c
 c     ==========================================================
       subroutine step2ds(maxm,maxmx,maxmy,meqn,mwaves,maux,mbc,mx,my,
      &               qold,qnew,aux,dx,dy,dt,method,mthlim,cfl,
@@ -27,7 +23,7 @@ c
       dimension  q1d(meqn, 1-mbc:maxm+mbc)
       dimension qadd(meqn, 1-mbc:maxm+mbc)
       dimension fadd(meqn, 1-mbc:maxm+mbc)
-      dimension gadd(meqn, 1-mbc:maxm+mbc, 2)
+      dimension gadd(meqn, 2, 1-mbc:maxm+mbc)
       dimension aux(maux, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
       dimension aux1(maux, 1-mbc:maxm+mbc)
       dimension aux2(maux, 1-mbc:maxm+mbc)

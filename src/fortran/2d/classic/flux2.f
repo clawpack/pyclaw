@@ -101,8 +101,8 @@ c
 c
 c     # Set qadd for the donor-cell upwind method (Godunov)
       forall(m=1:meqn, i=1:mx+1)
-	     qadd(m,i) = qadd(m,i) - dtdx1d(i)*apdq(m,i)
-		 qadd(m,i-1) = qadd(m,i-1) - dtdx1d(i-1)*amdq(m,i)
+            qadd(m,i) = qadd(m,i) - dtdx1d(i)*apdq(m,i)
+            qadd(m,i-1) = qadd(m,i-1) - dtdx1d(i-1)*amdq(m,i)
       end forall
 c
 c     # compute maximum wave speed for checking Courant number:

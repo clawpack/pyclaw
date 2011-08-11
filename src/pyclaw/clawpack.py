@@ -316,10 +316,7 @@ class ClawSolver1D(ClawSolver):
         self.method[2] = 0  # Not used in 1D
         self.method[3] = self.verbosity
         self.method[4] = self.src_split
-        if (state.capa == None):
-            self.method[5] = 0  
-        else:
-            self.method[5] = 1  
+        self.method[5] = state.mcapa + 1
         self.method[6] = state.maux  # aux
  
         if self.fwave:
@@ -626,10 +623,7 @@ class ClawSolver2D(ClawSolver):
         self.method[3] = self.verbosity
         self.method[4] = self.src_split  # src term
 
-        if (state.capa == None): 
-            self.method[5] = 0
-        else: 
-            self.method[5] = 1  
+        self.method[5] = state.mcapa + 1
         self.method[6] = maux
             
         self.cflv = np.zeros(4)

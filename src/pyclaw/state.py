@@ -116,6 +116,7 @@ class State(object):
             ``default = 0.0``"""
         self.capa = None
         r"""(ndarray(...)) - Capacity array for this grid, ``default = 1.0``"""
+        self.mcapa = -1
         self.qbc   = None
         r"""(ndarray(meqn,...)) - q with ghost cells (boundaries). It is
         intended to be populated by method Solver.evolve_to_time. It can be
