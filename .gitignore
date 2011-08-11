@@ -4,6 +4,7 @@
 *.[oa]
 *.so
 *.pyc
+*.mod
 
 # File system metadata
 .DS_Store
@@ -16,3 +17,4 @@ _output
 petclaw.log
 pyclaw.log
 .noseids
+_build
