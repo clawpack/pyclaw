@@ -26,6 +26,31 @@ import logging
 import tempfile
 import numpy as np
 
+def run_app_from_main(application):
+    r"""
+    Runs an application from apps/, automatically parsing command line keyword
+    arguments (key=value) as parameters to the application, with positional
+    arguments being passed to PETSc (if it is enabled).
+
+    Perhaps we should take the PETSc approach of having a database of PyClaw
+    options that can be queried for options on specific objects within the
+    PyClaw runtime instead of front-loading everything through the application
+    main...
+    """
+
+    # Arguments to the PyClaw should be keyword based, positional arguments
+    # will be passed to PETSc
+    petsc_args, app_kwargs = _info_from_argv(sys.argv)
+
+    if 'use_petsc' in app_kwargs and app_kwargs['use_petsc']:
+        import petsc4py
+        petsc_args = [arg.replace('--','-') for arg in sys.argv[1:] if '=' not in arg]
+        print petsc_args
+        petsc4py.init(petsc_args)
+
+    output=application(**app_kwargs)
+    return output
+
 # ============================================================================
 #  F2PY Utility Functions
 # ============================================================================

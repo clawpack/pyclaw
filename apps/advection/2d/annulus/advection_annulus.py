@@ -279,13 +279,9 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
 
 
 if __name__=="__main__":
-    import sys
-    if len(sys.argv)>1:
-        from pyclaw.util import _info_from_argv
-        args, kwargs = _info_from_argv(sys.argv)
-        error=advection_annulus(*args,**kwargs)
-        print 'Error: ',error
-    else: advection_annulus()
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(advection_annulus)
+    print 'Error: ',output
 
 
 

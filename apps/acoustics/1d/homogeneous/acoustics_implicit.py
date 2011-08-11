@@ -147,8 +147,6 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
 
 
 if __name__=="__main__":
-    import sys
-    from petclaw.util import _info_from_argv
-    args, kwargs = _info_from_argv(sys.argv)
-    error=acoustics(**kwargs)
+    from pyclaw.util import run_app_from_main
+    error = run_app_from_main(acoustics)
     print 'Error: ',error

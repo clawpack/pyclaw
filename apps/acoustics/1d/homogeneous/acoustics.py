@@ -78,7 +78,5 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 if __name__=="__main__":
-    import sys
-    from pyclaw.util import _info_from_argv
-    args, kwargs = _info_from_argv(sys.argv)
-    error=acoustics(*args,**kwargs)
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(acoustics)

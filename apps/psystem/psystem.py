@@ -225,7 +225,5 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
     if htmlplot: pyclaw.plot.html_plot()
 
 if __name__=="__main__":
-    import sys
-    from pyclaw.util import _info_from_argv
-    args, kwargs = _info_from_argv(sys.argv)
-    psystem2D(*args,**kwargs)
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(psystem2D)

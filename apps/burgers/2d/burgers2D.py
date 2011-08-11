@@ -66,9 +66,5 @@ def burgers2D(iplot=False,petscPlot=True,useController=True,htmlplot=False,outdi
 
 
 if __name__=="__main__":
-    import sys
-    if len(sys.argv)>1:
-        from petclaw.util import _info_from_argv
-        args, kwargs = _info_from_argv(sys.argv)
-        burgers2D(*args,**kwargs)
-    else: burgers2D()
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(burgers2D)
