@@ -99,8 +99,8 @@ def stegoton(use_petsc=1,kernel_language='Fortran',solver_type='classic',iplot=0
     cellsperlayer=6; mx=int(round(xupper-xlower))*cellsperlayer
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     grid = pyclaw.Grid(x)
-    state = pyclaw.State(grid)
-    state.meqn = 2
+    meqn = 2
+    state = pyclaw.State(grid,meqn)
 
     #Set global parameters
     alpha = 0.5

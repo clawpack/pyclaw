@@ -17,13 +17,11 @@ class State(object):
 
     :State Data:
     
-        The arrays :attr:`q`, :attr:`capa`, and :attr:`aux` have variable 
+        The arrays :attr:`q`, and :attr:`aux` have variable 
         extents based on the grid dimensions and the values of 
         :attr:`meqn` and :attr:`maux`.  Note that these are initialy set to 
         None and later set to appropriately sized empty numpy arrays when
         :attr:`meqn` and :attr:`maux` are set.
-        The :attr:`capa` array is 
-        initially set to all ``1.0`` and needs to be manually set.
  
     Typical usage, assuming a 1D grid::
 
@@ -42,21 +40,11 @@ class State(object):
             if self.q is None:
                 raise Exception('state.meqn has not been set.')
             else: return self.q.shape[0]
-        def fset(self,meqn):
-            if self.q is None:
-                self.q = self.new_array(meqn)
-            else:
-                raise Exception('Cannot change state.meqn after q is initialized.')
         return locals()
     meqn = property(**meqn())
 
     def maux():
         doc = r"""(int) - Number of auxiliary fields"""
-        def fset(self,maux):
-            if self.aux is not None:
-                raise Exception('Cannot change state.maux after aux is initialized.')
-            else:
-                self.aux = self.new_array(maux)
         def fget(self):
             if self.aux is not None: return self.aux.shape[0]
             else: return 0
@@ -64,7 +52,7 @@ class State(object):
     maux = property(**maux())
 
     def mp():
-        doc = r"""(int) - Number of auxiliary fields"""
+        doc = r"""(int) - Number of derived quantities"""
         def fset(self,mp):
             if self.p is not None:
                 raise Exception('Cannot change state.mp after aux is initialized.')
@@ -77,7 +65,7 @@ class State(object):
     mp = property(**mp())
 
     def mF():
-        doc = r"""(int) - Number of auxiliary fields"""
+        doc = r"""(int) - Number of output functionals"""
         def fset(self,mF):
             if self.F is not None:
                 raise Exception('Cannot change state.mF after aux is initialized.')
@@ -90,7 +78,7 @@ class State(object):
     mF = property(**mF())
 
     # ========== Class Methods ===============================================
-    def __init__(self,grid):
+    def __init__(self,grid,meqn,maux=0):
         import pyclaw.grid
         if not isinstance(grid,pyclaw.grid.Grid):
             raise Exception("""A PyClaw State object must be initialized with
@@ -99,11 +87,6 @@ class State(object):
         # ========== Attribute Definitions ===================================
         self.grid = grid
         r"""pyclaw.Grid.grid - The grid this state lives on"""
-        self.aux = None
-        r"""(ndarray(maux,...)) - Auxiliary array for this grid containing per 
-            cell information"""
-        self.q   = None
-        r"""(ndarray(meqn,...)) - Cell averages of dependent variables."""
         self.p   = None
         r"""(ndarray(mp,...)) - Cell averages of derived quantities."""
         self.F   = None
@@ -114,13 +97,10 @@ class State(object):
         self.t=0.
         r"""(float) - Current time represented on this grid, 
             ``default = 0.0``"""
-        self.capa = None
-        r"""(ndarray(...)) - Capacity array for this grid, ``default = 1.0``"""
         self.mcapa = -1
-        self.qbc   = None
-        r"""(ndarray(meqn,...)) - q with ghost cells (boundaries). It is
-        intended to be populated by method Solver.evolve_to_time. It can be
-        used and modified by solvers"""
+
+        self.q   = self.new_array(meqn)
+        self.aux = self.new_array(maux)
 
     def __str__(self):
         output += "  t=%s meqn=%s\n  " % (self.t,self.meqn)
@@ -129,8 +109,6 @@ class State(object):
             output += "  q.shape=%s" % str(self.q.shape)
         if self.aux is not None:
             output += " aux.shape=%s" % str(self.aux.shape)
-        if self.capa is not None:
-            output += " capa.shape=%s" % str(self.capa.shape)
         return output
 
     def is_valid(self):
@@ -191,10 +169,10 @@ class State(object):
         
     def __deepcopy__(self,memo={}):
         import copy
-        result = self.__class__(copy.deepcopy(self.grid))
-        result.__init__(copy.deepcopy(self.grid))
+        result = self.__class__(copy.deepcopy(self.grid),self.meqn,self.maux)
+        result.__init__(copy.deepcopy(self.grid),self.meqn,self.maux)
         
-        for attr in ('t','meqn'):
+        for attr in ('t'):
             setattr(result,attr,copy.deepcopy(getattr(self,attr)))
         
         if self.q is not None:
@@ -203,15 +181,13 @@ class State(object):
             result.aux = copy.deepcopy(self.aux)
         result.aux_global = copy.deepcopy(self.aux_global)
         
-        if self.capa is not None:
-            result.capa = copy.deepcopy(self.capa)
-        
         return result
 
     def sum_F(self,i):
         return np.sum(np.abs(self.F[i,...]))
 
     def new_array(self,dof):
+        if dof==0: return None
         shape = [dof]
         shape.extend(self.grid.n)
         return np.empty(shape,order='F')

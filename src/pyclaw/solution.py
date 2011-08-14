@@ -277,43 +277,6 @@ class Solution(object):
                     else:
                         exec('%s = v' % k)
                 self.read(frame,path,format,file_prefix,read_aux,options)
-            elif isinstance(arg[0],Data):
-                data = arg[0] 
-                # Create dimensions
-                if data.ndim == 1:
-                    x = Dimension('x',data.xlower,data.xupper,data.mx,
-                                    mthbc_lower=data.mthbc_xlower,
-                                    mthbc_upper=data.mthbc_xupper)
-                    grid = Grid([x])
-                elif data.ndim == 2:
-                    x = Dimension('x',data.xlower,data.xupper,data.mx,
-                                    mthbc_lower=data.mthbc_xlower,
-                                    mthbc_upper=data.mthbc_xupper)
-                    y = Dimension('y',data.ylower,data.yupper,data.my,
-                                    mthbc_lower=data.mthbc_ylower,
-                                    mthbc_upper=data.mthbc_yupper)
-                    grid = Grid([x,y])
-                elif data.ndim == 3:
-                    x = Dimension('x',data.xlower,data.xupper,data.mx,
-                                    mthbc_lower=data.mthbc_xlower,
-                                    mthbc_upper=data.mthbc_xupper)
-                    y = Dimension('y',data.ylower,data.yupper,data.my,
-                                    mthbc_lower=data.mthbc_ylower,
-                                    mthbc_upper=data.mthbc_yupper)
-                    z = Dimension('z',data.zlower,data.zupper,data.mz,
-                                    mthbc_lower=data.mthbc_zlower,
-                                    mthbc_upper=data.mthbc_zupper)
-                    grid = Grid([x,y,z])
-                
-                state = State(grid)
-                # General grid properties
-                state.t = data.t0
-                state.meqn = data.meqn
-                state.mp = data.mp
-                state.mF = data.mF
-                
-                # Add grid to solution
-                self.states.append(state)
             else:
                 raise Exception("Invalid argument list")
                 

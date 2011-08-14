@@ -26,7 +26,7 @@ class PetSolver(pyclaw.solver.Solver):
         this means returning the local vector.  
         """
         state.q_da.globalToLocal(state.gqVec, state.lqVec)
-        q_dim = [n + 2*self.mbc for n in state.grid.ng]
+        q_dim = [n + 2*self.mbc for n in state.grid.n]
         q_dim.insert(0,state.meqn)
         ghosted_q=state.lqVec.getArray().reshape(q_dim, order = 'F')
         return ghosted_q
@@ -46,7 +46,7 @@ class PetSolver(pyclaw.solver.Solver):
         if grid.ndim == 1:
             state.q = ghosted_q[:,self.mbc:-self.mbc]
         elif grid.ndim == 2:
-            mbc, mx, my = self.mbc, grid.ng[0],grid.ng[1]
+            mbc, mx, my = self.mbc, grid.n[0],grid.n[1]
             state.q=ghosted_q[:,mbc:mx+mbc,mbc:my+mbc]
         else:
             raise NotImplementedError("The case of 3D is not handled in "\
@@ -102,9 +102,7 @@ class PetSolver(pyclaw.solver.Solver):
         state = solution.states[0]
         self._rk_stages = []
         for i in range(nregisters-1):
-            self._rk_stages.append(State(state.grid))
-            self._rk_stages[-1].meqn = state.meqn
-            self._rk_stages[-1].maux = state.maux
+            self._rk_stages.append(State(state.grid,state.meqn,state.maux))
             self._rk_stages[-1].set_stencil_width(self.mbc)
             self._rk_stages[-1].aux_global       = state.aux_global
             self._rk_stages[-1].t                = state.t

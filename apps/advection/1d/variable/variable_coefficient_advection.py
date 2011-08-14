@@ -32,7 +32,6 @@ def qinit(state):
 def auxinit(state):
     # Initilize petsc Structures for aux
     xc=state.grid.x.center
-    state.maux=1
     state.aux[0,:] = np.sin(2.*np.pi*xc)+2
     
 
@@ -60,8 +59,9 @@ def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',
     xlower=0.0; xupper=1.0; mx=100
     x    = pyclaw.Dimension('x',xlower,xupper,mx)
     grid = pyclaw.Grid(x)
-    state = pyclaw.State(grid)
-    state.meqn = rp_vc_advection.meqn
+    maux=1
+    meqn = 1
+    state = pyclaw.State(grid,meqn,maux)
 
     qinit(state)
     auxinit(state)

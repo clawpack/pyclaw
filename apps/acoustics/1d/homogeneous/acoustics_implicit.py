@@ -56,7 +56,7 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
     grid.aux_global['cc']=np.sqrt(rho/bulk)
     from classic1 import cparam 
     for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
-    grid.meqn=2
+    meqn=2
     if sclaw:
         grid.mbc=3
     grid.t = 0.0
@@ -65,7 +65,7 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
     # before grid.x.center and such can be accessed.
     grid.init_q_petsc_structures()
     xc=grid.x.center
-    q=np.zeros([grid.meqn,len(xc)], order = 'F')
+    q=np.zeros([meqn,len(xc)], order = 'F')
     beta=100; gamma=0; x0=0.75
     q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
     q[1,:]=0.

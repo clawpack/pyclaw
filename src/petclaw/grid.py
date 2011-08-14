@@ -36,16 +36,16 @@ class Dimension(pyclaw.grid.Dimension):
     Output:
      - (:class:`Dimension`) - Initialized Dimension object
 
-    We could use ng, nstart, and nend in the edge and center properties in 
+    We could use n, nstart, and nend in the edge and center properties in 
     PyClaw and then nothing would need to be overridden here.  But it would
     put some parallel-ish code in PyClaw, which is undesirable.
     """
-    def ng():
+    def n():
         doc = r"""Size of this processes' piece of grid in given dimension."""
         def fget(self):
             return self.nend-self.nstart
         return locals()
-    ng = property(**ng())
+    n = property(**n())
 
     def edge():
         doc = r"""(ndarrary(:)) - Location of all grid cell edge coordinates
@@ -53,7 +53,7 @@ class Dimension(pyclaw.grid.Dimension):
         def fget(self): 
             import numpy as np
             if self._edge is None:
-                self._edge = np.empty(self.ng+1)
+                self._edge = np.empty(self.n+1)
                 for i in xrange(self.nstart,self.nend+1):
                     self._edge[i] = self.lower + i*self.d
             return self._edge
@@ -67,7 +67,7 @@ class Dimension(pyclaw.grid.Dimension):
         def fget(self): 
             import numpy as np
             if self._center is None:
-                self._center = np.empty(self.ng)
+                self._center = np.empty(self.n)
                 for i in xrange(self.nstart,self.nend):
                     self._center[i-self.nstart] = self.lower + (i+0.5)*self.d
             return self._center

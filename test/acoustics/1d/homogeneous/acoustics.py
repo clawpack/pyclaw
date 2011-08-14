@@ -22,8 +22,8 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
     # Initialize grids and solution
     x = pyclaw.Dimension('x',0.0,1.0,100)
     grid = pyclaw.Grid(x)
-    state = pyclaw.State(grid)
-    state.meqn=2
+    meqn=2
+    state = pyclaw.State(grid,meqn)
 
     rho = 1.0
     bulk = 1.0

@@ -233,7 +233,7 @@ class SharpClawSolver(Solver):
         clawparams.dx       =grid.d
         clawparams.mthlim   =self.mthlim
 
-        maxnx = max(grid.ng)+2*self.mbc
+        maxnx = max(grid.n)+2*self.mbc
         workspace.alloc_workspace(maxnx,self.mbc,state.meqn,self.mwaves,self.char_decomp)
         reconstruct.alloc_recon_workspace(maxnx,self.mbc,state.meqn,self.mwaves,
                                             clawparams.lim_type,clawparams.char_decomp)
@@ -316,7 +316,7 @@ class SharpClawSolver1D(SharpClawSolver):
         q = self.qbc(state) # Can we make use of state.qbc instead
                             # of calling self.qbc() again?
         grid = state.grid
-        mx = grid.ng[0]
+        mx = grid.n[0]
 
         ixy=1
         aux=state.aux
@@ -373,7 +373,7 @@ class SharpClawSolver1D(SharpClawSolver):
             # Loop limits for local portion of grid
             # THIS WON'T WORK IN PARALLEL!
             LL = self.mbc - 1
-            UL = grid.ng[0] + self.mbc + 1
+            UL = grid.n[0] + self.mbc + 1
 
             # Compute maximum wave speed
             self.cfl = 0.0
@@ -479,8 +479,8 @@ class SharpClawSolver2D(SharpClawSolver):
         grid = state.grid
 
         mbc=self.mbc
-        mx=grid.ng[0]
-        my=grid.ng[1]
+        mx=grid.n[0]
+        my=grid.n[1]
         maxm = max(mx,my)
 
         aux=state.aux

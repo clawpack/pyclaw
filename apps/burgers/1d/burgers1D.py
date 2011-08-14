@@ -33,8 +33,8 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
     #===========================================================================
     x = pyclaw.Dimension('x',0.0,1.0,500)
     grid = pyclaw.Grid(x)
-    state = pyclaw.State(grid)
-    state.meqn = 1
+    meqn = 1
+    state = pyclaw.State(grid,meqn)
 
     xc=grid.x.center
     state.q[0,:] = np.sin(np.pi*2*xc) + 0.50

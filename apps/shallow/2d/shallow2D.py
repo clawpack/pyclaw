@@ -69,9 +69,8 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     y = pyclaw.Dimension('y',ylower,yupper,my)
     grid = pyclaw.Grid([x,y])
 
-    # Sate:
-    state = pyclaw.State(grid)
-    state.meqn = 3  # Number of equations
+    meqn = 3  # Number of equations
+    state = pyclaw.State(grid,meqn)
 
     grav = 1.0 # Parameter (global auxiliary variable)
     state.aux_global['grav'] = grav

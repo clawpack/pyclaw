@@ -5,11 +5,6 @@ class State(pyclaw.state.State):
 
     def meqn():
         doc = r"""(int) - Number of unknowns (components of q)"""
-        def fset(self,meqn):
-            if self.q_da is not None:
-                raise Exception('You cannot change state.meqn after q is initialized.')
-            else:
-                self._init_q_da(meqn)
         def fget(self):
             if self.q_da is None:
                 raise Exception('state.meqn has not been set.')
@@ -49,12 +44,6 @@ class State(pyclaw.state.State):
 
     def maux():
         doc = r"""(int) - Number of auxiliary fields"""
-        def fset(self,maux):
-            if self.aux_da is not None:
-                raise Exception('You cannot change state.maux after aux is initialized.')
-            else:
-                if maux>0:
-                    self._init_aux_da(maux)
         def fget(self):
             if self.aux_da is None: return 0
             else: return self.aux_da.dof
@@ -70,7 +59,7 @@ class State(pyclaw.state.State):
         """
         def fget(self):
             if self.q_da is None: return 0
-            q_dim = self.grid.ng
+            q_dim = self.grid.n
             q_dim.insert(0,self.meqn)
             q=self.gqVec.getArray().reshape(q_dim, order = 'F')
             return q
@@ -87,7 +76,7 @@ class State(pyclaw.state.State):
         """
         def fget(self):
             if self._p_da is None: return 0
-            q_dim = self.grid.ng
+            q_dim = self.grid.n
             q_dim.insert(0,self.mp)
             p=self.gpVec.getArray().reshape(q_dim, order = 'F')
             return p
@@ -105,7 +94,7 @@ class State(pyclaw.state.State):
         """
         def fget(self):
             if self._F_da is None: return 0
-            q_dim = self.grid.ng
+            q_dim = self.grid.n
             q_dim.insert(0,self.mF)
             F=self.gFVec.getArray().reshape(q_dim, order = 'F')
             return F
@@ -124,7 +113,7 @@ class State(pyclaw.state.State):
         """
         def fget(self):
             if self.aux_da is None: return None
-            aux_dim = self.grid.ng
+            aux_dim = self.grid.n
             aux_dim.insert(0,self.maux)
             aux=self.gauxVec.getArray().reshape(aux_dim, order = 'F')
             return aux
@@ -144,7 +133,7 @@ class State(pyclaw.state.State):
     ndim = property(**ndim())
 
 
-    def __init__(self,grid):
+    def __init__(self,grid,meqn,maux=0):
         r"""
         Here we don't call super because q and aux must be properties in PetClaw
         but should not be properties in PyClaw.
@@ -154,14 +143,6 @@ class State(pyclaw.state.State):
         if not isinstance(grid,petclaw.grid.Grid):
             raise Exception("""A PetClaw State object must be initialized with
                              a PetClaw Grid object.""")
-        self.q_da = None
-        self.gqVec = None
-        self.lqVec = None
-
-        self.aux_da = None
-        self.gauxVec = None
-        self.lauxVec = None
-
         self._p_da = None
         self.gpVec = None
 
@@ -177,9 +158,10 @@ class State(pyclaw.state.State):
         self.t=0.
         r"""(float) - Current time represented on this grid, 
             ``default = 0.0``"""
-        self.capa = None
-        r"""(ndarray(...)) - Capacity array for this grid, ``default = 1.0``"""
         self.mcapa = -1
+
+        self._init_q_da(meqn)
+        if maux>0: self._init_aux_da(maux)
 
     def _init_aux_da(self,maux,mbc=0):
         r"""

@@ -45,7 +45,8 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     x = pyclaw.grid.Dimension('x',-1.0,1.0,mx)
     y = pyclaw.grid.Dimension('y',-1.0,1.0,my)
     grid = pyclaw.grid.Grid([x,y])
-    state = pyclaw.State(grid)
+    meqn = 3
+    state = pyclaw.State(grid,meqn)
 
     rho = 1.0
     bulk = 4.0
@@ -56,7 +57,6 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     state.aux_global['zz']= zz
     state.aux_global['cc']=cc
 
-    state.meqn = 3
     tfinal = 0.12
 
     qinit(state)

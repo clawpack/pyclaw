@@ -32,7 +32,9 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     x = pyclaw.Dimension('x',-1.0,1.0,mx)
     y = pyclaw.Dimension('y',-1.0,1.0,my)
     grid = pyclaw.Grid([x,y])
-    state = pyclaw.State(grid)
+
+    meqn = 3
+    state = pyclaw.State(grid,meqn)
 
     rho = 1.0
     bulk = 4.0
@@ -42,8 +44,6 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     state.aux_global['bulk']=bulk
     state.aux_global['zz']= zz
     state.aux_global['cc']=cc
-
-    state.meqn = 3
 
     Y,X = np.meshgrid(grid.y.center,grid.x.center)
     r = np.sqrt(X**2 + Y**2)

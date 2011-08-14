@@ -29,6 +29,34 @@ class BC():
     periodic   = 2
     reflecting = 3
 
+def copy_global_to_local(q,qbc,mbc):
+    """
+    Fills in the interior of qbc (local vector) by copying q (global vector) to it.
+    """
+    import numpy as np
+
+    ndim = len(q.shape)-1
+    if ndim == 1:
+        qbc[:,mbc:-mbc] = q
+    elif ndim == 2:
+        qbc[:,mbc:-mbc,mbc:-mbc] = q
+    elif ndim == 3:
+        qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = q
+
+def copy_local_to_global(qbc,q,mbc):
+    """
+    Fills in the values of q (global vector) by copying the interior values
+    of qbc (local vector) to it.
+    """
+    ndim = len(q.shape)-1
+    if ndim == 1:
+        q = qbc[:,mbc:-mbc]
+    elif ndim == 2:
+        q = qbc[:,mbc:-mbc,mbc:-mbc]
+    else:
+        raise NotImplementedError("The case of 3D is not handled in "\
+        +"solver.copy_local_to_global() yet")
+
 #################### Dummy routines ######################
 def default_compute_gauge_values(q,aux):
     r"""By default, record values of q at gauges.
@@ -169,6 +197,10 @@ class Solver(object):
         self.compute_gauge_values = None
         r"""(function) - Function that computes quantities to be recorded at gaugues"""
 
+        self.qbc          = None
+        r""" Array to hold ghost cell values.  This is the one that gets passed
+        to the Fortran code.  """
+
         self.qbc_backup   = None
         r"""(ndarray(meqn,...)) - A backup copy of qbc. It is intended to
         be populated by method Solver.evolve_to_time in case Solver.dt_variable
@@ -271,9 +303,7 @@ class Solver(object):
         self._rk_stages = []
         for i in range(nregisters-1):
             #Maybe should use State.copy() here?
-            self._rk_stages.append(State(state.grid))
-            self._rk_stages[-1].meqn             = state.meqn
-            self._rk_stages[-1].maux             = state.maux
+            self._rk_stages.append(State(state.grid,state.meqn,state.maux))
             self._rk_stages[-1].aux_global       = state.aux_global
             self._rk_stages[-1].t                = state.t
             if state.maux > 0:
@@ -283,71 +313,9 @@ class Solver(object):
     # ========================================================================
     #  Boundary Conditions
     # ========================================================================    
-    def append_ghost_cells(self,state):
-        """
-        Returns q with ghost cells attached.  For Solver, this means
-        just creating a copy of q with extra cells.
-
-        We should refactor the solver so that qbc belongs to it and
-        the qbc array creation is no longer necessary.
-        """
-        import numpy as np
-
-        grid = state.grid
-        mbc = self.mbc
-        dims = [n + 2*mbc for n in grid.ng]
-        dims.insert(0,state.meqn)
-        qbc = np.zeros(dims,order = 'F')
-        if grid.ndim == 1:
-            qbc[:,mbc:-mbc] = state.q
-        elif grid.ndim == 2:
-            qbc[:,mbc:-mbc,mbc:-mbc] = state.q
-        elif grid.ndim == 3:
-            qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = state.q
-        return qbc
- 
-    def set_global_q(self,state,ghosted_q):
-        """
-        set the value of q using the arrayghosted_q. 
-        for PySolver, it is only setting the value
-        of q with proper slice of ghosted_q
-        """
-        grid = state.grid
-        if grid.ndim == 1:
-            state.q = ghosted_q[:,self.mbc:-self.mbc]
-        elif grid.ndim == 2:
-            mbc, mx, my = self.mbc, grid.ng[0],grid.ng[1]
-            state.q=ghosted_q[:,mbc:mx+mbc,mbc:my+mbc]
-        else:
-            raise NotImplementedError("The case of 3D is not handled in "\
-            +"solver.set_global_q() yet")
-    
-    def append_ghost_cells_to_aux(self,state):
-        """
-        Returns aux with ghost cells attached.  For the serial Solver, this means
-        just creating a copy of aux with extra cells.
-
-        See comments about refactoring with qbc above.
-        """
-        import numpy as np
-
-        grid = state.grid
-        mbc = self.mbc
-        dims = [n + 2*self.mbc for n in grid.ng]
-        dims.insert(0,state.maux)
-        auxbc = np.zeros(dims,order = 'F')
-        if grid.ndim == 1:
-            auxbc[:,mbc:-mbc] = state.aux
-        elif grid.ndim == 2:
-            auxbc[:,mbc:-mbc,mbc:-mbc] = state.aux
-        elif grid.ndim == 3:
-            auxbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = state.aux
-        return auxbc
-
-
-    def qbc(self,state):
+    def apply_q_bcs(self,state):
         r"""
-        Appends boundary cells to q and fills them with appropriate values.
+        Fills in solver.qbc (the local vector), including ghost cell values.
     
         This function returns an array of dimension determined by the 
         :attr:`mbc` attribute.  The type of boundary condition set is 
@@ -381,7 +349,7 @@ class Solver(object):
         
         import numpy as np
 
-        qbc=self.append_ghost_cells(state)
+        copy_global_to_local(state.q,self.qbc,self.mbc)
         grid = state.grid
        
         for idim,dim in enumerate(grid.dimensions):
@@ -391,29 +359,27 @@ class Solver(object):
                 # If a user defined boundary condition is being used, send it on,
                 # otherwise roll the axis to front position and operate on it
                 if self.mthbc_lower[idim] == BC.custom:
-                    self.qbc_lower(grid,dim,state.t,qbc,idim)
+                    self.qbc_lower(grid,dim,state.t,self.qbc,idim)
                 elif self.mthbc_lower[idim] == BC.periodic:
                     if dim.nend == dim.n:
                         # This process owns the whole grid
-                        self.qbc_lower(grid,dim,state.t,np.rollaxis(qbc,idim+1,1),idim)
+                        self.qbc_lower(grid,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
                 else:
-                    self.qbc_lower(grid,dim,state.t,np.rollaxis(qbc,idim+1,1),idim)
+                    self.qbc_lower(grid,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
 
             if dim.nend == dim.n :
                 if self.mthbc_upper[idim] == BC.custom:
-                    self.qbc_upper(grid,dim,state.t,qbc,idim)
+                    self.qbc_upper(grid,dim,state.t,self.qbc,idim)
                 elif self.mthbc_upper[idim] == BC.periodic:
                     if dim.nstart == 0:
                         # This process owns the whole grid
-                        self.qbc_upper(grid,dim,state.t,np.rollaxis(qbc,idim+1,1),idim)
+                        self.qbc_upper(grid,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
                 else:
-                    self.qbc_upper(grid,dim,state.t,np.rollaxis(qbc,idim+1,1),idim)
-            
-        return qbc
+                    self.qbc_upper(grid,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
 
 
     def qbc_lower(self,grid,dim,t,qbc,idim):
@@ -524,7 +490,7 @@ class Solver(object):
         
         import numpy as np
 
-        auxbc=self.append_ghost_cells_to_aux(state)
+        copy_global_to_local(state.aux,self.auxbc,self.mbc)
         grid = state.grid
        
         for idim,dim in enumerate(grid.dimensions):
@@ -534,29 +500,27 @@ class Solver(object):
                 # If a user defined boundary condition is being used, send it on,
                 # otherwise roll the axis to front position and operate on it
                 if self.mthauxbc_lower[idim] == BC.custom:
-                    self.auxbc_lower(grid,dim,state.t,auxbc,idim)
+                    self.auxbc_lower(grid,dim,state.t,self.auxbc,idim)
                 elif self.mthauxbc_lower[idim] == BC.periodic:
                     if dim.nend == dim.n:
                         # This process owns the whole grid
-                        self.auxbc_lower(grid,dim,state.t,np.rollaxis(auxbc,idim+1,1),idim)
+                        self.auxbc_lower(grid,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
                 else:
-                    self.auxbc_lower(grid,dim,state.t,np.rollaxis(auxbc,idim+1,1),idim)
+                    self.auxbc_lower(grid,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
 
             if dim.nend == dim.n :
                 if self.mthauxbc_upper[idim] == BC.custom:
-                    self.auxbc_upper(grid,dim,state.t,auxbc,idim)
+                    self.auxbc_upper(grid,dim,state.t,self.auxbc,idim)
                 elif self.mthauxbc_upper[idim] == BC.periodic:
                     if dim.nstart == 0:
                         # This process owns the whole grid
-                        self.auxbc_upper(grid,dim,state.t,np.rollaxis(auxbc,idim+1,1),idim)
+                        self.auxbc_upper(grid,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
                 else:
-                    self.auxbc_upper(grid,dim,state.t,np.rollaxis(auxbc,idim+1,1),idim)
-            
-        return auxbc
+                    self.auxbc_upper(grid,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
 
 
     def auxbc_lower(self,grid,dim,t,auxbc,idim):
@@ -678,7 +642,7 @@ class Solver(object):
         if self.dt_variable == 1 and self.cfl_desired > self.cfl_max:
             raise Exception('Variable time stepping and desired CFL > maximum CFL')
         if tend <= tstart:
-            self.logger.info("Already at or beyond end time, no evolution required.")
+            self.logger.info("Already at or beyond end time: no evolution required.")
             self.max_steps = 0
                 
         # Main time stepping loop
@@ -686,7 +650,7 @@ class Solver(object):
             
             state = solution.state
             
-            state.qbc = self.qbc(state)
+            self.apply_q_bcs(state)
 
             # Adjust dt so that we hit tend exactly if we are near tend
             if solution.t + self.dt > tend and tstart < tend and not take_one_step:
@@ -694,7 +658,7 @@ class Solver(object):
 
             # Keep a backup in case we need to retake a time step
             if self.dt_variable:
-                self.qbc_backup = state.qbc.copy('F')
+                self.qbc_backup = self.qbc.copy('F')
                 told = solution.t
             retake_step = False  # Reset flag
             
@@ -723,7 +687,7 @@ class Solver(object):
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
                 if self.dt_variable:
-                    self.set_global_q(state, self.qbc_backup)
+                    copy_local_to_global(self.qbc_backup,state.q,self.mbc)
                     solution.t = told
                     # Retake step
                     retake_step = True

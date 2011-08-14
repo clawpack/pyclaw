@@ -51,12 +51,12 @@ class Dimension(object):
     """
     
     # ========== Property Definitions ========================================
-    def ng():
-        doc = r"""(int) - Size of this process' grid in given dimension."""
+    def n():
+        doc = r"""(int) - Number of grid cells in this dimension"""
         def fget(self):
-            return self.n
+            return self._n
         return locals()
-    ng = property(**ng())
+    n = property(**n())
     def d():
         doc = r"""(float) - Size of an individual, computational grid cell"""
         def fget(self):
@@ -98,8 +98,7 @@ class Dimension(object):
         # ========== Class Data Attributes ===================================
         self.name = 'x'
         r"""(string) Name of this coordinate dimension (e.g. 'x')"""
-        self.n = None
-        r"""(int) - Number of grid cells in this dimension :attr:`units`"""
+        self._n = None
         self.lower = 0.0
         r"""(float) - Lower computational grid extent"""
         self.upper = 1.0
@@ -112,12 +111,12 @@ class Dimension(object):
         if isinstance(args[0],float):
             self.lower = float(args[0])
             self.upper = float(args[1])
-            self.n = int(args[2])
+            self._n = int(args[2])
     	elif isinstance(args[0],basestring):
             self.name = args[0]
             self.lower = float(args[1])
             self.upper = float(args[2])
-            self.n = int(args[3])
+            self._n = int(args[3])
     	else:
     	    raise Exception("Invalid initializer for Dimension.")
         
@@ -128,7 +127,7 @@ class Dimension(object):
         # the PyClaw grid has the same attributes as the PetClaw
         # grid, which allows for simpler programming elsewhere.
         self.nstart = 0
-        self.nend = self.n
+        self.nend = self._n
             
         # Function attribute assignments
     
@@ -188,10 +187,6 @@ class Grid(object):
     def n():
         doc = r"""(list) - List of the number of grid cells in each dimension"""
         def fget(self): return self.get_dim_attribute('n')
-        return locals()
-    def ng():
-        doc = r"""(list) - List of the number of grid cells for this process in each dimension"""
-        def fget(self): return self.get_dim_attribute('ng')
         return locals()
     def nstart():
         doc = r"""(list) - List of the number of grid cells in each dimension"""
@@ -270,7 +265,6 @@ class Grid(object):
     ndim = property(**ndim())
     dimensions = property(**dimensions())
     n = property(**n())
-    ng = property(**ng())
     nstart = property(**nstart())
     nend = property(**nend())
     name = property(**name())
@@ -350,25 +344,6 @@ class Grid(object):
         setattr(self,dimension.name,dimension)
         
         
-    def remove_dimension(self, name):
-        r"""
-        Remove the dimension named name
-        
-        :Input:
-         - *name* - (string) removes the dimension named name
-        """
-        
-        # Remove coordinate array
-        self._p_center.pop(self._dimension.index(name))
-        self._c_center.pop(self._dimension.index(name))
-        self._p_edge.pop(self._dimension.index(name))
-        self._c_edge.pop(self._dimension.index(name))
-        
-        # Delete the dimension
-        self._dimensions.remove(name)
-        exec('del(self.%s)' % name)
-    
-    
     def get_dim_attribute(self,attr):
         r"""
         Returns a tuple of all dimensions' attribute attr
