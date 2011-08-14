@@ -98,17 +98,17 @@ class SharpClawSolver(Solver):
 
             elif self.time_integrator=='SSP33':
                 deltaq=self.dq(state)
-                self.rk_stages[0].q=state.q+deltaq
-                self.rk_stages[0].t =state.t+self.dt
-                deltaq=self.dq(self.rk_stages[0])
-                self.rk_stages[0].q= 0.75*state.q + 0.25*(self.rk_stages[0].q+deltaq)
-                self.rk_stages[0].t = state.t+0.5*self.dt
-                deltaq=self.dq(self.rk_stages[0])
-                state.q = 1./3.*state.q + 2./3.*(self.rk_stages[0].q+deltaq)
+                self._rk_stages[0].q=state.q+deltaq
+                self._rk_stages[0].t =state.t+self.dt
+                deltaq=self.dq(self._rk_stages[0])
+                self._rk_stages[0].q= 0.75*state.q + 0.25*(self._rk_stages[0].q+deltaq)
+                self._rk_stages[0].t = state.t+0.5*self.dt
+                deltaq=self.dq(self._rk_stages[0])
+                state.q = 1./3.*state.q + 2./3.*(self._rk_stages[0].q+deltaq)
 
             elif self.time_integrator=='SSP104':
-                s1=self.rk_stages[0]
-                s2=self.rk_stages[1]
+                s1=self._rk_stages[0]
+                s2=self._rk_stages[1]
                 s1.q = state.q.copy()
 
                 deltaq=self.dq(state)

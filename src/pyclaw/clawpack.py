@@ -18,25 +18,6 @@ from pyclaw.solver import Solver
 import limiters.tvd
 import riemann
 
-# ========================================================================
-#  User-defined routines
-# ========================================================================
-def start_step(solver,solution):
-    r"""
-    Dummy routine called before each step
-    
-    Replace this routine if you want to do something before each time step.
-    """
-    pass
-
-def src(solver,solution,t,dt):
-    r"""
-    Dummy routine called to calculate a source term
-    
-    Replace this routine if you want to include a source term.
-    """
-    pass
-
 # ============================================================================
 #  Generic Clawpack solver class
 # ============================================================================
@@ -48,12 +29,17 @@ class ClawSolver(Solver):
     
     .. attribute:: mthlim 
     
-        Limiter to be used on each wave.  ``Default = limiters.tvd.minmod``
+        Limiter(s) to be used.  Specified either as one value or a list.
+        If one value, the specified limiter is used for all wave families.
+        If a list, the specified values indicate which limiter to apply to
+        each wave family.  Take a look at pyclaw.limiters.tvd for an enumeration.
+        ``Default = limiters.tvd.minmod``
     
     .. attribute:: order
     
-        Order of the solver, either 1 for first order or 2 for second order 
-        corrections.  ``Default = 2``
+        Order of the solver, either 1 for first order (i.e., Godunov's method)
+        or 2 for second order (Lax-Wendroff-LeVeque).
+        ``Default = 2``
     
     .. attribute:: src_split
     
@@ -63,18 +49,24 @@ class ClawSolver(Solver):
         
     .. attribute:: fwave
     
-        Whether to split the flux into waves, requires that the Riemann solver
-        performs the splitting.  ``Default = False``
+        Whether to split the flux jump (rather than the jump in Q) into waves; 
+        requires that the Riemann solver performs the splitting.  
+        ``Default = False``
         
     .. attribute:: src
     
-        Source term function.  Default is the stub function.
+        Handle for function that evaluates the source term.  
+        The required signature for this function is:
+
+        def src(solver,solution,t,dt)
     
     .. attribute:: start_step
     
-        Function called before each time step is taken.  Default is the stub
-        function
+        Function called before each time step is taken.
+        The required signature for this function is:
         
+        def start_step(solver,solution)
+
     .. attribute:: kernel_language
 
         Specifies whether to use wrapped Fortran routines ('Fortran')
@@ -92,8 +84,6 @@ class ClawSolver(Solver):
        for the named variables to instantiate itself.    
     Output:
      - (:class:`ClawSolver`) - Initialized clawpack solver
-    
-    :Version: 1.0 (2009-06-01)
     """
     # ========== Generic Init Routine ========================================
     def __init__(self,data=None):
@@ -111,71 +101,20 @@ class ClawSolver(Solver):
         self._default_attr_values['order'] = 2
         self._default_attr_values['src_split'] = 0
         self._default_attr_values['fwave'] = False
-        self._default_attr_values['src'] = src
-        self._default_attr_values['start_step'] = start_step
+        self._default_attr_values['src'] = None
+        self._default_attr_values['start_step'] = None
         self._default_attr_values['kernel_language'] = 'Fortran'
         self._default_attr_values['verbosity'] = 0
 
         # Call general initialization function
         super(ClawSolver,self).__init__(data)
     
-    # ========== Setup Routine ===============================================
-    def setup(self,solution):
-        r"""
-        Called before any set of time steps.
-        
-        This routine will be called once before the solver is used via the
-        :class:`~pyclaw.controller.Controller`.
-        """
-        pass 
-    
-    # ========== Riemann solver library routines =============================   
-    def list_riemann_solvers(self):
-        r"""
-        List available Riemann solvers 
-        
-        This routine returns a list of available Riemann solvers which is
-        constructed in the Riemann solver package (:ref:`pyclaw_rp`).  In this 
-        case it lists all Riemann solvers.
-        
-        :Output:
-         - (list) - List of Riemann solver names valid to be used with
-           :meth:`set_riemann_solver`
-        
-        .. note::
-            These Riemann solvers are currently only accessible to the python 
-            time stepping routines.
-        """
-        rp_solver_list = []
-        
-        # Construct list from each dimension list
-        for rp_solver in rp_solver_list_1d:
-            rp_solver_list.append('%s_1d' % rp_solver)
-        for rp_solver in rp_solver_list_2d:
-            rp_solver_list.append('%s_2d' % rp_solver)
-        for rp_solver in rp_solver_list_3d:
-            rp_solver_list.append('%s_3d' % rp_solver)
-        
-        return rp_solver_list
-    
-    def set_riemann_solver(self,solver_name):
-        r"""
-        Assigns the library solver solver_name as the Riemann solver.
-        
-        :Input:
-         - *solver_name* - (string) Name of the solver to be used, raises a 
-           NameError if the solver does not exist.
-        """
-        raise Exception("Cannot set a Riemann solver with this class," +
-                                        " use one of the derived classes.")
-         
     # ========== Time stepping routines ======================================
     def step(self,solution):
         r"""
         Evolve solution one time step
 
-        This routine encodes the generic order in a full time step in this
-        order:
+        The elements of the algorithm for taking one step are:
         
         1. The :meth:`start_step` function is called
         
@@ -199,11 +138,9 @@ class ClawSolver(Solver):
          - (bool) - True if full step succeeded, False otherwise
         """
 
-        # Call b4step, pyclaw should be subclassed if this is needed
-        self.start_step(self,solution)
+        if self.start_step is not None:
+            self.start_step(self,solution)
 
-        # Source term splitting, pyclaw should be subclassed if this 
-        # is needed
         if self.src_split == 2:
             self.src(self,solution,solution.t, self.dt/2.0)
     

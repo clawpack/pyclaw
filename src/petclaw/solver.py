@@ -100,14 +100,14 @@ class PetSolver(pyclaw.solver.Solver):
         elif self.time_integrator == 'SSP104': nregisters=3
  
         state = solution.states[0]
-        self.rk_stages = []
+        self._rk_stages = []
         for i in range(nregisters-1):
-            self.rk_stages.append(State(state.grid))
-            self.rk_stages[-1].meqn = state.meqn
-            self.rk_stages[-1].maux = state.maux
-            self.rk_stages[-1].set_stencil_width(self.mbc)
-            self.rk_stages[-1].aux_global       = state.aux_global
-            self.rk_stages[-1].t                = state.t
+            self._rk_stages.append(State(state.grid))
+            self._rk_stages[-1].meqn = state.meqn
+            self._rk_stages[-1].maux = state.maux
+            self._rk_stages[-1].set_stencil_width(self.mbc)
+            self._rk_stages[-1].aux_global       = state.aux_global
+            self._rk_stages[-1].t                = state.t
             if state.maux > 0:
-                self.rk_stages[-1].aux              = state.aux
+                self._rk_stages[-1].aux              = state.aux
 
