@@ -114,17 +114,15 @@ class State(object):
         self.t=0.
         r"""(float) - Current time represented on this grid, 
             ``default = 0.0``"""
-        self.stateno = 1
-        r"""(int) - State number of current state, ``default = 1``"""
         self.capa = None
         r"""(ndarray(...)) - Capacity array for this grid, ``default = 1.0``"""
+        self.mcapa = -1
         self.qbc   = None
         r"""(ndarray(meqn,...)) - q with ghost cells (boundaries). It is
         intended to be populated by method Solver.evolve_to_time. It can be
         used and modified by solvers"""
 
     def __str__(self):
-        output = "State %s:\n" % self.stateno
         output += "  t=%s meqn=%s\n  " % (self.t,self.meqn)
         output += '\n'
         if self.q is not None:
@@ -196,7 +194,7 @@ class State(object):
         result = self.__class__(copy.deepcopy(self.grid))
         result.__init__(copy.deepcopy(self.grid))
         
-        for attr in ('stateno','t','meqn'):
+        for attr in ('t','meqn'):
             setattr(result,attr,copy.deepcopy(getattr(self,attr)))
         
         if self.q is not None:

@@ -34,6 +34,7 @@ c
       integer method(7),mthlim(mwaves)
       double precision work(mwork)
 
+
 cf2py intent(in,out) cfl
 cf2py intent(in,out) qnew
 cf2py optional q1d, qadd, fadd, gadd, dtdx1d, dtdy1d
@@ -91,7 +92,7 @@ c        # copy data along a slice into 1d arrays:
 c
          if (mcapa.gt.0)  then
             do 22 i = 1-mbc, mx+mbc
-               dtdx1d(i) = dtdx / aux(mcapa,i,j)
+               dtdx1d(i) = dtdx/aux(mcapa,i,j)
    22       continue
          endif
 c

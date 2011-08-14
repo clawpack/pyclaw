@@ -80,9 +80,9 @@ def setaux(x,y):
         aux[2,:,:]=linearity_mat1
     return aux
 
-def b4step(solver,solutions):
+def b4step(solver,solution):
     r"""put in aux[3,:,:] the value of q[0,:,:] (eps). This is required in rptpv.f"""
-    state = solutions['n'].states[0]   
+    state = solution.states[0]   
     state.aux[3,:,:] = state.q[0,:,:]
 
     # To set to 0 1st 1/2 of the domain. Used in rect domains with PBC in x
@@ -225,7 +225,5 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
     if htmlplot: pyclaw.plot.html_plot()
 
 if __name__=="__main__":
-    import sys
-    from pyclaw.util import _info_from_argv
-    args, kwargs = _info_from_argv(sys.argv)
-    psystem2D(*args,**kwargs)
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(psystem2D)

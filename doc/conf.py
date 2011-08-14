@@ -12,6 +12,14 @@ sys.path.append(os.path.abspath('../src'))
 sys.path.append(os.path.abspath('./ext'))
 
 
+######################################################################################
+# The following is needed only now. Once Sphinx 1.1 will be released it can be removed 
+# because MathJax extension will be builtin in Sphinx 1.1
+# More info at https://bitbucket.org/birkenfeld/sphinx/issues?status=new&status=open
+sys.path.append(os.path.abspath('.'))
+######################################################################################
+
+
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -19,7 +27,25 @@ sys.path.append(os.path.abspath('./ext'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.coverage', 'sphinx.ext.jsmath', 'sphinx.ext.viewcode','sphinx.ext.inheritance_diagram']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.coverage','sphinx.ext.viewcode','sphinx.ext.inheritance_diagram']
+
+
+
+#############################################################################################################
+# The instruction included in this part of the file (betqeen #### signs) are needed only now.
+# Once Sphinx 1.1 is released they can be removed because MathJax extension will be builtin in that release.
+# More info at https://bitbucket.org/birkenfeld/sphinx/issues?status=new&status=open
+
+
+# Add mathjax extension
+extensions.append('mathjax')
+
+# Point to the MathJax CDN (latest MathJax.js stable release)
+#mathjax_path = 'https://d3eoax9i5htok0.cloudfront.net/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
+mathjax_path = 'http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
+##############################################################################################################
+
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['./_templates']

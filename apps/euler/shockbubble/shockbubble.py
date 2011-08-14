@@ -55,7 +55,7 @@ def shockbc(grid,dim,t,qbc,mbc):
             qbc[3,i,...] = einf
             qbc[4,i,...] = 0.
 
-def euler_rad_src(solver,solutions,t,dt):
+def euler_rad_src(solver,solution,t,dt):
     """
     Geometric source terms for Euler equations with radial symmetry.
     Integrated using a 2-stage, 2nd-order Runge-Kutta method.
@@ -65,8 +65,8 @@ def euler_rad_src(solver,solutions,t,dt):
     press = 0.
     ndim = 2
 
-    aux=solutions['n'].states[0].aux
-    q = solutions['n'].states[0].q
+    aux=solution.states[0].aux
+    q = solution.states[0].q
 
     rad = aux[0,:,:]
 
@@ -158,9 +158,5 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     return claw.solution.q
 
 if __name__=="__main__":
-    import sys
-    if len(sys.argv)>1:
-        from pyclaw.util import _info_from_argv
-        args, kwargs = _info_from_argv(sys.argv)
-        shockbubble(*args,**kwargs)
-    else: shockbubble()
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(shockbubble)

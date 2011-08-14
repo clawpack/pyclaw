@@ -121,9 +121,11 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
     for state in solution.states:
         grid = state.grid
         if rank==0:
-            pickle.dump({'stateno':state.stateno,'level':grid.level,
+            pickle.dump({'level':grid.level,
                          'names':grid.name,'lower':grid.lower,
                          'n':grid.n,'d':grid.d}, pickle_file)
+#       we will reenable this bad boy when we switch over to petsc-dev
+#        state.q_da.view(viewer)
         if write_p:
             state.gpVec.view(viewer)
         else:
@@ -180,10 +182,10 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     # this dictionary is mostly holding debugging information, only nstates is needed
     # most of this information is explicitly saved in the individual grids
     value_dict = pickle.load(pickle_file)
-    nstates   = value_dict['nstates']                    
-    ndim     = value_dict['ndim']
-    maux     = value_dict['maux']
-    meqn     = value_dict['meqn']
+    nstates    = value_dict['nstates']                    
+    ndim       = value_dict['ndim']
+    maux       = value_dict['maux']
+    meqn       = value_dict['meqn']
 
     # now set up the PETSc viewer
     if options['format'] == 'ascii':
@@ -212,7 +214,6 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     for m in xrange(nstates):
         grid_dict = pickle.load(pickle_file)
 
-        stateno  = grid_dict['stateno']
         level   = grid_dict['level']
         names   = grid_dict['names']
         lower   = grid_dict['lower']
@@ -230,24 +231,17 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         grid.level = level 
         #state = pyclaw.state.State(grid)
         state = petclaw.State(grid) ##
-        state.stateno = stateno
         state.t = value_dict['t']
         state.aux_global = value_dict['aux_global']
 
-        da = state._create_DA(meqn)
-        gVec = da.createGlobalVector()
-        gVec.load(viewer)
-        dim=[meqn]
-        dim.extend(grid.ng)
-        state.q = gVec.getArray().reshape(dim,order='F')
+        state.meqn=meqn
+#       DA View/Load is broken in Petsc-3.1.8, we can load/view the DA if needed in petsc-3.2
+#       state.q_da.load(viewer)
+        state.gqVec.load(viewer)
         
         if read_aux:
-            da = state._create_DA(maux)
-            gVec = da.createGlobalVector()
-            gVec.load(aux_viewer)
-            dim=[maux]; 
-            dim.extend(grid.ng)
-            state.aux = gVec.getArray().reshape(dim,order='F')
+            state.maux=maux
+            state.gauxVec.load(aux_viewer)
         
         solution.states.append(state)
 

@@ -1,7 +1,7 @@
 c
 c
 c ===================================================================
-      subroutine step1(maxmx,meqn,mwaves,mbc,maux,mx, q,aux,dx,dt,
+      subroutine step1(maxmx,meqn,mwaves,mbc,maux,mx,q,aux,dx,dt,
      &              method,mthlim,cfl,f,fwave,s,amdq,apdq,dtdx)
 c ===================================================================
 c     # This version uses interleaved arrays.
@@ -47,8 +47,6 @@ c     --------------------------------------------------------------------
 c
       implicit double precision (a-h,o-z)
       dimension    q(meqn,1-mbc:maxmx+mbc)
-cf2py intent(in,out) q  
-cf2py intent(out) cfl  
       dimension  aux(maux,1-mbc:maxmx+mbc)
       dimension    f(meqn,1-mbc:maxmx+mbc)
       dimension    s(mwaves,1-mbc:maxmx+mbc)
@@ -58,6 +56,15 @@ cf2py intent(out) cfl
       dimension dtdx(1-mbc:maxmx+mbc)
       dimension method(7),mthlim(mwaves)
       logical limit
+
+
+cf2py intent(in,out) q  
+cf2py intent(out) cfl  
+cf2py intent(in) meqn  
+cf2py intent(in) mbc  
+cf2py intent(in) maxmx  
+cf2py optional f, amdq, apdq, dtdx, s, fwave
+
 c
 c     # check if any limiters are used:
       limit = .false.

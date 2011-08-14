@@ -54,7 +54,7 @@ def burgers2D(iplot=False,petscPlot=True,useController=True,htmlplot=False,outdi
     # The output format MUST be set to petsc!
     claw.output_format = 'petsc'
     claw.tfinal = tfinal
-    claw.solutions['n'] = inital_solution
+    claw.solution = inital_solution
     claw.solver = solver
     claw.outdir = outdir
 
@@ -66,9 +66,5 @@ def burgers2D(iplot=False,petscPlot=True,useController=True,htmlplot=False,outdi
 
 
 if __name__=="__main__":
-    import sys
-    if len(sys.argv)>1:
-        from petclaw.util import _info_from_argv
-        args, kwargs = _info_from_argv(sys.argv)
-        burgers2D(*args,**kwargs)
-    else: burgers2D()
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(burgers2D)

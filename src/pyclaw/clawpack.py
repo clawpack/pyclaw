@@ -21,7 +21,7 @@ import riemann
 # ========================================================================
 #  User-defined routines
 # ========================================================================
-def start_step(solver,solutions):
+def start_step(solver,solution):
     r"""
     Dummy routine called before each step
     
@@ -29,7 +29,7 @@ def start_step(solver,solutions):
     """
     pass
 
-def src(solver,solutions,t,dt):
+def src(solver,solution,t,dt):
     r"""
     Dummy routine called to calculate a source term
     
@@ -120,7 +120,7 @@ class ClawSolver(Solver):
         super(ClawSolver,self).__init__(data)
     
     # ========== Setup Routine ===============================================
-    def setup(self,solutions):
+    def setup(self,solution):
         r"""
         Called before any set of time steps.
         
@@ -170,9 +170,9 @@ class ClawSolver(Solver):
                                         " use one of the derived classes.")
          
     # ========== Time stepping routines ======================================
-    def step(self,solutions):
+    def step(self,solution):
         r"""
-        Evolve solutions one time step
+        Evolve solution one time step
 
         This routine encodes the generic order in a full time step in this
         order:
@@ -193,27 +193,22 @@ class ClawSolver(Solver):
         pyclaw.solver.Solver superclass.
 
         :Input:
-         - *solutions* - (:class:`~pyclaw.solution.Solution`) Dictionary of 
-           solutions to be evolved
+         - *solution* - (:class:`~pyclaw.solution.Solution`) solution to be evolved
          
         :Output: 
          - (bool) - True if full step succeeded, False otherwise
         """
 
         # Call b4step, pyclaw should be subclassed if this is needed
-        self.start_step(self,solutions)
+        self.start_step(self,solution)
 
         # Source term splitting, pyclaw should be subclassed if this 
         # is needed
         if self.src_split == 2:
-            self.src(self,solutions,solutions['n'].t, self.dt/2.0)
+            self.src(self,solution,solution.t, self.dt/2.0)
     
         # Take a step on the homogeneous problem
-        self.homogeneous_step(solutions)
-
-        # Putting this here now for PetClaw.  We should think about the best way
-        # to handle CFL communication.
-        self.communicateCFL()
+        self.homogeneous_step(solution)
 
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
@@ -223,17 +218,17 @@ class ClawSolver(Solver):
 
         # Strang splitting
         if self.src_split == 2:
-            self.src(self,solutions,solutions['n'].t + self.dt/2.0, self.dt/2.0)
+            self.src(self,solution,solution.t + self.dt/2.0, self.dt/2.0)
 
         # Godunov Splitting
         if self.src_split == 1:
-            self.src(self,solutions,solutions['n'].t,self.dt)
+            self.src(self,solution,solution.t,self.dt)
             
         return True
             
-    def homogeneous_step(self,solutions):
+    def homogeneous_step(self,solution):
         r"""
-        Take one homogeneous step on the solutions
+        Take one homogeneous step on the solution.
         
         This is a dummy routine and must be overridden.
         """
@@ -295,17 +290,17 @@ class ClawSolver1D(ClawSolver):
 
 
     # ========== Setup routine =============================   
-    def setup(self,solutions):
+    def setup(self,solution):
         r"""
         Perform essential solver setup.  This routine must be called before
         solver.step() may be called.
         """
         self.set_mthlim()
         if(self.kernel_language == 'Fortran'):
-            self.set_fortran_parameters(solutions)
+            self.set_fortran_parameters(solution)
 
 
-    def set_fortran_parameters(self,solutions):
+    def set_fortran_parameters(self,solution):
         r"""
         Pack parameters into format recognized by Clawpack (Fortran) code.
 
@@ -313,7 +308,7 @@ class ClawSolver1D(ClawSolver):
         """
         import numpy as np
 
-        state = solutions['n'].state
+        state = solution.state
 
         self.method =np.ones(7, dtype=int)
         self.method[0] = self.dt_variable
@@ -321,10 +316,7 @@ class ClawSolver1D(ClawSolver):
         self.method[2] = 0  # Not used in 1D
         self.method[3] = self.verbosity
         self.method[4] = self.src_split
-        if (state.capa == None):
-            self.method[5] = 0  
-        else:
-            self.method[5] = 1  
+        self.method[5] = state.mcapa + 1
         self.method[6] = state.maux  # aux
  
         if self.fwave:
@@ -383,7 +375,7 @@ class ClawSolver1D(ClawSolver):
             raise NameError(error_msg)
 
     # ========== Homogeneous Step =====================================
-    def homogeneous_step(self,solutions):
+    def homogeneous_step(self,solution):
         r"""
         Take one time step on the homogeneous hyperbolic system
 
@@ -391,14 +383,14 @@ class ClawSolver1D(ClawSolver):
         appropriate Riemann solver rp.
 
         :Input:
-         - *solutions* - (:class:`~pyclaw.solution.Solution`) Solution that 
+         - *solution* - (:class:`~pyclaw.solution.Solution`) Solution that 
            will be evolved
 
         :Version: 1.0 (2009-07-01)
         """
         import numpy as np
 
-        state = solutions['n'].states[0]
+        state = solution.states[0]
         grid = state.grid
 
         q = state.qbc
@@ -571,7 +563,7 @@ class ClawSolver2D(ClawSolver):
         super(ClawSolver2D,self).__init__(data)
 
     # ========== Setup routine =============================   
-    def setup(self,solutions):
+    def setup(self,solution):
         r"""
         Perform essential solver setup.  This routine must be called before
         solver.step() may be called.
@@ -588,11 +580,11 @@ class ClawSolver2D(ClawSolver):
             warnings.warn('cfl_max is set higher than the recommended value of %s' % cfl_recommended)
 
         if(self.kernel_language == 'Fortran'):
-            self.set_fortran_parameters(solutions)
+            self.set_fortran_parameters(solution)
         else: raise Exception('Only Fortran kernels are supported in 2D.')
 
 
-    def set_fortran_parameters(self,solutions):
+    def set_fortran_parameters(self,solution):
         r"""
         Pack parameters into format recognized by Clawpack (Fortran) code.
 
@@ -601,7 +593,7 @@ class ClawSolver2D(ClawSolver):
         import numpy as np
 
         # Grid we will be working on
-        state = solutions['n'].states[0]
+        state = solution.states[0]
         grid  = state.grid
 
         # The reload here is necessary because otherwise the common block
@@ -631,10 +623,7 @@ class ClawSolver2D(ClawSolver):
         self.method[3] = self.verbosity
         self.method[4] = self.src_split  # src term
 
-        if (state.capa == None): 
-            self.method[5] = 0
-        else: 
-            self.method[5] = 1  
+        self.method[5] = state.mcapa + 1
         self.method[6] = maux
             
         self.cflv = np.zeros(4)
@@ -702,7 +691,7 @@ class ClawSolver2D(ClawSolver):
             raise NameError(error_msg)
 
     # ========== Homogeneous Step =====================================
-    def homogeneous_step(self,solutions):
+    def homogeneous_step(self,solution):
         r"""
         Take a step on the homogeneous hyperbolic system using the Clawpack
         algorithm.
@@ -714,7 +703,7 @@ class ClawSolver2D(ClawSolver):
 
 
         if(self.kernel_language == 'Fortran'):
-            state = solutions['n'].states[0]
+            state = solution.states[0]
             grid = state.grid
             meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
             mx,my = grid.ng[0],grid.ng[1]

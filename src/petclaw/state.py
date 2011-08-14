@@ -177,10 +177,9 @@ class State(pyclaw.state.State):
         self.t=0.
         r"""(float) - Current time represented on this grid, 
             ``default = 0.0``"""
-        self.stateno = 1
-        r"""(int) - State number of current state, ``default = 1``"""
         self.capa = None
         r"""(ndarray(...)) - Capacity array for this grid, ``default = 1.0``"""
+        self.mcapa = -1
 
     def _init_aux_da(self,maux,mbc=0):
         r"""

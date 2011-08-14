@@ -10,7 +10,7 @@
 
 import numpy as np
 from petclaw import plot
-#import pdb
+#import pdb  # Debugger
 
 
 def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
@@ -54,8 +54,8 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     solver.dim_split=1
 
     #===========================================================================
-    # Initialize grids, then initialize the solution associated to the grid and
-    # finally initialize aux array
+    # Initialize grid and state, then initialize the solution associated to the 
+    # state and finally initialize aux array
     #===========================================================================
 
     # Grid:
@@ -68,12 +68,12 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
     grid = pyclaw.Grid([x,y])
-    state = pyclaw.State(grid)
 
+    # Sate:
+    state = pyclaw.State(grid)
     state.meqn = 3  # Number of equations
 
-    # Parameters
-    grav = 1.0
+    grav = 1.0 # Parameter (global auxiliary variable)
     state.aux_global['grav'] = grav
 
     # Initial solution
@@ -112,14 +112,9 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
 
 
 if __name__=="__main__":
-    import sys
-    if len(sys.argv)>1:
-        from pyclaw.util import _info_from_argv
-        args, kwargs = _info_from_argv(sys.argv)
-        error=shallow2D(*args,**kwargs)
-        print 'Error: ',error
-    else: shallow2D()
-
+    from pyclaw.util import run_app_from_main
+    output = run_app_from_main(shallow2D)
+    print 'Error: ', output
 
 
 

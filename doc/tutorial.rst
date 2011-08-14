@@ -7,17 +7,24 @@ Pyclaw Tutorial
 PyClaw is designed to solve general systems of hyperbolic PDEs of the form
 
 .. math::
-   \kappa(x) q_t + A(q,x) q_x = 0.
+   \begin{equation}
+        \kappa(x) q_t + A(q,x) q_x = 0.
+    \end{equation}
+
 
 As an example, in this tutorial we'll set up a simulation that solves 
 the acoustics equations in one dimension:
 
 .. math::
-   p_t + K u_x = 0
+   \begin{eqnarray}
+        &p_t + K u_x = 0\\
+        &u_t + \frac{1}{\rho} p_x = 0
+    \end{eqnarray}
 
-   u_t + \frac{1}{\rho} p_x = 0
 
-.. The key to solving a particular system of equations with PyClaw or other similar codes is a Riemann solver.  Riemann solvers for many systems are available as part of the clawpack/riemann package.  
+
+.. The key to solving a particular system of equations with PyClaw or other similar codes is a Riemann solver.  Riemann solvers for many systems are available as part of the clawpack/riemann package. 
+
 We'll assume that you've already followed the :ref:`installation` instructions.
 
 Now launch an iPython session and import pyclaw::
@@ -83,7 +90,7 @@ Now we will set the initial value of the solution::
     >>> state.q[0,:] = exp(-100 * (xc-0.75)**2)
     >>> state.q[1,:] = 0.
 
-The pressure (grid.q[0,:]) is set to a Gaussian centered at $x=0.75$.
+The pressure (grid.q[0,:]) is set to a Gaussian centered at :math:`x=0.75`.
 The velocity (grid.q[1,:]) is set to zero everywhere.
 
 Finally, we put the state into a Solution object::
@@ -94,10 +101,10 @@ Finally, we put the state into a Solution object::
 Problem-specific parameters
 ============================
 The acoustics equations above have some coefficients -- namely, the
-bulk modulus $K$ and density $\rho$ -- that must be defined.
+bulk modulus :math:`K` and density :math:`\rho` -- that must be defined.
 Furthermore, checking the code for the Riemann solver we've chosen
-reveals that it expects us to provide values for the impedance $Z$
-and sound speed $c$.  These values are stored in a Python dictionary
+reveals that it expects us to provide values for the impedance :math:`Z`
+and sound speed :math:`c`.  These values are stored in a Python dictionary
 called aux_global that is a member of the :class:`~pyclaw.state.State`::
 
     >>> from math import sqrt

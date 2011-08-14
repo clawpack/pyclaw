@@ -9,7 +9,7 @@ Plotting with Pyclaw
 =====================
 Pyclaw includes routines for creating HTML and LaTex plot pages or plotting interactively.
 These require a `setplot.py` file that defines the plotting parameters;
-see `this help page <http://kingkong.amath.washington.edu/clawpack/users/setplot.html>`
+see `this help page <http://kingkong.amath.washington.edu/clawpack/users/setplot.html>`_
 for more information.  Once you have an appropriate `setplot.py` file,
 there are some convenience functions in `$PETCLAW/src/petclaw/plot.py`
 for generating these plots.  Assuming you have output files in `./_output`

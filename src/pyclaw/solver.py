@@ -142,7 +142,7 @@ class Solver(object):
         
         # Initialize time stepper values
         self.dt = self._default_attr_values['dt_initial']
-        self.cfl = self._default_attr_values['cfl_desired']
+        self._cfl = self._default_attr_values['cfl_desired']
         
         # Status Dictionary
         self.status = {'cflmax':self.cfl,
@@ -178,6 +178,14 @@ class Solver(object):
         be populated by method Solver.evolve_to_time in case Solver.dt_variable
         is set to be used when rejecting step. It can be used by solvers but
         should not be changed"""
+
+    def cfl():
+        def fget(self):
+                return self._cfl
+        def fset(self,cflnum):
+            self._cfl = cflnum
+        return locals()
+    cfl = property(**cfl())
 
 
 
@@ -230,7 +238,7 @@ class Solver(object):
 
         return valid
         
-    def setup(self,solutions):
+    def setup(self,solution):
         r"""
         Stub for solver setup routines.
         
@@ -254,7 +262,7 @@ class Solver(object):
         pass
         
 
-    def allocate_rk_stages(self,solutions):
+    def allocate_rk_stages(self,solution):
         r"""
         Instantiate State objects for Runge--Kutta stages.
 
@@ -268,7 +276,7 @@ class Solver(object):
         elif self.time_integrator == 'SSP33':  nregisters=2
         elif self.time_integrator == 'SSP104': nregisters=3
  
-        state = solutions['n'].states[0]
+        state = solution.states[0]
         self.rk_stages = []
         for i in range(nregisters-1):
             self.rk_stages.append(State(state.grid))
@@ -628,19 +636,14 @@ class Solver(object):
     # ========================================================================
     def evolve_to_time(self,*args):
         r"""
-        Evolve solutions['n'] to tend
+        Evolve solution to tend
         
         This method contains the machinery to evolve the solution object in
-        ``solutions['n']`` to the requested end time tend if given, or one 
-        step if not.  The solutions dictionary is provided as a generic 
-        interface to multistep methods that may require more than one solution
-        at multiple times to evolve where it is understood that the solution 
-        at ``solutions['n']`` is the solution at the current time step that is
-        to be evolved.
-        
+        ``solution`` to the requested end time tend if given, or one 
+        step if not.          
+
         :Input:
-         - *solutions* - (:class:`Solution`) Dictionary of Solutions to be 
-           evolved
+         - *solution* - (:class:`Solution`) Solution to be evolved
          - *tend* - (float) The end time to evolve to, if not provided then 
            the method will take a single time step.
             
@@ -649,7 +652,7 @@ class Solver(object):
         """
         
         # Parse arguments
-        solutions = args[0]
+        solution = args[0]
         if len(args) > 1:
             tend = args[1]
             take_one_step = False
@@ -662,7 +665,7 @@ class Solver(object):
 
         # Parameters for time stepping
         retake_step = False
-        tstart = solutions['n'].t
+        tstart = solution.t
 
         # Reset status dictionary
         self.status['cflmax'] = self.cfl
@@ -687,50 +690,50 @@ class Solver(object):
         # Main time stepping loop
         for n in xrange(self.max_steps):
             
-            state = solutions["n"].state
+            state = solution.state
             
             # update boundary conditions
             state.qbc = self.qbc(state)
 
         
             # Adjust dt so that we hit tend exactly if we are near tend
-            if solutions['n'].t + self.dt > tend and tstart < tend and not take_one_step:
-                self.dt = tend - solutions['n'].t 
+            if solution.t + self.dt > tend and tstart < tend and not take_one_step:
+                self.dt = tend - solution.t 
 
             # In case we need to retake a time step
             if self.dt_variable:
                 self.qbc_backup = state.qbc.copy('F')
-                told = solutions["n"].t
+                told = solution.t
             retake_step = False  # Reset flag
             
             # Take one time step defined by the subclass
-            self.step(solutions)
+            self.step(solution)
 
             # Check to make sure that the Courant number was not too large
             if self.cfl <= self.cfl_max:
                 # Accept this step
                 self.status['cflmax'] = max(self.cfl, self.status['cflmax'])
                 if self.dt_variable==True:
-                    solutions['n'].t += self.dt 
+                    solution.t += self.dt 
                 else:
                     #Avoid roundoff error if dt_variable=False:
-                    solutions['n'].t = tstart+(n+1)*self.dt
+                    solution.t = tstart+(n+1)*self.dt
                 # Verbose messaging
                 self.logger.debug("Step %i  CFL = %f   dt = %f   t = %f"
-                    % (n,self.cfl,self.dt,solutions['n'].t))
+                    % (n,self.cfl,self.dt,solution.t))
                     
-                self.write_gauge_values(solutions['n'])
+                self.write_gauge_values(solution)
                 # Increment number of time steps completed
                 self.status['numsteps'] += 1
                 # See if we are finished yet
-                if solutions['n'].t >= tend or take_one_step:
+                if solution.t >= tend or take_one_step:
                     break
             else:
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
                 if self.dt_variable:
                     self.set_global_q(state, self.qbc_backup)
-                    solutions['n'].t = told
+                    solution.t = told
                     # Retake step
                     retake_step = True
                 else:
@@ -751,7 +754,7 @@ class Solver(object):
       
         # End of main time stepping loop -------------------------------------
 
-        if self.dt_variable and solutions['n'].t < tend \
+        if self.dt_variable and solution.t < tend \
                 and self.status['numsteps'] == self.max_steps:
             raise Exception("Maximum number of timesteps have been taken")
 
@@ -769,12 +772,6 @@ class Solver(object):
         """
         raise NotImplementedError("No stepping routine has been defined!")
 
-    def communicateCFL(self):
-        r"""
-        Dummy function, only here for PetClaw to override.
-        """
-        pass
-            
     # ========================================================================
     #  Gauges
     # ========================================================================

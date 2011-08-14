@@ -19,7 +19,7 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
         solver = pyclaw.SharpClawSolver1D()
     else: raise Exception('Unrecognized value of solver_type.')
 
-    # Initialize grids and solutions
+    # Initialize grids and solution
     x = pyclaw.Dimension('x',0.0,1.0,100)
     grid = pyclaw.Grid(x)
     state = pyclaw.State(grid)
@@ -60,7 +60,7 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
 
     claw.outdir = outdir
     claw.tfinal = 1.0
-    claw.solutions['n'] = init_solution
+    claw.solution = init_solution
     claw.solver = solver
 
     # Solve
@@ -85,4 +85,4 @@ if __name__=="__main__":
     from pyclaw.util import _info_from_argv
     args, kwargs = _info_from_argv(sys.argv)
     error=acoustics(*args,**kwargs)
-    print '1-norm of difference between initial and final solutions: ',error
+    print '1-norm of difference between initial and final solution: ',error

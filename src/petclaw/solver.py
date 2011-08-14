@@ -66,21 +66,27 @@ class PetSolver(pyclaw.solver.Solver):
         aux_dim.insert(0,state.maux)
         ghosted_aux=state.lauxVec.getArray().reshape(aux_dim, order = 'F')
         return ghosted_aux
- 
-    def communicateCFL(self):
+
+    def cfl():
         r"""
         Compute the maximum CFL number over all processes.
 
         This is used to determine whether the CFL condition was
         violated and adjust the timestep.
         """
-        from petsc4py import PETSc
+        def fget(self):
+            from petsc4py import PETSc
+            if self.dt_variable:
+                cflVec = PETSc.Vec().createWithArray([self._cfl])
+                return cflVec.max()[1]
+            else:
+                return self._cfl
+        def fset(self,cflnum):
+            self._cfl = cflnum
+        return locals()
+    cfl = property(**cfl())
 
-        if self.dt_variable:
-            cflVec = PETSc.Vec().createWithArray([self.cfl])
-            self.cfl = cflVec.max()[1]
-
-    def allocate_rk_stages(self,solutions):
+    def allocate_rk_stages(self,solution):
         r"""We could eliminate this function and just use
         the version in pyclaw.solver.Solver, if we were willing to
         check there whether the solver is a PetSolver.  But this
@@ -93,7 +99,7 @@ class PetSolver(pyclaw.solver.Solver):
         elif self.time_integrator == 'SSP33':  nregisters=2
         elif self.time_integrator == 'SSP104': nregisters=3
  
-        state = solutions['n'].states[0]
+        state = solution.states[0]
         self.rk_stages = []
         for i in range(nregisters-1):
             self.rk_stages.append(State(state.grid))
@@ -104,6 +110,4 @@ class PetSolver(pyclaw.solver.Solver):
             self.rk_stages[-1].t                = state.t
             if state.maux > 0:
                 self.rk_stages[-1].aux              = state.aux
-
-
 

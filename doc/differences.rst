@@ -9,7 +9,7 @@ Most of these are planned for inclusion in Clawpack 5.0.
 Interleaved arrays
 ===================
 PyClaw uses a different array indexing than Clawpack.  In PetClaw,
-the value of the $m$th conserved quantity at $(x_i,y_j)$ is ::
+the value of the :math:`m`-th conserved quantity at :math:`(x_i,y_j)` is ::
 
     q[m,i,j]
 

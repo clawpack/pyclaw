@@ -17,7 +17,7 @@ except:
     from pyclaw.limiters import recon
 
 
-def start_step(solver,solutions):
+def start_step(solver,solution):
     r"""
     Dummy routine called before each step
     
@@ -76,7 +76,7 @@ class SharpClawSolver(Solver):
         super(SharpClawSolver,self).__init__(data)
         
     # ========== Time stepping routines ======================================
-    def step(self,solutions):
+    def step(self,solution):
         """Evolve q over one time step.
 
         Take on Runge-Kutta time step using the method specified by
@@ -87,9 +87,9 @@ class SharpClawSolver(Solver):
         'SSP104' : 4th-order strong stability preserving method Ketcheson
         """
         from pyclaw.solution import Solution
-        state = solutions['n'].states[0]
+        state = solution.states[0]
 
-        self.start_step(self,solutions)
+        self.start_step(self,solution)
 
         try:
             if self.time_integrator=='Euler':
@@ -155,7 +155,6 @@ class SharpClawSolver(Solver):
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
         # dt
-        self.communicateCFL()
         if self.cfl >= self.cfl_max:
             raise CFLError('cfl_max exceeded')
 
@@ -224,10 +223,7 @@ class SharpClawSolver(Solver):
         clawparams.char_decomp   = self.char_decomp
         clawparams.tfluct_solver = self.tfluct_solver
         clawparams.fwave         = self.fwave
-        if state.capa is not None:
-            clawparams.mcapa         = 1
-        else:
-            clawparams.mcapa         = 0
+        clawparams.mcapa         = state.mcapa+1
 
         clawparams.mwaves        = self.mwaves
         clawparams.alloc_clawparams()
@@ -260,17 +256,17 @@ class SharpClawSolver1D(SharpClawSolver):
         super(SharpClawSolver1D,self).__init__(data)
 
 
-    def setup(self,solutions):
+    def setup(self,solution):
         """
         Allocate RK stage arrays and fortran routine work arrays.
         """
-        self.allocate_rk_stages(solutions)
+        self.allocate_rk_stages(solution)
         self.set_mthlim()
  
         if self.kernel_language=='Fortran':
             from sharpclaw1 import clawparams, workspace, reconstruct
             import sharpclaw1
-            state = solutions['n'].states[0]
+            state = solution.states[0]
             state.set_cparam(sharpclaw1)
             self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
 
@@ -419,17 +415,17 @@ class SharpClawSolver2D(SharpClawSolver):
         super(SharpClawSolver2D,self).__init__(data)
 
 
-    def setup(self,solutions):
+    def setup(self,solution):
         """
         Allocate RK stage arrays and fortran routine work arrays.
         """
-        self.allocate_rk_stages(solutions)
+        self.allocate_rk_stages(solution)
         self.set_mthlim()
  
         if self.kernel_language=='Fortran':
             from sharpclaw2 import clawparams, workspace, reconstruct
             import sharpclaw2
-            state = solutions['n'].states[0]
+            state = solution.states[0]
             state.set_cparam(sharpclaw2)
             self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
 

@@ -1,11 +1,13 @@
 c
 c
 c ===================================================================
-      subroutine step1(maxmx,meqn,mwaves,mbc,maux,mx,q,aux,dx,dt,
+      subroutine homodisc1(maxmx,meqn,mwaves,mbc,maux,mx, q,aux,dx,dt,
      &              method,mthlim,cfl,f,wave,s,amdq,apdq,dtdx)
 c ===================================================================
 c
-c     # Take one time step, updating q.
+c     # Take one time step and compute the contribution of the
+c       hyperbolic part to the nonlinear function arising from the
+c       implicit Lax-Wendroff discretization.
 c
 c     method(1) = 1   ==>  Godunov method
 c     method(1) = 2   ==>  Slope limiter method
@@ -35,6 +37,7 @@ c     --------------------------------------------------------------------
 c
       implicit double precision (a-h,o-z)    
       double precision q(meqn,1-mbc:maxmx+mbc)
+      double precision hypdisc(meqn,1-mbc:maxmx+mbc)
       double precision aux(maux,1-mbc:maxmx+mbc)
       double precision f(meqn,1-mbc:maxmx+mbc)
       double precision s(mwaves,1-mbc:maxmx+mbc)
@@ -45,7 +48,8 @@ c
       integer          method(7),mthlim(mwaves)
       logical limit
 
-cf2py intent(in,out) q  
+cf2py intent(in) q 
+cf2py intent(out) hypdisc
 cf2py intent(out) cfl  
 cf2py intent(in) meqn  
 cf2py intent(in) mbc  
@@ -91,8 +95,8 @@ c
 c     print *,"q before, from fortran",q(24,1)
 
       forall(i=1:mx+1, m=1:meqn)
-         q(m,i) = q(m,i) - dtdx(i)*apdq(m,i)
-         q(m,i-1) = q(m,i-1) - dtdx(i-1)*amdq(m,i)
+         hypdisc(m,i) =  dtdx(i)*apdq(m,i)
+         hypdisc(m,i-1) = dtdx(i-1)*amdq(m,i)
       end forall
 
 c
@@ -134,9 +138,10 @@ c
 c     # (Note:  Godunov update has already been performed above)
 c
       forall(i=1:mx+1, m=1:meqn)
-            q(m,i) = q(m,i) - dtdx(i) * (f(m,i+1) - f(m,i))
+            hypdisc(m,i) = hypdisc(m,i) + dtdx(i) * (f(m,i+1) - f(m,i))
       end forall
 c
   900 continue
       return
       end
+

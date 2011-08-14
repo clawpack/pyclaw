@@ -336,7 +336,6 @@ class Solution(object):
         output = "states:\n"
         # This is information about each of the states
         for state in self.states:
-            output = ''.join((output,'  %s:\n' % state.stateno))
             output = output + str(state)
         return str(output)
     
