@@ -144,7 +144,7 @@ class Controller(object):
         r"""(string) - Directory to use for writing derived quantity files"""
 
         # functionals
-        self.compute_f = None
+        self.compute_F = None
         r"""(function) - Function that computes density of functional F"""
         self.F_file_name = 'F'
         r"""(string) - Name of text file containing functionals"""
