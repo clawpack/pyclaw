@@ -143,6 +143,9 @@ class State(pyclaw.state.State):
         if not isinstance(grid,petclaw.grid.Grid):
             raise Exception("""A PetClaw State object must be initialized with
                              a PetClaw Grid object.""")
+        self.aux_da = None
+        self.q_da = None
+
         self._p_da = None
         self.gpVec = None
 

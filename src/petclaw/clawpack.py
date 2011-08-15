@@ -40,6 +40,8 @@ class ClawSolver1D(PetSolver,pyclaw.clawpack.ClawSolver1D):
         if(self.kernel_language == 'Fortran'):
             self.set_fortran_parameters(solution)
 
+        self.allocate_bc_arrays(state)
+
 # ============================================================================
 #  PetClaw 2d Solver Class
 # ============================================================================
@@ -70,4 +72,4 @@ class ClawSolver2D(PetSolver,pyclaw.clawpack.ClawSolver2D):
             self.set_fortran_parameters(solution)
         else: raise Exception('Only Fortran kernels are supported in 2D.')
 
-
+        self.allocate_bc_arrays(state)

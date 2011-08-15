@@ -160,7 +160,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     if iplot:     pyclaw.plot.interactive_plot(format=claw.output_format)
 
     if use_petsc:
-        density=claw.frames[claw.nout].state.gqVec.getArray().reshape([state.meqn,grid.ng[0],grid.ng[1]],order='F')[0,:,:]
+        density=claw.frames[claw.nout].state.gqVec.getArray().reshape([state.meqn,grid.n[0],grid.n[1]],order='F')[0,:,:]
     else:
         density=claw.frames[claw.nout].state.q[0,:,:]
     return density

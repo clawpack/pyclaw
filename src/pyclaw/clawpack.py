@@ -224,21 +224,11 @@ class ClawSolver1D(ClawSolver):
         Perform essential solver setup.  This routine must be called before
         solver.step() may be called.
         """
-        import numpy as np
-
         self.set_mthlim()
         if(self.kernel_language == 'Fortran'):
             self.set_fortran_parameters(solution)
 
-        qbc_dim = [n+2*self.mbc for n in solution.states[0].grid.n]
-        qbc_dim.insert(0,solution.states[0].meqn)
-        self.qbc = np.empty(qbc_dim)
-
-        auxbc_dim = [n+2*self.mbc for n in solution.states[0].grid.n]
-        auxbc_dim.insert(0,solution.states[0].maux)
-        self.auxbc = np.empty(auxbc_dim)
-
-
+        self.allocate_bc_arrays(solution.states[0])
 
     def set_fortran_parameters(self,solution):
         r"""
@@ -295,9 +285,6 @@ class ClawSolver1D(ClawSolver):
             
         meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
           
-        if maux>0:
-            aux = self.auxbc(state)
-
         if(self.kernel_language == 'Fortran'):
             if self.fwave:
                 import classic1fw as classic1
@@ -308,10 +295,7 @@ class ClawSolver1D(ClawSolver):
             dx,dt = grid.d[0],self.dt
             dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
             
-            if(maux == 0): aux = np.empty( (maux,mx+2*mbc) )
-        
-       
-            q,self.cfl = classic1.step1(mx,mbc,mx,q,aux,dx,dt,self.method,self.mthlim)
+            q,self.cfl = classic1.step1(mx,mbc,mx,q,self.auxbc,dx,dt,self.method,self.mthlim)
 
         elif(self.kernel_language == 'Python'):
  
@@ -321,8 +305,8 @@ class ClawSolver1D(ClawSolver):
             dtdx = np.zeros( (2*self.mbc+grid.n[0]) )
 
             # Find local value for dt/dx
-            if state.capa is not None:
-                dtdx = self.dt / (grid.d[0] * state.capa)
+            if state.mcapa>=0:
+                dtdx = self.dt / (grid.d[0] * state.aux[mcapa,:])
             else:
                 dtdx += self.dt/grid.d[0]
         
@@ -390,7 +374,7 @@ class ClawSolver1D(ClawSolver):
                     q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1]) 
 
         else: raise Exception("Unrecognized kernel_language; choose 'Fortran' or 'Python'")
-        # Amal: this line need to be replcaed by set_global_q    
+        # Amal: this line need to be replaced by set_global_q    
         state.q = q[:,self.mbc:-self.mbc]
 
    
@@ -466,8 +450,6 @@ class ClawSolver2D(ClawSolver):
         Perform essential solver setup.  This routine must be called before
         solver.step() may be called.
         """
-        import numpy as np
-
         self.set_mthlim()
 
         if (not self.dim_split) and (self.order_trans==0):
@@ -483,14 +465,7 @@ class ClawSolver2D(ClawSolver):
             self.set_fortran_parameters(solution)
         else: raise Exception('Only Fortran kernels are supported in 2D.')
 
-        #self.allocate_local_vectors(
-        qbc_dim = [n+2*self.mbc for n in solution.states[0].grid.n]
-        qbc_dim.insert(0,solution.states[0].meqn)
-        self.qbc = np.empty(qbc_dim)
-
-        auxbc_dim = [n+2*self.mbc for n in solution.states[0].grid.n]
-        auxbc_dim.insert(0,solution.states[0].maux)
-        self.auxbc = np.empty(auxbc_dim)
+        self.allocate_bc_arrays(solution.states[0])
 
     def set_fortran_parameters(self,solution):
         r"""
@@ -518,7 +493,7 @@ class ClawSolver2D(ClawSolver):
 
         #We ought to put method and cflv and many other things in a Fortran
         #module and set the fortran variables directly here.
-        self.method =np.empty(7, dtype=int)
+        self.method =np.empty(7, dtype=int,order='F')
         self.method[0] = self.dt_variable
         self.method[1] = self.order
         if self.dim_split:
@@ -552,9 +527,9 @@ class ClawSolver2D(ClawSolver):
 
         # These work arrays really ought to live inside a fortran module
         # as is done for sharpclaw
-        self.aux1 = np.empty((maux,maxm+2*mbc))
-        self.aux2 = np.empty((maux,maxm+2*mbc))
-        self.aux3 = np.empty((maux,maxm+2*mbc))
+        self.aux1 = np.empty((maux,maxm+2*mbc),order='F')
+        self.aux2 = np.empty((maux,maxm+2*mbc),order='F')
+        self.aux3 = np.empty((maux,maxm+2*mbc),order='F')
         mwork = (maxm+2*mbc) * (5*meqn + mwaves + meqn*mwaves) \
               + (narray-1) * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn
         # Amal: I think no need for the term
@@ -562,44 +537,8 @@ class ClawSolver2D(ClawSolver):
         # this extra q array should be created and handled in function
         # step in case we have src term with strange splitting (Do not
         # think the fortran code will complain, but not sure)
-        self.work = np.empty((mwork))
+        self.work = np.empty((mwork),order='F')
 
-
-    # ========== Riemann solver library routines =============================   
-    def list_riemann_solvers(self):
-        r"""
-        List available Riemann solvers 
-        
-        This routine returns a list of available Riemann solvers which is
-        constructed in the Riemann solver package (_pyclaw_rp).  In this case
-        it lists only the 1D Riemann solvers.
-        
-        :Output:
-         - (list) - List of Riemann solver names valid to be used with
-           :meth:`set_riemann_solver`
-        
-        .. note::
-            These Riemann solvers are currently only accessible to the python 
-            time stepping routines.
-        """
-        return riemann.rp_solver_list_1d
-    
-    def set_riemann_solver(self,solver_name):
-        r"""
-        Assigns the library solver solver_name as the Riemann solver.
-        
-        :Input:
-         - *solver_name* - (string) Name of the solver to be used, raises a 
-           ``NameError`` if the solver does not exist.
-        """
-        import logging
-        if solver_name in riemann.rp_solver_list_1d:
-            exec("self.rp = riemann.rp_%s_1d" % solver_name)
-        else:
-            logger = logging.getLogger('solver')
-            error_msg = 'Could not find Riemann solver with name %s' % solver_name
-            logger.warning(error_msg)
-            raise NameError(error_msg)
 
     # ========== Homogeneous Step =====================================
     def homogeneous_step(self,solution):
@@ -620,19 +559,10 @@ class ClawSolver2D(ClawSolver):
             mx,my = grid.n[0],grid.n[1]
             maxm = max(mx,my)
             
-            #The following is a hack to work around an issue
-            #with f2py.  It involves wastefully allocating a three arrays.
-            #f2py seems not able to handle multiple zero-size arrays being passed.
-            # it appears the bug is related to f2py/src/fortranobject.c line 841.
-            if maux == 0: 
-                aux=np.empty((0,mx+2*mbc,my+2*mbc))
-            else:
-                aux = self.auxbc(state)
-
-            
             dx,dy,dt = grid.d[0],grid.d[1],self.dt
             
-            qnew = state.qbc #(input/output)
+            self.apply_q_bcs(state)
+            qnew = self.qbc #(input/output)
             if self.dt_variable:
                 qold = self.qbc_backup # Solver should quarantee that 
                                         # qbc_backup will not be
@@ -648,15 +578,15 @@ class ClawSolver2D(ClawSolver):
 
             if self.dim_split:
                 q, cfl = classic2.dimsp2(maxm,mx,my,mbc,mx,my, \
-                      qold,qnew,aux,dx,dy,dt,self.method,self.mthlim,self.cfl,self.cflv, \
+                      qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,self.cfl,self.cflv, \
                       self.aux1,self.aux2,self.aux3,self.work)
             else:
                 q, cfl = classic2.step2(maxm,mx,my,mbc,mx,my, \
-                      qold,qnew,aux,dx,dy,dt,self.method,self.mthlim,self.cfl, \
+                      qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,self.cfl, \
                       self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl = cfl
-            self.set_global_q(state, q)
+            self.copy_local_to_global(q,state,self.mbc)
 
         else:
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")

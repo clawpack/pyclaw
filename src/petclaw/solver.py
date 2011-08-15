@@ -20,16 +20,22 @@ class PetSolver(pyclaw.solver.Solver):
     """
     
     # ========== Boundary Conditions ==================================
-    def append_ghost_cells(self,state):
+    def copy_global_to_local(self,state,whichvec):
         """
         Returns q with ghost cells attached.  For PetSolver,
         this means returning the local vector.  
         """
-        state.q_da.globalToLocal(state.gqVec, state.lqVec)
-        q_dim = [n + 2*self.mbc for n in state.grid.n]
-        q_dim.insert(0,state.meqn)
-        ghosted_q=state.lqVec.getArray().reshape(q_dim, order = 'F')
-        return ghosted_q
+        shape = [n + 2*self.mbc for n in state.grid.n]
+        
+        if whichvec == 'q':
+            state.q_da.globalToLocal(state.gqVec, state.lqVec)
+            shape.insert(0,state.meqn)
+            self.qbc=state.lqVec.getArray().reshape(shape, order = 'F')
+
+        elif whichvec == 'aux':
+            state.aux_da.globalToLocal(state.gauxVec, state.lauxVec)
+            shape.insert(0,state.maux)
+            self.auxbc=state.lauxVec.getArray().reshape(shape, order = 'F')
     
     def set_global_q(self,state,ghosted_q):
         """
@@ -51,21 +57,6 @@ class PetSolver(pyclaw.solver.Solver):
         else:
             raise NotImplementedError("The case of 3D is not handled in "\
             +"this function yet")
-
-    def append_ghost_cells_to_aux(self,state):
-        """
-        Returns aux with ghost cells attached.  For PetSolver,
-        this means returning the local vector.  
-
-        The globalToLocal call here could be wasteful if the aux variables
-        don't change in time.  We should add a flag for this and just
-        do it once.
-        """
-        state.aux_da.globalToLocal(state.gauxVec, state.lauxVec)
-        aux_dim = [n + 2*self.mbc for n in state.grid.ng]
-        aux_dim.insert(0,state.maux)
-        ghosted_aux=state.lauxVec.getArray().reshape(aux_dim, order = 'F')
-        return ghosted_aux
 
     def cfl():
         r"""

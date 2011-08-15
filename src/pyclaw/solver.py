@@ -29,34 +29,6 @@ class BC():
     periodic   = 2
     reflecting = 3
 
-def copy_global_to_local(q,qbc,mbc):
-    """
-    Fills in the interior of qbc (local vector) by copying q (global vector) to it.
-    """
-    import numpy as np
-
-    ndim = len(q.shape)-1
-    if ndim == 1:
-        qbc[:,mbc:-mbc] = q
-    elif ndim == 2:
-        qbc[:,mbc:-mbc,mbc:-mbc] = q
-    elif ndim == 3:
-        qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = q
-
-def copy_local_to_global(qbc,q,mbc):
-    """
-    Fills in the values of q (global vector) by copying the interior values
-    of qbc (local vector) to it.
-    """
-    ndim = len(q.shape)-1
-    if ndim == 1:
-        q = qbc[:,mbc:-mbc]
-    elif ndim == 2:
-        q = qbc[:,mbc:-mbc,mbc:-mbc]
-    else:
-        raise NotImplementedError("The case of 3D is not handled in "\
-        +"solver.copy_local_to_global() yet")
-
 #################### Dummy routines ######################
 def default_compute_gauge_values(q,aux):
     r"""By default, record values of q at gauges.
@@ -262,7 +234,55 @@ class Solver(object):
         perform some cleanup, such as deallocating arrays in a Fortran module.
         """
         pass
-        
+
+    def allocate_bc_arrays(self,state):
+        import numpy as np
+        qbc_dim = [n+2*self.mbc for n in state.grid.n]
+        qbc_dim.insert(0,state.meqn)
+        self.qbc = np.zeros(qbc_dim,order='F')
+
+        auxbc_dim = [n+2*self.mbc for n in state.grid.n]
+        auxbc_dim.insert(0,state.maux)
+        self.auxbc = np.empty(auxbc_dim,order='F')
+        if state.maux>0:
+            self.apply_aux_bcs(state)
+
+
+    def copy_global_to_local(self,state,whichvec):
+        """
+        Fills in the interior of qbc (local vector) by copying q (global vector) to it.
+        """
+        ndim = self.ndim
+        mbc  = self.mbc
+        if whichvec == 'q':
+            q    = state.q
+            qbc  = self.qbc
+        elif whichvec == 'aux':
+            q    = state.aux
+            qbc  = self.auxbc
+
+        if ndim == 1:
+            self.qbc[:,mbc:-mbc] = q
+        elif ndim == 2:
+            self.qbc[:,mbc:-mbc,mbc:-mbc] = q
+        elif ndim == 3:
+            self.qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = q
+
+    def copy_local_to_global(self,qbc,state,mbc):
+        """
+        Fills in the values of q (global vector) by copying the interior values
+        of qbc (local vector) to it.
+        """
+        ndim = len(state.q.shape)-1
+        if ndim == 1:
+            state.q = qbc[:,mbc:-mbc]
+        elif ndim == 2:
+            state.q = qbc[:,mbc:-mbc,mbc:-mbc]
+        else:
+            raise NotImplementedError("The case of 3D is not handled in "\
+            +"solver.copy_local_to_global() yet")
+
+
     def cfl():
         r"""CFL number from current step.  In PyClaw, this could just
             be a float, but in PetClaw communication is required, so 
@@ -349,7 +369,7 @@ class Solver(object):
         
         import numpy as np
 
-        copy_global_to_local(state.q,self.qbc,self.mbc)
+        self.copy_global_to_local(state,'q')
         grid = state.grid
        
         for idim,dim in enumerate(grid.dimensions):
@@ -454,7 +474,7 @@ class Solver(object):
 
 
 
-    def auxbc(self,state):
+    def apply_aux_bcs(self,state):
         r"""
         Appends boundary cells to aux and fills them with appropriate values.
     
@@ -490,7 +510,7 @@ class Solver(object):
         
         import numpy as np
 
-        copy_global_to_local(state.aux,self.auxbc,self.mbc)
+        self.copy_global_to_local(state,'aux')
         grid = state.grid
        
         for idim,dim in enumerate(grid.dimensions):
@@ -687,7 +707,8 @@ class Solver(object):
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
                 if self.dt_variable:
-                    copy_local_to_global(self.qbc_backup,state.q,self.mbc)
+                    self.copy_local_to_global(self.qbc_backup,state,self.mbc)
+                    print state.q
                     solution.t = told
                     # Retake step
                     retake_step = True
