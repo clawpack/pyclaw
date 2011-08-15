@@ -14,7 +14,9 @@
 
 # PyClaw-specific files to ignore
 _output
+_plots
 petclaw.log
 pyclaw.log
 .noseids
 _build
+gallery

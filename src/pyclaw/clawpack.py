@@ -291,7 +291,7 @@ class ClawSolver1D(ClawSolver):
             else:
                 import classic1
 
-            mx = grid.n[0]
+            mx = grid.ng[0]
             dx,dt = grid.d[0],self.dt
             dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
             
@@ -302,7 +302,7 @@ class ClawSolver1D(ClawSolver):
             # Limiter to use in the pth family
             limiter = np.array(self.mthlim,ndmin=1)  
         
-            dtdx = np.zeros( (2*self.mbc+grid.n[0]) )
+            dtdx = np.zeros( (2*self.mbc+grid.ng[0]) )
 
             # Find local value for dt/dx
             if state.mcapa>=0:
@@ -330,7 +330,7 @@ class ClawSolver1D(ClawSolver):
             #              |                               |
 
             LL = self.mbc - 1
-            UL = self.mbc + grid.n[0] + 1 
+            UL = self.mbc + grid.ng[0] + 1 
 
             # Update q for Godunov update
             for m in xrange(meqn):
@@ -347,7 +347,7 @@ class ClawSolver1D(ClawSolver):
             # If we are doing slope limiting we have more work to do
             if self.order == 2:
                 # Initialize flux corrections
-                f = np.zeros( (meqn,grid.n[0] + 2*self.mbc) )
+                f = np.zeros( (meqn,grid.ng[0] + 2*self.mbc) )
             
                 # Apply Limiters to waves
                 if (limiter > 0).any():
@@ -522,7 +522,7 @@ class ClawSolver2D(ClawSolver):
         else: narray = 2
 
         grid  = state.grid
-        maxmx,maxmy = grid.n[0],grid.n[1]
+        maxmx,maxmy = grid.ng[0],grid.ng[1]
         maxm = max(maxmx, maxmy)
 
         # These work arrays really ought to live inside a fortran module
@@ -556,7 +556,7 @@ class ClawSolver2D(ClawSolver):
             state = solution.states[0]
             grid = state.grid
             meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
-            mx,my = grid.n[0],grid.n[1]
+            mx,my = grid.ng[0],grid.ng[1]
             maxm = max(mx,my)
             
             dx,dy,dt = grid.d[0],grid.d[1],self.dt

@@ -59,9 +59,9 @@ class State(pyclaw.state.State):
         """
         def fget(self):
             if self.q_da is None: return 0
-            q_dim = self.grid.n
-            q_dim.insert(0,self.meqn)
-            q=self.gqVec.getArray().reshape(q_dim, order = 'F')
+            shape = self.grid.ng
+            shape.insert(0,self.meqn)
+            q=self.gqVec.getArray().reshape(shape, order = 'F')
             return q
         def fset(self,q):
             meqn = q.shape[0]
@@ -76,9 +76,9 @@ class State(pyclaw.state.State):
         """
         def fget(self):
             if self._p_da is None: return 0
-            q_dim = self.grid.n
-            q_dim.insert(0,self.mp)
-            p=self.gpVec.getArray().reshape(q_dim, order = 'F')
+            shape = self.grid.ng
+            shape.insert(0,self.mp)
+            p=self.gpVec.getArray().reshape(shape, order = 'F')
             return p
         def fset(self,p):
             mp = p.shape[0]
@@ -94,9 +94,9 @@ class State(pyclaw.state.State):
         """
         def fget(self):
             if self._F_da is None: return 0
-            q_dim = self.grid.n
-            q_dim.insert(0,self.mF)
-            F=self.gFVec.getArray().reshape(q_dim, order = 'F')
+            shape = self.grid.ng
+            shape.insert(0,self.mF)
+            F=self.gFVec.getArray().reshape(shape, order = 'F')
             return F
         def fset(self,F):
             mF = F.shape[0]
@@ -113,9 +113,9 @@ class State(pyclaw.state.State):
         """
         def fget(self):
             if self.aux_da is None: return None
-            aux_dim = self.grid.n
-            aux_dim.insert(0,self.maux)
-            aux=self.gauxVec.getArray().reshape(aux_dim, order = 'F')
+            shape = self.grid.ng
+            shape.insert(0,self.maux)
+            aux=self.gauxVec.getArray().reshape(shape, order = 'F')
             return aux
         def fset(self,aux):
             # It would be nice to make this work also for parallel
@@ -214,6 +214,7 @@ class State(pyclaw.state.State):
                 periodic_type = PETSc.DA.PeriodicType.XYZ
             else:
                 raise Exception("Invalid number of dimensions")
+
             DA = PETSc.DA().create(dim=self.ndim,
                                           dof=dof,
                                           sizes=self.grid.n,

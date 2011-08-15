@@ -51,12 +51,12 @@ class Dimension(object):
     """
     
     # ========== Property Definitions ========================================
-    def n():
-        doc = r"""(int) - Number of grid cells in this dimension"""
+    def ng():
+        doc = r"""(int) - Number of grid cells in this dimension, on this process"""
         def fget(self):
-            return self._n
+            return self.n
         return locals()
-    n = property(**n())
+    ng = property(**ng())
     def d():
         doc = r"""(float) - Size of an individual, computational grid cell"""
         def fget(self):
@@ -98,7 +98,8 @@ class Dimension(object):
         # ========== Class Data Attributes ===================================
         self.name = 'x'
         r"""(string) Name of this coordinate dimension (e.g. 'x')"""
-        self._n = None
+        self.n = None
+        r"""(int) - Number of grid cells in this dimension :attr:`units`"""
         self.lower = 0.0
         r"""(float) - Lower computational grid extent"""
         self.upper = 1.0
@@ -111,12 +112,12 @@ class Dimension(object):
         if isinstance(args[0],float):
             self.lower = float(args[0])
             self.upper = float(args[1])
-            self._n = int(args[2])
+            self.n = int(args[2])
     	elif isinstance(args[0],basestring):
             self.name = args[0]
             self.lower = float(args[1])
             self.upper = float(args[2])
-            self._n = int(args[3])
+            self.n = int(args[3])
     	else:
     	    raise Exception("Invalid initializer for Dimension.")
         
@@ -127,7 +128,7 @@ class Dimension(object):
         # the PyClaw grid has the same attributes as the PetClaw
         # grid, which allows for simpler programming elsewhere.
         self.nstart = 0
-        self.nend = self._n
+        self.nend = self.n
             
         # Function attribute assignments
     
@@ -185,8 +186,12 @@ class Grid(object):
         def fget(self): return [getattr(self,name) for name in self._dimensions]
         return locals()
     def n():
-        doc = r"""(list) - List of the number of grid cells in each dimension"""
+        doc = r"""(list) - List of the total number of grid cells in each dimension"""
         def fget(self): return self.get_dim_attribute('n')
+        return locals()
+    def ng():
+        doc = r"""(list) - List of the local (to this process)number of grid cells in each dimension"""
+        def fget(self): return self.get_dim_attribute('ng')
         return locals()
     def nstart():
         doc = r"""(list) - List of the number of grid cells in each dimension"""
@@ -265,6 +270,7 @@ class Grid(object):
     ndim = property(**ndim())
     dimensions = property(**dimensions())
     n = property(**n())
+    ng = property(**ng())
     nstart = property(**nstart())
     nend = property(**nend())
     name = property(**name())

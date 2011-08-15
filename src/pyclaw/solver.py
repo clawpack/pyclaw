@@ -1,9 +1,6 @@
 r"""
 Module specifying the interface to every solver in PyClaw.
 
-Also provides dummy functions for custom BCs and derived gauge values.
-Perhaps those function handles could just be set to None instead?
-
 :Authors:
     Kyle T. Mandli (2008-08-19) Initial version
     David I. Ketcheson (2011)   Enumeration of BCs; aux array BCs
@@ -235,53 +232,6 @@ class Solver(object):
         """
         pass
 
-    def allocate_bc_arrays(self,state):
-        import numpy as np
-        qbc_dim = [n+2*self.mbc for n in state.grid.n]
-        qbc_dim.insert(0,state.meqn)
-        self.qbc = np.zeros(qbc_dim,order='F')
-
-        auxbc_dim = [n+2*self.mbc for n in state.grid.n]
-        auxbc_dim.insert(0,state.maux)
-        self.auxbc = np.empty(auxbc_dim,order='F')
-        if state.maux>0:
-            self.apply_aux_bcs(state)
-
-
-    def copy_global_to_local(self,state,whichvec):
-        """
-        Fills in the interior of qbc (local vector) by copying q (global vector) to it.
-        """
-        ndim = self.ndim
-        mbc  = self.mbc
-        if whichvec == 'q':
-            q    = state.q
-            qbc  = self.qbc
-        elif whichvec == 'aux':
-            q    = state.aux
-            qbc  = self.auxbc
-
-        if ndim == 1:
-            self.qbc[:,mbc:-mbc] = q
-        elif ndim == 2:
-            self.qbc[:,mbc:-mbc,mbc:-mbc] = q
-        elif ndim == 3:
-            self.qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = q
-
-    def copy_local_to_global(self,qbc,state,mbc):
-        """
-        Fills in the values of q (global vector) by copying the interior values
-        of qbc (local vector) to it.
-        """
-        ndim = len(state.q.shape)-1
-        if ndim == 1:
-            state.q = qbc[:,mbc:-mbc]
-        elif ndim == 2:
-            state.q = qbc[:,mbc:-mbc,mbc:-mbc]
-        else:
-            raise NotImplementedError("The case of 3D is not handled in "\
-            +"solver.copy_local_to_global() yet")
-
 
     def cfl():
         r"""CFL number from current step.  In PyClaw, this could just
@@ -333,6 +283,53 @@ class Solver(object):
     # ========================================================================
     #  Boundary Conditions
     # ========================================================================    
+    def allocate_bc_arrays(self,state):
+        import numpy as np
+        qbc_dim = [n+2*self.mbc for n in state.grid.ng]
+        qbc_dim.insert(0,state.meqn)
+        self.qbc = np.zeros(qbc_dim,order='F')
+
+        auxbc_dim = [n+2*self.mbc for n in state.grid.ng]
+        auxbc_dim.insert(0,state.maux)
+        self.auxbc = np.empty(auxbc_dim,order='F')
+        if state.maux>0:
+            self.apply_aux_bcs(state)
+
+
+    def copy_global_to_local(self,state,whichvec):
+        """
+        Fills in the interior of qbc (local vector) by copying q (global vector) to it.
+        """
+        ndim = self.ndim
+        mbc  = self.mbc
+        if whichvec == 'q':
+            q    = state.q
+            qbc  = self.qbc
+        elif whichvec == 'aux':
+            q    = state.aux
+            qbc  = self.auxbc
+
+        if ndim == 1:
+            self.qbc[:,mbc:-mbc] = q
+        elif ndim == 2:
+            self.qbc[:,mbc:-mbc,mbc:-mbc] = q
+        elif ndim == 3:
+            self.qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = q
+
+    def copy_local_to_global(self,qbc,state,mbc):
+        """
+        Fills in the values of q (global vector) by copying the interior values
+        of qbc (local vector) to it.
+        """
+        ndim = len(state.q.shape)-1
+        if ndim == 1:
+            state.q = qbc[:,mbc:-mbc]
+        elif ndim == 2:
+            state.q = qbc[:,mbc:-mbc,mbc:-mbc]
+        else:
+            raise NotImplementedError("The case of 3D is not handled in "\
+            +"solver.copy_local_to_global() yet")
+
     def apply_q_bcs(self,state):
         r"""
         Fills in solver.qbc (the local vector), including ghost cell values.

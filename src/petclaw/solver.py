@@ -25,7 +25,7 @@ class PetSolver(pyclaw.solver.Solver):
         Returns q with ghost cells attached.  For PetSolver,
         this means returning the local vector.  
         """
-        shape = [n + 2*self.mbc for n in state.grid.n]
+        shape = [n + 2*self.mbc for n in state.grid.ng]
         
         if whichvec == 'q':
             state.q_da.globalToLocal(state.gqVec, state.lqVec)
@@ -52,7 +52,7 @@ class PetSolver(pyclaw.solver.Solver):
         if grid.ndim == 1:
             state.q = ghosted_q[:,self.mbc:-self.mbc]
         elif grid.ndim == 2:
-            mbc, mx, my = self.mbc, grid.n[0],grid.n[1]
+            mbc, mx, my = self.mbc, grid.ng[0],grid.ng[1]
             state.q=ghosted_q[:,mbc:mx+mbc,mbc:my+mbc]
         else:
             raise NotImplementedError("The case of 3D is not handled in "\
