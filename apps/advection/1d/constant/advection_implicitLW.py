@@ -42,9 +42,9 @@ def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='
     #===========================================================================
     x = pyclaw.Dimension('x',0.0,1.0,100)
     grid = pyclaw.Grid(x)
-    state = pyclaw.State(grid)
+    meqn = 1
+    state = pyclaw.State(grid,meqn)
     state.aux_global['u']=1.
-    state.meqn = rp_advection.meqn
 
     xc = grid.x.center
     beta = 100

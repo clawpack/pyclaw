@@ -27,9 +27,9 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
 
     x = pyclaw.Dimension('x',0.0,1.0,100)
     grid = pyclaw.Grid(x)
-    state = pyclaw.State(grid)
+    meqn = 1
+    state = pyclaw.State(grid,meqn)
     state.aux_global['u']=1.
-    state.meqn = rp_advection.meqn
 
     xc=grid.x.center
     beta=100; gamma=0; x0=0.75

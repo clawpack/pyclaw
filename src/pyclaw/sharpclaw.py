@@ -98,17 +98,17 @@ class SharpClawSolver(Solver):
 
             elif self.time_integrator=='SSP33':
                 deltaq=self.dq(state)
-                self.rk_stages[0].q=state.q+deltaq
-                self.rk_stages[0].t =state.t+self.dt
-                deltaq=self.dq(self.rk_stages[0])
-                self.rk_stages[0].q= 0.75*state.q + 0.25*(self.rk_stages[0].q+deltaq)
-                self.rk_stages[0].t = state.t+0.5*self.dt
-                deltaq=self.dq(self.rk_stages[0])
-                state.q = 1./3.*state.q + 2./3.*(self.rk_stages[0].q+deltaq)
+                self._rk_stages[0].q=state.q+deltaq
+                self._rk_stages[0].t =state.t+self.dt
+                deltaq=self.dq(self._rk_stages[0])
+                self._rk_stages[0].q= 0.75*state.q + 0.25*(self._rk_stages[0].q+deltaq)
+                self._rk_stages[0].t = state.t+0.5*self.dt
+                deltaq=self.dq(self._rk_stages[0])
+                state.q = 1./3.*state.q + 2./3.*(self._rk_stages[0].q+deltaq)
 
             elif self.time_integrator=='SSP104':
-                s1=self.rk_stages[0]
-                s2=self.rk_stages[1]
+                s1=self._rk_stages[0]
+                s2=self._rk_stages[1]
                 s1.q = state.q.copy()
 
                 deltaq=self.dq(state)
@@ -167,34 +167,6 @@ class SharpClawSolver(Solver):
     def dq_homogeneous(state):
         raise NotImplementedError('You must subclass SharpClawSolver.')
 
-    def list_riemann_solvers(self):
-        r"""
-        List available Riemann solvers 
-        
-        This routine returns a list of available Riemann solvers which is
-        constructed in the Riemann solver package (:ref:`pyclaw_rp`).  In this 
-        case it lists all Riemann solvers.
-        
-        :Output:
-         - (list) - List of Riemann solver names valid to be used with
-           :meth:`set_riemann_solver`
-        
-        .. note::
-            These Riemann solvers are currently only accessible to the python 
-            time stepping routines.
-        """
-        rp_solver_list = []
-        
-        # Construct list from each dimension list
-        for rp_solver in rp_solver_list_1d:
-            rp_solver_list.append('%s_1d' % rp_solver)
-        for rp_solver in rp_solver_list_2d:
-            rp_solver_list.append('%s_2d' % rp_solver)
-        for rp_solver in rp_solver_list_3d:
-            rp_solver_list.append('%s_3d' % rp_solver)
-        
-        return rp_solver_list
-    
          
     def dqdt(self,state):
         """
@@ -263,12 +235,15 @@ class SharpClawSolver1D(SharpClawSolver):
         self.allocate_rk_stages(solution)
         self.set_mthlim()
  
+        state = solution.states[0]
+
         if self.kernel_language=='Fortran':
             from sharpclaw1 import clawparams, workspace, reconstruct
             import sharpclaw1
-            state = solution.states[0]
             state.set_cparam(sharpclaw1)
             self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
+
+        self.allocate_bc_arrays(state)
 
     def teardown(self):
         r"""
@@ -313,21 +288,17 @@ class SharpClawSolver1D(SharpClawSolver):
     
         import numpy as np
 
-        q = self.qbc(state) # Can we make use of state.qbc instead
-                            # of calling self.qbc() again?
+        self.apply_q_bcs(state)
+        q = self.qbc 
+
         grid = state.grid
         mx = grid.ng[0]
 
         ixy=1
-        aux=state.aux
-        if state.maux == 0: 
-            aux = np.empty( (state.maux,mx+2*self.mbc) ,order='F')
-        else:
-            aux = self.auxbc(state)
 
         if self.kernel_language=='Fortran':
             from sharpclaw1 import flux1
-            dq,self.cfl=flux1(q,aux,self.dt,state.t,ixy,mx,self.mbc,mx)
+            dq,self.cfl=flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.mbc,mx)
 
         elif self.kernel_language=='Python':
 
@@ -335,12 +306,13 @@ class SharpClawSolver1D(SharpClawSolver):
             dq   = np.zeros( (state.meqn,mx+2*self.mbc) ,order='F')
 
             # Find local value for dt/dx
-            if state.capa is not None:
-                dtdx = self.dt / (grid.d[0] * state.capa)
+            if state.mcapa>=0:
+                dtdx = self.dt / (grid.d[0] * state.aux[mcapa,:])
             else:
                 dtdx += self.dt/grid.d[0]
  
-            if aux is not None:
+            aux=self.auxbc
+            if aux.shape[0]>0:
                 aux_l=aux[:,:-1]
                 aux_r=aux[:,1: ]
             else:
@@ -421,14 +393,16 @@ class SharpClawSolver2D(SharpClawSolver):
         """
         self.allocate_rk_stages(solution)
         self.set_mthlim()
+
+        state = solution.states[0]
  
         if self.kernel_language=='Fortran':
             from sharpclaw2 import clawparams, workspace, reconstruct
             import sharpclaw2
-            state = solution.states[0]
             state.set_cparam(sharpclaw2)
             self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
 
+        self.allocate_bc_arrays(state)
 
     def teardown(self):
         r"""
@@ -472,9 +446,8 @@ class SharpClawSolver2D(SharpClawSolver):
     
         import numpy as np
 
-        q = self.qbc(state) # Can we make use of state.qbc instead
-                            # of calling self.qbc() again?
-
+        self.apply_q_bcs(state)
+        q = self.qbc 
 
         grid = state.grid
 
@@ -483,15 +456,9 @@ class SharpClawSolver2D(SharpClawSolver):
         my=grid.ng[1]
         maxm = max(mx,my)
 
-        aux=state.aux
-        if state.maux == 0:
-            aux = np.empty( (state.maux,mx+2*mbc,my+2*mbc), order='F' )
-        else:
-            aux = self.auxbc(state)
-
         if self.kernel_language=='Fortran':
             from sharpclaw2 import flux2
-            dq,self.cfl=flux2(q,aux,self.dt,state.t,mbc,maxm,mx,my)
+            dq,self.cfl=flux2(q,self.auxbc,self.dt,state.t,mbc,maxm,mx,my)
 
         else: raise Exception('Only Fortran kernels are supported in 2D.')
 

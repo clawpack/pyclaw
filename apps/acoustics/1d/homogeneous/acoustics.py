@@ -40,7 +40,8 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     #========================================================================
     x = pyclaw.Dimension('x',0.0,1.0,100)
     grid = pyclaw.Grid(x)
-    state = pyclaw.State(grid)
+    meqn = 2
+    state = pyclaw.State(grid,meqn)
 
     #========================================================================
     # Set problem-specific variables
@@ -55,7 +56,6 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     #========================================================================
     # Set the initial condition
     #========================================================================
-    state.meqn=rp_acoustics.meqn
     xc=grid.x.center
     beta=100; gamma=0; x0=0.75
     state.q[0,:] = exp(-beta * (xc-x0)**2) * cos(gamma * (xc - x0))

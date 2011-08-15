@@ -38,8 +38,8 @@ def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_typ
     x = pyclaw.Dimension('x',-2.0,2.0,mx)
     y = pyclaw.Dimension('y',-2.0,2.0,my)
     grid = pyclaw.Grid([x,y])
-    state = pyclaw.State(grid)
-    state.meqn = 1
+    meqn = 1
+    state = pyclaw.State(grid,meqn)
 
     qinit(state)
 

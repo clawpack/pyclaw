@@ -72,9 +72,8 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
     y = pyclaw.Dimension('y',0.0,1.0,my)
     grid = pyclaw.Grid([x,y])
 
-    # State:
-    state = pyclaw.State(grid)
-    state.meqn = 1
+    meqn = 1
+    state = pyclaw.State(grid,meqn)
 
     state.aux_global['u'] = 0.5 # Parameters (global auxiliary variables)
     state.aux_global['v'] = 1.0

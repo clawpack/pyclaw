@@ -163,9 +163,8 @@ def lowMach_cylinder(use_petsc=False,iplot=False,htmlplot=False,outdir='./_outpu
     grid = pyclaw.Grid([x,y])
     grid.mapc2p = mapc2p_annulus # Override default_mapc2p function implemented in grid.py
 
-    # Sate:
-    state = pyclaw.State(grid)
-    state.meqn = 4  # Number of equations
+    meqn = 4  # Number of equations
+    state = pyclaw.State(grid,meqn)
 
     # Set auxiliary gloabl values that will be used in the Riemann solver
     # Ratio cv/cr

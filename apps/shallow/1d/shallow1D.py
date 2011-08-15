@@ -43,8 +43,8 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     mx = 500
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     grid = pyclaw.Grid(x)
-    state = pyclaw.State(grid)
-    state.meqn = 2
+    meqn = 2
+    state = pyclaw.State(grid,meqn)
 
     # Parameters
     state.aux_global['grav'] = 1.0

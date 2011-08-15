@@ -50,6 +50,7 @@ class SharpClawSolver1D(PetSolver,SharpClawSolver1D):
             state.set_cparam(sharpclaw1)
             self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
 
+        self.allocate_bc_arrays(state)
 
 class SharpClawSolver2D(PetSolver,SharpClawSolver2D):
     """
@@ -77,4 +78,4 @@ class SharpClawSolver2D(PetSolver,SharpClawSolver2D):
             state.set_cparam(sharpclaw2)
             self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
 
-
+        self.allocate_bc_arrays(state)
