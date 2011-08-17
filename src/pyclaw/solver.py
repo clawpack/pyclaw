@@ -32,6 +32,28 @@ def default_compute_gauge_values(q,aux):
     """
     return q
 
+class CFL(object):
+    def __init__(self, global_max):
+        self._global_max = global_max
+        
+    def get_global_max(self):
+        r"""
+        Compute the maximum CFL number over all processes for the current step.
+
+        This is used to determine whether the CFL condition was
+        violated and adjust the timestep.
+        """
+        return self._global_max
+
+    def get_cached_max(self):
+        return self._global_max
+
+    def set_local_max(self,new_local_max):
+        self._global_max = new_local_max
+
+    def update_global_max(self,new_local_max):
+        self._global_max = new_local_max
+
 
 class Solver(object):
     r"""
@@ -143,10 +165,10 @@ class Solver(object):
         
         # Initialize time stepper values
         self.dt = self._default_attr_values['dt_initial']
-        self._cfl = self._default_attr_values['cfl_desired']
-        
+        self.cfl = CFL(self._default_attr_values['cfl_desired'])
+       
         # Status Dictionary
-        self.status = {'cflmax':self.cfl,
+        self.status = {'cflmax':self.cfl.get_cached_max(),
                        'dtmin':self.dt, 
                        'dtmax':self.dt,
                        'numsteps':0 }
@@ -231,19 +253,6 @@ class Solver(object):
         perform some cleanup, such as deallocating arrays in a Fortran module.
         """
         pass
-
-
-    def cfl():
-        r"""CFL number from current step.  In PyClaw, this could just
-            be a float, but in PetClaw communication is required, so 
-            it is implemented as a property.
-        """
-        def fget(self):
-                return self._cfl
-        def fset(self,cflnum):
-            self._cfl = cflnum
-        return locals()
-    cfl = property(**cfl())
 
 
     def __str__(self):
@@ -643,7 +652,7 @@ class Solver(object):
         tstart = solution.t
 
         # Reset status dictionary
-        self.status['cflmax'] = self.cfl
+        self.status['cflmax'] = self.cfl.get_cached_max()
         self.status['dtmin'] = self.dt
         self.status['dtmax'] = self.dt
         self.status['numsteps'] = 0
@@ -682,9 +691,10 @@ class Solver(object):
             self.step(solution)
 
             # Check to make sure that the Courant number was not too large
-            if self.cfl <= self.cfl_max:
+            cfl = self.cfl.get_cached_max()
+            if cfl <= self.cfl_max:
                 # Accept this step
-                self.status['cflmax'] = max(self.cfl, self.status['cflmax'])
+                self.status['cflmax'] = max(cfl, self.status['cflmax'])
                 if self.dt_variable==True:
                     solution.t += self.dt 
                 else:
@@ -692,7 +702,7 @@ class Solver(object):
                     solution.t = tstart+(n+1)*self.dt
                 # Verbose messaging
                 self.logger.debug("Step %i  CFL = %f   dt = %f   t = %f"
-                    % (n,self.cfl,self.dt,solution.t))
+                    % (n,cfl,self.dt,solution.t))
                     
                 self.write_gauge_values(solution)
                 # Increment number of time steps completed
@@ -712,18 +722,19 @@ class Solver(object):
                 else:
                     # Give up, we cannot adapt, abort
                     self.status['cflmax'] = \
-                        max(self.cfl, self.status['cflmax'])
-                    raise Exception('CFL to large, giving up!')
+                        max(cfl, self.status['cflmax'])
+                    raise Exception('CFL too large, giving up!')
                     
             # Choose new time step
             if self.dt_variable:
-                if self.cfl > 0.0:
+                if cfl > 0.0:
                     self.dt = min(self.dt_max,self.dt * self.cfl_desired 
-                                    / self.cfl)
+                                    / cfl)
                     self.status['dtmin'] = min(self.dt, self.status['dtmin'])
                     self.status['dtmax'] = max(self.dt, self.status['dtmax'])
                 else:
                     self.dt = self.dt_max
+
       
         # End of main time stepping loop -------------------------------------
 
@@ -756,6 +767,4 @@ class Solver(object):
             p=self.compute_gauge_values(q,aux)
             t=solution.t
             solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
-
-
 

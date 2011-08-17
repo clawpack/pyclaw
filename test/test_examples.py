@@ -236,6 +236,27 @@ def test_2D_acoustics_homogeneous_1a_parallel():
     method_options = {'use_petsc' : True, 'solver_type' : 'classic', 'np':6, 'nout':10}
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_classic, method_options)
 
+# Regression test: Parallel 2D shock bubble
+#@attr(testType ='regression')
+@attr(solver_type='classic')
+@attr(kernel_language='fortran')
+@attr(petsc=True)
+@attr(time_stepping_mode='explicit')
+@attr(speed='fast')
+def test_2D_shockbubble_classic_parallel():
+    path           = './test/euler/2d'
+    target_name    = 'classic2.so'
+    module_name    = 'shockbubble'
+    problem_name   = 'shockbubble'
+
+    def verify_shockbubble(test_x):
+        import numpy
+        verify_x=numpy.loadtxt('test/sb_density')
+        return numpy.max(abs(test_x-verify_x))<1.e-14
+
+    method_options = {'use_petsc' : True, 'solver_type' : 'classic', 'np':6, 'nout':10}
+    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
+
 
 # Regression test: 2D acoustics in homogeneous material
 #@attr(testType ='regression')

@@ -149,7 +149,7 @@ class ClawSolver(Solver):
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
         # dt
-        if self.cfl >= self.cfl_max:
+        if self.cfl.get_cached_max() >= self.cfl_max:
             return False
 
         # Strang splitting
@@ -295,8 +295,8 @@ class ClawSolver1D(ClawSolver):
             dx,dt = grid.d[0],self.dt
             dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
             
-            q,self.cfl = classic1.step1(mx,mbc,mx,q,self.auxbc,dx,dt,self.method,self.mthlim)
-
+            q,cfl = classic1.step1(mx,mbc,mx,q,self.auxbc,dx,dt,self.method,self.mthlim)
+            
         elif(self.kernel_language == 'Python'):
  
             # Limiter to use in the pth family
@@ -338,11 +338,11 @@ class ClawSolver1D(ClawSolver):
                 q[m,LL-1:UL-1] -= dtdx[LL-1:UL-1]*amdq[m,LL-1:UL-1]
         
             # Compute maximum wave speed
-            self.cfl = 0.0
+            cfl = 0.0
             for mw in xrange(wave.shape[1]):
                 smax1 = np.max(dtdx[LL:UL]*s[mw,LL-1:UL-1])
                 smax2 = np.max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
-                self.cfl = max(self.cfl,smax1,smax2)
+                cfl = max(cfl,smax1,smax2)
 
             # If we are doing slope limiting we have more work to do
             if self.order == 2:
@@ -375,8 +375,9 @@ class ClawSolver1D(ClawSolver):
 
         else: raise Exception("Unrecognized kernel_language; choose 'Fortran' or 'Python'")
         # Amal: this line need to be replaced by set_global_q    
-        state.q = q[:,self.mbc:-self.mbc]
 
+        state.q = q[:,self.mbc:-self.mbc]
+        self.cfl.update_global_max(cfl)
    
 
 # ============================================================================
@@ -576,16 +577,18 @@ class ClawSolver2D(ClawSolver):
             else:
                 import classic2
 
+            cfl = self.cfl.get_cached_max()
+
             if self.dim_split:
                 q, cfl = classic2.dimsp2(maxm,mx,my,mbc,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,self.cfl,self.cflv, \
+                      qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl,self.cflv, \
                       self.aux1,self.aux2,self.aux3,self.work)
             else:
                 q, cfl = classic2.step2(maxm,mx,my,mbc,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,self.cfl, \
+                      qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl, \
                       self.aux1,self.aux2,self.aux3,self.work)
 
-            self.cfl = cfl
+            self.cfl.update_global_max(cfl)
             self.copy_local_to_global(q,state,self.mbc)
 
         else:

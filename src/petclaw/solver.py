@@ -8,6 +8,35 @@ All parallel solvers inherit from this class.
 """
 import pyclaw.solver
 
+class CFL(object):
+    def __init__(self, global_max):
+        self._local_max = global_max
+        self._global_max = global_max
+        
+    def get_global_max(self):
+        r"""
+        Compute the maximum CFL number over all processes for the current step.
+
+        This is used to determine whether the CFL condition was
+        violated and adjust the timestep.
+        """
+        from petsc4py import PETSc
+        cflVec = PETSc.Vec().createWithArray([self._local_max])
+        self._global_max = cflVec.max()[1]
+        return self._global_max
+
+    def get_cached_max(self):
+        return self._global_max
+
+    def set_local_max(self,new_local_max):
+        self._local_max = new_local_max
+
+    def update_global_max(self,new_local_max):
+        from petsc4py import PETSc
+        cflVec = PETSc.Vec().createWithArray([new_local_max])
+        self._global_max = cflVec.max()[1]
+
+
 # ============================================================================
 #  Generic PetClaw solver class
 # ============================================================================
@@ -18,6 +47,10 @@ class PetSolver(pyclaw.solver.Solver):
     All PetClaw solvers inherit from this base class.
     See superclass pyclaw.solver.Solver for documentation of attributes.
     """
+
+    def __init__(self,data=None):
+        super(PetSolver,self).__init__(data)
+        self.cfl = CFL(self._default_attr_values['cfl_desired'])
     
     # ========== Boundary Conditions ==================================
     def copy_global_to_local(self,state,whichvec):
@@ -36,7 +69,8 @@ class PetSolver(pyclaw.solver.Solver):
             state.aux_da.globalToLocal(state.gauxVec, state.lauxVec)
             shape.insert(0,state.maux)
             self.auxbc=state.lauxVec.getArray().reshape(shape, order = 'F')
-    
+
+
     def set_global_q(self,state,ghosted_q):
         """
         Set the value of q using the array ghosted_q. for PetSolver, this
@@ -57,25 +91,6 @@ class PetSolver(pyclaw.solver.Solver):
         else:
             raise NotImplementedError("The case of 3D is not handled in "\
             +"this function yet")
-
-    def cfl():
-        r"""
-        Compute the maximum CFL number over all processes.
-
-        This is used to determine whether the CFL condition was
-        violated and adjust the timestep.
-        """
-        def fget(self):
-            from petsc4py import PETSc
-            if self.dt_variable:
-                cflVec = PETSc.Vec().createWithArray([self._cfl])
-                return cflVec.max()[1]
-            else:
-                return self._cfl
-        def fset(self,cflnum):
-            self._cfl = cflnum
-        return locals()
-    cfl = property(**cfl())
 
     def allocate_rk_stages(self,solution):
         r"""We could eliminate this function and just use
