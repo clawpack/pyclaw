@@ -30,7 +30,6 @@ def auxinit(state):
     """
     aux[0,i,j] = y-coordinate of cell center for cylindrical source terms
     """
-    state.maux=1
     x=state.grid.x.center
     y=state.grid.y.center
     for j,ycoord in enumerate(y):
@@ -126,11 +125,12 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
     grid = pyclaw.Grid([x,y])
-    state = pyclaw.State(grid)
+    meqn = 5
+    maux=1
+    state = pyclaw.State(grid,meqn,maux)
 
     state.aux_global['gamma']= gamma
     state.aux_global['gamma1']= gamma1
-    state.meqn = 5
 
     qinit(state)
     auxinit(state)

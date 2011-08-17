@@ -52,7 +52,7 @@ class Dimension(object):
     
     # ========== Property Definitions ========================================
     def ng():
-        doc = r"""(int) - Size of this process' grid in given dimension."""
+        doc = r"""(int) - Number of grid cells in this dimension, on this process"""
         def fget(self):
             return self.n
         return locals()
@@ -186,11 +186,11 @@ class Grid(object):
         def fget(self): return [getattr(self,name) for name in self._dimensions]
         return locals()
     def n():
-        doc = r"""(list) - List of the number of grid cells in each dimension"""
+        doc = r"""(list) - List of the total number of grid cells in each dimension"""
         def fget(self): return self.get_dim_attribute('n')
         return locals()
     def ng():
-        doc = r"""(list) - List of the number of grid cells for this process in each dimension"""
+        doc = r"""(list) - List of the local (to this process)number of grid cells in each dimension"""
         def fget(self): return self.get_dim_attribute('ng')
         return locals()
     def nstart():
@@ -350,25 +350,6 @@ class Grid(object):
         setattr(self,dimension.name,dimension)
         
         
-    def remove_dimension(self, name):
-        r"""
-        Remove the dimension named name
-        
-        :Input:
-         - *name* - (string) removes the dimension named name
-        """
-        
-        # Remove coordinate array
-        self._p_center.pop(self._dimension.index(name))
-        self._c_center.pop(self._dimension.index(name))
-        self._p_edge.pop(self._dimension.index(name))
-        self._c_edge.pop(self._dimension.index(name))
-        
-        # Delete the dimension
-        self._dimensions.remove(name)
-        exec('del(self.%s)' % name)
-    
-    
     def get_dim_attribute(self,attr):
         r"""
         Returns a tuple of all dimensions' attribute attr

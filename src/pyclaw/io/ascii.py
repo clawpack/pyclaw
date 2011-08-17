@@ -249,9 +249,8 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 dimensions.append(
                     pyclaw.grid.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
             grid = pyclaw.grid.Grid(dimensions)
-            state= pyclaw.state.State(grid)
+            state= pyclaw.state.State(grid,meqn,maux)
             state.t = t
-            state.meqn = meqn
 
 
             # RJL 1/8/10:  Changed empty_aux to zeros_aux below so aux won't
@@ -259,7 +258,6 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
             # like to delete this and initialize grid.aux only if it will be
             # read in below, but for some reason that doesn't work.
 
-            state.maux=maux
             if maux > 0:   
                 state.aux[:]=0.
             

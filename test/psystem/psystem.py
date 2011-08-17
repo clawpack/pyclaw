@@ -192,8 +192,9 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
         x = pyclaw.Dimension('x',x_lower,x_upper,mx)
         y = pyclaw.Dimension('y',y_lower,y_upper,my)
         grid = pyclaw.Grid([x,y])
-        state = pyclaw.State(grid)
-        state.meqn = 3
+        meqn = 3
+        maux = 4
+        state = pyclaw.State(grid,meqn,maux)
         state.mF = 3
         state.t=t0
         #Set global parameters

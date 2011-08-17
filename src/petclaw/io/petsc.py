@@ -230,17 +230,15 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         grid = petclaw.Grid(dimensions)
         grid.level = level 
         #state = pyclaw.state.State(grid)
-        state = petclaw.State(grid) ##
+        state = petclaw.State(grid,meqn,maux) ##
         state.t = value_dict['t']
         state.aux_global = value_dict['aux_global']
 
-        state.meqn=meqn
 #       DA View/Load is broken in Petsc-3.1.8, we can load/view the DA if needed in petsc-3.2
 #       state.q_da.load(viewer)
         state.gqVec.load(viewer)
         
         if read_aux:
-            state.maux=maux
             state.gauxVec.load(aux_viewer)
         
         solution.states.append(state)

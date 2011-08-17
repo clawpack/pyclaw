@@ -238,9 +238,9 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     grid = pyclaw.Grid([x,y])
     grid.mapc2p = mapc2p_annulus # Override default_mapc2p function implemented in grid.py
 
-    # Sate:
-    state = pyclaw.State(grid)
-    state.meqn = 1  # Number of equations
+    # State:
+    meqn = 1  # Number of equations
+    state = pyclaw.State(grid,meqn)
 
     
     # Set initial solution
