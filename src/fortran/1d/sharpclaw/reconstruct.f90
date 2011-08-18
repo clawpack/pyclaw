@@ -1,4 +1,6 @@
 module reconstruct
+    use weno
+
     double precision, allocatable  :: dq1m(:)
     double precision, allocatable, private :: uu(:,:),dq(:,:)
     double precision, allocatable, private :: uh(:,:,:),gg(:,:),hh(:,:),u(:,:,:)
@@ -77,73 +79,73 @@ contains
         end select
     end subroutine dealloc_recon_workspace
 
-    ! ===================================================================
-    subroutine weno5(q,ql,qr,meqn,maxnx,mbc)
-    ! ===================================================================
+    ! ! ===================================================================
+    ! subroutine weno5(q,ql,qr,meqn,maxnx,mbc)
+    ! ! ===================================================================
 
-        implicit double precision (a-h,o-z)
+    !     implicit double precision (a-h,o-z)
 
-        double precision, intent(in) :: q(meqn,maxnx+2*mbc)
-        double precision, intent(out) :: ql(meqn,maxnx+2*mbc),qr(meqn,maxnx+2*mbc)
+    !     double precision, intent(in) :: q(meqn,maxnx+2*mbc)
+    !     double precision, intent(out) :: ql(meqn,maxnx+2*mbc),qr(meqn,maxnx+2*mbc)
 
-        integer :: meqn, mx2
+    !     integer :: meqn, mx2
 
-        mx2  = size(q,2); meqn = size(q,1)
+    !     mx2  = size(q,2); meqn = size(q,1)
 
-        !loop over all equations (all components).  
-        !the reconstruction is performed component-wise;
-        !no characteristic decomposition is used here
+    !     !loop over all equations (all components).  
+    !     !the reconstruction is performed component-wise;
+    !     !no characteristic decomposition is used here
 
-        do m=1,meqn
+    !     do m=1,meqn
 
-            forall (i=2:mx2)
-                ! compute and store the differences of the cell averages
-                dq1m(i)=q(m,i)-q(m,i-1)
-            end forall
+    !         forall (i=2:mx2)
+    !             ! compute and store the differences of the cell averages
+    !             dq1m(i)=q(m,i)-q(m,i-1)
+    !         end forall
 
-            ! the reconstruction
+    !         ! the reconstruction
 
-            do m1=1,2
+    !         do m1=1,2
 
-                ! m1=1: construct ql
-                ! m1=2: construct qr
+    !             ! m1=1: construct ql
+    !             ! m1=2: construct qr
 
-                im=(-1)**(m1+1)
-                ione=im; inone=-im; intwo=-2*im
+    !             im=(-1)**(m1+1)
+    !             ione=im; inone=-im; intwo=-2*im
   
-                do i=mbc,mx2-mbc+1
+    !             do i=mbc,mx2-mbc+1
   
-                    t1=im*(dq1m(i+intwo)-dq1m(i+inone))
-                    t2=im*(dq1m(i+inone)-dq1m(i      ))
-                    t3=im*(dq1m(i      )-dq1m(i+ione ))
+    !                 t1=im*(dq1m(i+intwo)-dq1m(i+inone))
+    !                 t2=im*(dq1m(i+inone)-dq1m(i      ))
+    !                 t3=im*(dq1m(i      )-dq1m(i+ione ))
   
-                    tt1=13.*t1**2+3.*(   dq1m(i+intwo)-3.*dq1m(i+inone))**2
-                    tt2=13.*t2**2+3.*(   dq1m(i+inone)+   dq1m(i      ))**2
-                    tt3=13.*t3**2+3.*(3.*dq1m(i      )-   dq1m(i+ione ))**2
+    !                 tt1=13.*t1**2+3.*(   dq1m(i+intwo)-3.*dq1m(i+inone))**2
+    !                 tt2=13.*t2**2+3.*(   dq1m(i+inone)+   dq1m(i      ))**2
+    !                 tt3=13.*t3**2+3.*(3.*dq1m(i      )-   dq1m(i+ione ))**2
        
-                    tt1=(epweno+tt1)**2
-                    tt2=(epweno+tt2)**2
-                    tt3=(epweno+tt3)**2
-                    s1 =tt2*tt3
-                    s2 =6.*tt1*tt3
-                    s3 =3.*tt1*tt2
-                    t0 =1./(s1+s2+s3)
-                    s1 =s1*t0
-                    s3 =s3*t0
+    !                 tt1=(epweno+tt1)**2
+    !                 tt2=(epweno+tt2)**2
+    !                 tt3=(epweno+tt3)**2
+    !                 s1 =tt2*tt3
+    !                 s2 =6.*tt1*tt3
+    !                 s3 =3.*tt1*tt2
+    !                 t0 =1./(s1+s2+s3)
+    !                 s1 =s1*t0
+    !                 s3 =s3*t0
   
-                    uu(m1,i) = (s1*(t2-t1)+(0.5*s3-0.25)*(t3-t2))/3. &
-                             +(-q(m,i-2)+7.*(q(m,i-1)+q(m,i))-q(m,i+1))/12.
+    !                 uu(m1,i) = (s1*(t2-t1)+(0.5*s3-0.25)*(t3-t2))/3. &
+    !                          +(-q(m,i-2)+7.*(q(m,i-1)+q(m,i))-q(m,i+1))/12.
 
-                end do
-            end do
+    !             end do
+    !         end do
 
-           qr(m,mbc-1:mx2-mbc  )=uu(1,mbc:mx2-mbc+1)
-           ql(m,mbc  :mx2-mbc+1)=uu(2,mbc:mx2-mbc+1)
+    !        qr(m,mbc-1:mx2-mbc  )=uu(1,mbc:mx2-mbc+1)
+    !        ql(m,mbc  :mx2-mbc+1)=uu(2,mbc:mx2-mbc+1)
 
-        end do
+    !     end do
 
-      return
-      end subroutine weno5
+    !   return
+    !   end subroutine weno5
 
     ! ===================================================================
     subroutine weno5_char(q,ql,qr,evl,evr)
