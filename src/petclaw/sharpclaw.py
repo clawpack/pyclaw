@@ -37,7 +37,7 @@ class SharpClawSolver1D(PetSolver,SharpClawSolver1D):
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (mbc)
         state = solution.state
-        state.set_stencil_width(self.mbc)
+        state.set_mbc(self.mbc)
         # End hack
 
         self.allocate_rk_stages(solution)
@@ -66,7 +66,7 @@ class SharpClawSolver2D(PetSolver,SharpClawSolver2D):
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (mbc)
         state = solution.state
-        state.set_stencil_width(self.mbc)
+        state.set_mbc(self.mbc)
         # End hack
 
         self.allocate_rk_stages(solution)

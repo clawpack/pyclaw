@@ -224,6 +224,12 @@ class ClawSolver1D(ClawSolver):
         Perform essential solver setup.  This routine must be called before
         solver.step() may be called.
         """
+        # This is a hack to deal with the fact that petsc4py
+        # doesn't allow us to change the stencil_width (mbc)
+        state = solution.state
+        state.set_mbc(self.mbc)
+        # End hack
+
         self.set_mthlim()
         if(self.kernel_language == 'Fortran'):
             self.set_fortran_parameters(solution)
@@ -451,6 +457,13 @@ class ClawSolver2D(ClawSolver):
         Perform essential solver setup.  This routine must be called before
         solver.step() may be called.
         """
+
+        # This is a hack to deal with the fact that petsc4py
+        # doesn't allow us to change the stencil_width (mbc)
+        state = solution.state
+        state.set_mbc(self.mbc)
+        # End hack
+
         self.set_mthlim()
 
         if (not self.dim_split) and (self.order_trans==0):
@@ -589,7 +602,7 @@ class ClawSolver2D(ClawSolver):
                       self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl.update_global_max(cfl)
-            self.copy_local_to_global(q,state,self.mbc)
+            state.set_q_from_qbc(mbc,self.qbc)
 
         else:
             raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
