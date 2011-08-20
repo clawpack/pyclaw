@@ -96,7 +96,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
         select case (char_decomp)
             case (0)
                 ! no characteristic decomposition
-                call weno5(q1d,ql,qr,meqn,maxnx,mbc)
+                call weno(q1d,ql,qr,meqn,maxnx,mbc,weno_order)
             case (1)
                 ! wave-based reconstruction
                 call rp1(maxnx,meqn,mwaves,mbc,mx,&

@@ -53,14 +53,16 @@ class SharpClawSolver(Solver):
         """
         
         # Required attributes for this solver
-        for attr in ['limiters','start_step','lim_type','time_integrator',
-                     'char_decomp','src_term','aux_time_dep','mwaves']:
+        for attr in ['limiters','start_step','lim_type','weno_order',
+                     'time_integrator','char_decomp','src_term',
+                     'aux_time_dep','mwaves']:
             self._required_attrs.append(attr)
         
         # Defaults for required attributes
         self._default_attr_values['limiters'] = [1]
         self._default_attr_values['start_step'] = start_step
         self._default_attr_values['lim_type'] = 2
+        self._default_attr_values['weno_order'] = 5
         self._default_attr_values['time_integrator'] = 'SSP104'
         self._default_attr_values['char_decomp'] = 0
         self._default_attr_values['tfluct_solver'] = False
@@ -192,6 +194,7 @@ class SharpClawSolver(Solver):
         grid = state.grid
         clawparams.ndim          = grid.ndim
         clawparams.lim_type      = self.lim_type
+        clawparams.weno_order    = self.weno_order
         clawparams.char_decomp   = self.char_decomp
         clawparams.tfluct_solver = self.tfluct_solver
         clawparams.fwave         = self.fwave
