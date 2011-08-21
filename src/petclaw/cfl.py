@@ -1,12 +1,6 @@
 r"""
-This module contains the most abstract parallel solver class, PetSolver.
-All parallel solvers inherit from this class.
-
-:Authors:
-    Amal Alghamdi
-    David Ketcheson
+Module for the cfl object, responsible for computing and enforcing the Courant-Friedrichs-Lewy condition
 """
-import pyclaw.solver
 
 class CFL(object):
     def __init__(self, global_max):
@@ -35,22 +29,3 @@ class CFL(object):
         from petsc4py import PETSc
         cflVec = PETSc.Vec().createWithArray([new_local_max])
         self._global_max = cflVec.max()[1]
-
-
-# ============================================================================
-#  Generic PetClaw solver class
-# ============================================================================
-class PetSolver(pyclaw.solver.Solver):
-    r"""
-    Generic PetClaw solver
-    
-    All PetClaw solvers inherit from this base class.
-    See superclass pyclaw.solver.Solver for documentation of attributes.
-    """
-
-    def __init__(self,data=None):
-        super(PetSolver,self).__init__(data)
-        self.cfl = CFL(self._default_attr_values['cfl_desired'])
-    
-    # ========== Boundary Conditions ==================================
-

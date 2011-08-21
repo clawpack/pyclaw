@@ -32,29 +32,6 @@ def default_compute_gauge_values(q,aux):
     """
     return q
 
-class CFL(object):
-    def __init__(self, global_max):
-        self._global_max = global_max
-        
-    def get_global_max(self):
-        r"""
-        Compute the maximum CFL number over all processes for the current step.
-
-        This is used to determine whether the CFL condition was
-        violated and adjust the timestep.
-        """
-        return self._global_max
-
-    def get_cached_max(self):
-        return self._global_max
-
-    def set_local_max(self,new_local_max):
-        self._global_max = new_local_max
-
-    def update_global_max(self,new_local_max):
-        self._global_max = new_local_max
-
-
 class Solver(object):
     r"""
     Pyclaw solver superclass.
@@ -144,7 +121,7 @@ class Solver(object):
     #  ======================================================================
     #   Initialization routines
     #  ======================================================================
-    def __init__(self,data=None):
+    def __init__(self,data=None,claw_package=None):
         r"""
         Initialize a Solver object
         
@@ -162,10 +139,26 @@ class Solver(object):
             for attr in self._required_attrs:
                 if hasattr(data,attr):
                     setattr(self,attr,getattr(data,attr))
+
+        # select package to build solver objects from, by default this will be
+        # the package that contains the module implementing the derived class
+        # for example, if ClawSolver1D is implemented in 'petclaw.solver', then
+        # the computed claw_package will be 'petclaw'
+        
+        import sys
+        if claw_package is not None and claw_package in sys.modules:
+            self.claw_package = sys.modules[claw_package]
+        else:
+            claw_package_name = self.__module__[0:self.__module__.rfind('.')]
+            if claw_package_name in sys.modules:
+                self.claw_package = sys.modules[claw_package_name]
+            else:
+                raise NotImplementedError("Unable to determine solver package, please provide one")
+
         
         # Initialize time stepper values
         self.dt = self._default_attr_values['dt_initial']
-        self.cfl = CFL(self._default_attr_values['cfl_desired'])
+        self.cfl = self.claw_package.CFL(self._default_attr_values['cfl_desired'])
        
         # Status Dictionary
         self.status = {'cflmax':self.cfl.get_cached_max(),
@@ -237,11 +230,12 @@ class Solver(object):
         Stub for solver setup routines.
         
         This function is called before a set of time steps are taken in order 
-        to reach tend.  A subclass should override it if it needs to 
+        to reach tend.  A subclass should extend or override it if it needs to 
         perform some setup based on attributes that would be set after the 
         initialization routine.  Typically this is initialization that
         requires knowledge of the solution object.
         """
+
         pass
 
     def teardown(self):
