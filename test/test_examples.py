@@ -37,6 +37,8 @@ if __name__=="__main__":
 @attr(time_stepping_method='theta')
 @attr(speed='fast')
 def test_1D_acoustics_homogeneous_1a():
+    r"""This test is skipped for now because we're no longer supporting
+    the implicit approach used by Jed Brown in implementing it."""
     raise SkipTest
     path           = './test/acoustics/1d/homogeneous'
     target_name    = 'all'
@@ -329,7 +331,7 @@ def test_2D_shockbubble_1a():
         return numpy.max(abs(test_x-verify_x))<1.e-14
 
     method_options = {'use_petsc' : False}
-#    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
+    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
 
 
 # Regression test: 2D Euler shock-bubble interaction

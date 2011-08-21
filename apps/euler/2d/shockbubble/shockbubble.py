@@ -86,10 +86,10 @@ def euler_rad_src(solver,solution,t,dt):
     v   = qstar[2,:,:]/rho
     press  = gamma1 * (qstar[3,:,:] - 0.5*rho*(u**2 + v**2))
 
-    q[0,:,:] = q[0,:,:] - dt2*(ndim-1)/rad * qstar[2,:,:]
-    q[1,:,:] = q[1,:,:] - dt2*(ndim-1)/rad * rho*u*v
-    q[2,:,:] = q[2,:,:] - dt2*(ndim-1)/rad * rho*v*v
-    q[3,:,:] = q[3,:,:] - dt2*(ndim-1)/rad * v * (qstar[3,:,:] + press)
+    q[0,:,:] = q[0,:,:] - dt*(ndim-1)/rad * qstar[2,:,:]
+    q[1,:,:] = q[1,:,:] - dt*(ndim-1)/rad * rho*u*v
+    q[2,:,:] = q[2,:,:] - dt*(ndim-1)/rad * rho*v*v
+    q[3,:,:] = q[3,:,:] - dt*(ndim-1)/rad * v * (qstar[3,:,:] + press)
 
 
 def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='classic'):
