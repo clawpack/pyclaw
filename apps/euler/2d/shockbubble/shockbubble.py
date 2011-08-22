@@ -2,17 +2,35 @@
 # encoding: utf-8
 
 import numpy as np
+from scipy import integrate
 
 gamma = 1.4
 gamma1 = gamma - 1.
+x0=0.5; y0=0.; r0=0.2
+xshock = 0.2
+pinf=5.
 
-def qinit(state,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
+def inrad(y,x):
+    return (np.sqrt((x-x0)**2+(y-y0)**2)<r0)
+
+def ycirc(x,ymin,ymax):
+    if r0**2>((x-x0)**2):
+        return max(min(y0 + np.sqrt(r0**2-(x-x0)**2),ymax) - ymin,0.)
+    else:
+        return 0
+
+def qinit(state,rhoin=0.1):
+    r"""
+    Initialize data with a shock at x=xshock and a low-density bubble (of density rhoin)
+    centered at (x0,y0) with radius r0.
+    """
     rhoout = 1.
     pout   = 1.
     pin    = 1.
 
     rinf = (gamma1 + pinf*(gamma+1.))/ ((gamma+1.) + gamma1*pinf)
     vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
+    print rinf, vinf
     einf = 0.5*rinf*vinf**2 + pinf/gamma1
     
     x =state.grid.x.center
@@ -20,11 +38,30 @@ def qinit(state,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
     Y,X = np.meshgrid(y,x)
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
 
-    state.q[0,:,:] = rhoin*(r<=r0) + rhoout*(r>r0)
-    state.q[1,:,:] = 0.
+    #First set the values for the cells that don't intersect the bubble boundary
+    state.q[0,:,:] = rinf*(X<xshock) + rhoin*(r<=r0) + rhoout*(r>r0)
+    state.q[1,:,:] = rinf*vinf*(X<xshock)
     state.q[2,:,:] = 0.
-    state.q[3,:,:] = (pin*(r<=r0) + pout*(r>r0))/gamma1
+    state.q[3,:,:] = einf*(X<xshock) + (pin*(r<=r0) + pout*(r>r0))/gamma1
     state.q[4,:,:] = 1.*(r<=r0)
+
+    #Now average for the cells on the edge of the bubble
+    d2 = np.linalg.norm(state.grid.d)/2.
+    dx = state.grid.d[0]
+    dy = state.grid.d[1]
+    dx2 = state.grid.d[0]/2.
+    dy2 = state.grid.d[1]/2.
+    for i in xrange(state.q.shape[1]):
+        for j in xrange(state.q.shape[2]):
+            ydown = y[j]-dy2
+            yup   = y[j]+dy2
+            if abs(r[i,j]-r0)<d2:
+                infrac,abserr = integrate.quad(ycirc,x[i]-dx2,x[i]+dx2,args=(ydown,yup),epsabs=1.e-8,epsrel=1.e-5)
+                infrac=infrac/(dx*dy)
+                state.q[0,i,j] = rhoin*infrac + rhoout*(1.-infrac)
+                state.q[3,i,j] = (pin*infrac + pout*(1.-infrac))/gamma1
+                state.q[4,i,j] = 1.*infrac
+
 
 def auxinit(state):
     """
@@ -42,7 +79,6 @@ def shockbc(grid,dim,t,qbc,mbc):
     """
     if dim.nstart == 0:
 
-        pinf=5.
         rinf = (gamma1 + pinf*(gamma+1.))/ ((gamma+1.) + gamma1*pinf)
         vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
         einf = 0.5*rinf*vinf**2 + pinf/gamma1
@@ -121,7 +157,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     solver.mthauxbc_upper[1]=pyclaw.BC.outflow
 
     # Initialize grid
-    mx=160; my=40
+    mx=1280; my=320
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
     grid = pyclaw.Grid([x,y])
@@ -136,6 +172,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     auxinit(state)
 
     solver.dim_split = 0
+    solver.order_trans = 2
     solver.limiters = [4,4,4,4,2]
     solver.user_bc_lower=shockbc
     solver.src=euler_rad_src
@@ -143,7 +180,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
-    claw.tfinal = 0.25
+    claw.tfinal = 0.75
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.nout = 10
