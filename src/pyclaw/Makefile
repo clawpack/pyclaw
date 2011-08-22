@@ -13,8 +13,7 @@ HTML = \
 
 # Rules to make html files:
 CC2HTML = python $(CLAW)/doc/clawcode2html.py --force  
-# e.g. qinit.f --> qinit.f.html
-%.f.html : %.f ; $(CC2HTML) $<
+# e.g. qinit.f95 --> qinit.f95.html
 %.f95.html : %.f95 ; $(CC2HTML) $<
 %.m.html : %.m ; $(CC2HTML) $<
 %.py.html : %.py ; $(CC2HTML) $<

@@ -3,4 +3,4 @@
 
 
 FRS.so: 
-	f2py -m FRS -c   ../main.f90
+	f2py -m FRS -c   ../main.f95

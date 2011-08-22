@@ -1,3 +1,3 @@
 
-DMPFOR.so : DMPFOR.f90
-	f2py  -m DMPFOR -c DMPFOR.f90 
+DMPFOR.so : DMPFOR.f95
+	f2py  -m DMPFOR -c DMPFOR.f95 

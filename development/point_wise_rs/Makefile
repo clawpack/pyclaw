@@ -25,16 +25,16 @@ EXECUTABLE = rp_test
 # ============================================================================
 # Fortran rules and file suffixes
 .SUFFIXES:
-.SUFFIXES: .f90 .mod .o
-%.o : %.f90 ; $(FC) -c -o $@ $(ALL_FFLAGS) $<
+.SUFFIXES: .f95 .mod .o
+%.o : %.f95 ; $(FC) -c -o $@ $(ALL_FFLAGS) $<
 
 # ============================================================================
 # Source lists
-LOCAL_SRC = main.f90
+LOCAL_SRC = main.f95
 
 # ============================================================================
 # Object lists
-LOCAL_OBJ = $(subst .f90,.o, $(LOCAL_SRC))
+LOCAL_OBJ = $(subst .f95,.o, $(LOCAL_SRC))
 
 # ============================================================================
 # Targets
