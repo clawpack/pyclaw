@@ -94,6 +94,8 @@ contains
            call weno5(q,ql,qr,meqn,maxnx,mbc)
         case (7)
            call weno7(q,ql,qr,meqn,maxnx,mbc)           
+        case default
+           print *, 'error: weno_order must be an odd number between 5 and 7 (inclusive)'
         end select
 
     end subroutine weno
