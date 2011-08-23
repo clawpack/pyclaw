@@ -15,11 +15,10 @@ Module containing SharpClaw solvers for PetClaw
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-from clawpack import PetSolver
 from pyclaw.sharpclaw import SharpClawSolver1D, SharpClawSolver2D
 
 
-class SharpClawSolver1D(PetSolver,SharpClawSolver1D):
+class SharpClawSolver1D(SharpClawSolver1D):
     """
     
     1D parallel SharpClaw solver.
@@ -37,7 +36,7 @@ class SharpClawSolver1D(PetSolver,SharpClawSolver1D):
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (mbc)
         state = solution.state
-        state.set_stencil_width(self.mbc)
+        state.set_mbc(self.mbc)
         # End hack
 
         self.allocate_rk_stages(solution)
@@ -52,7 +51,7 @@ class SharpClawSolver1D(PetSolver,SharpClawSolver1D):
 
         self.allocate_bc_arrays(state)
 
-class SharpClawSolver2D(PetSolver,SharpClawSolver2D):
+class SharpClawSolver2D(SharpClawSolver2D):
     """
     
     2D parallel SharpClaw solver.  
@@ -66,7 +65,7 @@ class SharpClawSolver2D(PetSolver,SharpClawSolver2D):
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (mbc)
         state = solution.state
-        state.set_stencil_width(self.mbc)
+        state.set_mbc(self.mbc)
         # End hack
 
         self.allocate_rk_stages(solution)

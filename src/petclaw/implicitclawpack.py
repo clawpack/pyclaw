@@ -11,8 +11,7 @@ are the dimension-specific ones, :class:`ImplicitClawSolver1D` and :class:`Impli
     Matteo Parsani -- Initial version (July 2011)
 """
 
-import petclaw.solver
-
+import pyclaw.solver
 import pyclaw.limiters.tvd
 import riemann
 
@@ -39,7 +38,7 @@ def src(solver,solution,t,dt):
 # ============================================================================
 #  Generic implicit Clawpack solver class
 # ============================================================================
-class ImplicitClawSolver(petclaw.solver.PetSolver):
+class ImplicitClawSolver(pyclaw.solver.Solver):
     r"""
     Generic implicit Clawpack solver.
     

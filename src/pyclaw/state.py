@@ -162,6 +162,49 @@ class State(object):
             for global_var_name,global_var_value in self.aux_global.iteritems(): 
                 setattr(fortran_module.cparam,global_var_name,global_var_value)
 
+    def set_mbc(self,mbc):
+        """
+        Virtual routine (does nothing)
+        """
+        pass
+
+
+    def set_q_from_qbc(self,mbc,qbc):
+        """
+        Set the value of q using the array qbc. for PetSolver, this
+        involves setting qbc as the local vector array then perform
+        a local to global communication. 
+        """
+        
+        grid = self.grid
+        if grid.ndim == 1:
+            self.q = qbc[:,mbc:-mbc]
+        elif grid.ndim == 2:
+            self.q = qbc[:,mbc:-mbc,mbc:-mbc]
+        else:
+            raise NotImplementedError("The case of 3D is not handled in "\
+            +"this function yet")
+
+    def get_qbc_from_q(self,mbc,whichvec,qbc):
+        """
+        Fills in the interior of qbc (local vector) by copying q (global vector) to it.
+        """
+        ndim = self.grid.ndim
+        
+        if whichvec == 'q':
+            q    = self.q
+        elif whichvec == 'aux':
+            q    = self.aux
+
+        if ndim == 1:
+            qbc[:,mbc:-mbc] = q
+        elif ndim == 2:
+            qbc[:,mbc:-mbc,mbc:-mbc] = q
+        elif ndim == 3:
+            qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = q
+
+        return qbc
+
     # ========== Copy functionality ==========================================
     def __copy__(self):
         return self.__class__(self)
