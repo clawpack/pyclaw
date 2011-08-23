@@ -13,14 +13,14 @@ The low-level kernels used are the Clawpack and SharpClaw routines, which are wr
 The PyClaw package also includes PetClaw, a scalable parallel implementation of Clawpack and SharpClaw,
 using PETSc.
 
-Why use PyClaw?  Because PyClaw
+PyClaw features:
 
     * Solves general hyperbolic PDEs in 1D and 2D
     * Includes the full functionality of `Clawpack <www.clawpack.org>`_ and 
       `SharpClaw <http://numerics.kaust.edu.sa/sharpclaw/>`_
     * Has a simple and intuitive pythonic interface
     * Is based on a powerful and modular object-oriented design
-    * Allows you to run your simulation on the world's biggest supercomputers by changing one line of code
+    * Allows you to run your simulation on the world's biggest supercomputers with the same simple script that runs it on your laptop
     * Makes it easy to access the powerful PETSc library of solvers for handling stiff source terms or for
       implicit time stepping (under construction)
 
