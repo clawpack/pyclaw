@@ -299,6 +299,7 @@ class ClawSolver1D(ClawSolver):
 
         elif(self.kernel_language == 'Python'):
  
+            aux = self.auxbc
             # Limiter to use in the pth family
             limiter = np.array(self.mthlim,ndmin=1)  
         

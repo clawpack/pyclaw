@@ -310,11 +310,11 @@ class Solver(object):
             qbc  = self.auxbc
 
         if ndim == 1:
-            self.qbc[:,mbc:-mbc] = q
+            qbc[:,mbc:-mbc] = q
         elif ndim == 2:
-            self.qbc[:,mbc:-mbc,mbc:-mbc] = q
+            qbc[:,mbc:-mbc,mbc:-mbc] = q
         elif ndim == 3:
-            self.qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = q
+            qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = q
 
     def copy_local_to_global(self,qbc,state,mbc):
         """
