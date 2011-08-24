@@ -155,7 +155,7 @@ class SharpClawSolver(Solver):
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
         # dt
-        if self.cfl >= self.cfl_max:
+        if self.cfl.get_cached_max() >= self.cfl_max:
             raise CFLError('cfl_max exceeded')
 
         # Godunov Splitting -- really the source term should be called inside rkstep
@@ -298,7 +298,7 @@ class SharpClawSolver1D(SharpClawSolver):
 
         if self.kernel_language=='Fortran':
             from sharpclaw1 import flux1
-            dq,self.cfl=flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.mbc,mx)
+            dq,cfl=flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.mbc,mx)
 
         elif self.kernel_language=='Python':
 
@@ -348,11 +348,11 @@ class SharpClawSolver1D(SharpClawSolver):
             UL = grid.ng[0] + self.mbc + 1
 
             # Compute maximum wave speed
-            self.cfl = 0.0
+            cfl = 0.0
             for mw in xrange(self.mwaves):
                 smax1 = np.max( dtdx[LL  :UL]  *s[mw,LL-1:UL-1])
                 smax2 = np.max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
-                self.cfl = max(self.cfl,smax1,smax2)
+                cfl = max(cfl,smax1,smax2)
 
             #Find total fluctuation within each cell
             wave,s,amdq2,apdq2 = self.rp(ql,qr,aux,aux,state.aux_global)
@@ -363,7 +363,8 @@ class SharpClawSolver1D(SharpClawSolver):
                                 + apdq2[m,LL:UL] + amdq2[m,LL:UL])
 
         else: raise Exception('Unrecognized value of solver.kernel_language.')
-        
+
+        self.cfl.update_global_max(cfl)
         return dq[:,self.mbc:-self.mbc]
     
 
@@ -458,8 +459,9 @@ class SharpClawSolver2D(SharpClawSolver):
 
         if self.kernel_language=='Fortran':
             from sharpclaw2 import flux2
-            dq,self.cfl=flux2(q,self.auxbc,self.dt,state.t,mbc,maxm,mx,my)
+            dq,cfl=flux2(q,self.auxbc,self.dt,state.t,mbc,maxm,mx,my)
 
         else: raise Exception('Only Fortran kernels are supported in 2D.')
 
+        self.cfl.update_global_max(cfl)
         return dq[:,mbc:-mbc,mbc:-mbc]

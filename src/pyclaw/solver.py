@@ -32,7 +32,6 @@ def default_compute_gauge_values(q,aux):
     """
     return q
 
-
 class Solver(object):
     r"""
     Pyclaw solver superclass.
@@ -122,7 +121,7 @@ class Solver(object):
     #  ======================================================================
     #   Initialization routines
     #  ======================================================================
-    def __init__(self,data=None):
+    def __init__(self,data=None,claw_package=None):
         r"""
         Initialize a Solver object
         
@@ -140,13 +139,29 @@ class Solver(object):
             for attr in self._required_attrs:
                 if hasattr(data,attr):
                     setattr(self,attr,getattr(data,attr))
+
+        # select package to build solver objects from, by default this will be
+        # the package that contains the module implementing the derived class
+        # for example, if ClawSolver1D is implemented in 'petclaw.solver', then
+        # the computed claw_package will be 'petclaw'
+        
+        import sys
+        if claw_package is not None and claw_package in sys.modules:
+            self.claw_package = sys.modules[claw_package]
+        else:
+            claw_package_name = self.__module__[0:self.__module__.rfind('.')]
+            if claw_package_name in sys.modules:
+                self.claw_package = sys.modules[claw_package_name]
+            else:
+                raise NotImplementedError("Unable to determine solver package, please provide one")
+
         
         # Initialize time stepper values
         self.dt = self._default_attr_values['dt_initial']
-        self._cfl = self._default_attr_values['cfl_desired']
-        
+        self.cfl = self.claw_package.CFL(self._default_attr_values['cfl_desired'])
+       
         # Status Dictionary
-        self.status = {'cflmax':self.cfl,
+        self.status = {'cflmax':self.cfl.get_cached_max(),
                        'dtmin':self.dt, 
                        'dtmax':self.dt,
                        'numsteps':0 }
@@ -215,11 +230,12 @@ class Solver(object):
         Stub for solver setup routines.
         
         This function is called before a set of time steps are taken in order 
-        to reach tend.  A subclass should override it if it needs to 
+        to reach tend.  A subclass should extend or override it if it needs to 
         perform some setup based on attributes that would be set after the 
         initialization routine.  Typically this is initialization that
         requires knowledge of the solution object.
         """
+
         pass
 
     def teardown(self):
@@ -231,19 +247,6 @@ class Solver(object):
         perform some cleanup, such as deallocating arrays in a Fortran module.
         """
         pass
-
-
-    def cfl():
-        r"""CFL number from current step.  In PyClaw, this could just
-            be a float, but in PetClaw communication is required, so 
-            it is implemented as a property.
-        """
-        def fget(self):
-                return self._cfl
-        def fset(self,cflnum):
-            self._cfl = cflnum
-        return locals()
-    cfl = property(**cfl())
 
 
     def __str__(self):
@@ -263,18 +266,19 @@ class Solver(object):
 
         If we create a MethodOfLinesSolver subclass, this should be moved there.
         """
-        from pyclaw.state import State
-
         if self.time_integrator   == 'Euler':  nregisters=1
         elif self.time_integrator == 'SSP33':  nregisters=2
         elif self.time_integrator == 'SSP104': nregisters=3
  
         state = solution.states[0]
+        # use the same class constructor as the solution for the Runge Kutta stages
+        State = type(state)
         self._rk_stages = []
         for i in range(nregisters-1):
             #Maybe should use State.copy() here?
             self._rk_stages.append(State(state.grid,state.meqn,state.maux))
             self._rk_stages[-1].aux_global       = state.aux_global
+            self._rk_stages[-1].set_mbc(self.mbc)
             self._rk_stages[-1].t                = state.t
             if state.maux > 0:
                 self._rk_stages[-1].aux              = state.aux
@@ -294,41 +298,6 @@ class Solver(object):
         self.auxbc = np.empty(auxbc_dim,order='F')
         if state.maux>0:
             self.apply_aux_bcs(state)
-
-
-    def copy_global_to_local(self,state,whichvec):
-        """
-        Fills in the interior of qbc (local vector) by copying q (global vector) to it.
-        """
-        ndim = self.ndim
-        mbc  = self.mbc
-        if whichvec == 'q':
-            q    = state.q
-            qbc  = self.qbc
-        elif whichvec == 'aux':
-            q    = state.aux
-            qbc  = self.auxbc
-
-        if ndim == 1:
-            qbc[:,mbc:-mbc] = q
-        elif ndim == 2:
-            qbc[:,mbc:-mbc,mbc:-mbc] = q
-        elif ndim == 3:
-            qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = q
-
-    def copy_local_to_global(self,qbc,state,mbc):
-        """
-        Fills in the values of q (global vector) by copying the interior values
-        of qbc (local vector) to it.
-        """
-        ndim = len(state.q.shape)-1
-        if ndim == 1:
-            state.q = qbc[:,mbc:-mbc]
-        elif ndim == 2:
-            state.q = qbc[:,mbc:-mbc,mbc:-mbc]
-        else:
-            raise NotImplementedError("The case of 3D is not handled in "\
-            +"solver.copy_local_to_global() yet")
 
     def apply_q_bcs(self,state):
         r"""
@@ -366,7 +335,7 @@ class Solver(object):
         
         import numpy as np
 
-        self.copy_global_to_local(state,'q')
+        self.qbc = state.get_qbc_from_q(self.mbc,'q',self.qbc)
         grid = state.grid
        
         for idim,dim in enumerate(grid.dimensions):
@@ -507,7 +476,8 @@ class Solver(object):
         
         import numpy as np
 
-        self.copy_global_to_local(state,'aux')
+        self.auxbc = state.get_qbc_from_q(self.mbc,'aux',self.auxbc)
+
         grid = state.grid
        
         for idim,dim in enumerate(grid.dimensions):
@@ -643,7 +613,7 @@ class Solver(object):
         tstart = solution.t
 
         # Reset status dictionary
-        self.status['cflmax'] = self.cfl
+        self.status['cflmax'] = self.cfl.get_cached_max()
         self.status['dtmin'] = self.dt
         self.status['dtmax'] = self.dt
         self.status['numsteps'] = 0
@@ -682,9 +652,10 @@ class Solver(object):
             self.step(solution)
 
             # Check to make sure that the Courant number was not too large
-            if self.cfl <= self.cfl_max:
+            cfl = self.cfl.get_cached_max()
+            if cfl <= self.cfl_max:
                 # Accept this step
-                self.status['cflmax'] = max(self.cfl, self.status['cflmax'])
+                self.status['cflmax'] = max(cfl, self.status['cflmax'])
                 if self.dt_variable==True:
                     solution.t += self.dt 
                 else:
@@ -692,7 +663,7 @@ class Solver(object):
                     solution.t = tstart+(n+1)*self.dt
                 # Verbose messaging
                 self.logger.debug("Step %i  CFL = %f   dt = %f   t = %f"
-                    % (n,self.cfl,self.dt,solution.t))
+                    % (n,cfl,self.dt,solution.t))
                     
                 self.write_gauge_values(solution)
                 # Increment number of time steps completed
@@ -704,26 +675,26 @@ class Solver(object):
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
                 if self.dt_variable:
-                    self.copy_local_to_global(self.qbc_backup,state,self.mbc)
-                    print state.q
+                    state.set_q_from_qbc(self.mbc, self.qbc_backup)
                     solution.t = told
                     # Retake step
                     retake_step = True
                 else:
                     # Give up, we cannot adapt, abort
                     self.status['cflmax'] = \
-                        max(self.cfl, self.status['cflmax'])
-                    raise Exception('CFL to large, giving up!')
+                        max(cfl, self.status['cflmax'])
+                    raise Exception('CFL too large, giving up!')
                     
             # Choose new time step
             if self.dt_variable:
-                if self.cfl > 0.0:
+                if cfl > 0.0:
                     self.dt = min(self.dt_max,self.dt * self.cfl_desired 
-                                    / self.cfl)
+                                    / cfl)
                     self.status['dtmin'] = min(self.dt, self.status['dtmin'])
                     self.status['dtmax'] = max(self.dt, self.status['dtmax'])
                 else:
                     self.dt = self.dt_max
+
       
         # End of main time stepping loop -------------------------------------
 
@@ -756,6 +727,4 @@ class Solver(object):
             p=self.compute_gauge_values(q,aux)
             t=solution.t
             solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
-
-
 
