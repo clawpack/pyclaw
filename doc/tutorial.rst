@@ -27,6 +27,12 @@ the acoustics equations in one dimension:
 
 We'll assume that you've already followed the :ref:`installation` instructions.
 
+.. note::
+   The following instructions show how to set up a problem step-by-step in an
+   interactive shell.  If you don't want to type all these commands, you can
+   instead go into pyclaw/apps/acoustics/1d/homogeneous, run make, and then
+   execute acoustics.py.
+
 Now launch an iPython session and import pyclaw::
 
     >>> import pyclaw
@@ -44,10 +50,13 @@ Riemann solver implemented in Python::
     >>> solver.kernel_language = 'Python'
 
 Now we import the appropriate solver from the riemann package and set the 
-solver.rp attribute::
+solver.rp attribute, which is a function handle::
 
     >>> from riemann import rp_acoustics
     >>> solver.rp = rp_acoustics.rp_acoustics_1d
+    >>> solver.mwaves = 2
+
+The `mwaves` property indicates the number of waves used in the Riemann solver.
 
 Finally, we set the boundary conditions.  We'll use a reflecting (wall)
 condition at the left boundary and a non-reflecting (zero-order extrapolation)
@@ -61,7 +70,7 @@ Dimension, Grid, and State
 Next we need to set up the grid.  A PyClaw grid is built from dimensions;
 in our case, we only need 1 dimension::
 
-    >>> x = Dimension('x', -1.0, 1.0, 200)
+    >>> x = pyclaw.Dimension('x', -1.0, 1.0, 200)
     
 This creates a dimension ``x``  on the interval ``[-1.0, 1.0]`` with ``200``
 grid points.  Notice that the calling sequence is similar numpy's linspace
@@ -75,11 +84,10 @@ This creates a grid object, which holds information about the cell center
 and edge coordinates.  Finally, we set up a :class:`~pyclaw.state.State`
 object, which will hold the solution itself::
 
-    >>> state = pyclaw.State(grid)
-    >>> state.meqn = 2
+    >>> state = pyclaw.State(grid,2)
 
-The attribute meqn indicates the number of equations in the hyperbolic
-system we're solving.
+The second argument indicates the number of equations in the hyperbolic
+system we're solving: in this case, two.
 
 Initial condition
 ======================
@@ -90,8 +98,8 @@ Now we will set the initial value of the solution::
     >>> state.q[0,:] = exp(-100 * (xc-0.75)**2)
     >>> state.q[1,:] = 0.
 
-The pressure (grid.q[0,:]) is set to a Gaussian centered at :math:`x=0.75`.
-The velocity (grid.q[1,:]) is set to zero everywhere.
+The pressure (`state.q[0,:]`) is set to a Gaussian centered at :math:`x=0.75`.
+The velocity (`state.q[1,:]`) is set to zero everywhere.
 
 Finally, we put the state into a Solution object::
 
@@ -113,7 +121,7 @@ called aux_global that is a member of the :class:`~pyclaw.state.State`::
     >>> state.aux_global['rho'] = rho
     >>> state.aux_global['bulk'] = bulk
     >>> state.aux_global['zz'] = sqrt(rho*bulk)
-    >>> state.aux_global['cc'] = sqrt(rho/bulk)
+    >>> state.aux_global['cc'] = sqrt(bulk/rho)
 
 The controller
 ===================
@@ -125,6 +133,7 @@ directs the solver in advancing the solution and handles output.
 
     >>> controller = pyclaw.Controller()
     >>> controller.solution = solution
+    >>> controller.solver = solver
     >>> controller.tfinal = 1.0
 
 At last everything is set up!  Now run the simulation::
