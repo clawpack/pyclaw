@@ -79,10 +79,10 @@ contains
     end subroutine dealloc_recon_workspace
 
     ! ===================================================================
-    subroutine weno(q,ql,qr,meqn,maxnx,mbc,weno_order)
+    subroutine weno_comp(q,ql,qr,meqn,maxnx,mbc,weno_order)
     ! ===================================================================
 
-        use weno_module
+        use weno
         implicit none
 
         integer,          intent(in) :: meqn, maxnx, mbc, weno_order
@@ -94,11 +94,21 @@ contains
            call weno5(q,ql,qr,meqn,maxnx,mbc)
         case (7)
            call weno7(q,ql,qr,meqn,maxnx,mbc)           
+        case (9)
+           call weno9(q,ql,qr,meqn,maxnx,mbc)           
+        case (11)
+           call weno11(q,ql,qr,meqn,maxnx,mbc)           
+        case (13)
+           call weno13(q,ql,qr,meqn,maxnx,mbc)           
+        case (15)
+           call weno15(q,ql,qr,meqn,maxnx,mbc)           
+        case (17)
+           call weno17(q,ql,qr,meqn,maxnx,mbc)           
         case default
-           print *, 'error: weno_order must be an odd number between 5 and 7 (inclusive)'
+           print *, 'error: weno_order must be an odd number between 5 and 17 (inclusive)'
         end select
 
-    end subroutine weno
+    end subroutine weno_comp
 
     ! ===================================================================
     subroutine weno5_char(q,ql,qr,evl,evr)
