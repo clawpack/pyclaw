@@ -30,7 +30,7 @@ contains
          fr3, &
          fr2
 
-    do i = mbc, maxnx+mbc
+    do i = mbc+1, maxnx+mbc
        do m = 1, meqn
           sigma0 = ((+3.33333333333333) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-10.3333333333333) * (q(m,i+0))) * (q(m,i+1)) &
@@ -51,21 +51,21 @@ contains
                + ((-10.3333333333333) * (q(m,i-1))) * (q(m,i+0)) &
                + ((+3.33333333333333) * (q(m,i+0))) * (q(m,i+0))
           acc = 0.0
-          omega0 = (+0.1) / ((sigma0 + 1.0e-6)**(2))
+          omega0 = (+0.1) / ((sigma0 + 1.0e-36)**(2))
           acc = acc + omega0
-          omega1 = (+0.6) / ((sigma1 + 1.0e-6)**(2))
+          omega1 = (+0.6) / ((sigma1 + 1.0e-36)**(2))
           acc = acc + omega1
-          omega2 = (+0.3) / ((sigma2 + 1.0e-6)**(2))
+          omega2 = (+0.3) / ((sigma2 + 1.0e-36)**(2))
           acc = acc + omega2
           omega0 = (omega0) / (acc)
           omega1 = (omega1) / (acc)
           omega2 = (omega2) / (acc)
           acc = 0.0
-          omega3 = (+0.3) / ((sigma0 + 1.0e-6)**(2))
+          omega3 = (+0.3) / ((sigma0 + 1.0e-36)**(2))
           acc = acc + omega3
-          omega4 = (+0.6) / ((sigma1 + 1.0e-6)**(2))
+          omega4 = (+0.6) / ((sigma1 + 1.0e-36)**(2))
           acc = acc + omega4
-          omega5 = (+0.1) / ((sigma2 + 1.0e-6)**(2))
+          omega5 = (+0.1) / ((sigma2 + 1.0e-36)**(2))
           acc = acc + omega5
           omega3 = (omega3) / (acc)
           omega4 = (omega4) / (acc)
@@ -134,7 +134,7 @@ contains
          fr3, &
          fr5
 
-    do i = mbc, maxnx+mbc
+    do i = mbc+1, maxnx+mbc
        do m = 1, meqn
           sigma0 = ((+8.77916666666667) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-39.175) * (q(m,i+0))) * (q(m,i+1)) &
@@ -177,26 +177,26 @@ contains
                + ((-39.175) * (q(m,i-1))) * (q(m,i+0)) &
                + ((+8.77916666666667) * (q(m,i+0))) * (q(m,i+0))
           acc = 0.0
-          omega0 = (+0.0285714285714286) / ((sigma0 + 1.0e-6)**(2))
+          omega0 = (+0.0285714285714286) / ((sigma0 + 1.0e-36)**(2))
           acc = acc + omega0
-          omega1 = (+0.342857142857143) / ((sigma1 + 1.0e-6)**(2))
+          omega1 = (+0.342857142857143) / ((sigma1 + 1.0e-36)**(2))
           acc = acc + omega1
-          omega2 = (+0.514285714285714) / ((sigma2 + 1.0e-6)**(2))
+          omega2 = (+0.514285714285714) / ((sigma2 + 1.0e-36)**(2))
           acc = acc + omega2
-          omega3 = (+0.114285714285714) / ((sigma3 + 1.0e-6)**(2))
+          omega3 = (+0.114285714285714) / ((sigma3 + 1.0e-36)**(2))
           acc = acc + omega3
           omega0 = (omega0) / (acc)
           omega1 = (omega1) / (acc)
           omega2 = (omega2) / (acc)
           omega3 = (omega3) / (acc)
           acc = 0.0
-          omega4 = (+0.114285714285714) / ((sigma0 + 1.0e-6)**(2))
+          omega4 = (+0.114285714285714) / ((sigma0 + 1.0e-36)**(2))
           acc = acc + omega4
-          omega5 = (+0.514285714285714) / ((sigma1 + 1.0e-6)**(2))
+          omega5 = (+0.514285714285714) / ((sigma1 + 1.0e-36)**(2))
           acc = acc + omega5
-          omega6 = (+0.342857142857143) / ((sigma2 + 1.0e-6)**(2))
+          omega6 = (+0.342857142857143) / ((sigma2 + 1.0e-36)**(2))
           acc = acc + omega6
-          omega7 = (+0.0285714285714286) / ((sigma3 + 1.0e-6)**(2))
+          omega7 = (+0.0285714285714286) / ((sigma3 + 1.0e-36)**(2))
           acc = acc + omega7
           omega4 = (omega4) / (acc)
           omega5 = (omega5) / (acc)
@@ -287,7 +287,7 @@ contains
          fr3, &
          fr5
 
-    do i = mbc, maxnx+mbc
+    do i = mbc+1, maxnx+mbc
        do m = 1, meqn
           sigma0 = ((+21.4123015873016) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-128.869246031746) * (q(m,i+0))) * (q(m,i+1)) &
@@ -365,15 +365,15 @@ contains
                + ((-128.869246031746) * (q(m,i-1))) * (q(m,i+0)) &
                + ((+21.4123015873016) * (q(m,i+0))) * (q(m,i+0))
           acc = 0.0
-          omega0 = (+0.00793650793650794) / ((sigma0 + 1.0e-6)**(2))
+          omega0 = (+0.00793650793650794) / ((sigma0 + 1.0e-36)**(2))
           acc = acc + omega0
-          omega1 = (+0.158730158730159) / ((sigma1 + 1.0e-6)**(2))
+          omega1 = (+0.158730158730159) / ((sigma1 + 1.0e-36)**(2))
           acc = acc + omega1
-          omega2 = (+0.476190476190476) / ((sigma2 + 1.0e-6)**(2))
+          omega2 = (+0.476190476190476) / ((sigma2 + 1.0e-36)**(2))
           acc = acc + omega2
-          omega3 = (+0.317460317460317) / ((sigma3 + 1.0e-6)**(2))
+          omega3 = (+0.317460317460317) / ((sigma3 + 1.0e-36)**(2))
           acc = acc + omega3
-          omega4 = (+0.0396825396825397) / ((sigma4 + 1.0e-6)**(2))
+          omega4 = (+0.0396825396825397) / ((sigma4 + 1.0e-36)**(2))
           acc = acc + omega4
           omega0 = (omega0) / (acc)
           omega1 = (omega1) / (acc)
@@ -381,15 +381,15 @@ contains
           omega3 = (omega3) / (acc)
           omega4 = (omega4) / (acc)
           acc = 0.0
-          omega5 = (+0.0396825396825397) / ((sigma0 + 1.0e-6)**(2))
+          omega5 = (+0.0396825396825397) / ((sigma0 + 1.0e-36)**(2))
           acc = acc + omega5
-          omega6 = (+0.317460317460317) / ((sigma1 + 1.0e-6)**(2))
+          omega6 = (+0.317460317460317) / ((sigma1 + 1.0e-36)**(2))
           acc = acc + omega6
-          omega7 = (+0.476190476190476) / ((sigma2 + 1.0e-6)**(2))
+          omega7 = (+0.476190476190476) / ((sigma2 + 1.0e-36)**(2))
           acc = acc + omega7
-          omega8 = (+0.158730158730159) / ((sigma3 + 1.0e-6)**(2))
+          omega8 = (+0.158730158730159) / ((sigma3 + 1.0e-36)**(2))
           acc = acc + omega8
-          omega9 = (+0.00793650793650794) / ((sigma4 + 1.0e-6)**(2))
+          omega9 = (+0.00793650793650794) / ((sigma4 + 1.0e-36)**(2))
           acc = acc + omega9
           omega5 = (omega5) / (acc)
           omega6 = (omega6) / (acc)
@@ -506,7 +506,7 @@ contains
          fr3, &
          fr2
 
-    do i = mbc, maxnx+mbc
+    do i = mbc+1, maxnx+mbc
        do m = 1, meqn
           sigma0 = ((+50.8449983465608) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-392.364947089947) * (q(m,i+0))) * (q(m,i+1)) &
@@ -635,17 +635,17 @@ contains
                + ((-392.364947089947) * (q(m,i-1))) * (q(m,i+0)) &
                + ((+50.8449983465608) * (q(m,i+0))) * (q(m,i+0))
           acc = 0.0
-          omega0 = (+0.00216450216450216) / ((sigma0 + 1.0e-6)**(2))
+          omega0 = (+0.00216450216450216) / ((sigma0 + 1.0e-36)**(2))
           acc = acc + omega0
-          omega1 = (+0.0649350649350649) / ((sigma1 + 1.0e-6)**(2))
+          omega1 = (+0.0649350649350649) / ((sigma1 + 1.0e-36)**(2))
           acc = acc + omega1
-          omega2 = (+0.324675324675325) / ((sigma2 + 1.0e-6)**(2))
+          omega2 = (+0.324675324675325) / ((sigma2 + 1.0e-36)**(2))
           acc = acc + omega2
-          omega3 = (+0.432900432900433) / ((sigma3 + 1.0e-6)**(2))
+          omega3 = (+0.432900432900433) / ((sigma3 + 1.0e-36)**(2))
           acc = acc + omega3
-          omega4 = (+0.162337662337662) / ((sigma4 + 1.0e-6)**(2))
+          omega4 = (+0.162337662337662) / ((sigma4 + 1.0e-36)**(2))
           acc = acc + omega4
-          omega5 = (+0.012987012987013) / ((sigma5 + 1.0e-6)**(2))
+          omega5 = (+0.012987012987013) / ((sigma5 + 1.0e-36)**(2))
           acc = acc + omega5
           omega0 = (omega0) / (acc)
           omega1 = (omega1) / (acc)
@@ -654,17 +654,17 @@ contains
           omega4 = (omega4) / (acc)
           omega5 = (omega5) / (acc)
           acc = 0.0
-          omega6 = (+0.012987012987013) / ((sigma0 + 1.0e-6)**(2))
+          omega6 = (+0.012987012987013) / ((sigma0 + 1.0e-36)**(2))
           acc = acc + omega6
-          omega7 = (+0.162337662337662) / ((sigma1 + 1.0e-6)**(2))
+          omega7 = (+0.162337662337662) / ((sigma1 + 1.0e-36)**(2))
           acc = acc + omega7
-          omega8 = (+0.432900432900433) / ((sigma2 + 1.0e-6)**(2))
+          omega8 = (+0.432900432900433) / ((sigma2 + 1.0e-36)**(2))
           acc = acc + omega8
-          omega9 = (+0.324675324675325) / ((sigma3 + 1.0e-6)**(2))
+          omega9 = (+0.324675324675325) / ((sigma3 + 1.0e-36)**(2))
           acc = acc + omega9
-          omega10 = (+0.0649350649350649) / ((sigma4 + 1.0e-6)**(2))
+          omega10 = (+0.0649350649350649) / ((sigma4 + 1.0e-36)**(2))
           acc = acc + omega10
-          omega11 = (+0.00216450216450216) / ((sigma5 + 1.0e-6)**(2))
+          omega11 = (+0.00216450216450216) / ((sigma5 + 1.0e-36)**(2))
           acc = acc + omega11
           omega6 = (omega6) / (acc)
           omega7 = (omega7) / (acc)
@@ -811,7 +811,7 @@ contains
          fr3, &
          fr2
 
-    do i = mbc, maxnx+mbc
+    do i = mbc+1, maxnx+mbc
        do m = 1, meqn
           sigma0 = ((+119.876965822244) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-1140.52691383077) * (q(m,i+0))) * (q(m,i+1)) &
@@ -1010,19 +1010,19 @@ contains
                + ((-1140.52691383077) * (q(m,i-1))) * (q(m,i+0)) &
                + ((+119.876965822244) * (q(m,i+0))) * (q(m,i+0))
           acc = 0.0
-          omega0 = (+0.000582750582750583) / ((sigma0 + 1.0e-6)**(2))
+          omega0 = (+0.000582750582750583) / ((sigma0 + 1.0e-36)**(2))
           acc = acc + omega0
-          omega1 = (+0.0244755244755245) / ((sigma1 + 1.0e-6)**(2))
+          omega1 = (+0.0244755244755245) / ((sigma1 + 1.0e-36)**(2))
           acc = acc + omega1
-          omega2 = (+0.183566433566434) / ((sigma2 + 1.0e-6)**(2))
+          omega2 = (+0.183566433566434) / ((sigma2 + 1.0e-36)**(2))
           acc = acc + omega2
-          omega3 = (+0.407925407925408) / ((sigma3 + 1.0e-6)**(2))
+          omega3 = (+0.407925407925408) / ((sigma3 + 1.0e-36)**(2))
           acc = acc + omega3
-          omega4 = (+0.305944055944056) / ((sigma4 + 1.0e-6)**(2))
+          omega4 = (+0.305944055944056) / ((sigma4 + 1.0e-36)**(2))
           acc = acc + omega4
-          omega5 = (+0.0734265734265734) / ((sigma5 + 1.0e-6)**(2))
+          omega5 = (+0.0734265734265734) / ((sigma5 + 1.0e-36)**(2))
           acc = acc + omega5
-          omega6 = (+0.00407925407925408) / ((sigma6 + 1.0e-6)**(2))
+          omega6 = (+0.00407925407925408) / ((sigma6 + 1.0e-36)**(2))
           acc = acc + omega6
           omega0 = (omega0) / (acc)
           omega1 = (omega1) / (acc)
@@ -1032,19 +1032,19 @@ contains
           omega5 = (omega5) / (acc)
           omega6 = (omega6) / (acc)
           acc = 0.0
-          omega7 = (+0.00407925407925408) / ((sigma0 + 1.0e-6)**(2))
+          omega7 = (+0.00407925407925408) / ((sigma0 + 1.0e-36)**(2))
           acc = acc + omega7
-          omega8 = (+0.0734265734265734) / ((sigma1 + 1.0e-6)**(2))
+          omega8 = (+0.0734265734265734) / ((sigma1 + 1.0e-36)**(2))
           acc = acc + omega8
-          omega9 = (+0.305944055944056) / ((sigma2 + 1.0e-6)**(2))
+          omega9 = (+0.305944055944056) / ((sigma2 + 1.0e-36)**(2))
           acc = acc + omega9
-          omega10 = (+0.407925407925408) / ((sigma3 + 1.0e-6)**(2))
+          omega10 = (+0.407925407925408) / ((sigma3 + 1.0e-36)**(2))
           acc = acc + omega10
-          omega11 = (+0.183566433566434) / ((sigma4 + 1.0e-6)**(2))
+          omega11 = (+0.183566433566434) / ((sigma4 + 1.0e-36)**(2))
           acc = acc + omega11
-          omega12 = (+0.0244755244755245) / ((sigma5 + 1.0e-6)**(2))
+          omega12 = (+0.0244755244755245) / ((sigma5 + 1.0e-36)**(2))
           acc = acc + omega12
-          omega13 = (+0.000582750582750583) / ((sigma6 + 1.0e-6)**(2))
+          omega13 = (+0.000582750582750583) / ((sigma6 + 1.0e-36)**(2))
           acc = acc + omega13
           omega7 = (omega7) / (acc)
           omega8 = (omega8) / (acc)
@@ -1225,7 +1225,7 @@ contains
          fr3, &
          fr2
 
-    do i = mbc, maxnx+mbc
+    do i = mbc+1, maxnx+mbc
        do m = 1, meqn
           sigma0 = ((+282.837600612977) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-3217.68658751845) * (q(m,i+0))) * (q(m,i+1)) &
@@ -1516,21 +1516,21 @@ contains
                + ((-3217.68658751845) * (q(m,i-1))) * (q(m,i+0)) &
                + ((+282.837600612977) * (q(m,i+0))) * (q(m,i+0))
           acc = 0.0
-          omega0 = (+0.000155400155400155) / ((sigma0 + 1.0e-6)**(2))
+          omega0 = (+0.000155400155400155) / ((sigma0 + 1.0e-36)**(2))
           acc = acc + omega0
-          omega1 = (+0.0087024087024087) / ((sigma1 + 1.0e-6)**(2))
+          omega1 = (+0.0087024087024087) / ((sigma1 + 1.0e-36)**(2))
           acc = acc + omega1
-          omega2 = (+0.0913752913752914) / ((sigma2 + 1.0e-6)**(2))
+          omega2 = (+0.0913752913752914) / ((sigma2 + 1.0e-36)**(2))
           acc = acc + omega2
-          omega3 = (+0.304584304584305) / ((sigma3 + 1.0e-6)**(2))
+          omega3 = (+0.304584304584305) / ((sigma3 + 1.0e-36)**(2))
           acc = acc + omega3
-          omega4 = (+0.380730380730381) / ((sigma4 + 1.0e-6)**(2))
+          omega4 = (+0.380730380730381) / ((sigma4 + 1.0e-36)**(2))
           acc = acc + omega4
-          omega5 = (+0.182750582750583) / ((sigma5 + 1.0e-6)**(2))
+          omega5 = (+0.182750582750583) / ((sigma5 + 1.0e-36)**(2))
           acc = acc + omega5
-          omega6 = (+0.0304584304584305) / ((sigma6 + 1.0e-6)**(2))
+          omega6 = (+0.0304584304584305) / ((sigma6 + 1.0e-36)**(2))
           acc = acc + omega6
-          omega7 = (+0.00124320124320124) / ((sigma7 + 1.0e-6)**(2))
+          omega7 = (+0.00124320124320124) / ((sigma7 + 1.0e-36)**(2))
           acc = acc + omega7
           omega0 = (omega0) / (acc)
           omega1 = (omega1) / (acc)
@@ -1541,21 +1541,21 @@ contains
           omega6 = (omega6) / (acc)
           omega7 = (omega7) / (acc)
           acc = 0.0
-          omega8 = (+0.00124320124320124) / ((sigma0 + 1.0e-6)**(2))
+          omega8 = (+0.00124320124320124) / ((sigma0 + 1.0e-36)**(2))
           acc = acc + omega8
-          omega9 = (+0.0304584304584305) / ((sigma1 + 1.0e-6)**(2))
+          omega9 = (+0.0304584304584305) / ((sigma1 + 1.0e-36)**(2))
           acc = acc + omega9
-          omega10 = (+0.182750582750583) / ((sigma2 + 1.0e-6)**(2))
+          omega10 = (+0.182750582750583) / ((sigma2 + 1.0e-36)**(2))
           acc = acc + omega10
-          omega11 = (+0.380730380730381) / ((sigma3 + 1.0e-6)**(2))
+          omega11 = (+0.380730380730381) / ((sigma3 + 1.0e-36)**(2))
           acc = acc + omega11
-          omega12 = (+0.304584304584305) / ((sigma4 + 1.0e-6)**(2))
+          omega12 = (+0.304584304584305) / ((sigma4 + 1.0e-36)**(2))
           acc = acc + omega12
-          omega13 = (+0.0913752913752914) / ((sigma5 + 1.0e-6)**(2))
+          omega13 = (+0.0913752913752914) / ((sigma5 + 1.0e-36)**(2))
           acc = acc + omega13
-          omega14 = (+0.0087024087024087) / ((sigma6 + 1.0e-6)**(2))
+          omega14 = (+0.0087024087024087) / ((sigma6 + 1.0e-36)**(2))
           acc = acc + omega14
-          omega15 = (+0.000155400155400155) / ((sigma7 + 1.0e-6)**(2))
+          omega15 = (+0.000155400155400155) / ((sigma7 + 1.0e-36)**(2))
           acc = acc + omega15
           omega8 = (omega8) / (acc)
           omega9 = (omega9) / (acc)
@@ -1774,7 +1774,7 @@ contains
          fr8, &
          fr2
 
-    do i = mbc, maxnx+mbc
+    do i = mbc+1, maxnx+mbc
        do m = 1, meqn
           sigma0 = ((+669.714981108808) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-8893.78045641284) * (q(m,i+0))) * (q(m,i+1)) &
@@ -2182,23 +2182,23 @@ contains
                + ((-8893.78045641284) * (q(m,i-1))) * (q(m,i+0)) &
                + ((+669.714981108808) * (q(m,i+0))) * (q(m,i+0))
           acc = 0.0
-          omega0 = (+4.11353352529823e-05) / ((sigma0 + 1.0e-6)**(2))
+          omega0 = (+4.11353352529823e-05) / ((sigma0 + 1.0e-36)**(2))
           acc = acc + omega0
-          omega1 = (+0.00296174413821473) / ((sigma1 + 1.0e-6)**(2))
+          omega1 = (+0.00296174413821473) / ((sigma1 + 1.0e-36)**(2))
           acc = acc + omega1
-          omega2 = (+0.0414644179350062) / ((sigma2 + 1.0e-6)**(2))
+          omega2 = (+0.0414644179350062) / ((sigma2 + 1.0e-36)**(2))
           acc = acc + omega2
-          omega3 = (+0.193500617030029) / ((sigma3 + 1.0e-6)**(2))
+          omega3 = (+0.193500617030029) / ((sigma3 + 1.0e-36)**(2))
           acc = acc + omega3
-          omega4 = (+0.362813656931304) / ((sigma4 + 1.0e-6)**(2))
+          omega4 = (+0.362813656931304) / ((sigma4 + 1.0e-36)**(2))
           acc = acc + omega4
-          omega5 = (+0.290250925545043) / ((sigma5 + 1.0e-6)**(2))
+          omega5 = (+0.290250925545043) / ((sigma5 + 1.0e-36)**(2))
           acc = acc + omega5
-          omega6 = (+0.0967503085150144) / ((sigma6 + 1.0e-6)**(2))
+          omega6 = (+0.0967503085150144) / ((sigma6 + 1.0e-36)**(2))
           acc = acc + omega6
-          omega7 = (+0.0118469765528589) / ((sigma7 + 1.0e-6)**(2))
+          omega7 = (+0.0118469765528589) / ((sigma7 + 1.0e-36)**(2))
           acc = acc + omega7
-          omega8 = (+0.000370218017276841) / ((sigma8 + 1.0e-6)**(2))
+          omega8 = (+0.000370218017276841) / ((sigma8 + 1.0e-36)**(2))
           acc = acc + omega8
           omega0 = (omega0) / (acc)
           omega1 = (omega1) / (acc)
@@ -2210,23 +2210,23 @@ contains
           omega7 = (omega7) / (acc)
           omega8 = (omega8) / (acc)
           acc = 0.0
-          omega9 = (+0.000370218017276841) / ((sigma0 + 1.0e-6)**(2))
+          omega9 = (+0.000370218017276841) / ((sigma0 + 1.0e-36)**(2))
           acc = acc + omega9
-          omega10 = (+0.0118469765528589) / ((sigma1 + 1.0e-6)**(2))
+          omega10 = (+0.0118469765528589) / ((sigma1 + 1.0e-36)**(2))
           acc = acc + omega10
-          omega11 = (+0.0967503085150144) / ((sigma2 + 1.0e-6)**(2))
+          omega11 = (+0.0967503085150144) / ((sigma2 + 1.0e-36)**(2))
           acc = acc + omega11
-          omega12 = (+0.290250925545043) / ((sigma3 + 1.0e-6)**(2))
+          omega12 = (+0.290250925545043) / ((sigma3 + 1.0e-36)**(2))
           acc = acc + omega12
-          omega13 = (+0.362813656931304) / ((sigma4 + 1.0e-6)**(2))
+          omega13 = (+0.362813656931304) / ((sigma4 + 1.0e-36)**(2))
           acc = acc + omega13
-          omega14 = (+0.193500617030029) / ((sigma5 + 1.0e-6)**(2))
+          omega14 = (+0.193500617030029) / ((sigma5 + 1.0e-36)**(2))
           acc = acc + omega14
-          omega15 = (+0.0414644179350062) / ((sigma6 + 1.0e-6)**(2))
+          omega15 = (+0.0414644179350062) / ((sigma6 + 1.0e-36)**(2))
           acc = acc + omega15
-          omega16 = (+0.00296174413821473) / ((sigma7 + 1.0e-6)**(2))
+          omega16 = (+0.00296174413821473) / ((sigma7 + 1.0e-36)**(2))
           acc = acc + omega16
-          omega17 = (+4.11353352529823e-05) / ((sigma8 + 1.0e-6)**(2))
+          omega17 = (+4.11353352529823e-05) / ((sigma8 + 1.0e-36)**(2))
           acc = acc + omega17
           omega9 = (omega9) / (acc)
           omega10 = (omega10) / (acc)

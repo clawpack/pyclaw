@@ -79,13 +79,14 @@ contains
     end subroutine dealloc_recon_workspace
 
     ! ===================================================================
-    subroutine weno_comp(q,ql,qr,meqn,maxnx,mbc,weno_order)
+    subroutine weno_comp(q,ql,qr,meqn,maxnx,mbc)
     ! ===================================================================
 
         use weno
+        use clawparams, only: weno_order
         implicit none
 
-        integer,          intent(in) :: meqn, maxnx, mbc, weno_order
+        integer,          intent(in) :: meqn, maxnx, mbc
         double precision, intent(in) :: q(meqn,maxnx+2*mbc)
         double precision, intent(out) :: ql(meqn,maxnx+2*mbc),qr(meqn,maxnx+2*mbc)
 
@@ -105,8 +106,16 @@ contains
         case (17)
            call weno17(q,ql,qr,meqn,maxnx,mbc)           
         case default
-           print *, 'error: weno_order must be an odd number between 5 and 17 (inclusive)'
+           print *, 'ERROR: weno_order must be an odd number between 5 and 17 (inclusive).'
+           stop
         end select
+
+        ! copy ghost cells to be periodic
+        ql(:,1:mbc) = ql(:,maxnx+1:)
+        qr(:,1:mbc) = qr(:,maxnx+1:)
+
+        ql(:,maxnx+mbc:maxnx+2*mbc) = ql(:,mbc:2*mbc)
+        qr(:,maxnx+mbc:maxnx+2*mbc) = qr(:,mbc:2*mbc)
 
     end subroutine weno_comp
 
