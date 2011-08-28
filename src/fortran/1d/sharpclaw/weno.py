@@ -49,7 +49,7 @@ subroutine {function}(q, ql, qr, meqn, maxnx, mbc)
   integer :: i, m
   double precision :: {variables}
 
-  do i = mbc+1, maxnx+mbc
+  do i = mbc-1, maxnx+mbc+1
     do m = 1, meqn
       {kernel}
     end do

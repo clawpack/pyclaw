@@ -30,7 +30,7 @@ contains
          fr3, &
          fr2
 
-    do i = mbc+1, maxnx+mbc
+    do i = mbc-1, maxnx+mbc+1
        do m = 1, meqn
           sigma0 = ((+3.33333333333333) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-10.3333333333333) * (q(m,i+0))) * (q(m,i+1)) &
@@ -134,7 +134,7 @@ contains
          fr3, &
          fr5
 
-    do i = mbc+1, maxnx+mbc
+    do i = mbc-1, maxnx+mbc+1
        do m = 1, meqn
           sigma0 = ((+8.77916666666667) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-39.175) * (q(m,i+0))) * (q(m,i+1)) &
@@ -287,7 +287,7 @@ contains
          fr3, &
          fr5
 
-    do i = mbc+1, maxnx+mbc
+    do i = mbc-1, maxnx+mbc+1
        do m = 1, meqn
           sigma0 = ((+21.4123015873016) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-128.869246031746) * (q(m,i+0))) * (q(m,i+1)) &
@@ -506,7 +506,7 @@ contains
          fr3, &
          fr2
 
-    do i = mbc+1, maxnx+mbc
+    do i = mbc-1, maxnx+mbc+1
        do m = 1, meqn
           sigma0 = ((+50.8449983465608) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-392.364947089947) * (q(m,i+0))) * (q(m,i+1)) &
@@ -811,7 +811,7 @@ contains
          fr3, &
          fr2
 
-    do i = mbc+1, maxnx+mbc
+    do i = mbc-1, maxnx+mbc+1
        do m = 1, meqn
           sigma0 = ((+119.876965822244) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-1140.52691383077) * (q(m,i+0))) * (q(m,i+1)) &
@@ -1225,7 +1225,7 @@ contains
          fr3, &
          fr2
 
-    do i = mbc+1, maxnx+mbc
+    do i = mbc-1, maxnx+mbc+1
        do m = 1, meqn
           sigma0 = ((+282.837600612977) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-3217.68658751845) * (q(m,i+0))) * (q(m,i+1)) &
@@ -1774,7 +1774,7 @@ contains
          fr8, &
          fr2
 
-    do i = mbc+1, maxnx+mbc
+    do i = mbc-1, maxnx+mbc+1
        do m = 1, meqn
           sigma0 = ((+669.714981108808) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-8893.78045641284) * (q(m,i+0))) * (q(m,i+1)) &

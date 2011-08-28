@@ -235,6 +235,7 @@ class SharpClawSolver1D(SharpClawSolver):
         """
         Allocate RK stage arrays and fortran routine work arrays.
         """
+        self.mbc = (self.weno_order+1)/2
         self.allocate_rk_stages(solution)
         self.set_mthlim()
  

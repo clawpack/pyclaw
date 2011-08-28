@@ -110,13 +110,6 @@ contains
            stop
         end select
 
-        ! copy ghost cells to be periodic
-        ql(:,1:mbc) = ql(:,maxnx+1:)
-        qr(:,1:mbc) = qr(:,maxnx+1:)
-
-        ql(:,maxnx+mbc:maxnx+2*mbc) = ql(:,mbc:2*mbc)
-        qr(:,maxnx+mbc:maxnx+2*mbc) = qr(:,mbc:2*mbc)
-
     end subroutine weno_comp
 
     ! ===================================================================
