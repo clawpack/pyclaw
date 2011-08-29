@@ -541,6 +541,8 @@ class Solver(object):
         elif self.mthauxbc_lower[idim] == BC.reflecting:
             for i in xrange(self.mbc):
                 auxbc[:,i,...] = auxbc[:,2*self.mbc-1-i,...]
+        elif self.mthauxbc_lower[idim] is None:
+            raise Exception("One or more of the aux boundary conditions mthauxbc_upper has not been specified.")
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthauxbc_lower)
 
@@ -575,6 +577,8 @@ class Solver(object):
         elif self.mthauxbc_upper[idim] == BC.reflecting:
             for i in xrange(self.mbc):
                 auxbc[:,-i-1,...] = auxbc[:,-2*self.mbc+i,...]
+        elif self.mthauxbc_lower[idim] is None:
+            raise Exception("One or more of the aux boundary conditions mthauxbc_lower has not been specified.")
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % x.mthauxbc_lower)
 
