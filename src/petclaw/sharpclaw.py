@@ -33,6 +33,8 @@ class SharpClawSolver1D(SharpClawSolver1D):
         """
         Allocate RK stage arrays and fortran routine work arrays.
         """
+        self.mbc = (self.weno_order+1)/2
+
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (mbc)
         state = solution.state
