@@ -280,7 +280,6 @@ class State(pyclaw.state.State):
         This could be made more efficient using some PETSc calls,
         but it only happens once so it seems not to be worth it.
         """
-        print mbc
         q0 = self.q.copy()
         self._init_q_da(self.meqn,mbc)
         self.q = q0
