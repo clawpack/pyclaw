@@ -71,12 +71,14 @@ In bash this is accomplished via ::
 
     $ export RIEMANN=$CLAW/riemann
     $ export PYCLAW=$CLAW/pyclaw
+    $ export VISCLAW=$CLAW/visclaw
     $ export PYTHONPATH=$PYCLAW/src:$RIEMANN/:$VISCLAW/src
 
 In csh/tcsh, use ::
 
     $ setenv RIEMANN $CLAW/riemann
     $ setenv PYCLAW $CLAW/pyclaw
+    $ setenv VISCLAW $CLAW/visclaw
     $ setenv PYTHONPATH $PYCLAW/src:$RIEMANN/:$VISCLAW/src
 
     
