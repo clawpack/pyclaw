@@ -391,7 +391,7 @@ def test_2D_shockbubble_1a():
     def verify_shockbubble(test_x):
         import numpy
         verify_x=numpy.loadtxt('test/sb_density')
-        return numpy.max(abs(test_x-verify_x))<1.e-14
+        return numpy.max(abs(test_x-verify_x))<1.e-12
 
     method_options = {'use_petsc' : False}
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
@@ -412,7 +412,7 @@ def test_2D_shockbubble_petclaw_classic():
     def verify_shockbubble(test_x):
         import numpy
         verify_x=numpy.loadtxt('test/sb_density')
-        return numpy.max(abs(test_x-verify_x))<1.e-14
+        return numpy.max(abs(test_x-verify_x))<1.e-12
 
     method_options = {'use_petsc' : True}
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
