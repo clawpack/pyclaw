@@ -236,6 +236,13 @@ class SharpClawSolver1D(SharpClawSolver):
         Allocate RK stage arrays and fortran routine work arrays.
         """
         self.mbc = (self.weno_order+1)/2
+
+        # This is a hack to deal with the fact that petsc4py
+        # doesn't allow us to change the stencil_width (mbc)
+        state = solution.state
+        state.set_mbc(self.mbc)
+        # End hack
+
         self.allocate_rk_stages(solution)
         self.set_mthlim()
  
@@ -252,12 +259,16 @@ class SharpClawSolver1D(SharpClawSolver):
     def teardown(self):
         r"""
         Deallocate F90 module arrays.
+        Also delete Fortran objects, which otherwise tend to persist in Python sessions.
         """
         if self.kernel_language=='Fortran':
             from sharpclaw1 import clawparams, workspace, reconstruct
             clawparams.dealloc_clawparams()
             workspace.dealloc_workspace(self.char_decomp)
             reconstruct.dealloc_recon_workspace(clawparams.lim_type,clawparams.char_decomp)
+            import sharpclaw1
+            print 'deleting sharpclaw1 object'
+            del sharpclaw1, clawparams, workspace, reconstruct
 
 
     def dq_homogeneous(self,state):
@@ -396,6 +407,14 @@ class SharpClawSolver2D(SharpClawSolver):
         """
         Allocate RK stage arrays and fortran routine work arrays.
         """
+        self.mbc = (self.weno_order+1)/2
+
+        # This is a hack to deal with the fact that petsc4py
+        # doesn't allow us to change the stencil_width (mbc)
+        state = solution.state
+        state.set_mbc(self.mbc)
+        # End hack
+
         self.allocate_rk_stages(solution)
         self.set_mthlim()
 
@@ -412,12 +431,16 @@ class SharpClawSolver2D(SharpClawSolver):
     def teardown(self):
         r"""
         Deallocate F90 module arrays.
+        Also delete Fortran objects, which otherwise tend to persist in Python sessions.
         """
         if self.kernel_language=='Fortran':
             from sharpclaw2 import clawparams, workspace, reconstruct
             workspace.dealloc_workspace(self.char_decomp)
             reconstruct.dealloc_recon_workspace(clawparams.lim_type,clawparams.char_decomp)
             clawparams.dealloc_clawparams()
+            import sharpclaw2
+            del sharpclaw2
+
 
 
     def dq_homogeneous(self,state):

@@ -201,9 +201,6 @@ class ClawSolver1D(ClawSolver):
        parameters can be used to initialize this solver
     Output:
      - (:class:`ClawSolver1D`) - Initialized 1d clawpack solver
-        
-    :Authors:
-        Kyle T. Mandli (2008-09-11) Initial version
     """
 
     def __init__(self,data=None):
@@ -553,6 +550,17 @@ class ClawSolver2D(ClawSolver):
         # step in case we have src term with strange splitting (Do not
         # think the fortran code will complain, but not sure)
         self.work = np.empty((mwork),order='F')
+
+    def teardown(self):
+        r"""
+        Delete Fortran objects, which otherwise tend to persist in Python sessions.
+        """
+        if(self.kernel_language == 'Fortran'):
+            if self.fwave:
+                import classic2fw as classic2
+            else:
+                import classic2
+            del classic2
 
 
     # ========== Homogeneous Step =====================================
