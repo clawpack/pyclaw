@@ -53,7 +53,7 @@ substantially outdated.
 
 Committing
 ============================
-Always make sure the tests pass before committing, even if you are not yet pushing.
+Always make sure the tests pass before pushing.
 
 Be verbose in your commit messages.
 
@@ -63,7 +63,7 @@ option so that the history shows distinctly the development
 of the feature.
 
 
-Helpful tips
+Running the tests
 ============================
 When running the tests, if your machine has multiple cores you can take
 advantage of them by doing::
@@ -71,3 +71,33 @@ advantage of them by doing::
     $ nosetests --processes=2
 
 (replace "2" with the number of processes you want to spawn).
+
+It is also possible to perform only a subset of the regression tests
+(e.g. pure python code or python and fortran code, classic clawpack or
+sharpclaw solver, explicit or implicit time stepping, etc.). This can be
+accomplished by passing some attributes to nose. The attributes are already
+defined in the regression tests suite and they are:
+
+    * solver_type: classic or sharpclaw
+    * kernel_language: python or fortran
+    * petsc: True or False
+    * time_stepping_mode: explicit or implicit
+    * time_stepping_method: ForwardEuler or SSP33 (for the moment)
+    * speed: fast or slow
+
+The attribute 'time_stepping_method' is only used in combination with
+'solver_type = sharpclaw' because the classic clawpack implements the
+Lax-Wendroff scheme.
+
+The attributes can be used in the following ways:
+
+    * Logic AND: run only the regression tests that have the listed attributes ::
+    
+        $ nosetests -a attribute-1 = value-1,attribute-2 = value-2,attribute-3 = value-3
+
+    * Logic OR: run the regression tests that have at least one of the listed attributes :: 
+    
+        $ nosetests -a attribute-1 = value-1 -a attribute-2 = value-2 -a attribute-3 = value-3
+
+
+

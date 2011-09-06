@@ -112,7 +112,7 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 html_theme = 'default'
-html_theme_options = {"rightsidebar": False, "stickysidebar":True}
+html_theme_options = {"rightsidebar": False, "stickysidebar":True, "bodyfont": "sans-serif"}
 
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ['./_static']

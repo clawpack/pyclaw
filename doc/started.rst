@@ -109,12 +109,12 @@ Next ::
 
     $ cd $PYCLAW/apps/advection/1d/constant
     $ make
-    $ python advection.py
+    $ python advection.py iplot=1
 
 This will run the code and then place you in an interactive plotting shell.
 To view the simulation output frames in sequence, simply press 'enter'
 repeatedly.  To exit the shell, type 'q'.  For help, type '?' or see
-this `Clawpack interactive python plotting help page <http://kingkong.amath.washington.edu/clawpack/users/plotting.html#interactive-plotting-with-iplotclaw>`_.
+this `Clawpack interactive python plotting help page <http://depts.washington.edu/clawpack/users/plotting.html>`_.
 
 Next steps
 ================================

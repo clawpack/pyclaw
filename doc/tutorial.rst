@@ -68,11 +68,11 @@ condition at the right boundary::
 Dimension, Grid, and State
 ===========================
 Next we need to set up the grid.  A PyClaw grid is built from dimensions;
-in our case, we only need 1 dimension::
+a 1D grid requires only 1 dimension::
 
     >>> x = pyclaw.Dimension('x', -1.0, 1.0, 200)
     
-This creates a dimension ``x``  on the interval ``[-1.0, 1.0]`` with ``200``
+This creates a Dimension object named ``x``  on the interval ``[-1.0, 1.0]`` with 200
 grid points.  Notice that the calling sequence is similar numpy's linspace
 command, except that the first argument is the name of the dimension.
 
@@ -144,7 +144,7 @@ This should print out a few lines indicating the output times.
 The simplest way to plot the solution is::
 
     >>> from pyclaw import plot
-    >>> plot.plotInteractive()
+    >>> plot.interactive_plot()
 
 That's it!  Your first PyClaw simulation.  Of course, we've only
 scratched the surface of what PyClaw can do, and there are many

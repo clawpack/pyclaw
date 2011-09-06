@@ -4,15 +4,16 @@
 Pyclaw Solutions
 ****************
 
-All Pyclaw solutions work via the following hierarchy:
+Pyclaw Solutions are containers for Grid and State objects:
 
-.. image:: images/pyclaw_solution_structure.*
+.. image:: images/solution.pdf
 
 Each solution contains a list of Grids which in turn contain a list of 
 Dimensions, each containing higher level attributes.
 
 List of classes:
  - Solution_
+ - State_
  - Grid_
  - Dimension_
 
@@ -26,6 +27,13 @@ List of classes:
    :member-order: groupwise
 
 .. _Grid:
+
+:class:`pyclaw.state.State`
+=============================
+   
+.. autoclass:: pyclaw.state.State
+   :members:
+   :member-order: groupwise
 
 :class:`pyclaw.grid.Grid`
 =============================
