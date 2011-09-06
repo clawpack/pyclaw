@@ -25,7 +25,7 @@ def advection_implicitSharpClawBE(use_petsc=True,iplot=False,htmlplot=False,solv
     #===========================================================================
     # Setup solver and solver parameters
     #=========================================================================== 
-    solver = pyclaw.ImplicitSharpClawSolver1D()
+    solver = pyclaw.ImplicitSharpClawSolverDEBUG1D()
 
     solver.kernel_language = 'Fortran'
     
@@ -89,6 +89,3 @@ if __name__=="__main__":
         args, kwargs = _info_from_argv(petclaw_args)
         advection_implicitSharpClawBE(*args,**kwargs)
     else: advection_implicitSharpClawBE()
-
-# python advection_implicitSharpClawBE.py -snes_fd -ksp_type preonly -pc_type lu -snes_view
-# python advection_implicitSharpClawBE.py -snes_mf -snes_view

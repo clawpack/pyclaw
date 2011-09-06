@@ -123,18 +123,12 @@ class ImplicitSharpClawSolverfsolve(petclaw.solver.PetSolver):
         # Set mthlim
         self.set_mthlim()
 
-        # Get state
-        state = solutions['n'].state
 
         # Create PETSc vectors in charge of containig:
         # bVec: the constant part of the nonlinear algebraic system of equations
         # fVec: nonlinear vector-valued function
         self.bVec    = state.gqVec.duplicate()
         self.fVec    = state.gqVec.duplicate()
-
-        #self.Jac     = PETSc.Mat().create()
-        #self.Jac.setSizes((self.bVec.size,self.bVec.size))
-        #self.Jac.setFromOptions()
 
         # Create PETSc nonlinear solver
         self.snes    = PETSc.SNES().create()

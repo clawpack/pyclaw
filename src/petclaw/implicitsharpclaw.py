@@ -16,6 +16,10 @@ Authors: Matteo Parsani
 import petclaw.solver
 import riemann
 
+from scipy.optimize import fsolve
+from scipy.optimize.nonlin import newton_krylov
+
+
 
 # Reconstructor
 try:
@@ -41,6 +45,8 @@ def src(solver,grid,q,t):
     Replace this routine if you want to include a source term.
     """
     pass
+
+
 
 # ============================================================================
 #  Generic implicit SharpClaw solver class
@@ -119,10 +125,17 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
         # fVec: nonlinear vector-valued function
         self.bVec    = state.gqVec.duplicate()
         self.fVec    = state.gqVec.duplicate()
+        
+
+        # Create Jacobian matrix
+        self.Jac     = PETSc.Mat().create()
+        self.Jac.setSizes((self.bVec.size,self.bVec.size))
+        
 
         # Create PETSc nonlinear solver
         self.snes    = PETSc.SNES().create()
-        #self.snes.setJacobian(None, self.Jac) 
+        self.Jac = state.q_da.getMatrix()
+        self.snes.setJacobian(None, self.Jac) 
 
         # Ought to implement a copy constructor for State
         self.impsol_stage = State(state.grid)
@@ -163,11 +176,6 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
 
         
         # Call b4step, pyclaw should be subclassed if this is needed
-        # NOTE: THIS IS NOT THE RIGHT PLACE WHEN WE HAVE AN IMPLICIT  
-        # TIME STEPPING BECAUSE, FOR INSTANCE, THE AUX ARRAY COULD DEPEND ON
-        # THE SOLUTION ITSELF.
-        # THEN start_step FUNCTION SHOULD BE PLACED IN THE PART OF THE CODE 
-        # WHERE THE NONLINEAR FUNCTION IS COMPUTED!!!!!!!!!
         self.start_step(self,solutions)
 
         ########################################
@@ -188,7 +196,8 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
 
 
         # Configure the nonlinear solver to use a matrix-free Jacobian
-        self.snes.setUseMF(True)
+        #self.snes.setUseMF(True)
+        self.snes.setUseFD(True)
         self.snes.setFromOptions()
 
         # Pass additinal properties to SNES.
@@ -196,6 +205,18 @@ class ImplicitSharpClawSolver(petclaw.solver.PetSolver):
 
         # Solve the nonlinear problem
         self.snes.solve(self.bVec, state.gqVec)
+
+        from petsc4py import PETSc
+        PETSc.Options().setValue('snes_monitor',1)
+        PETSc.Options().setValue('ksp_monitor',1)
+        PETSc.Options().setValue('snes_converged_reason',1)
+        PETSc.Options().setValue('ksp_converged_reason',1)
+
+        #PETSc.Options().setValue('snes_ls_type','basic')
+        #PETSc.Options().setValue('ksp_view',1)
+        #PETSc.Options().setValue('snes_view',1)
+        #PETSc.Options().setValue('log_summary',1)
+        
 
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it pick pick up a new dt. 
