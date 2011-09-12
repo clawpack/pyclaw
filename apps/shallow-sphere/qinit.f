@@ -29,10 +29,10 @@ c
        R = 4.d0
       
        do 20 i=1,mx
-	  xc = xlower + (i-0.5d0)*dx
+        xc = xlower + (i-0.5d0)*dx
           do 20 j=1,my
-	     yc = ylower + (j-0.5d0)*dy
- 	     call mapc2m(xc,yc,xp,yp,zp)
+        yc = ylower + (j-0.5d0)*dy
+        call mapc2m(xc,yc,xp,yp,zp)
 c            # compute longitude theta from positive x axis:
              rad = dmax1(dsqrt(xp**2 + yp**2),1.d-6)
 
