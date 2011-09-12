@@ -20,14 +20,29 @@ g = 1.0
 def mapc2p_sphere(grid,mC):
     """
     Specifies the mapping to curvilinear coordinates.
-    """
-    print mC
+    
+    Takes as input: array_list made by x_coordinates, y_ccordinates in the map 
+                    space.
+
+    Returns as output: array_list made by x_coordinates, y_ccordinates in the 
+                       physical space.
+
+    Inputs: mC = list composed by two arrays
+                 [array ([xc1, xc2, ...]), array([yc1, yc2, ...])]
+
+    Output: pC = list composed by three arrays
+                 [array ([xp1, xp2, ...]), array([yp1, yp2, ...]), array([zp1, zp2, ...])]
+    """  
+
+    # Radius of the sphere
     r1 = Rsphere
+    
+    # Number of cell in x and y directions. (x,y) c
     mx = grid.ng[0]
     my = grid.ng[1]
 
-    # Define new empty list, pC = physical coordinates
-    pC = []
+    # Define new list, pC = physical coordinates
+    pC = [np.zeros((mx,my))]*3
 
     for i in range(mx):
         for j in range(my):
@@ -80,13 +95,11 @@ def mapc2p_sphere(grid,mC):
                 xp = center + np.sqrt(np.maximum(R**2 - yp**2, 0.0))
 
             # Compute physical coordinates
-            # HERE IS THE PROBLEM!!!!!!!!!
             pC[2][i][j] = np.sqrt(np.maximum(r1**2 - (xp**2 + yp**2), 0.0))
             pC[0][i][j] = xp*sgnxc
             pC[1][i][j] = yp*sgnyc
-            pC[2][i][j] = zp*sgnz
-            
-        
+            pC[2][i][j] = pC[2][i][j]*sgnz
+                  
         
     
 def qinit(state):
@@ -94,15 +107,7 @@ def qinit(state):
     Initialize data with with a Gaussian pulse centered at (x0,y0) with radius 
     r0.
     """
-    # Define location of the Gaussian pulse in h
-    xc1 = 0.0
-    yc1 = 0.8
-    r = Rsphere*np.cos(yc1)
-    z1 = Rsphere*np.sin(yc1)
-    x1 = r*np.cos(xc1)
-    y1 = r*np.sin(xc1)
-
-
+    TO BE DEFINED
 
 def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
     #===========================================================================

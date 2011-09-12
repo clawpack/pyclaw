@@ -13,12 +13,16 @@ def mapc2p_annulus(grid,mC):
     """
     Specifies the mapping to curvilinear coordinates.
 
-    Takes as input:    array_list made by x_coordinates, y_ccordinates in the map space
-    Returns as output: array_list made by x_coordinates, y_ccordinates in the physical space
+    Takes as input: array_list made by x_coordinates, y_ccordinates in the map 
+                    space.
+    Returns as output: array_list made by x_coordinates, y_ccordinates in the 
+                       physical space.
 
-    Inputs: mC = list composed by two array [array ([xc1, xc2, ...]), array([yc1, yc2, ...])]
+    Inputs: mC = list composed by two arrays 
+                 [array ([xc1, xc2, ...]), array([yc1, yc2, ...])]
 
-    Output: pC = list composed by two array [array ([xp1, xp2, ...]), array([yp1, yp2, ...])]
+    Output: pC = list composed by two arrays 
+                 [array ([xp1, xp2, ...]), array([yp1, yp2, ...])]
     """  
 
     # Polar coordinates (x coordinate = radius,  y coordinate = theta)
