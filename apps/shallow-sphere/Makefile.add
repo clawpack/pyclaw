@@ -3,7 +3,7 @@ F2PY ?= f2py
 FFLAGS ?=
 
 
-INITSOL_SOURCE = qinit.f
+INITSOL_SOURCE = mapc2m.f qinit.f
 
 qinit.so: $(INITSOL_SOURCE)
 	$(F2PY) -m qinit -c $^

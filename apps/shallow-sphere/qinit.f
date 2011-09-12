@@ -17,6 +17,8 @@ c
        double precision Uin(3),Uout(3)
        double precision K 
        common /comsphere/ Rsphere
+cf2py intent(in,out) q 
+
 c
        pi = 4.d0*datan(1.d0)
 
