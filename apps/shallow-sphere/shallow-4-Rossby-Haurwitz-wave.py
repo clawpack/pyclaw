@@ -97,14 +97,11 @@ def mapc2p_sphere(grid,mC):
             pC[0][i][j] = xp*sgnxc
             pC[1][i][j] = yp*sgnyc
             pC[2][i][j] = pC[2][i][j]*sgnz
+
+    return pC
                   
 
-def qinit(state):
-    r"""
-    Initialize data with with a Gaussian pulse centered at (x0,y0) with radius 
-    r0.
-    """
-    TO BE DEFINED. 
+    
 
 def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
     #===========================================================================
@@ -151,10 +148,15 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     state = pyclaw.State(grid,meqn,maux)
 
     # Set auxiliary variables
-    state.aux = init.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,maux,aux)
+    import init
+    mbc = 2 # This is not very good because the user should not worry about the 
+            # number of BC (which are solver dependent) 
+    #state.aux = init.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,maux,aux)
+    state.aux[:,:,:] = 0.0
 
     # Set initial condition for q
-    state.q = init.qinit(mx,my,meqn,mbc,mx,my,xlower,ylower,dx,dy,state.q,maux,aux)
+    state.q = init.qinit(mx,my,xlower,ylower,dx,dy,state.q,state.aux)
+    
      
 
 if __name__=="__main__":
