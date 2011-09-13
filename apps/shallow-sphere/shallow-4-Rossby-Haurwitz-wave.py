@@ -12,10 +12,8 @@ import numpy as np
 from petclaw import plot
 #import pdb  # Debugger
 
+# Parameters
 Rsphere = 1.0
-g = 1.0
-
-
 
 def mapc2p_sphere(grid,mC):
     """
@@ -99,8 +97,92 @@ def mapc2p_sphere(grid,mC):
             pC[2][i][j] = pC[2][i][j]*sgnz
 
     return pC
-                  
 
+
+def qinit(state,mx,my):
+    r"""
+    Initialize data with 4-Rossby-Haurwitz wave.
+    """
+    # Parameters
+    a = 6.37122e6     # Radius of the earth 
+    K = 7.848e-6   
+    Omega = 7.292e-5  # Rotation rate
+    G = 9.80616       # Gravitational acceleration
+    t0 = 86400.0     
+    h0 = 8.0e3        
+    R = 4.0
+
+    # Compute the the physical coordinates of the cells' centers
+    state.grid.compute_p_center(recompute=True)
+  
+    for i in range(mx):
+        for j in range(my):
+            xp = state.grid.p_center[0][i][j]
+            yp = state.grid.p_center[1][i][j]
+            zp = state.grid.p_center[2][i][j]
+
+            rad = np.maximum(np.sqrt(xp**2 + yp**2),1.e-6)
+
+            if (xp >= 0.0 and yp >= 0.0):
+                theta = np.arcsin(yp/rad) 
+            elif (xp <= 0.0 and yp >= 0.0):
+                theta = np.pi - np.arcsin(yp/rad)
+            elif (xp <= 0.0 and yp <= 0.0):
+                 theta = -pi+dasin(-yp/rad)
+            elif (xp >= 0.0 and yp <= 0.0):
+                theta = -np.arcsin(-yp/rad)
+
+            # Compute phi, at north pole: pi/2 at south pool: -pi/2
+            if (zp >= 0.0): 
+                phi =  np.arcsin(zp/Rsphere) 
+            else:
+                phi = -np.arcsin(-zp/Rsphere)  
+        
+            xp = theta 
+            yp = phi 
+
+
+            bigA = 0.5*K*(2.0*Omega + K)*np.cos(yp)**2.0 + \
+                   0.25*K*K*np.cos(yp)**(2.0*R)*((1.0*R+1.0)*np.cos(yp)**2.0 + \
+                   (2.0*R*R - 1.0*R - 2.0) - 2.0*R*R*(np.cos(yp))**(-2.0))
+            bigB = (2.0*(Omega + K)*K)/((1.0*R + 1.0)*(1.0*R + 2.0)) * \
+                   np.cos(yp)**R*( (1.0*R*R + 2.0*R + 2.0) - \
+                   (1.0*R + 1.0)**(2)*np.cos(yp)**2 )
+            bigC = 0.25*K*K*np.cos(yp)**(2*R)*( (1.0*R + 1.0)* \
+                   np.cos(yp)**2 - (1.0*R + 2.0))
+
+
+            # Calculate local longitude-latitude velocity vector
+            ####################################################
+            Uin = np.zeros(3)
+
+            # Longitude (angular) velocity component
+            Uin[0] = (K*np.cos(yp)+K*np.cos(yp)**(R-1.)*( R*np.sin(yp)**2.0 - \
+                     np.cos(yp)**2.0)*np.cos(R*xp))*t0
+
+            # Latitude (angular) velocity component
+            Uin[1] = (-K*R*np.cos(yp)**(R-1.0)*np.sin(yp)*np.sin(R*xp))*t0
+
+            # Radial velocity component
+            Uin[2] = 0.0 # The fluid does not enter in the sphere
+            
+
+            # Calculate velocity vetor in cartesian coordinates
+            ###################################################
+            Uout = np.zeros(3)
+
+            Uout[0] = (-np.sin(xp)*Uin[0]-np.sin(yp)*np.cos(xp)*Uin[1])
+            Uout[1] = (np.cos(xp)*Uin[0]-np.sin(yp)*np.sin(xp)*Uin[1])
+            Uout[2] = np.cos(yp)*Uin[1]
+
+            # Set the initial condition             
+            state.q[0,i,j] =  h0/a + (a/G)*( bigA + bigB*np.cos(R*xp) + \
+                              bigC*np.cos(2.0*R*xp))
+            state.q[1,i,j] = state.q[0,i,j]*Uout[0] 
+            state.q[2,i,j] = state.q[0,i,j]*Uout[1] 
+            state.q[3,i,j] = state.q[0,i,j]*Uout[2] 
+
+    
     
 
 def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
@@ -143,11 +225,12 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     grid.mapc2p = mapc2p_sphere
     
     # Define state object
-    meqn = 3  # Number of equations
+    meqn = 4  # Number of equations
     maux = 16 # Number of auxiliary variables
     state = pyclaw.State(grid,meqn,maux)
 
     # Set auxiliary variables
+    #########################
     import init
     mbc = 2 # This is not very good because the user should not worry about the 
             # number of BC (which are solver dependent) 
@@ -155,8 +238,14 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     state.aux[:,:,:] = 0.0
 
     # Set initial condition for q
-    state.q = init.qinit(mx,my,xlower,ylower,dx,dy,state.q,state.aux)
+    #############################
+
+    # 1) call to Fortran function
+    #state.q = init.qinit(mx,my,xlower,ylower,dx,dy,state.q,state.aux)
     
+    # 2) call to python function define above
+    qinit(state,mx,my)
+
      
 
 if __name__=="__main__":
