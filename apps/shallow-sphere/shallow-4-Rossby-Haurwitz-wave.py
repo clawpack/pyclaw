@@ -76,16 +76,14 @@ def mapc2p_sphere(grid,mC):
             sgnxc = math.copysign(1.0,xc)
             sgnyc = math.copysign(1.0,yc)
 
-
             xc1 = np.abs(xc)
             yc1 = np.abs(yc)
-            d = np.maximum(np.maximum(xc1,yc1), 1.0e-10) 
-    
+            d = np.maximum(np.maximum(xc1,yc1), 1.0e-10)     
 
             DD = r1*d*(2.0 - d) / np.sqrt(2.0)
             R = r1
-
             center = DD - np.sqrt(np.maximum(R**2 - DD**2, 0.0))
+            
             xp = DD/d * xc1
             yp = DD/d * yc1
 
@@ -100,14 +98,13 @@ def mapc2p_sphere(grid,mC):
             pC[1][i][j] = yp*sgnyc
             pC[2][i][j] = pC[2][i][j]*sgnz
                   
-        
-    
+
 def qinit(state):
     r"""
     Initialize data with with a Gaussian pulse centered at (x0,y0) with radius 
     r0.
     """
-    TO BE DEFINED
+    TO BE DEFINED. 
 
 def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
     #===========================================================================
@@ -142,42 +139,23 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
     grid = pyclaw.Grid([x,y])
+    dx = grid.d[0]
+    dy = grid.d[1]
 
+    # Override default mapc2p function
     grid.mapc2p = mapc2p_sphere
     
-    # State:
-    meqn = 1  # Number of equations
-    state = pyclaw.State(grid,meqn)
+    # Define state object
+    meqn = 3  # Number of equations
+    maux = 16 # Number of auxiliary variables
+    state = pyclaw.State(grid,meqn,maux)
 
-    state.grid.compute_p_center(recompute=True)
+    # Set auxiliary variables
+    state.aux = init.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,maux,aux)
 
-
-    
- 
-    
-    #===========================================================================
-    # Set up controller and controller parameters
-    #===========================================================================
-    #claw = pyclaw.Controller()
-    #claw.keep_copy = False
-    #claw.outstyle = 1
-    #claw.nout = 25
-    #claw.tfinal = 1.0
-    #claw.solution = pyclaw.Solution(state)
-    #claw.solver = solver
-    #claw.outdir = outdir
-
-    #===========================================================================
-    # Solve the problem
-    #===========================================================================
-    #status = claw.run()
-
-    #===========================================================================
-    # Plot results
-    #===========================================================================
-    #if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    #if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
-
+    # Set initial condition for q
+    state.q = init.qinit(mx,my,meqn,mbc,mx,my,xlower,ylower,dx,dy,state.q,maux,aux)
+     
 
 if __name__=="__main__":
     from pyclaw.util import run_app_from_main

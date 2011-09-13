@@ -3,7 +3,7 @@ ADDMAKE = ./Makefile.add
 
 RP_SOURCE =   $(RIEMANN)/src/rpn2swsphere.f $(RIEMANN)/src/rpt2swq.f
 
-all: classic2.so sharpclaw2.so qinit.so
+all: classic2.so sharpclaw2.so init.so
 
 include $(PYCLAWMAKE)
 include $(ADDMAKE)

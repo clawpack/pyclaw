@@ -2,9 +2,10 @@ FC ?= gfortran
 F2PY ?= f2py
 FFLAGS ?=
 
+INITIALIZE_SOURCE = mapc2m.f setaux.f qinit.f
 
-INITSOL_SOURCE = mapc2m.f qinit.f
+init.so: $(INITIALIZE_SOURCE)
+	$(F2PY) -m init -c $^
 
-qinit.so: $(INITSOL_SOURCE)
-	$(F2PY) -m qinit -c $^
+
 
