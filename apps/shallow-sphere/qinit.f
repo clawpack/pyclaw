@@ -3,7 +3,7 @@ c
 c
 c     =====================================================
        subroutine qinit(maxmx,maxmy,meqn,mx,my,xlower,ylower,
-     &                   dx,dy,q,maux,aux)
+     &                   dx,dy,q,maux,aux,Rsphere)
 c     =====================================================
 c
 c      # Set initial conditions for q 
@@ -18,7 +18,7 @@ c
 cf2py intent(in,out) q
 cf2py integer optional,intent(in) maxmx
 cf2py integer optional,intent(in) maxmy
-cf2py optional meqn
+cf2py integer optional, intent(in) meqn
 cf2py integer intent(in) mx
 cf2py integer intent(in) my
 cf2py double precision intent(in) xlower
@@ -27,6 +27,7 @@ cf2py double precision intent(in) dx
 cf2py double precision intent(in) dy
 cf2py integer optional, intent(in)  maux
 cf2py intent(in) aux
+cf2py double precision intent(in) Rsphere
 
 
 
@@ -40,7 +41,7 @@ c
        t0 = 86400.d0    
        h0 = 8.d3        
        R = 4.d0
-       Rsphere = 1.d0
+
       
        do 20 i=1,mx
         xc = xlower + (i-0.5d0)*dx
@@ -49,6 +50,7 @@ c
         call mapc2m(xc,yc,xp,yp,zp)
 c            # compute longitude theta from positive x axis:
              rad = dmax1(dsqrt(xp**2 + yp**2),1.d-6)
+             theta = 0.d0
 
               if(xp.gt.0.d0.and.yp.gt.0.d0) then
                  theta = dasin(yp/rad) 

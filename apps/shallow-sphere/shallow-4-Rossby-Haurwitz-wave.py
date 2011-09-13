@@ -232,19 +232,22 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # Set auxiliary variables
     #########################
     import init
-    mbc = 2 # This is not very good because the user should not worry about the 
+    #mbc = 2 # This is not very good because the user should not worry about the 
             # number of BC (which are solver dependent) 
-    #state.aux = init.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,maux,aux)
-    state.aux[:,:,:] = 0.0
+    state.aux = init.setaux(mx,my,xlower,ylower,dx,dy,state.aux,Rsphere)
+    #state.aux[:,:,:] = 0.0
+    #print state.aux
 
     # Set initial condition for q
     #############################
 
     # 1) call to Fortran function
-    #state.q = init.qinit(mx,my,xlower,ylower,dx,dy,state.q,state.aux)
-    
+    #state.q = init.qinit(mx,my,xlower,ylower,dx,dy,state.q,state.aux,Rsphere)
+        
     # 2) call to python function define above
     qinit(state,mx,my)
+    print state.q
+
 
      
 
