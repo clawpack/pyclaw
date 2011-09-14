@@ -10,14 +10,16 @@ is restricted to the surface of the sphere.
 
 import numpy as np
 from petclaw import plot
+import matplotlib.pyplot as plt
 #import pdb  # Debugger
 
-# Parameters
+# Nondimensionalized radius of the earth
 Rsphere = 1.0
 
-def mapc2p_sphere(grid,mC):
+def mapc2p_sphere_nonvectorized(grid,mC):
     """
-    Specifies the mapping to curvilinear coordinates.
+    Specifies the mapping to curvilinear coordinates using for loops. Therefore,
+    it is slow. 
     
     Takes as input: array_list made by x_coordinates, y_ccordinates in the map 
                     space.
@@ -40,7 +42,7 @@ def mapc2p_sphere(grid,mC):
     my = grid.ng[1]
 
     # Define new list of numpy array, pC = physical coordinates
-    pC = [np.zeros((mx,my))]*3
+    pC = []
 
     for i in range(mx):
         for j in range(my):
@@ -91,12 +93,82 @@ def mapc2p_sphere(grid,mC):
                 xp = center + np.sqrt(np.maximum(R**2 - yp**2, 0.0))
 
             # Compute physical coordinates
-            pC[2][i][j] = np.sqrt(np.maximum(r1**2 - (xp**2 + yp**2), 0.0))
-            pC[0][i][j] = xp*sgnxc
-            pC[1][i][j] = yp*sgnyc
-            pC[2][i][j] = pC[2][i][j]*sgnz
+            zp = np.sqrt(np.maximum(r1**2 - (xp**2 + yp**2), 0.0))
+            pC.append(xp*sgnxc)
+            pC.append(yp*sgnyc)
+            pC.append(zp*sgnz)
 
     return pC
+
+
+
+def mapc2p_sphere_vectorized(grid,mC):
+    """
+    Specifies the mapping to curvilinear coordinates. This function has been
+    vectorized.
+    
+    Takes as input: array_list made by x_coordinates, y_ccordinates in the map 
+                    space.
+
+    Returns as output: array_list made by x_coordinates, y_ccordinates in the 
+                       physical space.
+
+    Inputs: mC = list composed by two arrays
+                 [array ([xc1, xc2, ...]), array([yc1, yc2, ...])]
+
+    Output: pC = list composed by three arrays
+                 [array ([xp1, xp2, ...]), array([yp1, yp2, ...]), array([zp1, zp2, ...])]
+    """
+
+    # Nondimensionalized radius of the earth
+    r1 = Rsphere;
+
+    # Number of cell in x and y directions. (x,y) c
+    mx = grid.ng[0]
+    my = grid.ng[1]
+
+    sgnz = np.ones((mx,my))
+
+    # 2D coordinates in the computational domain
+    xc = mC[0][:][:]
+    yc = mC[1][:][:]
+
+
+    # yc < -1 => second copy of sphere:
+    ij2 = np.where(yc < -1.0)
+    xc[ij2] = -xc[ij2] - 2.0;
+    yc[ij2] = -yc[ij2] - 2.0;
+
+    ij = np.where(xc < -1.0)
+    xc[ij] = -2.0 - xc[ij]
+    sgnz[ij] = -1.0;
+    xc1 = np.abs(xc)
+    yc1 = np.abs(yc)
+    d = np.maximum(xc1,yc1)
+    d = np.maximum(d, 1e-10)
+    D = r1*d*(2-d) / np.sqrt(2)
+    R = r1*np.ones((np.shape(d)))
+
+    center = D - np.sqrt(R**2 - D**2)
+    xp = D/d * xc1
+    yp = D/d * yc1
+
+    ij = np.where(yc1==d)
+    yp[ij] = center[ij] + np.sqrt(R[ij]**2 - xp[ij]**2)
+    ij = np.where(xc1==d)
+    xp[ij] = center[ij] + np.sqrt(R[ij]**2 - yp[ij]**2)
+    
+    # 3D coordinates in the physical domain
+    # Define new list of numpy array, pC = physical coordinates
+    pC = []
+
+    xp = np.sign(xc) * xp
+    yp = np.sign(yc) * yp
+    zp = sgnz * np.sqrt(r1**2 - (xp**2 + yp**2))
+    
+    pC.append(xp)
+    pC.append(yp)
+    pC.append(zp)
 
 
 def qinit(state,mx,my):
@@ -209,11 +281,11 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # Grid:
     xlower = 0.0
     xupper = 1.0
-    mx = 10
+    mx = 5
 
     ylower = 0.0
     yupper = 1.0
-    my = 5
+    my = 7
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
@@ -222,7 +294,7 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     dy = grid.d[1]
 
     # Override default mapc2p function
-    grid.mapc2p = mapc2p_sphere
+    grid.mapc2p = mapc2p_sphere_vectorized
     
     # Define state object
     meqn = 4  # Number of equations
@@ -234,7 +306,7 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     import init
     #mbc = 2 # This is not very good because the user should not worry about the 
             # number of BC (which are solver dependent) 
-    state.aux = init.setaux(mx,my,xlower,ylower,dx,dy,state.aux,Rsphere)
+    #state.aux = init.setaux(mx,my,xlower,ylower,dx,dy,state.aux,Rsphere)
     #state.aux[:,:,:] = 0.0
     #print state.aux
 
@@ -245,9 +317,17 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     #state.q = init.qinit(mx,my,xlower,ylower,dx,dy,state.q,state.aux,Rsphere)
         
     # 2) call to python function define above
-    qinit(state,mx,my)
-    print state.q
+    #qinit(state,mx,my)
+    #print state.q
 
+    state.grid.compute_p_center(recompute=True)
+
+
+    #x =state.grid.x.center
+    #y =state.grid.y.center
+    #Y,X = np.meshgrid(y,x)
+    #plt.pcolormesh(X,Y,state.q[0,...])
+    #plt.show()
 
      
 

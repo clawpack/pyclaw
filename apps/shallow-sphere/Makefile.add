@@ -1,9 +1,0 @@
-FC ?= gfortran
-F2PY ?= f2py
-FFLAGS ?=
-
-init.so: $(INITIALIZE_SOURCE)
-	$(F2PY) -m init -c $^
-
-
-
