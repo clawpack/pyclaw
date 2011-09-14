@@ -55,6 +55,8 @@ def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',
     solver.limiters = pyclaw.limiters.tvd.MC
     solver.mthbc_lower[0] = 2
     solver.mthbc_upper[0] = 2
+    solver.mthauxbc_lower[0] = 2
+    solver.mthauxbc_upper[0] = 2
 
     xlower=0.0; xupper=1.0; mx=100
     x    = pyclaw.Dimension('x',xlower,xupper,mx)

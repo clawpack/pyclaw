@@ -4,6 +4,7 @@ from nose.plugins.attrib import attr
 def test_sane():
     pass
 
+@attr(petsc=True)
 def test_parallel_env_sane():
     """
     Test whether PETSc/MPI are interacting with each other correctly

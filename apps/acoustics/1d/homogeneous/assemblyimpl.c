@@ -34,7 +34,7 @@ PetscErrorCode FormIJacobian(TS ts, PetscReal t, Vec X, Vec Xdot, PetscReal a, M
   for (i=info.xs; i<info.xs+info.xm; i++) {
     MatStencil rows[1] = {{0,0,i,0}}, cols[3] = {{0,0,i-1,0},{0,0,i,0},{0,0,i+1,0}};
     /* Flux: q_t + (A q)_x
-     * z = sqrt(rho*bulk), c = sqrt(rho/bulk)
+     * z = sqrt(rho*bulk), c = sqrt(bulk/rho)
      * Spectral decomposition: A = R * D * Rinv
      * [    cz] = [-z   z] [-c    ] [ 1/2z  1/2]
      * [c/z   ] = [ 1   1] [     c] [-1/2z  1/2]

@@ -1,7 +1,7 @@
 .. _pyclaw_classes:
   
 *****************************************
-Introduction to the main Pyclaw Classes
+Pyclaw Classes
 *****************************************
 .. contents::
 
@@ -24,9 +24,11 @@ objects needed to evolve the solution to the requested time.
 Creation of a Pyclaw :class:`~pyclaw.solution.Solution`
 =======================================================
 
+.. image:: images/solution.pdf
+
 A Pyclaw :class:`~pyclaw.solution.Solution` is a container for a collection of
-:class:`~pyclaw.grid.Grid` and :class:`~pyclaw.state.State` objects in order to
-support adaptive mesh 
+:class:`~pyclaw.grid.Grid` and :class:`~pyclaw.state.State` designed with a 
+view to future support of adaptive mesh 
 refinement and multi-block simulations. The :class:`~pyclaw.solution.Solution` 
 object keeps track of a list of :class:`~pyclaw.state.State` objects
 and controls the overall input and output of the entire collection of 
@@ -35,13 +37,6 @@ and controls the overall input and output of the entire collection of
 :class:`~pyclaw.grid.Dimension` objects that define the extents 
 of the :class:`~pyclaw.grid.Grid`.  Multiple states can inhabit the same
 grid, but each :class:`~pyclaw.state.State` inhabits a single grid.
-
-.. .. warning::
-
-..     This figure is out of date.  Much of the Grid functionality has recently
-    been move to the State class.
-
-.. .. image:: images/pyclaw_solution_structure.*
 
 The process needed to create a :class:`~pyclaw.solution.Solution` object then
 follows from the bottom up.

@@ -7,6 +7,14 @@ function setplot is called to set the plot parameters.
     
 """ 
 
+import os
+if os.path.exists('./1drad/_output'):
+    qref_dir = os.path.abspath('./1drad/_output')
+else:
+    qref_dir = None
+    print "Directory ./1drad/_output not found"
+
+
 #--------------------------
 def setplot(plotdata):
 #--------------------------
@@ -27,65 +35,45 @@ def setplot(plotdata):
     # Figure for pressure
     # -------------------
 
-    plotfigure = plotdata.new_plotfigure(name='Density', figno=0)
+    plotfigure = plotdata.new_plotfigure(name='Pressure', figno=0)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.xlimits = 'auto'
     plotaxes.ylimits = 'auto'
-    plotaxes.title = 'Density'
+    plotaxes.title = 'Pressure'
     plotaxes.scaled = True      # so aspect ratio is 1
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
-    plotitem.pcolor_cmin = 0.5
-    plotitem.pcolor_cmax=3.5
     plotitem.plot_var = 0
     plotitem.pcolor_cmap = colormaps.yellow_red_blue
     plotitem.add_colorbar = True
     plotitem.show = True       # show on plot?
-    
-
-    plotfigure = plotdata.new_plotfigure(name='Tracer', figno=1)
-
-    # Set up for axes in this figure:
-    plotaxes = plotfigure.new_plotaxes()
-    plotaxes.xlimits = 'auto'
-    plotaxes.ylimits = 'auto'
-    plotaxes.title = 'Tracer'
-    plotaxes.scaled = True      # so aspect ratio is 1
-
-    # Set up for item on these axes:
-    plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
-    plotitem.pcolor_cmin = 0.
+    plotitem.pcolor_cmin = 0.0
     plotitem.pcolor_cmax=1.0
-    plotitem.plot_var = 4
-    plotitem.pcolor_cmap = colormaps.yellow_red_blue
-    plotitem.add_colorbar = False
-    plotitem.show = True       # show on plot?
     
 
-    plotfigure = plotdata.new_plotfigure(name='Energy', figno=2)
+    # Figure for x-velocity plot
+    # -----------------------
+    
+    plotfigure = plotdata.new_plotfigure(name='x-Velocity', figno=1)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.xlimits = 'auto'
     plotaxes.ylimits = 'auto'
-    plotaxes.title = 'Energy'
-    plotaxes.scaled = True      # so aspect ratio is 1
+    plotaxes.title = 'u'
 
-    # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
-    plotitem.pcolor_cmin = 2.
-    plotitem.pcolor_cmax=18.0
-    plotitem.plot_var = 3
+    plotitem.plot_var = 1
+    plotitem.color = 'b'
     plotitem.pcolor_cmap = colormaps.yellow_red_blue
-    plotitem.add_colorbar = False
+    plotitem.add_colorbar = True
     plotitem.show = True       # show on plot?
+    plotitem.pcolor_cmin = -0.3
+    plotitem.pcolor_cmax=   0.3
     
-
-
-
     # Parameters used only when creating html and/or latex hardcopy
     # e.g., via visclaw.plotters.frametools.printframes:
 
@@ -101,5 +89,3 @@ def setplot(plotdata):
     plotdata.latex_makepdf = False           # also run pdflatex?
 
     return plotdata
-
-    

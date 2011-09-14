@@ -5,7 +5,8 @@ Welcome
 *******
 
 Pyclaw is a Python-based solver for hyperbolic PDEs that includes the algorithms
-of Clawpack and SharpClaw.  
+of `Clawpack <http://www.clawpack.org>`_ and 
+`SharpClaw <http://numerics.kaust.edu.sa/sharpclaw/>`_.
 It has been designed with easy extensibility, performance, and exploration in mind.
 The high-level code is written in Python using numpy and based on the 
 PyClaw package.
@@ -13,25 +14,30 @@ The low-level kernels used are the Clawpack and SharpClaw routines, which are wr
 The PyClaw package also includes PetClaw, a scalable parallel implementation of Clawpack and SharpClaw,
 using PETSc.
 
-Why use PyClaw?  Because PyClaw
+PyClaw features:
 
     * Solves general hyperbolic PDEs in 1D and 2D
-    * Includes the full functionality of `Clawpack <www.clawpack.org>`_ and 
+    * Includes the full functionality of `Clawpack <http://www.clawpack.org>`_ and 
       `SharpClaw <http://numerics.kaust.edu.sa/sharpclaw/>`_
     * Has a simple and intuitive pythonic interface
     * Is based on a powerful and modular object-oriented design
-    * Allows you to run your simulation on the world's biggest supercomputers by changing one line of code
-    * Makes it easy to access the powerful PETSc library of solvers for handling stiff source terms or for
-      implicit time stepping (under construction)
+    * Allows you to run your simulation on the world's biggest supercomputers with 
+      the same simple script that runs it on your laptop
+    * Makes it easy to access the powerful `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_ 
+      library of solvers for handling stiff source terms or for implicit time stepping 
+      (under construction)
 
-PyClaw makes use of the additional Clawpack packages, `Riemann <github.com/clawpack/riemann>`_ and
-`VisClaw <github.com/clawpack/visclaw>`_ for Riemann solvers and visualization, respectively.
+PyClaw makes use of the additional Clawpack packages, 
+`Riemann <http://github.com/clawpack/riemann>`_ and
+`VisClaw <http://github.com/clawpack/visclaw>`_ for Riemann solvers and visualization, 
+respectively.
 
 Requirements:
 
-    * Python 2.6 or higher
+    * `Python <http://www.python.org>`_ 2.6 or higher
     * `numpy <http://numpy.scipy.org/>`_ 1.5 or higher
-    * Recommended: `matplotlib <http://matplotlib.sourceforge.net/>`_ (for viewing results)
+    * Recommended: `matplotlib <http://matplotlib.sourceforge.net/>`_ version 1.0 or higher
+      (for plotting solutions)
 
 Additional requirements for PetClaw only: 
     * `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_  3.1 or higher
@@ -47,7 +53,7 @@ PyClaw
 ******
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    started
    tutorial
@@ -92,7 +98,6 @@ functions that operate with those classes.
    :maxdepth: 3
    
    controller
-   data
    evolve/solvers
    evolve/limiters
    io

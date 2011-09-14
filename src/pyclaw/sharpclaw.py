@@ -53,14 +53,16 @@ class SharpClawSolver(Solver):
         """
         
         # Required attributes for this solver
-        for attr in ['limiters','start_step','lim_type','time_integrator',
-                     'char_decomp','src_term','aux_time_dep','mwaves']:
+        for attr in ['limiters','start_step','lim_type','weno_order',
+                     'time_integrator','char_decomp','src_term',
+                     'aux_time_dep','mwaves']:
             self._required_attrs.append(attr)
         
         # Defaults for required attributes
         self._default_attr_values['limiters'] = [1]
         self._default_attr_values['start_step'] = start_step
         self._default_attr_values['lim_type'] = 2
+        self._default_attr_values['weno_order'] = 5
         self._default_attr_values['time_integrator'] = 'SSP104'
         self._default_attr_values['char_decomp'] = 0
         self._default_attr_values['tfluct_solver'] = False
@@ -155,7 +157,7 @@ class SharpClawSolver(Solver):
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
         # dt
-        if self.cfl >= self.cfl_max:
+        if self.cfl.get_cached_max() >= self.cfl_max:
             raise CFLError('cfl_max exceeded')
 
         # Godunov Splitting -- really the source term should be called inside rkstep
@@ -192,6 +194,7 @@ class SharpClawSolver(Solver):
         grid = state.grid
         clawparams.ndim          = grid.ndim
         clawparams.lim_type      = self.lim_type
+        clawparams.weno_order    = self.weno_order
         clawparams.char_decomp   = self.char_decomp
         clawparams.tfluct_solver = self.tfluct_solver
         clawparams.fwave         = self.fwave
@@ -232,6 +235,14 @@ class SharpClawSolver1D(SharpClawSolver):
         """
         Allocate RK stage arrays and fortran routine work arrays.
         """
+        self.mbc = (self.weno_order+1)/2
+
+        # This is a hack to deal with the fact that petsc4py
+        # doesn't allow us to change the stencil_width (mbc)
+        state = solution.state
+        state.set_mbc(self.mbc)
+        # End hack
+
         self.allocate_rk_stages(solution)
         self.set_mthlim()
  
@@ -248,12 +259,16 @@ class SharpClawSolver1D(SharpClawSolver):
     def teardown(self):
         r"""
         Deallocate F90 module arrays.
+        Also delete Fortran objects, which otherwise tend to persist in Python sessions.
         """
         if self.kernel_language=='Fortran':
             from sharpclaw1 import clawparams, workspace, reconstruct
             clawparams.dealloc_clawparams()
             workspace.dealloc_workspace(self.char_decomp)
             reconstruct.dealloc_recon_workspace(clawparams.lim_type,clawparams.char_decomp)
+            import sharpclaw1
+            print 'deleting sharpclaw1 object'
+            del sharpclaw1, clawparams, workspace, reconstruct
 
 
     def dq_homogeneous(self,state):
@@ -298,7 +313,7 @@ class SharpClawSolver1D(SharpClawSolver):
 
         if self.kernel_language=='Fortran':
             from sharpclaw1 import flux1
-            dq,self.cfl=flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.mbc,mx)
+            dq,cfl=flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.mbc,mx)
 
         elif self.kernel_language=='Python':
 
@@ -348,11 +363,11 @@ class SharpClawSolver1D(SharpClawSolver):
             UL = grid.ng[0] + self.mbc + 1
 
             # Compute maximum wave speed
-            self.cfl = 0.0
+            cfl = 0.0
             for mw in xrange(self.mwaves):
                 smax1 = np.max( dtdx[LL  :UL]  *s[mw,LL-1:UL-1])
                 smax2 = np.max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
-                self.cfl = max(self.cfl,smax1,smax2)
+                cfl = max(cfl,smax1,smax2)
 
             #Find total fluctuation within each cell
             wave,s,amdq2,apdq2 = self.rp(ql,qr,aux,aux,state.aux_global)
@@ -363,7 +378,8 @@ class SharpClawSolver1D(SharpClawSolver):
                                 + apdq2[m,LL:UL] + amdq2[m,LL:UL])
 
         else: raise Exception('Unrecognized value of solver.kernel_language.')
-        
+
+        self.cfl.update_global_max(cfl)
         return dq[:,self.mbc:-self.mbc]
     
 
@@ -391,6 +407,14 @@ class SharpClawSolver2D(SharpClawSolver):
         """
         Allocate RK stage arrays and fortran routine work arrays.
         """
+        self.mbc = (self.weno_order+1)/2
+
+        # This is a hack to deal with the fact that petsc4py
+        # doesn't allow us to change the stencil_width (mbc)
+        state = solution.state
+        state.set_mbc(self.mbc)
+        # End hack
+
         self.allocate_rk_stages(solution)
         self.set_mthlim()
 
@@ -407,12 +431,16 @@ class SharpClawSolver2D(SharpClawSolver):
     def teardown(self):
         r"""
         Deallocate F90 module arrays.
+        Also delete Fortran objects, which otherwise tend to persist in Python sessions.
         """
         if self.kernel_language=='Fortran':
             from sharpclaw2 import clawparams, workspace, reconstruct
             workspace.dealloc_workspace(self.char_decomp)
             reconstruct.dealloc_recon_workspace(clawparams.lim_type,clawparams.char_decomp)
             clawparams.dealloc_clawparams()
+            import sharpclaw2
+            del sharpclaw2
+
 
 
     def dq_homogeneous(self,state):
@@ -458,8 +486,9 @@ class SharpClawSolver2D(SharpClawSolver):
 
         if self.kernel_language=='Fortran':
             from sharpclaw2 import flux2
-            dq,self.cfl=flux2(q,self.auxbc,self.dt,state.t,mbc,maxm,mx,my)
+            dq,cfl=flux2(q,self.auxbc,self.dt,state.t,mbc,maxm,mx,my)
 
         else: raise Exception('Only Fortran kernels are supported in 2D.')
 
+        self.cfl.update_global_max(cfl)
         return dq[:,mbc:-mbc,mbc:-mbc]

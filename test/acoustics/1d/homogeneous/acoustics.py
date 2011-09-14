@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
-def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False,outdir='./_output'):
+def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False,outdir='./_output',weno_order=5):
     import numpy as np
     """
     1D acoustics example.
@@ -17,6 +17,7 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
         solver = pyclaw.ClawSolver1D()
     elif solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D()
+        solver.weno_order = weno_order
     else: raise Exception('Unrecognized value of solver_type.')
 
     # Initialize grids and solution

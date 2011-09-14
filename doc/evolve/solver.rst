@@ -1,7 +1,7 @@
 .. _pyclaw_solver:
 
 ==========================
-Pyclaw Solver Base Classes
+Pyclaw Solver Base Class
 ==========================
 
 The solver module provides a template for a solver that Pyclaw knows how to 

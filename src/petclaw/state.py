@@ -231,8 +231,44 @@ class State(pyclaw.state.State):
 
         return DA
 
+    def set_q_from_qbc(self,mbc,qbc):
+        """
+        Set the value of q using the array qbc. for PetSolver, this
+        involves setting qbc as the local vector array then perform
+        a local to global communication. 
+        """
+        
+        #state.lqVec.placeArray(ghosted_q)
+        #self.q_da.localToGlobal(state.lqVec,state.gqVec)
+        #state.lqVec.resetArray() # This call is required because placeArray is
+                                 # intended to be temporarly placement
+        grid = self.grid
+        if grid.ndim == 1:
+            self.q = qbc[:,mbc:-mbc]
+        elif grid.ndim == 2:
+            self.q = qbc[:,mbc:-mbc,mbc:-mbc]
+        else:
+            raise NotImplementedError("The case of 3D is not handled in "\
+            +"this function yet")
 
-    def set_stencil_width(self,mbc):
+    def get_qbc_from_q(self,mbc,whichvec,qbc):
+        """
+        Returns q with ghost cells attached.  For PetSolver,
+        this means returning the local vector.  
+        """
+        shape = [n + 2*mbc for n in self.grid.ng]
+        
+        if whichvec == 'q':
+            self.q_da.globalToLocal(self.gqVec, self.lqVec)
+            shape.insert(0,self.meqn)
+            return self.lqVec.getArray().reshape(shape, order = 'F')
+            
+        elif whichvec == 'aux':
+            self.aux_da.globalToLocal(self.gauxVec, self.lauxVec)
+            shape.insert(0,self.maux)
+            return self.lauxVec.getArray().reshape(shape, order = 'F')
+
+    def set_mbc(self,mbc):
         r"""
         This is a hack to deal with the fact that petsc4py
         doesn't allow us to change the stencil_width (mbc).
@@ -244,7 +280,6 @@ class State(pyclaw.state.State):
         This could be made more efficient using some PETSc calls,
         but it only happens once so it seems not to be worth it.
         """
-
         q0 = self.q.copy()
         self._init_q_da(self.meqn,mbc)
         self.q = q0

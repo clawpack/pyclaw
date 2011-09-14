@@ -20,6 +20,7 @@ def setplot(plotdata):
 
 
     from visclaw.plotters import colormaps
+    from matplotlib import cm
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
     
@@ -35,14 +36,14 @@ def setplot(plotdata):
     plotaxes.ylimits = 'auto'
     plotaxes.title = 'Density'
     plotaxes.scaled = True      # so aspect ratio is 1
+    plotaxes.afteraxes = label_axes
 
     # Set up for item on these axes:
-    plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
-    plotitem.pcolor_cmin = 0.5
-    plotitem.pcolor_cmax=3.5
+    plotitem = plotaxes.new_plotitem(plot_type='2d_schlieren')
+    #plotitem.pcolor_cmin = 0.5
+    #plotitem.pcolor_cmax=3.5
     plotitem.plot_var = 0
-    plotitem.pcolor_cmap = colormaps.yellow_red_blue
-    plotitem.add_colorbar = True
+    plotitem.add_colorbar = False
     plotitem.show = True       # show on plot?
     
 
@@ -54,6 +55,7 @@ def setplot(plotdata):
     plotaxes.ylimits = 'auto'
     plotaxes.title = 'Tracer'
     plotaxes.scaled = True      # so aspect ratio is 1
+    plotaxes.afteraxes = label_axes
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
@@ -73,6 +75,7 @@ def setplot(plotdata):
     plotaxes.ylimits = 'auto'
     plotaxes.title = 'Energy'
     plotaxes.scaled = True      # so aspect ratio is 1
+    plotaxes.afteraxes = label_axes
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
@@ -102,4 +105,9 @@ def setplot(plotdata):
 
     return plotdata
 
+def label_axes(current_data):
+    import matplotlib.pyplot as plt
+    plt.xlabel('z')
+    plt.ylabel('r')
+    #plt.draw()
     
