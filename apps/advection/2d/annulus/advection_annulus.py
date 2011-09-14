@@ -16,18 +16,15 @@ def mapc2p_annulus(grid,mC):
     Takes as input:    array_list made by x_coordinates, y_ccordinates in the map space
     Returns as output: array_list made by x_coordinates, y_ccordinates in the physical space
 
-    Inputs: mC = list composed by two array [array ([xc1, xc2, ...]), array([yc1, yc2, ...])]
+    Input:  mC = list composed of two arrays [array ([xc1, xc2, ...]), array([yc1, yc2, ...])]
 
-    Output: pC = list composed by two array [array ([xp1, xp2, ...]), array([yp1, yp2, ...])]
+    Output: pC = list composed of two arrays [array ([xp1, xp2, ...]), array([yp1, yp2, ...])]
     """  
-
-    # Polar coordinates (x coordinate = radius,  y coordinate = theta)
-    nbrCells = len(mC[0])
-
     # Define new empty list
     pC = []
 
     # Populate it with the physical coordinates 
+    # Polar coordinates (x coordinate = radius,  y coordinate = theta)
     pC.append(mC[0][:]*np.cos(mC[1][:]))
     pC.append(mC[0][:]*np.sin(mC[1][:]))
     
