@@ -39,7 +39,7 @@ def mapc2p_sphere(grid,mC):
     mx = grid.ng[0]
     my = grid.ng[1]
 
-    # Define new list, pC = physical coordinates
+    # Define new list of numpy array, pC = physical coordinates
     pC = [np.zeros((mx,my))]*3
 
     for i in range(mx):
@@ -58,7 +58,7 @@ def mapc2p_sphere(grid,mC):
                 yc = 2.0 - yc
                 xc = -2.0 - xc
 
-            if (yc <=-1.0):
+            if (yc <= -1.0):
                 yc = -2.0 - yc
                 xc = -2.0 - xc
 
@@ -128,7 +128,7 @@ def qinit(state,mx,my):
             elif (xp <= 0.0 and yp >= 0.0):
                 theta = np.pi - np.arcsin(yp/rad)
             elif (xp <= 0.0 and yp <= 0.0):
-                 theta = -pi+dasin(-yp/rad)
+                 theta = -pi + np.arcsin(-yp/rad)
             elif (xp >= 0.0 and yp <= 0.0):
                 theta = -np.arcsin(-yp/rad)
 

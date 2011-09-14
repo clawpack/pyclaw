@@ -27,7 +27,6 @@ c        16  erz = z-component of unit vector in radial direction at cell ctr
 c
 c     
       implicit double precision (a-h,o-z)
-      parameter (maxm3 = 1005)
       dimension xc(1:maxmx), yc(1:maxmy)
       dimension xp(1:maxmx,1:maxmy), yp(1:maxmx,1:maxmy)
       dimension zp(1:maxmx,1:maxmy)
