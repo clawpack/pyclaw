@@ -9,7 +9,7 @@ The following software will be installed:
     * `Python <http://www.python.org/>`_.The current recommended python version is 2.7. 
       Python 3.0 will be supported in the near future.
     * `Numpy <http://numpy.scipy.org/>`_ 1.5 or 1.5.1 or 1.6 
-    * `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_-dev. (soon PETSc 3.2)     
+    * `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_ 3.2     
     * `petsc4py <http://code.google.com/p/petsc4py/>`_-dev
 
 .. note::
@@ -32,7 +32,7 @@ The installer will install EPD Python 2.7 in your system (typically in /Library/
 
 Installation of numpy 
 =====================
-Enthought Python 2.7 comes already with numpy 1.5.1 (see `EPDChangelog <http://www.enthought.com/EPDChangelog.html>`_) which is one of the supported and recommended version for PetClaw. If you have a different Python distribution check if you have numpy 1.5 or 1.5.1 or 1.6.In case you need to install it, you can use three approaches:
+Enthought Python 2.7 comes already with numpy 1.5.1 (see `EPDChangelog <http://www.enthought.com/EPDChangelog.html>`_) which is one of the supported and recommended version for PetClaw. If you have a different Python distribution check if you have numpy 1.5 or 1.5.1 or 1.6. In case you need to install it, you can use three approaches:
 
     * Download and install manually the source file: ::
     
@@ -127,13 +127,15 @@ Installation of petsc4py
 Obtain petsc4py-dev with mercurial: ::
     
     $ cd path/to/the/dir/where/you/want/download/petsc4py
-    $ hg clone https://petsc4py.googlecode.com/hg/ petsc4py -r latest-changeset
+    $ hg clone https://petsc4py.googlecode.com/hg/petsc4py -r latest-changeset
 
-Install it: ::
+The prefered method for the petsc4py iinstallation is `pip <http://pypi.python.org/pypi/pip>`_ ::
     
     $ cd petsc4py-dev
-    $ python setup.py build --petsc_arch=arch-darwin-c-debug
-    $ python setup.py install --user
+    $ pip install . --user
+
+Indeed, pip removes the old petsc4py installation, downloads the new version of 
+`cython <http://cython.org/>`_ (if needed) and installs petsc4py.
 
 To check petsc4py-dev installation do: ::
     
@@ -142,9 +144,9 @@ To check petsc4py-dev installation do: ::
 
 All the tests cases should pass, i.e. OK should be printed at the screen.
 
-
-
-**NOTE:** An alternative easier way to install petsc4py is using again `pip <http://pypi.python.org/pypi/pip>`_., i.e. ::
+**NOTE:** An alternative way to install petsc4py is simply using the python 
+script setup.py inside petsc4py, i.e. ::
     
     $ cd petsc4py-dev
-    $ pip install . --user
+    $ python setup.py build 
+    $ python setup.py install --user

@@ -14,8 +14,7 @@ To run PetClaw you'll also need to install
     * `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_  a toolkit for
       parallel scientific computing.  Installation instructions can be found at
       `<http://www.mcs.anl.gov/petsc/petsc-as/documentation/installation.html>`_.
-      The current recommended version is 3.1. We also support PETSc-dev which will be released
-      soon as PETSc 3.2. 
+      The current recommended version is 3.2. 
 
     * `petsc4py <http://code.google.com/p/petsc4py/>`_: Python bindings for PETSc.
       The current recommended version is 1.1.2.
