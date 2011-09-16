@@ -131,7 +131,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     solver.cfl_desired = 0.45
     solver.mwaves = 5
     solver.limiters = [4,4,4,4,2]
-    solver.dt=0.005
+    solver.dt_initial=0.005
     solver.user_bc_lower=shockbc
     solver.src=euler_rad_src
     solver.src_split = 1

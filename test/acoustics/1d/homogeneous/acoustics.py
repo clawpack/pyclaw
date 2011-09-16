@@ -49,7 +49,7 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
         solver.rp = rp_acoustics.rp_acoustics_1d
 
     solver.limiters = [4]*solver.mwaves
-    solver.dt=grid.d[0]/state.aux_global['cc']*0.1
+    solver.dt_initial=grid.d[0]/state.aux_global['cc']*0.1
     solver.mthbc_lower[0] = pyclaw.BC.periodic
     solver.mthbc_upper[0] = pyclaw.BC.periodic
 
