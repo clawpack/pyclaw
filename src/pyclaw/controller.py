@@ -240,6 +240,9 @@ class Controller(object):
         if self.keep_copy:
             self.frames.append(copy.deepcopy(self.solution))
         if self.output_format is not None:
+            if os.path.exists(self.outdir) and self.overwrite==False:
+                raise Exception("Refusing to overwrite existing output data. \
+                 \nEither delete/move the directory or set controller.overwrite=True.")
             if self.compute_p is not None:
                 self.compute_p(self.solution.state)
                 self.solution.write(frame,self.outdir_p,
