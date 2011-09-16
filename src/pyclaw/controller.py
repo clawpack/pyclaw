@@ -218,6 +218,7 @@ class Controller(object):
             self.frames = []
                     
         self.solver.setup(self.solution)
+        self.solver.dt = self.solver.dt_initial
             
         self.check_validity()
 
@@ -235,7 +236,7 @@ class Controller(object):
         else:
             raise Exception("Invalid output style %s" % self.outstyle)  
          
-        # Output and save initial time
+        # Output and save initial frame
         if self.keep_copy:
             self.frames.append(copy.deepcopy(self.solution))
         if self.output_format is not None:
