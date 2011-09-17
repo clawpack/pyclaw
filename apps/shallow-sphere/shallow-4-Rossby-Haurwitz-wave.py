@@ -194,8 +194,8 @@ def qinit(state,mx,my):
     for i in range(mx):
         for j in range(my):
             xp = state.grid.p_center[0][i][j]
-            yp = state.grid.p_center[0][i][j]
-            zp = state.grid.p_center[0][i][j]
+            yp = state.grid.p_center[1][i][j]
+            zp = state.grid.p_center[2][i][j]
 
             rad = np.maximum(np.sqrt(xp**2 + yp**2),1.e-6)
 
@@ -285,11 +285,11 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # Grid:
     xlower = 0.0
     xupper = 1.0
-    mx = 5
+    mx = 40
 
     ylower = 0.0
     yupper = 1.0
-    my = 7
+    my = 40
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
@@ -313,9 +313,11 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # Set initial condition for q
     #############################
     # 1) Call to simplified Fortran function
-    #state.q = init.qinit(xlower,ylower,dx,dy,state.q,state.aux,Rsphere)
+    state.q = init.qinit(xlower,ylower,dx,dy,state.q,state.aux,Rsphere)
 
     # 2) Call to original Fortran function
+    # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
+    # THIS OPTION WILL BE REMOVED SOON.
     #mbc = 2
     #qtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*meqn
     #auxtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*maux
@@ -323,7 +325,7 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     #state.q[:,:,:] = qtmp[:,2:mx+mbc,2:my+mbc]
 
     # 3) call to python function define above
-    qinit(state,mx,my)
+    #qinit(state,mx,my)
     
     
  

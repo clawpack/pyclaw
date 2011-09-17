@@ -3,7 +3,7 @@ c
 c
 c
 c     =====================================================
-       subroutine qinit(maxmx,maxmy,meqn,mbc,mx,my,xlower,ylower,
+       subroutine qinit(meqn,mx,my,xlower,ylower,
      &                   dx,dy,q,maux,aux,Rsphere)
 c     =====================================================
 c
@@ -12,16 +12,13 @@ c      # Set initial conditions for q
 c      # -------4-Rossby-Haurwitz wave-----------------------
 c
        implicit double precision (a-h,o-z)
-       dimension q(meqn, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
-       dimension aux(maux, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
+       dimension q(meqn, 1:mx, 1:my)
+       dimension aux(maux, 1:mx, 1:my)
        double precision Uin(3),Uout(3)
        double precision K 
-cf2py integer intent(in) maxmx
-cf2py integer intent(in) maxmy
 cf2py integer optional,intent(in) meqn
-cf2py integer intent(in) mbc
-cf2py integer intent(in) mx
-cf2py integer intent(in) my
+cf2py integer optional,intent(in) mx
+cf2py integer optional,intent(in) my
 cf2py double precision intent(in) xlower
 cf2py double precision intent(in) ylower
 cf2py double precision intent(in) dx
@@ -30,7 +27,7 @@ cf2py intent(in,out) q
 cf2py integer optional, intent(in)  maux
 cf2py intent(in) aux
 cf2py double precision intent(in) Rsphere
-c
+
        pi = 4.d0*datan(1.d0)
 
        a = 6.37122d6    
@@ -42,7 +39,7 @@ c
        R = 4.d0
       
        do 20 i=1,mx
-        xc = xlower + (i-0.5d0)*dx
+            xc = xlower + (i-0.5d0)*dx
           do 20 j=1,my
             yc = ylower + (j-0.5d0)*dy
             call mapc2m(xc,yc,xp,yp,zp,Rsphere)
