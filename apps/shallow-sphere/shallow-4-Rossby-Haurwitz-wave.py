@@ -257,8 +257,6 @@ def qinit(state,mx,my):
             state.q[1,i,j] = state.q[0,i,j]*Uout[0] 
             state.q[2,i,j] = state.q[0,i,j]*Uout[1] 
             state.q[3,i,j] = state.q[0,i,j]*Uout[2] 
-
-    
     
 
 def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
@@ -283,13 +281,13 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # state and finally initialize aux array
     #===========================================================================
     # Grid:
-    xlower = 0.0
+    xlower = -3.0
     xupper = 1.0
-    mx = 40
+    mx = 7
 
-    ylower = 0.0
+    ylower = -1.0
     yupper = 1.0
-    my = 40
+    my = 5
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
@@ -308,7 +306,19 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # Set auxiliary variables
     #########################
     import init
-    #state.aux = init.setaux(mx,my,xlower,ylower,dx,dy,state.aux,Rsphere)
+
+    # 1) Call to simplified Fortran function
+    #state.aux = init.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
+
+    # 2) Call to original Fortran function
+    # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
+    # THIS OPTION WILL BE REMOVED SOON.
+    mbc = 2
+    auxtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*maux
+    auxtmp = init.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
+    state.aux[:,:,:] = auxtmp[:,2:mx+mbc,2:my+mbc]
+
+
 
     # Set initial condition for q
     #############################
@@ -327,14 +337,16 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # 3) call to python function define above
     #qinit(state,mx,my)
     
-    
- 
+
     # Plot initial solution in the computational domain
     x = state.grid.x.center
     y = state.grid.y.center
     Y,X = np.meshgrid(y,x)
     plt.contour(X,Y,state.q[0,...])
-    plt.show()
+    #plt.show()
+    
+
+
 
      
 

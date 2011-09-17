@@ -30,7 +30,7 @@ cf2py intent(in,out) q
 cf2py integer optional, intent(in)  maux
 cf2py intent(in) aux
 cf2py double precision intent(in) Rsphere
-c
+
        pi = 4.d0*datan(1.d0)
 
        a = 6.37122d6    
