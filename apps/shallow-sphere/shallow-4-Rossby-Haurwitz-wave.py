@@ -130,10 +130,13 @@ def mapc2p_sphere_vectorized(grid,mC):
     sgnz = np.ones((mx,my))
 
     # 2D coordinates in the computational domain
+    ############################################
     xc = mC[0][:][:]
     yc = mC[1][:][:]
 
 
+    # 3D coordinates in the physical domain
+    #######################################
     # yc < -1 => second copy of sphere:
     ij2 = np.where(yc < -1.0)
     xc[ij2] = -xc[ij2] - 2.0;
@@ -158,7 +161,6 @@ def mapc2p_sphere_vectorized(grid,mC):
     ij = np.where(xc1==d)
     xp[ij] = center[ij] + np.sqrt(R[ij]**2 - yp[ij]**2)
     
-    # 3D coordinates in the physical domain
     # Define new list of numpy array, pC = physical coordinates
     pC = []
 
@@ -169,6 +171,8 @@ def mapc2p_sphere_vectorized(grid,mC):
     pC.append(xp)
     pC.append(yp)
     pC.append(zp)
+
+    return pC
 
 
 def qinit(state,mx,my):
@@ -181,17 +185,17 @@ def qinit(state,mx,my):
     Omega = 7.292e-5  # Rotation rate
     G = 9.80616       # Gravitational acceleration
     t0 = 86400.0     
-    h0 = 8.0e3        
+    h0 = 8.e3        
     R = 4.0
 
     # Compute the the physical coordinates of the cells' centers
     state.grid.compute_p_center(recompute=True)
-  
+ 
     for i in range(mx):
         for j in range(my):
             xp = state.grid.p_center[0][i][j]
-            yp = state.grid.p_center[1][i][j]
-            zp = state.grid.p_center[2][i][j]
+            yp = state.grid.p_center[0][i][j]
+            zp = state.grid.p_center[0][i][j]
 
             rad = np.maximum(np.sqrt(xp**2 + yp**2),1.e-6)
 
@@ -305,24 +309,30 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     #########################
     import init
     #state.aux = init.setaux(mx,my,xlower,ylower,dx,dy,state.aux,Rsphere)
-    #print state.aux
 
     # Set initial condition for q
     #############################
+    # 1) Call to simplified Fortran function
+    #state.q = init.qinit(xlower,ylower,dx,dy,state.q,state.aux,Rsphere)
 
-    # 1) call to Fortran function
-    #state.q = init.qinit(mx,my,xlower,ylower,dx,dy,state.q,state.aux,Rsphere)
-        
-    # 2) call to python function define above
-    #qinit(state,mx,my)
-    #print state.q
+    # 2) Call to original Fortran function
+    #mbc = 2
+    #qtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*meqn
+    #auxtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*maux
+    #qtmp = init.qinit(mx,my,mbc,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
+    #state.q[:,:,:] = qtmp[:,2:mx+mbc,2:my+mbc]
+
+    # 3) call to python function define above
+    qinit(state,mx,my)
+    
+    
  
-
-    #x =state.grid.x.center
-    #y =state.grid.y.center
-    #Y,X = np.meshgrid(y,x)
-    #plt.pcolormesh(X,Y,state.q[0,...])
-    #plt.show()
+    # Plot initial solution in the computational domain
+    x = state.grid.x.center
+    y = state.grid.y.center
+    Y,X = np.meshgrid(y,x)
+    plt.contour(X,Y,state.q[0,...])
+    plt.show()
 
      
 

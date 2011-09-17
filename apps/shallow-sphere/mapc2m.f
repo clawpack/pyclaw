@@ -1,6 +1,6 @@
 c
 c     ==========================================
-      subroutine mapc2m(x1,y1,xp,yp,zp)
+      subroutine mapc2m(x1,y1,xp,yp,zp,Rsphere)
 c     ==========================================
 c
 c     Map computational point (x1,y1) to the point (xp,yp,zp)
@@ -10,7 +10,13 @@ c     Points in [-1,1]x[-1,1]  are mapped to the upper hemisphere
 c     Points in [-3,-1]x[-1,1] are mapped to the lower hemisphere
 c
       implicit real*8(a-h,o-z)
-      common /comsphere/ Rsphere
+cf2py integer intent(in) x1
+cf2py integer intent(in) y1
+cf2py integer intent(in) xp
+cf2py integer intent(in) yp
+cf2py integer intent(in) zp
+cf2py integer intent(in) Rsphere
+
 
       r1 = Rsphere
       xc = x1
