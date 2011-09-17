@@ -308,16 +308,15 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     import init
 
     # 1) Call to simplified Fortran function
-    #state.aux = init.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
+    state.aux = init.setaux(xlower,ylower,dx,dy,state.aux,Rsphere)
 
     # 2) Call to original Fortran function
     # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
     # THIS OPTION WILL BE REMOVED SOON.
-    mbc = 2
-    auxtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*maux
-    auxtmp = init.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
-    state.aux[:,:,:] = auxtmp[:,2:mx+mbc,2:my+mbc]
-
+    #mbc = 2
+    #auxtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*maux
+    #auxtmp = init.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
+    #state.aux[:,:,:] = auxtmp[:,2:mx+mbc,2:my+mbc]
 
 
     # Set initial condition for q
