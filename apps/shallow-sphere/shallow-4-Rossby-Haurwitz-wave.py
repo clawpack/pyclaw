@@ -18,9 +18,8 @@ Rsphere = 1.0
 
 def mapc2p_sphere_nonvectorized(grid,mC):
     """
-    Specifies the mapping to curvilinear coordinates using for loops. Therefore,
-    it is slow. 
-    
+    Maps to points on a sphere of radius Rsphere. Nonvectorized version (slow).
+
     Takes as input: array_list made by x_coordinates, y_ccordinates in the map 
                     space.
 
@@ -104,9 +103,8 @@ def mapc2p_sphere_nonvectorized(grid,mC):
 
 def mapc2p_sphere_vectorized(grid,mC):
     """
-    Specifies the mapping to curvilinear coordinates. This function has been
-    vectorized.
-    
+    Maps to points on a sphere of radius Rsphere. Vectorized version (fast).  
+
     Takes as input: array_list made by x_coordinates, y_ccordinates in the map 
                     space.
 
