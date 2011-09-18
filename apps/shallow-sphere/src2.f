@@ -14,6 +14,23 @@ c     # source term routine for Rossby-Haurwitz wave
 c     # the source term models the Coriolis force using a 4-stage RK method
 c     # and the projection of the velocity components to the tangent plane
 c
+cf2py integer intent(in) maxmx
+cf2py integer intent(in) maxmy
+cf2py integer intent(in) mbc
+cf2py integer intent(in) mx
+cf2py integer intent(in) my
+cf2py double precision intent(in) xlower
+cf2py double precision intent(in) ylower
+cf2py double precision intent(in) dx
+cf2py double precision intent(in) dy
+cf2py intent(in,out) q
+cf2py integer optional, intent(in)  maux
+cf2py intent(in) aux
+cf2py double precision intent(in) t
+cf2py double precision intent(in) dt
+cf2py double precision intent(in) Rsphere
+
+
       a = 6.37122d6    
       Omega = 7.292d-5  
       df=12.600576e0 

@@ -33,6 +33,7 @@ c
       double precision dtdy1d(1-mbc:maxm+mbc)
       integer method(7),mthlim(mwaves)
       double precision work(mwork)
+      dimension qc(4)
 
 
 cf2py intent(in,out) cfl

@@ -8,13 +8,10 @@ c
       implicit double precision (a-h,o-z)
 
       dimension aux(16, 1-mbc:maxm+mbc)
-      dimension  q(meqn, 1-mbc:maxm+mbc)
+      dimension q(meqn, 1-mbc:maxm+mbc)
       dimension qc(4)
 
       common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom
-c      common /sw/  g
-c
-c
 
       g =  11489.57219e0  
       
