@@ -8,6 +8,12 @@ code, see :ref:`petclaw_start`.
 
 Dependencies
 ==================
+PyClaw and several of its dependencies depend on the availability of a Fortran 95
+compiler.  PyClaw is known to work with gfortran on OS X and Linux and the IBM
+XLF compiler on the cross-compiled Blue Gene environment.  We hope to support
+other Fortran compilers such as Intel, please email the list if you are
+interested in helping to port PyClaw to your favorite compiler!
+
 PyClaw relies on the usual Python libraries for scientific computing:
 
   * `numpy <http://numpy.scipy.org/>`_. Numpy is used both for handling
@@ -29,7 +35,6 @@ or pip ::
 
 or by downloading the 
 `Enthought Python Distribution <http://www.enthought.com/products/epd.php>`_.
-
 
 Installation
 ==================
