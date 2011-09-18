@@ -6,14 +6,17 @@ PYCLAWMAKE = $(PYCLAW)/Makefile.common
 #########################################
 RP_SOURCE =   $(RIEMANN)/src/rpn2swsphere.f $(RIEMANN)/src/rpt2swq.f
 
-all: classic2.so sharpclaw2.so init.so
+TWO_D_CLASSIC_SOURCES = step2qcor.f flux2.o limiter.o philim.o
+
+all: classic2.so sharpclaw2.so problem.so
 
 
-# Source files and commands used to initialize q and aux
+# Source files and commands used to initialize q and aux and define
+# the source routine function.
 ########################################################
-INITIALIZE_SOURCE = mapc2m.f setaux.f qinit.f
+INITIALIZE_SOURCE = mapc2m.f setaux.f qinit.f src2.f
 
-init.so: $(INITIALIZE_SOURCE)
-	$(F2PY) -m init -c $^
+problem.so: $(INITIALIZE_SOURCE)
+	$(F2PY) -m problem -c $^
 
 include $(PYCLAWMAKE)

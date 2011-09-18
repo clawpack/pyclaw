@@ -16,6 +16,26 @@ import matplotlib.pyplot as plt
 # Nondimensionalized radius of the earth
 Rsphere = 1.0
 
+def fortran_src_wrapper(solver,solution,t,dt):
+    """
+    Wraps Fortran src2.f routine.
+    """
+
+    grid = solution.grid
+    state = solution.state
+
+    mx,my = grid.ng[0], grid.ng[1]
+    meqn = state.meqn
+    mbc = solver.mbc
+    xlower,ylower = grid.lower[0], grid.lower[1]
+    dx,dy = grid.d[0],grid.d[1]
+    q = state.q
+    maux = state.maux
+    aux = state.aux
+
+    import problem
+    problem.src2(mx,my,mbc,mx,my,xlower,ylower,dx,dy,q,aux,t,dt)
+
 def mapc2p_sphere_nonvectorized(grid,mC):
     """
     Maps to points on a sphere of radius Rsphere. Nonvectorized version (slow).
@@ -274,6 +294,9 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
     
+    # Set source function
+    solver.src = fortran_src_wrapper
+
     #===========================================================================
     # Initialize grid and state, then initialize the solution associated to the 
     # state and finally initialize aux array
@@ -303,24 +326,24 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
 
     # Set auxiliary variables
     #########################
-    import init
+    import problem
 
     # 1) Call to simplified Fortran function
-    state.aux = init.setaux(xlower,ylower,dx,dy,state.aux,Rsphere)
+    state.aux = problem.setaux(xlower,ylower,dx,dy,state.aux,Rsphere)
 
     # 2) Call to original Fortran function
     # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
     # THIS OPTION WILL BE REMOVED SOON.
     #mbc = 2
     #auxtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*maux
-    #auxtmp = init.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
+    #auxtmp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
     #state.aux[:,:,:] = auxtmp[:,2:mx+mbc,2:my+mbc]
 
 
     # Set initial condition for q
     #############################
     # 1) Call to simplified Fortran function
-    state.q = init.qinit(xlower,ylower,dx,dy,state.q,state.aux,Rsphere)
+    state.q = problem.qinit(xlower,ylower,dx,dy,state.q,state.aux,Rsphere)
 
     # 2) Call to original Fortran function
     # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
@@ -328,7 +351,7 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     #mbc = 2
     #qtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*meqn
     #auxtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*maux
-    #qtmp = init.qinit(mx,my,mbc,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
+    #qtmp = problem.qinit(mx,my,mbc,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
     #state.q[:,:,:] = qtmp[:,2:mx+mbc,2:my+mbc]
 
     # 3) call to python function define above
@@ -340,12 +363,8 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     y = state.grid.y.center
     Y,X = np.meshgrid(y,x)
     plt.contour(X,Y,state.q[0,...])
-    #plt.show()
-    
-
-
-
-     
+    plt.show()
+      
 
 if __name__=="__main__":
     from pyclaw.util import run_app_from_main
