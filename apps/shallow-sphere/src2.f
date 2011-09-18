@@ -1,7 +1,7 @@
 c
 c      =======================================================
        subroutine src2(maxmx,maxmy,meqn,mbc,mx,my,xlower,ylower,
-     &                 dx,dy,q,maux,aux,t,dt)
+     &                 dx,dy,q,maux,aux,t,dt,Rsphere)
 c      =======================================================
 c
        implicit double precision (a-h,o-z)
@@ -14,7 +14,6 @@ c     # source term routine for Rossby-Haurwitz wave
 c     # the source term models the Coriolis force using a 4-stage RK method
 c     # and the projection of the velocity components to the tangent plane
 c
-      Rsphere = 1.d0
       a = 6.37122d6    
       Omega = 7.292d-5  
       df=12.600576e0 

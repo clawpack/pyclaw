@@ -6,7 +6,9 @@ PYCLAWMAKE = $(PYCLAW)/Makefile.common
 #########################################
 RP_SOURCE =   $(RIEMANN)/src/rpn2swsphere.f $(RIEMANN)/src/rpt2swq.f
 
-TWO_D_CLASSIC_SOURCES = step2qcor.f flux2.o limiter.o philim.o
+
+override TWO_D_CLASSIC_SOURCES := step2qcor.f qcor.f flux2.o limiter.o philim.o
+
 
 all: classic2.so sharpclaw2.so problem.so
 
@@ -20,3 +22,4 @@ problem.so: $(INITIALIZE_SOURCE)
 	$(F2PY) -m problem -c $^
 
 include $(PYCLAWMAKE)
+
