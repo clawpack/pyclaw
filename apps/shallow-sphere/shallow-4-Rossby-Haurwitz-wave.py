@@ -34,7 +34,7 @@ def fortran_src_wrapper(solver,solution,t,dt):
     aux = state.aux
 
     import problem
-    problem.src2(mx,my,mbc,mx,my,xlower,ylower,dx,dy,q,aux,t,dt,Rsphere)
+    problem.src2(mx,my,mbc,mx,my,xlower,ylower,dx,dy,q,aux,t,dt)
 
 def mapc2p_sphere_nonvectorized(grid,mC):
     """
@@ -293,15 +293,58 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
         solver = pyclaw.ClawSolver2D()
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
+
+    # Set boundary conditions
+    # =======================
+    solver.mthbc_lower[0] = pyclaw.BC.periodic
+    solver.mthbc_upper[0] = pyclaw.BC.periodic
+    solver.mthbc_lower[1] = pyclaw.BC.custom
+    solver.mthbc_upper[1] = pyclaw.BC.custom
+
+    solver.mthauxbc_lower[0] = pyclaw.BC.periodic
+    solver.mthauxbc_upper[0] = pyclaw.BC.periodic
+    solver.mthauxbc_lower[1] = pyclaw.BC.custom
+    solver.mthauxbc_upper[1] = pyclaw.BC.custom
+
     
+    # Order of the solver.
+    # ====================
+    solver.order = 2
+
+    # Dimensional splitting ?
+    # =======================
+    solver.dim_split = 0
+    
+    # Transverse increment waves and transverse correction waves are computed 
+    # and propagated.
+    # =======================================================================
+    solver.order_trans = 2
+    
+    # Number of waves in each Riemann solution
+    # ========================================
+    solver.mwaves = 3
+
     # Set source function
+    # ===================
     solver.src = fortran_src_wrapper
+
+    # Set time stepping parameters
+    # ============================
+    solver.dt_initial = 0.1
+    solver.cfl_max = 1.0
+    solver.cfl_desired = 0.9
+
+    # Set the same limiter for the mwaves waves. 
+    # ==========================================
+    solver.limiters = pyclaw.limiters.tvd.MC
+
 
     #===========================================================================
     # Initialize grid and state, then initialize the solution associated to the 
     # state and finally initialize aux array
     #===========================================================================
     # Grid:
+    # ====
     xlower = -3.0
     xupper = 1.0
     mx = 7
@@ -317,15 +360,17 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     dy = grid.d[1]
 
     # Override default mapc2p function
+    # ================================
     grid.mapc2p = mapc2p_sphere_vectorized
     
     # Define state object
+    # ===================
     meqn = 4  # Number of equations
     maux = 16 # Number of auxiliary variables
     state = pyclaw.State(grid,meqn,maux)
 
     # Set auxiliary variables
-    #########################
+    # =======================
     import problem
 
     # 1) Call to simplified Fortran function
@@ -338,6 +383,10 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     #auxtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*maux
     #auxtmp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
     #state.aux[:,:,:] = auxtmp[:,2:mx+mbc,2:my+mbc]
+
+    # Set index for capa
+    state.mcapa = 1
+
 
 
     # Set initial condition for q
@@ -356,7 +405,6 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
 
     # 3) call to python function define above
     #qinit(state,mx,my)
-    
 
     # Plot initial solution in the computational domain
     x = state.grid.x.center
@@ -364,6 +412,38 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     Y,X = np.meshgrid(y,x)
     plt.contour(X,Y,state.q[0,...])
     plt.show()
+
+
+
+
+    #===========================================================================
+    # Set up controller and controller parameters
+    #===========================================================================
+    claw = pyclaw.Controller()
+    claw.keep_copy = False
+    claw.outstyle = 1
+    claw.nout = 24
+    claw.tfinal = 1
+    claw.solution = pyclaw.Solution(state)
+    claw.solver = solver
+    claw.outdir = outdir
+
+
+    #===========================================================================
+    # Solve the problem
+    #===========================================================================
+    status = claw.run()
+
+
+    #===========================================================================
+    # Plot results
+    #===========================================================================
+    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
+    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
+
+
+    
+
       
 
 if __name__=="__main__":
