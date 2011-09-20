@@ -1,7 +1,7 @@
 c
 c      =======================================================
        subroutine src2(maxmx,maxmy,meqn,mbc,mx,my,xlower,ylower,
-     &                 dx,dy,q,maux,aux,t,dt,Rsphere)
+     &                 dx,dy,q,maux,aux,t,dt)
 c      =======================================================
 c
        implicit double precision (a-h,o-z)
@@ -28,7 +28,6 @@ cf2py integer optional, intent(in)  maux
 cf2py intent(in) aux
 cf2py double precision intent(in) t
 cf2py double precision intent(in) dt
-cf2py double precision intent(in) Rsphere
 
 
       a = 6.37122d6    

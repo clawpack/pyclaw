@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-
 """
 2D shallow water equations on a spherical surface.
 The approximation of the three-dimensional equations
@@ -275,7 +274,63 @@ def qinit(state,mx,my):
             state.q[1,i,j] = state.q[0,i,j]*Uout[0] 
             state.q[2,i,j] = state.q[0,i,j]*Uout[1] 
             state.q[3,i,j] = state.q[0,i,j]*Uout[2] 
+
+
+def qbc_lower_y(grid,dim,t,qbc,mbc):
+    """
+    Impose periodic boundary condition to q at the bottom boundary for the 
+    sphere. This function is vectorized.
+    """
+    if dim == grid.dimensions[1]:
+        for j in range(mbc):
+            qbc1D = qbc[:,:,2*mbc-1-j]
+            qbc[:,:,j] = qbc1D[2*mbc-1-j,::-1]
+    else:
+        raise Exception('Aux custum BC for this boundary is not appropriate!')
+
+
+def qbc_upper_y(grid,dim,t,qbc,mbc):
+    """
+    Impose periodic boundary condition to q at the top boundary for the sphere.
+    This function is vectorized.
+    """
+    if dim == grid.dimensions[1]:
+        my = grid.ng[1]
+        for j in range(mbc):
+            qbc1D = qbc[:,:,my+mbc-1-j]
+            qbc[:,:,my+mbc+j] = qbc1D[::-1]
+    else:
+        raise Exception('Custum BC for this boundary is not appropriate!')
+
+
+def auxbc_lower_y(grid,dim,t,auxbc,mbc):
+    """
+    Impose periodic boundary condition to aux at the bottom boundary for the 
+    sphere. This function is vectorized.
+    """
+    if dim == grid.dimensions[1]:
+        for j in range(mbc):
+            auxbc1D = auxbc[:,:,2*mbc-1-j]
+            auxbc[:,:,j] = auxbc1D[2*mbc-1-j,::-1]
+    else:
+        raise Exception('Aux custum BC for this boundary is not appropriate!')
+
+
+def auxbc_upper_y(grid,dim,t,auxbc,mbc):
+    """
+    Impose periodic boundary condition to aux at the top boundary for the 
+    sphere. This function is vectorized.
+    """
     
+    if dim == grid.dimensions[1]:
+        my = grid.ng[1]
+        for j in range(mbc):
+            auxbc1D = auxbc[:,:,my+mbc-1-j]
+            auxbc[:,:,my+mbc+j] = auxbc1D[::-1]
+    else:
+        raise Exception('Aux custum BC for this boundary is not appropriate!')
+
+
 
 def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
     #===========================================================================
@@ -301,12 +356,18 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     solver.mthbc_lower[1] = pyclaw.BC.custom
     solver.mthbc_upper[1] = pyclaw.BC.custom
 
+    solver.user_bc_lower = qbc_lower_y
+    solver.user_bc_upper = qbc_upper_y
+
     solver.mthauxbc_lower[0] = pyclaw.BC.periodic
     solver.mthauxbc_upper[0] = pyclaw.BC.periodic
     solver.mthauxbc_lower[1] = pyclaw.BC.custom
     solver.mthauxbc_upper[1] = pyclaw.BC.custom
 
-    
+    solver.user_aux_bc_lower = auxbc_lower_y
+    solver.user_aux_bc_upper = auxbc_upper_y
+
+
     # Order of the solver.
     # ====================
     solver.order = 2
@@ -347,11 +408,11 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # ====
     xlower = -3.0
     xupper = 1.0
-    mx = 7
+    mx = 40
 
     ylower = -1.0
     yupper = 1.0
-    my = 5
+    my = 40
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
@@ -387,8 +448,6 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # Set index for capa
     state.mcapa = 1
 
-
-
     # Set initial condition for q
     #############################
     # 1) Call to simplified Fortran function
@@ -407,14 +466,11 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     #qinit(state,mx,my)
 
     # Plot initial solution in the computational domain
-    x = state.grid.x.center
-    y = state.grid.y.center
-    Y,X = np.meshgrid(y,x)
-    plt.contour(X,Y,state.q[0,...])
-    plt.show()
-
-
-
+    #x = state.grid.x.center
+    #y = state.grid.y.center
+    #Y,X = np.meshgrid(y,x)
+    #plt.contour(X,Y,state.q[0,...])
+    #plt.show()
 
     #===========================================================================
     # Set up controller and controller parameters
@@ -428,12 +484,10 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     claw.solver = solver
     claw.outdir = outdir
 
-
     #===========================================================================
     # Solve the problem
     #===========================================================================
     status = claw.run()
-
 
     #===========================================================================
     # Plot results
@@ -441,10 +495,6 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
-
-    
-
-      
 
 if __name__=="__main__":
     from pyclaw.util import run_app_from_main
