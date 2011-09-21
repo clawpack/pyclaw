@@ -16,56 +16,18 @@ The following software will be installed:
    
    PetClaw no longer requires mpi4py.
 
-Installation of python 
-======================
-Enthought python 2.7 academic distribution is considered in this notes. However, other python distributions also work fine. 
+.. Installation of python 
+.. ======================
+.. Enthought python 2.7 academic distribution is considered in this notes. However, other python distributions also work fine. 
 
-At the time of writing this document the most recent stable release is EPD-7.0-2. Download 32- or 64-bit Enthought python distribution from: `<http://download.enthought.com/academic-epd-7.0/>`_.
+.. At the time of writing this document the most recent stable release is EPD-7.0-2. Download 32- or 64-bit Enthought python distribution from: `<http://www.enthought.com/products/edudownload.php>`_.
 
-Then,
+.. Then,
 
-    * Double-click on the .dmg file to mount the image   
-    * Double-click on the .mpkg file to run the installer
+..    * Double-click on the .dmg file to mount the image   
+..    * Double-click on the .mpkg file to run the installer
 
-The installer will install EPD Python 2.7 in your system (typically in /Library/Frameworks/EPD64.framework/) and it will set the path for EPD-7.0-2.
-
-
-Installation of numpy 
-=====================
-Enthought Python 2.7 comes already with numpy 1.5.1 (see `EPDChangelog <http://www.enthought.com/EPDChangelog.html>`_) which is one of the supported and recommended version for PetClaw. If you have a different Python distribution check if you have numpy 1.5 or 1.5.1 or 1.6. In case you need to install it, you can use three approaches:
-
-    * Download and install manually the source file: ::
-    
-        $ cd path/to/the/dir/where/you/want/download/numpy
-        $ svn co http://svn.scipy.org/svn/numpy/tags/RELEASE-NUMBER numpy
-        $ cd numpy
-        $ sudo python setup.py install
-
-    * Use `pip <http://pypi.python.org/pypi/pip>`_: ::
-
-        $ pip install numpy==RELEASE-NUMBER
-    
-
-    * Use `easy_install <http://packages.python.org/distribute/easy_install.html>`_ ::
-        
-        $ easy_install "numpy==RELEASE-NUMBER"
-
-Both method install numpy in the system, i.e. inside the python distribution installed in the previous step. If you prefer to install numpy locally, i.e. only for your user account, append the option ``--user`` after "RELEASE-NUMBER".
- 
-
-To test the numpy functionality open a terminal and run python, i.e. ::
-   
-    $ python
-
-Then type ::
-
-    >>> import numpy
-    >>> numpy.test()
-
-You should get something like
-
-    * Ran 2983 tests in 10.194s
-    * OK (KNOWNFAIL=4, SKIP=1) <nose.result.TextTestResult run=2983 errors=0 failures=0>
+.. The installer will install EPD Python 2.7 in your system (typically in /Library/Frameworks/EPD64.framework/) and it will set the path for EPD-7.0-2.
 
 
 Installation of the gcc (GNU compiler collection)
