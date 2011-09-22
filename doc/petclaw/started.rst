@@ -19,8 +19,8 @@ To run PetClaw you'll also need to install
     * `petsc4py <http://code.google.com/p/petsc4py/>`_: Python bindings for PETSc.
       The current recommended version is 1.1.2.
 
-For detailed instruction on how to install the PetClaw dependencies on a Mac running 
-OS X 10.6.x see :ref:`installationDepsPetClawMacOSX`. 
+For detailed instruction on how to install the PetClaw dependencies see 
+:ref:`installationDepsPetClaw`. 
 
 
 Installation

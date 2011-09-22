@@ -84,7 +84,7 @@ PetClaw Contents:
    petclaw/plotting
    petclaw/tips
    petclaw/about
-   petclaw/installationMac
+   petclaw/installationDeps
 ..   petclaw/rulesProposal
 
 
