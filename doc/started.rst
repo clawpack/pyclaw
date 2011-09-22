@@ -10,9 +10,11 @@ Dependencies
 ==================
 PyClaw and several of its dependencies depend on the availability of a Fortran 95
 compiler.  PyClaw is known to work with gfortran on OS X and Linux and the IBM
-XLF compiler on the cross-compiled Blue Gene environment.  We hope to support
-other Fortran compilers such as Intel, please email the list if you are
-interested in helping to port PyClaw to your favorite compiler!
+XLF compiler on the cross-compiled Blue Gene environment. The binaries files for
+gfortran on OS X, Linux and Windows can be found at 
+`GCC Wiki GFortranBinaries <http://gcc.gnu.org/wiki/GFortranBinaries>`_. 
+We hope to support other Fortran compilers such as Intel, please email the list
+if you are interested in helping to port PyClaw to your favorite compiler!
 
 PyClaw relies on the usual Python libraries for scientific computing:
 
