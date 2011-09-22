@@ -20,7 +20,7 @@ To run PetClaw you'll also need to install
       The current recommended version is 1.1.2.
 
 For detailed instruction on how to install the PetClaw dependencies see 
-:ref:`installationDepsPetClaw`. 
+:ref:`installPetClawDeps`. 
 
 
 Installation

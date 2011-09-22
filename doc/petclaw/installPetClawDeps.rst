@@ -1,4 +1,4 @@
-.. _installationDepsPetClaw:
+.. _installPetClawDeps:
 
 ====================================
 Installation of PetClaw dependencies 
