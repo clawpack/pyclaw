@@ -284,7 +284,7 @@ def qbc_lower_y(grid,dim,t,qbc,mbc):
     if dim == grid.dimensions[1]:
         for j in range(mbc):
             qbc1D = qbc[:,:,2*mbc-1-j]
-            qbc[:,:,j] = qbc1D[2*mbc-1-j,::-1]
+            qbc[:,:,j] = qbc1D[:,::-1]
     else:
         raise Exception('Aux custum BC for this boundary is not appropriate!')
 
@@ -298,7 +298,7 @@ def qbc_upper_y(grid,dim,t,qbc,mbc):
         my = grid.ng[1]
         for j in range(mbc):
             qbc1D = qbc[:,:,my+mbc-1-j]
-            qbc[:,:,my+mbc+j] = qbc1D[::-1]
+            qbc[:,:,my+mbc+j] = qbc1D[:,::-1]
     else:
         raise Exception('Custum BC for this boundary is not appropriate!')
 
@@ -308,12 +308,16 @@ def auxbc_lower_y(grid,dim,t,auxbc,mbc):
     Impose periodic boundary condition to aux at the bottom boundary for the 
     sphere. This function is vectorized.
     """
+    #print auxbc[0,0,:]
+
+
     if dim == grid.dimensions[1]:
         for j in range(mbc):
             auxbc1D = auxbc[:,:,2*mbc-1-j]
-            auxbc[:,:,j] = auxbc1D[2*mbc-1-j,::-1]
+            auxbc[:,:,j] = auxbc1D[:,::-1]
     else:
         raise Exception('Aux custum BC for this boundary is not appropriate!')
+
 
 
 def auxbc_upper_y(grid,dim,t,auxbc,mbc):
@@ -326,7 +330,7 @@ def auxbc_upper_y(grid,dim,t,auxbc,mbc):
         my = grid.ng[1]
         for j in range(mbc):
             auxbc1D = auxbc[:,:,my+mbc-1-j]
-            auxbc[:,:,my+mbc+j] = auxbc1D[::-1]
+            auxbc[:,:,my+mbc+j] = auxbc1D[:,::-1]
     else:
         raise Exception('Aux custum BC for this boundary is not appropriate!')
 
@@ -408,11 +412,11 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # ====
     xlower = -3.0
     xupper = 1.0
-    mx = 40
+    mx = 10
 
     ylower = -1.0
     yupper = 1.0
-    my = 40
+    my = 5
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
@@ -445,13 +449,19 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     #auxtmp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
     #state.aux[:,:,:] = auxtmp[:,2:mx+mbc,2:my+mbc]
 
+    #print state.aux.shape
+    #print state.aux[0,mx-1,:]
+    #print auxtmp[0,0,:]
+
+
     # Set index for capa
-    state.mcapa = 1
+    state.mcapa = 0
 
     # Set initial condition for q
     #############################
     # 1) Call to simplified Fortran function
     state.q = problem.qinit(xlower,ylower,dx,dy,state.q,state.aux,Rsphere)
+
 
     # 2) Call to original Fortran function
     # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
