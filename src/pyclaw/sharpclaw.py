@@ -108,6 +108,10 @@ class SharpClawSolver(Solver):
                 deltaq=self.dq(self._rk_stages[0])
                 state.q = 1./3.*state.q + 2./3.*(self._rk_stages[0].q+deltaq)
 
+             elif self.time_integrator=='SSP43':
+                print 'HERE WE SHOULD WRITE THE CODE FOR SSP43'
+
+
             elif self.time_integrator=='SSP104':
                 s1=self._rk_stages[0]
                 s2=self._rk_stages[1]
