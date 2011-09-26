@@ -289,6 +289,7 @@ def qbc_lower_y(grid,dim,t,qbc,mbc):
         raise Exception('Aux custum BC for this boundary is not appropriate!')
 
 
+
 def qbc_upper_y(grid,dim,t,qbc,mbc):
     """
     Impose periodic boundary condition to q at the top boundary for the sphere.
@@ -303,14 +304,12 @@ def qbc_upper_y(grid,dim,t,qbc,mbc):
         raise Exception('Custum BC for this boundary is not appropriate!')
 
 
+
 def auxbc_lower_y(grid,dim,t,auxbc,mbc):
     """
     Impose periodic boundary condition to aux at the bottom boundary for the 
     sphere. This function is vectorized.
     """
-    #print auxbc[0,0,:]
-
-
     if dim == grid.dimensions[1]:
         for j in range(mbc):
             auxbc1D = auxbc[:,:,2*mbc-1-j]
@@ -325,7 +324,6 @@ def auxbc_upper_y(grid,dim,t,auxbc,mbc):
     Impose periodic boundary condition to aux at the top boundary for the 
     sphere. This function is vectorized.
     """
-    
     if dim == grid.dimensions[1]:
         my = grid.ng[1]
         for j in range(mbc):
@@ -448,11 +446,6 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     #auxtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*maux
     #auxtmp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
     #state.aux[:,:,:] = auxtmp[:,2:mx+mbc,2:my+mbc]
-
-    #print state.aux.shape
-    #print state.aux[0,mx-1,:]
-    #print auxtmp[0,0,:]
-
 
     # Set index for capa
     state.mcapa = 0
