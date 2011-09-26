@@ -150,7 +150,7 @@ c           # normal to edge in tangent plane is cross product of er and et:
 c           # normal to sphere in radial direction at cell center:
             xcm = xlower+(i-0.5)*dxc
             ycm = ylower+(j-0.5)*dyc
-            call mapc2m(xcm,ycm,xpm,ypm,zpm)
+            call mapc2m(xcm,ycm,xpm,ypm,zpm,Rsphere)
 
             aux(14,i,j) = xpm
             aux(15,i,j) = ypm
