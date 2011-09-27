@@ -152,7 +152,9 @@ c            # with capa array.
      &                       / aux(mcapa,i,j-1)
                  qnew(m,i,j+1) = qnew(m,i,j+1) + dtdy * gadd(m,2,i)
      &                       / aux(mcapa,i,j+1)
-                  qnew(m,i,j) = qnew(m,i,j)-dtdx*qc(m)/aux(mcapa,i,j)
+
+c                # Add correction   
+                 qnew(m,i,j) = qnew(m,i,j)-dtdx*qc(m)/aux(mcapa,i,j)
    40          continue
    41       continue
          endif
@@ -236,6 +238,8 @@ c            # with capa array.
      &                       / aux(mcapa,i-1,j)
                   qnew(m,i+1,j) = qnew(m,i+1,j) + dtdx * gadd(m,2,j)
      &                       / aux(mcapa,i+1,j)
+
+c                 # Add correction
                   qnew(m,i,j) = qnew(m,i,j)-dtdy*qc(m)/aux(mcapa,i,j)
    90          continue
    91       continue

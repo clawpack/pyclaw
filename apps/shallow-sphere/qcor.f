@@ -12,9 +12,9 @@ c
       dimension qc(4)
 
       common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom
+      common /sw/  g
 
-      g =  11489.57219e0  
-      
+
       if(ixy.eq.1) then
         in = 2
         dy = dycom

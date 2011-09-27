@@ -1,7 +1,7 @@
 c
 c      =======================================================
        subroutine src2(maxmx,maxmy,meqn,mbc,mx,my,xlower,ylower,
-     &                 dx,dy,q,maux,aux,t,dt)
+     &                 dx,dy,q,maux,aux,t,dt,Rsphere)
 c      =======================================================
 c
        implicit double precision (a-h,o-z)
@@ -16,6 +16,7 @@ c     # and the projection of the velocity components to the tangent plane
 c
 cf2py integer intent(in) maxmx
 cf2py integer intent(in) maxmy
+cf2py integer optional, intent(in) meqn
 cf2py integer intent(in) mbc
 cf2py integer intent(in) mx
 cf2py integer intent(in) my
@@ -28,6 +29,8 @@ cf2py integer optional, intent(in)  maux
 cf2py intent(in) aux
 cf2py double precision intent(in) t
 cf2py double precision intent(in) dt
+cf2py double precision intent(in) Rsphere
+
 
 
       a = 6.37122d6    

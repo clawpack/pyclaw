@@ -33,7 +33,7 @@ def fortran_src_wrapper(solver,solution,t,dt):
     aux = state.aux
 
     import problem
-    problem.src2(mx,my,mbc,mx,my,xlower,ylower,dx,dy,q,aux,t,dt)
+    problem.src2(mx,my,mbc,mx,my,xlower,ylower,dx,dy,q,aux,t,dt,Rsphere)
 
 def mapc2p_sphere_nonvectorized(grid,mC):
     """
@@ -304,7 +304,6 @@ def qbc_upper_y(grid,dim,t,qbc,mbc):
         raise Exception('Custum BC for this boundary is not appropriate!')
 
 
-
 def auxbc_lower_y(grid,dim,t,auxbc,mbc):
     """
     Impose periodic boundary condition to aux at the bottom boundary for the 
@@ -316,7 +315,6 @@ def auxbc_lower_y(grid,dim,t,auxbc,mbc):
             auxbc[:,:,j] = auxbc1D[:,::-1]
     else:
         raise Exception('Aux custum BC for this boundary is not appropriate!')
-
 
 
 def auxbc_upper_y(grid,dim,t,auxbc,mbc):
@@ -331,7 +329,6 @@ def auxbc_upper_y(grid,dim,t,auxbc,mbc):
             auxbc[:,:,my+mbc+j] = auxbc1D[:,::-1]
     else:
         raise Exception('Aux custum BC for this boundary is not appropriate!')
-
 
 
 def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
@@ -377,7 +374,7 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # Dimensional splitting ?
     # =======================
     solver.dim_split = 0
-    
+ 
     # Transverse increment waves and transverse correction waves are computed 
     # and propagated.
     # =======================================================================
@@ -387,6 +384,11 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # ========================================
     solver.mwaves = 3
 
+    # Use source splitting method
+    # ===========================
+    solver.src_split = 1
+
+
     # Set source function
     # ===================
     solver.src = fortran_src_wrapper
@@ -394,8 +396,8 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # Set time stepping parameters
     # ============================
     solver.dt_initial = 0.1
-    solver.cfl_max = 1.0
-    solver.cfl_desired = 0.9
+    solver.cfl_max = 0.5
+    solver.cfl_desired = 0.4
 
     # Set the same limiter for the mwaves waves. 
     # ==========================================
@@ -422,10 +424,16 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     dx = grid.d[0]
     dy = grid.d[1]
 
+    import classic2
+    classic2.comxyt.dxcom = dx
+    classic2.comxyt.dycom = dy
+    classic2.sw.g = 11489.57219
+
     # Override default mapc2p function
     # ================================
     grid.mapc2p = mapc2p_sphere_vectorized
-    
+
+        
     # Define state object
     # ===================
     meqn = 4  # Number of equations
@@ -437,7 +445,7 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     import problem
 
     # 1) Call to simplified Fortran function
-    state.aux = problem.setaux(xlower,ylower,dx,dy,state.aux,Rsphere)
+    state.aux = problem.setaux(xlower,ylower,dx,dy,state.aux,Rsphere,mx,my,maux)
 
     # 2) Call to original Fortran function
     # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
@@ -453,9 +461,9 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # Set initial condition for q
     #############################
     # 1) Call to simplified Fortran function
-    state.q = problem.qinit(xlower,ylower,dx,dy,state.q,state.aux,Rsphere)
+    state.q = problem.qinit(xlower,ylower,dx,dy,state.q,state.aux,Rsphere,meqn,mx,my,maux)
 
-
+    
     # 2) Call to original Fortran function
     # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
     # THIS OPTION WILL BE REMOVED SOON.
