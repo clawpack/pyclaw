@@ -5,8 +5,8 @@ c      =======================================================
 c      =======================================================
 c
        implicit double precision (a-h,o-z)
-       dimension    q(meqn, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
-       dimension aux(maux,  1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
+       dimension    q(meqn, 1:mx, 1:my)
+       dimension aux(maux,  1:mx, 1:my)
        double precision RK(4,3) 
 
 c
@@ -39,8 +39,8 @@ cf2py double precision intent(in) Rsphere
 
 c     # project momentum components of q onto tangent plane:
 
-      do i=1-mbc,mx+mbc
-        do j=1-mbc, my+mbc
+      do i=1,mx
+        do j=1, my
             erx = aux(14,i,j)
             ery = aux(15,i,j)
             erz = aux(16,i,j)
@@ -54,9 +54,9 @@ c     # project momentum components of q onto tangent plane:
         enddo
 
 c     # calculate Coriolis term
-      do i=1-mbc, mx+mbc
+      do i=1, mx
         xc = xlower + (i-0.5d0)*dx
-        do j=1-mbc, my+mbc
+        do j=1, my
             yc = ylower + (j-0.5d0)*dy
 c
             call mapc2m(xc,yc,xp,yp,zp,Rsphere)
@@ -130,8 +130,8 @@ c           stage 4
  
 c     # project momentum components of q onto tangent plane:
 
-      do i=1-mbc,mx+mbc
-        do j=1-mbc, my+mbc
+      do i=1,mx
+        do j=1, my
             erx = aux(14,i,j)
             ery = aux(15,i,j)
             erz = aux(16,i,j)
