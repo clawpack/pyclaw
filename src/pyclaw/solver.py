@@ -1,9 +1,5 @@
 r"""
 Module specifying the interface to every solver in PyClaw.
-
-:Authors:
-    Kyle T. Mandli (2008-08-19) Initial version
-    David I. Ketcheson (2011)   Enumeration of BCs; aux array BCs
 """
 import time
 import copy
@@ -36,9 +32,24 @@ class Solver(object):
     r"""
     Pyclaw solver superclass.
 
-    All solver classes should inherit from Solver, as it defines the interface 
-    for Pyclaw solvers.  This mainly means the evolve_to_time
-    exists and the solver can be initialized and called correctly.
+    The pyclaw.Solver.solver class is an abstract class that should
+    not be instantiated; rather, all Solver classes should inherit from it.
+
+    A Solver is typically instantiated as follows::
+
+        >>> solver = pyclaw.ClawSolver2d()
+
+    After which solver options may be set.  It is always necessary to set
+    solver.mwaves to the number of waves used in the Riemann solver.
+    Typically it is also necessary to set the boundary conditions (for q, and
+    for aux if an aux array is used).  Many other options may be set
+    for specific solvers; for instance the limiter to be used, whether to
+    use a dimensionally-split algorithm, and so forth.
+
+    Usually the solver is attached to a controller before being used::
+
+        >>> claw = pyclaw.Controller()
+        >>> claw.solver = solver
 
     .. attribute:: dt
         
@@ -197,7 +208,7 @@ class Solver(object):
     # ========================================================================
     def is_valid(self):
         r"""
-        Checks that all required attributes are set
+        Checks that all required solver attributes are set.
         
         Checks to make sure that all the required attributes for the solver 
         have been set correctly.  All required attributes that need to be set 
@@ -268,6 +279,7 @@ class Solver(object):
         """
         if self.time_integrator   == 'Euler':  nregisters=1
         elif self.time_integrator == 'SSP33':  nregisters=2
+        elif self.time_integrator == 'SSP43':  nregisters=2
         elif self.time_integrator == 'SSP104': nregisters=3
  
         state = solution.states[0]
@@ -288,6 +300,12 @@ class Solver(object):
     #  Boundary Conditions
     # ========================================================================    
     def allocate_bc_arrays(self,state):
+        r"""
+        Create numpy arrays for q and aux with ghost cells attached.
+        These arrays are referred to throughout the code as qbc and auxbc.
+
+        This is typically called by solver.setup().
+        """
         import numpy as np
         qbc_dim = [n+2*self.mbc for n in state.grid.ng]
         qbc_dim.insert(0,state.meqn)

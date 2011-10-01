@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=False,solver_type='classic',outdir='./_output'):
+def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=False,solver_type='sharpclaw',outdir='./_output'):
     """
     Example python script for solving the 1d advection equation.
     """
@@ -24,6 +24,13 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
 
     solver.mthbc_lower[0] = 2
     solver.mthbc_upper[0] = 2
+
+    solver.dt_initial = 0.1
+    solver.cfl_max = 0.4
+    solver.cfl_desired = 0.3
+
+    # Set SSPRK43
+    solver.time_integrator='SSP43'
 
     x = pyclaw.Dimension('x',0.0,1.0,100)
     grid = pyclaw.Grid(x)
