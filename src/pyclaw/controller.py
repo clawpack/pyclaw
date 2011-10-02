@@ -218,6 +218,7 @@ class Controller(object):
             self.frames = []
                     
         self.solver.setup(self.solution)
+        self.solver.dt = self.solver.dt_initial
             
         self.check_validity()
 
