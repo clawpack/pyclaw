@@ -137,8 +137,8 @@ c
          if (mcapa.eq.0) then
 c
 c            # no capa array.  Standard flux differencing:
-            do 31 m=1,mx
-               do 30 i=1,meqn
+            do 31 i=1,mx
+               do 30 m=1,meqn
                   qnew(m,i,j) = qnew(m,i,j) + qadd(m,i)
      &                 - dtdx * (fadd(m,i+1) - fadd(m,i))
      &                       - dtdy * (gadd(m,2,i) - gadd(m,1,i))

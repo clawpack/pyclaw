@@ -34,6 +34,7 @@ def fortran_src_wrapper(solver,solution,t,dt):
 
     import problem
     problem.src2(mx,my,mbc,xlower,ylower,dx,dy,q,aux,t,dt,Rsphere)
+    state.q=q
 
 def mapc2p_sphere_nonvectorized(grid,mC):
     """
@@ -412,11 +413,11 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # ====
     xlower = -3.0
     xupper = 1.0
-    mx = 10
+    mx = 200
 
     ylower = -1.0
     yupper = 1.0
-    my = 5
+    my = 100
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
@@ -453,7 +454,7 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     mbc = 2
     auxtmp = np.ndarray(shape=(maux,mx+2*mbc,my+2*mbc), dtype=float, order='F')
     auxtmp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
-    state.aux[:,:,:] = auxtmp[:,2:mx+mbc,2:my+mbc]
+    state.aux[:,:,:] = auxtmp[:,mbc:-mbc,mbc:-mbc]
 
     # Set index for capa
     state.mcapa = 0
