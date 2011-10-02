@@ -68,6 +68,5 @@ c     # project qc to tangent plane:
       qc(3) = qc(3) - qcn*ery
       qc(4) = qc(4) - qcn*erz
 
-
       return
       end

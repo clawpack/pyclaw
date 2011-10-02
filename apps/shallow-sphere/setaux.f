@@ -1,5 +1,5 @@
 c     ============================================
-      subroutine setaux(mx,my,xlower,ylower,dxc,dyc,
+      subroutine setaux(maxmx,maxmy,mbc,mx,my,xlower,ylower,dxc,dyc,
      &                  maux,aux,Rsphere)
 c     ============================================
 c
@@ -27,13 +27,17 @@ c        16  erz = z-component of unit vector in radial direction at cell ctr
 c
 c     
       implicit double precision (a-h,o-z)
-      dimension xc(1:mx+1), yc(1:my+1)
-      dimension xp(1:mx+1,1:my+1), yp(1:mx+1,1:my+1)
-      dimension zp(1:mx+1,1:my+1)
-      dimension theta(1:mx+1,1:my+1), phi(1:mx+1,1:my+1)
-      dimension aux(maux,1:mx,1:my)
-cf2py integer optional,intent(in) mx
-cf2py integer optional,intent(in) my
+c      parameter (1005 = 1005)
+      dimension xc(-3:1005), yc(-3:1005)
+      dimension xp(-3:1005,-3:1005), yp(-3:1005,-3:1005)
+      dimension zp(-3:1005,-3:1005)
+      dimension theta(-3:1005,-3:1005), phi(-3:1005,-3:1005)
+      dimension aux(maux,1-mbc:maxmx+mbc,1-mbc:maxmy+mbc)
+cf2py integer intent(in) maxmx
+cf2py integer intent(in) maxmy
+cf2py integer intent(in) mbc
+cf2py integer intent(in) mx
+cf2py integer intent(in) my
 cf2py double precision intent(in) xlower
 cf2py double precision intent(in) ylower
 cf2py double precision intent(in) dx
@@ -56,19 +60,19 @@ c
 c     # Set xc and yc so that (xc(i),yc(j)) is the 
 c     # lower left corner of (i,j) cell in computational space:
 c
-      do 10 i=1,mx+1
+      do 10 i=1-mbc,mx+mbc+1
          xc(i) = xlower + (i-1.d0) * dxc
    10    continue
 c
-      do 12 j=1,my+1
+      do 12 j=1-mbc,my+mbc+1
          yc(j) = ylower + (j-1.d0) * dyc
    12    continue
 
 c     # compute cell corners on sphere and angles phi, theta
 c     # related to latitude and longitude
 c
-      do 15 j=1,my+1
-         do 15 i=1,mx+1
+      do 15 j=1-mbc,my+mbc+1
+         do 15 i=1-mbc,mx+mbc+1
 
 c           # map computational point to (xp,yp,zp) on sphere:
             call mapc2m(xc(i),yc(j),xp(i,j),yp(i,j),zp(i,j),Rsphere)
@@ -95,8 +99,8 @@ c           # compute phi, angle down from north pole:
    15	    continue
 
 c
-      do 20 j=1,my
-         do 20 i=1,mx
+      do 20 j=1-mbc,my+mbc
+         do 20 i=1-mbc,mx+mbc
 c
 c           # compute normal and tangent vectors to left edge (in tangent plane)
 c
@@ -210,8 +214,28 @@ c           # capacity kappa:
    20       continue
 
 
+c             write(*,*) aux(1,1:3,:)
+c             write(*,*) aux(2,1:3,:)
+c             write(*,*) aux(3,1:3,:)
+c             write(*,*) aux(4,1:3,:)
+c             write(*,*) aux(5,1:3,:)
+c             write(*,*) aux(6,1:3,:)
+c             write(*,*) aux(7,1:3,:)
+c             write(*,*) aux(8,1:3,:)
+c             write(*,*) aux(9,1:3,:)
+c             write(*,*) aux(10,1:3,:)
+c             write(*,*) aux(11,1:3,:)
+c             write(*,*) aux(12,1:3,:)
+c             write(*,*) aux(13,1:3,:)
+c             write(*,*) aux(14,1:3,:)
+c             write(*,*) aux(15,1:3,:)
+c            write(*,*) aux(16,1:3,:)
+
+
+
+
+
        return
 
 
        end
-

@@ -283,7 +283,7 @@ def qbc_lower_y(grid,dim,t,qbc,mbc):
     """
     if dim == grid.dimensions[1]:
         for j in range(mbc):
-            qbc1D = qbc[:,:,2*mbc-1-j]
+            qbc1D = np.copy(qbc[:,:,2*mbc-1-j])
             qbc[:,:,j] = qbc1D[:,::-1]
     else:
         raise Exception('Aux custum BC for this boundary is not appropriate!')
@@ -298,7 +298,7 @@ def qbc_upper_y(grid,dim,t,qbc,mbc):
     if dim == grid.dimensions[1]:
         my = grid.ng[1]
         for j in range(mbc):
-            qbc1D = qbc[:,:,my+mbc-1-j]
+            qbc1D = np.copy(qbc[:,:,my+mbc-1-j])
             qbc[:,:,my+mbc+j] = qbc1D[:,::-1]
     else:
         raise Exception('Custum BC for this boundary is not appropriate!')
@@ -311,7 +311,7 @@ def auxbc_lower_y(grid,dim,t,auxbc,mbc):
     """
     if dim == grid.dimensions[1]:
         for j in range(mbc):
-            auxbc1D = auxbc[:,:,2*mbc-1-j]
+            auxbc1D = np.copy(auxbc[:,:,2*mbc-1-j])
             auxbc[:,:,j] = auxbc1D[:,::-1]
     else:
         raise Exception('Aux custum BC for this boundary is not appropriate!')
@@ -325,7 +325,7 @@ def auxbc_upper_y(grid,dim,t,auxbc,mbc):
     if dim == grid.dimensions[1]:
         my = grid.ng[1]
         for j in range(mbc):
-            auxbc1D = auxbc[:,:,my+mbc-1-j]
+            auxbc1D = np.copy(auxbc[:,:,my+mbc-1-j])
             auxbc[:,:,my+mbc+j] = auxbc1D[:,::-1]
     else:
         raise Exception('Aux custum BC for this boundary is not appropriate!')
@@ -386,7 +386,7 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
 
     # Use source splitting method
     # ===========================
-    solver.src_split = 1
+    solver.src_split = 2
 
 
     # Set source function
@@ -396,8 +396,8 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # Set time stepping parameters
     # ============================
     solver.dt_initial = 0.1
-    solver.cfl_max = 0.5
-    solver.cfl_desired = 0.4
+    solver.cfl_max = 1.0
+    solver.cfl_desired = 0.9
 
     # Set the same limiter for the mwaves waves. 
     # ==========================================
@@ -445,15 +445,15 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     import problem
 
     # 1) Call to simplified Fortran function
-    state.aux = problem.setaux(xlower,ylower,dx,dy,state.aux,Rsphere,mx,my,maux)
+    #state.aux = problem.setaux(xlower,ylower,dx,dy,state.aux,Rsphere,mx,my,maux)
 
     # 2) Call to original Fortran function
     # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
     # THIS OPTION WILL BE REMOVED SOON.
-    #mbc = 2
-    #auxtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*maux
-    #auxtmp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
-    #state.aux[:,:,:] = auxtmp[:,2:mx+mbc,2:my+mbc]
+    mbc = 2
+    auxtmp = np.ndarray(shape=(maux,mx+2*mbc,my+2*mbc), dtype=float, order='F')
+    auxtmp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
+    state.aux[:,:,:] = auxtmp[:,2:mx+mbc,2:my+mbc]
 
     # Set index for capa
     state.mcapa = 0
@@ -461,17 +461,19 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # Set initial condition for q
     #############################
     # 1) Call to simplified Fortran function
-    state.q = problem.qinit(xlower,ylower,dx,dy,state.q,state.aux,Rsphere,meqn,mx,my,maux)
+    #state.q = problem.qinit(xlower,ylower,dx,dy,state.q,state.aux,Rsphere,meqn,mx,my,maux)
 
     
     # 2) Call to original Fortran function
     # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
     # THIS OPTION WILL BE REMOVED SOON.
-    #mbc = 2
-    #qtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*meqn
-    #auxtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*maux
-    #qtmp = problem.qinit(mx,my,mbc,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
-    #state.q[:,:,:] = qtmp[:,2:mx+mbc,2:my+mbc]
+    qtmp = np.ndarray(shape=(meqn,mx+2*mbc,my+2*mbc), dtype=float, order='F')
+    qtmp = problem.qinit(mx,my,mbc,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
+    state.q[:,:,:] = qtmp[:,2:mx+mbc,2:my+mbc]
+
+    #print qtmp
+    #print state.q
+  
 
     # 3) call to python function define above
     #qinit(state,mx,my)
@@ -499,6 +501,8 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # Solve the problem
     #===========================================================================
     status = claw.run()
+
+    #print state.q
 
     #===========================================================================
     # Plot results

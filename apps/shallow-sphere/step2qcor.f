@@ -78,6 +78,10 @@ c        # no capa array:
     5    continue
       endif
 
+c      write(*,*) qold(2,-1:mx+mbc,-1:my+mbc)
+c      write(*,*) aux(1,-1:mx+mbc,-1:my+mbc)
+
+
 c
 c
 c     # perform x-sweeps
@@ -120,6 +124,10 @@ c        # compute modifications fadd and gadd to fluxes along this slice:
      &              work(i0wave),work(i0s),work(i0amdq),work(i0apdq),
      &              work(i0cqxx),work(i0bmadq),work(i0bpadq),rpn2,rpt2)
          cfl = dmax1(cfl,cfl1d)
+
+         
+c         write(*,*) cfl
+
 c
 c        # update qnew by flux differencing.
 c        # (rather than maintaining arrays f and g for the total fluxes,
@@ -206,6 +214,10 @@ c        # compute modifications fadd and gadd to fluxes along this slice:
      &              work(i0cqxx),work(i0bmadq),work(i0bpadq),rpn2,rpt2)
 c
          cfl = dmax1(cfl,cfl1d)
+
+         
+c         write(*,*) cfl
+
 c
 c        # update qnew by flux differencing.
 c        # Note that the roles of fadd and gadd are reversed for
