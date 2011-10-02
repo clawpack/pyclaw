@@ -77,6 +77,7 @@ c        # no capa array:
             dtdy1d(i) = dtdy
     5    continue
       endif
+
 c
 c
 c     # perform x-sweeps
@@ -128,8 +129,8 @@ c
          if (mcapa.eq.0) then
 c
 c            # no capa array.  Standard flux differencing:
-            do 31 m=1,meqn
-               do 30 i=1,mx
+            do 31 m=1,mx
+               do 30 i=1,meqn
                   qnew(m,i,j) = qnew(m,i,j) + qadd(m,i)
      &                 - dtdx * (fadd(m,i+1) - fadd(m,i))
      &                       - dtdy * (gadd(m,2,i) - gadd(m,1,i))
@@ -141,9 +142,9 @@ c
          else
 c
 c            # with capa array.  
-            do 41 m=1,meqn
+            do 41 i=1,mx
                call qcor(1,i,m,aux2,q1d,maxm,meqn,mbc,qc)
-               do 40 i=1,mx
+               do 40 m=1,meqn
                   qnew(m,i,j) = qnew(m,i,j) + qadd(m,i)
      &                 - (dtdx * (fadd(m,i+1) - fadd(m,i))
      &                         +  dtdy * (gadd(m,2,i) - gadd(m,1,i)))
@@ -227,9 +228,9 @@ c
          else
 c
 c            # with capa array.  
-            do 91 m=1,meqn
+            do 91 j=1,my
                call qcor(2,j,m,aux2,q1d,maxm,meqn,mbc,qc)
-               do 90 j=1,my
+               do 90 m=1,meqn
                   qnew(m,i,j) = qnew(m,i,j) + qadd(m,j)
      &                  - (dtdy * (fadd(m,j+1) - fadd(m,j))
      &                    + dtdx * (gadd(m,2,j) - gadd(m,1,j)))
@@ -245,6 +246,7 @@ c                 # Add correction
    91       continue
          endif
   100 continue
+
 c
       return
       end
