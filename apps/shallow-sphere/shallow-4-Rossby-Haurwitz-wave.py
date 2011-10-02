@@ -33,8 +33,7 @@ def fortran_src_wrapper(solver,solution,t,dt):
     aux = state.aux
 
     import problem
-    problem.src2(mx,my,mbc,xlower,ylower,dx,dy,q,aux,t,dt,Rsphere)
-    state.q=q
+    state.q=problem.src2(mx,my,mbc,xlower,ylower,dx,dy,q,aux,t,dt,Rsphere)
 
 def mapc2p_sphere_nonvectorized(grid,mC):
     """
