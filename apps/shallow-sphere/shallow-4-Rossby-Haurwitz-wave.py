@@ -310,12 +310,20 @@ def auxbc_lower_y(grid,dim,t,auxbc,mbc):
     Impose periodic boundary condition to aux at the bottom boundary for the 
     sphere. This function is vectorized.
     """
-    if dim == grid.dimensions[1]:
-        for j in range(mbc):
-            auxbc1D = np.copy(auxbc[:,:,2*mbc-1-j])
-            auxbc[:,:,j] = auxbc1D[:,::-1]
-    else:
-        raise Exception('Aux custum BC for this boundary is not appropriate!')
+    import problem
+    
+    mx,my = grid.ng[0], grid.ng[1]
+    xlower,ylower = grid.lower[0], grid.lower[1]
+    dx,dy = grid.d[0],grid.d[1]
+
+    auxbc = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxbc,Rsphere)
+
+    #if dim == grid.dimensions[1]:
+    #    for j in range(mbc):
+    #        auxbc1D = auxbc[:,:,2*mbc-1-j].copy()
+    #        auxbc[:,:,j] = auxbc1D[:,::-1]
+    #else:
+    #    raise Exception('Aux custum BC for this boundary is not appropriate!')
 
 
 def auxbc_upper_y(grid,dim,t,auxbc,mbc):
@@ -323,13 +331,21 @@ def auxbc_upper_y(grid,dim,t,auxbc,mbc):
     Impose periodic boundary condition to aux at the top boundary for the 
     sphere. This function is vectorized.
     """
-    if dim == grid.dimensions[1]:
-        my = grid.ng[1]
-        for j in range(mbc):
-            auxbc1D = np.copy(auxbc[:,:,my+mbc-1-j])
-            auxbc[:,:,my+mbc+j] = auxbc1D[:,::-1]
-    else:
-        raise Exception('Aux custum BC for this boundary is not appropriate!')
+    import problem
+
+    mx,my = grid.ng[0], grid.ng[1]
+    xlower,ylower = grid.lower[0], grid.lower[1]
+    dx,dy = grid.d[0],grid.d[1]
+
+    auxbc = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxbc,Rsphere)
+
+    #if dim == grid.dimensions[1]:
+    #    my = grid.ng[1]
+    #    for j in range(mbc):
+    #        auxbc1D = auxbc[:,:,my+mbc-1-j].copy()
+    #        auxbc[:,:,my+mbc+j] = auxbc1D[:,::-1]
+    #else:
+    #    raise Exception('Aux custum BC for this boundary is not appropriate!')
 
 
 def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
@@ -413,11 +429,11 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # ====
     xlower = -3.0
     xupper = 1.0
-    mx = 10
+    mx = 6
 
     ylower = -1.0
     yupper = 1.0
-    my = 5
+    my = 3
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
