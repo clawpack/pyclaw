@@ -35,6 +35,7 @@ def fortran_src_wrapper(solver,solution,t,dt):
     import problem
     state.q=problem.src2(mx,my,mbc,xlower,ylower,dx,dy,q,aux,t,dt,Rsphere)
 
+
 def mapc2p_sphere_nonvectorized(grid,mC):
     """
     Maps to points on a sphere of radius Rsphere. Nonvectorized version (slow).
@@ -412,11 +413,11 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # ====
     xlower = -3.0
     xupper = 1.0
-    mx = 200
+    mx = 10
 
     ylower = -1.0
     yupper = 1.0
-    my = 100
+    my = 5
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)

@@ -77,10 +77,7 @@ c        # no capa array:
             dtdy1d(i) = dtdy
     5    continue
       endif
-
-c      write(*,*) qold(2,-1:mx+mbc,-1:my+mbc)
-c      write(*,*) aux(1,-1:mx+mbc,-1:my+mbc)
-
+    
 
 c
 c

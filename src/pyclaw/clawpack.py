@@ -143,6 +143,16 @@ class ClawSolver(Solver):
 
         if self.src_split == 2:
             self.src(self,solution,solution.t, self.dt/2.0)
+            state = solution.state
+
+#            print state.q[0,0,0]
+#            print 
+#            print state.q[1,0,0]
+#            print 
+#            print state.q[2,0,0]
+#            print 
+#            print state.q[3,0,0]
+
     
         self.homogeneous_step(solution)
 
@@ -606,6 +616,16 @@ class ClawSolver2D(ClawSolver):
                       qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl,self.cflv, \
                       self.aux1,self.aux2,self.aux3,self.work)
             else:
+                
+#                print qnew[0,4,5]
+#                print 
+#                print qnew[1,6,6]
+#                print 
+#                print qnew[2,3,4]
+#                print 
+#                print qnew[3,2,6]
+
+
                 q, cfl = classic2.step2(maxm,mx,my,mbc,mx,my, \
                       qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl, \
                       self.aux1,self.aux2,self.aux3,self.work)
