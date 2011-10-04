@@ -143,17 +143,7 @@ class ClawSolver(Solver):
 
         if self.src_split == 2:
             self.src(self,solution,solution.t, self.dt/2.0)
-            state = solution.state
-
-#            print state.q[0,0,0]
-#            print 
-#            print state.q[1,0,0]
-#            print 
-#            print state.q[2,0,0]
-#            print 
-#            print state.q[3,0,0]
-
-    
+             
         self.homogeneous_step(solution)
 
         # Check here if we violated the CFL condition, if we did, return 
@@ -597,10 +587,16 @@ class ClawSolver2D(ClawSolver):
             self.apply_q_bcs(state)
             qnew = self.qbc #(input/output)
             if self.dt_variable:
-                qold = self.qbc_backup # Solver should quarantee that 
+                # HERE THERE ARE SOME PROBLEMS!
+                # EVEN IF THE TIME STEP IS NOT REJCTED, qold is wrong!
+                #qold = self.qbc_backup # Solver should quarantee that 
                                         # qbc_backup will not be
                                         # changed so that it can be used in
                                         # case of step rejection.
+
+                # FIX! THIS ONLY WORK WHEN THE TIME STEP IS NOT REJCETED!!!!
+                # SO,  LIKE WHEN DT IS NOT VARIABLE (BELOW!) 
+                qold = qnew.copy('F')
             else:
                 qold = qnew.copy('F')
             
@@ -616,16 +612,6 @@ class ClawSolver2D(ClawSolver):
                       qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl,self.cflv, \
                       self.aux1,self.aux2,self.aux3,self.work)
             else:
-                
-#                print qnew[0,4,5]
-#                print 
-#                print qnew[1,6,6]
-#                print 
-#                print qnew[2,3,4]
-#                print 
-#                print qnew[3,2,6]
-
-
                 q, cfl = classic2.step2(maxm,mx,my,mbc,mx,my, \
                       qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl, \
                       self.aux1,self.aux2,self.aux3,self.work)

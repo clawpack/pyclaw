@@ -10,7 +10,6 @@ is restricted to the surface of the sphere.
 import numpy as np
 from petclaw import plot
 import matplotlib.pyplot as plt
-#import pdb  # Debugger
 
 # Nondimensionalized radius of the earth
 Rsphere = 1.0
@@ -139,7 +138,7 @@ def mapc2p_sphere_vectorized(grid,mC):
     """
 
     # Nondimensionalized radius of the earth
-    r1 = Rsphere;
+    r1 = Rsphere
 
     # Number of cell in x and y directions. (x,y) c
     mx = grid.ng[0]
@@ -222,7 +221,7 @@ def qinit(state,mx,my):
             elif (xp <= 0.0 and yp >= 0.0):
                 theta = np.pi - np.arcsin(yp/rad)
             elif (xp <= 0.0 and yp <= 0.0):
-                 theta = -pi + np.arcsin(-yp/rad)
+                 theta = -np.pi + np.arcsin(-yp/rad)
             elif (xp >= 0.0 and yp <= 0.0):
                 theta = -np.arcsin(-yp/rad)
 
@@ -405,6 +404,10 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # ===========================
     solver.src_split = 2
 
+    # Set variable dt
+    # ===============
+    solver.dt_variable = 1
+
 
     # Set source function
     # ===================
@@ -449,7 +452,6 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # Override default mapc2p function
     # ================================
     grid.mapc2p = mapc2p_sphere_vectorized
-
         
     # Define state object
     # ===================
@@ -486,21 +488,11 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # THIS OPTION WILL BE REMOVED SOON.
     qtmp = np.ndarray(shape=(meqn,mx+2*mbc,my+2*mbc), dtype=float, order='F')
     qtmp = problem.qinit(mx,my,mbc,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
-    state.q[:,:,:] = qtmp[:,2:mx+mbc,2:my+mbc]
-
-    #print qtmp
-    #print state.q
-  
+    state.q[:,:,:] = qtmp[:,mbc:-mbc,mbc:-mbc]
 
     # 3) call to python function define above
     #qinit(state,mx,my)
 
-    # Plot initial solution in the computational domain
-    #x = state.grid.x.center
-    #y = state.grid.y.center
-    #Y,X = np.meshgrid(y,x)
-    #plt.contour(X,Y,state.q[0,...])
-    #plt.show()
 
     #===========================================================================
     # Set up controller and controller parameters
@@ -526,6 +518,14 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     #===========================================================================
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
+
+    # Plot initial solution in the computational domain
+    #x = state.grid.x.center
+    #y = state.grid.y.center
+    #Y,X = np.meshgrid(y,x)
+    #plt.contour(X,Y,state.q[0,...])
+    #plt.show()
+
 
 
 if __name__=="__main__":
