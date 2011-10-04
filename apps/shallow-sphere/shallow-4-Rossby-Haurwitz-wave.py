@@ -432,11 +432,11 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # ====
     xlower = -3.0
     xupper = 1.0
-    mx = 6
+    mx = 20
 
     ylower = -1.0
     yupper = 1.0
-    my = 3
+    my = 10
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
@@ -511,8 +511,6 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     #===========================================================================
     status = claw.run()
 
-    #print state.q
-
     #===========================================================================
     # Plot results
     #===========================================================================
@@ -525,7 +523,6 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     #Y,X = np.meshgrid(y,x)
     #plt.contour(X,Y,state.q[0,...])
     #plt.show()
-
 
 
 if __name__=="__main__":

@@ -1,6 +1,7 @@
 def mapc2p_sphere(xc,yc):
     """
-    Maps to points on a sphere of radius Rsphere. 
+    Maps to points on a sphere of radius 'a'.
+    A domian [-3,1]x[-1,1] is assumed.
     """
 
     # Radius of the earth
