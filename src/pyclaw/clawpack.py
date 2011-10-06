@@ -587,16 +587,11 @@ class ClawSolver2D(ClawSolver):
             self.apply_q_bcs(state)
             qnew = self.qbc #(input/output)
             if self.dt_variable:
-                # HERE THERE ARE SOME PROBLEMS!
-                # EVEN IF THE TIME STEP IS NOT REJCTED, qold is wrong!
-                #qold = self.qbc_backup # Solver should quarantee that 
-                                        # qbc_backup will not be
-                                        # changed so that it can be used in
-                                        # case of step rejection.
-
-                # FIX! THIS ONLY WORK WHEN THE TIME STEP IS NOT REJCETED!!!!
-                # SO,  LIKE WHEN DT IS NOT VARIABLE (BELOW!) 
-                qold = qnew.copy('F')
+                from copy import deepcopy
+                qold = deepcopy(self.qbc)  # Solver should quarantee that 
+                                           # qbc_backup will not be
+                                           # changed so that it can be used in
+                                           # case of step rejection.
             else:
                 qold = qnew.copy('F')
             
