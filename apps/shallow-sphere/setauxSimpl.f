@@ -1,5 +1,5 @@
 c     ============================================
-      subroutine setaux(mx,my,xlower,ylower,dxc,dyc,
+      subroutine setauxsimpl(mx,my,xlower,ylower,dxc,dyc,
      &                  maux,aux,Rsphere)
 c     ============================================
 c

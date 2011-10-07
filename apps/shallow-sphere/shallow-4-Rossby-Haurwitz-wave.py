@@ -464,15 +464,15 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     import problem
 
     # 1) Call to simplified Fortran function
-    #state.aux = problem.setaux(xlower,ylower,dx,dy,state.aux,Rsphere,mx,my,maux)
+    state.aux = problem.setauxsimpl(xlower,ylower,dx,dy,state.aux,Rsphere)
 
     # 2) Call to original Fortran function
     # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
     # THIS OPTION WILL BE REMOVED SOON.
-    mbc = 2
-    auxtmp = np.ndarray(shape=(maux,mx+2*mbc,my+2*mbc), dtype=float, order='F')
-    auxtmp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
-    state.aux[:,:,:] = auxtmp[:,mbc:-mbc,mbc:-mbc]
+    #mbc = 2
+    #auxtmp = np.ndarray(shape=(maux,mx+2*mbc,my+2*mbc), dtype=float, order='F')
+    #auxtmp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
+    #state.aux[:,:,:] = auxtmp[:,mbc:-mbc,mbc:-mbc]
 
     # Set index for capa
     state.mcapa = 0
@@ -480,15 +480,15 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # Set initial condition for q
     #############################
     # 1) Call to simplified Fortran function
-    #state.q = problem.qinit(xlower,ylower,dx,dy,state.q,state.aux,Rsphere,meqn,mx,my,maux)
+    state.q = problem.qinit(xlower,ylower,dx,dy,state.q,state.aux,Rsphere)
 
     
     # 2) Call to original Fortran function
     # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
     # THIS OPTION WILL BE REMOVED SOON.
-    qtmp = np.ndarray(shape=(meqn,mx+2*mbc,my+2*mbc), dtype=float, order='F')
-    qtmp = problem.qinit(mx,my,mbc,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
-    state.q[:,:,:] = qtmp[:,mbc:-mbc,mbc:-mbc]
+    #qtmp = np.ndarray(shape=(meqn,mx+2*mbc,my+2*mbc), dtype=float, order='F')
+    #qtmp = problem.qinit(mx,my,mbc,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
+    #state.q[:,:,:] = qtmp[:,mbc:-mbc,mbc:-mbc]
 
     # 3) call to python function define above
     #qinit(state,mx,my)

@@ -23,7 +23,7 @@ include $(PYCLAWMAKE)
 
 
 # Problem's source Fortran files
-INITIALIZE_SOURCE = mapc2m.f setaux.f qinit.f src2.f
+INITIALIZE_SOURCE = mapc2m.f setaux.f setauxsimpl.f qinit.f src2.f
 
 problem.so: $(INITIALIZE_SOURCE)
 	$(F2PY) -m problem -c $^
