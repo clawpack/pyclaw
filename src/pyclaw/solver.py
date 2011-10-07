@@ -603,9 +603,10 @@ class Solver(object):
     # ========================================================================
     #  Evolution routines
     # ========================================================================
-    def evolve_to_time(self,*args):
+    def evolve_to_time(self,solution,tend=None):
         r"""
-        Evolve solution to tend
+        Evolve solution from solution.t to tend.  If tend is not specified,
+        take a single step.
         
         This method contains the machinery to evolve the solution object in
         ``solution`` to the requested end time tend if given, or one 
@@ -620,13 +621,8 @@ class Solver(object):
          - (dict) - Returns the status dictionary of the solver
         """
         
-        # Parse arguments
-        solution = args[0]
-        if len(args) > 1:
-            tend = args[1]
-            take_one_step = False
-        else:
-            tend = None
+        take_one_step = False
+        if tend == None:
             take_one_step = True
             
         # Parameters for time stepping
