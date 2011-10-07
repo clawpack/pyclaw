@@ -621,11 +621,12 @@ class Solver(object):
          - (dict) - Returns the status dictionary of the solver
         """
         
-        take_one_step = False
         if tend == None:
             take_one_step = True
+        else:
+            take_one_step = False
             
-        # Parameters for time stepping
+        # Parameters for time-stepping
         retake_step = False
         tstart = solution.t
 
@@ -644,12 +645,12 @@ class Solver(object):
                 if abs(self.max_steps*self.dt - (tend - tstart)) > 1e-5 * (tend-tstart):
                     raise Exception('dt does not divide (tend-tstart) and dt is fixed!')
         if self.dt_variable == 1 and self.cfl_desired > self.cfl_max:
-            raise Exception('Variable time stepping and desired CFL > maximum CFL')
+            raise Exception('Variable time-stepping and desired CFL > maximum CFL')
         if tend <= tstart:
             self.logger.info("Already at or beyond end time: no evolution required.")
             self.max_steps = 0
                 
-        # Main time stepping loop
+        # Main time-stepping loop
         for n in xrange(self.max_steps):
             
             state = solution.state
@@ -713,7 +714,7 @@ class Solver(object):
                     self.dt = self.dt_max
 
       
-        # End of main time stepping loop -------------------------------------
+        # End of main time-stepping loop -------------------------------------
 
         if self.dt_variable and solution.t < tend \
                 and self.status['numsteps'] == self.max_steps:
@@ -726,7 +727,7 @@ class Solver(object):
         Take one step
         
         This method is only a stub and should be overridden by all solvers who
-        would like to use the default time stepping in evolve_to_time.
+        would like to use the default time-stepping in evolve_to_time.
         """
         raise NotImplementedError("No stepping routine has been defined!")
 
