@@ -7,7 +7,7 @@ PYCLAWMAKE = $(PYCLAW)/Makefile.common
 RP_SOURCE =   $(RIEMANN)/src/rpn2swsphere.f $(RIEMANN)/src/rpt2swq.f
 
 
-all: classic2.so sharpclaw2.so problem.so
+all: classic2.so problem.so
 
 # Override step2.f with a new function that contains a call to an additional
 # function, i.e. qcor.f

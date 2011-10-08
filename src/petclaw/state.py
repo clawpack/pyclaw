@@ -191,8 +191,10 @@ class State(pyclaw.state.State):
         #Now set the local indices for the Dimension objects:
         ranges = self.q_da.getRanges()
         for i,nrange in enumerate(ranges):
-            self.grid.dimensions[i].nstart=nrange[0]
-            self.grid.dimensions[i].nend  =nrange[1]
+            dim = self.grid.dimensions[i]
+            dim.nstart = nrange[0]
+            dim.nend   = nrange[1]
+            dim.lowerg = dim.lower + dim.nstart*dim.d
 
     def _create_DA(self,dof,mbc=0):
         r"""Returns a PETSc DA and associated global Vec.

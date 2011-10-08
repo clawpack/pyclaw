@@ -136,9 +136,6 @@ c     # project momentum components of q onto tangent plane:
             ery = aux(15,i,j)
             erz = aux(16,i,j)
             qn = erx*q(2,i,j) + ery*q(3,i,j) + erz*q(4,i,j)
-            if(dabs(qn).gt.1.d-10) then
-               write(6,*) i,j,qn
-            endif
             q(2,i,j) = q(2,i,j) - qn*erx
             q(3,i,j) = q(3,i,j) - qn*ery
             q(4,i,j) = q(4,i,j) - qn*erz
