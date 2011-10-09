@@ -106,13 +106,5 @@ c            # set the clawpack initial values:
             
   20         continue
 
-
-c         write(*,*) q(1,1:3,:)
-c         write(*,*) q(2,1:3,:)
-c         write(*,*) q(3,1:3,:)
-c         write(*,*) q(4,1:3,:)
-
-
-
        return
        end
