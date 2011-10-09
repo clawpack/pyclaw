@@ -25,14 +25,14 @@ def fortran_src_wrapper(solver,solution,t,dt):
     mx,my = grid.ng[0], grid.ng[1]
     meqn = state.meqn
     mbc = solver.mbc
-    xlowerg,ylowerg = grid.lowerg[0], grid.lowerg[1]
+    xlower,ylower = grid.lower[0], grid.lower[1]
     dx,dy = grid.d[0],grid.d[1]
     q = state.q
     maux = state.maux
     aux = state.aux
 
     import problem
-    state.q=problem.src2(mx,my,mbc,xlowerg,ylowerg,dx,dy,q,aux,t,dt,Rsphere)
+    state.q=problem.src2(mx,my,mbc,xlower,ylower,dx,dy,q,aux,t,dt,Rsphere)
 
 
 def mapc2p_sphere_nonvectorized(grid,mC):
@@ -281,7 +281,7 @@ def qbc_lower_y(grid,dim,t,qbc,mbc):
     Impose periodic boundary condition to q at the bottom boundary for the 
     sphere. This function is vectorized.
     """
-    if dim == grid.dimensions[1] and dim.nstart == 0:
+    if dim == grid.dimensions[1]:
         for j in range(mbc):
             qbc1D = np.copy(qbc[:,:,2*mbc-1-j])
             qbc[:,:,j] = qbc1D[:,::-1]
@@ -295,7 +295,7 @@ def qbc_upper_y(grid,dim,t,qbc,mbc):
     Impose periodic boundary condition to q at the top boundary for the sphere.
     This function is vectorized.
     """
-    if dim == grid.dimensions[1] and dim.nend == dim.n:
+    if dim == grid.dimensions[1]:
         my = grid.ng[1]
         for j in range(mbc):
             qbc1D = np.copy(qbc[:,:,my+mbc-1-j])
@@ -309,16 +309,20 @@ def auxbc_lower_y(grid,dim,t,auxbc,mbc):
     Impose periodic boundary condition to aux at the bottom boundary for the 
     sphere. This function is vectorized.
     """
-    if dim.nstart==0:
-        import problem
+    import problem
     
-        mx,my = grid.ng[0], grid.ng[1]
-        xlower,ylower = grid.lowerg[0], grid.lowerg[1]
-        dx,dy = grid.d[0],grid.d[1]
+    mx,my = grid.ng[0], grid.ng[1]
+    xlower,ylower = grid.lower[0], grid.lower[1]
+    dx,dy = grid.d[0],grid.d[1]
 
-        auxtemp=auxbc.copy()
-        auxtemp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
-        auxbc[:,:,:mbc] = auxtemp[:,:,:mbc]
+    auxbc = problem.setauxorig(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxbc,Rsphere)
+
+    #if dim == grid.dimensions[1]:
+    #    for j in range(mbc):
+    #        auxbc1D = auxbc[:,:,2*mbc-1-j].copy()
+    #        auxbc[:,:,j] = auxbc1D[:,::-1]
+    #else:
+    #    raise Exception('Aux custum BC for this boundary is not appropriate!')
 
 
 def auxbc_upper_y(grid,dim,t,auxbc,mbc):
@@ -326,19 +330,24 @@ def auxbc_upper_y(grid,dim,t,auxbc,mbc):
     Impose periodic boundary condition to aux at the top boundary for the 
     sphere. This function is vectorized.
     """
-    if dim.nend == dim.n:
-        import problem
+    import problem
 
-        mx,my = grid.ng[0], grid.ng[1]
-        xlower,ylower = grid.lowerg[0], grid.lowerg[1]
-        dx,dy = grid.d[0],grid.d[1]
+    mx,my = grid.ng[0], grid.ng[1]
+    xlower,ylower = grid.lower[0], grid.lower[1]
+    dx,dy = grid.d[0],grid.d[1]
 
-        auxtemp=auxbc.copy()
-        auxtemp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
-        auxbc[:,:,-mbc:] = auxtemp[:,:,-mbc:]
+    auxbc = problem.setauxorig(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxbc,Rsphere)
+
+    #if dim == grid.dimensions[1]:
+    #    my = grid.ng[1]
+    #    for j in range(mbc):
+    #        auxbc1D = auxbc[:,:,my+mbc-1-j].copy()
+    #        auxbc[:,:,my+mbc+j] = auxbc1D[:,::-1]
+    #else:
+    #    raise Exception('Aux custum BC for this boundary is not appropriate!')
 
 
-def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output'):
+def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
     #===========================================================================
     # Import libraries
     #===========================================================================
@@ -350,7 +359,10 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output'):
     #===========================================================================
     # Setup solver and solver parameters
     #===========================================================================
-    solver = pyclaw.ClawSolver2D()
+    if solver_type == 'classic':
+        solver = pyclaw.ClawSolver2D()
+    elif solver_type == 'sharpclaw':
+        solver = pyclaw.SharpClawSolver2D()
 
     # Set boundary conditions
     # =======================
@@ -420,11 +432,11 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output'):
     # ====
     xlower = -3.0
     xupper = 1.0
-    mx = 50
+    mx = 60
 
     ylower = -1.0
     yupper = 1.0
-    my = 25
+    my = 30
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
@@ -452,15 +464,14 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output'):
     import problem
 
     # 1) Call to simplified Fortran function
-    xlowerg,ylowerg = grid.lowerg
-    state.aux = problem.setauxsimpl(xlowerg,ylowerg,dx,dy,state.aux,Rsphere)
+    state.aux = problem.setauxsimpl(xlower,ylower,dx,dy,state.aux,Rsphere)
 
     # 2) Call to original Fortran function
-    # TO USE THIS ONE: RENAME qinitOrig.f to qinit.f and recompile (make)
+    # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
     # THIS OPTION WILL BE REMOVED SOON.
     #mbc = 2
     #auxtmp = np.ndarray(shape=(maux,mx+2*mbc,my+2*mbc), dtype=float, order='F')
-    #auxtmp = problem.setaux(mx,my,mbc,mx,my,xlowerg,ylowerg,dx,dy,auxtmp,Rsphere)
+    #auxtmp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
     #state.aux[:,:,:] = auxtmp[:,mbc:-mbc,mbc:-mbc]
 
     # Set index for capa
@@ -469,14 +480,14 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output'):
     # Set initial condition for q
     #############################
     # 1) Call to simplified Fortran function
-    state.q = problem.qinit(xlowerg,ylowerg,dx,dy,state.q,state.aux,Rsphere)
+    state.q = problem.qinitsimpl(xlower,ylower,dx,dy,state.q,state.aux,Rsphere)
 
     
     # 2) Call to original Fortran function
-    # TO USE THIS ONE: RENAME qinitOrig.f to qinit.f and recompile (make)
+    # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
     # THIS OPTION WILL BE REMOVED SOON.
     #qtmp = np.ndarray(shape=(meqn,mx+2*mbc,my+2*mbc), dtype=float, order='F')
-    #qtmp = problem.qinit(mx,my,mbc,mx,my,xlowerg,ylowerg,dx,dy,qtmp,auxtmp,Rsphere)
+    #qtmp = problem.qinit(mx,my,mbc,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
     #state.q[:,:,:] = qtmp[:,mbc:-mbc,mbc:-mbc]
 
     # 3) call to python function define above
@@ -489,8 +500,8 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output'):
     claw = pyclaw.Controller()
     claw.keep_copy = False
     claw.outstyle = 1
-    claw.nout = 24
-    claw.tfinal = 1.0
+    claw.nout = 10
+    claw.tfinal = 10
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir

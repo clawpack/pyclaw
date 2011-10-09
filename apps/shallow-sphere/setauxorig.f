@@ -1,5 +1,5 @@
 c     ============================================
-      subroutine setaux(maxmx,maxmy,mbc,mx,my,xlower,ylower,dxc,dyc,
+      subroutine setauxorig(maxmx,maxmy,mbc,mx,my,xlower,ylower,dxc,dyc,
      &                  maux,aux,Rsphere)
 c     ============================================
 c
@@ -212,6 +212,27 @@ c           # capacity kappa:
             aux(1,i,j) = area / (dxc*dyc)
            
    20       continue
+
+
+c             write(*,*) aux(1,1:3,:)
+c             write(*,*) aux(2,1:3,:)
+c             write(*,*) aux(3,1:3,:)
+c             write(*,*) aux(4,1:3,:)
+c             write(*,*) aux(5,1:3,:)
+c             write(*,*) aux(6,1:3,:)
+c             write(*,*) aux(7,1:3,:)
+c             write(*,*) aux(8,1:3,:)
+c             write(*,*) aux(9,1:3,:)
+c             write(*,*) aux(10,1:3,:)
+c             write(*,*) aux(11,1:3,:)
+c             write(*,*) aux(12,1:3,:)
+c             write(*,*) aux(13,1:3,:)
+c             write(*,*) aux(14,1:3,:)
+c             write(*,*) aux(15,1:3,:)
+c            write(*,*) aux(16,1:3,:)
+
+
+
 
 
        return

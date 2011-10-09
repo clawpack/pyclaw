@@ -3,7 +3,7 @@ c
 c
 c
 c     =====================================================
-       subroutine qinit(meqn,mx,my,xlower,ylower,
+       subroutine qinitsimpl(meqn,mx,my,xlower,ylower,
      &                   dx,dy,q,maux,aux,Rsphere)
 c     =====================================================
 c
