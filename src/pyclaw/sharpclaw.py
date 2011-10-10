@@ -97,7 +97,7 @@ class SharpClawSolver(Solver):
             if self.time_integrator=='Euler':
                 deltaq=self.dq(state)
                 state.q+=deltaq
-
+           
             elif self.time_integrator=='SSP33':
                 deltaq=self.dq(state)
                 self._rk_stages[0].q=state.q+deltaq
