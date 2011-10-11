@@ -279,94 +279,62 @@ def qinit(state,mx,my):
 def qbc_lower_y(grid,dim,t,qbc,mbc):
     """
     Impose periodic boundary condition to q at the bottom boundary for the 
-    sphere. This function is vectorized.
+    sphere. This function does not work in parallel.
     """
-    if dim == grid.dimensions[1] and dim.nstart == 0:
-        for j in range(mbc):
-            qbc1D = np.copy(qbc[:,:,2*mbc-1-j])
-            qbc[:,:,j] = qbc1D[:,::-1]
-    else:
-        raise Exception('Aux custum BC for this boundary is not appropriate!')
-
+    for j in range(mbc):
+        qbc1D = np.copy(qbc[:,:,2*mbc-1-j])
+        qbc[:,:,j] = qbc1D[:,::-1]
 
 
 def qbc_upper_y(grid,dim,t,qbc,mbc):
     """
     Impose periodic boundary condition to q at the top boundary for the sphere.
-    This function is vectorized.
+    This function does not work in parallel.
     """
-    if dim == grid.dimensions[1] and dim.nend == dim.n:
-        my = grid.ng[1]
-        for j in range(mbc):
-            qbc1D = np.copy(qbc[:,:,my+mbc-1-j])
-            qbc[:,:,my+mbc+j] = qbc1D[:,::-1]
-    else:
-        raise Exception('Custum BC for this boundary is not appropriate!')
+    my = grid.ng[1]
+    for j in range(mbc):
+        qbc1D = np.copy(qbc[:,:,my+mbc-1-j])
+        qbc[:,:,my+mbc+j] = qbc1D[:,::-1]
 
 
 def auxbc_lower_y(grid,dim,t,auxbc,mbc):
     """
     Impose periodic boundary condition to aux at the bottom boundary for the 
-    sphere. This function is vectorized.
+    sphere.
     """
-    if dim == grid.dimensions[1] and dim.nstart == 0:
-        import problem
-    
-        mxg,myg = grid.ng[0], grid.ng[1]
-        xlowerg,ylowerg = grid.lowerg[0], grid.lowerg[1]
-        dx,dy = grid.d[0],grid.d[1]
+    import problem
 
-        auxtemp = auxbc.copy()
-        auxtemp = problem.setauxorig(mxg,myg,mbc,mxg,myg,xlowerg,ylowerg,dx,dy,auxtemp,Rsphere)
-        auxbc[:,:,:mbc] = auxtemp[:,:,:mbc]
-    else:
-        raise Exception('Aux custum BC for this boundary is not appropriate!')
+    mxg,myg = grid.ng[0], grid.ng[1]
+    xlowerg,ylowerg = grid.lowerg[0], grid.lowerg[1]
+    dx,dy = grid.d[0],grid.d[1]
 
+    auxtemp = auxbc.copy()
+    auxtemp = problem.setauxorig(mxg,myg,mbc,mxg,myg,xlowerg,ylowerg,dx,dy,auxtemp,Rsphere)
+    auxbc[:,:,:mbc] = auxtemp[:,:,:mbc]
 
 def auxbc_upper_y(grid,dim,t,auxbc,mbc):
     """
     Impose periodic boundary condition to aux at the top boundary for the 
-    sphere. This function is vectorized.
+    sphere. 
     """
-    if dim == grid.dimensions[1] and dim.nend == dim.n:
-        import problem
+    import problem
 
-        mxg,myg = grid.ng[0], grid.ng[1]
-        xlowerg,ylowerg = grid.lowerg[0], grid.lowerg[1]
-        dx,dy = grid.d[0],grid.d[1]
-        
-        auxtemp = auxbc.copy()
-        auxtemp = problem.setauxorig(mxg,myg,mbc,mxg,myg,xlowerg,ylowerg,dx,dy,auxtemp,Rsphere)
-        auxbc[:,:,-mbc:] = auxtemp[:,:,-mbc:]
-    else:
-        raise Exception('Aux custum BC for this boundary is not appropriate!')
+    mxg,myg = grid.ng[0], grid.ng[1]
+    xlowerg,ylowerg = grid.lowerg[0], grid.lowerg[1]
+    dx,dy = grid.d[0],grid.d[1]
+    
+    auxtemp = auxbc.copy()
+    auxtemp = problem.setauxorig(mxg,myg,mbc,mxg,myg,xlowerg,ylowerg,dx,dy,auxtemp,Rsphere)
+    auxbc[:,:,-mbc:] = auxtemp[:,:,-mbc:]
 
 
-    #if dim == grid.dimensions[1]:
-    #    my = grid.ng[1]
-    #    for j in range(mbc):
-    #        auxbc1D = auxbc[:,:,my+mbc-1-j].copy()
-    #        auxbc[:,:,my+mbc+j] = auxbc1D[:,::-1]
-    #else:
-    #    raise Exception('Aux custum BC for this boundary is not appropriate!')
-
-
-def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
-    #===========================================================================
-    # Import libraries
-    #===========================================================================
-    if use_petsc:
-        import petclaw as pyclaw
-    else:
-        import pyclaw
+def shallow_sphere(iplot=0,htmlplot=False,outdir='./_output'):
+    import pyclaw
 
     #===========================================================================
-    # Setup solver and solver parameters
+    # Set up solver and solver parameters
     #===========================================================================
-    if solver_type == 'classic':
-        solver = pyclaw.ClawSolver2D()
-    elif solver_type == 'sharpclaw':
-        solver = pyclaw.SharpClawSolver2D()
+    solver = pyclaw.ClawSolver2D()
 
     # Set boundary conditions
     # =======================
@@ -387,10 +355,6 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     solver.user_aux_bc_upper = auxbc_upper_y
 
 
-    # Order of the solver.
-    # ====================
-    solver.order = 2
-
     # Dimensional splitting ?
     # =======================
     solver.dim_split = 0
@@ -408,23 +372,12 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # ===========================
     solver.src_split = 2
 
-    # Set variable dt
-    # ===============
-    solver.dt_variable = 1
-
-
     # Set source function
     # ===================
     solver.src = fortran_src_wrapper
 
-    # Set time stepping parameters
-    # ============================
-    solver.dt_initial = 0.1
-    solver.cfl_max = 1.0
-    solver.cfl_desired = 0.9
-
-    # Set the same limiter for the mwaves waves. 
-    # ==========================================
+    # Set the limiter for the waves
+    # =============================
     solver.limiters = pyclaw.limiters.tvd.MC
 
 

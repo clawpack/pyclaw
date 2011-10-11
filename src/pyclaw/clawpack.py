@@ -586,14 +586,7 @@ class ClawSolver2D(ClawSolver):
             
             self.apply_q_bcs(state)
             qnew = self.qbc #(input/output)
-            if self.dt_variable:
-                from copy import deepcopy
-                qold = deepcopy(self.qbc)  # Solver should quarantee that 
-                                           # qbc_backup will not be
-                                           # changed so that it can be used in
-                                           # case of step rejection.
-            else:
-                qold = qnew.copy('F')
+            qold = qnew.copy('F')
             
             if self.fwave:
                 import classic2fw as classic2
