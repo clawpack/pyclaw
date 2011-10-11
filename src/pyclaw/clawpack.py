@@ -43,9 +43,9 @@ class ClawSolver(Solver):
     
     .. attribute:: src_split
     
-        Whether to use a source splitting method, 0 for none, 1 for first 
+        Which source splitting method to use: 1 for first 
         order Godunov splitting and 2 for second order Strang splitting.
-        ``Default = 0``
+        ``Default = 1``
         
     .. attribute:: fwave
     
@@ -99,7 +99,7 @@ class ClawSolver(Solver):
         self._default_attr_values['mbc'] = 2
         self._default_attr_values['limiters'] = limiters.tvd.minmod
         self._default_attr_values['order'] = 2
-        self._default_attr_values['src_split'] = 0
+        self._default_attr_values['src_split'] = 1
         self._default_attr_values['fwave'] = False
         self._default_attr_values['src'] = None
         self._default_attr_values['start_step'] = None
@@ -141,7 +141,7 @@ class ClawSolver(Solver):
         if self.start_step is not None:
             self.start_step(self,solution)
 
-        if self.src_split == 2:
+        if self.src_split == 2 and self.src is not None:
             self.src(self,solution,solution.t, self.dt/2.0)
     
         self.homogeneous_step(solution)
@@ -152,14 +152,15 @@ class ClawSolver(Solver):
         if self.cfl.get_cached_max() >= self.cfl_max:
             return False
 
-        # Strang splitting
-        if self.src_split == 2:
-            self.src(self,solution,solution.t + self.dt/2.0, self.dt/2.0)
+        if self.src is not None:
+            # Strang splitting
+            if self.src_split == 2:
+                self.src(self,solution,solution.t + self.dt/2.0, self.dt/2.0)
 
-        # Godunov Splitting
-        if self.src_split == 1:
-            self.src(self,solution,solution.t,self.dt)
-            
+            # Godunov Splitting
+            if self.src_split == 1:
+                self.src(self,solution,solution.t,self.dt)
+                
         return True
             
     def homogeneous_step(self,solution):
@@ -248,7 +249,7 @@ class ClawSolver1D(ClawSolver):
         self.method[1] = self.order 
         self.method[2] = 0  # Not used in 1D
         self.method[3] = self.verbosity
-        self.method[4] = self.src_split
+        self.method[4] = 0  # Not used for PyClaw (would be self.src_split)
         self.method[5] = state.mcapa + 1
         self.method[6] = state.maux  # aux
  
@@ -513,7 +514,7 @@ class ClawSolver2D(ClawSolver):
         else:
             self.method[2] = self.order_trans
         self.method[3] = self.verbosity
-        self.method[4] = self.src_split  # src term
+        self.method[4] = 0  # Not used for PyClaw (would be self.src_split)
         self.method[5] = state.mcapa + 1
         self.method[6] = state.maux
             

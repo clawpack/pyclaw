@@ -25,15 +25,6 @@ def start_step(solver,solution):
     """
     pass
 
-def src(solver,grid,q,t):
-    r"""
-    Dummy routine called to calculate a source term
-    
-    Replace this routine if you want to include a source term.
-    """
-    pass
-
- 
 class SharpClawSolver(Solver):
     r"""
     Superclass for all SharpClawND solvers.
@@ -54,7 +45,7 @@ class SharpClawSolver(Solver):
         
         # Required attributes for this solver
         for attr in ['limiters','start_step','lim_type','weno_order',
-                     'time_integrator','char_decomp','src_term',
+                     'time_integrator','char_decomp',
                      'aux_time_dep','mwaves']:
             self._required_attrs.append(attr)
         
@@ -67,12 +58,12 @@ class SharpClawSolver(Solver):
         self._default_attr_values['char_decomp'] = 0
         self._default_attr_values['tfluct_solver'] = False
         self._default_attr_values['aux_time_dep'] = False
-        self._default_attr_values['src_term'] = False
         self._default_attr_values['kernel_language'] = 'Fortran'
         self._default_attr_values['mbc'] = 3
         self._default_attr_values['fwave'] = False
         self._default_attr_values['cfl_desired'] = 2.45
         self._default_attr_values['cfl_max'] = 2.5
+        self._default_attr_values['src'] = None
         
         # Call general initialization function
         super(SharpClawSolver,self).__init__(data)
@@ -160,9 +151,8 @@ class SharpClawSolver(Solver):
         if self.cfl.get_cached_max() >= self.cfl_max:
             raise CFLError('cfl_max exceeded')
 
-        # Godunov Splitting -- really the source term should be called inside rkstep
-        if self.src_term == 1:
-            deltaq+=self.src(state,q,state.t)
+        if self.src is not None:
+            deltaq+=self.src(state,self.dt)
 
         return deltaq
 
@@ -178,9 +168,8 @@ class SharpClawSolver(Solver):
         self.dt = 1
         deltaq = self.dq_homogeneous(state)
 
-        # Godunov Splitting -- really the source term should be called inside rkstep
-        if self.src_term == 1:
-            deltaq+=self.src(state.grid,q,state.t)
+        if self.src is not None:
+            deltaq+=self.src(state.grid,q,state.t,self.dt)
 
         return deltaq.flatten('f')
 
