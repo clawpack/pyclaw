@@ -65,7 +65,7 @@ PyClaw
    develop
    about
    future
-..   output
+   output
 
 
 *********
