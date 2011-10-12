@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
-def acoustics(solver_type='classic',iplot=False,htmlplot=False,outdir='./_output',problem='figure 9.4'):
+def acoustics(solver_type='classic',iplot=True,htmlplot=False,outdir='./_output',problem='figure 9.4'):
     """
     This example solves the 1-dimensional variable-coefficient acoustics
     equations in a medium with a single interface.
