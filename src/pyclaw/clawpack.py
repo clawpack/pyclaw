@@ -58,7 +58,7 @@ class ClawSolver(Solver):
         Handle for function that evaluates the source term.  
         The required signature for this function is:
 
-        def step_src(solver,solution,t,dt)
+        def step_src(solver,state,dt)
     
     .. attribute:: start_step
     
@@ -142,7 +142,7 @@ class ClawSolver(Solver):
             self.start_step(self,solution)
 
         if self.src_split == 2 and self.step_src is not None:
-            self.step_src(solution.states[0],self.dt/2.0)
+            self.step_src(self,solution.states[0],self.dt/2.0)
     
         self.step_hyperbolic(solution)
 
@@ -155,11 +155,11 @@ class ClawSolver(Solver):
         if self.step_src is not None:
             # Strang splitting
             if self.src_split == 2:
-                self.step_src(solution.states[0],self.dt/2.0)
+                self.step_src(self,solution.states[0],self.dt/2.0)
 
             # Godunov Splitting
             if self.src_split == 1:
-                self.step_src(solution.states[0],self.dt)
+                self.step_src(self,solution.states[0],self.dt)
                 
         return True
             

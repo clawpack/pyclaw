@@ -89,7 +89,7 @@ def shockbc(grid,dim,t,qbc,mbc):
             qbc[3,i,...] = einf
             qbc[4,i,...] = 0.
 
-def dq_Euler_radial(state,dt):
+def dq_Euler_radial(solver,state,dt):
     """
     Geometric source terms for Euler equations with radial symmetry.
     Integrated using a 2-stage, 2nd-order Runge-Kutta method.
@@ -118,7 +118,7 @@ def dq_Euler_radial(state,dt):
 
     return dq
 
-def step_Euler_radial(state,dt):
+def step_Euler_radial(solver,state,dt):
     """
     Geometric source terms for Euler equations with radial symmetry.
     Integrated using a 2-stage, 2nd-order Runge-Kutta method.

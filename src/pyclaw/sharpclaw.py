@@ -152,7 +152,7 @@ class SharpClawSolver(Solver):
             raise CFLError('cfl_max exceeded')
 
         if self.dq_src is not None:
-            deltaq+=self.dq_src(state,self.dt)
+            deltaq+=self.dq_src(self,state,self.dt)
 
         return deltaq
 
@@ -169,7 +169,7 @@ class SharpClawSolver(Solver):
         deltaq = self.dq_hyperbolic(state)
 
         if self.dq_src is not None:
-            deltaq+=self.dq_src(state.grid,q,state.t,self.dt)
+            deltaq+=self.dq_src(self,state,self.dt)
 
         return deltaq.flatten('f')
 

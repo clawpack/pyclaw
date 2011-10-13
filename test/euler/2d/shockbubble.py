@@ -56,7 +56,7 @@ def shockbc(grid,dim,t,qbc,mbc):
             qbc[3,i,...] = einf
             qbc[4,i,...] = 0.
 
-def euler_rad_src(state,dt):
+def euler_rad_src(solver,state,dt):
     """
     Geometric source terms for Euler equations with radial symmetry.
     Integrated using a 2-stage, 2nd-order Runge-Kutta method.
