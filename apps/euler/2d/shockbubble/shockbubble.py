@@ -89,7 +89,7 @@ def shockbc(grid,dim,t,qbc,mbc):
             qbc[3,i,...] = einf
             qbc[4,i,...] = 0.
 
-def euler_rad_src_sharpclaw(state,dt):
+def dq_Euler_radial(state,dt):
     """
     Geometric source terms for Euler equations with radial symmetry.
     Integrated using a 2-stage, 2nd-order Runge-Kutta method.
@@ -118,7 +118,7 @@ def euler_rad_src_sharpclaw(state,dt):
 
     return dq
 
-def euler_rad_src_clawpack(solver,solution,t,dt):
+def step_Euler_radial(state,dt):
     """
     Geometric source terms for Euler equations with radial symmetry.
     Integrated using a 2-stage, 2nd-order Runge-Kutta method.
@@ -128,8 +128,8 @@ def euler_rad_src_clawpack(solver,solution,t,dt):
     dt2 = dt/2.
     ndim = 2
 
-    aux=solution.states[0].aux
-    q = solution.states[0].q
+    aux=state.aux
+    q = state.q
 
     rad = aux[0,:,:]
 
@@ -169,13 +169,13 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
-        solver.src=euler_rad_src_sharpclaw
+        solver.dq_src=dq_Euler_radial
     else:
         solver = pyclaw.ClawSolver2D()
         solver.dim_split = 0
         solver.order_trans = 2
         solver.limiters = [4,4,4,4,2]
-        solver.src=euler_rad_src_clawpack
+        solver.step_src=step_Euler_radial
 
     solver.mwaves = 5
     solver.mthbc_lower[0]=pyclaw.BC.custom

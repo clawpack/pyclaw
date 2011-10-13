@@ -196,13 +196,6 @@ class Solver(object):
         r""" Array to hold ghost cell values.  This is the one that gets passed
         to the Fortran code.  """
 
-        self.qbc_backup   = None
-        r"""(ndarray(meqn,...)) - A backup copy of qbc. It is intended to
-        be populated by method Solver.evolve_to_time in case Solver.dt_variable
-        is set to be used when rejecting step. It can be used by solvers but
-        should not be changed"""
-
-
     # ========================================================================
     #  Solver setup and validation routines
     # ========================================================================
@@ -655,15 +648,13 @@ class Solver(object):
             
             state = solution.state
             
-            self.apply_q_bcs(state)
-
             # Adjust dt so that we hit tend exactly if we are near tend
             if solution.t + self.dt > tend and tstart < tend and not take_one_step:
                 self.dt = tend - solution.t 
 
             # Keep a backup in case we need to retake a time step
             if self.dt_variable:
-                self.qbc_backup = self.qbc.copy('F')
+                q_backup = state.q.copy('F')
                 told = solution.t
             retake_step = False  # Reset flag
             
@@ -693,7 +684,7 @@ class Solver(object):
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
                 if self.dt_variable:
-                    state.set_q_from_qbc(self.mbc, self.qbc_backup)
+                    state.q = q_backup
                     solution.t = told
                     # Retake step
                     retake_step = True
