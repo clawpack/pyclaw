@@ -415,11 +415,11 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     # ====
     xlower = -3.0
     xupper = 1.0
-    mx = 200
+    mx = 100
 
     ylower = -1.0
     yupper = 1.0
-    my = 100
+    my = 50
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
@@ -479,7 +479,7 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     # Set up controller and controller parameters
     #===========================================================================
     claw = pyclaw.Controller()
-    claw.keep_copy = False
+    claw.keep_copy = True
     claw.outstyle = 1
     claw.nout = 10
     claw.tfinal = 10
@@ -498,8 +498,13 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
+    # Define variable usedto verify the correctness of the regression test
+    # ====================================================================
+    height = claw.frames[claw.nout].state.q[0,:,:]
+    return height
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
-    output = run_app_from_main(shallow_4_Rossby_Haurwitz)
-    print 'Error: ',output
+    import sys
+    from pyclaw.util import _info_from_argv
+    args, kwargs = _info_from_argv(sys.argv)
+    shallow_4_Rossby_Haurwitz(*args,**kwargs)
