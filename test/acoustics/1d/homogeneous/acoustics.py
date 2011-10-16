@@ -50,8 +50,8 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
 
     solver.limiters = [4]*solver.mwaves
     solver.dt_initial=grid.d[0]/state.aux_global['cc']*0.1
-    solver.mthbc_lower[0] = pyclaw.BC.periodic
-    solver.mthbc_upper[0] = pyclaw.BC.periodic
+    solver.bc_lower[0] = pyclaw.BC.periodic
+    solver.bc_upper[0] = pyclaw.BC.periodic
 
     claw = pyclaw.Controller()
     claw.keep_copy = True

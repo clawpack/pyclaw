@@ -178,16 +178,16 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
         solver.step_src=step_Euler_radial
 
     solver.mwaves = 5
-    solver.mthbc_lower[0]=pyclaw.BC.custom
-    solver.mthbc_upper[0]=pyclaw.BC.outflow
-    solver.mthbc_lower[1]=pyclaw.BC.reflecting
-    solver.mthbc_upper[1]=pyclaw.BC.outflow
+    solver.bc_lower[0]=pyclaw.BC.custom
+    solver.bc_upper[0]=pyclaw.BC.outflow
+    solver.bc_lower[1]=pyclaw.BC.reflecting
+    solver.bc_upper[1]=pyclaw.BC.outflow
 
     #Aux variable in ghost cells doesn't matter
-    solver.mthauxbc_lower[0]=pyclaw.BC.outflow
-    solver.mthauxbc_upper[0]=pyclaw.BC.outflow
-    solver.mthauxbc_lower[1]=pyclaw.BC.outflow
-    solver.mthauxbc_upper[1]=pyclaw.BC.outflow
+    solver.aux_bc_lower[0]=pyclaw.BC.outflow
+    solver.aux_bc_upper[0]=pyclaw.BC.outflow
+    solver.aux_bc_lower[1]=pyclaw.BC.outflow
+    solver.aux_bc_upper[1]=pyclaw.BC.outflow
 
     # Initialize grid
     mx=640; my=160

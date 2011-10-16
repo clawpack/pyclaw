@@ -25,8 +25,8 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
     if kernel_language=='Python': solver.set_riemann_solver('burgers')
     solver.mwaves = 1
     solver.limiters = pyclaw.limiters.tvd.vanleer
-    solver.mthbc_lower[0] = pyclaw.BC.periodic
-    solver.mthbc_upper[0] = pyclaw.BC.periodic
+    solver.bc_lower[0] = pyclaw.BC.periodic
+    solver.bc_upper[0] = pyclaw.BC.periodic
 
     #===========================================================================
     # Initialize grids and then initialize the solution associated to the grid

@@ -86,13 +86,13 @@ class Solver(object):
         Default logger for all solvers.  Records information about the run
         and debugging messages (if requested).
 
-    .. attribute:: mthbc_lower 
+    .. attribute:: bc_lower 
     
         (list of ints) Lower boundary condition types, listed in the
         same order as the Dimensions of the Grid.  See Solver.BC for
         an enumeration.
 
-    .. attribute:: mthbc_upper 
+    .. attribute:: bc_upper 
     
         (list of ints) Upper boundary condition types, listed in the
         same order as the Dimensions of the Grid.  See Solver.BC for
@@ -178,10 +178,10 @@ class Solver(object):
                        'numsteps':0 }
         
         # No default BCs; user must set them
-        self.mthbc_lower =    [None]*self.ndim
-        self.mthbc_upper =    [None]*self.ndim
-        self.mthauxbc_lower = [None]*self.ndim
-        self.mthauxbc_upper = [None]*self.ndim
+        self.bc_lower =    [None]*self.ndim
+        self.bc_upper =    [None]*self.ndim
+        self.aux_bc_lower = [None]*self.ndim
+        self.aux_bc_upper = [None]*self.ndim
         
         self.user_bc_lower = None
         self.user_bc_upper = None
@@ -219,11 +219,11 @@ class Solver(object):
             if not self.__dict__.has_key(key):
                 self.logger.info('%s is not present.' % key)
                 valid = False
-            if any([bcmeth == BC.custom for bcmeth in self.mthbc_lower]):
+            if any([bcmeth == BC.custom for bcmeth in self.bc_lower]):
                 if self.user_bc_lower is None:
                     logger.debug('Lower custom BC function has not been set.')
                     valid = False
-            if any([bcmeth == BC.custom for bcmeth in self.mthbc_upper]):
+            if any([bcmeth == BC.custom for bcmeth in self.bc_upper]):
                 if self.user_bc_lower is None:
                     logger.debug('Upper custom BC function has not been set.')
                     valid = False
@@ -315,9 +315,9 @@ class Solver(object):
     
         This function returns an array of dimension determined by the 
         :attr:`mbc` attribute.  The type of boundary condition set is 
-        determined by :attr:`mthbc_lower` and :attr:`mthbc_upper` for the 
-        approprate dimension.  Valid values for :attr:`mthbc_lower` and 
-        :attr:`mthbc_upper` include:
+        determined by :attr:`bc_lower` and :attr:`bc_upper` for the 
+        approprate dimension.  Valid values for :attr:`bc_lower` and 
+        :attr:`bc_upper` include:
         
         - 'custom'     or 0: A user defined boundary condition will be used, the appropriate 
             Dimension method user_bc_lower or user_bc_upper will be called.
@@ -354,9 +354,9 @@ class Solver(object):
             if dim.nstart == 0:
                 # If a user defined boundary condition is being used, send it on,
                 # otherwise roll the axis to front position and operate on it
-                if self.mthbc_lower[idim] == BC.custom:
+                if self.bc_lower[idim] == BC.custom:
                     self.qbc_lower(grid,dim,state.t,self.qbc,idim)
-                elif self.mthbc_lower[idim] == BC.periodic:
+                elif self.bc_lower[idim] == BC.periodic:
                     if dim.nend == dim.n:
                         # This process owns the whole grid
                         self.qbc_lower(grid,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
@@ -366,9 +366,9 @@ class Solver(object):
                     self.qbc_lower(grid,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
 
             if dim.nend == dim.n :
-                if self.mthbc_upper[idim] == BC.custom:
+                if self.bc_upper[idim] == BC.custom:
                     self.qbc_upper(grid,dim,state.t,self.qbc,idim)
-                elif self.mthbc_upper[idim] == BC.periodic:
+                elif self.bc_upper[idim] == BC.periodic:
                     if dim.nstart == 0:
                         # This process owns the whole grid
                         self.qbc_upper(grid,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
@@ -383,7 +383,7 @@ class Solver(object):
         Apply lower boundary conditions to qbc
         
         Sets the lower coordinate's ghost cells of *qbc* depending on what 
-        :attr:`mthbc_lower` is.  If :attr:`mthbc_lower` = 0 then the user 
+        :attr:`bc_lower` is.  If :attr:`bc_lower` = 0 then the user 
         boundary condition specified by :attr:`user_bc_lower` is used.  Note 
         that in this case the function :attr:`user_bc_lower` belongs only to 
         this dimension but :attr:`user_bc_lower` could set all user boundary 
@@ -398,20 +398,20 @@ class Solver(object):
         """
         import numpy as np
 
-        if self.mthbc_lower[idim] == BC.custom: 
+        if self.bc_lower[idim] == BC.custom: 
             self.user_bc_lower(grid,dim,t,qbc,self.mbc)
-        elif self.mthbc_lower[idim] == BC.outflow:
+        elif self.bc_lower[idim] == BC.outflow:
             for i in xrange(self.mbc):
                 qbc[:,i,...] = qbc[:,self.mbc,...]
-        elif self.mthbc_lower[idim] == BC.periodic:
+        elif self.bc_lower[idim] == BC.periodic:
             # This process owns the whole grid
             qbc[:,:self.mbc,...] = qbc[:,-2*self.mbc:-self.mbc,...]
-        elif self.mthbc_lower[idim] == BC.reflecting:
+        elif self.bc_lower[idim] == BC.reflecting:
             for i in xrange(self.mbc):
                 qbc[:,i,...] = qbc[:,2*self.mbc-1-i,...]
                 qbc[idim+1,i,...] = -qbc[idim+1,2*self.mbc-1-i,...] # Negate normal velocity
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
+            raise NotImplementedError("Boundary condition %s not implemented" % x.bc_lower)
 
 
     def qbc_upper(self,grid,dim,t,qbc,idim):
@@ -419,7 +419,7 @@ class Solver(object):
         Apply upper boundary conditions to qbc
         
         Sets the upper coordinate's ghost cells of *qbc* depending on what 
-        :attr:`mthbc_upper` is.  If :attr:`mthbc_upper` = 0 then the user 
+        :attr:`bc_upper` is.  If :attr:`bc_upper` = 0 then the user 
         boundary condition specified by :attr:`user_bc_upper` is used.  Note 
         that in this case the function :attr:`user_bc_upper` belongs only to 
         this dimension but :attr:`user_bc_upper` could set all user boundary 
@@ -433,20 +433,20 @@ class Solver(object):
            be set in this routines
         """
  
-        if self.mthbc_upper[idim] == BC.custom:
+        if self.bc_upper[idim] == BC.custom:
             self.user_bc_upper(grid,dim,t,qbc,self.mbc)
-        elif self.mthbc_upper[idim] == BC.outflow:
+        elif self.bc_upper[idim] == BC.outflow:
             for i in xrange(self.mbc):
                 qbc[:,-i-1,...] = qbc[:,-self.mbc-1,...] 
-        elif self.mthbc_upper[idim] == BC.periodic:
+        elif self.bc_upper[idim] == BC.periodic:
             # This process owns the whole grid
             qbc[:,-self.mbc:,...] = qbc[:,self.mbc:2*self.mbc,...]
-        elif self.mthbc_upper[idim] == BC.reflecting:
+        elif self.bc_upper[idim] == BC.reflecting:
             for i in xrange(self.mbc):
                 qbc[:,-i-1,...] = qbc[:,-2*self.mbc+i,...]
                 qbc[idim+1,-i-1,...] = -qbc[idim+1,-2*self.mbc+i,...] # Negate normal velocity
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.mthbc_lower)
+            raise NotImplementedError("Boundary condition %s not implemented" % x.bc_lower)
 
 
 
@@ -456,9 +456,9 @@ class Solver(object):
     
         This function returns an array of dimension determined by the 
         :attr:`mbc` attribute.  The type of boundary condition set is 
-        determined by :attr:`mthauxbc_lower` and :attr:`mthauxbc_upper` for the 
-        approprate dimension.  Valid values for :attr:`mthauxbc_lower` and 
-        :attr:`mthauxbc_upper` include:
+        determined by :attr:`aux_bc_lower` and :attr:`aux_bc_upper` for the 
+        approprate dimension.  Valid values for :attr:`aux_bc_lower` and 
+        :attr:`aux_bc_upper` include:
         
         - 'custom'     or 0: A user defined boundary condition will be used, the appropriate 
             Dimension method user_aux_bc_lower or user_aux_bc_upper will be called.
@@ -496,9 +496,9 @@ class Solver(object):
             if dim.nstart == 0:
                 # If a user defined boundary condition is being used, send it on,
                 # otherwise roll the axis to front position and operate on it
-                if self.mthauxbc_lower[idim] == BC.custom:
+                if self.aux_bc_lower[idim] == BC.custom:
                     self.auxbc_lower(grid,dim,state.t,self.auxbc,idim)
-                elif self.mthauxbc_lower[idim] == BC.periodic:
+                elif self.aux_bc_lower[idim] == BC.periodic:
                     if dim.nend == dim.n:
                         # This process owns the whole grid
                         self.auxbc_lower(grid,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
@@ -508,9 +508,9 @@ class Solver(object):
                     self.auxbc_lower(grid,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
 
             if dim.nend == dim.n :
-                if self.mthauxbc_upper[idim] == BC.custom:
+                if self.aux_bc_upper[idim] == BC.custom:
                     self.auxbc_upper(grid,dim,state.t,self.auxbc,idim)
-                elif self.mthauxbc_upper[idim] == BC.periodic:
+                elif self.aux_bc_upper[idim] == BC.periodic:
                     if dim.nstart == 0:
                         # This process owns the whole grid
                         self.auxbc_upper(grid,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
@@ -525,7 +525,7 @@ class Solver(object):
         Apply lower boundary conditions to auxbc
         
         Sets the lower coordinate's ghost cells of *auxbc* depending on what 
-        :attr:`mthauxbc_lower` is.  If :attr:`mthauxbc_lower` = 0 then the user 
+        :attr:`aux_bc_lower` is.  If :attr:`aux_bc_lower` = 0 then the user 
         boundary condition specified by :attr:`user_aux_bc_lower` is used.  Note 
         that in this case the function :attr:`user_aux_bc_lower` belongs only to 
         this dimension but :attr:`user_aux_bc_lower` could set all user boundary 
@@ -540,21 +540,21 @@ class Solver(object):
         """
         import numpy as np
 
-        if self.mthauxbc_lower[idim] == BC.custom: 
+        if self.aux_bc_lower[idim] == BC.custom: 
             self.user_aux_bc_lower(grid,dim,t,auxbc,self.mbc)
-        elif self.mthauxbc_lower[idim] == BC.outflow:
+        elif self.aux_bc_lower[idim] == BC.outflow:
             for i in xrange(self.mbc):
                 auxbc[:,i,...] = auxbc[:,self.mbc,...]
-        elif self.mthauxbc_lower[idim] == BC.periodic:
+        elif self.aux_bc_lower[idim] == BC.periodic:
             # This process owns the whole grid
             auxbc[:,:self.mbc,...] = auxbc[:,-2*self.mbc:-self.mbc,...]
-        elif self.mthauxbc_lower[idim] == BC.reflecting:
+        elif self.aux_bc_lower[idim] == BC.reflecting:
             for i in xrange(self.mbc):
                 auxbc[:,i,...] = auxbc[:,2*self.mbc-1-i,...]
-        elif self.mthauxbc_lower[idim] is None:
-            raise Exception("One or more of the aux boundary conditions mthauxbc_upper has not been specified.")
+        elif self.aux_bc_lower[idim] is None:
+            raise Exception("One or more of the aux boundary conditions aux_bc_upper has not been specified.")
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.mthauxbc_lower)
+            raise NotImplementedError("Boundary condition %s not implemented" % x.aux_bc_lower)
 
 
     def auxbc_upper(self,grid,dim,t,auxbc,idim):
@@ -562,7 +562,7 @@ class Solver(object):
         Apply upper boundary conditions to auxbc
         
         Sets the upper coordinate's ghost cells of *auxbc* depending on what 
-        :attr:`mthauxbc_upper` is.  If :attr:`mthauxbc_upper` = 0 then the user 
+        :attr:`aux_bc_upper` is.  If :attr:`aux_bc_upper` = 0 then the user 
         boundary condition specified by :attr:`user_aux_bc_upper` is used.  Note 
         that in this case the function :attr:`user_aux_bc_upper` belongs only to 
         this dimension but :attr:`user_aux_bc_upper` could set all user boundary 
@@ -576,21 +576,21 @@ class Solver(object):
            be set in this routines
         """
  
-        if self.mthauxbc_upper[idim] == BC.custom:
+        if self.aux_bc_upper[idim] == BC.custom:
             self.user_aux_bc_upper(grid,dim,t,auxbc,self.mbc)
-        elif self.mthauxbc_upper[idim] == BC.outflow:
+        elif self.aux_bc_upper[idim] == BC.outflow:
             for i in xrange(self.mbc):
                 auxbc[:,-i-1,...] = auxbc[:,-self.mbc-1,...] 
-        elif self.mthauxbc_upper[idim] == BC.periodic:
+        elif self.aux_bc_upper[idim] == BC.periodic:
             # This process owns the whole grid
             auxbc[:,-self.mbc:,...] = auxbc[:,self.mbc:2*self.mbc,...]
-        elif self.mthauxbc_upper[idim] == BC.reflecting:
+        elif self.aux_bc_upper[idim] == BC.reflecting:
             for i in xrange(self.mbc):
                 auxbc[:,-i-1,...] = auxbc[:,-2*self.mbc+i,...]
-        elif self.mthauxbc_lower[idim] is None:
-            raise Exception("One or more of the aux boundary conditions mthauxbc_lower has not been specified.")
+        elif self.aux_bc_lower[idim] is None:
+            raise Exception("One or more of the aux boundary conditions aux_bc_lower has not been specified.")
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.mthauxbc_lower)
+            raise NotImplementedError("Boundary condition %s not implemented" % x.aux_bc_lower)
 
 
     # ========================================================================

@@ -28,10 +28,10 @@ def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_typ
         solver = pyclaw.ClawSolver2D()
 
     solver.mwaves = 1
-    solver.mthbc_lower[0]=pyclaw.BC.outflow
-    solver.mthbc_upper[0]=pyclaw.BC.outflow
-    solver.mthbc_lower[1]=pyclaw.BC.outflow
-    solver.mthbc_upper[1]=pyclaw.BC.outflow
+    solver.bc_lower[0]=pyclaw.BC.outflow
+    solver.bc_upper[0]=pyclaw.BC.outflow
+    solver.bc_lower[1]=pyclaw.BC.outflow
+    solver.bc_upper[1]=pyclaw.BC.outflow
 
     # Initialize grid
     mx=200; my=200

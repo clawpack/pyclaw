@@ -402,20 +402,20 @@ class Controller(object):
                                     value=self.solution.dimensions[2].upper)
         
         claw_data.add_attribute('mbc',value=self.solution.mbc)
-        claw_data.add_attribute('mthbc_xlower',
-                                value=self.solution.dimensions[0].mthbc_lower)
-        claw_data.add_attribute('mthbc_xupper',
-                                value=self.solution.dimensions[0].mthbc_upper)
+        claw_data.add_attribute('bc_xlower',
+                                value=self.solution.dimensions[0].bc_lower)
+        claw_data.add_attribute('bc_xupper',
+                                value=self.solution.dimensions[0].bc_upper)
         if claw_data.ndim > 1:
-            claw_data.add_attribute('mthbc_ylower',
-                                value=self.solution.dimensions[1].mthbc_lower)
-            claw_data.add_attribute('mthbc_yupper',
-                                value=self.solution.dimensions[1].mthbc_upper)
+            claw_data.add_attribute('bc_ylower',
+                                value=self.solution.dimensions[1].bc_lower)
+            claw_data.add_attribute('bc_yupper',
+                                value=self.solution.dimensions[1].bc_upper)
         if claw_data.ndim > 2:
-            claw_data.add_attribute('mthbc_zlower',
-                                value=self.solution.dimensions[2].mthbc_lower)
-            claw_data.add_attribute('mthbc_zupper',
-                                value=self.solution.dimensions[2].mthbc_upper) 
+            claw_data.add_attribute('bc_zlower',
+                                value=self.solution.dimensions[2].bc_lower)
+            claw_data.add_attribute('bc_zupper',
+                                value=self.solution.dimensions[2].bc_upper) 
             
         if claw_path is not None:
             # Write out this data object

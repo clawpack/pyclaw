@@ -14,8 +14,8 @@ def burgers(iplot=1,htmlplot=0,outdir='./_output'):
 
     solver.mwaves = 1
     solver.limiters = pyclaw.limiters.tvd.MC
-    solver.mthbc_lower[0] = pyclaw.BC.periodic
-    solver.mthbc_upper[0] = pyclaw.BC.periodic
+    solver.bc_lower[0] = pyclaw.BC.periodic
+    solver.bc_upper[0] = pyclaw.BC.periodic
 
     #===========================================================================
     # Initialize grids and then initialize the solution associated to the grid

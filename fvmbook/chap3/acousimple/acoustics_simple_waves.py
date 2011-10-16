@@ -26,8 +26,8 @@ def fig_31_38(kernel_language='Fortran',solver_type='classic',iplot=False,htmlpl
         solver.rp = rp_acoustics.rp_acoustics_1d
  
     solver.limiters = pyclaw.limiters.tvd.MC
-    solver.mthbc_lower[0] = pyclaw.BC.reflecting
-    solver.mthbc_upper[0] = pyclaw.BC.outflow
+    solver.bc_lower[0] = pyclaw.BC.reflecting
+    solver.bc_upper[0] = pyclaw.BC.outflow
 
     #========================================================================
     # Instantiate the grid and set the boundary conditions

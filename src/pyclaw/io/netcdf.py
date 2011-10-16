@@ -198,8 +198,8 @@ def write_netcdf(solution,frame,path,file_prefix='claw',write_aux=False,
             for dim in grid.dimensions:
                 subgroup.createDimension(dim.name,dim.n)
                 # Write other dimension attributes
-                for attr in ['n','lower','d','upper','mthbc_lower',
-                             'mthbc_upper','units']:
+                for attr in ['n','lower','d','upper','bc_lower',
+                             'bc_upper','units']:
                     if hasattr(dim,attr):
                         if getattr(dim,attr) is not None:
                             attr_name = '%s.%s' % (dim.name,attr)
@@ -281,7 +281,7 @@ def read_netcdf(solution,frame,path='./',file_prefix='claw',read_aux=True,
                                       getattr(subgroup,'%s.upper' % dim_name),
                                       getattr(subgroup,'%s.n' % dim_name))
                  # Optional attributes
-                for attr in ['mthbc_lower','mthbc_upper','units']:
+                for attr in ['bc_lower','bc_upper','units']:
                     attr_name = "%s.%s" % (dim_name,attr)
                     if hasattr(subgroup,attr_name):
                         setattr(dim,attr,getattr(subgroup, "%s.%s" % (dim_name,attr)))

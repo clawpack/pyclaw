@@ -32,8 +32,8 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
         solver.set_riemann_solver('shallow_roe')
         grid.aux_global['g'] = 1.0
         grid.aux_global['efix'] = False
-    solver.mthbc_lower[0] = pyclaw.BC.outflow
-    solver.mthbc_upper[0] = pyclaw.BC.outflow
+    solver.bc_lower[0] = pyclaw.BC.outflow
+    solver.bc_upper[0] = pyclaw.BC.outflow
 
     #===========================================================================
     # Initialize grids and then initialize the solution associated to the grid

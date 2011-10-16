@@ -33,8 +33,8 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
         solver.rp = rp_acoustics.rp_acoustics_1d
  
     solver.limiters = pyclaw.limiters.tvd.MC
-    solver.mthbc_lower[0] = pyclaw.BC.periodic
-    solver.mthbc_upper[0] = pyclaw.BC.periodic
+    solver.bc_lower[0] = pyclaw.BC.periodic
+    solver.bc_upper[0] = pyclaw.BC.periodic
 
     #========================================================================
     # Instantiate the grid and set the boundary conditions

@@ -132,7 +132,7 @@ class AdvectionTest(SolverTestCase):
             x2 = 0.9
     
             # Create empty solution
-            x = pyclaw.solution.Dimension('x',0.0,1.0,100,mthbc_lower=2,mthbc_upper=2)
+            x = pyclaw.solution.Dimension('x',0.0,1.0,100,bc_lower=2,bc_upper=2)
             grid = pyclaw.solution.Grid(x)
             grid.empty_q()
             grid.meqn = 1
@@ -210,8 +210,8 @@ class AcousticsTest(SolverTestCase):
         grid.meqn = 2
         grid.t = t
         grid.mbc = 2
-        grid.mthbc_lower = 2
-        grid.mthbc_upper = 2
+        grid.bc_lower = 2
+        grid.bc_upper = 2
         
         # Problem parameters
         beta = 100.0

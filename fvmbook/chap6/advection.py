@@ -32,8 +32,8 @@ def fig_61_62_63(kernel_language='Python',iplot=False,htmlplot=False,solver_type
     if solver.kernel_language=='Python': 
         solver.rp = rp_advection.rp_advection_1d
 
-    solver.mthbc_lower[0] = 2
-    solver.mthbc_upper[0] = 2
+    solver.bc_lower[0] = 2
+    solver.bc_upper[0] = 2
     solver.limiters = 0
     solver.order = 1
     solver.cfl_desired = 0.8

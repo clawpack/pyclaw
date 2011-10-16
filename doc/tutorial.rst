@@ -62,8 +62,8 @@ Finally, we set the boundary conditions.  We'll use a reflecting (wall)
 condition at the left boundary and a non-reflecting (zero-order extrapolation)
 condition at the right boundary::
 
-    >>> solver.mthbc_lower[0] = pyclaw.BC.reflecting
-    >>> solver.mthbc_upper[0] = pyclaw.BC.outflow
+    >>> solver.bc_lower[0] = pyclaw.BC.reflecting
+    >>> solver.bc_upper[0] = pyclaw.BC.outflow
 
 Dimension, Grid, and State
 ===========================

@@ -141,8 +141,8 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
     y0=0.25 # Center of initial perturbation
     varx=5.0; vary=5.0 # Width of initial perturbation
     # Boundary conditions
-    mthbc_x_lower=pyclaw.BC.reflecting; mthbc_x_upper=pyclaw.BC.outflow
-    mthbc_y_lower=pyclaw.BC.reflecting; mthbc_y_upper=pyclaw.BC.outflow
+    bc_x_lower=pyclaw.BC.reflecting; bc_x_upper=pyclaw.BC.outflow
+    bc_y_lower=pyclaw.BC.reflecting; bc_y_upper=pyclaw.BC.outflow
     # Turning off 1st half of the domain. Useful in rect domains
     turnZero_half_2D=0 #flag
     t_turnZero=50
@@ -157,14 +157,14 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
     solver.mwaves = 2
     solver.limiters = pyclaw.limiters.tvd.superbee
 
-    solver.mthbc_lower[0]=mthbc_x_lower
-    solver.mthbc_upper[0]=mthbc_x_upper
-    solver.mthbc_lower[1]=mthbc_y_lower
-    solver.mthbc_upper[1]=mthbc_y_upper
-    solver.mthauxbc_lower[0]=mthbc_x_lower
-    solver.mthauxbc_upper[0]=mthbc_x_upper
-    solver.mthauxbc_lower[1]=mthbc_y_lower
-    solver.mthauxbc_upper[1]=mthbc_y_upper
+    solver.bc_lower[0]=bc_x_lower
+    solver.bc_upper[0]=bc_x_upper
+    solver.bc_lower[1]=bc_y_lower
+    solver.bc_upper[1]=bc_y_upper
+    solver.aux_bc_lower[0]=bc_x_lower
+    solver.aux_bc_upper[0]=bc_x_upper
+    solver.aux_bc_lower[1]=bc_y_lower
+    solver.aux_bc_upper[1]=bc_y_upper
 
     solver.fwave = True
     solver.cfl_max = 1.0
