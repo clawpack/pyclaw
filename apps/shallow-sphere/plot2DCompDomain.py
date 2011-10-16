@@ -1,11 +1,27 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
+"""
+This script plots the solution of the shallow water on a sphere in the 
+rectangular computational domain. The user can specify the name of the solution
+file and its path. If these two information are not given, the script checks 
+whether the solution fort.q0000 in ./_output exist and plots it. If it it does
+not exist a error message is printed at screen.
+The file must be ascii and clawpack format.
+
+This function shows how to read and plot the solution stored in an ascii file 
+written by pyclaw.
+"""
+
 # Import some libraries
 import pyclaw
-import shallow-4-Rossby-Haurwitz-wave as rh
+import shallow_4_Rossby_Haurwitz_wave as rh
 import numpy as np
 
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
 
+import sys
 
 # Nondimensionalized radius of the earth
 Rsphere = 1.0
@@ -14,15 +30,24 @@ def contourLineSphere(fileName='fort.q0000',path='./_output'):
     """
     This function plot the contour lines on a spherical surface for the shallow
     water equations solved on a sphere.
-    """
-      
+    """  
+ 
+    # Open file
+    # =========
+    
     # Concatenate path and file name
     pathFileName = path + "/" + fileName
 
-    # Open file
-    f = file(pathFileName,"r")
+    try:
+        f = file(pathFileName,"r")
+    except IOError as e:
+        print("({})".format(e))
+        sys.exit()
 
-    # Read first six lines. They are not used later!
+
+    # Read file header
+    # ================
+    # The information contained in the first two lines are not used.
     unsed = f.readline()  # grid_number
     unused = f.readline() # AMR_level
 
@@ -42,7 +67,6 @@ def contourLineSphere(fileName='fort.q0000',path='./_output'):
     line = f.readline()
     sline = line.split()
     ylower = float(sline[0])
-
 
     line = f.readline()
     sline = line.split()
@@ -65,7 +89,8 @@ def contourLineSphere(fileName='fort.q0000',path='./_output'):
 
     # Override default mapc2p function
     # ================================
-    grid.mapc2p = rh.mapc2p_sphere_vectorized
+    grid.mapc2p = rh.mapc2p_sphere_vectorized  
+
 
     # Compute the physical coordinates of each cell's center
     # ======================================================
@@ -83,7 +108,7 @@ def contourLineSphere(fileName='fort.q0000',path='./_output'):
     hu = np.zeros((mx,my))
     hv = np.zeros((mx,my))
     hw = np.zeros((mx,my))
-    
+
     # Read solution
     for j in range(my):
         tmp = np.fromfile(f,dtype='float',sep=" ",count=4*mx)
@@ -93,9 +118,9 @@ def contourLineSphere(fileName='fort.q0000',path='./_output'):
         hv[:,j] = tmp[:,2]
         hw[:,j] = tmp[:,3]
 
-
+    
     # Plot solution in the computational domain
-    # #########################################
+    # =========================================
 
     # Fluid height
     plt.figure()

@@ -1,7 +1,3 @@
-
-c
-c
-c
 c     =====================================================
        subroutine qinitsimpl(meqn,mx,my,xlower,ylower,
      &                   dx,dy,q,maux,aux,Rsphere)
@@ -30,6 +26,7 @@ cf2py double precision intent(in) Rsphere
 
        pi = 4.d0*datan(1.d0)
 
+c      # Parameters
        a = 6.37122d6    
        K = 7.848d-6     
        Omega = 7.292d-5 
@@ -42,7 +39,7 @@ cf2py double precision intent(in) Rsphere
             xc = xlower + (i-0.5d0)*dx
           do 20 j=1,my
             yc = ylower + (j-0.5d0)*dy
-            call mapc2m(xc,yc,xp,yp,zp,Rsphere)
+            call mapc2p(xc,yc,xp,yp,zp,Rsphere)
 c            # compute longitude theta from positive x axis:
              rad = dmax1(dsqrt(xp**2 + yp**2),1.d-6)
 

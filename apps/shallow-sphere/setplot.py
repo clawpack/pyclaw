@@ -5,7 +5,6 @@ This module is imported by the plotting routines and then the
 function setplot is called to set the plot parameters.
     
 """ 
-from mapc2p import mapc2p_sphere
 import numpy as np
 
 

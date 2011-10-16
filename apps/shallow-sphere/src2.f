@@ -1,19 +1,19 @@
-c
 c      =======================================================
        subroutine src2(maxmx,maxmy,meqn,mbc,mx,my,xlower,ylower,
      &                 dx,dy,q,maux,aux,t,dt,Rsphere)
 c      =======================================================
 c
+c
+c     # Compute source term for Rossby-Haurwitz wave.
+c     # The source term models the Coriolis force using a 4-stage RK method
+c     # and the projection of the velocity components to the tangent plane.
+c
+
        implicit double precision (a-h,o-z)
        dimension    q(meqn, 1:mx, 1:my)
        dimension aux(maux,  1:mx, 1:my)
        double precision RK(4,3) 
 
-c
-c     # source term routine for Rossby-Haurwitz wave
-c     # the source term models the Coriolis force using a 4-stage RK method
-c     # and the projection of the velocity components to the tangent plane
-c
 cf2py integer intent(in) maxmx
 cf2py integer intent(in) maxmy
 cf2py integer optional, intent(in) meqn
@@ -32,7 +32,7 @@ cf2py double precision intent(in) dt
 cf2py double precision intent(in) Rsphere
 
 
-
+c     # Parameters
       a = 6.37122d6    
       Omega = 7.292d-5  
       df=12.600576e0 
@@ -50,8 +50,8 @@ c     # project momentum components of q onto tangent plane:
             q(3,i,j) = q(3,i,j) - qn*ery
             q(4,i,j) = q(4,i,j) - qn*erz
 
-            enddo
         enddo
+      enddo
 
 c     # calculate Coriolis term
       do i=1, mx
@@ -59,7 +59,7 @@ c     # calculate Coriolis term
         do j=1, my
             yc = ylower + (j-0.5d0)*dy
 c
-            call mapc2m(xc,yc,xp,yp,zp,Rsphere)
+            call mapc2p(xc,yc,xp,yp,zp,Rsphere)
             erx = xp 
             ery = yp 
             erz = zp 
@@ -140,8 +140,8 @@ c     # project momentum components of q onto tangent plane:
             q(3,i,j) = q(3,i,j) - qn*ery
             q(4,i,j) = q(4,i,j) - qn*erz
 
-            enddo
         enddo
+      enddo
 
-       return
-       end
+      return
+      end

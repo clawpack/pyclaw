@@ -3,11 +3,10 @@ c     ============================================
      &                  maux,aux,Rsphere)
 c     ============================================
 c
-c     # set auxiliary arrays for shallow water equations on the sphere
+c     # Set auxiliary arrays for shallow water equations on the sphere.
 c
-c     # on input, (xc(i),yc(j)) gives uniformly spaced computational grid.
-c     # on output, 
-c     The aux array has the following elements:
+c     # On input: (xc(i),yc(j)) gives uniformly spaced computational grid.
+c     # On output: he aux array has the following elements:
 c         1  kappa = ratio of cell area to dxc*dyc
 c         2  enx = x-component of normal vector to left edge in tangent plane
 c         3  eny = y-component of normal vector to left edge in tangent plane
@@ -27,12 +26,13 @@ c        16  erz = z-component of unit vector in radial direction at cell ctr
 c
 c     
       implicit double precision (a-h,o-z)
-c      parameter (1005 = 1005)
-      dimension xc(-3:1005), yc(-3:1005)
-      dimension xp(-3:1005,-3:1005), yp(-3:1005,-3:1005)
-      dimension zp(-3:1005,-3:1005)
-      dimension theta(-3:1005,-3:1005), phi(-3:1005,-3:1005)
+      parameter (maxm3 = 1005)
+      dimension xc(-3:maxm3), yc(-3:maxm3)
+      dimension xp(-3:maxm3,-3:maxm3), yp(-3:maxm3,-3:maxm3)
+      dimension zp(-3:maxm3,-3:maxm3)
+      dimension theta(-3:maxm3,-3:maxm3), phi(-3:maxm3,-3:maxm3)
       dimension aux(maux,1-mbc:maxmx+mbc,1-mbc:maxmy+mbc)
+
 cf2py integer intent(in) maxmx
 cf2py integer intent(in) maxmy
 cf2py integer intent(in) mbc
@@ -47,15 +47,16 @@ cf2py intent(in,out) aux
 cf2py double precision intent(in) Rsphere
 
       pi = 4.d0*datan(1.d0)
-c
-c      if (mbc .gt. 4) then
-c	 write(6,*)'***  increase size of local arrays in setaux ***'
-c	 stop
-c	 endif
-c      if (mx+mbc+1.gt.1005 .or. my+mbc+1.gt.1005) then
-c	 write(6,*)'***  increase size of 1005 in setaux ***'
-c	 stop
-c	 endif
+
+      if (mbc .gt. 4) then
+          write(6,*)'***  increase size of local arrays in setaux ***'
+          stop
+      endif
+      
+      if (mx+mbc+1.gt.1005 .or. my+mbc+1.gt.1005) then
+          write(6,*)'***  increase size of 1005 in setaux ***'
+          stop
+      endif
 c
 c     # Set xc and yc so that (xc(i),yc(j)) is the 
 c     # lower left corner of (i,j) cell in computational space:
@@ -75,7 +76,7 @@ c
          do 15 i=1-mbc,mx+mbc+1
 
 c           # map computational point to (xp,yp,zp) on sphere:
-            call mapc2m(xc(i),yc(j),xp(i,j),yp(i,j),zp(i,j),Rsphere)
+            call mapc2p(xc(i),yc(j),xp(i,j),yp(i,j),zp(i,j),Rsphere)
 
 c           # compute longitude theta from positive x axis:
             r = dsqrt(xp(i,j)**2 + yp(i,j)**2)
@@ -154,7 +155,7 @@ c           # normal to edge in tangent plane is cross product of er and et:
 c           # normal to sphere in radial direction at cell center:
             xcm = xlower+(i-0.5)*dxc
             ycm = ylower+(j-0.5)*dyc
-            call mapc2m(xcm,ycm,xpm,ypm,zpm,Rsphere)
+            call mapc2p(xcm,ycm,xpm,ypm,zpm,Rsphere)
 
             aux(14,i,j) = xpm
             aux(15,i,j) = ypm
@@ -214,6 +215,4 @@ c           # capacity kappa:
    20       continue
 
        return
-
-
        end

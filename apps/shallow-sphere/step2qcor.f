@@ -7,7 +7,7 @@ c     ==========================================================
 c
 c     # Take one time step, updating q.
 c     # On entry, qold and qnew should be identical and give the
-c     #    initial data for this step
+c     #    initial data for this step.
 c     # On exit, qnew returns values at the end of the time step.
 c     #    qold is unchanged.
 c    
@@ -108,7 +108,7 @@ c
    24          continue
    25       continue
          endif
-c
+
 c     # Store the value of j along this slice in the common block
 c        # comxyt in case it is needed in the Riemann solver (for
 c        # variable coefficient problems)
@@ -122,10 +122,6 @@ c        # compute modifications fadd and gadd to fluxes along this slice:
      &              work(i0cqxx),work(i0bmadq),work(i0bpadq),rpn2,rpt2)
          cfl = dmax1(cfl,cfl1d)
 
-         
-c         write(*,*) cfl
-
-c
 c        # update qnew by flux differencing.
 c        # (rather than maintaining arrays f and g for the total fluxes,
 c        # the modifications are used immediately to update qnew
@@ -211,10 +207,6 @@ c        # compute modifications fadd and gadd to fluxes along this slice:
      &              work(i0cqxx),work(i0bmadq),work(i0bpadq),rpn2,rpt2)
 c
          cfl = dmax1(cfl,cfl1d)
-
-         
-c         write(*,*) cfl
-
 c
 c        # update qnew by flux differencing.
 c        # Note that the roles of fadd and gadd are reversed for
@@ -256,6 +248,6 @@ c                 # Add correction
          endif
   100 continue
 
-c
+
       return
       end

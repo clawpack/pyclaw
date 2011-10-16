@@ -1,10 +1,10 @@
-c
 c     =====================================================
       subroutine qcor(ixy,i,m,aux,q,maxm,meqn,mbc,qc)
 c     =====================================================
 c
-c     # maintain conservation on sphere
-c
+c     # Compute the correction term to add to the solution for maintaining
+c     # the conservation on sphere.
+
       implicit double precision (a-h,o-z)
 
       dimension aux(16, 1-mbc:maxm+mbc)
@@ -22,6 +22,7 @@ c
         in = 8
         dy = dxcom 
       endif
+
 c     # left interface 
       etxl = aux(in+3,i)
       etyl = aux(in+4,i)
@@ -29,8 +30,7 @@ c     # left interface
       gammal = dsqrt(etxl**2.d0 + etyl**2.d0 + etzl**2.d0) / dy
       enxl = aux(in,i) * gammal
       enyl = aux(in+1,i) * gammal
-      enzl = aux(in+2,i) * gammal
-    
+      enzl = aux(in+2,i) * gammal   
 
 c     # right interface
       etxr = aux(in+3,i+1)
