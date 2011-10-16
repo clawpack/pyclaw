@@ -19,7 +19,7 @@ This script should:
     * Import the appropriate package (pyclaw or petclaw)
     * Instantiate a :class:`~pyclaw.solver.Solver` 
     * Set the Riemann solver if using a Python Riemann solver
-    * Set solver.mwaves
+    * Set solver.mwaves to the number of waves used in the Riemann solver
     * Set the boundary conditions
     * Instantiate some :class:`~pyclaw.grid.Dimension` object(s) and a :class:`~pyclaw.grid.Grid`
     * Set any required global values in aux_global
@@ -31,12 +31,61 @@ initial solution and solver, and calls :meth:`~pyclaw.controller.Controller.run`
 
 Setting initial conditions
 ----------------------------
+Once you have initialize a State object, it contains a member state.q
+whose first dimension is meqn and whose remaining dimensions are those
+of the grid.  Now you must set the initial condition.  For instance::
 
-Setting boundary conditions
-----------------------------
+    >>> Y,X = np.meshgrid(grid.y.center,grid.x.center)
+    >>> r = np.sqrt(X**2 + Y**2)
+    >>> width=0.2
+    >>> state.q[0,:,:] = (np.abs(r-0.5)<=width)*(1.+np.cos(np.pi*(r-0.5)/width))
+    >>> state.q[1,:,:] = 0.
+
 
 Setting auxiliary variables
 ----------------------------
+If the problem involves coefficients that vary in space or a mapped grid,
+the required fields are stored in state.aux.  In order to use such fields,
+you must pass the maux argument to the State initialization::
+
+    >>> state = pyclaw.State(grid,meqn,maux)
+
+The number of fields in state.aux (i.e., the length of its first dimension)
+is set equal to maux.  The values of state.aux are set in the same way
+as those of state.q.
+
+Setting boundary conditions
+----------------------------
+The boundary conditions are specified through solver.bc_lower and solver.bc_upper,
+each of which is a list of length solver.ndim.  The ordering of the boundary conditions
+in each list is the same as the ordering of the Dimensions in the Grid; typically :math:`(x,y)`.
+Thus solver.bc_lower[0] specifies the boundary condition at the left boundary and
+solver.bc_upper[0] specifies the condition at the right boundary.  Similarly,
+solver.bc_lower[1] and solver.bc_upper[1] specify the boundary conditions at the
+top and bottom of the domain.
+
+PyClaw includes the following built-in boundary condition implementations:
+
+    * pyclaw.BC.periodic - periodic
+
+    * pyclaw.BC.outflow - zero-order extrapolation
+
+    * pyclaw.BC.reflecting - solid wall conditions, assuming that the 2nd/3rd component
+                             of q is the normal velocity in x/y.
+
+Other boundary conditions can be implemented by using pyclaw.BC.custom, and
+providing a custom BC function.  The attribute solver.user_bc_lower/upper must
+be set to the corresponding function handle.  For instance::
+
+    >>> def custombc(grid,dim,t,qbc,mbc):
+    >>>     for i in xrange(mbc):
+    >>>         qbc[0,i,:] = q0
+    >>>
+    >>> solver.bc_lower[0]=pyclaw.BC.custom
+    >>> solver.user_bc_lower=shockbc
+
+If the state.aux array is used, boundary conditions must be set for it
+in a similar way, using solver.aux_bc_lower and solver.aux_bc_upper.
 
 Setting solver options
 ----------------------------
@@ -57,7 +106,16 @@ Riemann package and modify it to solve your system.
 
 Adding source terms
 ==============================
+Non-hyperbolic terms (representing, e.g., reaction or diffusion) can be included
+in a PyClaw simulation by providing an appropriate function handle to 
 
+    * solver.step_src if using Classic Clawpack.  In this case, the function
+      specified should modify q by taking a step on the equation :math:`q_t = \psi(q)`.
+
+    * solver.dq_src if using SharpClaw.  In this case, the function should
+      return :math:`\Delta t \cdot \psi(q)`.
+
+For an example, see pyclaw/apps/euler/2d/shockbubble/shockbubble.py.
 
 Setting up the Makefile
 ===============================

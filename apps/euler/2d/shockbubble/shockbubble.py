@@ -66,7 +66,6 @@ def auxinit(state):
     """
     aux[0,i,j] = y-coordinate of cell center for cylindrical source terms
     """
-    x=state.grid.x.center
     y=state.grid.y.center
     for j,ycoord in enumerate(y):
         state.aux[0,:,j] = ycoord

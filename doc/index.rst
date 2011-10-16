@@ -4,7 +4,7 @@
 Welcome
 *******
 
-Pyclaw is a Python-based solver for hyperbolic PDEs that includes the algorithms
+Pyclaw is a `Python <http://www.python.org>`_-based solver for hyperbolic PDEs that includes the algorithms
 of `Clawpack <http://www.clawpack.org>`_ and 
 `SharpClaw <http://numerics.kaust.edu.sa/sharpclaw/>`_.
 It has been designed with easy extensibility, performance, and exploration in mind.
@@ -18,11 +18,10 @@ instructions in :ref:`petclaw_start`.
 
 PyClaw features:
 
-    * Solves general hyperbolic PDEs in 1D and 2D
+    * Solves general hyperbolic PDEs in 1D and 2D, including mapped grids and surfaces
     * Includes the full functionality of `Clawpack <http://www.clawpack.org>`_ and 
       `SharpClaw <http://numerics.kaust.edu.sa/sharpclaw/>`_
     * Has a simple and intuitive pythonic interface
-    * Is based on a powerful and modular object-oriented design
     * Allows you to run your simulation on the world's biggest supercomputers with 
       the same simple script that runs it on your laptop
     * Makes it easy to access the powerful `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_ 
