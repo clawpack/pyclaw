@@ -23,14 +23,13 @@ import numpy as np
 Rsphere = 1.0
 
 
-def fortran_src_wrapper(solver,solution,t,dt):
+def fortran_src_wrapper(solver,state,dt):
     """
     Wraps Fortran src2.f routine. 
     src2.f contains the discretization of the source term.
     """
     # Some simplifications
-    grid = solution.grid
-    state = solution.state
+    grid = state.grid
 
     # Get parameters and variables that have to be passed to the fortran src2
     # routine.
@@ -40,6 +39,7 @@ def fortran_src_wrapper(solver,solution,t,dt):
     xlowerg, ylowerg = grid.lowerg[0], grid.lowerg[1]
     dx, dy = grid.d[0], grid.d[1]
     q = state.q
+    t = state.t
     maux = state.maux
     aux = state.aux
 
@@ -326,7 +326,7 @@ def auxbc_lower_y(grid,dim,t,auxbc,mbc):
 
     # Impose BC
     auxtemp = auxbc.copy()
-    auxtemp = problem.setauxorig(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
+    auxtemp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
     auxbc[:,:,:mbc] = auxtemp[:,:,:mbc]
 
 def auxbc_upper_y(grid,dim,t,auxbc,mbc):
@@ -345,7 +345,7 @@ def auxbc_upper_y(grid,dim,t,auxbc,mbc):
     
     # Impose BC
     auxtemp = auxbc.copy()
-    auxtemp = problem.setauxorig(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
+    auxtemp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
     auxbc[:,:,-mbc:] = auxtemp[:,:,-mbc:]
 
 
@@ -400,7 +400,7 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
 
     # Set source function
     # ===================
-    solver.src = fortran_src_wrapper
+    solver.step_src = fortran_src_wrapper
 
     # Set the limiter for the waves
     # =============================
@@ -415,11 +415,11 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     # ====
     xlower = -3.0
     xupper = 1.0
-    mx = 100
+    mx = 200
 
     ylower = -1.0
     yupper = 1.0
-    my = 50
+    my = 100
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
@@ -443,35 +443,30 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     maux = 16 # Number of auxiliary variables
     state = pyclaw.State(grid,meqn,maux)
 
+
     # Set auxiliary variables
     # =======================
     import problem
-
-    # 1) Call to simplified Fortran function
+    
+    # Get lower left corner coordinates 
     xlowerg,ylowerg = grid.lowerg[0],grid.lowerg[1]
-    state.aux = problem.setauxsimpl(xlowerg,ylowerg,dx,dy,state.aux,Rsphere)
 
-    # 2) Call to original Fortran function
-    #mbc = 2
-    #auxtmp = np.ndarray(shape=(maux,mx+2*mbc,my+2*mbc), dtype=float, order='F')
-    #auxtmp = problem.setaux(mx,my,mbc,mx,my,xlowerg,ylowerg,dx,dy,auxtmp,Rsphere)
-    #state.aux[:,:,:] = auxtmp[:,mbc:-mbc,mbc:-mbc]
+    mbc = 2
+    auxtmp = np.ndarray(shape=(maux,mx+2*mbc,my+2*mbc), dtype=float, order='F')
+    auxtmp = problem.setaux(mx,my,mbc,mx,my,xlowerg,ylowerg,dx,dy,auxtmp,Rsphere)
+    state.aux[:,:,:] = auxtmp[:,mbc:-mbc,mbc:-mbc]
 
     # Set index for capa
     state.mcapa = 0
 
-    # Set initial condition for q
-    # ===========================
-    # 1) Call to simplified Fortran function
-    state.q = problem.qinitsimpl(xlowerg,ylowerg,dx,dy,state.q,state.aux,Rsphere)
+    # Set initial conditions
+    # ====================== 
+    # 1) Call fortran function
+    qtmp = np.ndarray(shape=(meqn,mx+2*mbc,my+2*mbc), dtype=float, order='F')
+    qtmp = problem.qinit(mx,my,mbc,mx,my,xlowerg,ylowerg,dx,dy,qtmp,auxtmp,Rsphere)
+    state.q[:,:,:] = qtmp[:,mbc:-mbc,mbc:-mbc]
 
-    
-    # 2) Call to original Fortran function
-    #qtmp = np.ndarray(shape=(meqn,mx+2*mbc,my+2*mbc), dtype=float, order='F')
-    #qtmp = problem.qinit(mx,my,mbc,mx,my,xlowerg,ylowerg,dx,dy,qtmp,auxtmp,Rsphere)
-    #state.q[:,:,:] = qtmp[:,mbc:-mbc,mbc:-mbc]
-
-    # 3) call to python function define above
+    # 2) call python function define above
     #qinit(state,mx,my)
 
 

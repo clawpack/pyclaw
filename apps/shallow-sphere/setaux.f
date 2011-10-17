@@ -1,5 +1,5 @@
 c     ============================================
-      subroutine setauxorig(maxmx,maxmy,mbc,mx,my,xlower,ylower,dxc,dyc,
+      subroutine setaux(maxmx,maxmy,mbc,mx,my,xlower,ylower,dxc,dyc,
      &                  maux,aux,Rsphere)
 c     ============================================
 c

@@ -23,7 +23,7 @@ qcor.o: qcor.f
 include $(PYCLAWMAKE)
 
 # Problem's source Fortran files
-INITIALIZE_SOURCE = mapc2p.f setauxorig.f setauxsimpl.f qinitorig.f qinitsimpl.f src2.f
+INITIALIZE_SOURCE = mapc2p.f setaux.f qinit.f src2.f
 
 problem.so: $(INITIALIZE_SOURCE)
 	$(F2PY) -m problem -c $^
