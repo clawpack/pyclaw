@@ -1,5 +1,5 @@
 c     =====================================================
-       subroutine qinitorig(maxmx,maxmy,meqn,mbc,mx,my,xlower,ylower,
+       subroutine qinit(maxmx,maxmy,meqn,mbc,mx,my,xlower,ylower,
      &                   dx,dy,q,maux,aux,Rsphere)
 c     =====================================================
 c
