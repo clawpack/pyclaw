@@ -451,8 +451,7 @@ def test_psystem_petclaw_classic():
 @attr(kernel_language='fortran')
 @attr(petsc=False)
 @attr(time_stepping_mode='explicit')
-@attr(speed='very slow')
-@attr(which='this')
+@attr(speed='slow')
 def test_2D_shallowwatersphere(): 
     path           = './test/shallow_sphere'
     target_name    = 'classic2.so'
