@@ -383,11 +383,16 @@ class Grid(object):
     
     # ========== Grid Operations =============================================
     def compute_p_center(self, recompute=False):
-        r"""Calculates the :attr:`p_center` array
+        r"""Calculates the :attr:`p_center` array, which contains the physical
+        coordinates of the grid cell centers when a grid mapping is used.
+
+        grid._p_center is a list of numpy arrays.  Each array has shape equal
+        to the shape of the grid; the number of arrays is equal to the 
+        dimension of the embedding space for the mapping.
         
         This array is computed only when requested and then stored for later 
         use unless the recompute flag is set to True (you may want to do this
-        for time dependent mappings).
+        for time-dependent mappings).
         
         Access the resulting physical coordinate array via the corresponding
         dimensions or via the computational grid properties :attr:`p_center`.

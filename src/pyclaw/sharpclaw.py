@@ -25,15 +25,6 @@ def start_step(solver,solution):
     """
     pass
 
-def src(solver,grid,q,t):
-    r"""
-    Dummy routine called to calculate a source term
-    
-    Replace this routine if you want to include a source term.
-    """
-    pass
-
- 
 class SharpClawSolver(Solver):
     r"""
     Superclass for all SharpClawND solvers.
@@ -54,7 +45,7 @@ class SharpClawSolver(Solver):
         
         # Required attributes for this solver
         for attr in ['limiters','start_step','lim_type','weno_order',
-                     'time_integrator','char_decomp','src_term',
+                     'time_integrator','char_decomp',
                      'aux_time_dep','mwaves']:
             self._required_attrs.append(attr)
         
@@ -67,12 +58,12 @@ class SharpClawSolver(Solver):
         self._default_attr_values['char_decomp'] = 0
         self._default_attr_values['tfluct_solver'] = False
         self._default_attr_values['aux_time_dep'] = False
-        self._default_attr_values['src_term'] = False
         self._default_attr_values['kernel_language'] = 'Fortran'
         self._default_attr_values['mbc'] = 3
         self._default_attr_values['fwave'] = False
         self._default_attr_values['cfl_desired'] = 2.45
         self._default_attr_values['cfl_max'] = 2.5
+        self._default_attr_values['dq_src'] = None
         
         # Call general initialization function
         super(SharpClawSolver,self).__init__(data)
@@ -152,7 +143,7 @@ class SharpClawSolver(Solver):
         Evaluate dq/dt * (delta t)
         """
 
-        deltaq = self.dq_homogeneous(state)
+        deltaq = self.dq_hyperbolic(state)
 
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
@@ -160,13 +151,12 @@ class SharpClawSolver(Solver):
         if self.cfl.get_cached_max() >= self.cfl_max:
             raise CFLError('cfl_max exceeded')
 
-        # Godunov Splitting -- really the source term should be called inside rkstep
-        if self.src_term == 1:
-            deltaq+=self.src(state,q,state.t)
+        if self.dq_src is not None:
+            deltaq+=self.dq_src(self,state,self.dt)
 
         return deltaq
 
-    def dq_homogeneous(state):
+    def dq_hyperbolic(state):
         raise NotImplementedError('You must subclass SharpClawSolver.')
 
          
@@ -176,11 +166,10 @@ class SharpClawSolver(Solver):
         """
 
         self.dt = 1
-        deltaq = self.dq_homogeneous(state)
+        deltaq = self.dq_hyperbolic(state)
 
-        # Godunov Splitting -- really the source term should be called inside rkstep
-        if self.src_term == 1:
-            deltaq+=self.src(state.grid,q,state.t)
+        if self.dq_src is not None:
+            deltaq+=self.dq_src(self,state,self.dt)
 
         return deltaq.flatten('f')
 
@@ -271,9 +260,9 @@ class SharpClawSolver1D(SharpClawSolver):
             del sharpclaw1, clawparams, workspace, reconstruct
 
 
-    def dq_homogeneous(self,state):
+    def dq_hyperbolic(self,state):
         r"""
-        Compute dq/dt * (delta t) for the homogeneous hyperbolic system.
+        Compute dq/dt * (delta t) for the hyperbolic hyperbolic system.
 
         Note that the capa array, if present, should be located in the aux
         variable.
@@ -443,8 +432,8 @@ class SharpClawSolver2D(SharpClawSolver):
 
 
 
-    def dq_homogeneous(self,state):
-        """Compute dq/dt * (delta t) for the homogeneous hyperbolic system
+    def dq_hyperbolic(self,state):
+        """Compute dq/dt * (delta t) for the hyperbolic hyperbolic system
 
         Note that the capa array, if present, should be located in the aux
         variable.

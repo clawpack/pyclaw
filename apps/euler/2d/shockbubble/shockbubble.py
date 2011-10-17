@@ -30,7 +30,6 @@ def qinit(state,rhoin=0.1):
 
     rinf = (gamma1 + pinf*(gamma+1.))/ ((gamma+1.) + gamma1*pinf)
     vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
-    print rinf, vinf
     einf = 0.5*rinf*vinf**2 + pinf/gamma1
     
     x =state.grid.x.center
@@ -67,7 +66,6 @@ def auxinit(state):
     """
     aux[0,i,j] = y-coordinate of cell center for cylindrical source terms
     """
-    x=state.grid.x.center
     y=state.grid.y.center
     for j,ycoord in enumerate(y):
         state.aux[0,:,j] = ycoord
@@ -90,18 +88,47 @@ def shockbc(grid,dim,t,qbc,mbc):
             qbc[3,i,...] = einf
             qbc[4,i,...] = 0.
 
-def euler_rad_src(solver,solution,t,dt):
+def dq_Euler_radial(solver,state,dt):
     """
     Geometric source terms for Euler equations with radial symmetry.
     Integrated using a 2-stage, 2nd-order Runge-Kutta method.
+    This is a SharpClaw-style source term routine.
+    """
+    
+    ndim = 2
+
+    q   = state.q
+    aux = state.aux
+
+    rad = aux[0,:,:]
+
+    rho = q[0,:,:]
+    u   = q[1,:,:]/rho
+    v   = q[2,:,:]/rho
+    press  = gamma1 * (q[3,:,:] - 0.5*rho*(u**2 + v**2))
+
+    dq = np.empty(q.shape)
+
+    dq[0,:,:] = -dt*(ndim-1)/rad * q[2,:,:]
+    dq[1,:,:] = -dt*(ndim-1)/rad * rho*u*v
+    dq[2,:,:] = -dt*(ndim-1)/rad * rho*v*v
+    dq[3,:,:] = -dt*(ndim-1)/rad * v * (q[3,:,:] + press)
+    dq[4,:,:] = 0
+
+    return dq
+
+def step_Euler_radial(solver,state,dt):
+    """
+    Geometric source terms for Euler equations with radial symmetry.
+    Integrated using a 2-stage, 2nd-order Runge-Kutta method.
+    This is a Clawpack-style source term routine.
     """
     
     dt2 = dt/2.
-    press = 0.
     ndim = 2
 
-    aux=solution.states[0].aux
-    q = solution.states[0].q
+    aux=state.aux
+    q = state.q
 
     rad = aux[0,:,:]
 
@@ -141,23 +168,28 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
+        solver.dq_src=dq_Euler_radial
     else:
         solver = pyclaw.ClawSolver2D()
+        solver.dim_split = 0
+        solver.order_trans = 2
+        solver.limiters = [4,4,4,4,2]
+        solver.step_src=step_Euler_radial
 
     solver.mwaves = 5
-    solver.mthbc_lower[0]=pyclaw.BC.custom
-    solver.mthbc_upper[0]=pyclaw.BC.outflow
-    solver.mthbc_lower[1]=pyclaw.BC.reflecting
-    solver.mthbc_upper[1]=pyclaw.BC.outflow
+    solver.bc_lower[0]=pyclaw.BC.custom
+    solver.bc_upper[0]=pyclaw.BC.outflow
+    solver.bc_lower[1]=pyclaw.BC.reflecting
+    solver.bc_upper[1]=pyclaw.BC.outflow
 
     #Aux variable in ghost cells doesn't matter
-    solver.mthauxbc_lower[0]=pyclaw.BC.outflow
-    solver.mthauxbc_upper[0]=pyclaw.BC.outflow
-    solver.mthauxbc_lower[1]=pyclaw.BC.outflow
-    solver.mthauxbc_upper[1]=pyclaw.BC.outflow
+    solver.aux_bc_lower[0]=pyclaw.BC.outflow
+    solver.aux_bc_upper[0]=pyclaw.BC.outflow
+    solver.aux_bc_lower[1]=pyclaw.BC.outflow
+    solver.aux_bc_upper[1]=pyclaw.BC.outflow
 
     # Initialize grid
-    mx=1280; my=320
+    mx=640; my=160
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
     grid = pyclaw.Grid([x,y])
@@ -171,12 +203,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     qinit(state)
     auxinit(state)
 
-    solver.dim_split = 0
-    solver.order_trans = 2
-    solver.limiters = [4,4,4,4,2]
     solver.user_bc_lower=shockbc
-    solver.src=euler_rad_src
-    solver.src_split = 1
 
     claw = pyclaw.Controller()
     claw.keep_copy = True

@@ -24,14 +24,11 @@ def mapc2p_annulus(grid,mC):
     Output: pC = list composed by two arrays 
                  [array ([xp1, xp2, ...]), array([yp1, yp2, ...])]
     """  
-
-    # Polar coordinates (x coordinate = radius,  y coordinate = theta)
-    nbrCells = len(mC[0])
-
     # Define new empty list
     pC = []
 
     # Populate it with the physical coordinates 
+    # Polar coordinates (x coordinate = radius,  y coordinate = theta)
     pC.append(mC[0][:]*np.cos(mC[1][:]))
     pC.append(mC[0][:]*np.sin(mC[1][:]))
     
@@ -200,17 +197,17 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
         solver = pyclaw.SharpClawSolver2D()
 
 
-    solver.mthbc_lower[0] = pyclaw.BC.outflow
-    solver.mthbc_upper[0] = pyclaw.BC.outflow
-    solver.mthbc_lower[1] = pyclaw.BC.periodic
-    solver.mthbc_upper[1] = pyclaw.BC.periodic
+    solver.bc_lower[0] = pyclaw.BC.outflow
+    solver.bc_upper[0] = pyclaw.BC.outflow
+    solver.bc_lower[1] = pyclaw.BC.periodic
+    solver.bc_upper[1] = pyclaw.BC.periodic
 
-    solver.mthauxbc_lower[0] = pyclaw.BC.custom
-    solver.mthauxbc_upper[0] = pyclaw.BC.custom
+    solver.aux_bc_lower[0] = pyclaw.BC.custom
+    solver.aux_bc_upper[0] = pyclaw.BC.custom
     solver.user_aux_bc_lower = velocities_lower
     solver.user_aux_bc_upper = velocities_upper
-    solver.mthauxbc_lower[1] = pyclaw.BC.periodic
-    solver.mthauxbc_upper[1] = pyclaw.BC.periodic
+    solver.aux_bc_lower[1] = pyclaw.BC.periodic
+    solver.aux_bc_upper[1] = pyclaw.BC.periodic
 
     solver.mwaves = 1
 

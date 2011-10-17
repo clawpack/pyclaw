@@ -8,6 +8,14 @@ code, see :ref:`petclaw_start`.
 
 Dependencies
 ==================
+PyClaw and several of its dependencies depend on the availability of a Fortran 95
+compiler.  PyClaw is known to work with gfortran on OS X and Linux and the IBM
+XLF compiler on the cross-compiled Blue Gene environment. The binaries files for
+gfortran on OS X, Linux and Windows can be found at 
+`GCC Wiki GFortranBinaries <http://gcc.gnu.org/wiki/GFortranBinaries>`_. 
+We hope to support other Fortran compilers such as Intel, please email the list
+if you are interested in helping to port PyClaw to your favorite compiler!
+
 PyClaw relies on the usual Python libraries for scientific computing:
 
   * `numpy <http://numpy.scipy.org/>`_. Numpy is used both for handling
@@ -17,18 +25,42 @@ PyClaw relies on the usual Python libraries for scientific computing:
   * `matplotlib <http://matplotlib.sourceforge.net/>`_.  Matplotlib is
     used for plotting results.  The current recommended version is 1.0.1.
 
-These can be installed via easy_install ::
+Some Python distributions come already with numpy 1.5.x or 1.6.x and Matplotlib 
+1.0.1 (see for instance `EPDChangelog <http://www.enthought.com/EPDChangelog.html>`_). 
+However, in case you need to install it, you can use two different approaches:
 
-    $ easy_install numpy
-    $ easy_install matplotlib
+    * Use `pip <http://pypi.python.org/pypi/pip>`_: ::
 
-or pip ::
+        $ pip install numpy==RELEASE-NUMBER
+        $ pip install matplotlib==RELEASE-NUMBER
+    
 
-    $ pip install numpy
-    $ pip install matplotlib
+    * Use `easy_install <http://packages.python.org/distribute/easy_install.html>`_ ::
+        
+        $ easy_install "numpy==RELEASE-NUMBER"
+        $ easy_install "matplotlib==RELEASE-NUMBER"
 
-or by downloading the 
-`Enthought Python Distribution <http://www.enthought.com/products/epd.php>`_.
+Both methods install numpy in the system. If you prefer to install numpy 
+locally, i.e. only for your user account, append the option ``--user`` after 
+"RELEASE-NUMBER".
+ 
+
+To test the numpy functionality open a terminal and run python, i.e. ::
+   
+    $ python
+
+Then type ::
+
+    >>> import numpy
+    >>> numpy.test()
+
+You should get something like
+
+    * Ran 2983 tests in 10.194s
+    * OK (KNOWNFAIL=4, SKIP=1) <nose.result.TextTestResult run=2983 errors=0 failures=0>
+
+To test Matplotlib follow the instructions at 
+`<http://matplotlib.sourceforge.net/devel/coding_guide.html#testing>`_
 
 
 Installation

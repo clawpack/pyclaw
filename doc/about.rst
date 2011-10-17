@@ -1,34 +1,56 @@
 .. _about:
 
+
 =======================
 About PyClaw
 =======================
 PyClaw is an open-source, free project.  If you find PyClaw useful,
-please let us know via a short e-mail to any or all of the following:
+please let us know via e-mail to pyclaw@googlegroups.com.
 
-    * mandli@uw.edu
-
-    * david.ketcheson@kaust.edu.sa
-
-
-Citing
+Contributors
 =======================
-If you use PyClaw in work that is published, please cite
+Many people have contributed to PyClaw, some of them very substantial parts of
+the package. Their work is greatly appreciated: no open source project can
+survive without a community. The following people contributed major parts of
+the library (in alphabetical order)
 
-  Kyle Mandli, David I. Ketcheson, Amal Alghamdi, and Aron Ahmadia, 
-  PyClaw Software <version number>
+    * Aron Ahmadia: PETSc integration; I/O; general design.
 
+    * Amal Alghamdi: initial development of PetClaw.
 
-Contributing
-=======================
-Contributions to the package are most welcome.  If you have 
+    * Jed Brown: implicit time stepping.
+
+    * Lisandro Dalcin: Fortran wrapping; PETSc integration; general efficiency.
+
+    * Matthew Emmett: PyWENO integration.
+
+    * David Ketcheson
+
+    * Matthew Knepley: general design; PETSc integration.
+
+    * Kyle Mandli
+
+    * Matteo Parsani: mapped grids; Python-Fortran interfacing; implicit time stepping.
+
+Further contributions to the package are most welcome.  If you have 
 used PyClaw for research, chances are that others would find your
 code useful.  See :ref:`develop` for more details.
 
 
+Citing
+=======================
+If you use PyClaw in work that is published, please cite the software
+(authors listed in alphabetical order):
+
+  Kyle Mandli, David I. Ketcheson, et. al., PyClaw Software <version number>
+
+As appropriate, please also cite any of the 
+`publications based on PyClaw <http://www.mendeley.com/groups/1526933/pyclaw-publications/>`_.
+
+
 License
 =======================
-PetClaw is distributed under the terms of the Berkeley Software Distribution
+PyClaw is distributed under the terms of the Berkeley Software Distribution
 (BSD) license.  The license is in the file petclaw/LICENSE.txt and
 reprinted below.
 

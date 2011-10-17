@@ -30,10 +30,8 @@ from state import State
 from cfl import CFL
 
 __all__.extend(['ClawSolver1D','ClawSolver2D','SharpClawSolver1D','SharpClawSolver2D'])
-from clawpack import ClawSolver1D
-from clawpack import ClawSolver2D
-from sharpclaw import SharpClawSolver1D
-from sharpclaw import SharpClawSolver2D
+from clawpack import ClawSolver1D,ClawSolver2D
+from sharpclaw import SharpClawSolver1D,SharpClawSolver2D
 from implicitclawpack import ImplicitClawSolver1D
 
 __all__.append('BC')

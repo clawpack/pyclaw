@@ -22,10 +22,10 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     solver.mwaves = 2
     solver.limiters = pyclaw.limiters.tvd.MC
 
-    solver.mthbc_lower[0]=pyclaw.BC.reflecting
-    solver.mthbc_upper[0]=pyclaw.BC.outflow
-    solver.mthbc_lower[1]=pyclaw.BC.reflecting
-    solver.mthbc_upper[1]=pyclaw.BC.outflow
+    solver.bc_lower[0]=pyclaw.BC.reflecting
+    solver.bc_upper[0]=pyclaw.BC.outflow
+    solver.bc_lower[1]=pyclaw.BC.reflecting
+    solver.bc_upper[1]=pyclaw.BC.outflow
 
     # Initialize grid
     mx=100; my=100

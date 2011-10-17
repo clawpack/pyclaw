@@ -35,10 +35,10 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     solver.mwaves = 2
     solver.dim_split = 1
     solver.limiters = [4]*solver.mwaves
-    solver.mthbc_lower[0] = pyclaw.BC.outflow
-    solver.mthbc_upper[0] = pyclaw.BC.outflow
-    solver.mthbc_lower[1] = pyclaw.BC.outflow
-    solver.mthbc_upper[1] = pyclaw.BC.outflow
+    solver.bc_lower[0] = pyclaw.BC.outflow
+    solver.bc_upper[0] = pyclaw.BC.outflow
+    solver.bc_lower[1] = pyclaw.BC.outflow
+    solver.bc_upper[1] = pyclaw.BC.outflow
 
     # Initialize grid
     mx=100; my=100
@@ -62,7 +62,7 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     qinit(state)
     initial_solution = pyclaw.Solution(state)
 
-    solver.dt=np.min(grid.d)/state.aux_global['cc']*solver.cfl_desired
+    solver.dt_initial=np.min(grid.d)/state.aux_global['cc']*solver.cfl_desired
 
     claw = pyclaw.Controller()
     claw.keep_copy = True

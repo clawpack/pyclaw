@@ -47,10 +47,10 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     solver.mwaves = 3
     solver.limiters = pyclaw.limiters.tvd.MC
 
-    solver.mthbc_lower[0] = pyclaw.BC.outflow
-    solver.mthbc_upper[0] = pyclaw.BC.reflecting
-    solver.mthbc_lower[1] = pyclaw.BC.outflow
-    solver.mthbc_upper[1] = pyclaw.BC.reflecting
+    solver.bc_lower[0] = pyclaw.BC.outflow
+    solver.bc_upper[0] = pyclaw.BC.reflecting
+    solver.bc_lower[1] = pyclaw.BC.outflow
+    solver.bc_upper[1] = pyclaw.BC.reflecting
     solver.dim_split=1
 
     #===========================================================================

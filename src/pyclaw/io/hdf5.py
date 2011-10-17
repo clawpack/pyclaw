@@ -138,8 +138,8 @@ def write_hdf5(solution,frame,path,file_prefix='claw',write_aux=False,
                     
             # Dimension properties
             for dim in grid.dimensions:
-                for attr in ['n','lower','d','upper','mthbc_lower',
-                             'mthbc_upper','units']:
+                for attr in ['n','lower','d','upper','bc_lower',
+                             'bc_upper','units']:
                     if hasattr(dim,attr):
                         if getattr(dim,attr) is not None:
                             attr_name = '%s.%s' % (dim.name,attr)
@@ -215,7 +215,7 @@ def read_hdf5(solution,frame,path='./',file_prefix='claw',read_aux=True,
                                     subgroup.attrs["%s.upper" % dim_name],
                                     subgroup.attrs["%s.n" % dim_name])                    
                 # Optional attributes
-                for attr in ['mthbc_lower','mthbc_upper','units']:
+                for attr in ['bc_lower','bc_upper','units']:
                     attr_name = "%s.%s" % (dim_name,attr)
                     if subgroup.attrs.get(attr_name, None):
                         setattr(dim,attr,subgroup.attrs["%s.%s" % (dim_name,attr)])
