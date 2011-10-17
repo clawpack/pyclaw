@@ -421,6 +421,18 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     yupper = 1.0
     my = 100
 
+    # Check whether or not the even number of cells are used in in both 
+    # directions. If odd numbers are used a message is print at screen and the 
+    # simulation is interrputed.
+    if(mx % 2 != 0 or my % 2 != 0):
+        import sys
+        message = 'Please, use even numbers of cells in both direction. ' \
+                  'Only even numbers allow to impose correctly the boundary ' \
+                  'conditions!'
+        print message
+        sys.exit(0)
+
+
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
     grid = pyclaw.Grid([x,y])
