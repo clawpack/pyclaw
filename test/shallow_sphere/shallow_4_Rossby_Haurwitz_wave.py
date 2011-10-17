@@ -363,19 +363,19 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     # =======================
 
     # Conserved variables
-    solver.mthbc_lower[0] = pyclaw.BC.periodic
-    solver.mthbc_upper[0] = pyclaw.BC.periodic
-    solver.mthbc_lower[1] = pyclaw.BC.custom  # Custom BC for sphere
-    solver.mthbc_upper[1] = pyclaw.BC.custom  # Custom BC for sphere
+    solver.bc_lower[0] = pyclaw.BC.periodic
+    solver.bc_upper[0] = pyclaw.BC.periodic
+    solver.bc_lower[1] = pyclaw.BC.custom  # Custom BC for sphere
+    solver.bc_upper[1] = pyclaw.BC.custom  # Custom BC for sphere
 
     solver.user_bc_lower = qbc_lower_y
     solver.user_bc_upper = qbc_upper_y
 
     # Auxiliary array
-    solver.mthauxbc_lower[0] = pyclaw.BC.periodic
-    solver.mthauxbc_upper[0] = pyclaw.BC.periodic
-    solver.mthauxbc_lower[1] = pyclaw.BC.custom  # Custom BC for sphere
-    solver.mthauxbc_upper[1] = pyclaw.BC.custom  # Custom BC for sphere
+    solver.aux_bc_lower[0] = pyclaw.BC.periodic
+    solver.aux_bc_upper[0] = pyclaw.BC.periodic
+    solver.aux_bc_lower[1] = pyclaw.BC.custom  # Custom BC for sphere
+    solver.aux_bc_upper[1] = pyclaw.BC.custom  # Custom BC for sphere
 
     solver.user_aux_bc_lower = auxbc_lower_y
     solver.user_aux_bc_upper = auxbc_upper_y

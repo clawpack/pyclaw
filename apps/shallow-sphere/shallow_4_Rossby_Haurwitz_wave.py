@@ -363,19 +363,19 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     # =======================
 
     # Conserved variables
-    solver.mthbc_lower[0] = pyclaw.BC.periodic
-    solver.mthbc_upper[0] = pyclaw.BC.periodic
-    solver.mthbc_lower[1] = pyclaw.BC.custom  # Custom BC for sphere
-    solver.mthbc_upper[1] = pyclaw.BC.custom  # Custom BC for sphere
+    solver.bc_lower[0] = pyclaw.BC.periodic
+    solver.bc_upper[0] = pyclaw.BC.periodic
+    solver.bc_lower[1] = pyclaw.BC.custom  # Custom BC for sphere
+    solver.bc_upper[1] = pyclaw.BC.custom  # Custom BC for sphere
 
     solver.user_bc_lower = qbc_lower_y
     solver.user_bc_upper = qbc_upper_y
 
     # Auxiliary array
-    solver.mthauxbc_lower[0] = pyclaw.BC.periodic
-    solver.mthauxbc_upper[0] = pyclaw.BC.periodic
-    solver.mthauxbc_lower[1] = pyclaw.BC.custom  # Custom BC for sphere
-    solver.mthauxbc_upper[1] = pyclaw.BC.custom  # Custom BC for sphere
+    solver.aux_bc_lower[0] = pyclaw.BC.periodic
+    solver.aux_bc_upper[0] = pyclaw.BC.periodic
+    solver.aux_bc_lower[1] = pyclaw.BC.custom  # Custom BC for sphere
+    solver.aux_bc_upper[1] = pyclaw.BC.custom  # Custom BC for sphere
 
     solver.user_aux_bc_lower = auxbc_lower_y
     solver.user_aux_bc_upper = auxbc_upper_y
@@ -464,9 +464,9 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     state.aux = problem.setauxsimpl(xlowerg,ylowerg,dx,dy,state.aux,Rsphere)
 
     # 2) Call to original Fortran function
-    #mbc = 2
+    mbc = 2
     #auxtmp = np.ndarray(shape=(maux,mx+2*mbc,my+2*mbc), dtype=float, order='F')
-    #auxtmp = problem.setaux(mx,my,mbc,mx,my,xlowerg,ylowerg,dx,dy,auxtmp,Rsphere)
+    #auxtmp = problem.setauxorig(mx,my,mbc,mx,my,xlowerg,ylowerg,dx,dy,auxtmp,Rsphere)
     #state.aux[:,:,:] = auxtmp[:,mbc:-mbc,mbc:-mbc]
 
     # Set index for capa
@@ -480,7 +480,7 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     
     # 2) Call to original Fortran function
     #qtmp = np.ndarray(shape=(meqn,mx+2*mbc,my+2*mbc), dtype=float, order='F')
-    #qtmp = problem.qinit(mx,my,mbc,mx,my,xlowerg,ylowerg,dx,dy,qtmp,auxtmp,Rsphere)
+    #qtmp = problem.qinitorig(mx,my,mbc,mx,my,xlowerg,ylowerg,dx,dy,qtmp,auxtmp,Rsphere)
     #state.q[:,:,:] = qtmp[:,mbc:-mbc,mbc:-mbc]
 
     # 3) call to python function define above
