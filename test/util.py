@@ -18,6 +18,9 @@ def build_run_verify(path, target_name, module_name, method_name, verifier, opti
     
     finally:
         sys.path.remove(path)
+        target_module_name = target_name.replace('.so','')
+        if target_module_name in sys.modules:
+            del(sys.modules[target_module_name])
         if module_name in sys.modules:
             del(sys.modules[module_name])
             del module
