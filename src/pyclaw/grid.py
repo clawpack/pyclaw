@@ -129,6 +129,7 @@ class Dimension(object):
         # grid, which allows for simpler programming elsewhere.
         self.nstart = 0
         self.nend = self.n
+        self.lowerg = self.lower
             
         # Function attribute assignments
     
@@ -209,6 +210,10 @@ class Grid(object):
         doc = r"""(list) - Lower coordinate extents of each dimension"""
         def fget(self): return self.get_dim_attribute('lower')
         return locals()
+    def lowerg():
+        doc = r"""(list) - Lower coordinate extents of each dimension on this process"""
+        def fget(self): return self.get_dim_attribute('lowerg')
+        return locals()
     def upper():
         doc = r"""(list) - Upper coordinate extends of each dimension"""
         def fget(self): return self.get_dim_attribute('upper')
@@ -275,6 +280,7 @@ class Grid(object):
     nend = property(**nend())
     name = property(**name())
     lower = property(**lower())
+    lowerg = property(**lowerg())
     upper = property(**upper())
     d = property(**d())
     units = property(**units())
@@ -405,7 +411,9 @@ class Grid(object):
             # Higer dimensional calculate center arrays
             else:
                 mgrid = np.lib.index_tricks.nd_grid()
-                index = np.indices(self.n)
+                index = np.indices(self.ng)
+                for i in range(index.shape[0]):
+                    index[i,...] = index[i,...] + self.nstart[i]
                 array_list = []
                 for i,center_array in enumerate(self.get_dim_attribute('center')):
                     #We could just use indices directly and deal with
@@ -437,7 +445,9 @@ class Grid(object):
                 self._p_edge[0] = self.mapc2p(self,self.dimensions[0].edge)
             else:
                 mgrid = np.lib.index_tricks.nd_grid()
-                index = np.indices([n+1 for n in self.n])
+                index = np.indices([n+1 for n in self.ng])
+                for i in range(index.shape[0]):
+                    index[i,...] = index[i,...] + self.nstart[i]
                 array_list = []
                 for i,edge_array in enumerate(self.get_dim_attribute('edge')):
                     #We could just use indices directly and deal with
@@ -471,7 +481,9 @@ class Grid(object):
             else:
                 # Produce ndim mesh grid function
                 mgrid = np.lib.index_tricks.nd_grid()
-                index = np.indices(self.n)
+                index = np.indices(self.ng)
+                for i in range(index.shape[0]):
+                    index[i,...] = index[i,...] + self.nstart[i]
                 self._c_center = []
                 for i,center_array in enumerate(self.get_dim_attribute('center')):
                     #We could just use indices directly and deal with
@@ -499,7 +511,9 @@ class Grid(object):
                 self._c_edge[0] = self.dimensions[0].edge
             else:
                 mgrid = np.lib.index_tricks.nd_grid()
-                index = np.indices([n+1 for n in self.n])
+                index = np.indices([n+1 for n in self.ng])
+                for i in range(index.shape[0]):
+                    index[i,...] = index[i,...] + self.nstart[i]
                 self._c_edge = []
                 for i,edge_array in enumerate(self.get_dim_attribute('edge')):
                     #We could just use indices directly and deal with
