@@ -149,6 +149,7 @@ def test_1D_acoustics_1g():
     verifier       = lambda error: abs(error-0.000298935748775)<1.e-5
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
 
+
 # Regression test: 1D acoustics in homogeneous material
 # This one tests high order WENO kernels from PyWENO
 #@attr(testType ='regression')
@@ -275,6 +276,7 @@ def test_2D_acoustics_1a_parallel():
     method_options = {'use_petsc' : True, 'solver_type' : 'classic', 'np':6, 'nout':10}
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_classic, method_options)
 
+
 # Regression test: Parallel 2D shock bubble
 #@attr(testType ='regression')
 @attr(solver_type='classic')
@@ -333,7 +335,6 @@ def test_2D_acoustics_1c():
     target_name    = 'sharpclaw2.so'
     module_name    = 'acoustics'
     problem_name   = 'acoustics2D'
-    target_name    = 'sharpclaw2.so'
 
     def verify_acoustics2D_sharpclaw(test_x):
         import numpy
@@ -361,7 +362,6 @@ def test_2D_acoustics_1d():
     target_name    = 'sharpclaw2.so'
     module_name    = 'acoustics'
     problem_name   = 'acoustics2D'
-    target_name    = 'sharpclaw2.so'
 
     def verify_acoustics2D_sharpclaw(test_x):
         import numpy
@@ -442,4 +442,32 @@ def test_psystem_petclaw_classic():
 
     method_options = {'use_petsc' : True}
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_psystem, method_options)
+
+
+# Regression test: 2D shallow water equations on a sphere
+#@attr(testType ='regression')
+@attr(testType ='regression')
+@attr(solver_type='classic')
+@attr(kernel_language='fortran')
+@attr(petsc=False)
+@attr(time_stepping_mode='explicit')
+@attr(speed='slow')
+@attr(which='this')
+def test_2D_shallowwatersphere(): 
+    path           = './test/shallow_sphere'
+    target_name    = 'classic2.so problem.so'
+    module_name    = 'shallow_4_Rossby_Haurwitz_wave'
+    problem_name   = 'shallow_4_Rossby_Haurwitz'
+
+    def verify_shallowwatersphere(test_x):
+        import numpy
+        verify_x=numpy.loadtxt('test/swsphere_height')
+        diff = numpy.linalg.norm(test_x-verify_x)
+        if diff>1.e-4:
+            raise Exception("""test_2D_shallowwatersphere: 
+                        Difference between expected and computed solutions: %s""" % diff)
+        else: return True
+
+    method_options = {}
+    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shallowwatersphere, method_options)    
 
