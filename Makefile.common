@@ -1,2 +1,2 @@
-include Makefile.variables
-include Makefile.rules
+include $(PYCLAW)/Makefile.variables
+include $(PYCLAW)/Makefile.rules
