@@ -415,11 +415,11 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     # ====
     xlower = -3.0
     xupper = 1.0
-    mx = 200
+    mx = 40
 
     ylower = -1.0
     yupper = 1.0
-    my = 100
+    my = 20
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)

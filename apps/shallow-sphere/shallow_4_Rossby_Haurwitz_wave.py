@@ -16,6 +16,9 @@ Reference: Logically Rectangular Grids and Finite Volume Methods for PDEs in
 # ==============
 import numpy as np
 
+from numpy import *
+
+
 # Parameters used by the following routines
 # =========================================
 
@@ -415,11 +418,11 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     # ====
     xlower = -3.0
     xupper = 1.0
-    mx = 100
+    mx = 200
 
     ylower = -1.0
     yupper = 1.0
-    my = 50
+    my = 100
 
     # Check whether or not the even number of cells are used in in both 
     # directions. If odd numbers are used a message is print at screen and the 
