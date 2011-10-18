@@ -455,7 +455,7 @@ def test_psystem_petclaw_classic():
 @attr(which='this')
 def test_2D_shallowwatersphere(): 
     path           = './test/shallow_sphere'
-    target_name    = 'classic2.so'
+    target_name    = 'classic2.so problem.so'
     module_name    = 'shallow_4_Rossby_Haurwitz_wave'
     problem_name   = 'shallow_4_Rossby_Haurwitz'
 
