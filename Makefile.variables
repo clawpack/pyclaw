@@ -1,0 +1,28 @@
+FC ?= gfortran
+F2PY ?= f2py
+FFLAGS ?=
+
+ONE_D_CLASSIC = $(PYCLAW)/src/fortran/1d/classic
+
+TWO_D_CLASSIC = $(PYCLAW)/src/fortran/2d/classic
+
+ONE_D_SHARPCLAW = $(PYCLAW)/src/fortran/1d/sharpclaw
+
+TWO_D_SHARPCLAW = $(PYCLAW)/src/fortran/2d/sharpclaw
+
+ONE_D_CLASSIC_SOURCES = $(ONE_D_CLASSIC)/step1.f $(ONE_D_CLASSIC)/limiter.f $(ONE_D_CLASSIC)/philim.f
+
+ONE_D_CLASSIC_FWAVE_SOURCES = $(ONE_D_CLASSIC)/step1fw.f $(ONE_D_CLASSIC)/limiter.f $(ONE_D_CLASSIC)/philim.f
+
+ONE_D_CLASSIC_IMPLICIT_SOURCES = $(ONE_D_CLASSIC)/spatdisc1.f $(ONE_D_CLASSIC)/limiter.f $(ONE_D_CLASSIC)/philim.f
+
+ONE_D_SHARPCLAW_SOURCES = $(ONE_D_SHARPCLAW)/ClawParams.f90 $(ONE_D_SHARPCLAW)/flux1.f90 $(ONE_D_SHARPCLAW)/weno.f90 $(ONE_D_SHARPCLAW)/reconstruct.f90 $(ONE_D_SHARPCLAW)/workspace.f90 $(ONE_D_SHARPCLAW)/tfluct.f90 $(ONE_D_SHARPCLAW)/evec.f90 
+
+#TWO_D_CLASSIC_SOURCES = $(TWO_D_CLASSIC)/dimsp2.f $(TWO_D_CLASSIC)/step2ds.f $(TWO_D_CLASSIC)/flux2.f $(ONE_D_CLASSIC)/limiter.f $(ONE_D_CLASSIC)/philim.f
+
+TWO_D_SHARPCLAW_SOURCES = $(TWO_D_SHARPCLAW)/workspace.f90 $(TWO_D_SHARPCLAW)/ClawParams.f90 $(ONE_D_SHARPCLAW)/weno.f90 $(ONE_D_SHARPCLAW)/reconstruct.f90 $(TWO_D_SHARPCLAW)/flux1.f90 $(TWO_D_SHARPCLAW)/flux2.f90 $(ONE_D_SHARPCLAW)/tfluct.f90 $(ONE_D_SHARPCLAW)/evec.f90 
+
+TWO_D_CLASSIC_SOURCES = $(TWO_D_CLASSIC)/step2.f $(TWO_D_CLASSIC)/dimsp2.f step2ds.o flux2.o limiter.o philim.o
+
+TWO_D_CLASSIC_FWAVE_SOURCES = $(TWO_D_CLASSIC)/step2.f $(TWO_D_CLASSIC)/dimsp2.f step2ds.o flux2fw.o limiter.o philim.o
+
