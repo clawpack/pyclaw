@@ -1,9 +1,15 @@
 #!/usr/bin/env python
 # encoding: utf-8
-def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=False,solver_type='sharpclaw',outdir='./_output'):
-    """
-    Example python script for solving the 1d advection equation.
-    """
+
+"""
+1D shallow advection equation with constant convective velocity.
+"""
+
+
+def advection(kernel_language='Fortran',iplot=False,htmlplot=False,use_petsc=False,solver_type='sharpclaw',outdir='./_output'):
+    #===========================================================================
+    # Import libraries
+    #===========================================================================
     import numpy as np
 
     if use_petsc:
@@ -16,7 +22,11 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
     else:
         solver = pyclaw.ClawSolver1D()
 
+    #===========================================================================
+    # Setup solver and solver parameters
+    #===========================================================================
     solver.kernel_language = kernel_language
+
     from riemann import rp_advection
     solver.mwaves = rp_advection.mwaves
     if solver.kernel_language=='Python': 
@@ -30,10 +40,12 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
     solver.cfl_desired = 0.3
 
     # Set SSPRK43
- #   solver.time_integrator='SSP43'
-    solver.time_integrator='Exdwrk22'
+    solver.time_integrator='SSP43'
+    #solver.time_integrator='Exdwrk22'
 
-
+    #===========================================================================
+    # Initialize grids and then initialize the solution associated to the grid
+    #===========================================================================
     x = pyclaw.Dimension('x',0.0,1.0,100)
     grid = pyclaw.Grid(x)
     meqn = 1
@@ -44,14 +56,23 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
     beta=100; gamma=0; x0=0.75
     state.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
 
+    #===========================================================================
+    # Setup controller and controller paramters
+    #===========================================================================
     claw = pyclaw.Controller()
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir
-
     claw.tfinal =1.0
+   
+    #===========================================================================
+    # Solve the problem
+    #===========================================================================
     status = claw.run()
 
+    #===========================================================================
+    # Plot results
+    #===========================================================================
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 

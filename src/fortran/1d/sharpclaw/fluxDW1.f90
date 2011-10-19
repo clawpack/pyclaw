@@ -1,8 +1,9 @@
 ! ===================================================================
-subroutine flux1_dw(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
+subroutine fluxDW1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
 ! ===================================================================
 !
-!     # Evaluate (delta t) * dq(t)/dt
+!     # Evaluate (delta t) * dq(t)/dt using a dowind WENO algorithm
+
 !
 !     SharpClaw
 !     Author: David Ketcheson
@@ -83,6 +84,10 @@ subroutine flux1_dw(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
                 call tvd2(q1d,ql,qr,mthlim)
             case(1)
                 ! wave-based second order reconstruction
+                ! I THINK THAT SHOULD WE ALSO MODIFY THE SIGN OF THE FULCTUATION HERE
+                ! TO GET THE DOWWIND WENO
+                ! ============================================================
+
                 call rp1(maxnx,meqn,mwaves,mbc,mx,&
                         q1d,q1d,aux,aux,wave,s,amdq,apdq)
                 ! Need to write a tvd2_fwave routine
@@ -127,6 +132,11 @@ subroutine flux1_dw(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
     call rp1(maxnx,meqn,mwaves,mbc,mx,ql,qr,aux,aux, &
               wave,s,amdq,apdq)
 
+    ! Change the sign of the fluctuations at the interface (DOWNWIND APPROACH)
+    amdq = -amdq
+    apdq = -apdq
+
+
     ! compute maximum wave speed:
     cfl = 0.d0
     do mw=1,mwaves
@@ -153,7 +163,7 @@ subroutine flux1_dw(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
         ! adq = f(qr(i)) - f(ql(i)).
 
         forall (i=1:mx, m=1:meqn)
-            dq1d(m,i) = dq1d(m,i) + dtdx(i)*(apdq(m,i) + &
+            dq1d(m,i) = dq1d(m,i) - dtdx(i)*(apdq(m,i) + &
                             amdq2(m,i) + amdq(m,i+1))
         end forall
 
@@ -185,9 +195,10 @@ subroutine flux1_dw(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
                  auxl,auxr,wave,s,amdq2,apdq2)
 
         forall(i=1:mx, m=1:meqn)
-            dq1d(m,i) = dq1d(m,i) + dtdx(i)*(amdq(m,i+1)+ &
-                        apdq(m,i) + amdq2(m,i)+apdq2(m,i))
+            dq1d(m,i) = dq1d(m,i)-dtdx(i)*(amdq(m,i+1)+ &
+                        apdq(m,i)+amdq2(m,i)+apdq2(m,i))
         end forall
     endif
 
-end subroutine flux1_dw
+end subroutine fluxDW1
+
