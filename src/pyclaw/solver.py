@@ -278,6 +278,7 @@ class Solver(object):
         If we create a MethodOfLinesSolver subclass, this should be moved there.
         """
         if self.time_integrator   == 'Euler':  nregisters=1
+        elif self.time_integrator == 'Exdwrk22':  nregisters=2
         elif self.time_integrator == 'SSP33':  nregisters=2
         elif self.time_integrator == 'SSP43':  nregisters=2
         elif self.time_integrator == 'SSP104': nregisters=3

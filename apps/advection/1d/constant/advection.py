@@ -30,7 +30,9 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
     solver.cfl_desired = 0.3
 
     # Set SSPRK43
-    solver.time_integrator='SSP43'
+ #   solver.time_integrator='SSP43'
+    solver.time_integrator='Exdwrk22'
+
 
     x = pyclaw.Dimension('x',0.0,1.0,100)
     grid = pyclaw.Grid(x)

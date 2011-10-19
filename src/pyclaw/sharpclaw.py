@@ -97,7 +97,22 @@ class SharpClawSolver(Solver):
             if self.time_integrator=='Euler':
                 deltaq=self.dq(state)
                 state.q+=deltaq
-           
+     
+            elif self.time_integrator=='Exdwrk22':
+                deltaq=self.dq(state)
+                deltaq_dw=self.dq_dw(state)
+                print (deltaq_dw-deltaq)
+
+                self._rk_stages[0].q=state.q + 0.822875655532364*deltaq
+                self._rk_stages[0].t =state.t + 0.822875655532364*self.dt
+                deltaq=self.dq(self._rk_stages[0])
+                state.q=0.261583187659478*state.q + 0.738416812340522*self._rk_stages[0].q\
+                         -0.215250437021539*deltaq_dw + 0.607625218510713*deltaq
+                print 'I AM DW'
+                                        
+
+
+
             elif self.time_integrator=='SSP33':
                 deltaq=self.dq(state)
                 self._rk_stages[0].q=state.q+deltaq
@@ -107,6 +122,7 @@ class SharpClawSolver(Solver):
                 self._rk_stages[0].t = state.t+0.5*self.dt
                 deltaq=self.dq(self._rk_stages[0])
                 state.q = 1./3.*state.q + 2./3.*(self._rk_stages[0].q+deltaq)
+                print 'I AM SSP33'
 
             elif self.time_integrator=='SSP43':
                 deltaq=self.dq(state)
@@ -178,6 +194,26 @@ class SharpClawSolver(Solver):
             deltaq+=self.src(state,q,state.t)
 
         return deltaq
+
+    def dq_dw(self,state):
+        """
+        Evaluate dq/dt * (delta t)
+        """
+
+        deltaq = self.dq_homogeneous_dw(state)
+
+        # Check here if we violated the CFL condition, if we did, return 
+        # immediately to evolve_to_time and let it deal with picking a new
+        # dt
+        if self.cfl.get_cached_max() >= self.cfl_max:
+            raise CFLError('cfl_max exceeded')
+
+        # Godunov Splitting -- really the source term should be called inside rkstep
+        if self.src_term == 1:
+            deltaq+=self.src(state,q,state.t)
+
+        return deltaq
+
 
     def dq_homogeneous(state):
         raise NotImplementedError('You must subclass SharpClawSolver.')
@@ -395,6 +431,119 @@ class SharpClawSolver1D(SharpClawSolver):
         self.cfl.update_global_max(cfl)
         return dq[:,self.mbc:-self.mbc]
     
+
+    def dq_homogeneous_dw(self,state):
+        r"""
+        Compute dq/dt * (delta t) for the homogeneous hyperbolic system.
+
+        Note that the capa array, if present, should be located in the aux
+        variable.
+
+        Indexing works like this (here mbc=2 as an example)::
+
+         0     1     2     3     4     mx+mbc-2     mx+mbc      mx+mbc+2
+                     |                        mx+mbc-1 |  mx+mbc+1
+         |     |     |     |     |   ...   |     |     |     |     |
+            0     1  |  2     3            mx+mbc-2    |mx+mbc       
+                                                  mx+mbc-1   mx+mbc+1
+
+        The top indices represent the values that are located on the grid
+        cell boundaries such as waves, s and other Riemann problem values, 
+        the bottom for the cell centered values such as q.  In particular
+        the ith grid cell boundary has the following related information::
+
+                          i-1         i         i+1
+                           |          |          |
+                           |   i-1    |     i    |
+                           |          |          |
+
+        Again, grid cell boundary quantities are at the top, cell centered
+        values are in the cell.
+
+        """
+    
+        import numpy as np
+
+        self.apply_q_bcs(state)
+        q = self.qbc 
+
+        grid = state.grid
+        mx = grid.ng[0]
+
+        ixy=1
+
+        if self.kernel_language=='Fortran':
+            from sharpclaw1 import flux1_dw
+            dq,cfl=flux1_dw(q,self.auxbc,self.dt,state.t,ixy,mx,self.mbc,mx)
+            print 'I AM HERE IN dq_h_dw'
+
+        elif self.kernel_language=='Python':
+
+            dtdx = np.zeros( (mx+2*self.mbc) ,order='F')
+            dq   = np.zeros( (state.meqn,mx+2*self.mbc) ,order='F')
+
+            # Find local value for dt/dx
+            if state.mcapa>=0:
+                dtdx = self.dt / (grid.d[0] * state.aux[mcapa,:])
+            else:
+                dtdx += self.dt/grid.d[0]
+ 
+            aux=self.auxbc
+            if aux.shape[0]>0:
+                aux_l=aux[:,:-1]
+                aux_r=aux[:,1: ]
+            else:
+                aux_l = None
+                aux_r = None
+
+            #Reconstruct (wave reconstruction uses a Riemann solve)
+            if self.lim_type==-1: #1st-order Godunov
+                ql=q; qr=q;
+            elif self.lim_type==0: #Unlimited reconstruction
+                raise NotImplementedError('Unlimited reconstruction not implemented')
+            elif self.lim_type==1: #TVD Reconstruction
+                raise NotImplementedError('TVD reconstruction not implemented')
+            elif self.lim_type==2: #WENO Reconstruction
+                if self.char_decomp==0: #No characteristic decomposition
+                    ql,qr=recon.weno(5,q)
+                elif self.char_decomp==1: #Wave-based reconstruction
+                    q_l=q[:,:-1]
+                    q_r=q[:,1: ]
+                    wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.aux_global)
+                    ql,qr=recon.weno5_wave(q,wave,s)
+                elif self.char_decomp==2: #Characteristic-wise reconstruction
+                    raise NotImplementedError
+
+            # Solve Riemann problem at each interface
+            q_l=qr[:,:-1]
+            q_r=ql[:,1: ]
+            wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.aux_global)
+
+            # Loop limits for local portion of grid
+            # THIS WON'T WORK IN PARALLEL!
+            LL = self.mbc - 1
+            UL = grid.ng[0] + self.mbc + 1
+
+            # Compute maximum wave speed
+            cfl = 0.0
+            for mw in xrange(self.mwaves):
+                smax1 = np.max( dtdx[LL  :UL]  *s[mw,LL-1:UL-1])
+                smax2 = np.max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
+                cfl = max(cfl,smax1,smax2)
+
+            #Find total fluctuation within each cell
+            wave,s,amdq2,apdq2 = self.rp(ql,qr,aux,aux,state.aux_global)
+
+            # Compute dq
+            for m in xrange(state.meqn):
+                dq[m,LL:UL] = -dtdx[LL:UL]*(amdq[m,LL:UL] + apdq[m,LL-1:UL-1] \
+                                + apdq2[m,LL:UL] + amdq2[m,LL:UL])
+
+        else: raise Exception('Unrecognized value of solver.kernel_language.')
+
+        self.cfl.update_global_max(cfl)
+        return dq[:,self.mbc:-self.mbc]
+
 
 # ========================================================================
 class SharpClawSolver2D(SharpClawSolver):
