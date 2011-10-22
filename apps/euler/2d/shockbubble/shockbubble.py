@@ -189,7 +189,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     solver.aux_bc_upper[1]=pyclaw.BC.outflow
 
     # Initialize grid
-    mx=640; my=160
+    mx=320; my=80
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
     grid = pyclaw.Grid([x,y])
@@ -206,7 +206,6 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     solver.user_bc_lower=shockbc
 
     claw = pyclaw.Controller()
-    claw.keep_copy = True
     claw.tfinal = 0.75
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
