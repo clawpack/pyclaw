@@ -276,7 +276,7 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
 
         t      = grid_dict['t']
         meqn   = grid_dict['meqn']
-        ngrids = grid_dict['ngrids']                    
+        nstates = grid_dict['nstates']                    
         maux   = grid_dict['maux']                    
         ndim   = grid_dict['ndim']
 
@@ -288,4 +288,4 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
         print "File " + t_fname + " should contain t, meqn, ngrids, maux, ndim"
         raise
         
-    return t,meqn,ngrids,maux,ndim
+    return t,meqn,nstates,maux,ndim
