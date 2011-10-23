@@ -59,12 +59,13 @@ PyClaw
    started
    tutorial
    problem
+   output
    classes
+   troubleshooting
    differences
    develop
    about
    future
-   output
 
 
 *********
