@@ -279,6 +279,7 @@ class Solver(object):
         """
         if self.time_integrator   == 'Euler':  nregisters=1
         elif self.time_integrator == 'Exdwrk22':  nregisters=2
+        elif self.time_integrator == 'Exdwrk105':  nregisters=10
         elif self.time_integrator == 'SSP33':  nregisters=2
         elif self.time_integrator == 'SSP43':  nregisters=2
         elif self.time_integrator == 'SSP104': nregisters=3
