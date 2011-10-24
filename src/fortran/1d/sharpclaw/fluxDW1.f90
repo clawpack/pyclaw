@@ -1,5 +1,5 @@
 ! ===================================================================
-subroutine fluxDW1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
+subroutine fluxdw1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
 ! ===================================================================
 !
 !     # Evaluate (delta t) * dq(t)/dt using a dowind WENO algorithm
@@ -161,7 +161,7 @@ subroutine fluxDW1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
         ! Note this may not correspond to a conservative flux-differencing
         ! for equations not in conservation form.  It is conservative if
         ! adq = f(qr(i)) - f(ql(i)).
-
+        amdq2 = -amdq2
         forall (i=1:mx, m=1:meqn)
             dq1d(m,i) = dq1d(m,i) - dtdx(i)*(apdq(m,i) + &
                             amdq2(m,i) + amdq(m,i+1))
@@ -193,12 +193,13 @@ subroutine fluxDW1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
         
         call rp1(maxnx,meqn,mwaves,mbc,mx,ql,qr, &
                  auxl,auxr,wave,s,amdq2,apdq2)
-
+        amdq2 = -amdq2
+        apdq2 = -apdq2
         forall(i=1:mx, m=1:meqn)
             dq1d(m,i) = dq1d(m,i)-dtdx(i)*(amdq(m,i+1)+ &
                         apdq(m,i)+amdq2(m,i)+apdq2(m,i))
         end forall
     endif
 
-end subroutine fluxDW1
+end subroutine fluxdw1
 

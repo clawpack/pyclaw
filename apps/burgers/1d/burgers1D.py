@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_output',solver_type='classic'):
+def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_output',solver_type='sharpclaw'):
     """
     Example python script for solving the 1d Burgers equation.
     """
@@ -22,11 +22,13 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
         solver = pyclaw.ClawSolver1D()
 
     solver.kernel_language = kernel_language
-    if kernel_language=='Python': solver.set_riemann_solver('burgers')
+    if kernel_language=='Python': 
+        solver.set_riemann_solver('burgers')
     solver.mwaves = 1
     solver.limiters = pyclaw.limiters.tvd.vanleer
     solver.mthbc_lower[0] = pyclaw.BC.periodic
     solver.mthbc_upper[0] = pyclaw.BC.periodic
+    solver.time_integrator='Exdwrk105'
 
     #===========================================================================
     # Initialize grids and then initialize the solution associated to the grid
