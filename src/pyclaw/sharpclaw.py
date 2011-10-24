@@ -95,128 +95,34 @@ class SharpClawSolver(Solver):
 
         try:
             if self.time_integrator=='Euler':
-                deltaq = self.dq(state)
-                state.q += deltaq
+                deltaq=self.dq(state)
+                state.q+=deltaq
      
             elif self.time_integrator=='Exdwrk22':
-                deltaq = self.dq(state)
-                deltaq_dw = self.dq_dw(state)
-                self._rk_stages[0].q = state.q + 0.822875655532364*deltaq
-                self._rk_stages[0].t = state.t + 0.822875655532364*self.dt
-                deltaq = self.dq(self._rk_stages[0])
-                state.q = 0.261583187659478 * state.q + 0.738416812340522 * self._rk_stages[0].q \
-                        - 0.215250437021539 * deltaq_dw \
-                        + 0.607625218510713 * deltaq
-                
-                                      
-            elif self.time_integrator=='Exdwrk105':
-                deltaq = self.dq(state)
-                self._rk_stages[0].q = state.q + 0.173586107937995 * deltaq
-                c0 = 0.173586107937995
-                self._rk_stages[0].t = state.t + c0 * self.dt
+                deltaq=self.dq(state)
+                deltaq_dw=self.dq_dw(state)
+                print (deltaq_dw-deltaq)
 
-
-                deltaq1=self.dq(self._rk_stages[0])
-                self._rk_stages[1].q = 0.258168167463650 * state.q \
-                                     + 0.741831832536350 * self._rk_stages[0].q \
-                                     + 0.218485490268790 * deltaq1
-                c1 = 0.741831832536350 * c0 + 0.218485490268790                   
-                self._rk_stages[1].t = state.t + c1 * self.dt
-
-
-                deltaq2 = self.dq(self._rk_stages[1])
-                self._rk_stages[2].q = 0.037493531856076 * self._rk_stages[0].q \
-                                     + 0.962506468143924 * self._rk_stages[1].q \
-                                     + 0.011042654588541 * deltaq1 \
-                                     + 0.283478934653295 * deltaq2
-                c2 = 0.037493531856076 * c0 + 0.962506468143924 * c1 + 0.011042654588541 \
-                   + 0.283478934653295
-                self._rk_stages[2].t = state.t +  c2 * self.dt
-
-
-                deltaq3 = self.dq(self._rk_stages[2])
-                deltaq3_dw = self.dq_dw(self._rk_stages[2])
-                self._rk_stages[3].q = 0.595955269449077 * state.q \
-                                     + 0.404044730550923 * self._rk_stages[1].q \
-                                     + 0.118999896166647 * deltaq2
-                c3 = 0.404044730550923 * c1 + 0.118999896166647                   
-                self._rk_stages[3].t = state.t +  c3 * self.dt
-
-
-                deltaq4 = self.dq(self._rk_stages[3])
-                self._rk_stages[4].q = 0.331848124368345 * state.q \
-                                     + 0.008466192609453 * self._rk_stages[2].q \
-                                     + 0.659685683022202 * self._rk_stages[3].q \
-                                     + 0.025030881091201 * deltaq \
-                                     - 0.002493476502164 * deltaq3_dw \
-                                     + 0.194291675763785 * deltaq4
-                c4 = 0.008466192609453 * c2 + 0.659685683022202 * c3 + 0.025030881091201 \
-                   + 0.002493476502164 + 0.194291675763785
-                self._rk_stages[4].t = state.t +  c4 * self.dt
-
-                deltaq5 = self.dq(self._rk_stages[4])
-                self._rk_stages[5].q = 0.086976414344414 * state.q \
-                                     + 0.913023585655586 * self._rk_stages[4].q \
-                                     + 0.268905157462563 * deltaq5
-                c5 = 0.913023585655586 * c4 + 0.268905157462563                   
-                self._rk_stages[5].t = state.t + c5 * self.dt
-
-
-                deltaq6 = self.dq(self._rk_stages[5])
-                self._rk_stages[6].q = 0.075863700003186 * state.q \
-                                     + 0.267513039663395 * self._rk_stages[1].q \
-                                     + 0.656623260333419 * self._rk_stages[5].q \
-                                     + 0.066115378914543 * deltaq2 \
-                                     + 0.193389726166555 * deltaq6
-                c6 = 0.267513039663395 * c1 + 0.656623260333419 * c5 + 0.066115378914543 \
-                   + 0.193389726166555
-                self._rk_stages[6].t = state.t +  c6 * self.dt
-
-
-                deltaq7 = self.dq(self._rk_stages[6])
-                self._rk_stages[7].q = 0.005212058095597 * state.q \
-                                     + 0.407430107306541 * self._rk_stages[2].q \
-                                     + 0.587357834597862 * self._rk_stages[6].q \
-                                     - 0.119996962708895 * deltaq3_dw \
-                                     + 0.172989562899406 * deltaq7
-                c7 = 0.407430107306541 * c2 + 0.587357834597862 * c6 + 0.119996962708895 \
-                   + 0.172989562899406
-                self._rk_stages[7].t = state.t + c7 * self.dt
-
-
-                deltaq8 = self.dq(self._rk_stages[7])
-                self._rk_stages[8].q = 0.122832051947995 * state.q \
-                                     + 0.877167948052005 * self._rk_stages[7].q \
-                                     + 0.000000000000035 * deltaq \
-                                     + 0.258344898092277 * deltaq8
-                c8 = 0.877167948052005 * c7 + 0.000000000000035 + 0.258344898092277                    
-                self._rk_stages[8].t = state.t + c8 * self.dt
-
-
-                deltaq9 = self.dq(self._rk_stages[8])
-                state.q = 0.075346276482673 * state.q \
-                        + 0.000425904246091 * self._rk_stages[0].q \
-                        + 0.064038648145995 * self._rk_stages[4].q \
-                        + 0.354077936287492 * self._rk_stages[5].q \
-                        + 0.506111234837749 * self._rk_stages[8].q \
-                        + 0.016982542367506 * deltaq \
-                        + 0.018860764424857 * deltaq5 \
-                        + 0.098896719553054 * deltaq6 \
-                        + 0.149060685217562 * deltaq9
-
+                self._rk_stages[0].q=state.q + 0.822875655532364*deltaq
+                self._rk_stages[0].t =state.t + 0.822875655532364*self.dt
+                deltaq=self.dq(self._rk_stages[0])
+                state.q=0.261583187659478*state.q + 0.738416812340522*self._rk_stages[0].q\
+                         -0.215250437021539*deltaq_dw + 0.607625218510713*deltaq
+                print 'I AM DW'
+                                        
 
 
 
             elif self.time_integrator=='SSP33':
                 deltaq=self.dq(state)
-                self._rk_stages[0].q = state.q+deltaq
-                self._rk_stages[0].t = state.t+self.dt
+                self._rk_stages[0].q=state.q+deltaq
+                self._rk_stages[0].t =state.t+self.dt
                 deltaq=self.dq(self._rk_stages[0])
-                self._rk_stages[0].q = 0.75*state.q + 0.25*(self._rk_stages[0].q+deltaq)
+                self._rk_stages[0].q= 0.75*state.q + 0.25*(self._rk_stages[0].q+deltaq)
                 self._rk_stages[0].t = state.t+0.5*self.dt
-                deltaq = self.dq(self._rk_stages[0])
+                deltaq=self.dq(self._rk_stages[0])
                 state.q = 1./3.*state.q + 2./3.*(self._rk_stages[0].q+deltaq)
-                
+                print 'I AM SSP33'
 
             elif self.time_integrator=='SSP43':
                 deltaq=self.dq(state)
@@ -392,9 +298,9 @@ class SharpClawSolver1D(SharpClawSolver):
         state = solution.states[0]
 
         if self.kernel_language=='Fortran':
-            from sharpclaw1 import clawparams, workspace, reconstruct
-            import sharpclaw1
-            state.set_cparam(sharpclaw1)
+            from sharpclawdw1 import clawparams, workspace, reconstruct
+            import sharpclawdw1
+            state.set_cparam(sharpclawdw1)
             self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
 
         self.allocate_bc_arrays(state)
@@ -405,13 +311,13 @@ class SharpClawSolver1D(SharpClawSolver):
         Also delete Fortran objects, which otherwise tend to persist in Python sessions.
         """
         if self.kernel_language=='Fortran':
-            from sharpclaw1 import clawparams, workspace, reconstruct
+            from sharpclawdw1 import clawparams, workspace, reconstruct
             clawparams.dealloc_clawparams()
             workspace.dealloc_workspace(self.char_decomp)
             reconstruct.dealloc_recon_workspace(clawparams.lim_type,clawparams.char_decomp)
-            import sharpclaw1
-            print 'deleting sharpclaw1 object'
-            del sharpclaw1, clawparams, workspace, reconstruct
+            import sharpclawdw1
+            print 'deleting sharpclawdw1 object'
+            del sharpclawdw1, clawparams, workspace, reconstruct
 
 
     def dq_homogeneous(self,state):
@@ -455,7 +361,7 @@ class SharpClawSolver1D(SharpClawSolver):
         ixy=1
 
         if self.kernel_language=='Fortran':
-            from sharpclaw1 import flux1
+            from sharpclawdw1 import flux1
             dq,cfl=flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.mbc,mx)
 
         elif self.kernel_language=='Python':
@@ -567,9 +473,10 @@ class SharpClawSolver1D(SharpClawSolver):
         ixy=1
 
         if self.kernel_language=='Fortran':
-            from sharpclaw1 import flux1_dw
-            dq,cfl=flux1_dw(q,self.auxbc,self.dt,state.t,ixy,mx,self.mbc,mx)
-            
+            from sharpclawdw1 import fluxdw1
+            dq,cfl=fluxdw1(q,self.auxbc,self.dt,state.t,ixy,mx,self.mbc,mx)
+            print 'I AM HERE IN dq_h_dw'
+
         elif self.kernel_language=='Python':
 
             dtdx = np.zeros( (mx+2*self.mbc) ,order='F')
