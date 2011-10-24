@@ -126,8 +126,8 @@ class Solver(object):
     _required_attrs = ['dt_initial','dt_max','cfl_max','cfl_desired',
             'max_steps','dt_variable','mbc']
             
-    _default_attr_values = {'dt_initial':0.1, 'dt_max':1e99, 'cfl_max':1.0, 
-        'cfl_desired':0.9, 'max_steps':1000, 'dt_variable':True,'mbc':2}
+    _default_attr_values = {'dt_initial':0.1, 'dt_max':1e99, 'max_steps':1000,
+            'dt_variable':True}
     
     #  ======================================================================
     #   Initialization routines
@@ -195,6 +195,9 @@ class Solver(object):
         self.qbc          = None
         r""" Array to hold ghost cell values.  This is the one that gets passed
         to the Fortran code.  """
+
+        super(Solver,self).__init__()
+
 
     # ========================================================================
     #  Solver setup and validation routines
@@ -355,30 +358,30 @@ class Solver(object):
                 # If a user defined boundary condition is being used, send it on,
                 # otherwise roll the axis to front position and operate on it
                 if self.bc_lower[idim] == BC.custom:
-                    self.qbc_lower(grid,dim,state.t,self.qbc,idim)
+                    self.qbc_lower(state,dim,state.t,self.qbc,idim)
                 elif self.bc_lower[idim] == BC.periodic:
                     if dim.nend == dim.n:
                         # This process owns the whole grid
-                        self.qbc_lower(grid,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
+                        self.qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
                 else:
-                    self.qbc_lower(grid,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
+                    self.qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
 
             if dim.nend == dim.n :
                 if self.bc_upper[idim] == BC.custom:
-                    self.qbc_upper(grid,dim,state.t,self.qbc,idim)
+                    self.qbc_upper(state,dim,state.t,self.qbc,idim)
                 elif self.bc_upper[idim] == BC.periodic:
                     if dim.nstart == 0:
                         # This process owns the whole grid
-                        self.qbc_upper(grid,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
+                        self.qbc_upper(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
                 else:
-                    self.qbc_upper(grid,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
+                    self.qbc_upper(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
 
 
-    def qbc_lower(self,grid,dim,t,qbc,idim):
+    def qbc_lower(self,state,dim,t,qbc,idim):
         r"""
         Apply lower boundary conditions to qbc
         
@@ -399,7 +402,7 @@ class Solver(object):
         import numpy as np
 
         if self.bc_lower[idim] == BC.custom: 
-            self.user_bc_lower(grid,dim,t,qbc,self.mbc)
+            self.user_bc_lower(state,dim,t,qbc,self.mbc)
         elif self.bc_lower[idim] == BC.outflow:
             for i in xrange(self.mbc):
                 qbc[:,i,...] = qbc[:,self.mbc,...]
@@ -414,7 +417,7 @@ class Solver(object):
             raise NotImplementedError("Boundary condition %s not implemented" % x.bc_lower)
 
 
-    def qbc_upper(self,grid,dim,t,qbc,idim):
+    def qbc_upper(self,state,dim,t,qbc,idim):
         r"""
         Apply upper boundary conditions to qbc
         
@@ -434,7 +437,7 @@ class Solver(object):
         """
  
         if self.bc_upper[idim] == BC.custom:
-            self.user_bc_upper(grid,dim,t,qbc,self.mbc)
+            self.user_bc_upper(state,dim,t,qbc,self.mbc)
         elif self.bc_upper[idim] == BC.outflow:
             for i in xrange(self.mbc):
                 qbc[:,-i-1,...] = qbc[:,-self.mbc-1,...] 
@@ -497,30 +500,30 @@ class Solver(object):
                 # If a user defined boundary condition is being used, send it on,
                 # otherwise roll the axis to front position and operate on it
                 if self.aux_bc_lower[idim] == BC.custom:
-                    self.auxbc_lower(grid,dim,state.t,self.auxbc,idim)
+                    self.auxbc_lower(state,dim,state.t,self.auxbc,idim)
                 elif self.aux_bc_lower[idim] == BC.periodic:
                     if dim.nend == dim.n:
                         # This process owns the whole grid
-                        self.auxbc_lower(grid,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
+                        self.auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
                 else:
-                    self.auxbc_lower(grid,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
+                    self.auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
 
             if dim.nend == dim.n :
                 if self.aux_bc_upper[idim] == BC.custom:
-                    self.auxbc_upper(grid,dim,state.t,self.auxbc,idim)
+                    self.auxbc_upper(state,dim,state.t,self.auxbc,idim)
                 elif self.aux_bc_upper[idim] == BC.periodic:
                     if dim.nstart == 0:
                         # This process owns the whole grid
-                        self.auxbc_upper(grid,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
+                        self.auxbc_upper(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
                 else:
-                    self.auxbc_upper(grid,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
+                    self.auxbc_upper(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
 
 
-    def auxbc_lower(self,grid,dim,t,auxbc,idim):
+    def auxbc_lower(self,state,dim,t,auxbc,idim):
         r"""
         Apply lower boundary conditions to auxbc
         
@@ -541,7 +544,7 @@ class Solver(object):
         import numpy as np
 
         if self.aux_bc_lower[idim] == BC.custom: 
-            self.user_aux_bc_lower(grid,dim,t,auxbc,self.mbc)
+            self.user_aux_bc_lower(state,dim,t,auxbc,self.mbc)
         elif self.aux_bc_lower[idim] == BC.outflow:
             for i in xrange(self.mbc):
                 auxbc[:,i,...] = auxbc[:,self.mbc,...]
@@ -557,7 +560,7 @@ class Solver(object):
             raise NotImplementedError("Boundary condition %s not implemented" % x.aux_bc_lower)
 
 
-    def auxbc_upper(self,grid,dim,t,auxbc,idim):
+    def auxbc_upper(self,state,dim,t,auxbc,idim):
         r"""
         Apply upper boundary conditions to auxbc
         
@@ -577,7 +580,7 @@ class Solver(object):
         """
  
         if self.aux_bc_upper[idim] == BC.custom:
-            self.user_aux_bc_upper(grid,dim,t,auxbc,self.mbc)
+            self.user_aux_bc_upper(state,dim,t,auxbc,self.mbc)
         elif self.aux_bc_upper[idim] == BC.outflow:
             for i in xrange(self.mbc):
                 auxbc[:,-i-1,...] = auxbc[:,-self.mbc-1,...] 

@@ -77,7 +77,7 @@ Other boundary conditions can be implemented by using pyclaw.BC.custom, and
 providing a custom BC function.  The attribute solver.user_bc_lower/upper must
 be set to the corresponding function handle.  For instance::
 
-    >>> def custombc(grid,dim,t,qbc,mbc):
+    >>> def custombc(state,dim,t,qbc,mbc):
     >>>     for i in xrange(mbc):
     >>>         qbc[0,i,:] = q0
     >>>
@@ -86,6 +86,8 @@ be set to the corresponding function handle.  For instance::
 
 If the state.aux array is used, boundary conditions must be set for it
 in a similar way, using solver.aux_bc_lower and solver.aux_bc_upper.
+Note that although state is passed to the BC routines, they should
+NEVER modify state.  Rather, they should modify qbc/auxbc.
 
 Setting solver options
 ----------------------------
