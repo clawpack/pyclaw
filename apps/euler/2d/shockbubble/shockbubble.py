@@ -71,7 +71,7 @@ def auxinit(state):
         state.aux[0,:,j] = ycoord
 
 
-def shockbc(grid,dim,t,qbc,mbc):
+def shockbc(state,dim,t,qbc,mbc):
     """
     Incoming shock at left boundary.
     """

@@ -105,6 +105,8 @@ class ClawSolver(Solver):
         self._default_attr_values['start_step'] = None
         self._default_attr_values['kernel_language'] = 'Fortran'
         self._default_attr_values['verbosity'] = 0
+        self._default_attr_values['cfl_max'] = 1.0
+        self._default_attr_values['cfl_desired'] = 0.9
 
         # Call general initialization function
         super(ClawSolver,self).__init__(data)
@@ -473,6 +475,7 @@ class ClawSolver2D(ClawSolver):
         if self.cfl_max > cfl_recommended:
             import warnings
             warnings.warn('cfl_max is set higher than the recommended value of %s' % cfl_recommended)
+            warnings.warn(str(self.cfl_desired))
 
         if(self.kernel_language == 'Fortran'):
             self.set_fortran_parameters(solution)

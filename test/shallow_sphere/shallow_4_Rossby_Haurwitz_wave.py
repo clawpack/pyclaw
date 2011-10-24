@@ -289,7 +289,7 @@ def qinit(state,mx,my):
             state.q[3,i,j] = state.q[0,i,j]*Uout[2] 
 
 
-def qbc_lower_y(grid,dim,t,qbc,mbc):
+def qbc_lower_y(state,dim,t,qbc,mbc):
     """
     Impose periodic boundary condition to q at the bottom boundary for the 
     sphere. This function does not work in parallel.
@@ -299,24 +299,25 @@ def qbc_lower_y(grid,dim,t,qbc,mbc):
         qbc[:,:,j] = qbc1D[:,::-1]
 
 
-def qbc_upper_y(grid,dim,t,qbc,mbc):
+def qbc_upper_y(state,dim,t,qbc,mbc):
     """
     Impose periodic boundary condition to q at the top boundary for the sphere.
     This function does not work in parallel.
     """
-    my = grid.ng[1]
+    my = state.grid.ng[1]
     for j in range(mbc):
         qbc1D = np.copy(qbc[:,:,my+mbc-1-j])
         qbc[:,:,my+mbc+j] = qbc1D[:,::-1]
 
 
-def auxbc_lower_y(grid,dim,t,auxbc,mbc):
+def auxbc_lower_y(state,dim,t,auxbc,mbc):
     """
     Impose periodic boundary condition to aux at the bottom boundary for the 
     sphere.
     """
     # Import shared object (.so)
     import problem
+    grid = state.grid
 
     # Get parameters and variables that have to be passed to the fortran src2
     # routine.
@@ -329,13 +330,14 @@ def auxbc_lower_y(grid,dim,t,auxbc,mbc):
     auxtemp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
     auxbc[:,:,:mbc] = auxtemp[:,:,:mbc]
 
-def auxbc_upper_y(grid,dim,t,auxbc,mbc):
+def auxbc_upper_y(state,dim,t,auxbc,mbc):
     """
     Impose periodic boundary condition to aux at the top boundary for the 
     sphere. 
     """
     # Import shared object (.so)
     import problem
+    grid = state.grid
 
     # Get parameters and variables that have to be passed to the fortran src2
     # routine.
