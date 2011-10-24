@@ -507,7 +507,7 @@ class ClawSolver2D(ClawSolver):
         # Number of equations
         meqn,maux,mwaves,mbc,aux = state.meqn,state.maux,self.mwaves,self.mbc,state.aux
 
-        #We ought to put method and cflv and many other things in a Fortran
+        #We ought to put method and many other things in a Fortran
         #module and set the fortran variables directly here.
         self.method =np.empty(7, dtype=int,order='F')
         self.method[0] = self.dt_variable
@@ -521,13 +521,6 @@ class ClawSolver2D(ClawSolver):
         self.method[5] = state.mcapa + 1
         self.method[6] = state.maux
             
-        if self.dim_split:
-            # We should probably interface directly to step2ds (rather than dimsp2)
-            # and avoid the need for cflv
-            self.cflv = np.zeros(4)
-            self.cflv[0:2] = [self.cfl_max,self.cfl_desired]
-            #cflv[2] and cflv[3] are output values.
-
         #The following is a hack to work around an issue
         #with f2py.  It involves wastefully allocating a three arrays.
         #f2py seems not able to handle multiple zero-size arrays being passed.
@@ -589,7 +582,7 @@ class ClawSolver2D(ClawSolver):
             dx,dy,dt = grid.d[0],grid.d[1],self.dt
             
             self.apply_q_bcs(state)
-            qnew = self.qbc #(input/output)
+            qnew = self.qbc
             qold = qnew.copy('F')
             
             if self.fwave:
@@ -597,13 +590,25 @@ class ClawSolver2D(ClawSolver):
             else:
                 import classic2
 
+            #This call seems unnecessary:
             cfl = self.cfl.get_cached_max()
 
             if self.dim_split:
-                q, cfl = classic2.dimsp2(maxm,mx,my,mbc,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl,self.cflv, \
-                      self.aux1,self.aux2,self.aux3,self.work)
+                #Right now only Godunov-dimensional-splitting is implemented.
+                #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
+
+                q, cfl_x = classic2.step2ds(maxm,mx,my,mbc,mx,my, \
+                      qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl, \
+                      self.aux1,self.aux2,self.aux3,self.work,1)
+
+                q, cfl_y = classic2.step2ds(maxm,mx,my,mbc,mx,my, \
+                      q,q,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl, \
+                      self.aux1,self.aux2,self.aux3,self.work,2)
+
+                cfl = max(cfl_x,cfl_y)
+
             else:
+
                 q, cfl = classic2.step2(maxm,mx,my,mbc,mx,my, \
                       qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl, \
                       self.aux1,self.aux2,self.aux3,self.work)
