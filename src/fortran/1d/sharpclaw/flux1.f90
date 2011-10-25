@@ -1,8 +1,11 @@
 ! ===================================================================
-subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
+subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx,upwind)
 ! ===================================================================
 !
 !     # Evaluate (delta t) * dq(t)/dt
+!
+!     This function can handle BOTH UPWIND and DOWNWIND ALGORITHM
+!
 !
 !     SharpClaw
 !     Author: David Ketcheson
@@ -14,26 +17,29 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
 !        e.g. amdq(m,i) = m'th component of A^- \Delta q from i'th Riemann
 !                         problem (between cells i-1 and i).
 !
-!     wave(1-mbc:mx+mbc, meqn, mwaves) = waves from solution of
+!     wave(meqn, mwaves, 1-mbc:mx+mbc) = waves from solution of
 !                                           Riemann problems,
-!            wave(m,mw,i) = mth component of jump in q across
-!                           wave in family mw in Riemann problem between
-!                           states i-1 and i.
+!     wave(m,mw,i) = mth component of jump in q across
+!                    wave in family mw in Riemann problem between
+!                     states i-1 and i.
 !
 !     s(mwaves,1-mbc:mx+mbc) = wave speeds,
-!            s(mw,i) = speed of wave in family mw in Riemann problem between
+!     s(mw,i) = speed of wave in family mw in Riemann problem between
 !                      states i-1 and i.
 !
 !     Note that mx must be the size of the grid for the dimension corresponding
 !     to the value of ixy.
 !
 !     t is the time at which we want to evaluate dq/dt, which may not
-!      be the current simulation time
+!     be the current simulation time
 ! ===================================================================
 !
-! Modified: April 26, 2011
-! Authors:  David Ketcheson
+! Modified: October 25, 2011
+! Authors:  Lulu Liu
 !           Matteo Parsani
+!  
+! Note: The downwind approach is implemented by changing the indicies of amdq
+!       and apdq where dq1d is updated.
 !
 ! ===================================================================
 
@@ -83,6 +89,10 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
                 call tvd2(q1d,ql,qr,mthlim)
             case(1)
                 ! wave-based second order reconstruction
+                ! I THINK THAT SHOULD WE ALSO MODIFY THE SIGN OF THE FULCTUATION HERE
+                ! TO GET THE DOWWIND WENO
+                ! ============================================================
+
                 call rp1(maxnx,meqn,mwaves,mbc,mx,&
                         q1d,q1d,aux,aux,wave,s,amdq,apdq)
                 ! Need to write a tvd2_fwave routine
@@ -152,10 +162,17 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
         ! for equations not in conservation form.  It is conservative if
         ! adq = f(qr(i)) - f(ql(i)).
 
-        forall (i=1:mx, m=1:meqn)
-            dq1d(m,i) = dq1d(m,i) - dtdx(i)*(apdq(m,i) + &
+        if(upwind.gt.0) then
+            forall (i=1:mx, m=1:meqn)
+                dq1d(m,i) = dq1d(m,i) - dtdx(i)*(apdq(m,i) + &
                             amdq2(m,i) + amdq(m,i+1))
-        end forall
+            end forall
+        else 
+            forall (i=1:mx, m=1:meqn)
+                dq1d(m,i) = dq1d(m,i) - dtdx(i)*(apdq(m,i+1) + &
+                            amdq2(m,i) + amdq(m,i))
+            end forall
+        endif
 
     else
         ! Or we can just swap things around and use the usual Riemann solver
@@ -183,11 +200,19 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
         
         call rp1(maxnx,meqn,mwaves,mbc,mx,ql,qr, &
                  auxl,auxr,wave,s,amdq2,apdq2)
-
-        forall(i=1:mx, m=1:meqn)
-            dq1d(m,i) = dq1d(m,i)-dtdx(i)*(amdq(m,i+1)+ &
-                        apdq(m,i)+amdq2(m,i)+apdq2(m,i))
-        end forall
+  
+        if(upwind.gt.0) then
+            forall(i=1:mx, m=1:meqn)
+                dq1d(m,i) = dq1d(m,i)-dtdx(i)*(amdq(m,i+1)+ &
+                            apdq(m,i)+amdq2(m,i)+apdq2(m,i))
+            end forall
+        else
+            forall(i=1:mx, m=1:meqn)
+                dq1d(m,i) = dq1d(m,i)-dtdx(i)*(amdq(m,i)+ &
+                            apdq(m,i+1)+amdq2(m,i)+apdq2(m,i))
+            end forall
+        endif
     endif
 
 end subroutine flux1
+

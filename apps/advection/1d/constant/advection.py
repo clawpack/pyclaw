@@ -35,12 +35,12 @@ def advection(kernel_language='Fortran',iplot=False,htmlplot=False,use_petsc=Fal
     solver.mthbc_lower[0] = 2
     solver.mthbc_upper[0] = 2
 
+    # Time integrator
+    solver.time_integrator='DWSSP105'
     solver.dt_initial = 0.1
     solver.cfl_max = 0.4
     solver.cfl_desired = 0.3
-    # Set SSPRK43
-    #solver.time_integrator='SSP43'
-    solver.time_integrator='Exdwrk105'
+
 
     #===========================================================================
     # Initialize grids and then initialize the solution associated to the grid
@@ -62,7 +62,7 @@ def advection(kernel_language='Fortran',iplot=False,htmlplot=False,use_petsc=Fal
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir
-    claw.tfinal =1.0
+    claw.tfinal = 1.0
    
     #===========================================================================
     # Solve the problem

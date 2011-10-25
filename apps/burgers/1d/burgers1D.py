@@ -21,14 +21,22 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
     else:
         solver = pyclaw.ClawSolver1D()
 
+    # Which kernel to use for the Riemann solver
     solver.kernel_language = kernel_language
+    
     if kernel_language=='Python': 
         solver.set_riemann_solver('burgers')
+
     solver.mwaves = 1
     solver.limiters = pyclaw.limiters.tvd.vanleer
     solver.mthbc_lower[0] = pyclaw.BC.periodic
     solver.mthbc_upper[0] = pyclaw.BC.periodic
-    solver.time_integrator='Exdwrk105'
+
+    # Time integrator
+    solver.time_integrator='FE'
+    solver.cfl_max = 0.6
+    solver.cfl_desired = 0.55
+
 
     #===========================================================================
     # Initialize grids and then initialize the solution associated to the grid
@@ -41,6 +49,7 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
     xc=grid.x.center
     state.q[0,:] = np.sin(np.pi*2*xc) + 0.50
     state.aux_global['efix']=True
+
 
     #===========================================================================
     # Setup controller and controller parameters. Then solve the problem
