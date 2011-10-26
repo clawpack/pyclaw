@@ -148,7 +148,8 @@ class SharpClawSolver(Solver):
         # Check here if we violated the CFL condition, if we did, return 
         # immediately to evolve_to_time and let it deal with picking a new
         # dt
-        if self.cfl.get_cached_max() >= self.cfl_max:
+        if self.cfl.get_cached_max() > self.cfl_max:
+            print 'Should reject'
             raise CFLError('cfl_max exceeded')
 
         if self.dq_src is not None:
