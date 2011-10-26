@@ -218,6 +218,7 @@ class Controller(object):
             self.frames = []
                     
         self.solver.setup(self.solution)
+        self.solver.dt = self.solver.dt_initial
             
         self.check_validity()
 
@@ -235,10 +236,13 @@ class Controller(object):
         else:
             raise Exception("Invalid output style %s" % self.outstyle)  
          
-        # Output and save initial time
+        # Output and save initial frame
         if self.keep_copy:
             self.frames.append(copy.deepcopy(self.solution))
         if self.output_format is not None:
+            if os.path.exists(self.outdir) and self.overwrite==False:
+                raise Exception("Refusing to overwrite existing output data. \
+                 \nEither delete/move the directory or set controller.overwrite=True.")
             if self.compute_p is not None:
                 self.compute_p(self.solution.state)
                 self.solution.write(frame,self.outdir_p,
@@ -398,20 +402,20 @@ class Controller(object):
                                     value=self.solution.dimensions[2].upper)
         
         claw_data.add_attribute('mbc',value=self.solution.mbc)
-        claw_data.add_attribute('mthbc_xlower',
-                                value=self.solution.dimensions[0].mthbc_lower)
-        claw_data.add_attribute('mthbc_xupper',
-                                value=self.solution.dimensions[0].mthbc_upper)
+        claw_data.add_attribute('bc_xlower',
+                                value=self.solution.dimensions[0].bc_lower)
+        claw_data.add_attribute('bc_xupper',
+                                value=self.solution.dimensions[0].bc_upper)
         if claw_data.ndim > 1:
-            claw_data.add_attribute('mthbc_ylower',
-                                value=self.solution.dimensions[1].mthbc_lower)
-            claw_data.add_attribute('mthbc_yupper',
-                                value=self.solution.dimensions[1].mthbc_upper)
+            claw_data.add_attribute('bc_ylower',
+                                value=self.solution.dimensions[1].bc_lower)
+            claw_data.add_attribute('bc_yupper',
+                                value=self.solution.dimensions[1].bc_upper)
         if claw_data.ndim > 2:
-            claw_data.add_attribute('mthbc_zlower',
-                                value=self.solution.dimensions[2].mthbc_lower)
-            claw_data.add_attribute('mthbc_zupper',
-                                value=self.solution.dimensions[2].mthbc_upper) 
+            claw_data.add_attribute('bc_zlower',
+                                value=self.solution.dimensions[2].bc_lower)
+            claw_data.add_attribute('bc_zupper',
+                                value=self.solution.dimensions[2].bc_upper) 
             
         if claw_path is not None:
             # Write out this data object

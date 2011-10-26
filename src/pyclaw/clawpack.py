@@ -43,9 +43,9 @@ class ClawSolver(Solver):
     
     .. attribute:: src_split
     
-        Whether to use a source splitting method, 0 for none, 1 for first 
+        Which source splitting method to use: 1 for first 
         order Godunov splitting and 2 for second order Strang splitting.
-        ``Default = 0``
+        ``Default = 1``
         
     .. attribute:: fwave
     
@@ -53,12 +53,12 @@ class ClawSolver(Solver):
         requires that the Riemann solver performs the splitting.  
         ``Default = False``
         
-    .. attribute:: src
+    .. attribute:: step_src
     
         Handle for function that evaluates the source term.  
         The required signature for this function is:
 
-        def src(solver,solution,t,dt)
+        def step_src(solver,state,dt)
     
     .. attribute:: start_step
     
@@ -92,19 +92,21 @@ class ClawSolver(Solver):
         """
         
         # Required attributes for this solver
-        for attr in ['limiters','order','src_split','fwave','src','start_step']:
+        for attr in ['limiters','order','src_split','fwave','step_src','start_step']:
             self._required_attrs.append(attr)
         
         # Default required attributes
         self._default_attr_values['mbc'] = 2
         self._default_attr_values['limiters'] = limiters.tvd.minmod
         self._default_attr_values['order'] = 2
-        self._default_attr_values['src_split'] = 0
+        self._default_attr_values['src_split'] = 1
         self._default_attr_values['fwave'] = False
-        self._default_attr_values['src'] = None
+        self._default_attr_values['step_src'] = None
         self._default_attr_values['start_step'] = None
         self._default_attr_values['kernel_language'] = 'Fortran'
         self._default_attr_values['verbosity'] = 0
+        self._default_attr_values['cfl_max'] = 1.0
+        self._default_attr_values['cfl_desired'] = 0.9
 
         # Call general initialization function
         super(ClawSolver,self).__init__(data)
@@ -118,13 +120,13 @@ class ClawSolver(Solver):
         
         1. The :meth:`start_step` function is called
         
-        2. A half step on the source term :func:`src` if Strang splitting is 
+        2. A half step on the source term :func:`step_src` if Strang splitting is 
            being used (:attr:`src_split` = 2)
         
         3. A step on the homogeneous problem :math:`q_t + f(q)_x = 0` is taken
         
         4. A second half step or a full step is taken on the source term
-           :func:`src` depending on whether Strang splitting was used 
+           :func:`step_src` depending on whether Strang splitting was used 
            (:attr:`src_split` = 2) or Godunov splitting 
            (:attr:`src_split` = 1)
 
@@ -141,28 +143,29 @@ class ClawSolver(Solver):
         if self.start_step is not None:
             self.start_step(self,solution)
 
-        if self.src_split == 2:
-            self.src(self,solution,solution.t, self.dt/2.0)
+        if self.src_split == 2 and self.step_src is not None:
+            self.step_src(self,solution.states[0],self.dt/2.0)
     
-        self.homogeneous_step(solution)
+        self.step_hyperbolic(solution)
 
-        # Check here if we violated the CFL condition, if we did, return 
-        # immediately to evolve_to_time and let it deal with picking a new
-        # dt
+        # Check here if the CFL condition is satisfied. 
+        # If not, return # immediately to evolve_to_time and let it deal with
+        # picking a new step size (dt).
         if self.cfl.get_cached_max() >= self.cfl_max:
             return False
 
-        # Strang splitting
-        if self.src_split == 2:
-            self.src(self,solution,solution.t + self.dt/2.0, self.dt/2.0)
+        if self.step_src is not None:
+            # Strang splitting
+            if self.src_split == 2:
+                self.step_src(self,solution.states[0],self.dt/2.0)
 
-        # Godunov Splitting
-        if self.src_split == 1:
-            self.src(self,solution,solution.t,self.dt)
-            
+            # Godunov Splitting
+            if self.src_split == 1:
+                self.step_src(self,solution.states[0],self.dt)
+                
         return True
             
-    def homogeneous_step(self,solution):
+    def step_hyperbolic(self,solution):
         r"""
         Take one homogeneous step on the solution.
         
@@ -190,7 +193,7 @@ class ClawSolver1D(ClawSolver):
     
     This class represents the 1d clawpack solver on a single grid.  Note that 
     there are routines here for interfacing with the fortran time stepping 
-    routines and the python time stepping routines.  The ones used are 
+    routines and the Python time stepping routines.  The ones used are 
     dependent on the argument given to the initialization of the solver 
     (defaults to python).
     
@@ -248,7 +251,7 @@ class ClawSolver1D(ClawSolver):
         self.method[1] = self.order 
         self.method[2] = 0  # Not used in 1D
         self.method[3] = self.verbosity
-        self.method[4] = self.src_split
+        self.method[4] = 0  # Not used for PyClaw (would be self.src_split)
         self.method[5] = state.mcapa + 1
         self.method[6] = state.maux  # aux
  
@@ -271,7 +274,7 @@ class ClawSolver1D(ClawSolver):
 
 
     # ========== Homogeneous Step =====================================
-    def homogeneous_step(self,solution):
+    def step_hyperbolic(self,solution):
         r"""
         Take one time step on the homogeneous hyperbolic system.
 
@@ -284,7 +287,7 @@ class ClawSolver1D(ClawSolver):
         state = solution.states[0]
         grid = state.grid
 
-        q = self.qbc
+        self.apply_q_bcs(state)
             
         meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
           
@@ -298,10 +301,11 @@ class ClawSolver1D(ClawSolver):
             dx,dt = grid.d[0],self.dt
             dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
             
-            q,cfl = classic1.step1(mx,mbc,mx,q,self.auxbc,dx,dt,self.method,self.mthlim)
+            self.qbc,cfl = classic1.step1(mx,mbc,mx,self.qbc,self.auxbc,dx,dt,self.method,self.mthlim)
             
         elif(self.kernel_language == 'Python'):
  
+            q   = self.qbc
             aux = self.auxbc
             # Limiter to use in the pth family
             limiter = np.array(self.mthlim,ndmin=1)  
@@ -378,10 +382,9 @@ class ClawSolver1D(ClawSolver):
                     q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1]) 
 
         else: raise Exception("Unrecognized kernel_language; choose 'Fortran' or 'Python'")
-        # Amal: this line need to be replaced by set_global_q    
 
-        state.q = q[:,self.mbc:-self.mbc]
         self.cfl.update_global_max(cfl)
+        state.set_q_from_qbc(mbc,self.qbc)
    
 
 # ============================================================================
@@ -472,6 +475,7 @@ class ClawSolver2D(ClawSolver):
         if self.cfl_max > cfl_recommended:
             import warnings
             warnings.warn('cfl_max is set higher than the recommended value of %s' % cfl_recommended)
+            warnings.warn(str(self.cfl_desired))
 
         if(self.kernel_language == 'Fortran'):
             self.set_fortran_parameters(solution)
@@ -513,7 +517,7 @@ class ClawSolver2D(ClawSolver):
         else:
             self.method[2] = self.order_trans
         self.method[3] = self.verbosity
-        self.method[4] = self.src_split  # src term
+        self.method[4] = 0  # Not used for PyClaw (would be self.src_split)
         self.method[5] = state.mcapa + 1
         self.method[6] = state.maux
             
@@ -563,8 +567,8 @@ class ClawSolver2D(ClawSolver):
             del classic2
 
 
-    # ========== Homogeneous Step =====================================
-    def homogeneous_step(self,solution):
+    # ========== Hyperbolic Step =====================================
+    def step_hyperbolic(self,solution):
         r"""
         Take a step on the homogeneous hyperbolic system using the Clawpack
         algorithm.
@@ -586,13 +590,7 @@ class ClawSolver2D(ClawSolver):
             
             self.apply_q_bcs(state)
             qnew = self.qbc #(input/output)
-            if self.dt_variable:
-                qold = self.qbc_backup # Solver should quarantee that 
-                                        # qbc_backup will not be
-                                        # changed so that it can be used in
-                                        # case of step rejection.
-            else:
-                qold = qnew.copy('F')
+            qold = qnew.copy('F')
             
             if self.fwave:
                 import classic2fw as classic2
@@ -614,4 +612,4 @@ class ClawSolver2D(ClawSolver):
             state.set_q_from_qbc(mbc,self.qbc)
 
         else:
-            raise NotImplementedError("No python implementation for homogeneous_step in case of 2D.")
+            raise NotImplementedError("No python implementation for step_hyperbolic in case of 2D.")

@@ -46,7 +46,7 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
     xmin = 0.0
     xmax = 1.0
     ncells = kwargs.get('ncells',100)
-    x = Dimension('x',xmin,xmax,ncells,mthbc_lower=2,mthbc_upper=2)
+    x = Dimension('x',xmin,xmax,ncells,bc_lower=2,bc_upper=2)
     grid = Grid(x)
     rho = 1.0
     bulk = 1.0

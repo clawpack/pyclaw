@@ -32,8 +32,8 @@ def advection(kernel_language='Fortran',iplot=False,htmlplot=False,use_petsc=Fal
     if solver.kernel_language=='Python': 
         solver.rp = rp_advection.rp_advection_1d
 
-    solver.mthbc_lower[0] = 2
-    solver.mthbc_upper[0] = 2
+    solver.bc_lower[0] = 2
+    solver.bc_upper[0] = 2
 
     # Time integrator
     solver.time_integrator='DWSSP105'

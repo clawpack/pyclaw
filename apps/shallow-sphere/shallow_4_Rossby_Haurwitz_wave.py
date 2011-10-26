@@ -2,43 +2,59 @@
 # encoding: utf-8
 
 """
-2D shallow water equations on a spherical surface.
-The approximation of the three-dimensional equations
-is restricted to the surface of the sphere.
+2D shallow water equations on a spherical surface. The approximation of the 
+three-dimensional equations is restricted to the surface of the sphere. 
+Therefore only the solution on the surface is updated. 
+
+Reference: Logically Rectangular Grids and Finite Volume Methods for PDEs in 
+           Circular and Spherical Domains. 
+           By Donna A. Calhoun, Christiane Helzel, and Randall J. LeVeque
+           SIAM Review 50 (2008), 723-752. 
 """
 
+# Import library
+# ==============
 import numpy as np
-from petclaw import plot
-import matplotlib.pyplot as plt
-#import pdb  # Debugger
+
+from numpy import *
+
+
+# Parameters used by the following routines
+# =========================================
 
 # Nondimensionalized radius of the earth
 Rsphere = 1.0
 
-def fortran_src_wrapper(solver,solution,t,dt):
-    """
-    Wraps Fortran src2.f routine.
-    """
 
-    grid = solution.grid
-    state = solution.state
+def fortran_src_wrapper(solver,state,dt):
+    """
+    Wraps Fortran src2.f routine. 
+    src2.f contains the discretization of the source term.
+    """
+    # Some simplifications
+    grid = state.grid
 
-    mx,my = grid.ng[0], grid.ng[1]
+    # Get parameters and variables that have to be passed to the fortran src2
+    # routine.
+    mx, my = grid.ng[0], grid.ng[1]
     meqn = state.meqn
     mbc = solver.mbc
-    xlower,ylower = grid.lower[0], grid.lower[1]
-    dx,dy = grid.d[0],grid.d[1]
+    xlowerg, ylowerg = grid.lowerg[0], grid.lowerg[1]
+    dx, dy = grid.d[0], grid.d[1]
     q = state.q
     maux = state.maux
     aux = state.aux
+    t = state.t
 
+    # Call src2 function
     import problem
-    problem.src2(mx,my,mbc,mx,my,xlower,ylower,dx,dy,q,aux,t,dt)
+    state.q = problem.src2(mx,my,mbc,xlowerg,ylowerg,dx,dy,q,aux,t,dt,Rsphere)
+
 
 def mapc2p_sphere_nonvectorized(grid,mC):
     """
     Maps to points on a sphere of radius Rsphere. Nonvectorized version (slow).
-
+    
     Takes as input: array_list made by x_coordinates, y_ccordinates in the map 
                     space.
 
@@ -50,14 +66,14 @@ def mapc2p_sphere_nonvectorized(grid,mC):
 
     Output: pC = list composed by three arrays
                  [array ([xp1, xp2, ...]), array([yp1, yp2, ...]), array([zp1, zp2, ...])]
-    """  
 
-    # Radius of the sphere
-    r1 = Rsphere
-    
-    # Number of cell in x and y directions. (x,y) c
-    mx = grid.ng[0]
-    my = grid.ng[1]
+    NOTE: this function is not used in the standard script.
+    """  
+    # Import library            
+    import math
+
+    # Get number of cells in both directions
+    mx, my = grid.ng[0], grid.ng[1]
 
     # Define new list of numpy array, pC = physical coordinates
     pC = []
@@ -90,7 +106,6 @@ def mapc2p_sphere_nonvectorized(grid,mC):
             else:
                 sgnz = 1.0
 
-            import math
             sgnxc = math.copysign(1.0,xc)
             sgnyc = math.copysign(1.0,yc)
 
@@ -98,8 +113,8 @@ def mapc2p_sphere_nonvectorized(grid,mC):
             yc1 = np.abs(yc)
             d = np.maximum(np.maximum(xc1,yc1), 1.0e-10)     
 
-            DD = r1*d*(2.0 - d) / np.sqrt(2.0)
-            R = r1
+            DD = Rsphere*d*(2.0 - d) / np.sqrt(2.0)
+            R = Rsphere
             center = DD - np.sqrt(np.maximum(R**2 - DD**2, 0.0))
             
             xp = DD/d * xc1
@@ -111,13 +126,12 @@ def mapc2p_sphere_nonvectorized(grid,mC):
                 xp = center + np.sqrt(np.maximum(R**2 - yp**2, 0.0))
 
             # Compute physical coordinates
-            zp = np.sqrt(np.maximum(r1**2 - (xp**2 + yp**2), 0.0))
+            zp = np.sqrt(np.maximum(Rsphere**2 - (xp**2 + yp**2), 0.0))
             pC.append(xp*sgnxc)
             pC.append(yp*sgnyc)
             pC.append(zp*sgnz)
 
     return pC
-
 
 
 def mapc2p_sphere_vectorized(grid,mC):
@@ -135,26 +149,24 @@ def mapc2p_sphere_vectorized(grid,mC):
 
     Output: pC = list composed by three arrays
                  [array ([xp1, xp2, ...]), array([yp1, yp2, ...]), array([zp1, zp2, ...])]
+
+    NOTE: this function is used in the standard script.
     """
 
-    # Nondimensionalized radius of the earth
-    r1 = Rsphere;
-
-    # Number of cell in x and y directions. (x,y) c
-    mx = grid.ng[0]
-    my = grid.ng[1]
-
+    # Get number of cells in both directions
+    mx, my = grid.ng[0], grid.ng[1]
+    
+    # 2D array useful for the vectorization of the function
     sgnz = np.ones((mx,my))
 
     # 2D coordinates in the computational domain
-    ############################################
     xc = mC[0][:][:]
     yc = mC[1][:][:]
 
+    # Compute 3D coordinates in the physical domain
+    # =============================================
 
-    # 3D coordinates in the physical domain
-    #######################################
-    # yc < -1 => second copy of sphere:
+    # Note: yc < -1 => second copy of sphere:
     ij2 = np.where(yc < -1.0)
     xc[ij2] = -xc[ij2] - 2.0;
     yc[ij2] = -yc[ij2] - 2.0;
@@ -166,8 +178,8 @@ def mapc2p_sphere_vectorized(grid,mC):
     yc1 = np.abs(yc)
     d = np.maximum(xc1,yc1)
     d = np.maximum(d, 1e-10)
-    D = r1*d*(2-d) / np.sqrt(2)
-    R = r1*np.ones((np.shape(d)))
+    D = Rsphere*d*(2-d) / np.sqrt(2)
+    R = Rsphere*np.ones((np.shape(d)))
 
     center = D - np.sqrt(R**2 - D**2)
     xp = D/d * xc1
@@ -183,7 +195,7 @@ def mapc2p_sphere_vectorized(grid,mC):
 
     xp = np.sign(xc) * xp
     yp = np.sign(yc) * yp
-    zp = sgnz * np.sqrt(r1**2 - (xp**2 + yp**2))
+    zp = sgnz * np.sqrt(Rsphere**2 - (xp**2 + yp**2))
     
     pC.append(xp)
     pC.append(yp)
@@ -194,15 +206,18 @@ def mapc2p_sphere_vectorized(grid,mC):
 
 def qinit(state,mx,my):
     r"""
-    Initialize data with 4-Rossby-Haurwitz wave.
+    Initialize solution with 4-Rossby-Haurwitz wave.
+
+    NOTE: this function is not used in the standard script.
     """
     # Parameters
-    a = 6.37122e6     # Radius of the earth 
-    K = 7.848e-6   
+    a = 6.37122e6     # Radius of the earth
     Omega = 7.292e-5  # Rotation rate
     G = 9.80616       # Gravitational acceleration
+
+    K = 7.848e-6   
     t0 = 86400.0     
-    h0 = 8.e3        
+    h0 = 8.e3         # Minimum fluid height at the poles        
     R = 4.0
 
     # Compute the the physical coordinates of the cells' centers
@@ -221,7 +236,7 @@ def qinit(state,mx,my):
             elif (xp <= 0.0 and yp >= 0.0):
                 theta = np.pi - np.arcsin(yp/rad)
             elif (xp <= 0.0 and yp <= 0.0):
-                 theta = -pi + np.arcsin(-yp/rad)
+                 theta = -np.pi + np.arcsin(-yp/rad)
             elif (xp >= 0.0 and yp <= 0.0):
                 theta = -np.arcsin(-yp/rad)
 
@@ -246,7 +261,7 @@ def qinit(state,mx,my):
 
 
             # Calculate local longitude-latitude velocity vector
-            ####################################################
+            # ==================================================
             Uin = np.zeros(3)
 
             # Longitude (angular) velocity component
@@ -261,14 +276,15 @@ def qinit(state,mx,my):
             
 
             # Calculate velocity vetor in cartesian coordinates
-            ###################################################
+            # =================================================
             Uout = np.zeros(3)
 
             Uout[0] = (-np.sin(xp)*Uin[0]-np.sin(yp)*np.cos(xp)*Uin[1])
             Uout[1] = (np.cos(xp)*Uin[0]-np.sin(yp)*np.sin(xp)*Uin[1])
             Uout[2] = np.cos(yp)*Uin[1]
 
-            # Set the initial condition             
+            # Set the initial condition
+            # =========================
             state.q[0,i,j] =  h0/a + (a/G)*( bigA + bigB*np.cos(R*xp) + \
                               bigC*np.cos(2.0*R*xp))
             state.q[1,i,j] = state.q[0,i,j]*Uout[0] 
@@ -276,108 +292,104 @@ def qinit(state,mx,my):
             state.q[3,i,j] = state.q[0,i,j]*Uout[2] 
 
 
-def qbc_lower_y(grid,dim,t,qbc,mbc):
+def qbc_lower_y(state,dim,t,qbc,mbc):
     """
     Impose periodic boundary condition to q at the bottom boundary for the 
-    sphere. This function is vectorized.
+    sphere. This function does not work in parallel.
     """
-    if dim == grid.dimensions[1]:
-        for j in range(mbc):
-            qbc1D = qbc[:,:,2*mbc-1-j]
-            qbc[:,:,j] = qbc1D[:,::-1]
-    else:
-        raise Exception('Aux custum BC for this boundary is not appropriate!')
+    for j in range(mbc):
+        qbc1D = np.copy(qbc[:,:,2*mbc-1-j])
+        qbc[:,:,j] = qbc1D[:,::-1]
 
 
-
-def qbc_upper_y(grid,dim,t,qbc,mbc):
+def qbc_upper_y(state,dim,t,qbc,mbc):
     """
     Impose periodic boundary condition to q at the top boundary for the sphere.
-    This function is vectorized.
+    This function does not work in parallel.
     """
-    if dim == grid.dimensions[1]:
-        my = grid.ng[1]
-        for j in range(mbc):
-            qbc1D = qbc[:,:,my+mbc-1-j]
-            qbc[:,:,my+mbc+j] = qbc1D[:,::-1]
-    else:
-        raise Exception('Custum BC for this boundary is not appropriate!')
+    my = state.grid.ng[1]
+    for j in range(mbc):
+        qbc1D = np.copy(qbc[:,:,my+mbc-1-j])
+        qbc[:,:,my+mbc+j] = qbc1D[:,::-1]
 
 
-
-def auxbc_lower_y(grid,dim,t,auxbc,mbc):
+def auxbc_lower_y(state,dim,t,auxbc,mbc):
     """
     Impose periodic boundary condition to aux at the bottom boundary for the 
-    sphere. This function is vectorized.
+    sphere.
     """
-    if dim == grid.dimensions[1]:
-        for j in range(mbc):
-            auxbc1D = auxbc[:,:,2*mbc-1-j]
-            auxbc[:,:,j] = auxbc1D[:,::-1]
-    else:
-        raise Exception('Aux custum BC for this boundary is not appropriate!')
+    # Import shared object (.so)
+    import problem
+    grid=state.grid
 
+    # Get parameters and variables that have to be passed to the fortran src2
+    # routine.
+    mx, my = grid.ng[0], grid.ng[1]
+    xlower, ylower = grid.lower[0], grid.lower[1]
+    dx, dy = grid.d[0],grid.d[1]
 
+    # Impose BC
+    auxtemp = auxbc.copy()
+    auxtemp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
+    auxbc[:,:,:mbc] = auxtemp[:,:,:mbc]
 
-def auxbc_upper_y(grid,dim,t,auxbc,mbc):
+def auxbc_upper_y(state,dim,t,auxbc,mbc):
     """
     Impose periodic boundary condition to aux at the top boundary for the 
-    sphere. This function is vectorized.
+    sphere. 
     """
-    if dim == grid.dimensions[1]:
-        my = grid.ng[1]
-        for j in range(mbc):
-            auxbc1D = auxbc[:,:,my+mbc-1-j]
-            auxbc[:,:,my+mbc+j] = auxbc1D[:,::-1]
-    else:
-        raise Exception('Aux custum BC for this boundary is not appropriate!')
+    # Import shared object (.so)
+    import problem
+    grid=state.grid
+
+    # Get parameters and variables that have to be passed to the fortran src2
+    # routine.
+    mx, my = grid.ng[0], grid.ng[1]
+    xlower, ylower = grid.lower[0], grid.lower[1]
+    dx, dy = grid.d[0],grid.d[1]
+    
+    # Impose BC
+    auxtemp = auxbc.copy()
+    auxtemp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
+    auxbc[:,:,-mbc:] = auxtemp[:,:,-mbc:]
 
 
+def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
 
-def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
-    #===========================================================================
-    # Import libraries
-    #===========================================================================
-    if use_petsc:
-        import petclaw as pyclaw
-    else:
-        import pyclaw
+    # Import pyclaw module
+    import pyclaw
 
     #===========================================================================
-    # Setup solver and solver parameters
+    # Set up solver and solver parameters
     #===========================================================================
-    if solver_type == 'classic':
-        solver = pyclaw.ClawSolver2D()
-    elif solver_type == 'sharpclaw':
-        solver = pyclaw.SharpClawSolver2D()
+    solver = pyclaw.ClawSolver2D()
 
     # Set boundary conditions
     # =======================
-    solver.mthbc_lower[0] = pyclaw.BC.periodic
-    solver.mthbc_upper[0] = pyclaw.BC.periodic
-    solver.mthbc_lower[1] = pyclaw.BC.custom
-    solver.mthbc_upper[1] = pyclaw.BC.custom
+
+    # Conserved variables
+    solver.bc_lower[0] = pyclaw.BC.periodic
+    solver.bc_upper[0] = pyclaw.BC.periodic
+    solver.bc_lower[1] = pyclaw.BC.custom  # Custom BC for sphere
+    solver.bc_upper[1] = pyclaw.BC.custom  # Custom BC for sphere
 
     solver.user_bc_lower = qbc_lower_y
     solver.user_bc_upper = qbc_upper_y
 
-    solver.mthauxbc_lower[0] = pyclaw.BC.periodic
-    solver.mthauxbc_upper[0] = pyclaw.BC.periodic
-    solver.mthauxbc_lower[1] = pyclaw.BC.custom
-    solver.mthauxbc_upper[1] = pyclaw.BC.custom
+    # Auxiliary array
+    solver.aux_bc_lower[0] = pyclaw.BC.periodic
+    solver.aux_bc_upper[0] = pyclaw.BC.periodic
+    solver.aux_bc_lower[1] = pyclaw.BC.custom  # Custom BC for sphere
+    solver.aux_bc_upper[1] = pyclaw.BC.custom  # Custom BC for sphere
 
     solver.user_aux_bc_lower = auxbc_lower_y
     solver.user_aux_bc_upper = auxbc_upper_y
 
 
-    # Order of the solver.
-    # ====================
-    solver.order = 2
-
     # Dimensional splitting ?
     # =======================
     solver.dim_split = 0
-    
+ 
     # Transverse increment waves and transverse correction waves are computed 
     # and propagated.
     # =======================================================================
@@ -387,18 +399,16 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # ========================================
     solver.mwaves = 3
 
+    # Use source splitting method
+    # ===========================
+    solver.src_split = 2
+
     # Set source function
     # ===================
-    solver.src = fortran_src_wrapper
+    solver.step_src = fortran_src_wrapper
 
-    # Set time stepping parameters
-    # ============================
-    solver.dt_initial = 0.1
-    solver.cfl_max = 1.0
-    solver.cfl_desired = 0.9
-
-    # Set the same limiter for the mwaves waves. 
-    # ==========================================
+    # Set the limiter for the waves
+    # =============================
     solver.limiters = pyclaw.limiters.tvd.MC
 
 
@@ -410,11 +420,23 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     # ====
     xlower = -3.0
     xupper = 1.0
-    mx = 10
+    mx = 200
 
     ylower = -1.0
     yupper = 1.0
-    my = 5
+    my = 100
+
+    # Check whether or not the even number of cells are used in in both 
+    # directions. If odd numbers are used a message is print at screen and the 
+    # simulation is interrputed.
+    if(mx % 2 != 0 or my % 2 != 0):
+        import sys
+        message = 'Please, use even numbers of cells in both direction. ' \
+                  'Only even numbers allow to impose correctly the boundary ' \
+                  'conditions!'
+        print message
+        sys.exit(0)
+
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
@@ -422,58 +444,48 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     dx = grid.d[0]
     dy = grid.d[1]
 
+    # Define some parameters used in classic2 
+    import classic2
+    classic2.comxyt.dxcom = dx
+    classic2.comxyt.dycom = dy
+    classic2.sw.g = 11489.57219  
+
     # Override default mapc2p function
     # ================================
     grid.mapc2p = mapc2p_sphere_vectorized
-    
+        
     # Define state object
     # ===================
     meqn = 4  # Number of equations
     maux = 16 # Number of auxiliary variables
     state = pyclaw.State(grid,meqn,maux)
 
+
     # Set auxiliary variables
     # =======================
     import problem
+    
+    # Get lower left corner coordinates 
+    xlowerg,ylowerg = grid.lowerg[0],grid.lowerg[1]
 
-    # 1) Call to simplified Fortran function
-    state.aux = problem.setaux(xlower,ylower,dx,dy,state.aux,Rsphere)
-
-    # 2) Call to original Fortran function
-    # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
-    # THIS OPTION WILL BE REMOVED SOON.
-    #mbc = 2
-    #auxtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*maux
-    #auxtmp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
-    #state.aux[:,:,:] = auxtmp[:,2:mx+mbc,2:my+mbc]
+    mbc = 2
+    auxtmp = np.ndarray(shape=(maux,mx+2*mbc,my+2*mbc), dtype=float, order='F')
+    auxtmp = problem.setaux(mx,my,mbc,mx,my,xlowerg,ylowerg,dx,dy,auxtmp,Rsphere)
+    state.aux[:,:,:] = auxtmp[:,mbc:-mbc,mbc:-mbc]
 
     # Set index for capa
     state.mcapa = 0
 
-    # Set initial condition for q
-    #############################
-    # 1) Call to simplified Fortran function
-    state.q = problem.qinit(xlower,ylower,dx,dy,state.q,state.aux,Rsphere)
+    # Set initial conditions
+    # ====================== 
+    # 1) Call fortran function
+    qtmp = np.ndarray(shape=(meqn,mx+2*mbc,my+2*mbc), dtype=float, order='F')
+    qtmp = problem.qinit(mx,my,mbc,mx,my,xlowerg,ylowerg,dx,dy,qtmp,auxtmp,Rsphere)
+    state.q[:,:,:] = qtmp[:,mbc:-mbc,mbc:-mbc]
 
-
-    # 2) Call to original Fortran function
-    # TO USE THIS ONE: RECNAME qinitOrig.f to qinit.f and recompile (make)
-    # THIS OPTION WILL BE REMOVED SOON.
-    #mbc = 2
-    #qtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*meqn
-    #auxtmp = [np.zeros((mx+2*mbc,my+2*mbc))]*maux
-    #qtmp = problem.qinit(mx,my,mbc,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
-    #state.q[:,:,:] = qtmp[:,2:mx+mbc,2:my+mbc]
-
-    # 3) call to python function define above
+    # 2) call python function define above
     #qinit(state,mx,my)
 
-    # Plot initial solution in the computational domain
-    #x = state.grid.x.center
-    #y = state.grid.y.center
-    #Y,X = np.meshgrid(y,x)
-    #plt.contour(X,Y,state.q[0,...])
-    #plt.show()
 
     #===========================================================================
     # Set up controller and controller parameters
@@ -481,8 +493,8 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
     claw = pyclaw.Controller()
     claw.keep_copy = False
     claw.outstyle = 1
-    claw.nout = 24
-    claw.tfinal = 1
+    claw.nout = 10
+    claw.tfinal = 10
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir
@@ -501,12 +513,5 @@ def shallow_sphere(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',sol
 
 if __name__=="__main__":
     from pyclaw.util import run_app_from_main
-    output = run_app_from_main(shallow_sphere)
+    output = run_app_from_main(shallow_4_Rossby_Haurwitz)
     print 'Error: ',output
-
-
-
-
-
-
-

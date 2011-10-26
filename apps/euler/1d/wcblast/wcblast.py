@@ -24,8 +24,8 @@ def wcblast(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver
         solver = pyclaw.ClawSolver1D()
 
     solver.mwaves = 3
-    solver.mthbc_lower[0]=pyclaw.BC.reflecting
-    solver.mthbc_upper[0]=pyclaw.BC.reflecting
+    solver.bc_lower[0]=pyclaw.BC.reflecting
+    solver.bc_upper[0]=pyclaw.BC.reflecting
 
     # Initialize grid
     mx=500;

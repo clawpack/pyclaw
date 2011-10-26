@@ -14,7 +14,7 @@ def qinit(state,ic=2,a2=1.0,xupper=600.):
         state.q[1,:] = 0.
 
 
-def setaux(x,rhoB=4,KB=4,rhoA=1,KA=1,alpha=0.5,xlower=0.,xupper=600.,mthbc=2):
+def setaux(x,rhoB=4,KB=4,rhoA=1,KA=1,alpha=0.5,xlower=0.,xupper=600.,bc=2):
     aux = np.empty([3,len(x)],order='F')
     xfrac = x-np.floor(x)
     #Density:
@@ -38,9 +38,9 @@ def b4step(solver,solution):
             print 'WARNING: trtime is '+str(state.aux_global['trtime'])+\
                 ' but velocities reversed at time '+str(state.t)
     #Change to periodic BCs after initial pulse 
-    if state.t>5*state.aux_global['tw1'] and solver.mthbc_lower[0]==0:
-        solver.mthbc_lower[0]=2
-        solver.mthbc_upper[0]=2
+    if state.t>5*state.aux_global['tw1'] and solver.bc_lower[0]==0:
+        solver.bc_lower[0]=2
+        solver.bc_upper[0]=2
 
 
 def zero_bc(grid,dim,t,qbc,mbc):
@@ -51,7 +51,7 @@ def zero_bc(grid,dim,t,qbc,mbc):
 
 def moving_wall_bc(grid,dim,t,qbc,mbc):
     """Initial pulse generated at left boundary by prescribed motion"""
-    if dim.mthbc_lower==0:
+    if dim.bc_lower==0:
         if dim.nstart==0:
            qbc[0,:mbc]=qbc[0,mbc] 
            t=state.t; t1=state.aux_global['t1']; tw1=state.aux_global['tw1']
@@ -88,12 +88,12 @@ def stegoton(use_petsc=1,kernel_language='Fortran',solver_type='classic',iplot=0
 
     solver.kernel_language = kernel_language
     if kernel_language=='Python': solver.set_riemann_solver('nonlinear_elasticity')
-    solver.mthbc_lower[0] = pyclaw.BC.periodic
-    solver.mthbc_upper[0] = pyclaw.BC.periodic
+    solver.bc_lower[0] = pyclaw.BC.periodic
+    solver.bc_upper[0] = pyclaw.BC.periodic
 
     #Use the same BCs for the aux array
-    solver.mthauxbc_lower = solver.mthbc_lower
-    solver.mthauxbc_upper = solver.mthbc_lower
+    solver.aux_bc_lower = solver.bc_lower
+    solver.aux_bc_upper = solver.bc_lower
 
     xlower=0.0; xupper=600.0
     cellsperlayer=6; mx=int(round(xupper-xlower))*cellsperlayer
@@ -122,7 +122,7 @@ def stegoton(use_petsc=1,kernel_language='Fortran',solver_type='classic',iplot=0
 
     #Initialize q and aux
     xc=grid.x.center
-    state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,solver.mthauxbc_lower[0],xupper=xupper)
+    state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,solver.aux_bc_lower[0],xupper=xupper)
     qinit(state,ic=2,a2=1.0,xupper=xupper)
 
     tfinal=500.; nout = 10;
@@ -159,9 +159,9 @@ def stegoton(use_petsc=1,kernel_language='Fortran',solver_type='classic',iplot=0
             state.aux_global['KB'] = KB
             state.aux_global['rhoB'] = rhoB
             state.aux_global['trdone'] = False
-            state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,mthbc_lower,xupper=xupper)
-            grid.x.mthbc_lower=2
-            grid.x.mthbc_upper=2
+            state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,bc_lower,xupper=xupper)
+            grid.x.bc_lower=2
+            grid.x.bc_upper=2
             state.t = 0.0
             qinit(state,ic=2,a2=a2)
             init_solution = Solution(state)

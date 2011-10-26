@@ -46,10 +46,10 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
         solver = pyclaw.SharpClawSolver2D()
 
 
-    solver.mthbc_lower[0] = pyclaw.BC.periodic
-    solver.mthbc_upper[0] = pyclaw.BC.periodic
-    solver.mthbc_lower[1] = pyclaw.BC.periodic
-    solver.mthbc_upper[1] = pyclaw.BC.periodic
+    solver.bc_lower[0] = pyclaw.BC.periodic
+    solver.bc_upper[0] = pyclaw.BC.periodic
+    solver.bc_lower[1] = pyclaw.BC.periodic
+    solver.bc_upper[1] = pyclaw.BC.periodic
 
     solver.mwaves = 1
 

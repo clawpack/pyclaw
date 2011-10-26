@@ -131,8 +131,8 @@ configuration.
 
     >>> from pyclaw.clawpack import ClawSolver1D
     >>> solver = ClawSolver1D()
-    >>> solver.mthbc_lower[0] = pyclaw.BC.periodic
-    >>> solver.mthbc_upper[0] = pyclaw.BC.periodic
+    >>> solver.bc_lower[0] = pyclaw.BC.periodic
+    >>> solver.bc_upper[0] = pyclaw.BC.periodic
 
 Next we need to tell the solver which Riemann solver to use from the
 :doc:`Riemann solver package </pyclaw/evolve/rp>` .  We can always check what 

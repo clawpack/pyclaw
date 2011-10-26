@@ -38,7 +38,7 @@ def auxinit(state):
     for j,ycoord in enumerate(y):
         state.aux[0,:,j] = ycoord
 
-def shockbc(grid,dim,t,qbc,mbc):
+def shockbc(state,dim,t,qbc,mbc):
     """
     Incoming shock at left boundary.
     """
@@ -56,7 +56,7 @@ def shockbc(grid,dim,t,qbc,mbc):
             qbc[3,i,...] = einf
             qbc[4,i,...] = 0.
 
-def euler_rad_src(solver,solution,t,dt):
+def euler_rad_src(solver,state,dt):
     """
     Geometric source terms for Euler equations with radial symmetry.
     Integrated using a 2-stage, 2nd-order Runge-Kutta method.
@@ -66,8 +66,8 @@ def euler_rad_src(solver,solution,t,dt):
     press = 0.
     ndim = 2
 
-    aux=solution.states[0].aux
-    q = solution.states[0].q
+    aux=state.aux
+    q = state.q
 
     rad = aux[0,:,:]
 
@@ -131,19 +131,19 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     solver.cfl_desired = 0.45
     solver.mwaves = 5
     solver.limiters = [4,4,4,4,2]
-    solver.dt=0.005
+    solver.dt_initial=0.005
     solver.user_bc_lower=shockbc
-    solver.src=euler_rad_src
+    solver.step_src=euler_rad_src
     solver.src_split = 1
-    solver.mthbc_lower[0]=pyclaw.BC.custom
-    solver.mthbc_upper[0]=pyclaw.BC.outflow
-    solver.mthbc_lower[1]=pyclaw.BC.reflecting
-    solver.mthbc_upper[1]=pyclaw.BC.outflow
+    solver.bc_lower[0]=pyclaw.BC.custom
+    solver.bc_upper[0]=pyclaw.BC.outflow
+    solver.bc_lower[1]=pyclaw.BC.reflecting
+    solver.bc_upper[1]=pyclaw.BC.outflow
     #Aux variable in ghost cells doesn't matter
-    solver.mthauxbc_lower[0]=pyclaw.BC.outflow
-    solver.mthauxbc_upper[0]=pyclaw.BC.outflow
-    solver.mthauxbc_lower[1]=pyclaw.BC.outflow
-    solver.mthauxbc_upper[1]=pyclaw.BC.outflow
+    solver.aux_bc_lower[0]=pyclaw.BC.outflow
+    solver.aux_bc_upper[0]=pyclaw.BC.outflow
+    solver.aux_bc_lower[1]=pyclaw.BC.outflow
+    solver.aux_bc_upper[1]=pyclaw.BC.outflow
 
     claw = pyclaw.Controller()
     claw.keep_copy = True

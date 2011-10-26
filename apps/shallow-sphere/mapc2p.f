@@ -1,21 +1,20 @@
-c
 c     ==========================================
-      subroutine mapc2m(x1,y1,xp,yp,zp,Rsphere)
+      subroutine mapc2p(x1,y1,xp,yp,zp,Rsphere)
 c     ==========================================
 c
 c     Map computational point (x1,y1) to the point (xp,yp,zp)
-c     on the sphere
+c     on the sphere.
 c
 c     Points in [-1,1]x[-1,1]  are mapped to the upper hemisphere
 c     Points in [-3,-1]x[-1,1] are mapped to the lower hemisphere
-c
+
       implicit real*8(a-h,o-z)
-cf2py integer intent(in) x1
-cf2py integer intent(in) y1
-cf2py integer intent(in) xp
-cf2py integer intent(in) yp
-cf2py integer intent(in) zp
-cf2py integer intent(in) Rsphere
+cf2py  double precision intent(in) x1
+cf2py  double precision intent(in) y1
+cf2py  double precision intent(in) xp
+cf2py  double precision intent(in) yp
+cf2py  double precision intent(in) zp
+cf2py  double precision intent(in) Rsphere
 
 
       r1 = Rsphere
@@ -31,20 +30,22 @@ c     # hemisphere:
       if (yc.ge.1.d0) then
          yc = 2.d0 - yc
          xc = -2.d0 - xc
-         endif
+      endif
+      
       if (yc.lt.-1.d0) then
          yc = -2.d0 - yc
          xc = -2.d0 - xc
-         endif
+      endif
 
       if (xc.lt.-1.d0) then
 c         # points in [-3,-1] map to lower hemisphere - reflect about x=-1
 c         # to compute x,y mapping and set sgnz appropriately:
           xc = -2.d0 - xc
           sgnz = -1.d0
-         else
+      else
           sgnz = 1.d0
-         endif
+      endif
+      
       sgnxc = dsign(1.d0,xc)
       sgnyc = dsign(1.d0,yc)
 
@@ -61,15 +62,15 @@ c         # to compute x,y mapping and set sgnz appropriately:
 
       if (yc1 .gt. xc1) then
           yp = center + dsqrt(dmax1(R**2 - xp**2, 0.d0))
-        else
+      else
           xp = center + dsqrt(dmax1(R**2 - yp**2, 0.d0))
-        endif
+      endif
 
       zp = dsqrt(dmax1(r1**2 - (xp**2 + yp**2), 0.d0))
       xp = xp*sgnxc
       yp = yp*sgnyc
       zp = zp*sgnz
-c      
+
       return
       end
 

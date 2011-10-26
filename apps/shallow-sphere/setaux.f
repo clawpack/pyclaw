@@ -1,13 +1,12 @@
 c     ============================================
-      subroutine setaux(mx,my,xlower,ylower,dxc,dyc,
+      subroutine setaux(maxmx,maxmy,mbc,mx,my,xlower,ylower,dxc,dyc,
      &                  maux,aux,Rsphere)
 c     ============================================
 c
-c     # set auxiliary arrays for shallow water equations on the sphere
+c     # Set auxiliary arrays for shallow water equations on the sphere.
 c
-c     # on input, (xc(i),yc(j)) gives uniformly spaced computational grid.
-c     # on output, 
-c     The aux array has the following elements:
+c     # On input: (xc(i),yc(j)) gives uniformly spaced computational grid.
+c     # On output: he aux array has the following elements:
 c         1  kappa = ratio of cell area to dxc*dyc
 c         2  enx = x-component of normal vector to left edge in tangent plane
 c         3  eny = y-component of normal vector to left edge in tangent plane
@@ -27,13 +26,18 @@ c        16  erz = z-component of unit vector in radial direction at cell ctr
 c
 c     
       implicit double precision (a-h,o-z)
-      dimension xc(1:mx+1), yc(1:my+1)
-      dimension xp(1:mx+1,1:my+1), yp(1:mx+1,1:my+1)
-      dimension zp(1:mx+1,1:my+1)
-      dimension theta(1:mx+1,1:my+1), phi(1:mx+1,1:my+1)
-      dimension aux(maux,1:mx,1:my)
-cf2py integer optional,intent(in) mx
-cf2py integer optional,intent(in) my
+      parameter (maxm3 = 1005)
+      dimension xc(-3:maxm3), yc(-3:maxm3)
+      dimension xp(-3:maxm3,-3:maxm3), yp(-3:maxm3,-3:maxm3)
+      dimension zp(-3:maxm3,-3:maxm3)
+      dimension theta(-3:maxm3,-3:maxm3), phi(-3:maxm3,-3:maxm3)
+      dimension aux(maux,1-mbc:maxmx+mbc,1-mbc:maxmy+mbc)
+
+cf2py integer intent(in) maxmx
+cf2py integer intent(in) maxmy
+cf2py integer intent(in) mbc
+cf2py integer intent(in) mx
+cf2py integer intent(in) my
 cf2py double precision intent(in) xlower
 cf2py double precision intent(in) ylower
 cf2py double precision intent(in) dx
@@ -43,35 +47,36 @@ cf2py intent(in,out) aux
 cf2py double precision intent(in) Rsphere
 
       pi = 4.d0*datan(1.d0)
-c
-c      if (mbc .gt. 4) then
-c	 write(6,*)'***  increase size of local arrays in setaux ***'
-c	 stop
-c	 endif
-c      if (mx+mbc+1.gt.1005 .or. my+mbc+1.gt.1005) then
-c	 write(6,*)'***  increase size of 1005 in setaux ***'
-c	 stop
-c	 endif
+
+      if (mbc .gt. 4) then
+          write(6,*)'***  increase size of local arrays in setaux ***'
+          stop
+      endif
+      
+      if (mx+mbc+1.gt.1005 .or. my+mbc+1.gt.1005) then
+          write(6,*)'***  increase size of 1005 in setaux ***'
+          stop
+      endif
 c
 c     # Set xc and yc so that (xc(i),yc(j)) is the 
 c     # lower left corner of (i,j) cell in computational space:
 c
-      do 10 i=1,mx+1
+      do 10 i=1-mbc,mx+mbc+1
          xc(i) = xlower + (i-1.d0) * dxc
    10    continue
 c
-      do 12 j=1,my+1
+      do 12 j=1-mbc,my+mbc+1
          yc(j) = ylower + (j-1.d0) * dyc
    12    continue
 
 c     # compute cell corners on sphere and angles phi, theta
 c     # related to latitude and longitude
 c
-      do 15 j=1,my+1
-         do 15 i=1,mx+1
+      do 15 j=1-mbc,my+mbc+1
+         do 15 i=1-mbc,mx+mbc+1
 
 c           # map computational point to (xp,yp,zp) on sphere:
-            call mapc2m(xc(i),yc(j),xp(i,j),yp(i,j),zp(i,j),Rsphere)
+            call mapc2p(xc(i),yc(j),xp(i,j),yp(i,j),zp(i,j),Rsphere)
 
 c           # compute longitude theta from positive x axis:
             r = dsqrt(xp(i,j)**2 + yp(i,j)**2)
@@ -95,8 +100,8 @@ c           # compute phi, angle down from north pole:
    15	    continue
 
 c
-      do 20 j=1,my
-         do 20 i=1,mx
+      do 20 j=1-mbc,my+mbc
+         do 20 i=1-mbc,mx+mbc
 c
 c           # compute normal and tangent vectors to left edge (in tangent plane)
 c
@@ -150,7 +155,7 @@ c           # normal to edge in tangent plane is cross product of er and et:
 c           # normal to sphere in radial direction at cell center:
             xcm = xlower+(i-0.5)*dxc
             ycm = ylower+(j-0.5)*dyc
-            call mapc2m(xcm,ycm,xpm,ypm,zpm,Rsphere)
+            call mapc2p(xcm,ycm,xpm,ypm,zpm,Rsphere)
 
             aux(14,i,j) = xpm
             aux(15,i,j) = ypm
@@ -209,9 +214,5 @@ c           # capacity kappa:
            
    20       continue
 
-
        return
-
-
        end
-

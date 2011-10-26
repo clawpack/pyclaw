@@ -32,8 +32,8 @@ def advection_implicitLW(use_petsc=True,iplot=False,htmlplot=False,solver_type='
     from riemann import rp_advection
     solver.mwaves = rp_advection.mwaves
  
-    solver.mthbc_lower[0] = 2
-    solver.mthbc_upper[0] = 2
+    solver.bc_lower[0] = 2
+    solver.bc_upper[0] = 2
 
     
     #===========================================================================
