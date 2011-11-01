@@ -38,10 +38,10 @@ def qinit(state,rhoin=0.1):
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
 
     #First set the values for the cells that don't intersect the bubble boundary
-    state.q[0,:,:] = rinf*(X<xshock) + rhoin*(r<=r0) + rhoout*(r>r0)
+    state.q[0,:,:] = rinf*(X<xshock) + rhoin*(r<=r0) + rhoout*(r>r0)*(X>xshock)
     state.q[1,:,:] = rinf*vinf*(X<xshock)
     state.q[2,:,:] = 0.
-    state.q[3,:,:] = einf*(X<xshock) + (pin*(r<=r0) + pout*(r>r0))/gamma1
+    state.q[3,:,:] = einf*(X<xshock) + (pin*(r<=r0) + pout*(r>r0)*(X>xshock))/gamma1
     state.q[4,:,:] = 1.*(r<=r0)
 
     #Now average for the cells on the edge of the bubble
@@ -75,18 +75,16 @@ def shockbc(state,dim,t,qbc,mbc):
     """
     Incoming shock at left boundary.
     """
-    if dim.nstart == 0:
+    rinf = (gamma1 + pinf*(gamma+1.))/ ((gamma+1.) + gamma1*pinf)
+    vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
+    einf = 0.5*rinf*vinf**2 + pinf/gamma1
 
-        rinf = (gamma1 + pinf*(gamma+1.))/ ((gamma+1.) + gamma1*pinf)
-        vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
-        einf = 0.5*rinf*vinf**2 + pinf/gamma1
-
-        for i in xrange(mbc):
-            qbc[0,i,...] = rinf
-            qbc[1,i,...] = rinf*vinf
-            qbc[2,i,...] = 0.
-            qbc[3,i,...] = einf
-            qbc[4,i,...] = 0.
+    for i in xrange(mbc):
+        qbc[0,i,...] = rinf
+        qbc[1,i,...] = rinf*vinf
+        qbc[2,i,...] = 0.
+        qbc[3,i,...] = einf
+        qbc[4,i,...] = 0.
 
 def dq_Euler_radial(solver,state,dt):
     """
@@ -169,6 +167,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
         solver.dq_src=dq_Euler_radial
+        solver.weno_order=5
     else:
         solver = pyclaw.ClawSolver2D()
         solver.dim_split = 0
