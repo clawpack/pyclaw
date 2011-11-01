@@ -1,0 +1,65 @@
+\documentclass[12pt,english]{article}
+
+\begin{document}
+
+\begin{center}
+{\large Approaches to duplicated computation in Clawpack Riemann solvers} \\
+David Ketcheson \\
+Nov. 1, 2011
+\par\end{center}{\large \par}
+
+
+In some Riemann solvers, intermediate values must be computed in {\tt rpn2}
+that are also needed in {\tt rpt2}; for example, the Roe average values in
+Roe solvers.  This might be handled in various ways:
+\begin{enumerate}
+  \item Use a common block to store them.
+  \item Recompute them in rpt2, allocating temporary arrays in each call of rpn2 and rpt2.
+  \item Recompute them in rpt2, using pre-allocated arrays (aux or module arrays) for storage.
+  \item Recompute them in the same loop as the rest of the solve, avoiding the need for storage.
+\end{enumerate}
+These have been implemented in the following Riemann solvers, respectively (and in the
+corresponding transverse solvers):
+\begin{enumerate}
+  \item \verb=rpn2_euler_5wave.f=
+  \item \verb=rpn2_euler_5wave_recompute.f=
+  \item \verb=rpn2_euler_5wave_aux.f=
+  \item \verb=rpn2_euler_5wave_rec_loc.f=
+\end{enumerate}
+Each was tested on the Shock-Bubble problem with a $320 \times 80$ grid.  The timings for each
+were (first time is on a Macbook Air, second on a Mac Pro workstation):
+\begin{enumerate}
+  \item 3:45 / 1:58
+  \item 4:05 / 2:10
+  \item 4:04
+  \item 4:04 / 2:10
+\end{enumerate}
+These results indicate that storing these values is worthwhile (saves nearly 10\% of the
+computational cost).  Also, allocating 1D-slice size arrays in every Riemann solver call
+seems to have a negligible cost in 2D.
+
+Some things that might be worth investigating are:
+\begin{enumerate}
+  \item How do these results change if optimization flags are thrown?
+  \item How do these results change if larger grids are used?
+\end{enumerate}
+%Each was tested on the Shock-Bubble problem with a $160 \times 40$ grid.  The timings for each
+%were (first time is on a Macbook Air, second on a Mac Pro workstation):
+%\begin{enumerate}
+%  \item / 12.5
+%  \item / 
+%  \item 
+%  \item / 13.6
+%\end{enumerate}
+%
+%Each was tested on the Shock-Bubble problem with a $640 \times 160$ grid.  The timings for each
+%were (first time is on a Macbook Air, second on a Mac Pro workstation):
+%\begin{enumerate}
+%  \item / 
+%  \item / 
+%  \item 
+%  \item / 
+%\end{enumerate}
+
+
+\end{document}

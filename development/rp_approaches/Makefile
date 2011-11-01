@@ -1,7 +1,8 @@
 PYCLAWMAKE = $(PYCLAW)/Makefile.common
 
-#RP_SOURCE =   rpn2_euler_5wave.f rpt2_euler_5wave.f
-RP_SOURCE =   rpn2_euler_5wave_recompute.f rpt2_euler_5wave_recompute.f
+RP_SOURCE =   rpn2_euler_5wave.f rpt2_euler_5wave.f
+#RP_SOURCE =   rpn2_euler_5wave_recompute.f rpt2_euler_5wave_recompute.f
+#RP_SOURCE =   rpn2_euler_5wave_rec_loc.f rpt2_euler_5wave_rec_loc.f
 #RP_SOURCE =   rpn2_euler_5wave_aux.f rpt2_euler_5wave_aux.f
 #RP_SOURCE =   rp2_euler_5wave_module.f90
 
