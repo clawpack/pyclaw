@@ -181,9 +181,10 @@ class State(object):
             self.q = qbc[:,mbc:-mbc]
         elif grid.ndim == 2:
             self.q = qbc[:,mbc:-mbc,mbc:-mbc]
+        elif grid.ndim == 3:
+            self.q = qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
         else:
-            raise NotImplementedError("The case of 3D is not handled in "\
-            +"this function yet")
+            raise Exception("Assumption (1 <= ndim <= 3) violated.")
 
     def get_qbc_from_q(self,mbc,whichvec,qbc):
         """

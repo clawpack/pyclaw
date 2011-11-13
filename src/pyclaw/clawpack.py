@@ -767,9 +767,9 @@ class ClawSolver3D(ClawSolver):
 
         # These work arrays really ought to live inside a fortran module
         # as is done for sharpclaw
-        self.aux1 = np.empty((maux,maxm+2*mbc),order='F')
-        self.aux2 = np.empty((maux,maxm+2*mbc),order='F')
-        self.aux3 = np.empty((maux,maxm+2*mbc),order='F')
+        self.aux1 = np.empty((maux,maxm+2*mbc,3),order='F')
+        self.aux2 = np.empty((maux,maxm+2*mbc,3),order='F')
+        self.aux3 = np.empty((maux,maxm+2*mbc,3),order='F')
         mwork = (maxm+2*mbc) * (31*meqn + mwaves + meqn*mwaves)
         self.work = np.empty((mwork),order='F')
 
@@ -838,8 +838,8 @@ class ClawSolver3D(ClawSolver):
 
             else:
 
-                q, cfl = classic3.step3(maxm,mx,my,mbc,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl, \
+                q, cfl = classic3.step3(maxm,mx,my,mz,mbc,mx,my,mz, \
+                      qold,qnew,self.auxbc,dx,dy,dz,dt,self.method,self.mthlim,cfl, \
                       self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl.update_global_max(cfl)

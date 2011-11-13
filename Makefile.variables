@@ -6,6 +6,8 @@ ONE_D_CLASSIC = $(PYCLAW)/src/fortran/1d/classic
 
 TWO_D_CLASSIC = $(PYCLAW)/src/fortran/2d/classic
 
+THREE_D_CLASSIC = $(PYCLAW)/src/fortran/3d/classic
+
 ONE_D_SHARPCLAW = $(PYCLAW)/src/fortran/1d/sharpclaw
 
 TWO_D_SHARPCLAW = $(PYCLAW)/src/fortran/2d/sharpclaw

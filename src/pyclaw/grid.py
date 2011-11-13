@@ -472,7 +472,7 @@ class Grid(object):
          - *recompute* - (bool) Whether to force a recompute of the arrays
         """
         
-        if recompute or not len(self._c_center) == len(self._dimensions):
+        if recompute or (self._c_center is None):
             self._c_center = [None]*self.ndim
             
             # For one dimension, the center and edge arrays are equivalent

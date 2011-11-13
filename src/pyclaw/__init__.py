@@ -29,8 +29,8 @@ from cfl import CFL
 import riemann
 import plot
 
-__all__.extend(['ClawSolver1D','ClawSolver2D','SharpClawSolver1D','SharpClawSolver2D'])
-from clawpack import ClawSolver1D, ClawSolver2D
+__all__.extend(['ClawSolver1D','ClawSolver2D','ClawSolver3D','SharpClawSolver1D','SharpClawSolver2D'])
+from clawpack import ClawSolver1D, ClawSolver2D, ClawSolver3D
 from sharpclaw import SharpClawSolver1D, SharpClawSolver2D
 
 
