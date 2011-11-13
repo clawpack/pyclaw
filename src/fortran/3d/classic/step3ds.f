@@ -5,8 +5,7 @@ c     ==================================================================
       subroutine step3ds(maxm,maxmx,maxmy,maxmz,meqn,mwaves,mbc,mx,my,
      &                   mz,qold,qnew,aux,dx,dy,dz,dt,method,mthlim,cfl,
      &                   qadd,fadd,gadd,hadd,q1d,dtdx1d,dtdy1d,dtdz1d,
-     &                   aux1,aux2,aux3,maux,work,mwork,
-     &                   rpn3,rpt3,rptt3,idir)
+     &                   aux1,aux2,aux3,maux,work,mwork,idir)
 c     ==================================================================
 c
 c     # Take one time step, updating q, to be used with
@@ -54,6 +53,11 @@ c
       dimension dtdz1d(1-mbc:maxm+mbc)
       dimension method(7),mthlim(mwaves)
       dimension work(mwork)
+
+cf2py intent(in,out) cfl
+cf2py intent(in,out) qnew  
+cf2py optional q1d, qadd, fadd, gadd, hadd, dtdx1d, dtdy1d, dtdz1d
+
       common /comxyzt/ dtcom,dxcom,dycom,dzcom,tcom,icom,jcom,kcom
 c
 c     # partition work array into pieces needed for local storage in

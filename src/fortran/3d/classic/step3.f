@@ -3,7 +3,7 @@ c     ==================================================================
       subroutine step3(maxm,maxmx,maxmy,maxmz,meqn,mwaves,mbc,mx,my,
      &                 mz,qold,qnew,aux,dx,dy,dz,dt,method,mthlim,cfl,
      &                 qadd,fadd,gadd,hadd,q1d,dtdx1d,dtdy1d,dtdz1d,
-     &                 aux1,aux2,aux3,maux,work,mwork,rpn3,rpt3,rptt3)
+     &                 aux1,aux2,aux3,maux,work,mwork)
 c     ==================================================================
 c
 c     # Take one time step, updating q.
@@ -39,6 +39,9 @@ c
       dimension method(7),mthlim(mwaves)
       dimension work(mwork)
 
+cf2py intent(in,out) cfl
+cf2py intent(in,out) qnew  
+cf2py optional q1d, qadd, fadd, gadd, hadd, dtdx1d, dtdy1d, dtdz1d
 
       common /comxyzt/ dtcom,dxcom,dycom,dzcom,tcom,icom,jcom,kcom
 
