@@ -118,11 +118,10 @@ c
       do 50 k = 0,mz+1
          do 50 j = 0,my+1
 
-            do 20 m=1,meqn
-               do 20 i = 1-mbc, mx+mbc
+            forall (m = 1:meqn, i = 1-mbc:mx+mbc)
 c                 # copy data along a slice into 1d array:
                   q1d(m,i) = qold(m,i,j,k)
-   20          continue
+            end forall
 c
          if (mcapa.gt.0)  then
            do 23 i = 1-mbc, mx+mbc
@@ -131,18 +130,18 @@ c
          endif
 c
          if (maux .gt. 0)  then
-             do 22 ma=1,maux
-               do 22 i = 1-mbc, mx+mbc
-                 aux1(ma,i,1) = aux(ma,i,j-1,k-1)
-                 aux1(ma,i,2) = aux(ma,i,j-1,k)
-                 aux1(ma,i,3) = aux(ma,i,j-1,k+1)
-                 aux2(ma,i,1) = aux(ma,i,j,k-1)
-                 aux2(ma,i,2) = aux(ma,i,j,k)
-                 aux2(ma,i,3) = aux(ma,i,j,k+1)
-                 aux3(ma,i,1) = aux(ma,i,j+1,k-1)
-                 aux3(ma,i,2) = aux(ma,i,j+1,k)
-                 aux3(ma,i,3) = aux(ma,i,j+1,k+1)
-   22          continue
+            ! This odd construct may help improve cache locality.
+            ! (The F95 standard says each statement in the FORALL
+            ! must be executed for all indices before the next
+            ! statement is started, so this is different semantically
+            ! from putting all three indices in the same FORALL.)
+            forall (ka = -1:1)
+                forall (ma = 1:maux, i = 1-mbc:mx+mbc)
+                    aux1(ma, i, 2+ka) = aux(ma, i, j-1, k+ka)
+                    aux2(ma, i, 2+ka) = aux(ma, i,   j, k+ka)
+                    aux3(ma, i, 2+ka) = aux(ma, i, j+1, k+ka)
+                end forall
+            end forall
            endif
 c
 c           # Store the value of j and k along this slice in the common block
@@ -185,8 +184,7 @@ c           # in order to save storage.)
 c
             if(mcapa. eq. 0)then
 c
-            do 30 m=1,meqn
-               do 30 i=1,mx
+               forall (m = 1:meqn, i = 1:mx)
                   qnew(m,i,j,k) = qnew(m,i,j,k) + qadd(m,i)
      &                        - dtdx * (fadd(m,i+1) - fadd(m,i))
      &                        - dtdy * (gadd(m,2,0,i) - gadd(m,1,0,i))
@@ -219,13 +217,11 @@ c
                   qnew(m,i,j-1,k+1) = qnew(m,i,j-1,k+1)
      &                              - dtdy * gadd(m,1,1,i)
      &                              + dtdz * hadd(m,2,-1,i)
-c
-   30          continue
+               end forall
 c
             else
 c              # with capa array
-               do 40 m=1,meqn
-                  do 40 i=1,mx
+               forall (m = 1:meqn, i = 1:mx)
                      qnew(m,i,j,k) = qnew(m,i,j,k) + qadd(m,i)
      &                        - (dtdx * (fadd(m,i+1) - fadd(m,i))
      &                        +  dtdy * (gadd(m,2,0,i) - gadd(m,1,0,i))
@@ -268,10 +264,7 @@ c              # with capa array
      &                                 - (dtdy * gadd(m,1,1,i)
      &                                 -  dtdz * hadd(m,2,-1,i))
      &                                 / aux(mcapa,i,j-1,k+1)
-c
-c
-   40          continue
-c
+               end forall
             endif
 c
    50    continue
@@ -286,11 +279,10 @@ c
       do 100 k = 0, mz+1
          do 100 i = 0, mx+1
 c
-            do 70 m=1,meqn
-               do 70 j = 1-mbc, my+mbc
+            forall (m = 1:meqn, j = 1-mbc:my+mbc)
 c                 # copy data along a slice into 1d array:
                   q1d(m,j) = qold(m,i,j,k)
-   70          continue
+            end forall
 c
          if (mcapa.gt.0)  then
            do 71 j = 1-mbc, my+mbc
@@ -299,18 +291,13 @@ c
          endif
 c
          if (maux .gt. 0)  then
-             do 72 ma=1,maux
-               do 72 j = 1-mbc, my+mbc
-                 aux1(ma,j,1) = aux(ma,i-1,j,k-1)
-                 aux1(ma,j,2) = aux(ma,i,j,k-1)
-                 aux1(ma,j,3) = aux(ma,i+1,j,k-1)
-                 aux2(ma,j,1) = aux(ma,i-1,j,k)
-                 aux2(ma,j,2) = aux(ma,i,j,k)
-                 aux2(ma,j,3) = aux(ma,i+1,j,k)
-                 aux3(ma,j,1) = aux(ma,i-1,j,k+1)
-                 aux3(ma,j,2) = aux(ma,i,j,k+1)
-                 aux3(ma,j,3) = aux(ma,i+1,j,k+1)
-   72          continue
+            ! aux1, aux2, aux3 probably fit in cache, so optimize
+            ! access to aux
+            forall (ma = 1:maux, ia = -1:1, j = 1-mbc:my+mbc)
+                aux1(ma, j, 2+ia) = aux(ma, i+ia, j, k-1)
+                aux2(ma, j, 2+ia) = aux(ma, i+ia, j,   k)
+                aux3(ma, j, 2+ia) = aux(ma, i+ia, j, k+1)
+            end forall
          endif
 c
 c           # Store the value of i and k along this slice in the common block
@@ -354,8 +341,7 @@ c           # hadd - modifies the f-fluxes
 c
             if( mcapa.eq. 0)then
 c               # no capa array.  Standard flux differencing:
-            do 80 m=1,meqn
-               do 80 j=1,my
+               forall (m = 1:meqn, j = 1:my)
                   qnew(m,i,j,k) = qnew(m,i,j,k) + qadd(m,j)
      &                        - dtdy * (fadd(m,j+1) - fadd(m,j))
      &                        - dtdz * (gadd(m,2,0,j) - gadd(m,1,0,j))
@@ -388,15 +374,12 @@ c               # no capa array.  Standard flux differencing:
                   qnew(m,i-1,j,k+1) = qnew(m,i-1,j,k+1)
      &                              + dtdz * gadd(m,2,-1,j)
      &                              -  dtdx*hadd(m,1,1,j)
-c
-   80          continue
-c
+               end forall
              else
 c
 c              #with capa array.
 c
-                do 85 m=1,meqn
-                   do 85 j=1,my
+                forall (m = 1:meqn, j = 1:my)
                       qnew(m,i,j,k) = qnew(m,i,j,k) + qadd(m,j)
      &                        - (dtdy * (fadd(m,j+1) - fadd(m,j))
      &                        +  dtdz * (gadd(m,2,0,j) - gadd(m,1,0,j))
@@ -438,10 +421,7 @@ c
      &                                  + (dtdz * gadd(m,2,-1,j)
      &                                  -  dtdx*hadd(m,1,1,j))
      &                                  / aux(mcapa,i-1,j,k+1)
-c
-
-   85              continue
-c
+                end forall
             endif
 c
   100    continue
@@ -456,11 +436,10 @@ c
       do 150 j = 0, my+1
          do 150 i = 0, mx+1
 c
-            do 110 m=1,meqn
-               do 110 k = 1-mbc, mz+mbc
+            forall (m = 1:meqn, k = 1-mbc:mz+mbc)
 c                 # copy data along a slice into 1d array:
                   q1d(m,k) = qold(m,i,j,k)
- 110           continue
+            end forall
 c
          if (mcapa.gt.0)  then
            do 130 k = 1-mbc, mz+mbc
@@ -469,18 +448,17 @@ c
          endif
 c
          if (maux .gt. 0)  then
-             do 131 ma=1,maux
-               do 131 k = 1-mbc, mz+mbc
-                 aux1(ma,k,1) = aux(ma,i-1,j-1,k)
-                 aux1(ma,k,2) = aux(ma,i-1,j,k)
-                 aux1(ma,k,3) = aux(ma,i-1,j+1,k)
-                 aux2(ma,k,1) = aux(ma,i,j-1,k)
-                 aux2(ma,k,2) = aux(ma,i,j,k)
-                 aux2(ma,k,3) = aux(ma,i,j+1,k)
-                 aux3(ma,k,1) = aux(ma,i+1,j-1,k)
-                 aux3(ma,k,2) = aux(ma,i+1,j,k)
-                 aux3(ma,k,3) = aux(ma,i+1,j+1,k)
-  131          continue
+            ! See the comment on the X sweeps.  This is semantically
+            ! slightly different than putting all the indices in the
+            ! same forall, and hopefully better for optimizing access
+            ! to aux.
+            forall (ja = -1:1, k = 1-mbc:mz+mbc)
+                forall (ma = 1:maux)
+                    aux1(ma, k, 2+ja) = aux(ma, i-1, j+ja, k)
+                    aux2(ma, k, 2+ja) = aux(ma,   i, j+ja, k)
+                    aux3(ma, k, 2+ja) = aux(ma, i+1, j+ja, k)
+                end forall
+            end forall
            endif
 c
 c           # Store the value of i and j along this slice in the common block
@@ -526,8 +504,7 @@ c
 c
 c              #no capa array. Standard flux differencing:
 c
-            do 120 m=1,meqn
-               do 120 k=1,mz
+               forall (m = 1:meqn, k = 1:mz)
                   qnew(m,i,j,k) = qnew(m,i,j,k) + qadd(m,k)
      &                        - dtdz * (fadd(m,k+1) - fadd(m,k))
      &                        - dtdx * (gadd(m,2,0,k) - gadd(m,1,0,k))
@@ -560,15 +537,12 @@ c
                   qnew(m,i-1,j+1,k) = qnew(m,i-1,j+1,k)
      &                              - dtdx * gadd(m,1,1,k)
      &                              + dtdy * hadd(m,2,-1,k)
-c
- 120           continue
-c
+               end forall
             else
 c
 c              # with capa array
 c
-               do 145 m=1,meqn
-                  do 145 k=1,mz
+               forall (m = 1:meqn, k = 1:mz)
                      qnew(m,i,j,k) = qnew(m,i,j,k) + qadd(m,k)
      &                        - (dtdz * (fadd(m,k+1) - fadd(m,k))
      &                        +  dtdx * (gadd(m,2,0,k) - gadd(m,1,0,k))
@@ -610,9 +584,7 @@ c
      &                                 - (dtdx * gadd(m,1,1,k)
      &                                 -  dtdy * hadd(m,2,-1,k))
      &                                 / aux(mcapa,i-1,j+1,k)
-c
- 145              continue
-c
+               end forall
          endif
 c
  150  continue
