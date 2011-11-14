@@ -225,7 +225,9 @@ c
 c        # Since dimensional splitting is used, only aux2 is needed.
 c
          if (maux .gt. 0)  then
-            forall (ma = 1:maux, j = 1-mbc:my+mbc, ia = -1:1)
+            ! There's a decent chance aux2 will all fit into cache,
+            ! so keep accesses to aux as contiguous as possible.
+            forall (ma = 1:maux, ia = -1:1, j = 1-mbc:my+mbc)
                 aux2(ma, j, 2+ia) = aux(ma, i+ia, j, k)
             end forall
          endif
@@ -306,7 +308,9 @@ c
 c        # Since dimensional splitting is used, only aux2 is needed.
 c
          if (maux .gt. 0)  then
-            forall (ma = 1:maux, k = 1-mbc:mz+mbc, ja = -1:1)
+            ! There's a decent chance aux2 will all fit into cache,
+            ! so keep accesses to aux as contiguous as possible.
+            forall (ma = 1:maux, ja = -1:1, k = 1-mbc:mz+mbc)
                 aux2(ma, k, 2+ja) = aux(ma, i, j+ja, k)
             end forall
            endif

@@ -178,7 +178,7 @@ c
           qadd(m,i) = 0.d0
           fadd(m,i) = 0.d0
       end forall
-      forall (m = 1:meqn, i = 1-mbc:mx+mbc, j = -1:1, k = 1:2)
+      forall (m = 1:meqn, k = 1:2, j = -1:1, i = 1-mbc:mx+mbc)
           gadd(m, k, j, i) = 0.d0
           hadd(m, k, j, i) = 0.d0
       end forall

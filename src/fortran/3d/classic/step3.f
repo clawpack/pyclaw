@@ -130,10 +130,17 @@ c
          endif
 c
          if (maux .gt. 0)  then
-            forall (ma = 1:maux, i = 1-mbc:mx+mbc, ka = -1:1)
-                aux1(ma, i, 2+ka) = aux(ma, i, j-1, k+ka)
-                aux2(ma, i, 2+ka) = aux(ma, i,   j, k+ka)
-                aux3(ma, i, 2+ka) = aux(ma, i, j+1, k+ka)
+            ! This odd construct may help improve cache locality.
+            ! (The F95 standard says each statement in the FORALL
+            ! must be executed for all indices before the next
+            ! statement is started, so this is different semantically
+            ! from putting all three indices in the same FORALL.)
+            forall (ka = -1:1)
+                forall (ma = 1:maux, i = 1-mbc:mx+mbc)
+                    aux1(ma, i, 2+ka) = aux(ma, i, j-1, k+ka)
+                    aux2(ma, i, 2+ka) = aux(ma, i,   j, k+ka)
+                    aux3(ma, i, 2+ka) = aux(ma, i, j+1, k+ka)
+                end forall
             end forall
            endif
 c
@@ -284,7 +291,9 @@ c
          endif
 c
          if (maux .gt. 0)  then
-            forall (ma = 1:maux, j = 1-mbc:my+mbc, ia = -1:1)
+            ! aux1, aux2, aux3 probably fit in cache, so optimize
+            ! access to aux
+            forall (ma = 1:maux, ia = -1:1, j = 1-mbc:my+mbc)
                 aux1(ma, j, 2+ia) = aux(ma, i+ia, j, k-1)
                 aux2(ma, j, 2+ia) = aux(ma, i+ia, j,   k)
                 aux3(ma, j, 2+ia) = aux(ma, i+ia, j, k+1)
@@ -439,10 +448,16 @@ c
          endif
 c
          if (maux .gt. 0)  then
-            forall (ma = 1:maux, k = 1-mbc:mz+mbc, ja = -1:1)
-                aux1(ma, k, 2+ja) = aux(ma, i-1, j+ja, k)
-                aux2(ma, k, 2+ja) = aux(ma,   i, j+ja, k)
-                aux3(ma, k, 2+ja) = aux(ma, i+1, j+ja, k)
+            ! See the comment on the X sweeps.  This is semantically
+            ! slightly different than putting all the indices in the
+            ! same forall, and hopefully better for optimizing access
+            ! to aux.
+            forall (ja = -1:1, k = 1-mbc:mz+mbc)
+                forall (ma = 1:maux)
+                    aux1(ma, k, 2+ja) = aux(ma, i-1, j+ja, k)
+                    aux2(ma, k, 2+ja) = aux(ma,   i, j+ja, k)
+                    aux3(ma, k, 2+ja) = aux(ma, i+1, j+ja, k)
+                end forall
             end forall
            endif
 c
