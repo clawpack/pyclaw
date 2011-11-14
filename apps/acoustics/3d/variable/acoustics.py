@@ -39,7 +39,7 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     solver.dim_split=True
 
     # Initialize grid
-    mx=128; my=8; mz=16
+    mx=64; my=8; mz=16
     x = pyclaw.Dimension('x',-1.0,1.0,mx)
     y = pyclaw.Dimension('y',-1.0,1.0,my)
     z = pyclaw.Dimension('z',-1.0,1.0,mz)
@@ -81,16 +81,27 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,format=claw.output_format)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,format=claw.output_format)
 
+    #if use_petsc:
+    #    pinitial=claw.frames[0].state.gqVec.getArray().reshape([state.meqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,4,4]
+    #    pfinal=claw.frames[10].state.gqVec.getArray().reshape([state.meqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,4,4]
+    #else:
+    #    pinitial=claw.frames[0].state.q[0,:,4,4]
+    #    pfinal=claw.frames[3].state.q[0,:,4,4]
+    #import matplotlib.pyplot as plt
+    #plt.plot(pinitial)
+    #plt.hold(True)
+    #plt.plot(pfinal)
+    #plt.show()
+
     if use_petsc:
-        pinitial=claw.frames[0].state.gqVec.getArray().reshape([state.meqn,grid.ng[0],grid.ng[1],grid.ng[2]])[0,:,:,:].reshape(-1)
-        pmiddle=claw.frames[claw.nout/2].state.gqVec.getArray().reshape([state.meqn,grid.ng[0],grid.ng[1],grid.ng[2]])[0,:,:,:].reshape(-1)
+        pinitial=claw.frames[0].state.gqVec.getArray().reshape([state.meqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,:,:].reshape(-1)
+        pmiddle=claw.frames[claw.nout/2].state.gqVec.getArray().reshape([state.meqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,:,:].reshape(-1)
         pfinal=claw.frames[claw.nout].state.gqVec.getArray().reshape([state.meqn,grid.ng[0],grid.ng[1],grid.ng[2]])[0,:,:,:].reshape(-1)
     else:
         pinitial=claw.frames[0].state.q[0,:,:,:].reshape(-1)
         pmiddle  =claw.frames[3].state.q[0,:,:,:].reshape(-1)
         pfinal  =claw.frames[claw.nout].state.q[0,:,:,:].reshape(-1)
 
-    print grid.d
     print 'Final error: ', np.prod(grid.d)*np.linalg.norm(pfinal-pinitial,ord=1)
     #print 'Middle error: ', np.prod(grid.d)*np.linalg.norm(pmiddle-pinitial,ord=1)
 
