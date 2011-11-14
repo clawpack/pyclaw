@@ -130,11 +130,10 @@ c
       do 50 k = 0,mz+1
          do 50 j = 0,my+1
 c
-            do 20 m=1,meqn
-               do 20 i = 1-mbc, mx+mbc
+            forall (m = 1:meqn, i = 1-mbc:mx+mbc)
 c                 # copy data along a slice into 1d array:
-                  q1d(m,i) = qold(m,i,j,k)
-   20          continue
+                q1d(m,i) = qold(m,i,j,k)
+            end forall
 c
          if (mcapa.gt.0)  then
            do 23 i = 1-mbc, mx+mbc
@@ -145,13 +144,10 @@ c
 c        # Since dimensional splitting is used, only aux2 is needed.
 c
          if (maux .gt. 0)  then
-             do 22 ma=1,maux
-               do 22 i = 1-mbc, mx+mbc
-                 aux2(ma,i,1) = aux(ma,i,j,k-1)
-                 aux2(ma,i,2) = aux(ma,i,j,k)
-                 aux2(ma,i,3) = aux(ma,i,j,k+1)
-   22          continue
-           endif
+            forall (ma = 1:maux, i = 1-mbc:mx+mbc, ka = -1:1)
+                aux2(ma,i,2+ka) = aux(ma,i,j,k+ka)
+            end forall
+         endif
 c
 c           # Store the value of j and k along this slice in the common block
 c           # comxyt in case it is needed in the Riemann solver (for
@@ -192,19 +188,17 @@ c           # in order to save storage.)
 c
             if(mcapa. eq. 0)then
 c              # no capa array.  Standard flux differencing:
-               do 30 m=1,meqn
-                  do 30 i=1,mx
+               forall (m = 1:meqn, i = 1:mx)
                      qnew(m,i,j,k) = qnew(m,i,j,k) + qadd(m,i)
      &                             - dtdx * (fadd(m,i+1) - fadd(m,i))
-   30             continue
+               end forall
             else
 c              # with capa array
-               do 40 m=1,meqn
-                  do 40 i=1,mx
+               forall (m = 1:meqn, i = 1:mx)
                      qnew(m,i,j,k) = qnew(m,i,j,k) + qadd(m,i)
      &                        - dtdx * (fadd(m,i+1) - fadd(m,i))
      &                        / aux(mcapa,i,j,k)
-   40             continue
+               end forall
             endif
 c
    50    continue
@@ -217,11 +211,10 @@ c
       do 100 k = 0, mz+1
          do 100 i = 0, mx+1
 c
-            do 70 m=1,meqn
-               do 70 j = 1-mbc, my+mbc
+            forall (m = 1:meqn, j = 1-mbc:my+mbc)
 c                 # copy data along a slice into 1d array:
                   q1d(m,j) = qold(m,i,j,k)
-   70          continue
+            end forall
 c
          if (mcapa.gt.0)  then
            do 71 j = 1-mbc, my+mbc
@@ -232,12 +225,11 @@ c
 c        # Since dimensional splitting is used, only aux2 is needed.
 c
          if (maux .gt. 0)  then
-             do 72 ma=1,maux
-               do 72 j = 1-mbc, my+mbc
-                 aux2(ma,j,1) = aux(ma,i-1,j,k)
-                 aux2(ma,j,2) = aux(ma,i,j,k)
-                 aux2(ma,j,3) = aux(ma,i+1,j,k)
-   72          continue
+            ! There's a decent chance aux2 will all fit into cache,
+            ! so keep accesses to aux as contiguous as possible.
+            forall (ma = 1:maux, ia = -1:1, j = 1-mbc:my+mbc)
+                aux2(ma, j, 2+ia) = aux(ma, i+ia, j, k)
+            end forall
          endif
 c
 c           # Store the value of i and k along this slice in the common block
@@ -278,19 +270,17 @@ c           # fadd - modifies the g-fluxes
 c
             if( mcapa.eq. 0)then
 c               # no capa array.  Standard flux differencing:
-                do 80 m=1,meqn
-                   do 80 j=1,my
+               forall (m = 1:meqn, j = 1:my)
                       qnew(m,i,j,k) = qnew(m,i,j,k) + qadd(m,j)
      &                              - dtdy * (fadd(m,j+1) - fadd(m,j))
-   80              continue
+               end forall
              else
 c              #with capa array.
-                do 85 m=1,meqn
-                   do 85 j=1,my
+                forall (m = 1:meqn, j = 1:my)
                       qnew(m,i,j,k) = qnew(m,i,j,k) + qadd(m,j)
      &                        - dtdy * (fadd(m,j+1) - fadd(m,j))
      &                        / aux(mcapa,i,j,k)
-   85              continue
+                end forall
             endif
 c
   100    continue
@@ -304,11 +294,10 @@ c
       do 150 j = 0, my+1
          do 150 i = 0, mx+1
 c
-            do 110 m=1,meqn
-               do 110 k = 1-mbc, mz+mbc
+            forall (m = 1:meqn, k = 1-mbc:mz+mbc)
 c                 # copy data along a slice into 1d array:
                   q1d(m,k) = qold(m,i,j,k)
- 110           continue
+            end forall
 c
          if (mcapa.gt.0)  then
            do 130 k = 1-mbc, mz+mbc
@@ -319,12 +308,11 @@ c
 c        # Since dimensional splitting is used, only aux2 is needed.
 c
          if (maux .gt. 0)  then
-             do 131 ma=1,maux
-               do 131 k = 1-mbc, mz+mbc
-                 aux2(ma,k,1) = aux(ma,i,j-1,k)
-                 aux2(ma,k,2) = aux(ma,i,j,k)
-                 aux2(ma,k,3) = aux(ma,i,j+1,k)
-  131          continue
+            ! There's a decent chance aux2 will all fit into cache,
+            ! so keep accesses to aux as contiguous as possible.
+            forall (ma = 1:maux, ja = -1:1, k = 1-mbc:mz+mbc)
+                aux2(ma, k, 2+ja) = aux(ma, i, j+ja, k)
+            end forall
            endif
 c
 c           # Store the value of i and j along this slice in the common block
@@ -365,19 +353,17 @@ c           # fadd - modifies the h-fluxes
 c
             if(mcapa .eq. 0)then
 c              #no capa array. Standard flux differencing:
-               do 120 m=1,meqn
-                  do 120 k=1,mz
+               forall (m = 1:meqn, k = 1:mz)
                      qnew(m,i,j,k) = qnew(m,i,j,k) + qadd(m,k)
      &                             - dtdz * (fadd(m,k+1) - fadd(m,k))
- 120              continue
+               end forall
             else
 c              # with capa array
-               do 145 m=1,meqn
-                  do 145 k=1,mz
+               forall (m = 1:meqn, k = 1:mz)
                      qnew(m,i,j,k) = qnew(m,i,j,k) + qadd(m,k)
      &                             - dtdz * (fadd(m,k+1) - fadd(m,k))
      &                             / aux(mcapa,i,j,k)
- 145              continue
+               end forall
             endif
 c
  150  continue
