@@ -661,8 +661,8 @@ class ClawSolver3D(ClawSolver):
     """
 
     no_trans  = 0
-    trans_inc = 1
-    trans_cor = 2
+    trans_inc = 11
+    trans_cor = 22
 
     def __init__(self,data=None):
         r"""
@@ -679,7 +679,7 @@ class ClawSolver3D(ClawSolver):
         exec('import riemann',globals())
             
         self._default_attr_values['dim_split'] = True
-        self._default_attr_values['order_trans'] = self.trans_inc
+        self._default_attr_values['order_trans'] = self.trans_cor
 
         self.ndim = 3
 
@@ -700,7 +700,7 @@ class ClawSolver3D(ClawSolver):
 
         self.set_mthlim()
 
-        #DK: I'm not sure if the values of cfl_recommended here are correct.
+        #DK: The checks here need to be corrected for the 3D code, to cover all the possibilities.
         if (not self.dim_split) and (self.order_trans==0):
             cfl_recommended = 0.5
         else:
