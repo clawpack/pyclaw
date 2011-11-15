@@ -29,8 +29,8 @@ from pyclaw.solution import Solution
 from state import State
 from cfl import CFL
 
-__all__.extend(['ClawSolver1D','ClawSolver2D','SharpClawSolver1D','SharpClawSolver2D'])
-from clawpack import ClawSolver1D,ClawSolver2D
+__all__.extend(['ClawSolver1D','ClawSolver2D','ClawSolver3D','SharpClawSolver1D','SharpClawSolver2D'])
+from clawpack import ClawSolver1D,ClawSolver2D,ClawSolver3D
 from sharpclaw import SharpClawSolver1D,SharpClawSolver2D
 from implicitclawpack import ImplicitClawSolver1D
 
