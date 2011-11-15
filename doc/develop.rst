@@ -33,7 +33,7 @@ Developer communication
 At the moment, developer communication takes place on the following
 google groups:
 
-  * http://groups.google.com/group/petclaw-dev/ -- for things relevant only to PyClaw/PetClaw
+  * http://groups.google.com/group/pyclaw -- for things relevant only to PyClaw/PetClaw
 
   * http://groups.google.com/group/claw-dev/ -- for things relevant to the larger Clawpack community
 
@@ -81,8 +81,8 @@ defined in the regression tests suite and they are:
     * solver_type: classic or sharpclaw
     * kernel_language: python or fortran
     * petsc: True or False
-    * time_stepping_mode: explicit or implicit
-    * time_stepping_method: ForwardEuler or SSP33 (for the moment)
+    * time_stepping_mode: explicit
+    * time_stepping_method: ForwardEuler, SSP33, SSP104 
     * speed: fast or slow
 
 The attribute 'time_stepping_method' is only used in combination with
