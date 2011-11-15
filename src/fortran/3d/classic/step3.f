@@ -268,7 +268,6 @@ c              # with capa array
             endif
 c
    50    continue
-   51    continue
 
 c
 c
@@ -425,7 +424,6 @@ c
             endif
 c
   100    continue
-  101    continue
 c
 c
 c
@@ -588,7 +586,6 @@ c
          endif
 c
  150  continue
-  151 continue
 c
 c
       return
