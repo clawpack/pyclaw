@@ -539,13 +539,7 @@ class ClawSolver2D(ClawSolver):
         self.aux1 = np.empty((maux,maxm+2*mbc),order='F')
         self.aux2 = np.empty((maux,maxm+2*mbc),order='F')
         self.aux3 = np.empty((maux,maxm+2*mbc),order='F')
-        mwork = (maxm+2*mbc) * (5*meqn + mwaves + meqn*mwaves) \
-              + (narray-1) * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn
-        # Amal: I think no need for the term
-        # (narray-1) * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn
-        # this extra q array should be created and handled in function
-        # step in case we have src term with strange splitting (Do not
-        # think the fortran code will complain, but not sure)
+        mwork = (maxm+2*mbc) * (5*meqn + mwaves + meqn*mwaves)
         self.work = np.empty((mwork),order='F')
 
     def teardown(self):
