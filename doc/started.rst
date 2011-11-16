@@ -25,6 +25,8 @@ PyClaw relies on the usual Python libraries for scientific computing:
   * `matplotlib <http://matplotlib.sourceforge.net/>`_.  Matplotlib is
     used for plotting results.  The current recommended version is 1.0.1.
 
+**Obtaining numpy and matplotlib:**
+
 Some Python distributions come already with numpy 1.5.x or 1.6.x and Matplotlib 
 1.0.1 (see for instance `EPDChangelog <http://www.enthought.com/EPDChangelog.html>`_). 
 However, in case you need to install it, you can use two different approaches:
