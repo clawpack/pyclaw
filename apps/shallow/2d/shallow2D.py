@@ -33,7 +33,6 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
 
     if use_petsc:
         import petclaw as pyclaw
-        print "yes"
     else:
         import pyclaw
 
