@@ -184,6 +184,28 @@ class ClawSolver(Solver):
         if len(self.mthlim)!=self.mwaves:
             raise Exception('Length of solver.limiters is not equal to 1 or to solver.mwaves')
  
+    def set_method(self,state):
+        r"""
+        Set values of the method() array required by the Fortran code.
+        These are algorithmic parameters.
+        """
+        import numpy as np
+        #We ought to put method and many other things in a Fortran
+        #module and set the fortran variables directly here.
+        self.method =np.empty(7, dtype=int,order='F')
+        self.method[0] = self.dt_variable
+        self.method[1] = self.order
+        if self.ndim==1:
+            self.method[2] = 0  # Not used in 1D
+        elif self.dim_split:
+            self.method[2] = -1  # First-order dimensional splitting
+        else:
+            self.method[2] = self.order_trans
+        self.method[3] = self.verbosity
+        self.method[4] = 0  # Not used for PyClaw (would be self.src_split)
+        self.method[5] = state.mcapa + 1
+        self.method[6] = state.maux
+
 # ============================================================================
 #  ClawPack 1d Solver Class
 # ============================================================================
@@ -242,19 +264,8 @@ class ClawSolver1D(ClawSolver):
 
         Sets the method array and the cparam common block for the Riemann solver.
         """
-        import numpy as np
-
         state = solution.state
-
-        self.method =np.ones(7, dtype=int)
-        self.method[0] = self.dt_variable
-        self.method[1] = self.order 
-        self.method[2] = 0  # Not used in 1D
-        self.method[3] = self.verbosity
-        self.method[4] = 0  # Not used for PyClaw (would be self.src_split)
-        self.method[5] = state.mcapa + 1
-        self.method[6] = state.maux  # aux
- 
+        self.set_method(state)
         if self.fwave:
             import classic1fw as classic1
         else:
@@ -491,44 +502,27 @@ class ClawSolver2D(ClawSolver):
         """
         import numpy as np
 
-        # Grid we will be working on
-        state = solution.states[0]
+        state = solution.state
+        self.set_method(state)
 
-        # The reload here is necessary because otherwise the common block
-        # cparam in the Riemann solver doesn't get flushed between running
-        # different tests in a single Python session.
         if self.fwave:
             import classic2fw as classic2
         else:
             import classic2
+        # The reload here is necessary because otherwise the common block
+        # cparam in the Riemann solver doesn't get flushed between running
+        # different tests in a single Python session.
         reload(classic2)
         state.set_cparam(classic2)
 
         # Number of equations
         meqn,maux,mwaves,mbc,aux = state.meqn,state.maux,self.mwaves,self.mbc,state.aux
 
-        #We ought to put method and many other things in a Fortran
-        #module and set the fortran variables directly here.
-        self.method =np.empty(7, dtype=int,order='F')
-        self.method[0] = self.dt_variable
-        self.method[1] = self.order
-        if self.dim_split:
-            self.method[2] = -1  # Godunov dimensional splitting
-        else:
-            self.method[2] = self.order_trans
-        self.method[3] = self.verbosity
-        self.method[4] = 0  # Not used for PyClaw (would be self.src_split)
-        self.method[5] = state.mcapa + 1
-        self.method[6] = state.maux
-            
         #The following is a hack to work around an issue
         #with f2py.  It involves wastefully allocating three arrays.
         #f2py seems not able to handle multiple zero-size arrays being passed.
         # it appears the bug is related to f2py/src/fortranobject.c line 841.
         if(aux == None): maux=1
-
-        if self.src_split < 2: narray = 1
-        else: narray = 2
 
         grid  = state.grid
         maxmx,maxmy = grid.ng[0],grid.ng[1]
@@ -570,10 +564,9 @@ class ClawSolver2D(ClawSolver):
             state = solution.states[0]
             grid = state.grid
             meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
-            mx,my = grid.ng[0],grid.ng[1]
+            mx,my = grid.ng
             maxm = max(mx,my)
-            
-            dx,dy,dt = grid.d[0],grid.d[1],self.dt
+            dx,dy = grid.d
             
             self.apply_q_bcs(state)
             qnew = self.qbc
@@ -584,19 +577,16 @@ class ClawSolver2D(ClawSolver):
             else:
                 import classic2
 
-            #This call seems unnecessary:
-            cfl = self.cfl.get_cached_max()
-
             if self.dim_split:
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
                 q, cfl_x = classic2.step2ds(maxm,mx,my,mbc,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl, \
+                      qold,qnew,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1)
 
                 q, cfl_y = classic2.step2ds(maxm,mx,my,mbc,mx,my, \
-                      q,q,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl, \
+                      q,q,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2)
 
                 cfl = max(cfl_x,cfl_y)
@@ -604,7 +594,7 @@ class ClawSolver2D(ClawSolver):
             else:
 
                 q, cfl = classic2.step2(maxm,mx,my,mbc,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl, \
+                      qold,qnew,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl.update_global_max(cfl)
@@ -664,14 +654,9 @@ class ClawSolver3D(ClawSolver):
         
         See :class:`ClawSolver3D` for more info.
         """   
-        
         # Add the functions as required attributes
         self._required_attrs.append('rp')
         self._default_attr_values['rp'] = None
-        
-        # Import Riemann solvers
-        exec('import riemann',globals())
-            
         self._default_attr_values['dim_split'] = True
         self._default_attr_values['order_trans'] = self.trans_cor
 
@@ -719,8 +704,8 @@ class ClawSolver3D(ClawSolver):
         """
         import numpy as np
 
-        # Grid we will be working on
         state = solution.states[0]
+        self.set_method(state)
 
         # The reload here is necessary because otherwise the common block
         # cparam in the Riemann solver doesn't get flushed between running
@@ -735,20 +720,6 @@ class ClawSolver3D(ClawSolver):
         # Number of equations
         meqn,maux,mwaves,mbc,aux = state.meqn,state.maux,self.mwaves,self.mbc,state.aux
 
-        #We ought to put method and many other things in a Fortran
-        #module and set the fortran variables directly here.
-        self.method =np.empty(7, dtype=int,order='F')
-        self.method[0] = self.dt_variable
-        self.method[1] = self.order
-        if self.dim_split:
-            self.method[2] = -1  # Godunov dimensional splitting
-        else:
-            self.method[2] = self.order_trans
-        self.method[3] = self.verbosity
-        self.method[4] = 0  # Not used for PyClaw (would be self.src_split)
-        self.method[5] = state.mcapa + 1
-        self.method[6] = state.maux
-            
         #The following is a hack to work around an issue
         #with f2py.  It involves wastefully allocating three arrays.
         #f2py seems not able to handle multiple zero-size arrays being passed.
@@ -795,10 +766,9 @@ class ClawSolver3D(ClawSolver):
             state = solution.states[0]
             grid = state.grid
             meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
-            mx,my,mz = grid.ng[0],grid.ng[1],grid.ng[2]
+            dx,dy,dz = grid.d
+            mx,my,mz = grid.ng
             maxm = max(mx,my,mz)
-            
-            dx,dy,dz,dt = grid.d[0],grid.d[1],grid.d[2],self.dt
             
             self.apply_q_bcs(state)
             qnew = self.qbc
@@ -809,23 +779,20 @@ class ClawSolver3D(ClawSolver):
             else:
                 import classic3
 
-            #This call seems unnecessary:
-            cfl = self.cfl.get_cached_max()
-
             if self.dim_split:
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
                 q, cfl_x = classic3.step3ds(maxm,mx,my,mz,mbc,mx,my,mz, \
-                      qold,qnew,self.auxbc,dx,dy,dz,dt,self.method,self.mthlim,cfl, \
+                      qold,qnew,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1)
 
                 q, cfl_y = classic3.step3ds(maxm,mx,my,mz,mbc,mx,my,mz, \
-                      q,q,self.auxbc,dx,dy,dz,dt,self.method,self.mthlim,cfl, \
+                      q,q,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2)
 
                 q, cfl_z = classic3.step3ds(maxm,mx,my,mz,mbc,mx,my,mz, \
-                      q,q,self.auxbc,dx,dy,dz,dt,self.method,self.mthlim,cfl, \
+                      q,q,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,3)
 
                 cfl = max(cfl_x,cfl_y,cfl_z)
@@ -833,7 +800,7 @@ class ClawSolver3D(ClawSolver):
             else:
 
                 q, cfl = classic3.step3(maxm,mx,my,mz,mbc,mx,my,mz, \
-                      qold,qnew,self.auxbc,dx,dy,dz,dt,self.method,self.mthlim,cfl, \
+                      qold,qnew,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl.update_global_max(cfl)

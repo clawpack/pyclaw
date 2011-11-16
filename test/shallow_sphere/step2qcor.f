@@ -36,7 +36,7 @@ c
       dimension qc(4)
 
 
-cf2py intent(in,out) cfl
+cf2py intent(out) cfl
 cf2py intent(in,out) qnew
 cf2py optional q1d, qadd, fadd, gadd, dtdx1d, dtdy1d
 
