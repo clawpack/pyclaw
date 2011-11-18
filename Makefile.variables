@@ -6,6 +6,8 @@ ONE_D_CLASSIC = $(PYCLAW)/src/fortran/1d/classic
 
 TWO_D_CLASSIC = $(PYCLAW)/src/fortran/2d/classic
 
+THREE_D_CLASSIC = $(PYCLAW)/src/fortran/3d/classic
+
 ONE_D_SHARPCLAW = $(PYCLAW)/src/fortran/1d/sharpclaw
 
 TWO_D_SHARPCLAW = $(PYCLAW)/src/fortran/2d/sharpclaw
@@ -25,4 +27,6 @@ TWO_D_SHARPCLAW_SOURCES = $(TWO_D_SHARPCLAW)/workspace.f90 $(TWO_D_SHARPCLAW)/Cl
 TWO_D_CLASSIC_SOURCES = $(TWO_D_CLASSIC)/step2.f $(TWO_D_CLASSIC)/step2ds.f flux2.o limiter.o philim.o
 
 TWO_D_CLASSIC_FWAVE_SOURCES = $(TWO_D_CLASSIC)/step2.f $(TWO_D_CLASSIC)/step2ds.f flux2fw.o limiter.o philim.o
+
+THREE_D_CLASSIC_SOURCES = $(THREE_D_CLASSIC)/step3.f $(THREE_D_CLASSIC)/step3ds.f flux3.o limiter.o philim.o
 

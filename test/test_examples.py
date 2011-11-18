@@ -471,3 +471,46 @@ def test_2D_shallowwatersphere():
     method_options = {}
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shallowwatersphere, method_options)    
 
+# Regression test: 3D acoustics in homogeneous material
+#@attr(testType ='regression')
+@attr(solver_type='classic')
+@attr(kernel_language='fortran')
+@attr(petsc=False)
+@attr(ndim=3)
+@attr(speed='fast')
+def test_3D_acoustics_homogeneous():  
+    path           = './test/acoustics/3d/'
+    target_name    = 'classic3.so'
+    module_name    = 'acoustics'
+    problem_name   = 'acoustics3D'
+    method_options = {'use_petsc' : False, 'test' : 'hom'}
+    verifier       = lambda error: (abs(error-0.00286)<1.e-4)# and (abs(error[1]-3.2)<1.e-4))
+    yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
+
+# Regression test: 3D acoustics in heterogeneous material
+#@attr(testType ='regression')
+@attr(solver_type='classic')
+@attr(kernel_language='fortran')
+@attr(petsc=False)
+@attr(ndim=3)
+@attr(speed='fast')
+def test_3D_acoustics_heterogeneous():
+    path           = './test/acoustics/3d/'
+    target_name    = 'classic3.so'
+    module_name    = 'acoustics'
+    problem_name   = 'acoustics3D'
+    method_options = {'use_petsc' : False, 'test' : 'het'}
+
+    def verify_3D_het_acoustics(test_x):
+        import numpy
+        verify_x=numpy.loadtxt('test/pressure_3D.txt')
+        diff = numpy.linalg.norm(test_x-verify_x)
+        if diff>1.e-4:
+            raise Exception("""test_3D_acoustics_heterogeneous(): 
+                        Difference between expected and computed solutions: %s""" % diff)
+        else: return True
+
+
+    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_3D_het_acoustics, method_options)
+
+

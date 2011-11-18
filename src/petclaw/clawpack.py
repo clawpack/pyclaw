@@ -33,3 +33,15 @@ class ClawSolver2D(pyclaw.clawpack.ClawSolver2D):
     
     Note that only the fortran routines are supported for now in 2D.
     """
+    
+# ============================================================================
+#  PetClaw 3d Solver Class
+# ============================================================================
+class ClawSolver3D(pyclaw.clawpack.ClawSolver3D):
+    r"""
+    PetClaw solver for 3D problems using classic Clawpack algorithms.
+
+    This class implements nothing; it just inherits from ClawSolver3D.
+    
+    Note that only fortran routines are supported in 3D.
+    """

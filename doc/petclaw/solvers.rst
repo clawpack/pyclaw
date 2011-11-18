@@ -14,7 +14,6 @@ The only difference is that they additionally inherit from the PetSolver
    :maxdepth: 3
    :glob:
    
-   solver
    clawpack
    sharpclaw
 

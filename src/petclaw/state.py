@@ -249,6 +249,8 @@ class State(pyclaw.state.State):
             self.q = qbc[:,mbc:-mbc]
         elif grid.ndim == 2:
             self.q = qbc[:,mbc:-mbc,mbc:-mbc]
+        elif grid.ndim == 3:
+            self.q = qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
         else:
             raise NotImplementedError("The case of 3D is not handled in "\
             +"this function yet")

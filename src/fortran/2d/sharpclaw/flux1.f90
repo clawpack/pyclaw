@@ -115,6 +115,8 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
                 write(*,*) 'You should set 0<=char_decomp<=3'
                 stop
         end select
+        case(3)
+            call weno5(q1d,ql,qr,meqn,maxnx,mbc)
       end select
 
 
