@@ -1,6 +1,6 @@
 c
 c     ==================================================================
-      subroutine step3(maxm,maxmx,maxmy,maxmz,meqn,mwaves,mbc,mx,my,
+      subroutine step3(maxm,meqn,mwaves,mbc,mx,my,
      &                 mz,qold,qnew,aux,dx,dy,dz,dt,method,mthlim,cfl,
      &                 qadd,fadd,gadd,hadd,q1d,dtdx1d,dtdy1d,dtdz1d,
      &                 aux1,aux2,aux3,maux,work,mwork)
@@ -19,17 +19,17 @@ c
 c
       implicit real*8(a-h,o-z)
       external rpn3,rpt3,rptt3
-      dimension qold(meqn, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc,
-     &          1-mbc:maxmz+mbc)
-      dimension qnew(meqn, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc,
-     &          1-mbc:maxmz+mbc)
+      dimension qold(meqn, 1-mbc:mx+mbc, 1-mbc:my+mbc,
+     &          1-mbc:mz+mbc)
+      dimension qnew(meqn, 1-mbc:mx+mbc, 1-mbc:my+mbc,
+     &          1-mbc:mz+mbc)
       dimension  q1d(meqn,1-mbc:maxm+mbc)
       dimension qadd(meqn,1-mbc:maxm+mbc)
       dimension fadd(meqn,1-mbc:maxm+mbc)
       dimension gadd(meqn,2,-1:1,1-mbc:maxm+mbc)
       dimension hadd(meqn,2,-1:1,1-mbc:maxm+mbc)
-      dimension aux(maux, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc,
-     &              1-mbc:maxmz+mbc)
+      dimension aux(maux, 1-mbc:mx+mbc, 1-mbc:my+mbc,
+     &              1-mbc:mz+mbc)
       dimension aux1(maux,1-mbc:maxm+mbc,3)
       dimension aux2(maux,1-mbc:maxm+mbc,3)
       dimension aux3(maux,1-mbc:maxm+mbc,3)

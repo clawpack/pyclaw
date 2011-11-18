@@ -1,7 +1,7 @@
 c
 c
 c ===================================================================
-      subroutine step1(maxmx,meqn,mwaves,mbc,maux,mx,q,aux,dx,dt,
+      subroutine step1(meqn,mwaves,mbc,maux,mx,q,aux,dx,dt,
      &              method,mthlim,cfl,f,wave,s,amdq,apdq,dtdx)
 c ===================================================================
 c
@@ -14,34 +14,34 @@ c
 c
 c     amdq, apdq, wave, s, and f are used locally:
 c
-c     amdq(1-mbc:maxmx+mbc, meqn) = left-going flux-differences
-c     apdq(1-mbc:maxmx+mbc, meqn) = right-going flux-differences
+c     amdq(1-mbc:mx+mbc, meqn) = left-going flux-differences
+c     apdq(1-mbc:mx+mbc, meqn) = right-going flux-differences
 c        e.g. amdq(m,i) = m'th component of A^- \Delta q from i'th Riemann
 c                         problem (between cells i-1 and i).
 c
-c     wave(1-mbc:maxmx+mbc, meqn, mwaves) = waves from solution of
+c     wave(1-mbc:mx+mbc, meqn, mwaves) = waves from solution of
 c                                           Riemann problems,
 c            wave(m,mw,i) = mth component of jump in q across
 c                           wave in family mw in Riemann problem between
 c                           states i-1 and i.
 c
-c     s(1-mbc:maxmx+mbc, mwaves) = wave speeds,
+c     s(1-mbc:mx+mbc, mwaves) = wave speeds,
 c            s(m,iw) = speed of wave in family mw in Riemann problem between
 c                      states i-1 and i.
 c
-c     f(1-mbc:maxmx+mbc, meqn) = correction fluxes for second order method
+c     f(1-mbc:mx+mbc, meqn) = correction fluxes for second order method
 c            f(m,i) = mth component of flux at left edge of ith cell 
 c     --------------------------------------------------------------------
 c
       implicit double precision (a-h,o-z)    
-      double precision q(meqn,1-mbc:maxmx+mbc)
-      double precision aux(maux,1-mbc:maxmx+mbc)
-      double precision f(meqn,1-mbc:maxmx+mbc)
-      double precision s(mwaves,1-mbc:maxmx+mbc)
-      double precision wave(meqn, mwaves,1-mbc:maxmx+mbc)
-      double precision amdq(meqn,1-mbc:maxmx+mbc)
-      double precision apdq(meqn,1-mbc:maxmx+mbc)
-      double precision dtdx(1-mbc:maxmx+mbc)
+      double precision q(meqn,1-mbc:mx+mbc)
+      double precision aux(maux,1-mbc:mx+mbc)
+      double precision f(meqn,1-mbc:mx+mbc)
+      double precision s(mwaves,1-mbc:mx+mbc)
+      double precision wave(meqn, mwaves,1-mbc:mx+mbc)
+      double precision amdq(meqn,1-mbc:mx+mbc)
+      double precision apdq(meqn,1-mbc:mx+mbc)
+      double precision dtdx(1-mbc:mx+mbc)
       integer          method(7),mthlim(mwaves)
       logical limit
 
@@ -49,7 +49,7 @@ cf2py intent(in,out) q
 cf2py intent(out) cfl  
 cf2py intent(in) meqn  
 cf2py intent(in) mbc  
-cf2py intent(in) maxmx  
+cf2py intent(in) mx  
 cf2py optional f, amdq, apdq, dtdx, s, wave
 
 c
@@ -77,7 +77,7 @@ c
 c     # solve Riemann problem at each interface 
 c     -----------------------------------------
 c
-      call rp1(maxmx,meqn,mwaves,mbc,mx,q,q,aux,aux,wave,s,amdq,apdq)
+      call rp1(mx,meqn,mwaves,mbc,mx,q,q,aux,aux,wave,s,amdq,apdq)
 c
 c     # Modify q for Godunov update:
 c     # Note this may not correspond to a conservative flux-differencing
@@ -116,7 +116,7 @@ c
       end forall
 c
 c      # apply limiter to waves:
-      if (limit) call limiter(maxmx,meqn,mwaves,mbc,mx,wave,s,mthlim)
+      if (limit) call limiter(mx,meqn,mwaves,mbc,mx,wave,s,mthlim)
 c
       do 120 i=1,mx+1
          do 120 m=1,meqn

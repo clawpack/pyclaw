@@ -300,7 +300,7 @@ class ClawSolver1D(ClawSolver):
 
         self.apply_q_bcs(state)
             
-        meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
+        meqn,mbc = state.meqn,self.mbc
           
         if(self.kernel_language == 'Fortran'):
             if self.fwave:
@@ -312,7 +312,7 @@ class ClawSolver1D(ClawSolver):
             dx,dt = grid.d[0],self.dt
             dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
             
-            self.qbc,cfl = classic1.step1(mx,mbc,mx,self.qbc,self.auxbc,dx,dt,self.method,self.mthlim)
+            self.qbc,cfl = classic1.step1(mbc,mx,self.qbc,self.auxbc,dx,dt,self.method,self.mthlim)
             
         elif(self.kernel_language == 'Python'):
  
@@ -472,8 +472,7 @@ class ClawSolver2D(ClawSolver):
 
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (mbc)
-        state = solution.state
-        state.set_mbc(self.mbc)
+        solution.state.set_mbc(self.mbc)
         # End hack
 
         self.set_mthlim()
@@ -563,10 +562,9 @@ class ClawSolver2D(ClawSolver):
         if(self.kernel_language == 'Fortran'):
             state = solution.states[0]
             grid = state.grid
-            meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
+            dx,dy = grid.d
             mx,my = grid.ng
             maxm = max(mx,my)
-            dx,dy = grid.d
             
             self.apply_q_bcs(state)
             qnew = self.qbc
@@ -581,11 +579,11 @@ class ClawSolver2D(ClawSolver):
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
-                q, cfl_x = classic2.step2ds(maxm,mx,my,mbc,mx,my, \
+                q, cfl_x = classic2.step2ds(maxm,self.mbc,mx,my, \
                       qold,qnew,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1)
 
-                q, cfl_y = classic2.step2ds(maxm,mx,my,mbc,mx,my, \
+                q, cfl_y = classic2.step2ds(maxm,self.mbc,mx,my, \
                       q,q,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2)
 
@@ -593,12 +591,12 @@ class ClawSolver2D(ClawSolver):
 
             else:
 
-                q, cfl = classic2.step2(maxm,mx,my,mbc,mx,my, \
+                q, cfl = classic2.step2(maxm,self.mbc,mx,my, \
                       qold,qnew,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl.update_global_max(cfl)
-            state.set_q_from_qbc(mbc,self.qbc)
+            state.set_q_from_qbc(self.mbc,self.qbc)
 
         else:
             raise NotImplementedError("No python implementation for step_hyperbolic in 2D.")
@@ -765,7 +763,6 @@ class ClawSolver3D(ClawSolver):
         if(self.kernel_language == 'Fortran'):
             state = solution.states[0]
             grid = state.grid
-            meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
             dx,dy,dz = grid.d
             mx,my,mz = grid.ng
             maxm = max(mx,my,mz)
@@ -783,15 +780,15 @@ class ClawSolver3D(ClawSolver):
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
-                q, cfl_x = classic3.step3ds(maxm,mx,my,mz,mbc,mx,my,mz, \
+                q, cfl_x = classic3.step3ds(maxm,self.mbc,mx,my,mz, \
                       qold,qnew,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1)
 
-                q, cfl_y = classic3.step3ds(maxm,mx,my,mz,mbc,mx,my,mz, \
+                q, cfl_y = classic3.step3ds(maxm,self.mbc,mx,my,mz, \
                       q,q,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2)
 
-                q, cfl_z = classic3.step3ds(maxm,mx,my,mz,mbc,mx,my,mz, \
+                q, cfl_z = classic3.step3ds(maxm,self.mbc,mx,my,mz, \
                       q,q,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,3)
 
@@ -799,12 +796,12 @@ class ClawSolver3D(ClawSolver):
 
             else:
 
-                q, cfl = classic3.step3(maxm,mx,my,mz,mbc,mx,my,mz, \
+                q, cfl = classic3.step3(maxm,self.mbc,mx,my,mz, \
                       qold,qnew,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl.update_global_max(cfl)
-            state.set_q_from_qbc(mbc,self.qbc)
+            state.set_q_from_qbc(self.mbc,self.qbc)
 
         else:
             raise NotImplementedError("No python implementation for step_hyperbolic in 3D.")
