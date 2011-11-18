@@ -61,10 +61,10 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     # Grid:
     xlower = -2.5
     xupper = 2.5
-    mx = 600
+    mx = 150
     ylower = -2.5
     yupper = 2.5
-    my = 600
+    my = 150
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
     grid = pyclaw.Grid([x,y])
@@ -96,7 +96,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir
-    claw.nout = 1
+    claw.nout = 10
 
     #===========================================================================
     # Solve the problem

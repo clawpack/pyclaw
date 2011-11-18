@@ -28,24 +28,26 @@ def setplot(plotdata):
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.xlimits = [-5.0,5.0]
-    plotaxes.ylimits = [0,4.0]
+    #plotaxes.ylimits = [0,4.0]
     plotaxes.title = 'Water height'
+    plotaxes.axescmd = 'subplot(211)'
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='1d')
     plotitem.plot_var = 0
     plotitem.plotstyle = '-'
     plotitem.color = 'b'
+    plotitem.kwargs = {'linewidth':3}
     plotitem.show = True       # show on plot?
-    
 
     # Figure for q[1]
-    plotfigure = plotdata.new_plotfigure(name='Momentum', figno=1)
+    #plotfigure = plotdata.new_plotfigure(name='Momentum', figno=1)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
+    plotaxes.axescmd = 'subplot(212)'
     plotaxes.xlimits = [-5.0,5.0]
-    plotaxes.ylimits = [-0.1, 1.4]
+    #plotaxes.ylimits = [-0.1, 1.4]
     plotaxes.title = 'Momentum'
 
     # Set up for item on these axes:
@@ -53,6 +55,7 @@ def setplot(plotdata):
     plotitem.plot_var = 1
     plotitem.plotstyle = '-'
     plotitem.color = 'b'
+    plotitem.kwargs = {'linewidth':3}
     plotitem.show = True       # show on plot?
     
 
