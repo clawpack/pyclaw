@@ -12,9 +12,8 @@ import os
 
 
 # Main root for html links:
-claw_html_root='http://localhost:50005'     
-#claw_html_root='http://numerics.kaust.edu.sa/pyclaw'
-#claw_html_root='https://github.com/clawpack/pyclaw/tree/master'
+#claw_html_root='http://localhost:50005'     
+claw_html_root='http://numerics.kaust.edu.sa/pyclaw'
 
 
 # Determine Clawpack directory:
@@ -86,10 +85,7 @@ class Gallery(object):
         gfile.write("""<html>
               <BODY BGCOLOR="#FFFFE8" LINK="#7F0000" VLINK="#7F0000">
               <font FACE="TREBUCHET MS,HELVETICA,ARIAL">
-              <a href="http://www.clawpack.org">
-              <IMG SRC="%s/doc/_static/clawlogo.jpg" WIDTH="200" HEIGHT="70"
-                VSPACE="0" HSPACE="0" ALT="CLAWPACK" BORDER="0" LOOP="0"> </a>
-              """ % claw_html_root)
+              """ )
 
         gfile.write("<h1>%s</h1>" % self.title)
         for gsec in self.sections:
