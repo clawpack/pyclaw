@@ -19,7 +19,7 @@ def ycirc(x,ymin,ymax):
     else:
         return 0
 
-def qinit(state,rhoin=0.1):
+def qinit(state,rhoin=0.1,bubble_shape='circle'):
     r"""
     Initialize data with a shock at x=xshock and a low-density bubble (of density rhoin)
     centered at (x0,y0) with radius r0.
@@ -35,7 +35,13 @@ def qinit(state,rhoin=0.1):
     x =state.grid.x.center
     y =state.grid.y.center
     Y,X = np.meshgrid(y,x)
-    r = np.sqrt((X-x0)**2 + (Y-y0)**2)
+    if bubble_shape=='circle':
+        r = np.sqrt((X-x0)**2 + (Y-y0)**2)
+    elif bubble_shape=='rectangle':
+        z = np.dstack((np.abs(X-x0),np.abs(Y-y0)))
+        r = np.max(z,axis=2)
+    elif bubble_shape=='triangle':
+        r = np.abs(X-x0) + np.abs(Y-y0)
 
     #First set the values for the cells that don't intersect the bubble boundary
     state.q[0,:,:] = rinf*(X<xshock) + rhoin*(r<=r0) + rhoout*(r>r0)*(X>xshock)

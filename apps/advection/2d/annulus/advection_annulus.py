@@ -84,12 +84,13 @@ def setaux(state,mx,my):
     return aux
 
 
-def velocities_upper(grid,dim,t,auxbc,mbc):
+def velocities_upper(state,dim,t,auxbc,mbc):
     """
     Set the velocities for the ghost cells outside the outer radius of the annulus.
     """
     from mapc2p import mapc2p
 
+    grid=state.grid
     mx = grid.ng[0]
     my = grid.ng[1]
     dxc = grid.d[0]
@@ -108,12 +109,13 @@ def velocities_upper(grid,dim,t,auxbc,mbc):
         raise Exception('Custum BC for this boundary is not appropriate!')
 
 
-def velocities_lower(grid,dim,t,auxbc,mbc):
+def velocities_lower(state,dim,t,auxbc,mbc):
     """
     Set the velocities for the ghost cells outside the inner radius of the annulus.
     """
     from mapc2p import mapc2p
 
+    grid=state.grid
     my = grid.ng[1]
     dxc = grid.d[0]
     dyc = grid.d[1]
@@ -260,7 +262,7 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     claw = pyclaw.Controller()
     claw.keep_copy = False
     claw.outstyle = 1
-    claw.nout = 25
+    claw.nout = 10
     claw.tfinal = 1.0
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver

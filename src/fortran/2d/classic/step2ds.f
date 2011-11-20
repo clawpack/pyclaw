@@ -1,5 +1,5 @@
 c     ==========================================================
-      subroutine step2ds(maxm,maxmx,maxmy,meqn,mwaves,maux,mbc,mx,my,
+      subroutine step2ds(maxm,meqn,mwaves,maux,mbc,mx,my,
      &               qold,qnew,aux,dx,dy,dt,method,mthlim,cfl,
      &               qadd,fadd,gadd,q1d,dtdx1d,dtdy1d,
      &                 aux1,aux2,aux3,work,mwork,ids)
@@ -18,13 +18,13 @@ c
 c
       implicit double precision (a-h,o-z)
       external rpn2,rpt2
-      double precision qold(meqn, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
-      double precision qnew(meqn, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
+      double precision qold(meqn, 1-mbc:mx+mbc, 1-mbc:my+mbc)
+      double precision qnew(meqn, 1-mbc:mx+mbc, 1-mbc:my+mbc)
       double precision  q1d(meqn, 1-mbc:maxm+mbc)
       double precision qadd(meqn, 1-mbc:maxm+mbc)
       double precision fadd(meqn, 1-mbc:maxm+mbc)
       double precision gadd(meqn, 2, 1-mbc:maxm+mbc)
-      double precision aux(maux, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
+      double precision aux(maux, 1-mbc:mx+mbc, 1-mbc:my+mbc)
       double precision aux1(maux, 1-mbc:maxm+mbc)
       double precision aux2(maux, 1-mbc:maxm+mbc)
       double precision aux3(maux, 1-mbc:maxm+mbc)
@@ -34,7 +34,7 @@ c
       integer method(7),mthlim(mwaves)
       double precision work(mwork)
 
-cf2py intent(in,out) cfl
+cf2py intent(out) cfl
 cf2py intent(in,out) qnew  
 cf2py optional q1d, qadd, fadd, gadd, dtdx1d, dtdy1d
 

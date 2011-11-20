@@ -26,7 +26,7 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     # Setup solver and solver parameters
     #===========================================================================
     solver.mwaves = 2
-    solver.limiters = pyclaw.limiters.tvd.MC
+    solver.limiters = pyclaw.limiters.tvd.vanleer
     solver.kernel_language=kernel_language
     if kernel_language =='Python': 
         solver.set_riemann_solver('shallow_roe')
@@ -49,16 +49,29 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     # Parameters
     state.aux_global['grav'] = 1.0
 
-    xCenter = grid.x.center
+    xc = grid.x.center
 
-    damRadius = 0.0
-    hl = 3.
-    ul = 0.
-    hr = 1.
-    ur = 0.
+    IC='2-shock'
+    x0=0.
 
-    state.q[0,:] = hl * (grid.p_center[0] <= damRadius) + hr * (grid.p_center[0] > damRadius)
-    state.q[1,:] = hl*ul * (grid.p_center[0] <= damRadius) + hr*ur * (grid.p_center[0] > damRadius)
+    if IC=='dam-break':
+        hl = 3.
+        ul = 0.
+        hr = 1.
+        ur = 0.
+        state.q[0,:] = hl * (xc <= x0) + hr * (xc > x0)
+        state.q[1,:] = hl*ul * (xc <= x0) + hr*ur * (xc > x0)
+    elif IC=='2-shock':
+        hl = 1.
+        ul = 1.
+        hr = 1.
+        ur = -1.
+        state.q[0,:] = hl * (xc <= x0) + hr * (xc > x0)
+        state.q[1,:] = hl*ul * (xc <= x0) + hr*ur * (xc > x0)
+    elif IC=='perturbation':
+        eps=0.1
+        state.q[0,:] = 1.0 + eps*np.exp(-(xc-x0)**2/0.5)
+        state.q[1,:] = 0.
 
     #===========================================================================
     # Setup controller and controller paramters

@@ -90,7 +90,6 @@ class ClawSolver(Solver):
         r"""
         See :class:`ClawSolver` for full documentation.
         """
-        
         # Required attributes for this solver
         for attr in ['limiters','order','src_split','fwave','step_src','start_step']:
             self._required_attrs.append(attr)
@@ -165,6 +164,12 @@ class ClawSolver(Solver):
                 
         return True
             
+    def check_cfl_settings(self):
+        pass
+
+    def allocate_workspace(self,solution):
+        pass
+
     def step_hyperbolic(self,solution):
         r"""
         Take one homogeneous step on the solution.
@@ -184,6 +189,79 @@ class ClawSolver(Solver):
         if len(self.mthlim)!=self.mwaves:
             raise Exception('Length of solver.limiters is not equal to 1 or to solver.mwaves')
  
+    def set_method(self,state):
+        r"""
+        Set values of the method() array required by the Fortran code.
+        These are algorithmic parameters.
+        """
+        import numpy as np
+        #We ought to put method and many other things in a Fortran
+        #module and set the fortran variables directly here.
+        self.method =np.empty(7, dtype=int,order='F')
+        self.method[0] = self.dt_variable
+        self.method[1] = self.order
+        if self.ndim==1:
+            self.method[2] = 0  # Not used in 1D
+        elif self.dim_split:
+            self.method[2] = -1  # First-order dimensional splitting
+        else:
+            self.method[2] = self.order_trans
+        self.method[3] = self.verbosity
+        self.method[4] = 0  # Not used for PyClaw (would be self.src_split)
+        self.method[5] = state.mcapa + 1
+        self.method[6] = state.maux
+
+    def setup(self,solution):
+        r"""
+        Perform essential solver setup.  This routine must be called before
+        solver.step() may be called.
+        """
+        if(self.kernel_language == 'Fortran'):
+            # Set name of expected .so file with compile Fortran routines
+            self.so_name = 'classic'+str(self.ndim)
+            if self.fwave: self.so_name+='fw'
+
+        # This is a hack to deal with the fact that petsc4py
+        # doesn't allow us to change the stencil_width (mbc)
+        solution.state.set_mbc(self.mbc)
+        # End hack
+
+        self.check_cfl_settings()
+
+        self.set_mthlim()
+        if(self.kernel_language == 'Fortran'):
+            self.set_fortran_parameters(solution)
+            self.allocate_workspace(solution)
+        elif self.ndim>1:
+            raise Exception('Only Fortran kernels are supported in multi-D.')
+
+        self.allocate_bc_arrays(solution.states[0])
+
+
+    def set_fortran_parameters(self,solution):
+        r"""
+        Pack parameters into format recognized by Clawpack (Fortran) code.
+
+        Sets the method array and the cparam common block for the Riemann solver.
+        """
+        self.set_method(solution.state)
+        classic = __import__(self.so_name)
+        # The reload here is necessary because otherwise the common block
+        # cparam in the Riemann solver doesn't get flushed between running
+        # different tests in a single Python session.
+        reload(classic)
+        solution.state.set_cparam(classic)
+
+    def teardown(self):
+        r"""
+        Delete Fortran objects, which otherwise tend to persist in Python sessions.
+        """
+        if(self.kernel_language == 'Fortran'):
+            classic = __import__(self.so_name)
+            del classic
+
+
+
 # ============================================================================
 #  ClawPack 1d Solver Class
 # ============================================================================
@@ -212,65 +290,9 @@ class ClawSolver1D(ClawSolver):
         
         See :class:`ClawSolver1D` for more info.
         """   
-        
         self.ndim = 1
 
         super(ClawSolver1D,self).__init__(data)
-
-
-    # ========== Setup routine =============================   
-    def setup(self,solution):
-        r"""
-        Perform essential solver setup.  This routine must be called before
-        solver.step() may be called.
-        """
-        # This is a hack to deal with the fact that petsc4py
-        # doesn't allow us to change the stencil_width (mbc)
-        state = solution.state
-        state.set_mbc(self.mbc)
-        # End hack
-
-        self.set_mthlim()
-        if(self.kernel_language == 'Fortran'):
-            self.set_fortran_parameters(solution)
-
-        self.allocate_bc_arrays(solution.states[0])
-
-    def set_fortran_parameters(self,solution):
-        r"""
-        Pack parameters into format recognized by Clawpack (Fortran) code.
-
-        Sets the method array and the cparam common block for the Riemann solver.
-        """
-        import numpy as np
-
-        state = solution.state
-
-        self.method =np.ones(7, dtype=int)
-        self.method[0] = self.dt_variable
-        self.method[1] = self.order 
-        self.method[2] = 0  # Not used in 1D
-        self.method[3] = self.verbosity
-        self.method[4] = 0  # Not used for PyClaw (would be self.src_split)
-        self.method[5] = state.mcapa + 1
-        self.method[6] = state.maux  # aux
- 
-        if self.fwave:
-            import classic1fw as classic1
-        else:
-            import classic1
-        state.set_cparam(classic1)
-
-    def teardown(self):
-        r"""
-        Delete Fortran objects, which otherwise tend to persist in Python sessions.
-        """
-        if(self.kernel_language == 'Fortran'):
-            if self.fwave:
-                import classic1fw as classic1
-            else:
-                import classic1
-            del classic1
 
 
     # ========== Homogeneous Step =====================================
@@ -289,19 +311,16 @@ class ClawSolver1D(ClawSolver):
 
         self.apply_q_bcs(state)
             
-        meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
+        meqn,mbc = state.meqn,self.mbc
           
         if(self.kernel_language == 'Fortran'):
-            if self.fwave:
-                import classic1fw as classic1
-            else:
-                import classic1
+            classic = __import__(self.so_name)
 
             mx = grid.ng[0]
             dx,dt = grid.d[0],self.dt
             dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
             
-            self.qbc,cfl = classic1.step1(mx,mbc,mx,self.qbc,self.auxbc,dx,dt,self.method,self.mthlim)
+            self.qbc,cfl = classic.step1(mbc,mx,self.qbc,self.auxbc,dx,dt,self.method,self.mthlim)
             
         elif(self.kernel_language == 'Python'):
  
@@ -437,14 +456,6 @@ class ClawSolver2D(ClawSolver):
         
         See :class:`ClawSolver2D` for more info.
         """   
-        
-        # Add the functions as required attributes
-        self._required_attrs.append('rp')
-        self._default_attr_values['rp'] = None
-        
-        # Import Riemann solvers
-        exec('import riemann',globals())
-            
         self._default_attr_values['dim_split'] = True
         self._default_attr_values['order_trans'] = self.trans_inc
 
@@ -452,21 +463,7 @@ class ClawSolver2D(ClawSolver):
 
         super(ClawSolver2D,self).__init__(data)
 
-    # ========== Setup routine =============================   
-    def setup(self,solution):
-        r"""
-        Perform essential solver setup.  This routine must be called before
-        solver.step() may be called.
-        """
-
-        # This is a hack to deal with the fact that petsc4py
-        # doesn't allow us to change the stencil_width (mbc)
-        state = solution.state
-        state.set_mbc(self.mbc)
-        # End hack
-
-        self.set_mthlim()
-
+    def check_cfl_settings(self):
         if (not self.dim_split) and (self.order_trans==0):
             cfl_recommended = 0.5
         else:
@@ -477,13 +474,8 @@ class ClawSolver2D(ClawSolver):
             warnings.warn('cfl_max is set higher than the recommended value of %s' % cfl_recommended)
             warnings.warn(str(self.cfl_desired))
 
-        if(self.kernel_language == 'Fortran'):
-            self.set_fortran_parameters(solution)
-        else: raise Exception('Only Fortran kernels are supported in 2D.')
 
-        self.allocate_bc_arrays(solution.states[0])
-
-    def set_fortran_parameters(self,solution):
+    def allocate_workspace(self,solution):
         r"""
         Pack parameters into format recognized by Clawpack (Fortran) code.
 
@@ -491,44 +483,15 @@ class ClawSolver2D(ClawSolver):
         """
         import numpy as np
 
-        # Grid we will be working on
-        state = solution.states[0]
+        state = solution.state
 
-        # The reload here is necessary because otherwise the common block
-        # cparam in the Riemann solver doesn't get flushed between running
-        # different tests in a single Python session.
-        if self.fwave:
-            import classic2fw as classic2
-        else:
-            import classic2
-        reload(classic2)
-        state.set_cparam(classic2)
-
-        # Number of equations
         meqn,maux,mwaves,mbc,aux = state.meqn,state.maux,self.mwaves,self.mbc,state.aux
 
-        #We ought to put method and many other things in a Fortran
-        #module and set the fortran variables directly here.
-        self.method =np.empty(7, dtype=int,order='F')
-        self.method[0] = self.dt_variable
-        self.method[1] = self.order
-        if self.dim_split:
-            self.method[2] = -1  # Godunov dimensional splitting
-        else:
-            self.method[2] = self.order_trans
-        self.method[3] = self.verbosity
-        self.method[4] = 0  # Not used for PyClaw (would be self.src_split)
-        self.method[5] = state.mcapa + 1
-        self.method[6] = state.maux
-            
         #The following is a hack to work around an issue
         #with f2py.  It involves wastefully allocating three arrays.
         #f2py seems not able to handle multiple zero-size arrays being passed.
         # it appears the bug is related to f2py/src/fortranobject.c line 841.
         if(aux == None): maux=1
-
-        if self.src_split < 2: narray = 1
-        else: narray = 2
 
         grid  = state.grid
         maxmx,maxmy = grid.ng[0],grid.ng[1]
@@ -539,25 +502,8 @@ class ClawSolver2D(ClawSolver):
         self.aux1 = np.empty((maux,maxm+2*mbc),order='F')
         self.aux2 = np.empty((maux,maxm+2*mbc),order='F')
         self.aux3 = np.empty((maux,maxm+2*mbc),order='F')
-        mwork = (maxm+2*mbc) * (5*meqn + mwaves + meqn*mwaves) \
-              + (narray-1) * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn
-        # Amal: I think no need for the term
-        # (narray-1) * (maxmx + 2*mbc) * (maxmy + 2*mbc) * meqn
-        # this extra q array should be created and handled in function
-        # step in case we have src term with strange splitting (Do not
-        # think the fortran code will complain, but not sure)
+        mwork = (maxm+2*mbc) * (5*meqn + mwaves + meqn*mwaves)
         self.work = np.empty((mwork),order='F')
-
-    def teardown(self):
-        r"""
-        Delete Fortran objects, which otherwise tend to persist in Python sessions.
-        """
-        if(self.kernel_language == 'Fortran'):
-            if self.fwave:
-                import classic2fw as classic2
-            else:
-                import classic2
-            del classic2
 
 
     # ========== Hyperbolic Step =====================================
@@ -575,46 +521,38 @@ class ClawSolver2D(ClawSolver):
         if(self.kernel_language == 'Fortran'):
             state = solution.states[0]
             grid = state.grid
-            meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
-            mx,my = grid.ng[0],grid.ng[1]
+            dx,dy = grid.d
+            mx,my = grid.ng
             maxm = max(mx,my)
-            
-            dx,dy,dt = grid.d[0],grid.d[1],self.dt
             
             self.apply_q_bcs(state)
             qnew = self.qbc
             qold = qnew.copy('F')
             
-            if self.fwave:
-                import classic2fw as classic2
-            else:
-                import classic2
-
-            #This call seems unnecessary:
-            cfl = self.cfl.get_cached_max()
+            classic = __import__(self.so_name)
 
             if self.dim_split:
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
-                q, cfl_x = classic2.step2ds(maxm,mx,my,mbc,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl, \
+                q, cfl_x = classic.step2ds(maxm,self.mbc,mx,my, \
+                      qold,qnew,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1)
 
-                q, cfl_y = classic2.step2ds(maxm,mx,my,mbc,mx,my, \
-                      q,q,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl, \
+                q, cfl_y = classic.step2ds(maxm,self.mbc,mx,my, \
+                      q,q,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2)
 
                 cfl = max(cfl_x,cfl_y)
 
             else:
 
-                q, cfl = classic2.step2(maxm,mx,my,mbc,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,dt,self.method,self.mthlim,cfl, \
+                q, cfl = classic.step2(maxm,self.mbc,mx,my, \
+                      qold,qnew,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl.update_global_max(cfl)
-            state.set_q_from_qbc(mbc,self.qbc)
+            state.set_q_from_qbc(self.mbc,self.qbc)
 
         else:
             raise NotImplementedError("No python implementation for step_hyperbolic in 2D.")
@@ -670,14 +608,7 @@ class ClawSolver3D(ClawSolver):
         
         See :class:`ClawSolver3D` for more info.
         """   
-        
         # Add the functions as required attributes
-        self._required_attrs.append('rp')
-        self._default_attr_values['rp'] = None
-        
-        # Import Riemann solvers
-        exec('import riemann',globals())
-            
         self._default_attr_values['dim_split'] = True
         self._default_attr_values['order_trans'] = self.trans_cor
 
@@ -686,75 +617,16 @@ class ClawSolver3D(ClawSolver):
         super(ClawSolver3D,self).__init__(data)
 
     # ========== Setup routine =============================   
-    def setup(self,solution):
+    def allocate_workspace(self,solution):
         r"""
-        Perform essential solver setup.  This routine must be called before
-        solver.step() may be called.
-        """
-
-        # This is a hack to deal with the fact that petsc4py
-        # doesn't allow us to change the stencil_width (mbc)
-        state = solution.state
-        state.set_mbc(self.mbc)
-        # End hack
-
-        self.set_mthlim()
-
-        #DK: The checks here need to be corrected for the 3D code, to cover all the possibilities.
-        if (not self.dim_split) and (self.order_trans==0):
-            cfl_recommended = 0.5
-        else:
-            cfl_recommended = 1.0
-
-        if self.cfl_max > cfl_recommended:
-            import warnings
-            warnings.warn('cfl_max is set higher than the recommended value of %s' % cfl_recommended)
-            warnings.warn(str(self.cfl_desired))
-
-        if(self.kernel_language == 'Fortran'):
-            self.set_fortran_parameters(solution)
-        else: raise Exception('Only Fortran kernels are supported in 3D.')
-
-        self.allocate_bc_arrays(solution.states[0])
-
-    def set_fortran_parameters(self,solution):
-        r"""
-        Pack parameters into format recognized by Clawpack (Fortran) code.
-
-        Sets the method array and the cparam common block for the Riemann solver.
+        Allocate auxN and work arrays for use in Fortran subroutines.
         """
         import numpy as np
 
-        # Grid we will be working on
         state = solution.states[0]
 
-        # The reload here is necessary because otherwise the common block
-        # cparam in the Riemann solver doesn't get flushed between running
-        # different tests in a single Python session.
-        if self.fwave:
-            import classic3fw as classic3
-        else:
-            import classic3
-        reload(classic3)
-        state.set_cparam(classic3)
-
-        # Number of equations
         meqn,maux,mwaves,mbc,aux = state.meqn,state.maux,self.mwaves,self.mbc,state.aux
 
-        #We ought to put method and many other things in a Fortran
-        #module and set the fortran variables directly here.
-        self.method =np.empty(7, dtype=int,order='F')
-        self.method[0] = self.dt_variable
-        self.method[1] = self.order
-        if self.dim_split:
-            self.method[2] = -1  # Godunov dimensional splitting
-        else:
-            self.method[2] = self.order_trans
-        self.method[3] = self.verbosity
-        self.method[4] = 0  # Not used for PyClaw (would be self.src_split)
-        self.method[5] = state.mcapa + 1
-        self.method[6] = state.maux
-            
         #The following is a hack to work around an issue
         #with f2py.  It involves wastefully allocating three arrays.
         #f2py seems not able to handle multiple zero-size arrays being passed.
@@ -773,17 +645,6 @@ class ClawSolver3D(ClawSolver):
         mwork = (maxm+2*mbc) * (31*meqn + mwaves + meqn*mwaves)
         self.work = np.empty((mwork),order='F')
 
-    def teardown(self):
-        r"""
-        Delete Fortran objects, which otherwise tend to persist in Python sessions.
-        """
-        if(self.kernel_language == 'Fortran'):
-            if self.fwave:
-                import classic3fw as classic3
-            else:
-                import classic3
-            del classic3
-
 
     # ========== Hyperbolic Step =====================================
     def step_hyperbolic(self,solution):
@@ -800,50 +661,42 @@ class ClawSolver3D(ClawSolver):
         if(self.kernel_language == 'Fortran'):
             state = solution.states[0]
             grid = state.grid
-            meqn,maux,mwaves,mbc = state.meqn,state.maux,self.mwaves,self.mbc
-            mx,my,mz = grid.ng[0],grid.ng[1],grid.ng[2]
+            dx,dy,dz = grid.d
+            mx,my,mz = grid.ng
             maxm = max(mx,my,mz)
-            
-            dx,dy,dz,dt = grid.d[0],grid.d[1],grid.d[2],self.dt
             
             self.apply_q_bcs(state)
             qnew = self.qbc
             qold = qnew.copy('F')
             
-            if self.fwave:
-                import classic3fw as classic3
-            else:
-                import classic3
-
-            #This call seems unnecessary:
-            cfl = self.cfl.get_cached_max()
+            classic = __import__(self.so_name)
 
             if self.dim_split:
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
-                q, cfl_x = classic3.step3ds(maxm,mx,my,mz,mbc,mx,my,mz, \
-                      qold,qnew,self.auxbc,dx,dy,dz,dt,self.method,self.mthlim,cfl, \
+                q, cfl_x = classic.step3ds(maxm,self.mbc,mx,my,mz, \
+                      qold,qnew,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1)
 
-                q, cfl_y = classic3.step3ds(maxm,mx,my,mz,mbc,mx,my,mz, \
-                      q,q,self.auxbc,dx,dy,dz,dt,self.method,self.mthlim,cfl, \
+                q, cfl_y = classic.step3ds(maxm,self.mbc,mx,my,mz, \
+                      q,q,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2)
 
-                q, cfl_z = classic3.step3ds(maxm,mx,my,mz,mbc,mx,my,mz, \
-                      q,q,self.auxbc,dx,dy,dz,dt,self.method,self.mthlim,cfl, \
+                q, cfl_z = classic.step3ds(maxm,self.mbc,mx,my,mz, \
+                      q,q,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,3)
 
                 cfl = max(cfl_x,cfl_y,cfl_z)
 
             else:
 
-                q, cfl = classic3.step3(maxm,mx,my,mz,mbc,mx,my,mz, \
-                      qold,qnew,self.auxbc,dx,dy,dz,dt,self.method,self.mthlim,cfl, \
+                q, cfl = classic.step3(maxm,self.mbc,mx,my,mz, \
+                      qold,qnew,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl.update_global_max(cfl)
-            state.set_q_from_qbc(mbc,self.qbc)
+            state.set_q_from_qbc(self.mbc,self.qbc)
 
         else:
             raise NotImplementedError("No python implementation for step_hyperbolic in 3D.")

@@ -420,11 +420,11 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     # ====
     xlower = -3.0
     xupper = 1.0
-    mx = 200
+    mx = 100
 
     ylower = -1.0
     yupper = 1.0
-    my = 100
+    my = 50
 
     # Check whether or not the even number of cells are used in in both 
     # directions. If odd numbers are used a message is print at screen and the 

@@ -14,23 +14,25 @@ the package. Their work is greatly appreciated: no open source project can
 survive without a community. The following people contributed major parts of
 the library (in alphabetical order)
 
-    * Aron Ahmadia: PETSc integration; I/O; general design.
+    * Aron Ahmadia: PETSc integration; I/O; programmatic testing framework; general design.
 
-    * Amal Alghamdi: initial development of PetClaw.
+    * Amal Alghamdi: Initial development of PetClaw.
 
-    * Jed Brown: implicit time stepping.
+    * Jed Brown: Implicit time stepping.
 
     * Lisandro Dalcin: Fortran wrapping; PETSc integration; general efficiency.
 
     * Matthew Emmett: PyWENO integration.
 
-    * David Ketcheson
+    * David Ketcheson: General maintenance and development; incorporation of SharpClaw routines.
 
-    * Matthew Knepley: general design; PETSc integration.
+    * Matthew Knepley: General design; PETSc integration.
 
-    * Kyle Mandli
+    * Grady Lemoine: Interleaving and cache-optimization of 3D Classic routines.
 
-    * Matteo Parsani: mapped grids; Python-Fortran interfacing; implicit time stepping.
+    * Kyle Mandli: Initial design and implementation of the PyClaw framework.
+
+    * Matteo Parsani: Mapped grids; Python-Fortran interfacing; implicit time stepping.
 
 Further contributions to the package are most welcome.  If you have 
 used PyClaw for research, chances are that others would find your

@@ -117,7 +117,7 @@ def gauge_pfunction(q,aux):
     p = np.exp(q[0]*aux[1])-1
     return [p,10*p]
 
-def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
+def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
     """
     Solve the p-system in 2D with variable coefficients
     """
@@ -130,16 +130,16 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
     ######### MAIN PARAMETERS ##########
     ####################################
     # Domain
-    x_lower=0.25; x_upper=5.25
-    y_lower=0.25; y_upper=5.25
+    x_lower=0.25; x_upper=20.25
+    y_lower=0.25; y_upper=20.25
     # Grid cells per layer
-    Ng=20
+    Ng=10
     mx=(x_upper-x_lower)*Ng; my=(y_upper-y_lower)*Ng
     # Initial condition parameters
-    A=5.
+    A=10.
     x0=0.25 # Center of initial perturbation
     y0=0.25 # Center of initial perturbation
-    varx=5.0; vary=5.0 # Width of initial perturbation
+    varx=0.5; vary=0.5 # Width of initial perturbation
     # Boundary conditions
     bc_x_lower=pyclaw.BC.reflecting; bc_x_upper=pyclaw.BC.outflow
     bc_y_lower=pyclaw.BC.reflecting; bc_y_upper=pyclaw.BC.outflow
@@ -147,7 +147,7 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
     turnZero_half_2D=0 #flag
     t_turnZero=50
     # Regarding time
-    tfinal=2.0
+    tfinal=20.0
     nout=10
     t0=0.0
     # restart options
@@ -167,8 +167,8 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
     solver.aux_bc_upper[1]=bc_y_upper
 
     solver.fwave = True
-    solver.cfl_max = 1.0
-    solver.cfl_desired = 0.9
+    solver.cfl_max = 0.9
+    solver.cfl_desired = 0.8
     solver.start_step = b4step
     solver.dim_split=False
 

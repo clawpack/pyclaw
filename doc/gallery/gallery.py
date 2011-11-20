@@ -12,7 +12,8 @@ import os
 
 
 # Main root for html links:
-claw_html_root='http://localhost:50005'     
+#claw_html_root='http://localhost:50005'     
+claw_html_root='http://numerics.kaust.edu.sa/pyclaw'
 
 
 # Determine Clawpack directory:
@@ -84,10 +85,7 @@ class Gallery(object):
         gfile.write("""<html>
               <BODY BGCOLOR="#FFFFE8" LINK="#7F0000" VLINK="#7F0000">
               <font FACE="TREBUCHET MS,HELVETICA,ARIAL">
-              <a href="http://www.clawpack.org">
-              <IMG SRC="%s/doc/_static/clawlogo.jpg" WIDTH="200" HEIGHT="70"
-                VSPACE="0" HSPACE="0" ALT="CLAWPACK" BORDER="0" LOOP="0"> </a>
-              """ % claw_html_root)
+              """ )
 
         gfile.write("<h1>%s</h1>" % self.title)
         for gsec in self.sections:
@@ -96,12 +94,11 @@ class Gallery(object):
 
             for gitem in gsec.items:
                 gfile.write('<p>')
-                readme = os.path.join(claw_html_root, gitem.appdir, \
-                               'README.html')
+                code = os.path.join(claw_html_root, gitem.appdir)
                 plotindex = os.path.join(claw_html_root, gitem.appdir, \
                                gitem.plotdir, '_PlotIndex.html')
-                gfile.write('<p><b>$PYCLAW/%s</b> ... <a href="%s">README</a> ... <a href="%s">Plot Index</a><p>' \
-                      % (gitem.appdir,readme,plotindex))
+                gfile.write('<p><b>$PYCLAW/%s</b> ... <a href="%s">Code</a> ... <a href="%s">Plot Index</a><p>' \
+                      % (gitem.appdir,code,plotindex))
                 gfile.write('<p>\n%s\n<p>\n' % gitem.description)
                 for image in gitem.images:
 
@@ -159,7 +156,7 @@ def test():
 
 
 def make_1d():
-    gallery = Gallery(title="Gallery of 1d applications")
+    gallery = Gallery(title="Gallery of 1d PyClaw applications")
     plotdir = '_plots'
 
 
@@ -194,6 +191,12 @@ def make_1d():
     images = ('frame0000fig0', 'frame0003fig0', 'frame0006fig0')
     gsec.new_item(appdir, plotdir, description, images)
     #----------------------------------------------
+    gsec = gallery.new_section("1-dimensional shallow water equation")
+    appdir = 'apps/shallow/1d/'
+    description = """Shallow water shock tube."""
+    images = ('frame0000fig0', 'frame0003fig0', 'frame0006fig0')
+    gsec.new_item(appdir, plotdir, description, images)
+    #----------------------------------------------
     gsec = gallery.new_section("1-dimensional nonlinear elasticity")
     appdir = 'apps/elasticity/1d/stegoton'
     description = """
@@ -202,13 +205,21 @@ def make_1d():
     images = ('frame0000fig1', 'frame0003fig1', 'frame0005fig1')
     gsec.new_item(appdir, plotdir, description, images)
     #----------------------------------------------
+    gsec = gallery.new_section("1-dimensional Euler equations")
+    appdir = 'apps/euler/1d/wcblast'
+    description = """
+        Woodward-Colella blast-wave interaction problem.
+        """
+    images = ('frame0000fig0', 'frame0003fig0', 'frame0010fig0')
+    gsec.new_item(appdir, plotdir, description, images)
+    #----------------------------------------------
        
     gallery.create('gallery_1d.html')
     return gallery
 
 
 def make_2d():
-    gallery = Gallery("Gallery of 2d applications")
+    gallery = Gallery("Gallery of 2d PyClaw applications")
     plotdir = '_plots'
 
     #----------------------------------------------
@@ -222,19 +233,57 @@ def make_2d():
     #----------------------------------------------
 
     #----------------------------------------------
+    gsec = gallery.new_section('2-dimensional variable-coefficient advection')
+    #----------------------------------------------
+    appdir = 'apps/advection/2d/annulus'
+    description = """
+        Advection in an annular region."""
+    images = ('frame0000fig0', 'frame0004fig0', 'frame0008fig0')
+    gsec.new_item(appdir, plotdir, description, images)
+    #----------------------------------------------
+
+    #----------------------------------------------
     gsec = gallery.new_section('2-dimensional acoustics')
     #----------------------------------------------
     appdir = 'apps/acoustics/2d/homogeneous'
     description = """
-        Expanding radial acoustic wave."""
+        Expanding radial acoustic wave in a homogeneous medium."""
     images = ('frame0000fig0', 'frame0002fig0', 'frame0004fig0')
+    gsec.new_item(appdir, plotdir, description, images)
+    #----------------------------------------------
+
+    #----------------------------------------------
+    gsec = gallery.new_section('2-dimensional variable-coefficient acoustics')
+    #----------------------------------------------
+    appdir = 'apps/acoustics/2d/variable'
+    description = """
+        Expanding radial acoustic wave in a two-material medium with an interface."""
+    images = ('frame0000fig0', 'frame0010fig0', 'frame0020fig0')
+    gsec.new_item(appdir, plotdir, description, images)
+    #----------------------------------------------
+
+    #----------------------------------------------
+    gsec = gallery.new_section('2-dimensional shallow water equations')
+    #----------------------------------------------
+    appdir = 'apps/shallow/2d/'
+    description = """Radial dam-break."""
+    images = ('frame0000fig0', 'frame0004fig0', 'frame0010fig0')
+    gsec.new_item(appdir, plotdir, description, images)
+    #----------------------------------------------
+
+    #----------------------------------------------
+    gsec = gallery.new_section('2-dimensional shallow water on the sphere')
+    #----------------------------------------------
+    appdir = 'apps/shallow-sphere/'
+    description = """Wavenumber 4 Rossby-Haurwitz wave on a rotating sphere."""
+    images = ('frame0000fig0', 'frame0004fig0', 'frame0010fig0')
     gsec.new_item(appdir, plotdir, description, images)
     #----------------------------------------------
 
     #----------------------------------------------
     gsec = gallery.new_section('2-dimensional Euler equations')
     #----------------------------------------------
-    appdir = 'apps/euler/2d/'
+    appdir = 'apps/euler/2d/shockbubble'
     description = """
         Shock-bubble interaction."""
     images = ('frame0000fig0', 'frame0004fig0', 'frame0010fig0')
@@ -250,6 +299,16 @@ def make_2d():
     images = ('frame0000fig1', 'frame0004fig1', 'frame0010fig1')
     gsec.new_item(appdir, plotdir, description, images)
     #----------------------------------------------
+
+    #----------------------------------------------
+    gsec = gallery.new_section('2-dimensional p-system')
+    #----------------------------------------------
+    appdir = 'apps/psystem/'
+    description = """
+        Radial wave in a checkerboard-like medium."""
+    images = ('frame0000fig0', 'frame0004fig0', 'frame0010fig0')
+    gsec.new_item(appdir, plotdir, description, images)
+    #----------------------------------------------
         
     gallery.create('gallery_2d.html')
     return gallery
@@ -259,7 +318,7 @@ def make_all():
     gallery_2d = make_2d()
 
     # make gallery of everything:
-    gallery_all = Gallery(title="Gallery of all applications")
+    gallery_all = Gallery(title="Gallery of all PyClaw applications")
     gallery_all.sections = gallery_1d.sections + gallery_2d.sections 
     gallery_all.create('gallery_all.html')
 
