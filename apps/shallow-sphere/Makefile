@@ -4,7 +4,7 @@ PYCLAWMAKE = $(PYCLAW)/Makefile.common
 
 # Source file used by the Makefile.common
 # =======================================
-RP_SOURCE =   $(RIEMANN)/src/rpn2swsphere.f $(RIEMANN)/src/rpt2swq.f
+RP_SOURCE =   $(RIEMANN)/src/rpn2_shallow_sphere.f $(RIEMANN)/src/rpt2_shallow_sphere.f
 
 all: classic2.so problem.so
 
