@@ -54,11 +54,13 @@ PyClaw
 ******
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    started
    tutorial
+   plotting
    problem
+   parallel
    output
    classes
    troubleshooting
@@ -66,26 +68,6 @@ PyClaw
    develop
    about
    future
-
-
-*********
-PetClaw
-*********
-PetClaw is a parallel extension of PyClaw.
-The parallelism is implemented using PETSc and petsc4py.
-
-PetClaw Contents:
-
-.. toctree::
-   :maxdepth: 3
-
-   petclaw/started
-   petclaw/solvers
-   petclaw/plotting
-   petclaw/tips
-   petclaw/about
-..   petclaw/installPetClawDeps
-..   petclaw/rulesProposal
 
 
 .. _pyclaw_reference:
@@ -101,6 +83,7 @@ functions that operate with those classes.
    
    controller
    evolve/solvers
+   petclaw/solvers
    evolve/limiters
    io
    solution
