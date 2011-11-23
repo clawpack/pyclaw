@@ -18,7 +18,7 @@ instructions in :ref:`parallel`.
 
 PyClaw features:
 
-    * Solves general hyperbolic PDEs in 1D and 2D, including mapped grids and surfaces
+    * Solves general hyperbolic PDEs in 1D, 2D, and 3D, including mapped grids and surfaces
     * Includes the full functionality of `Clawpack <http://www.clawpack.org>`_ and 
       `SharpClaw <http://numerics.kaust.edu.sa/sharpclaw/>`_
     * Has a simple and intuitive pythonic interface
