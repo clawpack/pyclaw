@@ -8,18 +8,35 @@ The PyClaw repository is hosted on Github at
 http://github.com/clawpack/pyclaw.  
 
 
-Branching development model
-============================
-PyClaw development follows the model outlined at 
-http://nvie.com/posts/a-successful-git-branching-model/, with
-one important difference.  The *master* branch is used for development.
-New branches are created for releases.
-A nice cheat-sheet is available at
-http://www.google.com/url?sa=D&q=http://www.globallinuxsecurity.pro/static/git/cheetsheet.pdf.
+Guidelines for contributing
+==================================
+When preparing contributions, please follow the following guidelines:
 
-Contributions in the form of pull requests are also welcome; this approach
-is probably the most convenient for occasional contributors, or for major new
-contributions like additional solvers.
+    * If the planned changes are substantial or will be backward-incompatible,
+      it's best to discuss them on the `claw-dev Google group
+      <http://groups.google.com/group/claw-dev`_ before starting.
+      
+    * Create a fork for your changes (or a branch if you have commit access).
+
+    * Make sure all tests pass and all the built-in apps run correctly.
+
+    * When you are ready, merge the master branch into yours and submit a pull
+      request.
+
+    * Be verbose and detailed in your commit messages and your pull request.
+
+    * It may be wise to have one of the maintainers look at your changes before
+      they are complete
+      (especially if the changes will necessitate modifications of tests and/or apps).
+
+    * If your changes are not backward-compatible, your pull request should include
+      instructions for users to update their own application codes.
+
+    * Every pull request should be reviewed by at least one of the core developers
+      and should be merged by someone who is not the requester.
+
+    * If you have commit access, avoid merging your branch/fork into master on
+      your own machine!  Merges should be made on Github.
 
 Bugs
 ===============
@@ -30,12 +47,8 @@ for something useful to do, try tackling one of the issues listed there.
 Developer communication
 ============================
 
-At the moment, developer communication takes place on the following
-google groups:
-
-  * http://groups.google.com/group/pyclaw -- for things relevant only to PyClaw/PetClaw
-
-  * http://groups.google.com/group/claw-dev/ -- for things relevant to the larger Clawpack community
+As PyClaw is part of the family of Clawpack codes, developer communication
+takes place on the google group at http://groups.google.com/group/claw-dev/.
 
 Dependencies
 ============================
@@ -52,17 +65,6 @@ either when new functionality provides an important benefit for
 PyClaw or when the currently supported version is deemed to be
 substantially outdated.
 
-Committing
-============================
-Always make sure the tests pass before pushing.
-
-Be verbose in your commit messages.
-
-It's helpful to always work in a named branch when
-developing a new feature, and to merge with the --no-ff
-option so that the history shows distinctly the development
-of the feature.
-
 
 Running the tests
 ============================
@@ -72,6 +74,10 @@ advantage of them by doing::
     $ nosetests --processes=2
 
 (replace "2" with the number of processes you want to spawn).
+However, using large numbers of processes occasionally causes spurious failure
+of some tests due to issues with the operating system.  If you see this
+behavior, it's best to run the tests in serial or with a small number of
+processes.
 
 It is also possible to perform only a subset of the regression tests
 (e.g. pure python code or python and fortran code, classic clawpack or
