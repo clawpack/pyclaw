@@ -12,7 +12,7 @@ is similar.  The main steps are:
     * Write routines for source terms, custom boundary conditions, or other customizations
     * Write a setplot.py file for visualization
 
-These steps require the implementation of some functions. This is usually done 
+These steps require the implementation of some functions which is usually done 
 in Python language. However, for some specific 
 applications, the user may prefer to write or reuse a set of Fortran routines 
 that are already available in a Clawpack. The latter approach is easy

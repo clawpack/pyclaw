@@ -54,7 +54,7 @@ that supports a number of major Fortran compilers. For more information please
 look at `<http://www.scipy.org/F2py>`_.
 
 After the compilation has been succesfully completed, the signature of each 
-function contained in problem.so must be checked and the intent of the 
+function contained in ``problem.so`` must be verified and the intent of the 
 variables added (if there was nothing stated in the 
 code). One can easily achieve that by using the following commands::
     
@@ -106,14 +106,47 @@ other multidimensional arrays, i.e. ``q`` and ``aux``.
 
 We are now ready to call and use the Fortran functions in the initialization
 script. For instance, the ``src2`` function is called in the 
-`script <http://numerics.kaust.edu.sa/pyclaw/apps/shallow-sphere/shallow_4_Rossby_Haurwitz_wave.py>`_
-by using a fortran_src_wrapper function whose main part reads::
+`script <http://numerics.kaust.edu.sa/pyclaw/apps/shallow-sphere/shallow_4_Rossby_Haurwitz_wave.py>`_ by using a fortran_src_wrapper function whose main part reads::
 
     >>> # Call src2 function
     >>> import problem
     >>> state.q = problem.src2(mx,my,mbc,xlowerg,ylowerg,dx,dy,q,aux,t,dt,Rsphere)
 
-A similar approach is used to call the other wrapped fortran functions. 
+A similar approach is used to call other wrapped Fortran functions like 
+``qinit``, ``setaux``, etc.
+
+An important feature that makes PyClaw more flexible is the 
+capability to replace the standard low-level Fortran routines whith some 
+problem-specific routines. Binding new low-level functions and replacing the 
+standard ones is very easy; the user just needs to modify the problem-specific 
+Makefile. The shallow water equations on a sphere is again a 
+typical example that uses this nice feature. Indeed, to run correctly the problem an 
+ad-hoc ``step2`` function (i.e. the ``step2qcor``) is required. For that problem
+the interesting part of the `Makefile
+<http://numerics.kaust.edu.sa/pyclaw/apps/shallow-sphere/shallow_4_Rossby_Haurwitz_wave.py>`_
+reads::
+
+    # Override step2.f with a new function that contains a call to an additional
+    # function, i.e. qcor.f
+    # ==========================================================================
+    override TWO_D_CLASSIC_SOURCES = step2qcor.f qcor.o flux2.o limiter.o philim.o
+
+    qcor.o: qcor.f
+        $(FC) $(FFLAGS) -o qcor.o -c qcor.f
+
+The user has just to override ``step2.f`` with the new function ``step2qcor.f`` 
+and provide new::
+
+    output_filenames : input_filenames
+    	actions
+
+rules to create the targets required by the new Fortran routine. 
+Similar changes to the problem-specific Makefile can be used to replace other 
+low-level Fortran routines.
+
+  
+
+
 
     
 
