@@ -12,11 +12,13 @@ is similar.  The main steps are:
     * Write routines for source terms, custom boundary conditions, or other customizations
     * Write a setplot.py file for visualization
 
-In some cases the user might want to reuse a complete set of Fortran routines 
-(source term, initialization of the auxiliary variables, custom BC, etc.) that 
-were setup in a Clawpack example. This will require a direct use of the Fortran
-to Python interface `f2py <http://www.scipy.org/F2py>`_. More details can be 
-found at :ref:`port_Example`.
+These steps require the implementation of some functions. This is usually done 
+in Python language. However, for some specific 
+applications, the user may prefer to write or reuse a set of Fortran routines 
+that are already available in a Clawpack. The latter approach is easy
+but requires a direct use of the Fortran to Python interface 
+`f2py <http://www.scipy.org/F2py>`_. Please, look at :ref:`port_Example` for 
+more details.
 
 
 Writing the initialization script
