@@ -74,12 +74,8 @@ PyClaw
 
 PyClaw Modules reference documentation
 ======================================
-In order to get the most out of Pyclaw, a brief primer into the structure of
-the package is in order.  Pyclaw is broken into two main classes and a set of 
-functions that operate with those classes.
-
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
    
    controller
    evolve/solvers
