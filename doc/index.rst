@@ -69,6 +69,7 @@ PyClaw
    develop
    about
    future
+   portExample
 
 
 .. _pyclaw_reference:
