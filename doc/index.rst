@@ -11,14 +11,14 @@ It has been designed with easy extensibility, performance, and exploration in mi
 The high-level code is written in Python using numpy and based on the 
 PyClaw package.
 The low-level kernels used are the Clawpack and SharpClaw routines, which are written in Fortran.
-The PyClaw package also includes PetClaw, a scalable parallel implementation of Clawpack and SharpClaw,
-using PETSc.  If you are interested in installing and using PetClaw, we recommend that you
+The PyClaw package also includes a scalable parallel implementation of Clawpack and SharpClaw,
+using PETSc.  If you are interested in running in parallel, we recommend that you
 verify that you have a working PyClaw installation before following the specific
-instructions in :ref:`petclaw_start`.
+instructions in :ref:`parallel`.
 
 PyClaw features:
 
-    * Solves general hyperbolic PDEs in 1D and 2D, including mapped grids and surfaces
+    * Solves general hyperbolic PDEs in 1D, 2D, and 3D, including mapped grids and surfaces
     * Includes the full functionality of `Clawpack <http://www.clawpack.org>`_ and 
       `SharpClaw <http://numerics.kaust.edu.sa/sharpclaw/>`_
     * Has a simple and intuitive pythonic interface
@@ -33,17 +33,6 @@ PyClaw makes use of the additional Clawpack packages,
 `VisClaw <http://github.com/clawpack/visclaw>`_ for Riemann solvers and visualization, 
 respectively.
 
-Requirements:
-
-    * `Python <http://www.python.org>`_ 2.6 or higher
-    * `numpy <http://numpy.scipy.org/>`_ 1.5 or higher
-    * Recommended: `matplotlib <http://matplotlib.sourceforge.net/>`_ version 1.0 or higher
-      (for plotting solutions)
-
-Additional requirements for PetClaw only: 
-    * `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_  3.1 or higher
-    * `petsc4py <http://code.google.com/p/petsc4py/>`_ 1.1.2
-
 You can get the latest development version of PyClaw from http://github.com/clawpack/pyclaw.
 
 If you have any issues or need help using PyClaw and PetClaw, `send e-mail <petclaw-dev@googlegroups.com>`_
@@ -54,11 +43,14 @@ PyClaw
 ******
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    started
    tutorial
+   plotting
+   apps
    problem
+   parallel
    output
    classes
    troubleshooting
@@ -66,41 +58,19 @@ PyClaw
    develop
    about
    future
-
-
-*********
-PetClaw
-*********
-PetClaw is a parallel extension of PyClaw.
-The parallelism is implemented using PETSc and petsc4py.
-
-PetClaw Contents:
-
-.. toctree::
-   :maxdepth: 3
-
-   petclaw/started
-   petclaw/solvers
-   petclaw/plotting
-   petclaw/tips
-   petclaw/about
-..   petclaw/installPetClawDeps
-..   petclaw/rulesProposal
+   portExample
 
 
 .. _pyclaw_reference:
 
 PyClaw Modules reference documentation
 ======================================
-In order to get the most out of Pyclaw, a brief primer into the structure of
-the package is in order.  Pyclaw is broken into two main classes and a set of 
-functions that operate with those classes.
-
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
    
    controller
    evolve/solvers
+   petclaw/solvers
    evolve/limiters
    io
    solution

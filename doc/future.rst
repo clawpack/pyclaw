@@ -11,6 +11,6 @@ at the end of 2011.
 
 Some major future plans include 
 
-    * Incorporation of the 3D Clawpack algorithms
     * Adaptive mesh refinement
-    * Additional solver algorithms
+    * Additional solver algorithms (possibly FD WENO and DG)
+    * Improved plotting, including incorporation with Visit or some other package

@@ -44,7 +44,8 @@ In general, introduction of additional dependencies
 should be avoided.  If you wish to make a change that
 will introduce a new dependency (including depending on a more
 recent version of a particular package), it should be discussed
-on the Google group first.
+on the `claw-dev Google group <http://http://groups.google.com/group/claw-dev>`_.
+first.
 
 New versions of existing dependencies will typically be adopted 
 either when new functionality provides an important benefit for
