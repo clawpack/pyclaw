@@ -33,6 +33,86 @@ class SharpClawSolver(Solver):
     semi-discrete step (the dq() function).  If another method-of-lines
     solver is implemented in the future, it should be based on this class,
     which then ought to be renamed to something like "MOLSolver".
+
+    .. attribute:: start_step
+    
+        Function called before each time step is taken.
+        The required signature for this function is:
+        
+        def start_step(solver,solution)
+
+    .. attribute:: lim_type
+
+        Limiter(s) to be used.
+        0: No limiting.
+        1: TVD reconstruction.
+        2: WENO reconstruction.
+        ``Default = 2``
+
+    .. attribute:: weno_order
+
+        Order of the WENO reconstruction. From 1st to 17th order (PyWENO)
+        ``Default = 5``
+
+    .. attribute:: time_integrator
+
+        Time integrator to be used.
+        Euler: forward Euler method.
+        SSP33: 3-stages, 3rd-order SSP Runge-Kutta method.
+        SSP104: 10-stages, 4th-order SSP Runge-Kutta method.
+        ``Default = 'SSP104'``
+
+    .. attribute:: char_decomp
+
+        Type of WENO reconstruction.
+        0: conservative variables WENO reconstruction (standard).
+        1: characteristic-wise WENO reconstruction.
+        2: transmission-based WENO reconstruction.
+        ``Default = 0``
+
+    .. attribute:: tfluct_solver
+
+        Whether a total fluctuation solver have to be used. If True the function
+        that calculates the total fluctuation must be provided.
+        ``Default = False``
+
+    .. attribute:: aux_time_dep
+
+        Whether the auxiliary array is time dependent.
+        ``Default = False``
+    
+    .. attribute:: kernel_language
+
+        Specifies whether to use wrapped Fortran routines ('Fortran')
+        or pure Python ('Python').  
+        ``Default = 'Fortran'``.
+
+    .. attribute:: mbc
+
+        Number of ghost cells.
+        ``Default = 3``
+
+    .. attribute:: fwave
+    
+        Whether to split the flux jump (rather than the jump in Q) into waves; 
+        requires that the Riemann solver performs the splitting.  
+        ``Default = False``
+
+    .. attribute:: cfl_desired
+
+        Desired CFL number.
+        ``Default = 2.45``
+
+    .. attribute:: cfl_max
+
+        Maximum CFL number.
+        ``Default = 2.50``
+
+    .. attribute:: dq_src
+
+        Whether a source term is present. If it is present the function that 
+        computes its contribution must be provided.
+        ``Default = None``
     """
     
     # ========================================================================
