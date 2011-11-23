@@ -1,15 +1,33 @@
-.. _petclaw_start:
+.. _parallel:
+
+.. toctree::
+   :maxdepth: 1
 
 ============================
-Getting started with PetClaw
+Running in parallel
 ============================
+PyClaw can be run in parallel on your desktop or on large supercomputers using the
+PETSc library.
+Running your PyClaw script in parallel is usually very easy; it mainly consists of
+replacing::
 
-Dependencies
+    import pyclaw
+
+with::
+    
+    import petclaw as pyclaw
+
+
+Also, most of the provided scripts in `pyclaw/apps` are set up to run in parallel
+simply by passing the command-line option `use_petsc=True`.
+
+
+Installing PETSc
 ==================
 First make sure you have a working install of PyClaw.
 For PyClaw installation instructions, see :ref:`installation`.
 
-To run PetClaw you'll also need: 
+To run in parallel you'll need: 
 
     * `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_  a toolkit for
       parallel scientific computing. The current recommended version is 3.2. 
@@ -92,10 +110,6 @@ script setup.py inside petsc4py, i.e. ::
     $ python setup.py install --user
 
 
-Installation
-==================
-The PetClaw package is included in PyClaw, and no additional installation is required.
-
 Testing your installation
 ============================
 If you don't have it already, install nose ::
@@ -110,7 +124,7 @@ Now simply execute ::
 If everything is set up correctly, this will run all the regression tests
 (which include pure python code and python/Fortran code) and inform you that
 the tests passed.  If any fail, please post the output and details of your 
-platform on the petclaw-dev Google group.
+platform on the `claw-users Google group <http://http://groups.google.com/group/claw-users>`_.
 
 
 Running and plotting an example
@@ -119,16 +133,52 @@ Next ::
 
     $ cd $PYCLAW/apps/advection/1d/constant
     $ make
-    $ python advection.py use_PETSc=True
+    $ python advection.py use_PETSc=True iplot=1
 
 This will run the code and then place you in an interactive plotting shell.
 To view the simulation output frames in sequence, simply press 'enter'
 repeatedly.  To exit the shell, type 'q'.  For help, type '?' or see
 this `Clawpack interactive python plotting help page <http://kingkong.amath.washington.edu/clawpack/users/plotting.html#interactive-plotting-with-iplotclaw>`_.
 
-Next steps
-================================
-PetClaw is based on the PyClaw package.  To understand how to set up
-a new problem, please read the :ref:`pyclaw_tutorial`.
-The :ref:`pyclaw_reference` and :ref:`riemann_reference` may also be helpful.
 
+Tips for making your application run correctly in parallel
+================================================================
+Generally serial PyClaw code should "just work" in parallel, but if you are not
+reasonably careful it is certainly possible to write serial code that will fail
+in parallel.
+
+Most importantly, use the appropriate grid attributes.  In serial, both `grid.n` and
+`grid.ng` give you the dimensions of the grid (i.e., the number of cells in
+each dimension).  In parallel, `grid.n` contains the size
+of the whole grid, while `grid.ng` contains just the size of the part that a given
+process deals with.  You should typically use only `grid.ng` (you can also use `q.shape[1:]`,
+which is equal to `grid.ng`).
+
+Similarly, `grid.lower` contains the lower bounds of the problem domain in the
+computational coordinates, whereas `grid.lowerg` contains the lower bounds of the
+part of the grid belonging to the current process.  Typically you should use
+`grid.lowerg`.
+
+Additionally, be aware that when a Grid object is instantiated in a parallel run,
+it is not instantiated as a parallel object.  A typical code excerpt looks like::
+
+    import petclaw as pyclaw
+    mx=320; my=80
+    x = pyclaw.Dimension('x',0.0,2.0,mx)
+    y = pyclaw.Dimension('y',0.0,0.5,my)
+    grid = pyclaw.Grid([x,y])
+
+At this point, `grid.ng` is identically equal to `grid.n`, rather than containing
+the size of the grid partition on the current process.  Before using it, you
+should instantiate a State object::
+
+    meqn = 5
+    maux=1
+    state = pyclaw.State(grid,meqn,maux)
+
+Now `state.grid.ng` contains appropriate information.
+
+Passing options to PETSc
+=========================
+The built-in applications (see :ref:`apps`) are set up to automatically pass
+command-line options starting with a dash ("-") to PETSc.

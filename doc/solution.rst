@@ -6,7 +6,7 @@ Pyclaw Solutions
 
 Pyclaw Solutions are containers for Grid and State objects:
 
-.. .. image:: images/solution.pdf
+.. image:: images/pyclaw_solution_structure.pdf
 
 Each solution contains a list of Grids which in turn contain a list of 
 Dimensions, each containing higher level attributes.

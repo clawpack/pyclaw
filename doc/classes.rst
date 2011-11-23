@@ -24,7 +24,7 @@ objects needed to evolve the solution to the requested time.
 Creation of a Pyclaw :class:`~pyclaw.solution.Solution`
 =======================================================
 
-.. .. image:: images/solution.pdf
+.. image:: images/pyclaw_solution_structure.pdf
 
 A Pyclaw :class:`~pyclaw.solution.Solution` is a container for a collection of
 :class:`~pyclaw.grid.Grid` and :class:`~pyclaw.state.State` designed with a 
