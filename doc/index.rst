@@ -11,10 +11,10 @@ It has been designed with easy extensibility, performance, and exploration in mi
 The high-level code is written in Python using numpy and based on the 
 PyClaw package.
 The low-level kernels used are the Clawpack and SharpClaw routines, which are written in Fortran.
-The PyClaw package also includes PetClaw, a scalable parallel implementation of Clawpack and SharpClaw,
-using PETSc.  If you are interested in installing and using PetClaw, we recommend that you
+The PyClaw package also includes a scalable parallel implementation of Clawpack and SharpClaw,
+using PETSc.  If you are interested in running in parallel, we recommend that you
 verify that you have a working PyClaw installation before following the specific
-instructions in :ref:`petclaw_start`.
+instructions in :ref:`parallel`.
 
 PyClaw features:
 
@@ -59,6 +59,7 @@ PyClaw
    started
    tutorial
    plotting
+   apps
    problem
    parallel
    output

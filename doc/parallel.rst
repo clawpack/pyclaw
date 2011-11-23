@@ -1,4 +1,4 @@
-.. _petclaw_start:
+.. _parallel:
 
 ============================
 Running in parallel
@@ -121,7 +121,7 @@ Now simply execute ::
 If everything is set up correctly, this will run all the regression tests
 (which include pure python code and python/Fortran code) and inform you that
 the tests passed.  If any fail, please post the output and details of your 
-platform on the `claw-users Google group <http://http://groups.google.com/group/claw-users>`.
+platform on the `claw-users Google group <http://http://groups.google.com/group/claw-users>`_.
 
 
 Running and plotting an example
@@ -173,3 +173,8 @@ should instantiate a State object::
     state = pyclaw.State(grid,meqn,maux)
 
 Now `state.grid.ng` contains appropriate information.
+
+Passing options to PETSc
+=========================
+The built-in applications (see :ref:`apps`) are set up to automatically pass
+command-line options starting with a dash ("-") to PETSc.
