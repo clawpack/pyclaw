@@ -33,17 +33,6 @@ PyClaw makes use of the additional Clawpack packages,
 `VisClaw <http://github.com/clawpack/visclaw>`_ for Riemann solvers and visualization, 
 respectively.
 
-Requirements:
-
-    * `Python <http://www.python.org>`_ 2.6 or higher
-    * `numpy <http://numpy.scipy.org/>`_ 1.5 or higher
-    * Recommended: `matplotlib <http://matplotlib.sourceforge.net/>`_ version 1.0 or higher
-      (for plotting solutions)
-
-Additional requirements for PetClaw only: 
-    * `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_  3.1 or higher
-    * `petsc4py <http://code.google.com/p/petsc4py/>`_ 1.1.2
-
 You can get the latest development version of PyClaw from http://github.com/clawpack/pyclaw.
 
 If you have any issues or need help using PyClaw and PetClaw, `send e-mail <petclaw-dev@googlegroups.com>`_

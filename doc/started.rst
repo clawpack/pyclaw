@@ -4,7 +4,7 @@
 Getting started with PyClaw
 ============================
 This page describes how to set up PyClaw, the serial code.  For the parallel
-code, see :ref:`petclaw_start`.
+code, see :ref:`parallel`.
 
 Dependencies
 ==================

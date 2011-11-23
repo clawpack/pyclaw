@@ -1,23 +1,23 @@
 .. _port_Example:
 
-=====================================
-Port a problem to PyClaw through f2py
-=====================================
+======================================================
+Porting a problem from Clawpack to PyClaw through f2py
+======================================================
 
 In PyClaw, the high-level portions of the Fortran routines are reorganized in 
 an object-oriented Python framework, while the low-level ones are bound through
 the Fortran to Python interface generator `f2py <http://www.scipy.org/F2py>`_.
 Therefore, in a typical situation the user is shielded from f2py. However, if 
-the user want to reutilize some high-level fortran routines that were setup and 
+the user wants to reutilize some problem-specific fortran routines that were set up and 
 tested in a Clawpack problem, he can easily do it. Indeed, if those routines 
 are complicated and implement time consuming algorithms, and the performance 
 of the overall procedure (porting and running into PyClaw a new problem) is one 
-of the main user's concern, one should consider to use directly the f2py 
+of the main user's concern, one should consider directly using the f2py 
 interface in the initialization script (see :ref:`problem_setup`).
-The shallow water equations solved on a sphere (LINK TO THE CODE) represent a
+The shallow water equations solved on a sphere `(code here) <http://numerics.kaust.edu.sa/pyclaw/apps/shallow-sphere/shallow_4_Rossby_Haurwitz_wave.py>`_ represent a
 useful and complete example to understand the simplicity of the procedure. 
-In that problem setup, few Fortran routines have been used to provide the 
-following functionalities:
+In that problem setup, a few Fortran routines have been used to provide the 
+following functionality:
 
     * Initialize the solution ``state.q[:,:,:]``
 
@@ -33,35 +33,37 @@ following functionalities:
 
 The first step to succesfully interface the Fortran functions with PyClaw 
 is to automate the extension module generation of these routines through f2py.
-The Makefile stored in ADD LINK shows how this can be easily achieved::
+`This Makefile
+<http://numerics.kaust.edu.sa/pyclaw/apps/shallow-sphere/shallow_4_Rossby_Haurwitz_wave.py>`_
+shows how to do it::
 
-    >>> # Problem's source Fortran files
-    >>> INITIALIZE_SOURCE = mapc2p.f setaux.f qinit.f src2.f
-    >>> problem.so: $(INITIALIZE_SOURCE)
-    >>> $(F2PY) -m problem -c $^
+    # Problem's source Fortran files
+    INITIALIZE_SOURCE = mapc2p.f setaux.f qinit.f src2.f
+    problem.so: $(INITIALIZE_SOURCE)
+        $(F2PY) -m problem -c $^
 
 In the code above, we are giving to f2py the instructions to compile a 
-set Fortran routines (the INITIALIZE_SOURCE container) and build a module 
+set of Fortran routines (the INITIALIZE_SOURCE container) and build a module 
 (``problem.so``) which can then be imported into Python and used there like a normal
 function. Indeed, f2py scans Fortran codes to produce the signature files (.pyf files)
 which contain all the information (function names, arguments and 
 their types, etc.) that is needed to construct Python bindings to Fortran 
-functions. The ''-m'' flag gives the name the python module should have (i.e.
+functions. The argument following the ''-m'' flag is the name the python module should have (i.e.
 the name of the target). f2py uses the ``numpy.distutils`` module from NumPy 
 that supports a number of major Fortran compilers. For more information please 
-look at `http://www.scipy.org/F2py`.
+look at `<http://www.scipy.org/F2py>`_.
 
 After the compilation has been succesfully completed, the signature of each 
-function contained in problem.so have to be check and the intent of the 
+function contained in problem.so must be checked and the intent of the 
 variables added (if there was nothing stated in the 
 code). One can easily achieve that by using the following commands::
     
-    >>> ipython
+    $ ipython
     >>> import problem
     >>> problem?
 
-The last command queries the content of the module and outputs the functions 
-signature that must be used in the initialization script to call correctly the 
+The last command queries the content of the module and outputs the functions' 
+signature that must be used in the initialization script to correctly call the 
 fortran functions. In the shallow water equations on a sphere example, we get 
 the following output::
     
@@ -104,8 +106,8 @@ other multidimensional arrays, i.e. ``q`` and ``aux``.
 
 We are now ready to call and use the Fortran functions in the initialization
 script. For instance, the ``src2`` function is called in the 
-shallow_4_Rossby_Haurwitz_wave.py (ADD LINK) script by using a fortran_src_wrapper function
-whose main part reads::
+`script <http://numerics.kaust.edu.sa/pyclaw/apps/shallow-sphere/shallow_4_Rossby_Haurwitz_wave.py>`_
+by using a fortran_src_wrapper function whose main part reads::
 
     >>> # Call src2 function
     >>> import problem

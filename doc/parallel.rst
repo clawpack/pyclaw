@@ -1,5 +1,8 @@
 .. _parallel:
 
+.. toctree::
+   :maxdepth: 1
+
 ============================
 Running in parallel
 ============================
@@ -159,6 +162,7 @@ part of the grid belonging to the current process.  Typically you should use
 Additionally, be aware that when a Grid object is instantiated in a parallel run,
 it is not instantiated as a parallel object.  A typical code excerpt looks like::
 
+    import petclaw as pyclaw
     mx=320; my=80
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)

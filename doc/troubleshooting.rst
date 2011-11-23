@@ -8,6 +8,7 @@ This page lists some of the most common difficulties encountered in
 installing and running PyClaw.  If you do not find a solution for your
 problem here, please e-mail the 
 `claw-users Google group <http://http://groups.google.com/group/claw-users>`_.
+You may also wish to consult the `list of known issues <https://github.com/clawpack/pyclaw/issues>`_.
 
 Compilation errors
 ********************
