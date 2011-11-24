@@ -103,8 +103,7 @@ class State(object):
         self.aux = self.new_array(maux)
 
     def __str__(self):
-        output += "  t=%s meqn=%s\n  " % (self.t,self.meqn)
-        output += '\n'
+        output = "  t=%s meqn=%s\n  " % (self.t,self.meqn)
         if self.q is not None:
             output += "  q.shape=%s" % str(self.q.shape)
         if self.aux is not None:
