@@ -240,10 +240,6 @@ class State(pyclaw.state.State):
         a local to global communication. 
         """
         
-        #state.lqVec.placeArray(ghosted_q)
-        #self.q_da.localToGlobal(state.lqVec,state.gqVec)
-        #state.lqVec.resetArray() # This call is required because placeArray is
-                                 # intended to be temporarly placement
         grid = self.grid
         if grid.ndim == 1:
             self.q = qbc[:,mbc:-mbc]
