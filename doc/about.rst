@@ -41,13 +41,12 @@ code useful.  See :ref:`develop` for more details.
 
 Citing
 =======================
-If you use PyClaw in work that is published, please cite the software
-(authors listed in alphabetical order)::
+If you use PyClaw in work that is published, please cite the software::
 
     @misc{pyclaw,
     title={PyClaw software}, 
     url={http://numerics.kaust.edu.sa/pyclaw}, 
-    author={Mandli, Kyle T and Ketcheson, David I.}, 
+    author={Mandli, Kyle T and Ketcheson, David I. and others}, 
     note={Version x.y}
     year={2011}}
 
