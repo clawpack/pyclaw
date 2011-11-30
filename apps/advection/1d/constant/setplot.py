@@ -27,7 +27,8 @@ def setplot(plotdata):
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     #plotaxes.xlimits = [0.,150.]
-    plotaxes.ylimits = [-.2,1.0]
+    #plotaxes.ylimits = [-.2,1.0]
+    plotaxes.ylimits = [-1.0,1.0]
     plotaxes.title = 'q'
 
     # Set up for item on these axes:
@@ -52,7 +53,7 @@ def setplot(plotdata):
     plotdata.latex = True                    # create latex file of plots?
     plotdata.latex_figsperline = 2           # layout of plots
     plotdata.latex_framesperline = 1         # layout of plots
-    plotdata.latex_makepdf = False           # also run pdflatex?
+    plotdata.latex_makepdf = True           # also run pdflatex?
 
     return plotdata
 
