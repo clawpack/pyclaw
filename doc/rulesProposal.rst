@@ -1,5 +1,5 @@
 ======================================
-Programming and documenting in PetClaw
+Programming and documenting in PyClaw
 ======================================
 In order to improve and maintain PetClaw and allow more developers or simply users to acces and use it all Python/Fortran code should follow some conventions. As stressed in many books, reports, notes, etc. (see for instance `Wikipedia <http://en.wikipedia.org/wiki/Coding_conventions>`_) code conventions are important to programmers for a number of reasons:
     * A big part of the lifetime cost of a piece of software goes to maintenance

@@ -56,6 +56,7 @@ PyClaw
    troubleshooting
    differences
    develop
+   rulesProposal
    about
    future
    portExample
