@@ -25,7 +25,7 @@ def advection_implicitSharpClawBE(use_petsc=True,iplot=False,htmlplot=False,solv
     #===========================================================================
     # Setup solver and solver parameters
     #=========================================================================== 
-    solver = pyclaw.ImplicitSharpClawSolverDEBUG1D()
+    solver = pyclaw.ImplicitSharpClawSolverfsolve1D()
 
     solver.kernel_language = 'Fortran'
     
