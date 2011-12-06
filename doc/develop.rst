@@ -10,18 +10,14 @@ http://github.com/clawpack/pyclaw.
 
 Guidelines for contributing
 ==================================
-When preparing contributions, please follow the following guidelines:
+When preparing contributions, please follow the guidelines in
+:ref:`using-git`.  Also:
 
     * If the planned changes are substantial or will be backward-incompatible,
       it's best to discuss them on the `claw-dev Google group
       <http://groups.google.com/group/claw-dev`_ before starting.
       
-    * Create a fork for your changes (or a branch if you have commit access).
-
     * Make sure all tests pass and all the built-in apps run correctly.
-
-    * When you are ready, merge the master branch into yours and submit a pull
-      request.
 
     * Be verbose and detailed in your commit messages and your pull request.
 
@@ -31,12 +27,6 @@ When preparing contributions, please follow the following guidelines:
 
     * If your changes are not backward-compatible, your pull request should include
       instructions for users to update their own application codes.
-
-    * Every pull request should be reviewed by at least one of the core developers
-      and should be merged by someone who is not the requester.
-
-    * If you have commit access, avoid merging your branch/fork into master on
-      your own machine!  Merges should be made on Github.
 
 Bugs
 ===============

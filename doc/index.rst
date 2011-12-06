@@ -57,6 +57,7 @@ PyClaw
    differences
    develop
    devel/gitwash/index
+   rulesProposal
    about
    future
    portExample
@@ -71,7 +72,6 @@ PyClaw Modules reference documentation
    
    controller
    evolve/solvers
-   petclaw/solvers
    evolve/limiters
    io
    solution
