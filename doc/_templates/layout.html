@@ -2,40 +2,11 @@
 
 
 {% block rootrellink %}
-<li><a href="{{ pathto('index') }}"><font color="#7F0000">Contents</font></a>|&nbsp;</li>
-<li><a href="{{ pathto('gallery/gallery_all') }}"><font color="#7F0000">Gallery</font></a>|&nbsp;</li>
+<li><a href="{{ pathto('index') }}">Contents </a>|</li>
+<li><a href="{{ pathto('gallery/gallery_all') }}">Gallery </a></li>
 {% endblock %}
 
 
-{% block relbar1 %}
 
-<div style="background-color: #FFFFE8; text-align: left; padding: 10px 10px 15px 15px">
-<table>
-<tr>
-<!--
-<td>
-&nbsp;
-<br>
-<a href="http://www.clawpack.org/"><img src="{{
-pathto("_static/clawlogo.jpg", 1) }}" border="0" alt="Clawpack logo"/></a>
-</td>
--->
-<td>
-<br>
-&nbsp;
-<br>
-<a href
-<font size="7"  color="#7F0000">PyClaw Documentation</font>
-<br>
-&nbsp;
-<br>
-</td>
-</tr>
-</table>
-</div>
-{{ super() }}
+{% block relbar2 %}
 {% endblock %}
-
-{# put the sidebar before the body #}
-{% block sidebar1 %}{{ sidebar() }}{% endblock %}
-{% block sidebar2 %}{% endblock %}

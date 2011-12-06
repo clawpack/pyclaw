@@ -1,8 +1,8 @@
   .. _pyclaw_tutorial:
   
-***************
-Pyclaw Tutorial
-***************
+***************************************
+Tutorial: Solve the acoustics equations
+***************************************
 
 PyClaw is designed to solve general systems of hyperbolic PDEs of the form
 

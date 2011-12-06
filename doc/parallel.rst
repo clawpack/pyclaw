@@ -1,8 +1,5 @@
 .. _parallel:
 
-.. toctree::
-   :maxdepth: 1
-
 ============================
 Running in parallel
 ============================

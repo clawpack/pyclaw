@@ -1,6 +1,11 @@
 .. _apps:
 
 ========================================
+Solving other hyperbolic PDEs
+========================================
+Moving on from the acoustics tutorial, this section explains how to begin
+solving other systems of hyperbolic equations with PyClaw.
+
 The built-in PyClaw application scripts
 ========================================
 PyClaw comes with many example application scripts in the directory `pyclaw/apps/`.

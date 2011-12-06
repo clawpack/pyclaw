@@ -1,8 +1,8 @@
 .. _pyclaw:
 
-*******
-Welcome
-*******
+********
+Overview
+********
 
 Pyclaw is a `Python <http://www.python.org>`_-based solver for hyperbolic PDEs that includes the algorithms
 of `Clawpack <http://www.clawpack.org>`_ and 
@@ -35,8 +35,8 @@ respectively.
 
 You can get the latest development version of PyClaw from http://github.com/clawpack/pyclaw.
 
-If you have any issues or need help using PyClaw and PetClaw, `send e-mail <petclaw-dev@googlegroups.com>`_
-to the `discussion group <http://groups.google.com/group/petclaw-dev/>`_.
+If you have any issues or need help using PyClaw and PetClaw, `send e-mail <claw-users@googlegroups.com>`_
+to the `discussion group <http://groups.google.com/group/claw-users>`_.
 
 ******
 PyClaw
@@ -47,8 +47,8 @@ PyClaw
 
    started
    tutorial
-   plotting
    apps
+   plotting
    problem
    parallel
    output
@@ -56,6 +56,7 @@ PyClaw
    troubleshooting
    differences
    develop
+   devel/gitwash/index
    about
    future
    portExample
@@ -89,10 +90,10 @@ here.  Many other Fortran-based Riemann solvers are available.
    
    rp
 
-.. Indices and tables
-.. ==================
-.. 
-.. * :ref:`genindex`
-.. * :ref:`modindex`
-.. * :ref:`search`
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
 

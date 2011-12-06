@@ -1,8 +1,8 @@
 .. _installation:
 
-============================
-Getting started with PyClaw
-============================
+===============
+Getting started 
+===============
 This page describes how to set up PyClaw, the serial code.  For the parallel
 code, see :ref:`parallel`.
 
