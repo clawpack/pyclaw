@@ -2,7 +2,7 @@ c     ==========================================================
       subroutine step2(maxm,meqn,mwaves,maux,mbc,mx,my,
      &               qold,qnew,aux,dx,dy,dt,method,mthlim,cfl,
      &               qadd,fadd,gadd,q1d,dtdx1d,dtdy1d,
-     &                 aux1,aux2,aux3,work,mwork)
+     &                 aux1,aux2,aux3,work,mwork,use_fwave)
 c     ==========================================================
 c
 c     # Take one time step, updating q.
@@ -32,6 +32,7 @@ c
       double precision dtdx1d(1-mbc:maxm+mbc)
       double precision dtdy1d(1-mbc:maxm+mbc)
       integer method(7),mthlim(mwaves)
+      logical          use_fwave
       double precision work(mwork)
 
 
@@ -116,7 +117,8 @@ c        # compute modifications fadd and gadd to fluxes along this slice:
      &            q1d,dtdx1d,aux1,aux2,aux3,method,mthlim,
      &            qadd,fadd,gadd,cfl1d,
      &              work(i0wave),work(i0s),work(i0amdq),work(i0apdq),
-     &              work(i0cqxx),work(i0bmadq),work(i0bpadq),rpn2,rpt2)
+     &              work(i0cqxx),work(i0bmadq),work(i0bpadq),rpn2,rpt2,
+     &              use_fwave)
          cfl = dmax1(cfl,cfl1d)
 c
 c        # update qnew by flux differencing.
@@ -197,7 +199,8 @@ c        # compute modifications fadd and gadd to fluxes along this slice:
      &            q1d,dtdy1d,aux1,aux2,aux3,method,mthlim,
      &            qadd,fadd,gadd,cfl1d,
      &              work(i0wave),work(i0s),work(i0amdq),work(i0apdq),
-     &              work(i0cqxx),work(i0bmadq),work(i0bpadq),rpn2,rpt2)
+     &              work(i0cqxx),work(i0bmadq),work(i0bpadq),rpn2,rpt2,
+     &              use_fwave)
 c
          cfl = dmax1(cfl,cfl1d)
 c
