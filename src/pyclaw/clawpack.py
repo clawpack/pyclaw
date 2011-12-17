@@ -219,7 +219,6 @@ class ClawSolver(Solver):
         if(self.kernel_language == 'Fortran'):
             # Set name of expected .so file with compile Fortran routines
             self.so_name = 'classic'+str(self.ndim)
-            if self.fwave: self.so_name+='fw'
 
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (mbc)
@@ -320,7 +319,7 @@ class ClawSolver1D(ClawSolver):
             dx,dt = grid.d[0],self.dt
             dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
             
-            self.qbc,cfl = classic.step1(mbc,mx,self.qbc,self.auxbc,dx,dt,self.method,self.mthlim)
+            self.qbc,cfl = classic.step1(mbc,mx,self.qbc,self.auxbc,dx,dt,self.method,self.mthlim,self.fwave)
             
         elif(self.kernel_language == 'Python'):
  
@@ -537,11 +536,11 @@ class ClawSolver2D(ClawSolver):
 
                 q, cfl_x = classic.step2ds(maxm,self.mbc,mx,my, \
                       qold,qnew,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,1)
+                      self.aux1,self.aux2,self.aux3,self.work,1,self.fwave)
 
                 q, cfl_y = classic.step2ds(maxm,self.mbc,mx,my, \
                       q,q,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,2)
+                      self.aux1,self.aux2,self.aux3,self.work,2,self.fwave)
 
                 cfl = max(cfl_x,cfl_y)
 
@@ -549,7 +548,7 @@ class ClawSolver2D(ClawSolver):
 
                 q, cfl = classic.step2(maxm,self.mbc,mx,my, \
                       qold,qnew,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work)
+                      self.aux1,self.aux2,self.aux3,self.work,self.fwave)
 
             self.cfl.update_global_max(cfl)
             state.set_q_from_qbc(self.mbc,self.qbc)

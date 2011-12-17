@@ -2,7 +2,7 @@ c
 c
 c ===================================================================
       subroutine step1(meqn,mwaves,mbc,maux,mx,q,aux,dx,dt,
-     &              method,mthlim,cfl,f,wave,s,amdq,apdq,dtdx)
+     &              method,mthlim,cfl,f,wave,s,amdq,apdq,dtdx,use_fwave)
 c ===================================================================
 c
 c     # Take one time step, updating q.
@@ -43,6 +43,7 @@ c
       double precision apdq(meqn,1-mbc:mx+mbc)
       double precision dtdx(1-mbc:mx+mbc)
       integer          method(7),mthlim(mwaves)
+      logical          use_fwave
       logical limit
 
 cf2py intent(in,out) q  
@@ -118,14 +119,26 @@ c
 c      # apply limiter to waves:
       if (limit) call limiter(mx,meqn,mwaves,mbc,mx,wave,s,mthlim)
 c
-      do 120 i=1,mx+1
-         do 120 m=1,meqn
-            do 110 mw=1,mwaves
-         dtdxave = 0.5d0 * (dtdx(i-1) + dtdx(i))
-         f(m,i) = f(m,i) + 0.5d0 * dabs(s(mw,i))
-     &             * (1.d0 - dabs(s(mw,i))*dtdxave) * wave(m,mw,i)
-  110          continue
+      if (use_fwave.eqv..false.) then
+          do 120 i=1,mx+1
+             do 120 m=1,meqn
+                do 110 mw=1,mwaves
+             dtdxave = 0.5d0 * (dtdx(i-1) + dtdx(i))
+             f(m,i) = f(m,i) + 0.5d0 * dabs(s(mw,i))
+     &                  * (1.d0 - dabs(s(mw,i))*dtdxave) * wave(m,mw,i)
+  110           continue
   120       continue
+      else
+          do 121 i=1,mx+1
+             do 121 m=1,meqn
+                do 111 mw=1,mwaves
+             dtdxave = 0.5d0 * (dtdx(i-1) + dtdx(i))
+             f(m,i) = f(m,i) + 0.5d0 * dsign(1.d0,s(mw,i))
+     &                  * (1.d0 - dabs(s(mw,i))*dtdxave) * wave(m,mw,i)
+  111           continue
+  121       continue
+      endif
+
 c
 c
 c     # update q by differencing correction fluxes 

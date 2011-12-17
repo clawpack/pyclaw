@@ -2,7 +2,7 @@ c     ==========================================================
       subroutine step2(maxm,meqn,mwaves,maux,mbc,mx,my,
      &               qold,qnew,aux,dx,dy,dt,method,mthlim,cfl,
      &               qadd,fadd,gadd,q1d,dtdx1d,dtdy1d,
-     &                 aux1,aux2,aux3,work,mwork)
+     &                 aux1,aux2,aux3,work,mwork,use_fwave)
 c     ==========================================================
 c
 c     # Take one time step, updating q.

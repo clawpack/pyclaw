@@ -430,7 +430,7 @@ def test_2D_shockbubble_petclaw_classic():
 @attr(time_stepping_mode='explicit')
 def test_psystem_petclaw_classic(): 
     path           = './test/psystem'
-    target_name    = 'classic2fw.so'
+    target_name    = 'classic2.so'
     module_name    = 'psystem'
     problem_name   = 'psystem2D'
 
