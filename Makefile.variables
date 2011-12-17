@@ -1,6 +1,7 @@
-FC ?= gfortran
-F2PY ?= f2py
-FFLAGS ?=
+F2PY = f2py
+PYTHON = python
+FC := $(shell $(PYTHON) $(PYCLAW)/src/pyclaw/build/fcompiler.py get_compiler)
+FFLAGS := $(shell $(PYTHON) $(PYCLAW)/src/pyclaw/build/fcompiler.py get_flags)
 
 ONE_D_CLASSIC = $(PYCLAW)/src/fortran/1d/classic
 
