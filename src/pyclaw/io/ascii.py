@@ -47,15 +47,6 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
        ``ascii`` output contains nothing.
 
     """
-    
-    # Option parsing
-    option_defaults = {}
-    for (k,v) in option_defaults.iteritems():
-        if options.has_key(k):
-            exec("%s = options['%s']" % (k,k))
-        else:
-            exec('%s = v' % k)
-    
     try:
         # Create file name
         file_name = '%s.t%s' % (file_prefix,str(frame).zfill(4))
@@ -195,15 +186,6 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
     """
     
     import numpy as np
-
-    # Option parsing
-    option_defaults = {}
-    
-    for (k,v) in option_defaults.iteritems():
-        if options.has_key(k):
-            exec("%s = options['%s']" % (k,k))
-        else:
-            exec('%s = v' % k)
 
     if frame < 0:
         # Don't construct file names with negative frameno values.
@@ -425,8 +407,8 @@ def read_ascii_t(frame,path='./',file_prefix='fort'):
     except(IOError):
         raise
     except:
-        logger.error("File " + t_fname + " should contain t, meqn, nstates, maux, ndim")
-        print "File " + t_fname + " should contain t, meqn, nstates, maux, ndim"
+        logger.error("File " + path + " should contain t, meqn, nstates, maux, ndim")
+        print "File " + path + " should contain t, meqn, nstates, maux, ndim"
         raise
         
     return t,meqn,nstates,maux,ndim

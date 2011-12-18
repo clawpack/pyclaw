@@ -12,7 +12,7 @@ from pyclaw.solver import Solver, CFLError
 try:
     # load c-based WENO reconstructor (PyWENO)
     from pyclaw.limiters import reconstruct as recon
-except:
+except ImportError:
     # load old WENO5 reconstructor
     from pyclaw.limiters import recon
 
@@ -159,7 +159,6 @@ class SharpClawSolver(Solver):
         'SSP33'  : 3rd-order strong stability preserving method of Shu & Osher
         'SSP104' : 4th-order strong stability preserving method Ketcheson
         """
-        from pyclaw.solution import Solution
         state = solution.states[0]
 
         self.start_step(self,solution)
@@ -188,7 +187,7 @@ class SharpClawSolver(Solver):
                 s1.q = state.q + deltaq/6.
                 s1.t = state.t + self.dt/6.
 
-                for i in range(4):
+                for i in xrange(4):
                     deltaq=self.dq(s1)
                     s1.q=s1.q + deltaq/6.
                     s1.t =s1.t + self.dt/6.
@@ -197,7 +196,7 @@ class SharpClawSolver(Solver):
                 s1.q = 15. * s2.q - 5. * s1.q
                 s1.t = state.t + self.dt/3.
 
-                for i in range(4):
+                for i in xrange(4):
                     deltaq=self.dq(s1)
                     s1.q=s1.q + deltaq/6.
                     s1.t =s1.t + self.dt/6.
@@ -236,7 +235,7 @@ class SharpClawSolver(Solver):
 
         return deltaq
 
-    def dq_hyperbolic(state):
+    def dq_hyperbolic(self,state):
         raise NotImplementedError('You must subclass SharpClawSolver.')
 
          
@@ -391,7 +390,7 @@ class SharpClawSolver1D(SharpClawSolver):
 
             # Find local value for dt/dx
             if state.mcapa>=0:
-                dtdx = self.dt / (grid.d[0] * state.aux[mcapa,:])
+                dtdx = self.dt / (grid.d[0] * state.aux[state.mcapa,:])
             else:
                 dtdx += self.dt/grid.d[0]
  
@@ -405,7 +404,7 @@ class SharpClawSolver1D(SharpClawSolver):
 
             #Reconstruct (wave reconstruction uses a Riemann solve)
             if self.lim_type==-1: #1st-order Godunov
-                ql=q; qr=q;
+                ql=q; qr=q
             elif self.lim_type==0: #Unlimited reconstruction
                 raise NotImplementedError('Unlimited reconstruction not implemented')
             elif self.lim_type==1: #TVD Reconstruction
@@ -540,9 +539,6 @@ class SharpClawSolver2D(SharpClawSolver):
         values are in the cell.
 
         """
-    
-        import numpy as np
-
         self.apply_q_bcs(state)
         q = self.qbc 
 

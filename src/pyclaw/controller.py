@@ -20,13 +20,10 @@ import logging
 import sys
 import os
 import copy
-import shutil
-import time
 
-from data import Data
-from solution import Solution
-from solver import Solver
-from util import FrameCounter
+from pyclaw.data import Data
+from pyclaw.solver import Solver
+from pyclaw.util import FrameCounter
 
 class Controller(object):
     r"""Controller for pyclaw simulation runs and plotting
@@ -72,7 +69,7 @@ class Controller(object):
         r"""(string) - Command to execute (if using fortran), defaults to xclaw or
         xclaw.exe if cygwin is being used (which it checks vis sys.platform)"""
         if sys.platform == 'cygwin':
-             self.xclawcmd = 'xclaw.exe'
+            self.xclawcmd = 'xclaw.exe'
 
         self.start_frame = 0
         self.xclawout = None
@@ -293,11 +290,11 @@ class Controller(object):
 
             logging.info("Solution %s computed for time t=%f"
                 % (frame,self.solution.t))
-            for file in self.solution.state.grid.gauge_files: 
-                file.flush()
+            for gfile in self.solution.state.grid.gauge_files: 
+                gfile.flush()
             
         self.solver.teardown()
-        for file in self.solution.state.grid.gauge_files: file.close()
+        for gfile in self.solution.state.grid.gauge_files: gfile.close()
 
         # Return the current status of the solver
         return status
@@ -430,4 +427,4 @@ class Controller(object):
             
             Not implemented!
         """
-        raise NotImplementedException()
+        raise NotImplementedError()

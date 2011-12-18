@@ -1,8 +1,6 @@
 r"""
 Module specifying the interface to every solver in PyClaw.
 """
-import time
-import copy
 import logging
 
 # Clawpack modules
@@ -224,11 +222,11 @@ class Solver(object):
                 valid = False
             if any([bcmeth == BC.custom for bcmeth in self.bc_lower]):
                 if self.user_bc_lower is None:
-                    logger.debug('Lower custom BC function has not been set.')
+                    self.logger.debug('Lower custom BC function has not been set.')
                     valid = False
             if any([bcmeth == BC.custom for bcmeth in self.bc_upper]):
                 if self.user_bc_lower is None:
-                    logger.debug('Upper custom BC function has not been set.')
+                    self.logger.debug('Upper custom BC function has not been set.')
                     valid = False
         return valid
         
@@ -399,8 +397,6 @@ class Solver(object):
          - *qbc* - (ndarray(...,meqn)) Array with added ghost cells which will
            be set in this routines
         """
-        import numpy as np
-
         if self.bc_lower[idim] == BC.custom: 
             self.user_bc_lower(state,dim,t,qbc,self.mbc)
         elif self.bc_lower[idim] == BC.outflow:
@@ -414,7 +410,7 @@ class Solver(object):
                 qbc[:,i,...] = qbc[:,2*self.mbc-1-i,...]
                 qbc[idim+1,i,...] = -qbc[idim+1,2*self.mbc-1-i,...] # Negate normal velocity
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.bc_lower)
+            raise NotImplementedError("Boundary condition %s not implemented" % self.bc_lower)
 
 
     def qbc_upper(self,state,dim,t,qbc,idim):
@@ -449,7 +445,7 @@ class Solver(object):
                 qbc[:,-i-1,...] = qbc[:,-2*self.mbc+i,...]
                 qbc[idim+1,-i-1,...] = -qbc[idim+1,-2*self.mbc+i,...] # Negate normal velocity
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.bc_lower)
+            raise NotImplementedError("Boundary condition %s not implemented" % self.bc_lower)
 
 
 
@@ -541,8 +537,6 @@ class Solver(object):
          - *auxbc* - (ndarray(maux,...)) Array with added ghost cells which will
            be set in this routines
         """
-        import numpy as np
-
         if self.aux_bc_lower[idim] == BC.custom: 
             self.user_aux_bc_lower(state,dim,t,auxbc,self.mbc)
         elif self.aux_bc_lower[idim] == BC.outflow:
@@ -557,7 +551,7 @@ class Solver(object):
         elif self.aux_bc_lower[idim] is None:
             raise Exception("One or more of the aux boundary conditions aux_bc_upper has not been specified.")
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.aux_bc_lower)
+            raise NotImplementedError("Boundary condition %s not implemented" % self.aux_bc_lower)
 
 
     def auxbc_upper(self,state,dim,t,auxbc,idim):
@@ -593,7 +587,7 @@ class Solver(object):
         elif self.aux_bc_lower[idim] is None:
             raise Exception("One or more of the aux boundary conditions aux_bc_lower has not been specified.")
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.aux_bc_lower)
+            raise NotImplementedError("Boundary condition %s not implemented" % self.aux_bc_lower)
 
 
     # ========================================================================

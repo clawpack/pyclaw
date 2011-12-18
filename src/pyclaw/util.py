@@ -366,7 +366,6 @@ def _method_info_from_argv(argv=None):
     @returns (<method-name>, <args>, <kwargs>)
     """
     import json
-    import sys
     if argv is None:
         argv = sys.argv
 
@@ -408,7 +407,6 @@ def _info_from_argv(argv=None):
     @returns (<method-name>, <args>, <kwargs>)
     """
     import json
-    import sys
     if argv is None:
         argv = sys.argv
 
