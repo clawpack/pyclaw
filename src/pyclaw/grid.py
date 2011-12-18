@@ -9,12 +9,7 @@ Module containing all Pyclaw solution objects
     Amal Alghamdi
 """
 
-import copy
-import logging
-
 import numpy as np
-
-from data import Data
 
 # ============================================================================
 #  Default function definitions
@@ -113,13 +108,13 @@ class Dimension(object):
             self.lower = float(args[0])
             self.upper = float(args[1])
             self.n = int(args[2])
-    	elif isinstance(args[0],basestring):
+        elif isinstance(args[0],basestring):
             self.name = args[0]
             self.lower = float(args[1])
             self.upper = float(args[2])
             self.n = int(args[3])
-    	else:
-    	    raise Exception("Invalid initializer for Dimension.")
+        else:
+            raise Exception("Invalid initializer for Dimension.")
         
         for (k,v) in kargs.iteritems():
             setattr(self,k,v)
@@ -369,6 +364,7 @@ class Grid(object):
         
         
     def __deepcopy__(self,memo={}):
+        import copy
         result = self.__class__(copy.deepcopy(self.dimensions))
         result.__init__(copy.deepcopy(self.dimensions))
         
@@ -410,7 +406,6 @@ class Grid(object):
                 self._p_center[0] = self.mapc2p(self,self.dimensions[0].center)
             # Higer dimensional calculate center arrays
             else:
-                mgrid = np.lib.index_tricks.nd_grid()
                 index = np.indices(self.ng)
                 array_list = []
                 for i,center_array in enumerate(self.get_dim_attribute('center')):
@@ -442,7 +437,6 @@ class Grid(object):
             if self.ndim == 1:        
                 self._p_edge[0] = self.mapc2p(self,self.dimensions[0].edge)
             else:
-                mgrid = np.lib.index_tricks.nd_grid()
                 index = np.indices([n+1 for n in self.ng])
                 array_list = []
                 for i,edge_array in enumerate(self.get_dim_attribute('edge')):
@@ -476,7 +470,6 @@ class Grid(object):
                 self._c_center[0] = self.dimensions[0].center
             else:
                 # Produce ndim mesh grid function
-                mgrid = np.lib.index_tricks.nd_grid()
                 index = np.indices(self.ng)
                 self._c_center = []
                 for i,center_array in enumerate(self.get_dim_attribute('center')):
@@ -504,7 +497,6 @@ class Grid(object):
             if self.ndim == 1:
                 self._c_edge[0] = self.dimensions[0].edge
             else:
-                mgrid = np.lib.index_tricks.nd_grid()
                 index = np.indices([n+1 for n in self.ng])
                 self._c_edge = []
                 for i,edge_array in enumerate(self.get_dim_attribute('edge')):

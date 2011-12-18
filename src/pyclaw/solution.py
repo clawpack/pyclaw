@@ -15,12 +15,10 @@ Module containing all Pyclaw solution objects
 # ============================================================================
 
 import os
-import copy
 import logging
 
-from data import Data
-from grid import Grid, Dimension
-from state import State
+from pyclaw.grid import Grid, Dimension
+from pyclaw.state import State
 import io
 
 # ============================================================================
@@ -267,16 +265,11 @@ class Solution(object):
                 else:
                     raise Exception("Invalid argument list")
             elif isinstance(arg[0],int): 
+                import inspect
                 frame = arg[0]
-                defaults = {'format':'ascii','path':'./_output/','file_prefix':None,
-                    'read_aux':True,'options':{}}
-   
-                for (k,v) in defaults.iteritems():    
-                    if kargs.has_key(k):
-                        exec("%s = kargs['%s']" % (k,k))
-                    else:
-                        exec('%s = v' % k)
-                self.read(frame,path,format,file_prefix,read_aux,options)
+                #Grab just the keyword arguments that self.read accepts
+                read_args = {k:v for (k,v) in kargs.iteritems() if k in inspect.getargspec(self.read).args}
+                self.read(frame,**read_args)
             else:
                 raise Exception("Invalid argument list")
                 
@@ -313,8 +306,9 @@ class Solution(object):
          - *overwrite* - (bool) Whether to overwrite the attribute if it 
            already exists.  ``default = True``
         """
-        [setattr(state,attr,value) for state in self.states if getattr(state,attr)
-                    is None or overwrite]
+        for state in self.states:
+            if getattr(state,attr) is None or overwrite:
+                setattr(state,attr,value) 
     
                     
     def _get_base_state_attribute(self, name):
@@ -340,7 +334,8 @@ class Solution(object):
         return self.__class__(self)
     
     
-    def __deepcopy__(self, memo={}):
+    def __deepcopy__(self,memo={}):
+        import copy
         # Create basic container
         result = self.__class__()
         result.__init__()
@@ -353,7 +348,7 @@ class Solution(object):
     
     
     # ========== IO Functions ================================================
-    def write(self,frame,path='./',format='ascii',file_prefix=None,
+    def write(self,frame,path='./',file_format='ascii',file_prefix=None,
                 write_aux=False,options={},write_p=False):
         r"""
         Write out a representation of the solution
@@ -384,10 +379,10 @@ class Solution(object):
                 print "directory already exists, ignoring"  
 
         # Call the correct write function based on the output format
-        if isinstance(format,str):
-            format_list = [format]
-        elif isinstance(format,list):
-            format_list = format
+        if isinstance(file_format,str):
+            format_list = [file_format]
+        elif isinstance(file_format,list):
+            format_list = file_format
         if 'petsc' in format_list:
             from petclaw import io
         # Loop over list of formats requested
@@ -403,8 +398,8 @@ class Solution(object):
             msg = "Wrote out solution in format %s for time t=%s" % (form,self.t)
             logging.getLogger('io').info(msg)
         
-    def read(self,frame,path='./',format='ascii',file_prefix=None,
-                read_aux=False,options={}):
+    def read(self,frame,path='./_output',file_format='ascii',file_prefix=None,
+                read_aux=True,options={}):
         r"""
         Reads in a Solution object from a file
         
@@ -435,10 +430,10 @@ class Solution(object):
          - (bool) - True if read was successful, False otherwise
         """
         
-        if format=='petsc':
+        if file_format=='petsc':
             from petclaw import io
         path = os.path.expandvars(os.path.expanduser(path))
-        read_func = eval('io.read_%s' % format)
+        read_func = eval('io.read_%s' % file_format)
         if file_prefix is None:
             read_func(self,frame,path,read_aux=read_aux,options=options)
         else:

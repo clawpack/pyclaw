@@ -16,7 +16,6 @@ are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`
 from pyclaw.solver import Solver
 
 import limiters.tvd
-import riemann
 
 # ============================================================================
 #  Generic Clawpack solver class
@@ -333,7 +332,7 @@ class ClawSolver1D(ClawSolver):
 
             # Find local value for dt/dx
             if state.mcapa>=0:
-                dtdx = self.dt / (grid.d[0] * state.aux[mcapa,:])
+                dtdx = self.dt / (grid.d[0] * state.aux[state.mcapa,:])
             else:
                 dtdx += self.dt/grid.d[0]
         
@@ -515,9 +514,6 @@ class ClawSolver2D(ClawSolver):
         Clawpack is based on the Lax-Wendroff method, combined with Riemann
         solvers and TVD limiters applied to waves.
         """
-        import numpy as np
-
-
         if(self.kernel_language == 'Fortran'):
             state = solution.states[0]
             grid = state.grid
