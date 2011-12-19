@@ -43,6 +43,30 @@ class Dimension(object):
        
     Output:
      - (:class:`Dimension`) - Initialized Dimension object
+
+    Example:
+
+    >>> x = Dimension('x',0.,1.,100)
+    >>> print x
+    Dimension x:  (n,d,[lower,upper]) = (100,0.01,[0.0,1.0])
+    >>> x.name
+    'x'
+    >>> x.n
+    100
+    >>> x.d
+    0.01
+    >>> x.edge[0]
+    0.0
+    >>> x.edge[1]
+    0.01
+    >>> x.edge[-1]
+    1.0
+    >>> x.center[-1]
+    0.995
+    >>> len(x.center)
+    100
+    >>> len(x.edge)
+    101
     """
     
     # ========== Property Definitions ========================================
@@ -126,9 +150,6 @@ class Dimension(object):
         self.nend = self.n
         self.lowerg = self.lower
             
-        # Function attribute assignments
-    
-
     def __str__(self):
         output = "Dimension %s" % self.name
         if self.units:
@@ -169,6 +190,39 @@ class Grid(object):
             
         Output:
          - (:class:`Grid`) Initialized grid object
+
+    A PyClaw Grid is usually constructed from a tuple of PyClaw Dimension objects:
+
+        >>> x = Dimension('x',0.,1.,10)
+        >>> y = Dimension('y',-1.,1.,25)
+        >>> grid = Grid((x,y))
+        >>> print grid
+        Grid 1:
+        Dimension x:  (n,d,[lower,upper]) = (10,0.1,[0.0,1.0])
+        Dimension y:  (n,d,[lower,upper]) = (25,0.08,[-1.0,1.0])
+        >>> grid.ndim
+        2
+        >>> grid.n
+        [10, 25]
+        >>> grid.lower
+        [0.0, -1.0]
+        >>> grid.d
+        [0.1, 0.08]
+
+    A grid can be extended to more dimensions using the add_dimension() method:
+
+        >>> z=Dimension('z',-2.0,2.0,21)
+        >>> grid.add_dimension(z)
+        >>> grid.ndim
+        3
+        >>> grid.n
+        [10, 25, 21]
+        >>> grid.c_edge[0][0,0,0]
+        0.0
+        >>> grid.c_edge[1][0,0,0]
+        -1.0
+        >>> grid.c_edge[2][0,0,0]
+        -2.0
     """
     
     # ========== Property Definitions ========================================
@@ -318,23 +372,8 @@ class Grid(object):
     
     def __str__(self):
         output = "Grid %s:\n" % self.gridno
-        output += '\n  '.join((str(getattr(self,dim)) for dim in self._dimensions))
-        output += '\n'
+        output += '\n'.join((str(getattr(self,dim)) for dim in self._dimensions))
         return output
-    
-    
-    def is_valid(self):
-        r"""
-        Checks to see if this grid is valid
-        
-        Nothing to do here, since both q and mbc have been moved out of grid.
-            
-        :Output:
-         - (bool) - True if valid, false otherwise.
-        
-        """
-        valid = True
-        return valid
     
     
     # ========== Dimension Manipulation ======================================
@@ -537,3 +576,6 @@ class Grid(object):
                 self.gauge_files.append(open(gauge_path,'a'))
 
 
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
