@@ -15,7 +15,7 @@ When preparing contributions, please follow the guidelines in
 
     * If the planned changes are substantial or will be backward-incompatible,
       it's best to discuss them on the `claw-dev Google group
-      <http://groups.google.com/group/claw-dev`_ before starting.
+      <http://groups.google.com/group/claw-dev>`_ before starting.
       
     * Make sure all tests pass and all the built-in apps run correctly.
 
@@ -47,7 +47,7 @@ In general, introduction of additional dependencies
 should be avoided.  If you wish to make a change that
 will introduce a new dependency (including depending on a more
 recent version of a particular package), it should be discussed
-on the `claw-dev Google group <http://http://groups.google.com/group/claw-dev>`_.
+on the `claw-dev Google group`_
 first.
 
 New versions of existing dependencies will typically be adopted 
@@ -96,5 +96,49 @@ The attributes can be used in the following ways:
     
         $ nosetests -a attribute-1 = value-1 -a attribute-2 = value-2 -a attribute-3 = value-3
 
+Doctests
+============
+Several of the main PyClaw modules also have doctests (tests in their docstrings).
+You can run them by executing the corresponding module::
+
+    $ cd $PYCLAW/src/pyclaw
+    $ python grid.py
+    $ python state.py
+
+If the tests pass, you will see no output.  You can get more output by using the `-v` option::
+
+    $ python state.py -v
 
 
+Catching errors with Pyflakes and Pylint
+===========================================
+Pyflakes and Pylint are Python packages designed to help you catch errors or poor
+coding practices.  To run pylint on the whole PyClaw package, do::
+
+    $ cd $PYCLAW
+    $ pylint -d C pyclaw
+
+The `-d` option suppresses a lot of style warnings, since PyClaw doesn't generally
+conform to PEP8.  To run pylint on just one module, use something like::
+
+    $ pylint -d C pyclaw.state
+
+Since pylint output can be long, it's helpful to write it to an html file
+and open that in a web browser::
+
+    $ pylint -d C pyclaw.state -f html > pylint.html
+
+Pyflakes is similar to pylint but aims only to catch errors.  If you
+use Vim, there is a nice extension package 
+`pyflakes.vim <https://github.com/kevinw/pyflakes-vim>`_
+that will catch errors as you code and underline them in red.
+
+Checking test coverage
+========================
+You can use nose to see how much of the code is covered by the current
+suite of tests and track progress if you add more tests ::
+
+    $ nosetests --with-coverage --cover-package=pyclaw --cover-html
+
+This creates a set of html files in `./cover`, showing exactly which lines
+of code have been tested.
