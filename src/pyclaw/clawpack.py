@@ -651,9 +651,6 @@ class ClawSolver3D(ClawSolver):
         Clawpack is based on the Lax-Wendroff method, combined with Riemann
         solvers and TVD limiters applied to waves.
         """
-        import numpy as np
-
-
         if(self.kernel_language == 'Fortran'):
             state = solution.states[0]
             grid = state.grid

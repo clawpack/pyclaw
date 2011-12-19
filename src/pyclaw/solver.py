@@ -617,7 +617,6 @@ class Solver(object):
             take_one_step = False
             
         # Parameters for time-stepping
-        retake_step = False
         tstart = solution.t
 
         # Reset status dictionary
@@ -653,7 +652,6 @@ class Solver(object):
             if self.dt_variable:
                 q_backup = state.q.copy('F')
                 told = solution.t
-            retake_step = False  # Reset flag
             
             self.step(solution)
 
@@ -683,8 +681,6 @@ class Solver(object):
                 if self.dt_variable:
                     state.q = q_backup
                     solution.t = told
-                    # Retake step
-                    retake_step = True
                 else:
                     # Give up, we cannot adapt, abort
                     self.status['cflmax'] = \

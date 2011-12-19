@@ -10,9 +10,8 @@ Module containing petclaw grid.
 """
 
 import pyclaw.grid
+# We don't use Grid directly but we need it to appear in this namespace:
 from pyclaw.grid import Grid
-
-import numpy as np
 
 # ============================================================================
 #  Dimension Object
