@@ -69,6 +69,13 @@ class Solution(object):
               and appended to the states list
             - if args == frame, format='ascii',path='./',file_prefix='fort'
     
+    :Examples:
+
+        >>> import pyclaw
+        >>> x = pyclaw.Dimension('x',0.,1.,100)
+        >>> grid = pyclaw.Grid((x))
+        >>> state = pyclaw.State(grid,3,2)
+        >>> solution = pyclaw.Solution(state)
     """
 
     # ========== Attributes ==================================================
@@ -446,3 +453,7 @@ class Solution(object):
         raise NotImplementedError("Direct solution plotting has not been " +
             "implemented as of yet, please refer to the plotting module for" +
             " how to plot solutions.")
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

@@ -32,7 +32,8 @@ class Solver(object):
 
     A Solver is typically instantiated as follows::
 
-        >>> solver = pyclaw.ClawSolver2d()
+        >>> import pyclaw
+        >>> solver = pyclaw.ClawSolver2D()
 
     After which solver options may be set.  It is always necessary to set
     solver.mwaves to the number of waves used in the Riemann solver.
@@ -725,3 +726,7 @@ class Solver(object):
             t=solution.t
             solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
 
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

@@ -1,19 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
 r"""
-Controller for basic computation and plotting setup
+Controller for basic computation and plotting setup.
 
 This module defines the Pyclaw controller class.  It can be used to perform
-simulations similar to previous versions of clawpack, i.e. with outstyle and
-output time specification.  It also can be used to setup easy plotting and 
+simulations similar to previous versions of Clawpack, i.e. with outstyle and
+output time specification.  It also can be used to set up easy plotting and 
 running of compiled fortran binaries.
-
-:Authors:
-    Kyle T. Mandli (2008-02-15) Initial version
-    
-    Randall J. LeVeque and Kyle T Mandli (2009) Plotting and run updates
-
-    David I. Ketcheson (2011) Minor additional functionality
 """
 
 import logging
@@ -31,7 +24,15 @@ class Controller(object):
     
         Input: None
     
-    :Version: 1.0 (2009-06-01)
+    :Examples:
+
+        >>> import pyclaw
+        >>> x = pyclaw.Dimension('x',0.,1.,100)
+        >>> grid = pyclaw.Grid((x))
+        >>> state = pyclaw.State(grid,3,2)
+        >>> claw = pyclaw.Controller()
+        >>> claw.solution = pyclaw.Solution(state)
+        >>> claw.solver = pyclaw.ClawSolver1D()
     """
     #  ======================================================================
     #   Initialization routines
@@ -314,3 +315,7 @@ class Controller(object):
     
     def is_proc_0(self):
         return True
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
