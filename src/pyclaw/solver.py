@@ -126,9 +126,6 @@ class Solver(object):
     _required_attrs = ['dt_initial','dt_max','cfl_max','cfl_desired',
             'max_steps','dt_variable','mbc']
             
-    _default_attr_values = {'dt_initial':0.1, 'dt_max':1e99, 'max_steps':1000,
-            'dt_variable':True}
-    
     #  ======================================================================
     #   Initialization routines
     #  ======================================================================
@@ -141,9 +138,10 @@ class Solver(object):
         # Setup solve logger
         self.logger = logging.getLogger('evolve')
 
-        # Set default values
-        for (k,v) in self._default_attr_values.iteritems():
-            self.__dict__.setdefault(k,v)
+        self.dt_initial = 0.1
+        self.dt_max = 1e99
+        self.max_steps = 1000
+        self.dt_variable = True
 
         # Set data values based on the data object
         if data is not None and isinstance(data,Data):
@@ -168,8 +166,8 @@ class Solver(object):
 
         
         # Initialize time stepper values
-        self.dt = self._default_attr_values['dt_initial']
-        self.cfl = self.claw_package.CFL(self._default_attr_values['cfl_desired'])
+        self.dt = self.dt_initial
+        self.cfl = self.claw_package.CFL(self.cfl_desired)
        
         # Status Dictionary
         self.status = {'cflmax':self.cfl.get_cached_max(),

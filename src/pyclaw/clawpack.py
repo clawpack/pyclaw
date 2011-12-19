@@ -90,22 +90,17 @@ class ClawSolver(Solver):
         r"""
         See :class:`ClawSolver` for full documentation.
         """
-        # Required attributes for this solver
-        for attr in ['limiters','order','src_split','fwave','step_src','start_step']:
-            self._required_attrs.append(attr)
-        
-        # Default required attributes
-        self._default_attr_values['mbc'] = 2
-        self._default_attr_values['limiters'] = limiters.tvd.minmod
-        self._default_attr_values['order'] = 2
-        self._default_attr_values['src_split'] = 1
-        self._default_attr_values['fwave'] = False
-        self._default_attr_values['step_src'] = None
-        self._default_attr_values['start_step'] = None
-        self._default_attr_values['kernel_language'] = 'Fortran'
-        self._default_attr_values['verbosity'] = 0
-        self._default_attr_values['cfl_max'] = 1.0
-        self._default_attr_values['cfl_desired'] = 0.9
+        self.mbc = 2
+        self.limiters = limiters.tvd.minmod
+        self.order = 2
+        self.src_split = 1
+        self.fwave = False
+        self.step_src = None
+        self.start_step = None
+        self.kernel_language = 'Fortran'
+        self.verbosity = 0
+        self.cfl_max = 1.0
+        self.cfl_desired = 0.9
 
         # Call general initialization function
         super(ClawSolver,self).__init__(data)
@@ -456,8 +451,8 @@ class ClawSolver2D(ClawSolver):
         
         See :class:`ClawSolver2D` for more info.
         """   
-        self._default_attr_values['dim_split'] = True
-        self._default_attr_values['order_trans'] = self.trans_inc
+        self.dim_split = True
+        self.order_trans = self.trans_inc
 
         self.ndim = 2
 
@@ -609,8 +604,8 @@ class ClawSolver3D(ClawSolver):
         See :class:`ClawSolver3D` for more info.
         """   
         # Add the functions as required attributes
-        self._default_attr_values['dim_split'] = True
-        self._default_attr_values['order_trans'] = self.trans_cor
+        self.dim_split = True
+        self.order_trans = self.trans_cor
 
         self.ndim = 3
 
