@@ -10,7 +10,7 @@ def interactive_plot(outdir='./_output',file_format='ascii'):
     ip.plotdata.format=file_format
     ip.plotloop()
 
-def html_plot(outdir='./_output',format='ascii'):
+def html_plot(outdir='./_output',file_format='ascii'):
     """
     Convenience function for creating html page with plots.
     """

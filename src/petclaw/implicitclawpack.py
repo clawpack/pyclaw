@@ -120,46 +120,6 @@ class ImplicitClawSolver(pyclaw.solver.Solver):
         """
     pass 
     
-    # ========== Riemann solver library routines =============================   
-    def list_riemann_solvers(self):
-        r"""
-        List available Riemann solvers 
-        
-        This routine returns a list of available Riemann solvers which is
-        constructed in the Riemann solver package (:ref:`pyclaw_rp`).  In this 
-        case it lists all Riemann solvers.
-        
-        :Output:
-         - (list) - List of Riemann solver names valid to be used with
-           :meth:`set_riemann_solver`
-        
-        .. note::
-            These Riemann solvers are currently only accessible to the python 
-            time stepping routines.
-        """
-        rp_solver_list = []
-        
-        # Construct list from each dimension list
-        for rp_solver in rp_solver_list_1d:
-            rp_solver_list.append('%s_1d' % rp_solver)
-        for rp_solver in rp_solver_list_2d:
-            rp_solver_list.append('%s_2d' % rp_solver)
-        for rp_solver in rp_solver_list_3d:
-            rp_solver_list.append('%s_3d' % rp_solver)
-        
-        return rp_solver_list
-    
-    def set_riemann_solver(self,solver_name):
-        r"""
-        Assigns the library solver solver_name as the Riemann solver.
-        
-        :Input:
-         - *solver_name* - (string) Name of the solver to be used, raises a 
-           NameError if the solver does not exist.
-        """
-        raise Exception("Cannot set a Riemann solver with this class," +
-                                        " use one of the derived classes.")
-         
     # ========== Time stepping routines ======================================
     def step(self,solution):
         r"""
@@ -176,8 +136,6 @@ class ImplicitClawSolver(pyclaw.solver.Solver):
          - (bool) - True if full step succeeded, False otherwise
         """
         
-        from pyclaw.solution import Solution
-
         # Get state object
         state = solution.states[0]
 
