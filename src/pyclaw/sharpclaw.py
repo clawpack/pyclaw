@@ -122,6 +122,12 @@ class SharpClawSolver(Solver):
         r"""
         Set default options for SharpClawSolvers and call the super's __init__().
         """
+        # Required attributes for this solver
+        for attr in ['limiters','start_step','lim_type','weno_order',
+                     'time_integrator','char_decomp',
+                     'aux_time_dep','mwaves']:
+            self._required_attrs.append(attr)
+
         self.limiters = [1]
         self.start_step = start_step
         self.lim_type = 2

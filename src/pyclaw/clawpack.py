@@ -89,6 +89,10 @@ class ClawSolver(Solver):
         r"""
         See :class:`ClawSolver` for full documentation.
         """
+        # Required attributes for this solver
+        for attr in ['limiters','order','src_split','fwave','step_src','start_step']:
+            self._required_attrs.append(attr)
+
         self.mbc = 2
         self.limiters = limiters.tvd.minmod
         self.order = 2
