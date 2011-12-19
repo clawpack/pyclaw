@@ -176,7 +176,6 @@ class Grid(object):
     
         Each grid has a value for :attr:`level` and :attr:`gridno`.
         
-       
     :Properties:
 
         If the requested property has multiple values, a list will be returned
@@ -209,7 +208,7 @@ class Grid(object):
         >>> grid.d
         [0.1, 0.08]
 
-    A grid can be extended to more dimensions using the add_dimension() method:
+    A grid can be extended to higher dimensions using the add_dimension() method:
 
         >>> z=Dimension('z',-2.0,2.0,21)
         >>> grid.add_dimension(z)
