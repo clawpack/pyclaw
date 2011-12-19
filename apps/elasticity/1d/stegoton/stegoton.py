@@ -64,7 +64,7 @@ def moving_wall_bc(grid,dim,t,qbc,mbc):
 
 
 
-def stegoton(use_petsc=1,kernel_language='Fortran',solver_type='classic',iplot=0,htmlplot=0,outdir='./_output'):
+def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0,htmlplot=0,outdir='./_output'):
     """
     Stegoton problem.
     Nonlinear elasticity in periodic medium.
