@@ -89,10 +89,6 @@ class ClawSolver(Solver):
         r"""
         See :class:`ClawSolver` for full documentation.
         """
-        # Required attributes for this solver
-        for attr in ['limiters','order','src_split','fwave','step_src','start_step']:
-            self._required_attrs.append(attr)
-
         self.mbc = 2
         self.limiters = limiters.tvd.minmod
         self.order = 2
@@ -104,6 +100,8 @@ class ClawSolver(Solver):
         self.verbosity = 0
         self.cfl_max = 1.0
         self.cfl_desired = 0.9
+        self._mthlim = self.limiters
+        self._method = None
 
         # Call general initialization function
         super(ClawSolver,self).__init__(data)
@@ -178,36 +176,36 @@ class ClawSolver(Solver):
 
     def set_mthlim(self):
         r"""
-        Convenience routine to convert user's limiter specification to 
+        Convenience routine to convert users limiter specification to 
         the format understood by the Fortran code (i.e., a list of length mwaves).
         """
-        self.mthlim = self.limiters
-        if not isinstance(self.limiters,list): self.mthlim=[self.mthlim]
-        if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
-        if len(self.mthlim)!=self.mwaves:
+        self._mthlim = self.limiters
+        if not isinstance(self.limiters,list): self._mthlim=[self._mthlim]
+        if len(self._mthlim)==1: self._mthlim = self._mthlim * self.mwaves
+        if len(self._mthlim)!=self.mwaves:
             raise Exception('Length of solver.limiters is not equal to 1 or to solver.mwaves')
  
     def set_method(self,state):
         r"""
-        Set values of the method() array required by the Fortran code.
+        Set values of the solver._method array required by the Fortran code.
         These are algorithmic parameters.
         """
         import numpy as np
         #We ought to put method and many other things in a Fortran
         #module and set the fortran variables directly here.
-        self.method =np.empty(7, dtype=int,order='F')
-        self.method[0] = self.dt_variable
-        self.method[1] = self.order
+        self._method =np.empty(7, dtype=int,order='F')
+        self._method[0] = self.dt_variable
+        self._method[1] = self.order
         if self.ndim==1:
-            self.method[2] = 0  # Not used in 1D
+            self._method[2] = 0  # Not used in 1D
         elif self.dim_split:
-            self.method[2] = -1  # First-order dimensional splitting
+            self._method[2] = -1  # First-order dimensional splitting
         else:
-            self.method[2] = self.order_trans
-        self.method[3] = self.verbosity
-        self.method[4] = 0  # Not used for PyClaw (would be self.src_split)
-        self.method[5] = state.mcapa + 1
-        self.method[6] = state.maux
+            self._method[2] = self.order_trans
+        self._method[3] = self.verbosity
+        self._method[4] = 0  # Not used for PyClaw (would be self.src_split)
+        self._method[5] = state.mcapa + 1
+        self._method[6] = state.maux
 
     def setup(self,solution):
         r"""
@@ -239,7 +237,7 @@ class ClawSolver(Solver):
         r"""
         Pack parameters into format recognized by Clawpack (Fortran) code.
 
-        Sets the method array and the cparam common block for the Riemann solver.
+        Sets the solver._method array and the cparam common block for the Riemann solver.
         """
         self.set_method(solution.state)
         classic = __import__(self.so_name)
@@ -317,14 +315,14 @@ class ClawSolver1D(ClawSolver):
             dx,dt = grid.d[0],self.dt
             dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
             
-            self.qbc,cfl = classic.step1(mbc,mx,self.qbc,self.auxbc,dx,dt,self.method,self.mthlim,self.fwave)
+            self.qbc,cfl = classic.step1(mbc,mx,self.qbc,self.auxbc,dx,dt,self._method,self._mthlim,self.fwave)
             
         elif(self.kernel_language == 'Python'):
  
             q   = self.qbc
             aux = self.auxbc
             # Limiter to use in the pth family
-            limiter = np.array(self.mthlim,ndmin=1)  
+            limiter = np.array(self._mthlim,ndmin=1)  
         
             dtdx = np.zeros( (2*self.mbc+grid.ng[0]) )
 
@@ -458,6 +456,11 @@ class ClawSolver2D(ClawSolver):
 
         self.ndim = 2
 
+        self.aux1 = None
+        self.aux2 = None
+        self.aux3 = None
+        self.work = None
+
         super(ClawSolver2D,self).__init__(data)
 
     def check_cfl_settings(self):
@@ -530,11 +533,11 @@ class ClawSolver2D(ClawSolver):
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
                 q, cfl_x = classic.step2ds(maxm,self.mbc,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
+                      qold,qnew,self.auxbc,dx,dy,self.dt,self.method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1,self.fwave)
 
                 q, cfl_y = classic.step2ds(maxm,self.mbc,mx,my, \
-                      q,q,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
+                      q,q,self.auxbc,dx,dy,self.dt,self.method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2,self.fwave)
 
                 cfl = max(cfl_x,cfl_y)
@@ -542,7 +545,7 @@ class ClawSolver2D(ClawSolver):
             else:
 
                 q, cfl = classic.step2(maxm,self.mbc,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,self.dt,self.method,self.mthlim,\
+                      qold,qnew,self.auxbc,dx,dy,self.dt,self.method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,self.fwave)
 
             self.cfl.update_global_max(cfl)
@@ -608,6 +611,11 @@ class ClawSolver3D(ClawSolver):
 
         self.ndim = 3
 
+        self.aux1 = None
+        self.aux2 = None
+        self.aux3 = None
+        self.work = None
+
         super(ClawSolver3D,self).__init__(data)
 
     # ========== Setup routine =============================   
@@ -667,15 +675,15 @@ class ClawSolver3D(ClawSolver):
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
                 q, cfl_x = classic.step3ds(maxm,self.mbc,mx,my,mz, \
-                      qold,qnew,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
+                      qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1)
 
                 q, cfl_y = classic.step3ds(maxm,self.mbc,mx,my,mz, \
-                      q,q,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
+                      q,q,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2)
 
                 q, cfl_z = classic.step3ds(maxm,self.mbc,mx,my,mz, \
-                      q,q,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
+                      q,q,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,3)
 
                 cfl = max(cfl_x,cfl_y,cfl_z)
@@ -683,7 +691,7 @@ class ClawSolver3D(ClawSolver):
             else:
 
                 q, cfl = classic.step3(maxm,self.mbc,mx,my,mz, \
-                      qold,qnew,self.auxbc,dx,dy,dz,self.dt,self.method,self.mthlim,\
+                      qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl.update_global_max(cfl)

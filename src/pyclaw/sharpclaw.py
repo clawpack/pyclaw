@@ -122,12 +122,6 @@ class SharpClawSolver(Solver):
         r"""
         Set default options for SharpClawSolvers and call the super's __init__().
         """
-        # Required attributes for this solver
-        for attr in ['limiters','start_step','lim_type','weno_order',
-                     'time_integrator','char_decomp',
-                     'aux_time_dep','mwaves']:
-            self._required_attrs.append(attr)
-
         self.limiters = [1]
         self.start_step = start_step
         self.lim_type = 2
@@ -142,6 +136,9 @@ class SharpClawSolver(Solver):
         self.cfl_desired = 2.45
         self.cfl_max = 2.5
         self.dq_src = None
+        self._mthlim = self.limiters
+        self._method = None
+        self._rk_stages = None
         
         # Call general initialization function
         super(SharpClawSolver,self).__init__(data)
@@ -208,10 +205,10 @@ class SharpClawSolver(Solver):
 
 
     def set_mthlim(self):
-        self.mthlim = self.limiters
-        if not isinstance(self.limiters,list): self.mthlim=[self.mthlim]
-        if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
-        if len(self.mthlim)!=self.mwaves:
+        self._mthlim = self.limiters
+        if not isinstance(self.limiters,list): self._mthlim=[self._mthlim]
+        if len(self._mthlim)==1: self._mthlim = self._mthlim * self.mwaves
+        if len(self._mthlim)!=self.mwaves:
             raise Exception('Length of solver.limiters is not equal to 1 or to solver.mwaves')
  
        
@@ -272,7 +269,7 @@ class SharpClawSolver(Solver):
             clawparams.xlower[idim]=grid.dimensions[idim].lower
             clawparams.xupper[idim]=grid.dimensions[idim].upper
         clawparams.dx       =grid.d
-        clawparams.mthlim   =self.mthlim
+        clawparams.mthlim   =self._mthlim
 
         maxnx = max(grid.ng)+2*self.mbc
         workspace.alloc_workspace(maxnx,self.mbc,state.meqn,self.mwaves,self.char_decomp)
