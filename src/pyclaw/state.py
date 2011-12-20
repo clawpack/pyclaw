@@ -9,8 +9,8 @@ import numpy as np
 
 class State(object):
     r"""
-    Contains the current state on a particular grid, including q, t, and aux.
-    Usually aux is time-independent.
+    A PyClaw State object contains the current state on a particular grid,
+    including the unkowns q, the time t, and the auxiliary coefficients aux.
 
     Both q and aux are initialized to None.  They cannot be accessed until
     meqn and maux (respectively) are set.
@@ -23,14 +23,26 @@ class State(object):
         None and later set to appropriately sized empty numpy arrays when
         :attr:`meqn` and :attr:`maux` are set.
  
-    Typical usage, assuming a 1D grid::
+    To instantiate a State, we first need a grid:
 
-        >>> state = State(grid)
-        >>> meqn = 2
-        >>> state.q[0,:] = sin(grid.x.center)
-        >>> state.q[1,:] = cos(grid.x.center)
-        >>> maux = 1
-        >>> aux[0,:] = exp(grid.x.center)
+        >>> import pyclaw
+        >>> x = pyclaw.Dimension('x',0.,1.,100)
+        >>> grid = pyclaw.Grid((x))
+
+    The arguments to the constructor are the grid, the number of equations,
+    and the number of auxiliary fields:
+
+        >>> state = pyclaw.State(grid,3,2)
+        >>> state.q.shape
+        (3, 100)
+        >>> state.aux.shape
+        (2, 100)
+        >>> state.t
+        0.0
+
+    Note that state.q and state.aux are initialized as empty arrays (not zeroed).
+    Additional parameters, such as scalar values that are used in the Riemann solver,
+    can be set using the dictionary state.aux_global.
     """
 
     # ========== Property Definitions ========================================
@@ -103,11 +115,14 @@ class State(object):
         self.aux = self.new_array(maux)
 
     def __str__(self):
-        output = "  t=%s meqn=%s\n  " % (self.t,self.meqn)
-        if self.q is not None:
-            output += "  q.shape=%s" % str(self.q.shape)
+        output = "PyClaw State object\n"
+        output += "Grid dimensions: %s\n" % str(self.grid.n)
+        output += "Time  t=%s\n" % (self.t)
+        output += "Number of conserved quantities: %s\n" % str(self.q.shape[0])
         if self.aux is not None:
-            output += " aux.shape=%s" % str(self.aux.shape)
+            output += "Number of auxiliary fields: %s\n" % str(self.aux.shape[0])
+        if self.aux_global != {}:
+            output += "aux_global: "+self.aux_global.__str__()
         return output
 
     def is_valid(self):
@@ -128,12 +143,6 @@ class State(object):
         import logging
         valid = True
         logger = logging.getLogger('solution')
-        if self.q is None:
-            logger.debug('The array q has not been initialized.')
-            valid = False
-        if self.meqn == 0:
-            logger.debug('State.meqn has not been set.')
-            valid = False
         if not self.q.flags['F_CONTIGUOUS']:
             logger.debug('q array is not Fortran contiguous.')
             valid = False
@@ -163,7 +172,7 @@ class State(object):
 
     def set_mbc(self,mbc):
         """
-        Virtual routine (does nothing)
+        Virtual routine (does nothing).  Overridden in the parallel class.
         """
         pass
 
@@ -234,3 +243,8 @@ class State(object):
         shape = [dof]
         shape.extend(self.grid.n)
         return np.empty(shape,order='F')
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

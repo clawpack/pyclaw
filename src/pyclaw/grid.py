@@ -9,12 +9,7 @@ Module containing all Pyclaw solution objects
     Amal Alghamdi
 """
 
-import copy
-import logging
-
 import numpy as np
-
-from data import Data
 
 # ============================================================================
 #  Default function definitions
@@ -48,6 +43,30 @@ class Dimension(object):
        
     Output:
      - (:class:`Dimension`) - Initialized Dimension object
+
+    Example:
+
+    >>> x = Dimension('x',0.,1.,100)
+    >>> print x
+    Dimension x:  (n,d,[lower,upper]) = (100,0.01,[0.0,1.0])
+    >>> x.name
+    'x'
+    >>> x.n
+    100
+    >>> x.d
+    0.01
+    >>> x.edge[0]
+    0.0
+    >>> x.edge[1]
+    0.01
+    >>> x.edge[-1]
+    1.0
+    >>> x.center[-1]
+    0.995
+    >>> len(x.center)
+    100
+    >>> len(x.edge)
+    101
     """
     
     # ========== Property Definitions ========================================
@@ -113,13 +132,13 @@ class Dimension(object):
             self.lower = float(args[0])
             self.upper = float(args[1])
             self.n = int(args[2])
-    	elif isinstance(args[0],basestring):
+        elif isinstance(args[0],basestring):
             self.name = args[0]
             self.lower = float(args[1])
             self.upper = float(args[2])
             self.n = int(args[3])
-    	else:
-    	    raise Exception("Invalid initializer for Dimension.")
+        else:
+            raise Exception("Invalid initializer for Dimension.")
         
         for (k,v) in kargs.iteritems():
             setattr(self,k,v)
@@ -131,9 +150,6 @@ class Dimension(object):
         self.nend = self.n
         self.lowerg = self.lower
             
-        # Function attribute assignments
-    
-
     def __str__(self):
         output = "Dimension %s" % self.name
         if self.units:
@@ -160,7 +176,6 @@ class Grid(object):
     
         Each grid has a value for :attr:`level` and :attr:`gridno`.
         
-       
     :Properties:
 
         If the requested property has multiple values, a list will be returned
@@ -174,6 +189,39 @@ class Grid(object):
             
         Output:
          - (:class:`Grid`) Initialized grid object
+
+    A PyClaw Grid is usually constructed from a tuple of PyClaw Dimension objects:
+
+        >>> x = Dimension('x',0.,1.,10)
+        >>> y = Dimension('y',-1.,1.,25)
+        >>> grid = Grid((x,y))
+        >>> print grid
+        Grid 1:
+        Dimension x:  (n,d,[lower,upper]) = (10,0.1,[0.0,1.0])
+        Dimension y:  (n,d,[lower,upper]) = (25,0.08,[-1.0,1.0])
+        >>> grid.ndim
+        2
+        >>> grid.n
+        [10, 25]
+        >>> grid.lower
+        [0.0, -1.0]
+        >>> grid.d
+        [0.1, 0.08]
+
+    A grid can be extended to higher dimensions using the add_dimension() method:
+
+        >>> z=Dimension('z',-2.0,2.0,21)
+        >>> grid.add_dimension(z)
+        >>> grid.ndim
+        3
+        >>> grid.n
+        [10, 25, 21]
+        >>> grid.c_edge[0][0,0,0]
+        0.0
+        >>> grid.c_edge[1][0,0,0]
+        -1.0
+        >>> grid.c_edge[2][0,0,0]
+        -2.0
     """
     
     # ========== Property Definitions ========================================
@@ -323,23 +371,8 @@ class Grid(object):
     
     def __str__(self):
         output = "Grid %s:\n" % self.gridno
-        output += '\n  '.join((str(getattr(self,dim)) for dim in self._dimensions))
-        output += '\n'
+        output += '\n'.join((str(getattr(self,dim)) for dim in self._dimensions))
         return output
-    
-    
-    def is_valid(self):
-        r"""
-        Checks to see if this grid is valid
-        
-        Nothing to do here, since both q and mbc have been moved out of grid.
-            
-        :Output:
-         - (bool) - True if valid, false otherwise.
-        
-        """
-        valid = True
-        return valid
     
     
     # ========== Dimension Manipulation ======================================
@@ -369,6 +402,7 @@ class Grid(object):
         
         
     def __deepcopy__(self,memo={}):
+        import copy
         result = self.__class__(copy.deepcopy(self.dimensions))
         result.__init__(copy.deepcopy(self.dimensions))
         
@@ -410,7 +444,6 @@ class Grid(object):
                 self._p_center[0] = self.mapc2p(self,self.dimensions[0].center)
             # Higer dimensional calculate center arrays
             else:
-                mgrid = np.lib.index_tricks.nd_grid()
                 index = np.indices(self.ng)
                 array_list = []
                 for i,center_array in enumerate(self.get_dim_attribute('center')):
@@ -442,7 +475,6 @@ class Grid(object):
             if self.ndim == 1:        
                 self._p_edge[0] = self.mapc2p(self,self.dimensions[0].edge)
             else:
-                mgrid = np.lib.index_tricks.nd_grid()
                 index = np.indices([n+1 for n in self.ng])
                 array_list = []
                 for i,edge_array in enumerate(self.get_dim_attribute('edge')):
@@ -476,7 +508,6 @@ class Grid(object):
                 self._c_center[0] = self.dimensions[0].center
             else:
                 # Produce ndim mesh grid function
-                mgrid = np.lib.index_tricks.nd_grid()
                 index = np.indices(self.ng)
                 self._c_center = []
                 for i,center_array in enumerate(self.get_dim_attribute('center')):
@@ -504,7 +535,6 @@ class Grid(object):
             if self.ndim == 1:
                 self._c_edge[0] = self.dimensions[0].edge
             else:
-                mgrid = np.lib.index_tricks.nd_grid()
                 index = np.indices([n+1 for n in self.ng])
                 self._c_edge = []
                 for i,edge_array in enumerate(self.get_dim_attribute('edge')):
@@ -545,3 +575,6 @@ class Grid(object):
                 self.gauge_files.append(open(gauge_path,'a'))
 
 
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
