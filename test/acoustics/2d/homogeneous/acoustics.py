@@ -27,14 +27,15 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
 
     if solver_type=='classic':
         solver = pyclaw.ClawSolver2D()
+        solver.dim_split = 1
+        solver.mwaves = 2
+        solver.limiters = [4]*solver.mwaves
     elif solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
+        solver.mwaves = 2
 
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
-    solver.mwaves = 2
-    solver.dim_split = 1
-    solver.limiters = [4]*solver.mwaves
     solver.bc_lower[0] = pyclaw.BC.outflow
     solver.bc_upper[0] = pyclaw.BC.outflow
     solver.bc_lower[1] = pyclaw.BC.outflow
