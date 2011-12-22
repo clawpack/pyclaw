@@ -533,11 +533,11 @@ class ClawSolver2D(ClawSolver):
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
                 q, cfl_x = classic.step2ds(maxm,self.mbc,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,self.dt,self.method,self._mthlim,\
+                      qold,qnew,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1,self.fwave)
 
                 q, cfl_y = classic.step2ds(maxm,self.mbc,mx,my, \
-                      q,q,self.auxbc,dx,dy,self.dt,self.method,self._mthlim,\
+                      q,q,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2,self.fwave)
 
                 cfl = max(cfl_x,cfl_y)
@@ -545,7 +545,7 @@ class ClawSolver2D(ClawSolver):
             else:
 
                 q, cfl = classic.step2(maxm,self.mbc,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,self.dt,self.method,self._mthlim,\
+                      qold,qnew,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,self.fwave)
 
             self.cfl.update_global_max(cfl)
