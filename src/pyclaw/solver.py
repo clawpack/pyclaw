@@ -121,12 +121,15 @@ class Solver(object):
     Output:
      - (:class:`Solver`) - Initialized Solver object
     """
-    _required_attrs = ['dt_initial','dt_max','cfl_max','cfl_desired',
-            'max_steps','dt_variable','mbc']
+
             
-    _default_attr_values = {'dt_initial':0.1, 'dt_max':1e99, 'max_steps':1000,
-            'dt_variable':True}
-    
+    def __setattr__(self, key, value):
+        if not hasattr(self, '_isinitialized'):
+            self.__dict__['_isinitialized'] = False
+        if self._isinitialized and not hasattr(self, key):
+            raise TypeError("%s has no attribute %s" % (self.__class__,key))
+        object.__setattr__(self,key,value)
+
     #  ======================================================================
     #   Initialization routines
     #  ======================================================================
@@ -139,13 +142,20 @@ class Solver(object):
         # Setup solve logger
         self.logger = logging.getLogger('evolve')
 
-        # Set default values
-        for (k,v) in self._default_attr_values.iteritems():
-            self.__dict__.setdefault(k,v)
+        self.dt_initial = 0.1
+        self.dt_max = 1e99
+        self.max_steps = 1000
+        self.dt_variable = True
+        self.mwaves = None #Must be set later to agree with Riemann solver
+        self.so_name = None #Can remove this after merging fwaves commit
+        self.qbc = None
+        self.auxbc = None
+        self.rp = None
 
         # Set data values based on the data object
         if data is not None and isinstance(data,Data):
-            for attr in self._required_attrs:
+            import inspect
+            for attr in inspect.getmembers(self):
                 if hasattr(data,attr):
                     setattr(self,attr,getattr(data,attr))
 
@@ -166,8 +176,8 @@ class Solver(object):
 
         
         # Initialize time stepper values
-        self.dt = self._default_attr_values['dt_initial']
-        self.cfl = self.claw_package.CFL(self._default_attr_values['cfl_desired'])
+        self.dt = self.dt_initial
+        self.cfl = self.claw_package.CFL(self.cfl_desired)
        
         # Status Dictionary
         self.status = {'cflmax':self.cfl.get_cached_max(),
@@ -194,6 +204,8 @@ class Solver(object):
         r""" Array to hold ghost cell values.  This is the one that gets passed
         to the Fortran code.  """
 
+        self._isinitialized = True
+
         super(Solver,self).__init__()
 
 
@@ -216,18 +228,14 @@ class Solver(object):
         
         """
         valid = True
-        for key in self._required_attrs:
-            if not self.__dict__.has_key(key):
-                self.logger.info('%s is not present.' % key)
+        if any([bcmeth == BC.custom for bcmeth in self.bc_lower]):
+            if self.user_bc_lower is None:
+                self.logger.debug('Lower custom BC function has not been set.')
                 valid = False
-            if any([bcmeth == BC.custom for bcmeth in self.bc_lower]):
-                if self.user_bc_lower is None:
-                    self.logger.debug('Lower custom BC function has not been set.')
-                    valid = False
-            if any([bcmeth == BC.custom for bcmeth in self.bc_upper]):
-                if self.user_bc_lower is None:
-                    self.logger.debug('Upper custom BC function has not been set.')
-                    valid = False
+        if any([bcmeth == BC.custom for bcmeth in self.bc_upper]):
+            if self.user_bc_lower is None:
+                self.logger.debug('Upper custom BC function has not been set.')
+                valid = False
         return valid
         
     def setup(self,solution):

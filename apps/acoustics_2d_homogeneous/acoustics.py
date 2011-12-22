@@ -15,10 +15,10 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
 
     if solver_type=='classic':
         solver=pyclaw.ClawSolver2D()
+        solver.dim_split=False
     elif solver_type=='sharpclaw':
         solver=pyclaw.SharpClawSolver2D()
 
-    solver.dim_split=False
     solver.mwaves = 2
     solver.limiters = pyclaw.limiters.tvd.MC
 

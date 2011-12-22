@@ -122,28 +122,23 @@ class SharpClawSolver(Solver):
         r"""
         Set default options for SharpClawSolvers and call the super's __init__().
         """
-        
-        # Required attributes for this solver
-        for attr in ['limiters','start_step','lim_type','weno_order',
-                     'time_integrator','char_decomp',
-                     'aux_time_dep','mwaves']:
-            self._required_attrs.append(attr)
-        
-        # Defaults for required attributes
-        self._default_attr_values['limiters'] = [1]
-        self._default_attr_values['start_step'] = start_step
-        self._default_attr_values['lim_type'] = 2
-        self._default_attr_values['weno_order'] = 5
-        self._default_attr_values['time_integrator'] = 'SSP104'
-        self._default_attr_values['char_decomp'] = 0
-        self._default_attr_values['tfluct_solver'] = False
-        self._default_attr_values['aux_time_dep'] = False
-        self._default_attr_values['kernel_language'] = 'Fortran'
-        self._default_attr_values['mbc'] = 3
-        self._default_attr_values['fwave'] = False
-        self._default_attr_values['cfl_desired'] = 2.45
-        self._default_attr_values['cfl_max'] = 2.5
-        self._default_attr_values['dq_src'] = None
+        self.limiters = [1]
+        self.start_step = start_step
+        self.lim_type = 2
+        self.weno_order = 5
+        self.time_integrator = 'SSP104'
+        self.char_decomp = 0
+        self.tfluct_solver = False
+        self.aux_time_dep = False
+        self.kernel_language = 'Fortran'
+        self.mbc = 3
+        self.fwave = False
+        self.cfl_desired = 2.45
+        self.cfl_max = 2.5
+        self.dq_src = None
+        self._mthlim = self.limiters
+        self._method = None
+        self._rk_stages = None
         
         # Call general initialization function
         super(SharpClawSolver,self).__init__(data)
@@ -210,10 +205,10 @@ class SharpClawSolver(Solver):
 
 
     def set_mthlim(self):
-        self.mthlim = self.limiters
-        if not isinstance(self.limiters,list): self.mthlim=[self.mthlim]
-        if len(self.mthlim)==1: self.mthlim = self.mthlim * self.mwaves
-        if len(self.mthlim)!=self.mwaves:
+        self._mthlim = self.limiters
+        if not isinstance(self.limiters,list): self._mthlim=[self._mthlim]
+        if len(self._mthlim)==1: self._mthlim = self._mthlim * self.mwaves
+        if len(self._mthlim)!=self.mwaves:
             raise Exception('Length of solver.limiters is not equal to 1 or to solver.mwaves')
  
        
@@ -274,7 +269,7 @@ class SharpClawSolver(Solver):
             clawparams.xlower[idim]=grid.dimensions[idim].lower
             clawparams.xupper[idim]=grid.dimensions[idim].upper
         clawparams.dx       =grid.d
-        clawparams.mthlim   =self.mthlim
+        clawparams.mthlim   =self._mthlim
 
         maxnx = max(grid.ng)+2*self.mbc
         workspace.alloc_workspace(maxnx,self.mbc,state.meqn,self.mwaves,self.char_decomp)
@@ -465,7 +460,6 @@ class SharpClawSolver2D(SharpClawSolver):
         
         See :class:`SharpClawSolver2D` for more info.
         """   
-        
         self.ndim = 2
 
         super(SharpClawSolver2D,self).__init__(data)
