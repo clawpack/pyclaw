@@ -3,9 +3,6 @@ Module specifying the interface to every solver in PyClaw.
 """
 import logging
 
-# Clawpack modules
-from pyclaw.data import Data
-
 class CFLError(Exception):
     """Error raised when cfl_max is exceeded.  Is this a
        reasonable mechanism for handling that?"""
@@ -115,9 +112,6 @@ class Solver(object):
         
     :Initialization:
     
-    Input:
-     - *data* - (:class:`Data`) Data object to initialize the solver with (optional)
-    
     Output:
      - (:class:`Solver`) - Initialized Solver object
     """
@@ -133,7 +127,7 @@ class Solver(object):
     #  ======================================================================
     #   Initialization routines
     #  ======================================================================
-    def __init__(self,data=None,claw_package=None):
+    def __init__(self,claw_package=None):
         r"""
         Initialize a Solver object
         
@@ -151,13 +145,6 @@ class Solver(object):
         self.qbc = None
         self.auxbc = None
         self.rp = None
-
-        # Set data values based on the data object
-        if data is not None and isinstance(data,Data):
-            import inspect
-            for attr in inspect.getmembers(self):
-                if hasattr(data,attr):
-                    setattr(self,attr,getattr(data,attr))
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class

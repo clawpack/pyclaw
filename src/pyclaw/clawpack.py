@@ -76,16 +76,11 @@ class ClawSolver(Solver):
         The level of detail of logged messages from the Fortran solver.
         ``Default = 0``.
 
-    :Initialization:
-    
-    Input:
-     - *data* - (:class:`~pyclaw.data.Data`) Data object, the solver will look 
-       for the named variables to instantiate itself.    
     Output:
      - (:class:`ClawSolver`) - Initialized clawpack solver
     """
     # ========== Generic Init Routine ========================================
-    def __init__(self,data=None):
+    def __init__(self):
         r"""
         See :class:`ClawSolver` for full documentation.
         """
@@ -104,7 +99,7 @@ class ClawSolver(Solver):
         self._method = None
 
         # Call general initialization function
-        super(ClawSolver,self).__init__(data)
+        super(ClawSolver,self).__init__()
     
     # ========== Time stepping routines ======================================
     def step(self,solution):
@@ -270,16 +265,11 @@ class ClawSolver1D(ClawSolver):
     dependent on the argument given to the initialization of the solver 
     (defaults to python).
     
-    :Initialization:
-    
-    Input:
-     - *data* - (:class:`~pyclaw.data.Data`) An instance of a Data object whose
-       parameters can be used to initialize this solver
     Output:
      - (:class:`ClawSolver1D`) - Initialized 1d clawpack solver
     """
 
-    def __init__(self,data=None):
+    def __init__(self):
         r"""
         Create 1d Clawpack solver
         
@@ -287,7 +277,7 @@ class ClawSolver1D(ClawSolver):
         """   
         self.ndim = 1
 
-        super(ClawSolver1D,self).__init__(data)
+        super(ClawSolver1D,self).__init__()
 
 
     # ========== Homogeneous Step =====================================
@@ -445,7 +435,7 @@ class ClawSolver2D(ClawSolver):
     trans_inc = 1
     trans_cor = 2
 
-    def __init__(self,data=None):
+    def __init__(self):
         r"""
         Create 2d Clawpack solver
         
@@ -461,7 +451,7 @@ class ClawSolver2D(ClawSolver):
         self.aux3 = None
         self.work = None
 
-        super(ClawSolver2D,self).__init__(data)
+        super(ClawSolver2D,self).__init__()
 
     def check_cfl_settings(self):
         if (not self.dim_split) and (self.order_trans==0):
@@ -599,7 +589,7 @@ class ClawSolver3D(ClawSolver):
     trans_inc = 11
     trans_cor = 22
 
-    def __init__(self,data=None):
+    def __init__(self):
         r"""
         Create 3d Clawpack solver
         
@@ -616,7 +606,7 @@ class ClawSolver3D(ClawSolver):
         self.aux3 = None
         self.work = None
 
-        super(ClawSolver3D,self).__init__(data)
+        super(ClawSolver3D,self).__init__()
 
     # ========== Setup routine =============================   
     def allocate_workspace(self,solution):

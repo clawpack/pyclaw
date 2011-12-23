@@ -118,7 +118,7 @@ class SharpClawSolver(Solver):
     # ========================================================================
     #   Initialization routines
     # ========================================================================
-    def __init__(self, data=None):
+    def __init__(self):
         r"""
         Set default options for SharpClawSolvers and call the super's __init__().
         """
@@ -141,7 +141,7 @@ class SharpClawSolver(Solver):
         self._rk_stages = None
         
         # Call general initialization function
-        super(SharpClawSolver,self).__init__(data)
+        super(SharpClawSolver,self).__init__()
         
     # ========== Time stepping routines ======================================
     def step(self,solution):
@@ -286,12 +286,12 @@ class SharpClawSolver1D(SharpClawSolver):
     Used to solve 1D hyperbolic systems using the SharpClaw algorithms,
     which are based on WENO reconstruction and Runge-Kutta time stepping.
     """
-    def __init__(self, data=None):
+    def __init__(self):
         r"""
         See :class:`SharpClawSolver1D` for more info.
         """   
         self.ndim = 1
-        super(SharpClawSolver1D,self).__init__(data)
+        super(SharpClawSolver1D,self).__init__()
 
 
     def setup(self,solution):
@@ -454,7 +454,7 @@ class SharpClawSolver2D(SharpClawSolver):
     This class represents the 2D SharpClaw solver.  Note that there are 
     routines here for interfacing with the fortran time stepping routines only.
     """
-    def __init__(self, data=None):
+    def __init__(self):
         r"""
         Create 2D SharpClaw solver
         
@@ -462,7 +462,7 @@ class SharpClawSolver2D(SharpClawSolver):
         """   
         self.ndim = 2
 
-        super(SharpClawSolver2D,self).__init__(data)
+        super(SharpClawSolver2D,self).__init__()
 
 
     def setup(self,solution):
