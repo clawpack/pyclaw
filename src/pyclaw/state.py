@@ -67,7 +67,7 @@ class State(object):
         doc = r"""(int) - Number of derived quantities"""
         def fset(self,mp):
             if self.p is not None:
-                raise Exception('Cannot change state.mp after aux is initialized.')
+                raise Exception('Cannot change state.mp after state.p is initialized.')
             else:
                 self.p = self.new_array(mp)
         def fget(self):
@@ -80,7 +80,7 @@ class State(object):
         doc = r"""(int) - Number of output functionals"""
         def fset(self,mF):
             if self.F is not None:
-                raise Exception('Cannot change state.mF after aux is initialized.')
+                raise Exception('Cannot change state.mF after state.F is initialized.')
             else:
                 self.F = self.new_array(mF)
         def fget(self):

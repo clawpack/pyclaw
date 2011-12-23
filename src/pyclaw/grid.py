@@ -224,6 +224,17 @@ class Grid(object):
         -2.0
     """
     
+    def __getattr__(self, key):
+        if key in self.__dict__.keys():
+            return self.__dict__[key]
+        #else:
+        elif key in ['n','ng','nstart','nend','name','lower','lowerg','upper','d', \
+                        'units','center','edge']:
+                return self.get_dim_attribute(key)
+        else:
+            raise Exception
+
+
     # ========== Property Definitions ========================================
     def ndim():
         doc = r"""(int) - Number of dimensions"""
@@ -233,54 +244,6 @@ class Grid(object):
         doc = r"""(list) - List of :class:`Dimension` objects defining the 
                 grid's extent and resolution"""
         def fget(self): return [getattr(self,name) for name in self._dimensions]
-        return locals()
-    def n():
-        doc = r"""(list) - List of the total number of grid cells in each dimension"""
-        def fget(self): return self.get_dim_attribute('n')
-        return locals()
-    def ng():
-        doc = r"""(list) - List of the local (to this process)number of grid cells in each dimension"""
-        def fget(self): return self.get_dim_attribute('ng')
-        return locals()
-    def nstart():
-        doc = r"""(list) - List of the number of grid cells in each dimension"""
-        def fget(self): return self.get_dim_attribute('nstart')
-        return locals()
-    def nend():
-        doc = r"""(list) - List of the number of grid cells in each dimension"""
-        def fget(self): return self.get_dim_attribute('nend')
-        return locals()
-    def name():
-        doc = r"""(list) - List of names of each dimension"""
-        def fget(self): return self._dimensions
-        return locals()
-    def lower():
-        doc = r"""(list) - Lower coordinate extents of each dimension"""
-        def fget(self): return self.get_dim_attribute('lower')
-        return locals()
-    def lowerg():
-        doc = r"""(list) - Lower coordinate extents of each dimension on this process"""
-        def fget(self): return self.get_dim_attribute('lowerg')
-        return locals()
-    def upper():
-        doc = r"""(list) - Upper coordinate extends of each dimension"""
-        def fget(self): return self.get_dim_attribute('upper')
-        return locals()
-    def d():
-        doc = r"""(list) - List of computational grid cell widths"""
-        def fget(self): return self.get_dim_attribute('d')
-        return locals()
-    def units():
-        doc = r"""(list) - List of dimension units"""
-        def fget(self): return self.get_dim_attribute('units')
-        return locals()
-    def center():
-        doc = r"""(list) - List of center coordinate arrays"""
-        def fget(self): return self.get_dim_attribute('center')
-        return locals()
-    def edge():
-        doc = "List of edge coordinate arrays"
-        def fget(self): return self.get_dim_attribute('edge')
         return locals()
     def p_center():
         doc = r"""(list of ndarray(...)) - List containing the arrays locating
@@ -322,18 +285,6 @@ class Grid(object):
        
     ndim = property(**ndim())
     dimensions = property(**dimensions())
-    n = property(**n())
-    ng = property(**ng())
-    nstart = property(**nstart())
-    nend = property(**nend())
-    name = property(**name())
-    lower = property(**lower())
-    lowerg = property(**lowerg())
-    upper = property(**upper())
-    d = property(**d())
-    units = property(**units())
-    center = property(**center())
-    edge = property(**edge())
     p_center = property(**p_center())
     p_edge = property(**p_edge())
     c_center = property(**c_center())
@@ -393,7 +344,7 @@ class Grid(object):
         r"""
         Returns a tuple of all dimensions' attribute attr
         """
-        return [getattr(getattr(self,name),attr) for name in self._dimensions]
+        return [getattr(dim,attr) for dim in self.dimensions]
     
     
     # ========== Copy functionality ==========================================
