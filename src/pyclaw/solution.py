@@ -58,7 +58,6 @@ class Solution(object):
             3. args is a single Dimension or list of Dimensions
             4. args is a variable number of arguments that describes the 
                location of a file to be read in to initialize the object
-            5. args is a data object with the corresponding data fields
         
         Input:
             - if args == () -> Empty Solution object
@@ -69,8 +68,6 @@ class Solution(object):
               Dimensions is created, a state is initalized with this Grid
               and appended to the states list
             - if args == frame, format='ascii',path='./',file_prefix='fort'
-            - if args == Data, Create a new single grid solution based off of 
-              what is in args.
     
     """
 
