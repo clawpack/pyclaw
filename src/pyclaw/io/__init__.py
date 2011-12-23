@@ -17,7 +17,7 @@ try:
     import h5py
     from pyclaw.io.hdf5 import read_hdf5,write_hdf5
     __all__ += ['read_hdf5','write_hdf5']
-except:
+except ImportError:
     logging.debug("No hdf5 support found.")
     
 # Check for netcdf support

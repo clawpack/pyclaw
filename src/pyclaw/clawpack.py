@@ -80,7 +80,7 @@ class ClawSolver(Solver):
      - (:class:`ClawSolver`) - Initialized clawpack solver
     """
     # ========== Generic Init Routine ========================================
-    def __init__(self):
+    def __init__(self,claw_package=None):
         r"""
         See :class:`ClawSolver` for full documentation.
         """
@@ -99,7 +99,7 @@ class ClawSolver(Solver):
         self._method = None
 
         # Call general initialization function
-        super(ClawSolver,self).__init__()
+        super(ClawSolver,self).__init__(claw_package)
     
     # ========== Time stepping routines ======================================
     def step(self,solution):

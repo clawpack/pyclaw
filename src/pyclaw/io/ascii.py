@@ -43,9 +43,8 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
      - *file_prefix* - (string) Prefix for the file name.  ``default = 'fort'``
      - *write_aux* - (bool) Boolean controlling whether the associated 
        auxiliary array should be written out.  ``default = False``
-     - *options* - (dict) Optional argument dictionary which in the case for
-       ``ascii`` output contains nothing.
-
+     - *options* - (dict) Dictionary of optional arguments dependent on 
+       the format being written.  ``default = {}``
     """
     try:
         # Create file name
@@ -180,9 +179,8 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
        ``default = 'fort'``
      - *read_aux* (bool) Whether or not an auxillary file will try to be read 
        in.  ``default = False``
-     - *options* - (dict) Dictionary of options particular to this format 
-       which in the case of ``ascii`` files is empty.
-    
+     - *options* - (dict) Dictionary of optional arguments dependent on 
+       the format being read in.  ``default = {}``
     """
     
     import numpy as np
@@ -263,7 +261,6 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                             state.q[m,i,j] = float(l[m])
                     blank = f.readline()
             elif grid.ndim == 3:
-                raise NotImplementedError("3d still does not work!")
                 for k in xrange(grid.dimensions[2].n):
                     for j in xrange(grid.dimensions[1].n):
                         for i in xrange(grid.dimensions[0].n):

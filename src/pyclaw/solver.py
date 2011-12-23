@@ -257,34 +257,6 @@ class Solver(object):
         return output
 
 
-    def allocate_rk_stages(self,solution):
-        r"""
-        Instantiate State objects for Runge--Kutta stages.
-
-        This routine is only used by method-of-lines solvers (SharpClaw),
-        not by the Classic solvers.  It allocates additional State objects
-        to store the intermediate stages used by Runge--Kutta time integrators.
-
-        If we create a MethodOfLinesSolver subclass, this should be moved there.
-        """
-        if self.time_integrator   == 'Euler':  nregisters=1
-        elif self.time_integrator == 'SSP33':  nregisters=2
-        elif self.time_integrator == 'SSP104': nregisters=3
- 
-        state = solution.states[0]
-        # use the same class constructor as the solution for the Runge Kutta stages
-        State = type(state)
-        self._rk_stages = []
-        for i in range(nregisters-1):
-            #Maybe should use State.copy() here?
-            self._rk_stages.append(State(state.grid,state.meqn,state.maux))
-            self._rk_stages[-1].aux_global       = state.aux_global
-            self._rk_stages[-1].set_mbc(self.mbc)
-            self._rk_stages[-1].t                = state.t
-            if state.maux > 0:
-                self._rk_stages[-1].aux              = state.aux
-
-
     # ========================================================================
     #  Boundary Conditions
     # ========================================================================    
@@ -702,7 +674,7 @@ class Solver(object):
 
         return self.status
 
-    def step(self):
+    def step(self,solution):
         r"""
         Take one step
         
