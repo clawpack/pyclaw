@@ -20,19 +20,18 @@ logging.config.fileConfig(_DEFAULT_LOG_CONFIG_PATH)
 __all__ = []
 
 # Module imports
-__all__.extend(['Controller','Data','Dimension','Grid','Solution','State','CFL','riemann'])
-from controller import Controller
-from grid import Dimension
+__all__.extend(['Controller','Dimension','Grid','Solution','State','CFL','riemann'])
+from petclaw.controller import Controller
+from petclaw.grid import Dimension
 from pyclaw.grid import Grid 
-from pyclaw.data import Data
 from pyclaw.solution import Solution
-from state import State
-from cfl import CFL
+from petclaw.state import State
+from petclaw.cfl import CFL
 
 __all__.extend(['ClawSolver1D','ClawSolver2D','ClawSolver3D','SharpClawSolver1D','SharpClawSolver2D'])
-from clawpack import ClawSolver1D,ClawSolver2D,ClawSolver3D
-from sharpclaw import SharpClawSolver1D,SharpClawSolver2D
-from implicitclawpack import ImplicitClawSolver1D
+from petclaw.clawpack import ClawSolver1D,ClawSolver2D,ClawSolver3D
+from petclaw.sharpclaw import SharpClawSolver1D,SharpClawSolver2D
+from petclaw.implicitclawpack import ImplicitClawSolver1D
 
 __all__.append('BC')
 from pyclaw.solver import BC
