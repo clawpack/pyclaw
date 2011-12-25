@@ -78,17 +78,14 @@ class Solution(object):
         >>> solution = pyclaw.Solution(state)
     """
     def __getattr__(self, key):
-        if key in self.__dict__.keys():
-            return self.__dict__[key]
-        #else:
-        elif key in ['t','meqn','mp','mF','q','p','F','aux','capa','aux_global', \
+        if key in ['t','meqn','mp','mF','q','p','F','aux','capa','aux_global', \
                         'maux']:
             return self._get_base_state_attribute(key)
         elif key in ['ndim','dimensions','n','name','lower','upper','d','units', \
                         'center','edge','p_center','p_edge','c_center','c_edge']:
             return self._get_base_grid_attribute(key)
         else:
-            raise KeyError
+            raise AttributeError
 
     def __setattr__(self, key, value):
         if key in ['t','mp','mF']:

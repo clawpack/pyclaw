@@ -225,10 +225,7 @@ class Grid(object):
     """
     
     def __getattr__(self, key):
-        if key in self.__dict__.keys():
-            return self.__dict__[key]
-        #else:
-        elif key in ['n','ng','nstart','nend','name','lower','lowerg','upper','d', \
+        if key in ['n','ng','nstart','nend','name','lower','lowerg','upper','d', \
                         'units','center','edge']:
                 return self.get_dim_attribute(key)
         else:
