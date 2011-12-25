@@ -46,48 +46,42 @@ class State(object):
     """
 
     # ========== Property Definitions ========================================
-    def meqn():
-        doc = r"""(int) - Number of unknowns (components of q)"""
-        def fget(self):
-            if self.q is None:
-                raise Exception('state.meqn has not been set.')
-            else: return self.q.shape[0]
-        return locals()
-    meqn = property(**meqn())
+    @property
+    def meqn(self):
+        r"""(int) - Number of unknowns (components of q)"""
+        if self.q is None:
+            raise Exception('state.meqn has not been set.')
+        else: return self.q.shape[0]
 
-    def maux():
-        doc = r"""(int) - Number of auxiliary fields"""
-        def fget(self):
-            if self.aux is not None: return self.aux.shape[0]
-            else: return 0
-        return locals()
-    maux = property(**maux())
+    @property
+    def maux(self):
+        r"""(int) - Number of auxiliary fields"""
+        if self.aux is not None: return self.aux.shape[0]
+        else: return 0
 
-    def mp():
-        doc = r"""(int) - Number of derived quantities"""
-        def fset(self,mp):
-            if self.p is not None:
-                raise Exception('Cannot change state.mp after aux is initialized.')
-            else:
-                self.p = self.new_array(mp)
-        def fget(self):
-            if self.aux is not None: return self.aux.shape[0]
-            else: return 0
-        return locals()
-    mp = property(**mp())
+    @property
+    def mp(self):
+        r"""(int) - Number of derived quantities"""
+        if self.aux is not None: return self.aux.shape[0]
+        else: return 0
+    @mp.setter
+    def mp(self,mp):
+        if self.p is not None:
+            raise Exception('Cannot change state.mp after aux is initialized.')
+        else:
+            self.p = self.new_array(mp)
 
-    def mF():
-        doc = r"""(int) - Number of output functionals"""
-        def fset(self,mF):
-            if self.F is not None:
-                raise Exception('Cannot change state.mF after aux is initialized.')
-            else:
-                self.F = self.new_array(mF)
-        def fget(self):
-            if self.F is not None: return self.F.shape[0]
-            else: return 0
-        return locals()
-    mF = property(**mF())
+    @property
+    def mF(self):
+        r"""(int) - Number of output functionals"""
+        if self.F is not None: return self.F.shape[0]
+        else: return 0
+    @mF.setter
+    def mF(self,mF):
+        if self.F is not None:
+            raise Exception('Cannot change state.mF after aux is initialized.')
+        else:
+            self.F = self.new_array(mF)
 
     # ========== Class Methods ===============================================
     def __init__(self,grid,meqn,maux=0):
