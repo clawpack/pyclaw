@@ -19,7 +19,7 @@ import logging
 
 from pyclaw.grid import Grid, Dimension
 from pyclaw.state import State
-import io
+import pyclaw.io as io
 
 # ============================================================================
 #  Solution Class
@@ -77,6 +77,21 @@ class Solution(object):
         >>> state = pyclaw.State(grid,3,2)
         >>> solution = pyclaw.Solution(state)
     """
+    def __getattr__(self, key):
+        if key in ['t','meqn','mp','mF','q','p','F','aux','capa','aux_global', \
+                        'maux']:
+            return self._get_base_state_attribute(key)
+        elif key in ['ndim','dimensions','n','name','lower','upper','d','units', \
+                        'center','edge','p_center','p_edge','c_center','c_edge']:
+            return self._get_base_grid_attribute(key)
+        else:
+            raise AttributeError
+
+    def __setattr__(self, key, value):
+        if key in ['t','mp','mF']:
+            self.set_all_states(key,value)
+        else:
+            self.__dict__[key] = value
 
     # ========== Attributes ==================================================
     
@@ -89,152 +104,9 @@ class Solution(object):
         doc = r"""(:class:`Grid`) - Base state's grid is returned"""
         def fget(self): return self.states[0].grid
         return locals()
-    def t():
-        doc = r"""(float) - :attr:`State.t` of base state"""
-        def fget(self): return self._get_base_state_attribute('t')
-        def fset(self, value): self.set_all_states('t',value)
-        return locals()
-    def meqn():
-        doc = r"""(int) - :attr:`State.meqn` of base state"""
-        def fget(self): return self._get_base_state_attribute('meqn')
-        def fset(self, value): self.set_all_states('meqn',value)
-        return locals()   
-    def mp():
-        doc = r"""(int) - :attr:`State.mp` of base state"""
-        def fget(self): return self._get_base_state_attribute('mp')
-        def fset(self, value): self.set_all_states('mp',value)
-        return locals()
-    def mF():
-        doc = r"""(int) - :attr:`State.mF` of base state"""
-        def fget(self): return self._get_base_state_attribute('mF')
-        def fset(self, value): self.set_all_states('mF',value)
-        return locals()
-    def q():
-        doc = r"""(ndarray(...,:attr:`State.meqn`)) - :attr:`State.q` of base 
-                  state"""
-        def fget(self): return self._get_base_state_attribute('q')
-        return locals()
-    def p():
-        doc = r"""(ndarray(...,:attr:`State.mp`)) - :attr:`State.p` 
-                   of base state"""
-        def fget(self): return self._get_base_state_attribute('p')
-        return locals()
-    def F():
-        doc = r"""(ndarray(...,:attr:`State.mF`)) - :attr:`State.F` of base 
-                  state"""
-        def fget(self): return self._get_base_state_attribute('F')
-        return locals()
-    def aux():
-        doc = r"""(ndarray(...,:attr:`State.maux`)) - :attr:`State.aux` of base 
-                  state"""
-        def fget(self): return self._get_base_state_attribute('aux')
-        def fset(self, value): 
-            if len(self.states) == 1: 
-                setattr(self.states[0],'aux',value)
-        return locals()  
-    def capa():
-        doc = r"""(ndarray(...)) - :attr:`State.capa` of base state"""
-        def fget(self): return self._get_base_state_attribute('capa')
-        def fset(self, value):
-            if len(self.states) == 1: 
-                setattr(self.states[0],'capa',value)
-        return locals()  
-    def aux_global():
-        doc = r"""(dict) - :attr:`State.aux_global` of base state"""
-        def fget(self): return self._get_base_state_attribute('aux_global')
-        def fset(self, value):
-            if len(self.states) == 1: 
-                setattr(self.states[0],'aux_global',value)
-        return locals()
-    def maux():
-        doc = r"""(int) - :attr:`State.maux` of base state"""
-        def fget(self): return self._get_base_state_attribute('maux')
-        return locals()
-    def ndim():
-        doc = r"""(int) - :attr:`Grid.ndim` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('ndim')
-        return locals()
-    def dimensions():
-        doc = r"""(list) - :attr:`Grid.dimensions` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('dimensions')
-        return locals()
-    def n():
-        doc = r"""(list) - :attr:`Grid.n` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('n')
-        return locals()
-    def name():
-        doc = r"""(list) - :attr:`Grid.name` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('name')
-        return locals()
-    def lower():
-        doc = r"""(list) - :attr:`Grid.lower` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('lower')
-        return locals()
-    def upper():
-        doc = r"""(list) - :attr:`Grid.upper` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('upper')
-        return locals()
-    def d():
-        doc = r"""(list) - :attr:`Grid.d` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('d')
-        return locals()
-    def units():
-        doc = r"""(list) - :attr:`Grid.units` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('units')
-        return locals()
-    def center():
-        doc = r"""(list) - :attr:`Grid.center` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('center')
-        return locals()
-    def edge():
-        doc = r"""(list) - :attr:`Grid.edge` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('edge')
-        return locals()
-    def p_center():
-        doc = r"""(list) - :attr:`Grid.p_center` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('p_center')
-        return locals()
-    def p_edge():
-        doc = r"""(list) - :attr:`Grid.p_edge` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('p_edge')
-        return locals()
-    def c_center():
-        doc = r"""(list) - :attr:`Grid.c_center` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('c_center')
-        return locals()
-    def c_edge():
-        doc = r"""(list) - :attr:`Grid.c_edge` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('c_edge')
-        return locals()
         
     state = property(**state())
     grid = property(**grid())
-    t = property(**t())
-    meqn = property(**meqn())
-    mp = property(**mp())
-    mF = property(**mF())
-    q = property(**q())
-    p = property(**p())
-    F = property(**F())
-    aux = property(**aux())
-    capa = property(**capa())
-    aux_global = property(**aux_global())
-    maux = property(**maux())
-    ndim = property(**ndim())
-    dimensions = property(**dimensions())
-    n = property(**n())
-    name = property(**name())
-    lower = property(**lower())
-    upper = property(**upper())
-    d = property(**d())
-    units = property(**units())
-    center = property(**center())
-    edge = property(**edge())
-    p_center = property(**p_center())
-    p_edge = property(**p_edge())
-    c_center = property(**c_center())
-    c_edge = property(**c_edge())
-    
 
     # ========== Class Methods ===============================================
     def __init__(self,*arg,**kargs):
