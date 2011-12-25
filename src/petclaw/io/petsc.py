@@ -17,16 +17,12 @@ These routines preserve petclaw/pyclaw syntax for i/o while taking advantage of 
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-import os,sys
+import os
 import logging
-
-import pyclaw.solution
-
 logger = logging.getLogger('io')
 
 from petsc4py import PETSc
 import pickle
-import numpy as np
     
 
 def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,options={},write_p=False):
@@ -56,7 +52,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
     # Option parsing
     option_defaults = {'format':'binary','clobber':True}
 
-    for (k,v) in option_defaults.iteritems():
+    for k in option_defaults.iterkeys():
         if options.has_key(k):
             pass
         else:
@@ -164,7 +160,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     # Option parsing
     option_defaults = {'format':'binary'}
 
-    for (k,v) in option_defaults.iteritems():
+    for k in option_defaults.iterkeys():
         if options.has_key(k):
             pass
         else:
@@ -284,8 +280,8 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
     except(IOError):
         raise
     except:
-        logger.error("File " + t_fname + " should contain t, meqn, ngrids, maux, ndim")
-        print "File " + t_fname + " should contain t, meqn, ngrids, maux, ndim"
+        logger.error("File " + path + " should contain t, meqn, ngrids, maux, ndim")
+        print "File " + path + " should contain t, meqn, ngrids, maux, ndim"
         raise
         
     return t,meqn,nstates,maux,ndim

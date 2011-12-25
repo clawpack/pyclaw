@@ -3,134 +3,122 @@ import pyclaw.state
 class State(pyclaw.state.State):
     r"""  See the corresponding PyClaw class documentation."""
 
-    def meqn():
-        doc = r"""(int) - Number of unknowns (components of q)"""
-        def fget(self):
-            if self.q_da is None:
-                raise Exception('state.meqn has not been set.')
-            else: return self.q_da.dof
-        return locals()
-    meqn = property(**meqn())
+    @property
+    def meqn(self):
+        r"""(int) - Number of unknowns (components of q)"""
+        if self.q_da is None:
+            raise Exception('state.meqn has not been set.')
+        else: return self.q_da.dof
 
-    def mp():
-        doc = r"""(int) - Number of derived quantities (components of p)"""
-        def fset(self,mp):
-            if self._p_da is not None:
-                raise Exception('You cannot change state.mp after p is initialized.')
-            else:
-                self._p_da = self._create_DA(mp)
-                self.gpVec = self._p_da.createGlobalVector()
-        def fget(self):
-            if self._p_da is None:
-                raise Exception('state.mp has not been set.')
-            else: return self._p_da.dof
-        return locals()
-    mp = property(**mp())
+    @property
+    def mp(self):
+        r"""(int) - Number of derived quantities (components of p)"""
+        if self._p_da is None:
+            raise Exception('state.mp has not been set.')
+        else: return self._p_da.dof
+    @mp.setter
+    def mp(self,mp):
+        if self._p_da is not None:
+            raise Exception('You cannot change state.mp after p is initialized.')
+        else:
+            self._p_da = self._create_DA(mp)
+            self.gpVec = self._p_da.createGlobalVector()
 
-    def mF():
-        doc = r"""(int) - Number of derived quantities (components of p)"""
-        def fset(self,mF):
-            if self._F_da is not None:
-                raise Exception('You cannot change state.mp after p is initialized.')
-            else:
-                self._F_da = self._create_DA(mF)
-                self.gFVec = self._F_da.createGlobalVector()
-        def fget(self):
-            if self._F_da is None:
-                raise Exception('state.mF has not been set.')
-            else: return self._F_da.dof
-        return locals()
-    mF = property(**mF())
+    @property
+    def mF(self):
+        r"""(int) - Number of derived quantities (components of p)"""
+        if self._F_da is None:
+            raise Exception('state.mF has not been set.')
+        else: return self._F_da.dof
+    @mF.setter
+    def mF(self,mF):
+        if self._F_da is not None:
+            raise Exception('You cannot change state.mp after p is initialized.')
+        else:
+            self._F_da = self._create_DA(mF)
+            self.gFVec = self._F_da.createGlobalVector()
 
-    def maux():
-        doc = r"""(int) - Number of auxiliary fields"""
-        def fget(self):
-            if self.aux_da is None: return 0
-            else: return self.aux_da.dof
-        return locals()
-    maux = property(**maux())
+    @property
+    def maux(self):
+        r"""(int) - Number of auxiliary fields"""
+        if self.aux_da is None: return 0
+        else: return self.aux_da.dof
 
-    def q():
+    @property
+    def q(self):
         r"""
         Array to store solution (q) values.
 
         Settting state.meqn automatically allocates space for q, as does
         setting q itself.
         """
-        def fget(self):
-            if self.q_da is None: return 0
-            shape = self.grid.ng
-            shape.insert(0,self.meqn)
-            q=self.gqVec.getArray().reshape(shape, order = 'F')
-            return q
-        def fset(self,q):
-            meqn = q.shape[0]
-            if self.gqVec is None: self._init_q_da(meqn)
-            self.gqVec.setArray(q.reshape([-1], order = 'F'))
-        return locals()
-    q = property(**q())
+        if self.q_da is None: return 0
+        shape = self.grid.ng
+        shape.insert(0,self.meqn)
+        q=self.gqVec.getArray().reshape(shape, order = 'F')
+        return q
+    @q.setter
+    def q(self,val):
+        meqn = val.shape[0]
+        if self.gqVec is None: self._init_q_da(meqn)
+        self.gqVec.setArray(val.reshape([-1], order = 'F'))
 
-    def p():
+    @property
+    def p(self):
         r"""
         Array containing values of derived quantities for output.
         """
-        def fget(self):
-            if self._p_da is None: return 0
-            shape = self.grid.ng
-            shape.insert(0,self.mp)
-            p=self.gpVec.getArray().reshape(shape, order = 'F')
-            return p
-        def fset(self,p):
-            mp = p.shape[0]
-            if self.gpVec is None: self.init_p_da(mp)
-            self.gpVec.setArray(p.reshape([-1], order = 'F'))
-        return locals()
-    p = property(**p())
+        if self._p_da is None: return 0
+        shape = self.grid.ng
+        shape.insert(0,self.mp)
+        p=self.gpVec.getArray().reshape(shape, order = 'F')
+        return p
+    @p.setter
+    def p(self,val):
+        mp = val.shape[0]
+        if self.gpVec is None: self.init_p_da(mp)
+        self.gpVec.setArray(val.reshape([-1], order = 'F'))
 
-    def F():
+    @property
+    def F(self):
         r"""
         Array containing pointwise values (densities) of output functionals.
         This is just used as temporary workspace before summing.
         """
-        def fget(self):
-            if self._F_da is None: return 0
-            shape = self.grid.ng
-            shape.insert(0,self.mF)
-            F=self.gFVec.getArray().reshape(shape, order = 'F')
-            return F
-        def fset(self,F):
-            mF = F.shape[0]
-            if self.gFVec is None: self.init_F_da(mF)
-            self.gFVec.setArray(F.reshape([-1], order = 'F'))
-        return locals()
-    F = property(**F())
+        if self._F_da is None: return 0
+        shape = self.grid.ng
+        shape.insert(0,self.mF)
+        F=self.gFVec.getArray().reshape(shape, order = 'F')
+        return F
+    @F.setter
+    def fset(self,val):
+        mF = val.shape[0]
+        if self.gFVec is None: self.init_F_da(mF)
+        self.gFVec.setArray(val.reshape([-1], order = 'F'))
 
-    def aux():
+    @property
+    def aux(self):
         """
         We never communicate aux values; every processor should set its own ghost cell
         values for the aux array.  The global aux vector is used only for outputting
         the aux values to file; everywhere else we use the local vector.
         """
-        def fget(self):
-            if self.aux_da is None: return None
-            shape = self.grid.ng
-            shape.insert(0,self.maux)
-            aux=self.gauxVec.getArray().reshape(shape, order = 'F')
-            return aux
-        def fset(self,aux):
-            # It would be nice to make this work also for parallel
-            # loading from a file.
-            if self.aux_da is None: 
-                maux=aux.shape[0]
-                self._init_aux_da(maux)
-            self.gauxVec.setArray(aux.reshape([-1], order = 'F'))
-        return locals()
-    aux = property(**aux())
-    def ndim():
-        def fget(self):
-            return self.grid.ndim
-        return locals()
-    ndim = property(**ndim())
+        if self.aux_da is None: return None
+        shape = self.grid.ng
+        shape.insert(0,self.maux)
+        aux=self.gauxVec.getArray().reshape(shape, order = 'F')
+        return aux
+    @aux.setter
+    def aux(self,val):
+        # It would be nice to make this work also for parallel
+        # loading from a file.
+        if self.aux_da is None: 
+            maux=val.shape[0]
+            self._init_aux_da(maux)
+        self.gauxVec.setArray(val.reshape([-1], order = 'F'))
+    @property
+    def ndim(self):
+        return self.grid.ndim
 
 
     def __init__(self,grid,meqn,maux=0):
