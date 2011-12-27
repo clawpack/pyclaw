@@ -1,9 +1,6 @@
 classic1.so: $(ONE_D_CLASSIC_SOURCES) $(RP_SOURCE)
 	${F2PY} -m classic1 -c $^
 
-classicimplicit1.so: $(ONE_D_CLASSIC_IMPLICIT_SOURCES) $(RP_SOURCE)
-	${F2PY} -m classicimplicit1 -c $^
-
 sharpclaw1.so: $(ONE_D_SHARPCLAW_SOURCES) $(RP_SOURCE)
 	${F2PY} -m sharpclaw1 -c $(ONE_D_SHARPCLAW_SOURCES) $(RP_SOURCE)
 
