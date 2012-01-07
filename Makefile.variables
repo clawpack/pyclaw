@@ -3,15 +3,15 @@ PYTHON = python
 FC := $(shell $(PYTHON) $(PYCLAW)/src/pyclaw/build/fcompiler.py get_compiler)
 FFLAGS := $(shell $(PYTHON) $(PYCLAW)/src/pyclaw/build/fcompiler.py get_flags)
 
-ONE_D_CLASSIC = $(PYCLAW)/src/fortran/1d/classic
+ONE_D_CLASSIC = $(PYCLAW)/src/pyclaw/clawpack
 
-TWO_D_CLASSIC = $(PYCLAW)/src/fortran/2d/classic
+TWO_D_CLASSIC = $(PYCLAW)/src/pyclaw/clawpack
 
-THREE_D_CLASSIC = $(PYCLAW)/src/fortran/3d/classic
+THREE_D_CLASSIC = $(PYCLAW)/src/pyclaw/clawpack
 
-ONE_D_SHARPCLAW = $(PYCLAW)/src/fortran/1d/sharpclaw
+ONE_D_SHARPCLAW = $(PYCLAW)/src/pyclaw/sharpclaw
 
-TWO_D_SHARPCLAW = $(PYCLAW)/src/fortran/2d/sharpclaw
+TWO_D_SHARPCLAW = $(PYCLAW)/src/pyclaw/sharpclaw
 
 ONE_D_CLASSIC_SOURCES = $(ONE_D_CLASSIC)/step1.f $(ONE_D_CLASSIC)/limiter.f $(ONE_D_CLASSIC)/philim.f
 
@@ -19,7 +19,7 @@ ONE_D_SHARPCLAW_SOURCES = $(ONE_D_SHARPCLAW)/ClawParams.f90 $(ONE_D_SHARPCLAW)/f
 
 #TWO_D_CLASSIC_SOURCES = $(TWO_D_CLASSIC)/step2ds.f $(TWO_D_CLASSIC)/flux2.f $(ONE_D_CLASSIC)/limiter.f $(ONE_D_CLASSIC)/philim.f
 
-TWO_D_SHARPCLAW_SOURCES = $(TWO_D_SHARPCLAW)/workspace.f90 $(TWO_D_SHARPCLAW)/ClawParams.f90 $(ONE_D_SHARPCLAW)/weno.f90 $(ONE_D_SHARPCLAW)/reconstruct.f90 $(TWO_D_SHARPCLAW)/flux1.f90 $(TWO_D_SHARPCLAW)/flux2.f90 $(ONE_D_SHARPCLAW)/tfluct.f90 $(ONE_D_SHARPCLAW)/evec.f90 
+TWO_D_SHARPCLAW_SOURCES = $(TWO_D_SHARPCLAW)/workspace2.f90 $(TWO_D_SHARPCLAW)/ClawParams.f90 $(ONE_D_SHARPCLAW)/weno.f90 $(ONE_D_SHARPCLAW)/reconstruct.f90 $(TWO_D_SHARPCLAW)/flux1_2.f90 $(TWO_D_SHARPCLAW)/flux2.f90 $(ONE_D_SHARPCLAW)/tfluct.f90 $(ONE_D_SHARPCLAW)/evec.f90 
 
 TWO_D_CLASSIC_SOURCES = $(TWO_D_CLASSIC)/step2.f $(TWO_D_CLASSIC)/step2ds.f flux2.o limiter.o philim.o
 
