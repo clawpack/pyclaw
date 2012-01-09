@@ -43,9 +43,6 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
 
     implicit double precision (a-h,o-z)
 
-!f2py intent(in,out) dq1d  
-!f2py intent(out) cfl  
-
     integer :: maux,meqn,mbc,maxnx,mx
     double precision :: q1d(meqn,1-mbc:mx+mbc)
     double precision :: dq1d(meqn,1-mbc:maxnx+mbc)
@@ -54,6 +51,10 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
     double precision, intent(out) :: cfl
     integer, intent(in) :: ixy
     integer t
+
+!f2py intent(in,out) dq1d  
+!f2py intent(out) cfl  
+!f2py optional dq1d
 
 
     if (mcapa.gt.0) then
@@ -72,7 +73,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
 !                call q2qlqr_poly(q1d,ql,qr,mx)
 !            case(1)
 !                ! wave-based unlimited reconstruction
-!                call rpn2(maxnx,meqn,mwaves,mbc,mx,&
+!                call rpn2(ixy,maxnx,meqn,mwaves,mbc,mx,&
 !                        q1d,q1d,aux,aux,wave,s,amdq,apdq)
 !                call q2qlqr_poly_wave(q1d,ql,qr,wave,s,mx)
 !        end select
@@ -83,7 +84,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
                 call tvd2(q1d,ql,qr,mthlim)
             case(1)
                 ! wave-based second order reconstruction
-                call rpn2(maxnx,meqn,mwaves,mbc,mx,&
+                call rpn2(ixy,maxnx,meqn,mwaves,mbc,mx,&
                         q1d,q1d,aux,aux,wave,s,amdq,apdq)
                 call tvd2_wave(q1d,ql,qr,wave,s,mthlim)
             case(2)
@@ -98,10 +99,13 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
                 call weno_comp(q1d,ql,qr,meqn,maxnx,mbc)
             case (1)
                 ! wave-based reconstruction
-                call rpn2(maxnx,meqn,mwaves,mbc,mx,&
+                call rpn2(ixy,maxnx,meqn,mwaves,mbc,mx,&
                         q1d,q1d,aux,aux,wave,s,amdq,apdq)
-                call weno5_wave(q1d,ql,qr,wave)
-                call weno5_fwave(q1d,ql,qr,wave,s)
+                if (fwave.eqv. .True.) then
+                    call weno5_fwave(q1d,ql,qr,wave,s)
+                else
+                    call weno5_wave(q1d,ql,qr,wave)
+                endif
             case (2)
                 ! characteristic-wise reconstruction
                 call evec(mx,meqn,mbc,mx,q1d,aux,aux,evl,evr)

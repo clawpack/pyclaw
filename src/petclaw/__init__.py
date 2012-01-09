@@ -1,10 +1,3 @@
-#  =====================================================================
-#  Package:     petclaw
-#  File:        __init__.py
-#  Authors:     Amal Alghamdi
-#               David Ketcheson
-#               Aron Ahmadia
-#  ======================================================================
 """Main petclaw package"""
 
 import os
@@ -29,9 +22,8 @@ from petclaw.state import State
 from petclaw.cfl import CFL
 
 __all__.extend(['ClawSolver1D','ClawSolver2D','ClawSolver3D','SharpClawSolver1D','SharpClawSolver2D'])
-from petclaw.clawpack import ClawSolver1D,ClawSolver2D,ClawSolver3D
-from petclaw.sharpclaw import SharpClawSolver1D,SharpClawSolver2D
-from petclaw.implicitclawpack import ImplicitClawSolver1D
+from petclaw.clawpack.clawpack import ClawSolver1D,ClawSolver2D,ClawSolver3D
+from petclaw.sharpclaw.sharpclaw import SharpClawSolver1D,SharpClawSolver2D
 
 __all__.append('BC')
 from pyclaw.solver import BC
