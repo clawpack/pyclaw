@@ -15,7 +15,7 @@ are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`
 
 from pyclaw.solver import Solver
 
-import limiters.tvd
+import pyclaw.limiters.tvd as tvd
 
 # ============================================================================
 #  Generic Clawpack solver class
@@ -85,7 +85,7 @@ class ClawSolver(Solver):
         See :class:`ClawSolver` for full documentation.
         """
         self.mbc = 2
-        self.limiters = limiters.tvd.minmod
+        self.limiters = tvd.minmod
         self.order = 2
         self.src_split = 1
         self.fwave = False
@@ -363,7 +363,7 @@ class ClawSolver1D(ClawSolver):
             
                 # Apply Limiters to waves
                 if (limiter > 0).any():
-                    wave = limiters.tvd.limit(state.meqn,wave,s,limiter,dtdx)
+                    wave = tvd.limit(state.meqn,wave,s,limiter,dtdx)
 
                 # Compute correction fluxes for second order q_{xx} terms
                 dtdxave = 0.5 * (dtdx[LL-1:UL-1] + dtdx[LL:UL])

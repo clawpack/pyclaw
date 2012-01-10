@@ -5,16 +5,16 @@ This file currently only exists so that these solvers have a different
 __module__ property, used by pyclaw.solver.Solver.__init__ to
 determine the containing claw_package to use.
 """
-import pyclaw.clawpack
+import pyclaw.clawpack.clawpack
 
-class ClawSolver1D(pyclaw.clawpack.ClawSolver1D):
+class ClawSolver1D(pyclaw.clawpack.clawpack.ClawSolver1D):
     r"""
     PetClaw solver for 1D problems using classic Clawpack algorithms.
 
     This class implements nothing; it just inherits from ClawSolver1D.
     """
 
-class ClawSolver2D(pyclaw.clawpack.ClawSolver2D):
+class ClawSolver2D(pyclaw.clawpack.clawpack.ClawSolver2D):
     r"""
     PetClaw solver for 2D problems using classic Clawpack algorithms.
 
@@ -23,7 +23,7 @@ class ClawSolver2D(pyclaw.clawpack.ClawSolver2D):
     Note that only the fortran routines are supported for now in 2D.
     """
     
-class ClawSolver3D(pyclaw.clawpack.ClawSolver3D):
+class ClawSolver3D(pyclaw.clawpack.clawpack.ClawSolver3D):
     r"""
     PetClaw solver for 3D problems using classic Clawpack algorithms.
 

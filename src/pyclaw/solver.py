@@ -156,13 +156,12 @@ class Solver(object):
         if claw_package is not None and claw_package in sys.modules:
             self.claw_package = sys.modules[claw_package]
         else:
-            claw_package_name = self.__module__[0:self.__module__.rfind('.')]
+            claw_package_name = self.__module__[0:self.__module__.find('.')]
             if claw_package_name in sys.modules:
                 self.claw_package = sys.modules[claw_package_name]
             else:
                 raise NotImplementedError("Unable to determine solver package, please provide one")
 
-        
         # Initialize time stepper values
         self.dt = self.dt_initial
         self.cfl = self.claw_package.CFL(self.cfl_desired)

@@ -105,7 +105,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     else:
         import pyclaw
 
-    from pyclaw.clawpack import ClawSolver2D 
+    from pyclaw import ClawSolver2D 
 
 
     # Initialize grid
