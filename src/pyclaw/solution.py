@@ -249,9 +249,7 @@ class Solution(object):
             elif isinstance(arg[0],int): 
                 import inspect
                 frame = arg[0]
-                #Grab just the keyword arguments that self.read accepts
-                read_args = {k:v for (k,v) in kargs.iteritems() if k in inspect.getargspec(self.read).args}
-                self.read(frame,**read_args)
+                self.read(frame,**kargs)
             else:
                 raise Exception("Invalid argument list")
                 
@@ -381,7 +379,7 @@ class Solution(object):
             logging.getLogger('io').info(msg)
         
     def read(self,frame,path='./_output',file_format='ascii',file_prefix=None,
-                read_aux=True,options={}):
+                read_aux=True,options={}, **kargs):
         r"""
         Reads in a Solution object from a file
         
