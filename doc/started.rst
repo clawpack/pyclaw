@@ -106,16 +106,26 @@ In bash this is accomplished via ::
     $ export RIEMANN=$CLAW/riemann
     $ export PYCLAW=$CLAW/pyclaw
     $ export VISCLAW=$CLAW/visclaw
-    $ export PYTHONPATH=$PYCLAW/src:$RIEMANN/:$VISCLAW/src
+    $ export PYTHONPATH=$PYCLAW/src:$RIEMANN/src/python:$VISCLAW/src/python
 
 In csh/tcsh, use ::
 
     $ setenv RIEMANN $CLAW/riemann
     $ setenv PYCLAW $CLAW/pyclaw
     $ setenv VISCLAW $CLAW/visclaw
-    $ setenv PYTHONPATH $PYCLAW/src:$RIEMANN/:$VISCLAW/src
-
+    $ setenv PYTHONPATH $PYCLAW/src:$RIEMANN/src/python:$VISCLAW/src/python
     
+A script to produce the appropriate environmental variables is also included in
+the Clawpack project clawutil.  If you are in the your `$CLAW` directory
+running::
+
+    $ $CLAW/clawutil/src/python/setenv.py
+
+should produce the appropriate `setenv.bash` and `setenv.csh` which when
+sourced (`source setenv.bash` or `source setenv.csh`) will set the
+approprite variables
+
+
 Testing your installation
 ============================
 If you don't have it already, we recommend that you install nose ::
