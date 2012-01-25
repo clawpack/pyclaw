@@ -47,7 +47,7 @@ class Solution(object):
         Grid Attributes:
             'dimensions'
         State Attributes:
-            't','meqn','q','aux','capa','aux_global'
+            't','num_eqn','q','aux','capa','aux_global'
             
     :Initialization:
         
@@ -99,9 +99,9 @@ class Solution(object):
         self.set_all_states('t',value)
 
     @property
-    def meqn(self):
-        r"""(int) - :attr:`State.meqn` of base state"""
-        return self._get_base_state_attribute('meqn')
+    def num_eqn(self):
+        r"""(int) - :attr:`State.num_eqn` of base state"""
+        return self._get_base_state_attribute('num_eqn')
     @property
     def mp(self):
         r"""(int) - :attr:`State.mp` of base state"""
@@ -112,7 +112,7 @@ class Solution(object):
         return self._get_base_state_attribute('mF')
     @property
     def q(self):
-        r"""(ndarray(...,:attr:`State.meqn`)) - :attr:`State.q` of base state"""
+        r"""(ndarray(...,:attr:`State.num_eqn`)) - :attr:`State.q` of base state"""
         return self._get_base_state_attribute('q')
     @property
     def p(self):
@@ -126,7 +126,7 @@ class Solution(object):
 
     @property
     def aux(self):
-        r"""(ndarray(...,:attr:`State.maux`)) - :attr:`State.aux` of base 
+        r"""(ndarray(...,:attr:`State.num_aux`)) - :attr:`State.aux` of base 
                   state"""
         return self._get_base_state_attribute('aux')
     @aux.setter
@@ -153,9 +153,9 @@ class Solution(object):
             setattr(self.states[0],'aux_global',value)
 
     @property
-    def maux(self):
-        r"""(int) - :attr:`State.maux` of base state"""
-        return self._get_base_state_attribute('maux')
+    def num_aux(self):
+        r"""(int) - :attr:`State.num_aux` of base state"""
+        return self._get_base_state_attribute('num_aux')
     @property
     def ndim(self):
         r"""(int) - :attr:`Grid.ndim` of base state.grid"""

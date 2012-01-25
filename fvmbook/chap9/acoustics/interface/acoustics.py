@@ -16,7 +16,7 @@ def acoustics(solver_type='classic',iplot=True,htmlplot=False,outdir='./_output'
         solver = pyclaw.SharpClawSolver1D()
     else: raise Exception('Unrecognized value of solver_type.')
 
-    solver.mwaves=2
+    solver.num_waves=2
     solver.limiters = pyclaw.limiters.tvd.MC
     solver.bc_lower[0] = pyclaw.BC.outflow
     solver.bc_upper[0] = pyclaw.BC.outflow
@@ -25,9 +25,9 @@ def acoustics(solver_type='classic',iplot=True,htmlplot=False,outdir='./_output'
 
     x = pyclaw.Dimension('x',-5.0,5.0,500)
     grid = pyclaw.Grid(x)
-    meqn = 2
-    maux = 2
-    state = pyclaw.State(grid,meqn,maux)
+    num_eqn = 2
+    num_aux = 2
+    state = pyclaw.State(grid,num_eqn,num_aux)
 
     if problem == 'figure 9.4':
         rhol = 1.0

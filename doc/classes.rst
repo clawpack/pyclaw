@@ -66,7 +66,7 @@ contain our :class:`~pyclaw.grid.Dimension` objects.
 
     >>> grid = Grid([x,y])
     >>> state = State(grid)
-    >>> state.meqn = 2
+    >>> state.num_eqn = 2
 
 Here we create a grid with the dimensions we created earlier to make a single
 2D :class:`~pyclaw.grid.Grid` object.  Then we create a `~pyclaw.state.State`

@@ -23,8 +23,8 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
     # Initialize grids and solution
     x = pyclaw.Dimension('x',0.0,1.0,100)
     grid = pyclaw.Grid(x)
-    meqn=2
-    state = pyclaw.State(grid,meqn)
+    num_eqn=2
+    state = pyclaw.State(grid,num_eqn)
 
     rho = 1.0
     bulk = 1.0
@@ -41,14 +41,14 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
     init_solution = pyclaw.Solution(state)
 
 
-    solver.mwaves=2
+    solver.num_waves=2
     solver.kernel_language=kernel_language
 
     if kernel_language=='Python': 
         from riemann import rp_acoustics
         solver.rp = rp_acoustics.rp_acoustics_1d
 
-    solver.limiters = [4]*solver.mwaves
+    solver.limiters = [4]*solver.num_waves
     solver.dt_initial=grid.d[0]/state.aux_global['cc']*0.1
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic

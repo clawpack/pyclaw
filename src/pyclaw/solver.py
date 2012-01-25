@@ -36,7 +36,7 @@ class Solver(object):
         >>> solver = pyclaw.ClawSolver2D()
 
     After which solver options may be set.  It is always necessary to set
-    solver.mwaves to the number of waves used in the Riemann solver.
+    solver.num_waves to the number of waves used in the Riemann solver.
     Typically it is also necessary to set the boundary conditions (for q, and
     for aux if an aux array is used).  Many other options may be set
     for specific solvers; for instance the limiter to be used, whether to
@@ -100,7 +100,7 @@ class Solver(object):
         Fills the values of qbc with the correct boundary values.
         The appropriate signature is:
 
-        def user_bc_lower(grid,dim,t,qbc,mbc):
+        def user_bc_lower(grid,dim,t,qbc,num_ghost):
 
     .. attribute:: user_bc_upper 
     
@@ -108,7 +108,7 @@ class Solver(object):
         Fills the values of qbc with the correct boundary values.
         The appropriate signature is:
 
-        def user_bc_upper(grid,dim,t,qbc,mbc):
+        def user_bc_upper(grid,dim,t,qbc,num_ghost):
  
         
     :Initialization:
@@ -141,7 +141,7 @@ class Solver(object):
         self.dt_max = 1e99
         self.max_steps = 1000
         self.dt_variable = True
-        self.mwaves = None #Must be set later to agree with Riemann solver
+        self.num_waves = None #Must be set later to agree with Riemann solver
         self.so_name = None #Can remove this after merging fwaves commit
         self.qbc = None
         self.auxbc = None
@@ -267,14 +267,14 @@ class Solver(object):
         This is typically called by solver.setup().
         """
         import numpy as np
-        qbc_dim = [n+2*self.mbc for n in state.grid.ng]
-        qbc_dim.insert(0,state.meqn)
+        qbc_dim = [n+2*self.num_ghost for n in state.grid.ng]
+        qbc_dim.insert(0,state.num_eqn)
         self.qbc = np.zeros(qbc_dim,order='F')
 
-        auxbc_dim = [n+2*self.mbc for n in state.grid.ng]
-        auxbc_dim.insert(0,state.maux)
+        auxbc_dim = [n+2*self.num_ghost for n in state.grid.ng]
+        auxbc_dim.insert(0,state.num_aux)
         self.auxbc = np.empty(auxbc_dim,order='F')
-        if state.maux>0:
+        if state.num_aux>0:
             self.apply_aux_bcs(state)
 
     def apply_q_bcs(self,state):
@@ -282,7 +282,7 @@ class Solver(object):
         Fills in solver.qbc (the local vector), including ghost cell values.
     
         This function returns an array of dimension determined by the 
-        :attr:`mbc` attribute.  The type of boundary condition set is 
+        :attr:`num_ghost` attribute.  The type of boundary condition set is 
         determined by :attr:`bc_lower` and :attr:`bc_upper` for the 
         approprate dimension.  Valid values for :attr:`bc_lower` and 
         :attr:`bc_upper` include:
@@ -302,7 +302,7 @@ class Solver(object):
                       but different for method-of-lines algorithms like SharpClaw.
 
         :Output:
-         - (ndarray(meqn,...)) q array with boundary ghost cells added and set
+         - (ndarray(num_eqn,...)) q array with boundary ghost cells added and set
          
 
         .. note:: 
@@ -313,7 +313,7 @@ class Solver(object):
         
         import numpy as np
 
-        self.qbc = state.get_qbc_from_q(self.mbc,'q',self.qbc)
+        self.qbc = state.get_qbc_from_q(self.num_ghost,'q',self.qbc)
         grid = state.grid
        
         for idim,dim in enumerate(grid.dimensions):
@@ -361,21 +361,21 @@ class Solver(object):
          - *grid* - (:class:`Grid`) Grid that the dimension belongs to
          
         :Input/Ouput:
-         - *qbc* - (ndarray(...,meqn)) Array with added ghost cells which will
+         - *qbc* - (ndarray(...,num_eqn)) Array with added ghost cells which will
            be set in this routines
         """
         if self.bc_lower[idim] == BC.custom: 
-            self.user_bc_lower(state,dim,t,qbc,self.mbc)
+            self.user_bc_lower(state,dim,t,qbc,self.num_ghost)
         elif self.bc_lower[idim] == BC.outflow:
-            for i in xrange(self.mbc):
-                qbc[:,i,...] = qbc[:,self.mbc,...]
+            for i in xrange(self.num_ghost):
+                qbc[:,i,...] = qbc[:,self.num_ghost,...]
         elif self.bc_lower[idim] == BC.periodic:
             # This process owns the whole grid
-            qbc[:,:self.mbc,...] = qbc[:,-2*self.mbc:-self.mbc,...]
+            qbc[:,:self.num_ghost,...] = qbc[:,-2*self.num_ghost:-self.num_ghost,...]
         elif self.bc_lower[idim] == BC.reflecting:
-            for i in xrange(self.mbc):
-                qbc[:,i,...] = qbc[:,2*self.mbc-1-i,...]
-                qbc[idim+1,i,...] = -qbc[idim+1,2*self.mbc-1-i,...] # Negate normal velocity
+            for i in xrange(self.num_ghost):
+                qbc[:,i,...] = qbc[:,2*self.num_ghost-1-i,...]
+                qbc[idim+1,i,...] = -qbc[idim+1,2*self.num_ghost-1-i,...] # Negate normal velocity
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % self.bc_lower)
 
@@ -395,22 +395,22 @@ class Solver(object):
          - *grid* - (:class:`Grid`) Grid that the dimension belongs to
          
         :Input/Ouput:
-         - *qbc* - (ndarray(...,meqn)) Array with added ghost cells which will
+         - *qbc* - (ndarray(...,num_eqn)) Array with added ghost cells which will
            be set in this routines
         """
  
         if self.bc_upper[idim] == BC.custom:
-            self.user_bc_upper(state,dim,t,qbc,self.mbc)
+            self.user_bc_upper(state,dim,t,qbc,self.num_ghost)
         elif self.bc_upper[idim] == BC.outflow:
-            for i in xrange(self.mbc):
-                qbc[:,-i-1,...] = qbc[:,-self.mbc-1,...] 
+            for i in xrange(self.num_ghost):
+                qbc[:,-i-1,...] = qbc[:,-self.num_ghost-1,...] 
         elif self.bc_upper[idim] == BC.periodic:
             # This process owns the whole grid
-            qbc[:,-self.mbc:,...] = qbc[:,self.mbc:2*self.mbc,...]
+            qbc[:,-self.num_ghost:,...] = qbc[:,self.num_ghost:2*self.num_ghost,...]
         elif self.bc_upper[idim] == BC.reflecting:
-            for i in xrange(self.mbc):
-                qbc[:,-i-1,...] = qbc[:,-2*self.mbc+i,...]
-                qbc[idim+1,-i-1,...] = -qbc[idim+1,-2*self.mbc+i,...] # Negate normal velocity
+            for i in xrange(self.num_ghost):
+                qbc[:,-i-1,...] = qbc[:,-2*self.num_ghost+i,...]
+                qbc[idim+1,-i-1,...] = -qbc[idim+1,-2*self.num_ghost+i,...] # Negate normal velocity
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % self.bc_lower)
 
@@ -421,7 +421,7 @@ class Solver(object):
         Appends boundary cells to aux and fills them with appropriate values.
     
         This function returns an array of dimension determined by the 
-        :attr:`mbc` attribute.  The type of boundary condition set is 
+        :attr:`num_ghost` attribute.  The type of boundary condition set is 
         determined by :attr:`aux_bc_lower` and :attr:`aux_bc_upper` for the 
         approprate dimension.  Valid values for :attr:`aux_bc_lower` and 
         :attr:`aux_bc_upper` include:
@@ -441,7 +441,7 @@ class Solver(object):
                       but different for method-of-lines algorithms like SharpClaw.
 
         :Output:
-         - (ndarray(maux,...)) q array with boundary ghost cells added and set
+         - (ndarray(num_aux,...)) q array with boundary ghost cells added and set
          
 
         .. note:: 
@@ -452,7 +452,7 @@ class Solver(object):
         
         import numpy as np
 
-        self.auxbc = state.get_qbc_from_q(self.mbc,'aux',self.auxbc)
+        self.auxbc = state.get_qbc_from_q(self.num_ghost,'aux',self.auxbc)
 
         grid = state.grid
        
@@ -501,20 +501,20 @@ class Solver(object):
          - *grid* - (:class:`Grid`) Grid that the dimension belongs to
          
         :Input/Ouput:
-         - *auxbc* - (ndarray(maux,...)) Array with added ghost cells which will
+         - *auxbc* - (ndarray(num_aux,...)) Array with added ghost cells which will
            be set in this routines
         """
         if self.aux_bc_lower[idim] == BC.custom: 
-            self.user_aux_bc_lower(state,dim,t,auxbc,self.mbc)
+            self.user_aux_bc_lower(state,dim,t,auxbc,self.num_ghost)
         elif self.aux_bc_lower[idim] == BC.outflow:
-            for i in xrange(self.mbc):
-                auxbc[:,i,...] = auxbc[:,self.mbc,...]
+            for i in xrange(self.num_ghost):
+                auxbc[:,i,...] = auxbc[:,self.num_ghost,...]
         elif self.aux_bc_lower[idim] == BC.periodic:
             # This process owns the whole grid
-            auxbc[:,:self.mbc,...] = auxbc[:,-2*self.mbc:-self.mbc,...]
+            auxbc[:,:self.num_ghost,...] = auxbc[:,-2*self.num_ghost:-self.num_ghost,...]
         elif self.aux_bc_lower[idim] == BC.reflecting:
-            for i in xrange(self.mbc):
-                auxbc[:,i,...] = auxbc[:,2*self.mbc-1-i,...]
+            for i in xrange(self.num_ghost):
+                auxbc[:,i,...] = auxbc[:,2*self.num_ghost-1-i,...]
         elif self.aux_bc_lower[idim] is None:
             raise Exception("One or more of the aux boundary conditions aux_bc_upper has not been specified.")
         else:
@@ -536,21 +536,21 @@ class Solver(object):
          - *grid* - (:class:`Grid`) Grid that the dimension belongs to
          
         :Input/Ouput:
-         - *auxbc* - (ndarray(maux,...)) Array with added ghost cells which will
+         - *auxbc* - (ndarray(num_aux,...)) Array with added ghost cells which will
            be set in this routines
         """
  
         if self.aux_bc_upper[idim] == BC.custom:
-            self.user_aux_bc_upper(state,dim,t,auxbc,self.mbc)
+            self.user_aux_bc_upper(state,dim,t,auxbc,self.num_ghost)
         elif self.aux_bc_upper[idim] == BC.outflow:
-            for i in xrange(self.mbc):
-                auxbc[:,-i-1,...] = auxbc[:,-self.mbc-1,...] 
+            for i in xrange(self.num_ghost):
+                auxbc[:,-i-1,...] = auxbc[:,-self.num_ghost-1,...] 
         elif self.aux_bc_upper[idim] == BC.periodic:
             # This process owns the whole grid
-            auxbc[:,-self.mbc:,...] = auxbc[:,self.mbc:2*self.mbc,...]
+            auxbc[:,-self.num_ghost:,...] = auxbc[:,self.num_ghost:2*self.num_ghost,...]
         elif self.aux_bc_upper[idim] == BC.reflecting:
-            for i in xrange(self.mbc):
-                auxbc[:,-i-1,...] = auxbc[:,-2*self.mbc+i,...]
+            for i in xrange(self.num_ghost):
+                auxbc[:,-i-1,...] = auxbc[:,-2*self.num_ghost+i,...]
         elif self.aux_bc_lower[idim] is None:
             raise Exception("One or more of the aux boundary conditions aux_bc_lower has not been specified.")
         else:

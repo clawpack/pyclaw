@@ -45,7 +45,7 @@ controller.solver.mthlim = 3
 controller.solver.order = 2
 controller.solver.dt = 0.0001
 controller.solver.max_steps = 5000
-controller.solver.mwaves = 1
+controller.solver.num_waves = 1
 
 controller.solution = true_solution(0.0)
 controller.run()

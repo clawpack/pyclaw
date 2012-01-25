@@ -4,7 +4,7 @@ The :py:mod:`weno.reconstruct` module needs to be built before this
 module can be used.  See 'weno/codegen.py' for details.
 
 To build a higher order reconstruction, *k* needs to be tweaked here
-and in 'weno/codegen.py'.  Also, *mbc* needs to be tweaked in the
+and in 'weno/codegen.py'.  Also, *num_ghost* needs to be tweaked in the
 PyClaw solver.
 
 """

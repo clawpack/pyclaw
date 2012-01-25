@@ -25,7 +25,7 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     #===========================================================================
     # Setup solver and solver parameters
     #===========================================================================
-    solver.mwaves = 2
+    solver.num_waves = 2
     solver.limiters = pyclaw.limiters.tvd.vanleer
     solver.kernel_language=kernel_language
     if kernel_language =='Python': 
@@ -43,8 +43,8 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     mx = 500
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     grid = pyclaw.Grid(x)
-    meqn = 2
-    state = pyclaw.State(grid,meqn)
+    num_eqn = 2
+    state = pyclaw.State(grid,num_eqn)
 
     # Parameters
     state.aux_global['grav'] = 1.0

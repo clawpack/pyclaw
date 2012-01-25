@@ -154,7 +154,7 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
     restart_from_frame = None
     solver = pyclaw.ClawSolver2D()
     #solver = pyclaw.SharpClawSolver2D()
-    solver.mwaves = 2
+    solver.num_waves = 2
     solver.limiters = pyclaw.limiters.tvd.superbee
 
     solver.bc_lower[0]=bc_x_lower
@@ -192,9 +192,9 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
         x = pyclaw.Dimension('x',x_lower,x_upper,mx)
         y = pyclaw.Dimension('y',y_lower,y_upper,my)
         grid = pyclaw.Grid([x,y])
-        meqn = 3
-        maux = 4
-        state = pyclaw.State(grid,meqn,maux)
+        num_eqn = 3
+        num_aux = 4
+        state = pyclaw.State(grid,num_eqn,num_aux)
         state.mF = 3
         state.t=t0
         #Set global parameters
@@ -219,7 +219,7 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
     #Solve
     status = claw.run()
     
-    #strain=claw.frames[claw.nout].state.gqVec.getArray().reshape([grid.ng[0],grid.ng[1],state.meqn])[:,:,0]
+    #strain=claw.frames[claw.nout].state.gqVec.getArray().reshape([grid.ng[0],grid.ng[1],state.num_eqn])[:,:,0]
     #return strain
 
     if iplot:    pyclaw.plot.interactive_plot()

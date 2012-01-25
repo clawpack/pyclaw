@@ -84,7 +84,7 @@ def setaux(state,mx,my):
     return aux
 
 
-def velocities_upper(state,dim,t,auxbc,mbc):
+def velocities_upper(state,dim,t,auxbc,num_ghost):
     """
     Set the velocities for the ghost cells outside the outer radius of the annulus.
     """
@@ -97,19 +97,19 @@ def velocities_upper(state,dim,t,auxbc,mbc):
     dyc = grid.d[1]
 
     if dim == grid.dimensions[0]:
-        xc1d = grid.lower[0]+dxc*(np.arange(mx+mbc,mx+2*mbc+1)-mbc)
-        yc1d = grid.lower[1]+dyc*(np.arange(my+2*mbc+1)-mbc)
+        xc1d = grid.lower[0]+dxc*(np.arange(mx+num_ghost,mx+2*num_ghost+1)-num_ghost)
+        yc1d = grid.lower[1]+dyc*(np.arange(my+2*num_ghost+1)-num_ghost)
         yc,xc = np.meshgrid(yc1d,xc1d)
 
         xp,yp = mapc2p(xc,yc)
 
-        auxbc[:,-mbc:,:] = velocities_capa(xp,yp,dxc,dyc)
+        auxbc[:,-num_ghost:,:] = velocities_capa(xp,yp,dxc,dyc)
 
     else:
         raise Exception('Custum BC for this boundary is not appropriate!')
 
 
-def velocities_lower(state,dim,t,auxbc,mbc):
+def velocities_lower(state,dim,t,auxbc,num_ghost):
     """
     Set the velocities for the ghost cells outside the inner radius of the annulus.
     """
@@ -121,13 +121,13 @@ def velocities_lower(state,dim,t,auxbc,mbc):
     dyc = grid.d[1]
 
     if dim == grid.dimensions[0]:
-        xc1d = grid.lower[0]+dxc*(np.arange(mbc+1)-mbc)
-        yc1d = grid.lower[1]+dyc*(np.arange(my+2*mbc+1)-mbc)
+        xc1d = grid.lower[0]+dxc*(np.arange(num_ghost+1)-num_ghost)
+        yc1d = grid.lower[1]+dyc*(np.arange(my+2*num_ghost+1)-num_ghost)
         yc,xc = np.meshgrid(yc1d,xc1d)
 
         xp,yp = mapc2p(xc,yc)
 
-        auxbc[:,0:mbc,:] = velocities_capa(xp,yp,dxc,dyc)
+        auxbc[:,0:num_ghost,:] = velocities_capa(xp,yp,dxc,dyc)
 
     else:
         raise Exception('Custum BC for this boundary is not appropriate!')
@@ -211,7 +211,7 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     solver.aux_bc_lower[1] = pyclaw.BC.periodic
     solver.aux_bc_upper[1] = pyclaw.BC.periodic
 
-    solver.mwaves = 1
+    solver.num_waves = 1
 
     solver.dim_split = 0
     solver.order_trans = 2
@@ -242,8 +242,8 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     grid.mapc2p = mapc2p_annulus # Override default_mapc2p function implemented in grid.py
 
     # State:
-    meqn = 1  # Number of equations
-    state = pyclaw.State(grid,meqn)
+    num_eqn = 1  # Number of equations
+    state = pyclaw.State(grid,num_eqn)
 
     
     # Set initial solution
@@ -253,7 +253,7 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     # Set auxiliary array
     # ===================
     state.aux = setaux(state,mx,my) # This function is defined above
-    state.mcapa = 2
+    state.index_capa = 2
 
     
     #===========================================================================

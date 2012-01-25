@@ -56,16 +56,16 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
     grid.aux_global['cc']=np.sqrt(rho/bulk)
     from classic1 import cparam 
     for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
-    grid.meqn=2
+    grid.num_eqn=2
     if sclaw:
-        grid.mbc=3
+        grid.num_ghost=3
     grid.t = 0.0
 
     # init_q_petsc_structures must be called 
     # before grid.x.center and such can be accessed.
     grid.init_q_petsc_structures()
     xc=grid.x.center
-    q=np.zeros([grid.meqn,len(xc)], order = 'F')
+    q=np.zeros([grid.num_eqn,len(xc)], order = 'F')
     beta=100; gamma=0; x0=0.75
     q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
     q[1,:]=0.
@@ -78,12 +78,12 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
         solver = SharpClawSolver1D()
         solver.lim_type = kwargs.get('lim_type',2)
         solver.time_integrator = 'SSP33'
-        solver.mwaves=2
+        solver.num_waves=2
         solver.char_decomp=0
     else:
         from petclaw.clawpack import ClawSolver1D
         solver = ClawSolver1D()
-        solver.mwaves=2
+        solver.num_waves=2
         from pyclaw import limiters
         solver.mthlim = limiters.tvd.MC
 

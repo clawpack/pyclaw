@@ -14,30 +14,30 @@ with ``<name>`` replaced with the appropriate solver name and ``<dim>`` with
 the appropriate dimension.
 
 :Input:
- - *q_l* - (ndarray(...,meqn)) Contains the left states of the Riemann problem
- - *q_r* - (ndarray(...,meqn)) Contains the right states of the Riemann problem
- - *aux_l* - (ndarray(...,maux)) Contains the left values of the auxiliary array
- - *aux_r* - (ndarray(...,maux)) Contains the right values oft he auxiliary array
+ - *q_l* - (ndarray(...,num_eqn)) Contains the left states of the Riemann problem
+ - *q_r* - (ndarray(...,num_eqn)) Contains the right states of the Riemann problem
+ - *aux_l* - (ndarray(...,num_aux)) Contains the left values of the auxiliary array
+ - *aux_r* - (ndarray(...,num_aux)) Contains the right values oft he auxiliary array
  - *aux_global* - (dict) Dictionary containing miscellaneous data which is 
     usually problem dependent.
  
 :Output:
- - *wave* - (ndarray(...,meqn,mwaves)) Contains the resulting waves from the cell
+ - *wave* - (ndarray(...,num_eqn,num_waves)) Contains the resulting waves from the cell
     edge
- - *s* - (ndarray(...,mwaves)) Speeds of each wave
- - *amdq* - (ndarray(...,meqn)) Left going fluctuation
- - *apdq* - (ndarray(...,meqn)) Right going fluctuation
+ - *s* - (ndarray(...,num_waves)) Speeds of each wave
+ - *amdq* - (ndarray(...,num_eqn)) Left going fluctuation
+ - *apdq* - (ndarray(...,num_eqn)) Right going fluctuation
 
 Except for *aux_global*, all of the input and output values are arrays whose
 elements represent grid values with locations indicated by the following scheme
 ::
 
-    Indexing works like this:  here mbc=2 as an example
-     0     1     2     3     4     mx+mbc-2     mx+mbc      mx+mbc+2
-                 |                        mx+mbc-1 |  mx+mbc+1
+    Indexing works like this:  here num_ghost=2 as an example
+     0     1     2     3     4     mx+num_ghost-2     mx+num_ghost      mx+num_ghost+2
+                 |                        mx+num_ghost-1 |  mx+num_ghost+1
      |     |     |     |     |   ...   |     |     |     |     |
-        0     1  |  2     3            mx+mbc-2    |mx+mbc       
-                                              mx+mbc-1   mx+mbc+1
+        0     1  |  2     3            mx+num_ghost-2    |mx+num_ghost       
+                                              mx+num_ghost-1   mx+num_ghost+1
 
     The top indices represent the values that are located on the grid
     cell boundaries such as waves, s and other Riemann problem values, 

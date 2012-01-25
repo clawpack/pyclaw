@@ -44,7 +44,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
 
-    solver.mwaves = 3
+    solver.num_waves = 3
     solver.limiters = pyclaw.limiters.tvd.MC
 
     solver.bc_lower[0] = pyclaw.BC.outflow
@@ -69,8 +69,8 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     y = pyclaw.Dimension('y',ylower,yupper,my)
     grid = pyclaw.Grid([x,y])
 
-    meqn = 3  # Number of equations
-    state = pyclaw.State(grid,meqn)
+    num_eqn = 3  # Number of equations
+    state = pyclaw.State(grid,num_eqn)
 
     grav = 1.0 # Parameter (global auxiliary variable)
     state.aux_global['grav'] = grav

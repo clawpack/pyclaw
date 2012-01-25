@@ -19,7 +19,7 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
         raise Exception('Unrecognized solver_type.')
 
     solver.dim_split=False
-    solver.mwaves = 2
+    solver.num_waves = 2
     solver.limiters = pyclaw.limiters.tvd.MC
 
     solver.bc_lower[0]=pyclaw.BC.reflecting
@@ -43,9 +43,9 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     z = pyclaw.Dimension('z',-1.0,1.0,mz)
     grid = pyclaw.Grid([x,y,z])
 
-    meqn = 4
-    maux = 2 # density, sound speed
-    state = pyclaw.State(grid,meqn,maux)
+    num_eqn = 4
+    num_aux = 2 # density, sound speed
+    state = pyclaw.State(grid,num_eqn,num_aux)
 
     zl = 1.0  # Impedance in left half
     cl = 1.0  # Sound speed in left half
@@ -80,8 +80,8 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,format=claw.output_format)
 
     if use_petsc:
-        pinitial=claw.frames[0].state.gqVec.getArray().reshape([state.meqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,:,mz/2]
-        pfinal=claw.frames[10].state.gqVec.getArray().reshape([state.meqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,:,mz/2]
+        pinitial=claw.frames[0].state.gqVec.getArray().reshape([state.num_eqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,:,mz/2]
+        pfinal=claw.frames[10].state.gqVec.getArray().reshape([state.num_eqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,:,mz/2]
     else:
         pinitial=claw.frames[0].state.q[0,:,:,mz/2]
         pfinal=claw.frames[10].state.q[0,:,:,mz/2]
@@ -92,9 +92,9 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     plt.show()
 
     if use_petsc:
-        pinitial=claw.frames[0].state.gqVec.getArray().reshape([state.meqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,:,:].reshape(-1)
-        pmiddle=claw.frames[claw.nout/2].state.gqVec.getArray().reshape([state.meqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,:,:].reshape(-1)
-        pfinal=claw.frames[claw.nout].state.gqVec.getArray().reshape([state.meqn,grid.ng[0],grid.ng[1],grid.ng[2]])[0,:,:,:].reshape(-1)
+        pinitial=claw.frames[0].state.gqVec.getArray().reshape([state.num_eqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,:,:].reshape(-1)
+        pmiddle=claw.frames[claw.nout/2].state.gqVec.getArray().reshape([state.num_eqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,:,:].reshape(-1)
+        pfinal=claw.frames[claw.nout].state.gqVec.getArray().reshape([state.num_eqn,grid.ng[0],grid.ng[1],grid.ng[2]])[0,:,:,:].reshape(-1)
     else:
         pinitial=claw.frames[0].state.q[0,:,:,:].reshape(-1)
         pmiddle  =claw.frames[3].state.q[0,:,:,:].reshape(-1)

@@ -23,7 +23,7 @@ def wcblast(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver
     else:
         solver = pyclaw.ClawSolver1D()
 
-    solver.mwaves = 3
+    solver.num_waves = 3
     solver.bc_lower[0]=pyclaw.BC.reflecting
     solver.bc_upper[0]=pyclaw.BC.reflecting
 
@@ -31,8 +31,8 @@ def wcblast(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver
     mx=500;
     x = pyclaw.Dimension('x',0.0,1.0,mx)
     grid = pyclaw.Grid([x])
-    meqn = 3
-    state = pyclaw.State(grid,meqn)
+    num_eqn = 3
+    state = pyclaw.State(grid,num_eqn)
 
     state.aux_global['gamma']= gamma
     state.aux_global['gamma1']= gamma1

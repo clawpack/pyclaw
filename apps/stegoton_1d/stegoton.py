@@ -43,24 +43,24 @@ def b4step(solver,solution):
         solver.bc_upper[0]=2
 
 
-def zero_bc(grid,dim,t,qbc,mbc):
+def zero_bc(grid,dim,t,qbc,num_ghost):
     """Set everything to zero"""
     print 'hello'
     if dim.nend==dim.n:
-        qbc[:,-mbc:]=0.
+        qbc[:,-num_ghost:]=0.
 
-def moving_wall_bc(grid,dim,t,qbc,mbc):
+def moving_wall_bc(grid,dim,t,qbc,num_ghost):
     """Initial pulse generated at left boundary by prescribed motion"""
     if dim.bc_lower==0:
         if dim.nstart==0:
-           qbc[0,:mbc]=qbc[0,mbc] 
+           qbc[0,:num_ghost]=qbc[0,num_ghost] 
            t=state.t; t1=state.aux_global['t1']; tw1=state.aux_global['tw1']
            a1=state.aux_global['a1'];
            t0 = (t-t1)/tw1
            if abs(t0)<=1.: vwall = -a1*(1.+np.cos(t0*np.pi))
            else: vwall=0.
-           for ibc in xrange(mbc-1):
-               qbc[1,mbc-ibc-1] = 2*vwall*state.aux[1,ibc] - qbc[1,mbc+ibc]
+           for ibc in xrange(num_ghost-1):
+               qbc[1,num_ghost-ibc-1] = 2*vwall*state.aux[1,ibc] - qbc[1,num_ghost+ibc]
 
 
 
@@ -99,8 +99,8 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
     cellsperlayer=6; mx=int(round(xupper-xlower))*cellsperlayer
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     grid = pyclaw.Grid(x)
-    meqn = 2
-    state = pyclaw.State(grid,meqn)
+    num_eqn = 2
+    state = pyclaw.State(grid,num_eqn)
 
     #Set global parameters
     alpha = 0.5
@@ -132,7 +132,7 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
     solver.start_step = b4step 
     solver.user_bc_lower=moving_wall_bc
     solver.user_bc_upper=zero_bc
-    solver.mwaves=2
+    solver.num_waves=2
 
     if solver_type=='sharpclaw':
         solver.lim_type = 2

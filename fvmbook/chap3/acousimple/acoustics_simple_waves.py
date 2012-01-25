@@ -21,7 +21,7 @@ def fig_31_38(kernel_language='Fortran',solver_type='classic',iplot=False,htmlpl
     #========================================================================
     solver.kernel_language=kernel_language
     from riemann import rp_acoustics
-    solver.mwaves=rp_acoustics.mwaves
+    solver.num_waves=rp_acoustics.num_waves
     if kernel_language=='Python': 
         solver.rp = rp_acoustics.rp_acoustics_1d
  
@@ -34,8 +34,8 @@ def fig_31_38(kernel_language='Fortran',solver_type='classic',iplot=False,htmlpl
     #========================================================================
     x = pyclaw.Dimension('x',-1.0,1.0,800)
     grid = pyclaw.Grid(x)
-    meqn = 2
-    state = pyclaw.State(grid,meqn)
+    num_eqn = 2
+    state = pyclaw.State(grid,num_eqn)
 
     #========================================================================
     # Set problem-specific variables

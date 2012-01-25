@@ -16,22 +16,22 @@ module workspace
 
 contains
 
-    subroutine alloc_workspace(maxnx,mbc,meqn,mwaves,char_decomp)
-        integer,intent(in) :: maxnx,mbc,meqn,mwaves,char_decomp
+    subroutine alloc_workspace(maxnx,num_ghost,num_eqn,num_waves,char_decomp)
+        integer,intent(in) :: maxnx,num_ghost,num_eqn,num_waves,char_decomp
 
-        allocate(amdq(meqn,1-mbc:maxnx+mbc))
-        allocate(apdq(meqn,1-mbc:maxnx+mbc))
-        allocate(amdq2(meqn,1-mbc:maxnx+mbc))
-        allocate(apdq2(meqn,1-mbc:maxnx+mbc))
-        allocate(ql(meqn,1-mbc:maxnx+mbc))
-        allocate(qr(meqn,1-mbc:maxnx+mbc))
-        allocate(wave(meqn,mwaves,1-mbc:maxnx+mbc))
-        allocate(s(mwaves,1-mbc:maxnx+mbc))
-        allocate(dtdx(1-mbc:maxnx+mbc))
+        allocate(amdq(num_eqn,1-num_ghost:maxnx+num_ghost))
+        allocate(apdq(num_eqn,1-num_ghost:maxnx+num_ghost))
+        allocate(amdq2(num_eqn,1-num_ghost:maxnx+num_ghost))
+        allocate(apdq2(num_eqn,1-num_ghost:maxnx+num_ghost))
+        allocate(ql(num_eqn,1-num_ghost:maxnx+num_ghost))
+        allocate(qr(num_eqn,1-num_ghost:maxnx+num_ghost))
+        allocate(wave(num_eqn,num_waves,1-num_ghost:maxnx+num_ghost))
+        allocate(s(num_waves,1-num_ghost:maxnx+num_ghost))
+        allocate(dtdx(1-num_ghost:maxnx+num_ghost))
 
         if (char_decomp>1) then
-            allocate(evl(meqn,meqn,1-mbc:maxnx+mbc))
-            allocate(evr(meqn,meqn,1-mbc:maxnx+mbc))
+            allocate(evl(num_eqn,num_eqn,1-num_ghost:maxnx+num_ghost))
+            allocate(evr(num_eqn,num_eqn,1-num_ghost:maxnx+num_ghost))
         endif
             
         work_alloc = .True.

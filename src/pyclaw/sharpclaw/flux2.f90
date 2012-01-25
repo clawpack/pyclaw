@@ -1,5 +1,5 @@
 ! ==========================================================
-subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,maux,meqn,mbc,maxnx,mx,my)
+subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my)
 ! ==========================================================
 
     ! Evaluate (delta t) *dq/dt
@@ -14,11 +14,11 @@ subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,maux,meqn,mbc,maxnx,mx,my)
     use ClawParams
     implicit none
 
-    integer :: maux,meqn,mbc,maxnx,mx,my
-    double precision, target, intent(in) :: q(meqn, 1-mbc:mx+mbc, 1-mbc:my+mbc)
-    double precision, intent(inout) :: dq(meqn, 1-mbc:mx+mbc, 1-mbc:my+mbc)
-    double precision, target, intent(in) :: aux(maux, 1-mbc:mx+mbc, 1-mbc:my+mbc)
-    double precision :: q1d(meqn,1-mbc:maxnx+mbc), dq1d(meqn,1-mbc:maxnx+mbc)
+    integer :: num_aux,num_eqn,num_ghost,maxnx,mx,my
+    double precision, target, intent(in) :: q(num_eqn, 1-num_ghost:mx+num_ghost, 1-num_ghost:my+num_ghost)
+    double precision, intent(inout) :: dq(num_eqn, 1-num_ghost:mx+num_ghost, 1-num_ghost:my+num_ghost)
+    double precision, target, intent(in) :: aux(num_aux, 1-num_ghost:mx+num_ghost, 1-num_ghost:my+num_ghost)
+    double precision :: q1d(num_eqn,1-num_ghost:maxnx+num_ghost), dq1d(num_eqn,1-num_ghost:maxnx+num_ghost)
     double precision, intent(in) :: dt,t
     double precision, intent(out) :: cfl
     integer :: i,j,m
@@ -39,27 +39,27 @@ subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,maux,meqn,mbc,maxnx,mx,my)
 
         ! copy auxiliary data along a slice into 1d arrays:
         q1dp => q(:,:,j)
-        if (maux .gt. 0)  then
+        if (num_aux .gt. 0)  then
             auxp => aux(:,:,j)
         endif
 
 
         ! compute modification dq1d along this slice:
-        call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,1,maux,meqn,mx,mbc,maxnx)
+        call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,1,num_aux,num_eqn,mx,num_ghost,maxnx)
         cfl = dmax1(cfl,cfl1d)
 
 
-        if (mcapa.eq.0) then
+        if (index_capa.eq.0) then
             ! no capa array.  Standard flux differencing:
-            forall(i=1:mx, m=1:meqn)
+            forall(i=1:mx, m=1:num_eqn)
                 dq(m,i,j) = dq(m,i,j)+dq1d(m,i)
             end forall
         else
             ! with capa array.  Which is correct?
-            forall(i=1:mx, m=1:meqn)
+            forall(i=1:mx, m=1:num_eqn)
                 dq(m,i,j) = dq(m,i,j)+dq1d(m,i)
             end forall
-            ! dq(m,i,j) = dq(m,i,j)+dq1d(m,i)/aux(mcapa,i,j)
+            ! dq(m,i,j) = dq(m,i,j)+dq1d(m,i)/aux(index_capa,i,j)
         endif
     enddo !end x sweeps
 
@@ -70,25 +70,25 @@ subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,maux,meqn,mbc,maxnx,mx,my)
     do i = 0, mx+1
         ! copy auxiliary data along a slice into 1d arrays:
         q1dp => q(:,i,:)
-        forall(j=1-mbc:my+mbc, m=1:meqn)
+        forall(j=1-num_ghost:my+num_ghost, m=1:num_eqn)
             q1d(m,j) = q(m,i,j)
         end forall
 
-        if (maux .gt. 0)  then
+        if (num_aux .gt. 0)  then
             auxp => aux(:,i,:)
         endif
 
-        call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,2,maux,meqn,my,mbc,maxnx)
+        call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,2,num_aux,num_eqn,my,num_ghost,maxnx)
         cfl = dmax1(cfl,cfl1d)
 
-        if (mcapa.eq.0) then
+        if (index_capa.eq.0) then
             ! no capa array.  Standard flux differencing:
-            forall(j=1:my,m=1:meqn)
+            forall(j=1:my,m=1:num_eqn)
                 dq(m,i,j) = dq(m,i,j)+dq1d(m,j)
             end forall
         else
             ! with capa array.  Which is correct?
-            ! dq(m,i,j) = dq(m,i,j)+dq1d(m,j)/aux(mcapa,i,j)
+            ! dq(m,i,j) = dq(m,i,j)+dq1d(m,j)/aux(index_capa,i,j)
             dq(:,i,:) = dq(:,i,:)+dq1d
         endif
     enddo !end y sweeps

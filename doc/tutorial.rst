@@ -54,9 +54,9 @@ solver.rp attribute, which is a function handle::
 
     >>> from riemann import rp_acoustics
     >>> solver.rp = rp_acoustics.rp_acoustics_1d
-    >>> solver.mwaves = 2
+    >>> solver.num_waves = 2
 
-The `mwaves` property indicates the number of waves used in the Riemann solver.
+The `num_waves` property indicates the number of waves used in the Riemann solver.
 
 Finally, we set the boundary conditions.  We'll use a reflecting (wall)
 condition at the left boundary and a non-reflecting (zero-order extrapolation)

@@ -87,7 +87,7 @@ class SharpClawSolver(Solver):
         or pure Python ('Python').  
         ``Default = 'Fortran'``.
 
-    .. attribute:: mbc
+    .. attribute:: num_ghost
 
         Number of ghost cells.
         ``Default = 3``
@@ -131,7 +131,7 @@ class SharpClawSolver(Solver):
         self.tfluct_solver = False
         self.aux_time_dep = False
         self.kernel_language = 'Fortran'
-        self.mbc = 3
+        self.num_ghost = 3
         self.fwave = False
         self.cfl_desired = 2.45
         self.cfl_max = 2.5
@@ -207,9 +207,9 @@ class SharpClawSolver(Solver):
     def set_mthlim(self):
         self._mthlim = self.limiters
         if not isinstance(self.limiters,list): self._mthlim=[self._mthlim]
-        if len(self._mthlim)==1: self._mthlim = self._mthlim * self.mwaves
-        if len(self._mthlim)!=self.mwaves:
-            raise Exception('Length of solver.limiters is not equal to 1 or to solver.mwaves')
+        if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_waves
+        if len(self._mthlim)!=self.num_waves:
+            raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_waves')
  
        
     def dq(self,state):
@@ -261,9 +261,9 @@ class SharpClawSolver(Solver):
         clawparams.char_decomp   = self.char_decomp
         clawparams.tfluct_solver = self.tfluct_solver
         clawparams.fwave         = self.fwave
-        clawparams.mcapa         = state.mcapa+1
+        clawparams.index_capa         = state.index_capa+1
 
-        clawparams.mwaves        = self.mwaves
+        clawparams.num_waves        = self.num_waves
         clawparams.alloc_clawparams()
         for idim in range(grid.ndim):
             clawparams.xlower[idim]=grid.dimensions[idim].lower
@@ -271,9 +271,9 @@ class SharpClawSolver(Solver):
         clawparams.dx       =grid.d
         clawparams.mthlim   =self._mthlim
 
-        maxnx = max(grid.ng)+2*self.mbc
-        workspace.alloc_workspace(maxnx,self.mbc,state.meqn,self.mwaves,self.char_decomp)
-        reconstruct.alloc_recon_workspace(maxnx,self.mbc,state.meqn,self.mwaves,
+        maxnx = max(grid.ng)+2*self.num_ghost
+        workspace.alloc_workspace(maxnx,self.num_ghost,state.num_eqn,self.num_waves,self.char_decomp)
+        reconstruct.alloc_recon_workspace(maxnx,self.num_ghost,state.num_eqn,self.num_waves,
                                             clawparams.lim_type,clawparams.char_decomp)
 
     def allocate_rk_stages(self,solution):
@@ -296,11 +296,11 @@ class SharpClawSolver(Solver):
         self._rk_stages = []
         for i in xrange(nregisters-1):
             #Maybe should use State.copy() here?
-            self._rk_stages.append(State(state.grid,state.meqn,state.maux))
+            self._rk_stages.append(State(state.grid,state.num_eqn,state.num_aux))
             self._rk_stages[-1].aux_global       = state.aux_global
-            self._rk_stages[-1].set_mbc(self.mbc)
+            self._rk_stages[-1].set_num_ghost(self.num_ghost)
             self._rk_stages[-1].t                = state.t
-            if state.maux > 0:
+            if state.num_aux > 0:
                 self._rk_stages[-1].aux              = state.aux
 
 
@@ -327,12 +327,12 @@ class SharpClawSolver1D(SharpClawSolver):
         """
         Allocate RK stage arrays and fortran routine work arrays.
         """
-        self.mbc = (self.weno_order+1)/2
+        self.num_ghost = (self.weno_order+1)/2
 
         # This is a hack to deal with the fact that petsc4py
-        # doesn't allow us to change the stencil_width (mbc)
+        # doesn't allow us to change the stencil_width (num_ghost)
         state = solution.state
-        state.set_mbc(self.mbc)
+        state.set_num_ghost(self.num_ghost)
         # End hack
 
         self.allocate_rk_stages(solution)
@@ -370,13 +370,13 @@ class SharpClawSolver1D(SharpClawSolver):
         Note that the capa array, if present, should be located in the aux
         variable.
 
-        Indexing works like this (here mbc=2 as an example)::
+        Indexing works like this (here num_ghost=2 as an example)::
 
-         0     1     2     3     4     mx+mbc-2     mx+mbc      mx+mbc+2
-                     |                        mx+mbc-1 |  mx+mbc+1
+         0     1     2     3     4     mx+num_ghost-2     mx+num_ghost      mx+num_ghost+2
+                     |                        mx+num_ghost-1 |  mx+num_ghost+1
          |     |     |     |     |   ...   |     |     |     |     |
-            0     1  |  2     3            mx+mbc-2    |mx+mbc       
-                                                  mx+mbc-1   mx+mbc+1
+            0     1  |  2     3            mx+num_ghost-2    |mx+num_ghost       
+                                                  mx+num_ghost-1   mx+num_ghost+1
 
         The top indices represent the values that are located on the grid
         cell boundaries such as waves, s and other Riemann problem values, 
@@ -405,16 +405,16 @@ class SharpClawSolver1D(SharpClawSolver):
 
         if self.kernel_language=='Fortran':
             from sharpclaw1 import flux1
-            dq,cfl=flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.mbc,mx)
+            dq,cfl=flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.num_ghost,mx)
 
         elif self.kernel_language=='Python':
 
-            dtdx = np.zeros( (mx+2*self.mbc) ,order='F')
-            dq   = np.zeros( (state.meqn,mx+2*self.mbc) ,order='F')
+            dtdx = np.zeros( (mx+2*self.num_ghost) ,order='F')
+            dq   = np.zeros( (state.num_eqn,mx+2*self.num_ghost) ,order='F')
 
             # Find local value for dt/dx
-            if state.mcapa>=0:
-                dtdx = self.dt / (grid.d[0] * state.aux[state.mcapa,:])
+            if state.index_capa>=0:
+                dtdx = self.dt / (grid.d[0] * state.aux[state.index_capa,:])
             else:
                 dtdx += self.dt/grid.d[0]
  
@@ -451,12 +451,12 @@ class SharpClawSolver1D(SharpClawSolver):
 
             # Loop limits for local portion of grid
             # THIS WON'T WORK IN PARALLEL!
-            LL = self.mbc - 1
-            UL = grid.ng[0] + self.mbc + 1
+            LL = self.num_ghost - 1
+            UL = grid.ng[0] + self.num_ghost + 1
 
             # Compute maximum wave speed
             cfl = 0.0
-            for mw in xrange(self.mwaves):
+            for mw in xrange(self.num_waves):
                 smax1 = np.max( dtdx[LL  :UL]  *s[mw,LL-1:UL-1])
                 smax2 = np.max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
                 cfl = max(cfl,smax1,smax2)
@@ -465,14 +465,14 @@ class SharpClawSolver1D(SharpClawSolver):
             wave,s,amdq2,apdq2 = self.rp(ql,qr,aux,aux,state.aux_global)
 
             # Compute dq
-            for m in xrange(state.meqn):
+            for m in xrange(state.num_eqn):
                 dq[m,LL:UL] = -dtdx[LL:UL]*(amdq[m,LL:UL] + apdq[m,LL-1:UL-1] \
                                 + apdq2[m,LL:UL] + amdq2[m,LL:UL])
 
         else: raise Exception('Unrecognized value of solver.kernel_language.')
 
         self.cfl.update_global_max(cfl)
-        return dq[:,self.mbc:-self.mbc]
+        return dq[:,self.num_ghost:-self.num_ghost]
     
 
 # ========================================================================
@@ -498,12 +498,12 @@ class SharpClawSolver2D(SharpClawSolver):
         """
         Allocate RK stage arrays and fortran routine work arrays.
         """
-        self.mbc = (self.weno_order+1)/2
+        self.num_ghost = (self.weno_order+1)/2
 
         # This is a hack to deal with the fact that petsc4py
-        # doesn't allow us to change the stencil_width (mbc)
+        # doesn't allow us to change the stencil_width (num_ghost)
         state = solution.state
-        state.set_mbc(self.mbc)
+        state.set_num_ghost(self.num_ghost)
         # End hack
 
         self.allocate_rk_stages(solution)
@@ -539,13 +539,13 @@ class SharpClawSolver2D(SharpClawSolver):
         Note that the capa array, if present, should be located in the aux
         variable.
 
-        Indexing works like this (here mbc=2 as an example)::
+        Indexing works like this (here num_ghost=2 as an example)::
 
-         0     1     2     3     4     mx+mbc-2     mx+mbc      mx+mbc+2
-                     |                        mx+mbc-1 |  mx+mbc+1
+         0     1     2     3     4     mx+num_ghost-2     mx+num_ghost      mx+num_ghost+2
+                     |                        mx+num_ghost-1 |  mx+num_ghost+1
          |     |     |     |     |   ...   |     |     |     |     |
-            0     1  |  2     3            mx+mbc-2    |mx+mbc       
-                                                  mx+mbc-1   mx+mbc+1
+            0     1  |  2     3            mx+num_ghost-2    |mx+num_ghost       
+                                                  mx+num_ghost-1   mx+num_ghost+1
 
         The top indices represent the values that are located on the grid
         cell boundaries such as waves, s and other Riemann problem values, 
@@ -566,16 +566,16 @@ class SharpClawSolver2D(SharpClawSolver):
 
         grid = state.grid
 
-        mbc=self.mbc
+        num_ghost=self.num_ghost
         mx=grid.ng[0]
         my=grid.ng[1]
         maxm = max(mx,my)
 
         if self.kernel_language=='Fortran':
             from sharpclaw2 import flux2
-            dq,cfl=flux2(q,self.auxbc,self.dt,state.t,mbc,maxm,mx,my)
+            dq,cfl=flux2(q,self.auxbc,self.dt,state.t,num_ghost,maxm,mx,my)
 
         else: raise Exception('Only Fortran kernels are supported in 2D.')
 
         self.cfl.update_global_max(cfl)
-        return dq[:,mbc:-mbc,mbc:-mbc]
+        return dq[:,num_ghost:-num_ghost,num_ghost:-num_ghost]

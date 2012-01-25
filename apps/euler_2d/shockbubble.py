@@ -77,7 +77,7 @@ def auxinit(state):
         state.aux[0,:,j] = ycoord
 
 
-def shockbc(state,dim,t,qbc,mbc):
+def shockbc(state,dim,t,qbc,num_ghost):
     """
     Incoming shock at left boundary.
     """
@@ -85,7 +85,7 @@ def shockbc(state,dim,t,qbc,mbc):
     vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
     einf = 0.5*rinf*vinf**2 + pinf/gamma1
 
-    for i in xrange(mbc):
+    for i in xrange(num_ghost):
         qbc[0,i,...] = rinf
         qbc[1,i,...] = rinf*vinf
         qbc[2,i,...] = 0.
@@ -182,7 +182,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
         solver.limiters = [4,4,4,4,2]
         solver.step_src=step_Euler_radial
 
-    solver.mwaves = 5
+    solver.num_waves = 5
     solver.bc_lower[0]=pyclaw.BC.custom
     solver.bc_upper[0]=pyclaw.BC.outflow
     solver.bc_lower[1]=pyclaw.BC.reflecting
@@ -199,9 +199,9 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
     grid = pyclaw.Grid([x,y])
-    meqn = 5
-    maux=1
-    state = pyclaw.State(grid,meqn,maux)
+    num_eqn = 5
+    num_aux=1
+    state = pyclaw.State(grid,num_eqn,num_aux)
 
     state.aux_global['gamma']= gamma
     state.aux_global['gamma1']= gamma1

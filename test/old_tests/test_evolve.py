@@ -118,7 +118,7 @@ class AdvectionTest(SolverTestCase):
         self.controller.solver.set_riemann_solver('advection')
         self.controller.solver.order = 2
         self.controller.solver.mthlim = 4
-        self.controller.solver.mwaves = 1
+        self.controller.solver.num_waves = 1
     
     def true_solution(self,t):
     
@@ -135,7 +135,7 @@ class AdvectionTest(SolverTestCase):
             x = pyclaw.solution.Dimension('x',0.0,1.0,100,bc_lower=2,bc_upper=2)
             grid = pyclaw.solution.Grid(x)
             grid.empty_q()
-            grid.meqn = 1
+            grid.num_eqn = 1
             grid.aux_global['u'] = u
             grid.t = t
     
@@ -200,16 +200,16 @@ class AcousticsTest(SolverTestCase):
         self.controller.solver.order = 2
         self.controller.solver.dt = 0.0001
         self.controller.solver.max_steps = 500
-        self.controller.solver.mwaves = 2
+        self.controller.solver.num_waves = 2
     
     def true_solution(self,t):
 
         # Initialize Grid
         x = pyclaw.solution.Dimension('x',-1.0,1.0,100)
         grid = pyclaw.solution.Grid([x])
-        grid.meqn = 2
+        grid.num_eqn = 2
         grid.t = t
-        grid.mbc = 2
+        grid.num_ghost = 2
         grid.bc_lower = 2
         grid.bc_upper = 2
         
@@ -243,7 +243,7 @@ class BurgersTest(SolverTestCase):
         self.controller.solver.order = 2
         self.controller.solver.dt = 0.0001
         self.controller.solver.max_steps = 5000
-        self.controller.solver.mwaves = 1
+        self.controller.solver.num_waves = 1
         self.controller.out_times = [0.0,0.5,1.0]
         
     def true_solution(self,t):
@@ -292,7 +292,7 @@ class EulerTest(SolverTestCase):
         self.controller.solver.order = 2
         self.controller.solver.dt = 0.1
         self.controller.solver.max_steps = 1000
-        self.controller.solver.mwaves = 3
+        self.controller.solver.num_waves = 3
         
     def true_solution(self,t):
         # Setup problem parameters
@@ -310,7 +310,7 @@ class EulerTest(SolverTestCase):
         # Create empty grid
         x = pyclaw.solution.Dimension('x',0.0,1.0,100)
         grid = pyclaw.solution.Grid([x])
-        grid.meqn = 3
+        grid.num_eqn = 3
         grid.aux_global['efix'] = efix
         grid.aux_global['gamma'] = gamma
         grid.aux_global['gamma1'] = gamma - 1.0
@@ -339,7 +339,7 @@ class ShallowTest(SolverTestCase):
         self.controller.solver.set_riemann_solver('shallow_roe')
         self.controller.solver.order = 2
         self.controller.solver.mthlim = [3,3]
-        self.controller.solver.mwaves = 2
+        self.controller.solver.num_waves = 2
         
     def true_solution(self,t):
         # Setup problem parameters
@@ -356,7 +356,7 @@ class ShallowTest(SolverTestCase):
         grid = pyclaw.solution.Grid(x)
         grid.aux_global['g'] = g
         grid.aux_global['efix'] = efix
-        grid.meqn = 2
+        grid.num_eqn = 2
         grid.t = t
         
         # Initial data

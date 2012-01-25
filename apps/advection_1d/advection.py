@@ -18,7 +18,7 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
 
     solver.kernel_language = kernel_language
     from riemann import rp_advection
-    solver.mwaves = rp_advection.mwaves
+    solver.num_waves = rp_advection.num_waves
     if solver.kernel_language=='Python': 
         solver.rp = rp_advection.rp_advection_1d
 
@@ -27,8 +27,8 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
 
     x = pyclaw.Dimension('x',0.0,1.0,100)
     grid = pyclaw.Grid(x)
-    meqn = 1
-    state = pyclaw.State(grid,meqn)
+    num_eqn = 1
+    state = pyclaw.State(grid,num_eqn)
     state.aux_global['u']=1.
 
     xc=grid.x.center

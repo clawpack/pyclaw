@@ -13,15 +13,15 @@ class State(object):
     including the unkowns q, the time t, and the auxiliary coefficients aux.
 
     Both q and aux are initialized to None.  They cannot be accessed until
-    meqn and maux (respectively) are set.
+    num_eqn and num_aux (respectively) are set.
 
     :State Data:
     
         The arrays :attr:`q`, and :attr:`aux` have variable 
         extents based on the grid dimensions and the values of 
-        :attr:`meqn` and :attr:`maux`.  Note that these are initialy set to 
+        :attr:`num_eqn` and :attr:`num_aux`.  Note that these are initialy set to 
         None and later set to appropriately sized empty numpy arrays when
-        :attr:`meqn` and :attr:`maux` are set.
+        :attr:`num_eqn` and :attr:`num_aux` are set.
  
     To instantiate a State, we first need a grid:
 
@@ -47,14 +47,14 @@ class State(object):
 
     # ========== Property Definitions ========================================
     @property
-    def meqn(self):
+    def num_eqn(self):
         r"""(int) - Number of unknowns (components of q)"""
         if self.q is None:
-            raise Exception('state.meqn has not been set.')
+            raise Exception('state.num_eqn has not been set.')
         else: return self.q.shape[0]
 
     @property
-    def maux(self):
+    def num_aux(self):
         r"""(int) - Number of auxiliary fields"""
         if self.aux is not None: return self.aux.shape[0]
         else: return 0
@@ -84,7 +84,7 @@ class State(object):
             self.F = self.new_array(mF)
 
     # ========== Class Methods ===============================================
-    def __init__(self,grid,meqn,maux=0):
+    def __init__(self,grid,num_eqn,num_aux=0):
         import pyclaw.grid
         if not isinstance(grid,pyclaw.grid.Grid):
             raise Exception("""A PyClaw State object must be initialized with
@@ -103,10 +103,10 @@ class State(object):
         self.t=0.
         r"""(float) - Current time represented on this grid, 
             ``default = 0.0``"""
-        self.mcapa = -1
+        self.index_capa = -1
 
-        self.q   = self.new_array(meqn)
-        self.aux = self.new_array(maux)
+        self.q   = self.new_array(num_eqn)
+        self.aux = self.new_array(num_aux)
 
     def __str__(self):
         output = "PyClaw State object\n"
@@ -125,7 +125,7 @@ class State(object):
         
         The state is declared valid based on the following criteria:
             - :attr:`q` is not None
-            - :attr:`meqn` > 0
+            - :attr:`num_eqn` > 0
             
         A debug logger message will be sent documenting exactly what was not 
         valid.
@@ -164,14 +164,14 @@ class State(object):
             for global_var_name,global_var_value in self.aux_global.iteritems(): 
                 setattr(fortran_module.cparam,global_var_name,global_var_value)
 
-    def set_mbc(self,mbc):
+    def set_num_ghost(self,num_ghost):
         """
         Virtual routine (does nothing).  Overridden in the parallel class.
         """
         pass
 
 
-    def set_q_from_qbc(self,mbc,qbc):
+    def set_q_from_qbc(self,num_ghost,qbc):
         """
         Set the value of q using the array qbc. for PetSolver, this
         involves setting qbc as the local vector array then perform
@@ -180,15 +180,15 @@ class State(object):
         
         grid = self.grid
         if grid.ndim == 1:
-            self.q = qbc[:,mbc:-mbc]
+            self.q = qbc[:,num_ghost:-num_ghost]
         elif grid.ndim == 2:
-            self.q = qbc[:,mbc:-mbc,mbc:-mbc]
+            self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
         elif grid.ndim == 3:
-            self.q = qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
+            self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost]
         else:
             raise Exception("Assumption (1 <= ndim <= 3) violated.")
 
-    def get_qbc_from_q(self,mbc,whichvec,qbc):
+    def get_qbc_from_q(self,num_ghost,whichvec,qbc):
         """
         Fills in the interior of qbc (local vector) by copying q (global vector) to it.
         """
@@ -200,11 +200,11 @@ class State(object):
             q    = self.aux
 
         if ndim == 1:
-            qbc[:,mbc:-mbc] = q
+            qbc[:,num_ghost:-num_ghost] = q
         elif ndim == 2:
-            qbc[:,mbc:-mbc,mbc:-mbc] = q
+            qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost] = q
         elif ndim == 3:
-            qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = q
+            qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost] = q
 
         return qbc
 
@@ -215,8 +215,8 @@ class State(object):
         
     def __deepcopy__(self,memo={}):
         import copy
-        result = self.__class__(copy.deepcopy(self.grid),self.meqn,self.maux)
-        result.__init__(copy.deepcopy(self.grid),self.meqn,self.maux)
+        result = self.__class__(copy.deepcopy(self.grid),self.num_eqn,self.num_aux)
+        result.__init__(copy.deepcopy(self.grid),self.num_eqn,self.num_aux)
         
         for attr in ('t'):
             setattr(result,attr,copy.deepcopy(getattr(self,attr)))
