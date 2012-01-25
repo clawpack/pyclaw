@@ -1,5 +1,5 @@
 c     =====================================================
-      subroutine qcor(ixy,i,m,aux,q,maxm,meqn,mbc,qc)
+      subroutine qcor(ixy,i,m,aux,q,maxm,num_eqn,num_ghost,qc)
 c     =====================================================
 c
 c     # Compute the correction term to add to the solution for maintaining
@@ -7,8 +7,8 @@ c     # the conservation on sphere.
 
       implicit double precision (a-h,o-z)
 
-      dimension aux(16, 1-mbc:maxm+mbc)
-      dimension q(meqn, 1-mbc:maxm+mbc)
+      dimension aux(16, 1-num_ghost:maxm+num_ghost)
+      dimension q(num_eqn, 1-num_ghost:maxm+num_ghost)
       dimension qc(4)
 
       common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom

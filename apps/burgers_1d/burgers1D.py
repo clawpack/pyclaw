@@ -23,7 +23,7 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
 
     solver.kernel_language = kernel_language
     if kernel_language=='Python': solver.set_riemann_solver('burgers')
-    solver.mwaves = 1
+    solver.num_waves = 1
     solver.limiters = pyclaw.limiters.tvd.vanleer
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
@@ -33,12 +33,12 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
     #===========================================================================
     x = pyclaw.Dimension('x',0.0,1.0,500)
     grid = pyclaw.Grid(x)
-    meqn = 1
-    state = pyclaw.State(grid,meqn)
+    num_eqn = 1
+    state = pyclaw.State(grid,num_eqn)
 
     xc=grid.x.center
     state.q[0,:] = np.sin(np.pi*2*xc) + 0.50
-    state.aux_global['efix']=True
+    state.problem_data['efix']=True
 
     #===========================================================================
     # Setup controller and controller parameters. Then solve the problem

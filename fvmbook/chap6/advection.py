@@ -28,7 +28,7 @@ def fig_61_62_63(kernel_language='Python',iplot=False,htmlplot=False,solver_type
 
     solver.kernel_language = kernel_language
     from riemann import rp_advection
-    solver.mwaves = rp_advection.mwaves
+    solver.num_waves = rp_advection.num_waves
     if solver.kernel_language=='Python': 
         solver.rp = rp_advection.rp_advection_1d
 
@@ -40,9 +40,9 @@ def fig_61_62_63(kernel_language='Python',iplot=False,htmlplot=False,solver_type
 
     x = pyclaw.Dimension('x',0.0,1.0,mx)
     grid = pyclaw.Grid(x)
-    meqn = 1
-    state = pyclaw.State(grid,meqn)
-    state.aux_global['u']=1.
+    num_eqn = 1
+    state = pyclaw.State(grid,num_eqn)
+    state.problem_data['u']=1.
 
     xc=grid.x.center
     if IC=='gauss_square':

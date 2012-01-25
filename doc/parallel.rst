@@ -169,9 +169,9 @@ At this point, `grid.ng` is identically equal to `grid.n`, rather than containin
 the size of the grid partition on the current process.  Before using it, you
 should instantiate a State object::
 
-    meqn = 5
-    maux=1
-    state = pyclaw.State(grid,meqn,maux)
+    num_eqn = 5
+    num_aux=1
+    state = pyclaw.State(grid,num_eqn,num_aux)
 
 Now `state.grid.ng` contains appropriate information.
 

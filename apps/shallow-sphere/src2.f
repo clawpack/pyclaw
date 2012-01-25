@@ -1,6 +1,6 @@
 c      =======================================================
-       subroutine src2(maxmx,maxmy,meqn,mbc,mx,my,xlower,ylower,
-     &                 dx,dy,q,maux,aux,t,dt,Rsphere)
+       subroutine src2(maxmx,maxmy,num_eqn,num_ghost,mx,my,xlower,ylower,
+     &                 dx,dy,q,num_aux,aux,t,dt,Rsphere)
 c      =======================================================
 c
 c
@@ -10,14 +10,14 @@ c     # and the projection of the velocity components to the tangent plane.
 c
 
        implicit double precision (a-h,o-z)
-       dimension    q(meqn, 1:mx, 1:my)
-       dimension aux(maux,  1:mx, 1:my)
+       dimension    q(num_eqn, 1:mx, 1:my)
+       dimension aux(num_aux,  1:mx, 1:my)
        double precision RK(4,3) 
 
 cf2py integer intent(in) maxmx
 cf2py integer intent(in) maxmy
-cf2py integer optional, intent(in) meqn
-cf2py integer intent(in) mbc
+cf2py integer optional, intent(in) num_eqn
+cf2py integer intent(in) num_ghost
 cf2py integer intent(in) mx
 cf2py integer intent(in) my
 cf2py double precision intent(in) xlower
@@ -25,7 +25,7 @@ cf2py double precision intent(in) ylower
 cf2py double precision intent(in) dx
 cf2py double precision intent(in) dy
 cf2py intent(in,out) q
-cf2py integer optional, intent(in)  maux
+cf2py integer optional, intent(in)  num_aux
 cf2py intent(in) aux
 cf2py double precision intent(in) t
 cf2py double precision intent(in) dt
@@ -119,7 +119,7 @@ c           stage 4
             RK(4,2) = dt*fcor*(erx*hw-erz*hu)
             RK(4,3) = dt*fcor*(ery*hu-erx*hv)
             
-            do m=2,meqn
+            do m=2,num_eqn
                q(m,i,j) = q(m,i,j) 
      &                 + (RK(1,m-1) + 2.d0*RK(2,m-1)+
      &                 2.d0*RK(3,m-1) + RK(4,m-1))/6.d0

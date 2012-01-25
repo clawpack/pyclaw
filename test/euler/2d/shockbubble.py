@@ -38,7 +38,7 @@ def auxinit(state):
     for j,ycoord in enumerate(y):
         state.aux[0,:,j] = ycoord
 
-def shockbc(state,dim,t,qbc,mbc):
+def shockbc(state,dim,t,qbc,num_ghost):
     """
     Incoming shock at left boundary.
     """
@@ -49,7 +49,7 @@ def shockbc(state,dim,t,qbc,mbc):
         vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
         einf = 0.5*rinf*vinf**2 + pinf/gamma1
 
-        for i in xrange(mbc):
+        for i in xrange(num_ghost):
             qbc[0,i,...] = rinf
             qbc[1,i,...] = rinf*vinf
             qbc[2,i,...] = 0.
@@ -113,12 +113,12 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
     grid = pyclaw.Grid([x,y])
-    meqn = 5
-    maux=1
-    state = pyclaw.State(grid,meqn,maux)
+    num_eqn = 5
+    num_aux=1
+    state = pyclaw.State(grid,num_eqn,num_aux)
 
-    state.aux_global['gamma']= gamma
-    state.aux_global['gamma1']= gamma1
+    state.problem_data['gamma']= gamma
+    state.problem_data['gamma1']= gamma1
 
     tfinal = 0.2
 
@@ -129,21 +129,21 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     solver = ClawSolver2D()
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
-    solver.mwaves = 5
+    solver.num_waves = 5
     solver.limiters = [4,4,4,4,2]
     solver.dt_initial=0.005
     solver.user_bc_lower=shockbc
-    solver.step_src=euler_rad_src
-    solver.src_split = 1
+    solver.step_source=euler_rad_src
+    solver.source_split = 1
     solver.bc_lower[0]=pyclaw.BC.custom
-    solver.bc_upper[0]=pyclaw.BC.outflow
-    solver.bc_lower[1]=pyclaw.BC.reflecting
-    solver.bc_upper[1]=pyclaw.BC.outflow
+    solver.bc_upper[0]=pyclaw.BC.extrap
+    solver.bc_lower[1]=pyclaw.BC.wall
+    solver.bc_upper[1]=pyclaw.BC.extrap
     #Aux variable in ghost cells doesn't matter
-    solver.aux_bc_lower[0]=pyclaw.BC.outflow
-    solver.aux_bc_upper[0]=pyclaw.BC.outflow
-    solver.aux_bc_lower[1]=pyclaw.BC.outflow
-    solver.aux_bc_upper[1]=pyclaw.BC.outflow
+    solver.aux_bc_lower[0]=pyclaw.BC.extrap
+    solver.aux_bc_upper[0]=pyclaw.BC.extrap
+    solver.aux_bc_lower[1]=pyclaw.BC.extrap
+    solver.aux_bc_upper[1]=pyclaw.BC.extrap
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
@@ -151,7 +151,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     claw.tfinal = tfinal
     claw.solution = initial_solution
     claw.solver = solver
-    claw.nout = 1
+    claw.num_output_times = 1
 
     # Solve
     status = claw.run()
@@ -160,9 +160,9 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     if iplot:     pyclaw.plot.interactive_plot(format=claw.output_format)
 
     if use_petsc:
-        density=claw.frames[claw.nout].state.gqVec.getArray().reshape([state.meqn,grid.n[0],grid.n[1]],order='F')[0,:,:]
+        density=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([state.num_eqn,grid.n[0],grid.n[1]],order='F')[0,:,:]
     else:
-        density=claw.frames[claw.nout].state.q[0,:,:]
+        density=claw.frames[claw.num_output_times].state.q[0,:,:]
     return density
 
 if __name__=="__main__":

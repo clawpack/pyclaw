@@ -178,7 +178,7 @@ def make_1d():
     gsec = gallery.new_section('1-dimensional acoustics')
     appdir = 'apps/acoustics_1d_homogeneous'
     description = """
-         Acoustics equations with reflecting boundary at left and outflow at
+         Acoustics equations with wall boundary at left and extrap at
          right."""
     images = ('frame0000fig1', 'frame0005fig1', 'frame0010fig1')
     gsec.new_item(appdir, plotdir, description, images)

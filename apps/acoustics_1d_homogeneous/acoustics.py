@@ -28,7 +28,7 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     #========================================================================
     solver.kernel_language=kernel_language
     from riemann import rp_acoustics
-    solver.mwaves=rp_acoustics.mwaves
+    solver.num_waves=rp_acoustics.num_waves
     if kernel_language=='Python': 
         solver.rp = rp_acoustics.rp_acoustics_1d
  
@@ -41,18 +41,18 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     #========================================================================
     x = pyclaw.Dimension('x',0.0,1.0,100)
     grid = pyclaw.Grid(x)
-    meqn = 2
-    state = pyclaw.State(grid,meqn)
+    num_eqn = 2
+    state = pyclaw.State(grid,num_eqn)
 
     #========================================================================
     # Set problem-specific variables
     #========================================================================
     rho = 1.0
     bulk = 1.0
-    state.aux_global['rho']=rho
-    state.aux_global['bulk']=bulk
-    state.aux_global['zz']=sqrt(rho*bulk)
-    state.aux_global['cc']=sqrt(bulk/rho)
+    state.problem_data['rho']=rho
+    state.problem_data['bulk']=bulk
+    state.problem_data['zz']=sqrt(rho*bulk)
+    state.problem_data['cc']=sqrt(bulk/rho)
 
     #========================================================================
     # Set the initial condition

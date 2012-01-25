@@ -2,7 +2,7 @@ module ClawParams
 
 ! Problem setup:
   double precision, allocatable :: xlower(:),xupper(:),dx(:)
-  integer :: ndim, mwaves, mcapa
+  integer :: ndim, num_waves, index_capa
 
 ! Method-related parameters:
   integer :: char_decomp,lim_type,multid_recon,weno_order
@@ -16,7 +16,7 @@ contains
         allocate(xlower(ndim))
         allocate(xupper(ndim))
         allocate(dx(ndim))
-        allocate(mthlim(mwaves))
+        allocate(mthlim(num_waves))
 
     end subroutine alloc_clawparams
 

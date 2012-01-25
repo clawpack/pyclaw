@@ -1,7 +1,7 @@
 !
 !
 ! =========================================================
-      subroutine tfluct(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr, &
+      subroutine tfluct(maxmx,num_eqn,num_waves,num_ghost,mx,ql,qr,auxl,auxr, &
                  s,adq)
 ! =========================================================
 !

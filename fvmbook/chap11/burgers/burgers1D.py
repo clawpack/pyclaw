@@ -12,7 +12,7 @@ def burgers(iplot=1,htmlplot=0,outdir='./_output'):
 
     solver = pyclaw.ClawSolver1D()
 
-    solver.mwaves = 1
+    solver.num_waves = 1
     solver.limiters = pyclaw.limiters.tvd.MC
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
@@ -22,20 +22,20 @@ def burgers(iplot=1,htmlplot=0,outdir='./_output'):
     #===========================================================================
     x = pyclaw.Dimension('x',-8.0,8.0,1000)
     grid = pyclaw.Grid(x)
-    meqn = 1
-    state = pyclaw.State(grid,meqn)
+    num_eqn = 1
+    state = pyclaw.State(grid,num_eqn)
 
     xc=grid.x.center
     state.q[0,:] = (xc>-np.pi)*(xc<np.pi)*(2.*np.sin(3.*xc)+np.cos(2.*xc)+0.2)
     state.q[0,:] = state.q[0,:]*(np.cos(xc)+1.)
-    state.aux_global['efix']=True
+    state.problem_data['efix']=True
 
     #===========================================================================
     # Setup controller and controller parameters. Then solve the problem
     #===========================================================================
     claw = pyclaw.Controller()
     claw.tfinal = 6.0
-    claw.nout   = 30
+    claw.num_output_times   = 30
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir

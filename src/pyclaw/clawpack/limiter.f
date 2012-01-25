@@ -1,7 +1,8 @@
 c
 c
 c     =====================================================
-      subroutine limiter(maxm,meqn,mwaves,mbc,mx,wave,s,mthlim)
+      subroutine limiter(maxm,num_eqn,num_waves,num_ghost,mx,wave,s,
+     &                          mthlim)
 c     =====================================================
 c
 c     # Apply a limiter to the waves.
@@ -25,19 +26,19 @@ c     # given by dotl/wnorm2 and dotr/wnorm2, where wnorm2 is the 2-norm
 c     # of wave.
 c
       implicit double precision (a-h,o-z)
-      dimension mthlim(mwaves)
-      dimension wave(meqn, mwaves,1-mbc:maxm+mbc)
-      dimension    s(mwaves,1-mbc:maxm+mbc)
+      dimension mthlim(num_waves)
+      dimension wave(num_eqn, num_waves,1-num_ghost:maxm+num_ghost)
+      dimension    s(num_waves,1-num_ghost:maxm+num_ghost)
 c
 c
-      do 50 mw=1,mwaves
+      do 50 mw=1,num_waves
          if (mthlim(mw) .eq. 0) go to 50
          dotr = 0.d0
          do 40 i = 0, mx+1
             wnorm2 = 0.d0
             dotl = dotr
             dotr = 0.d0
-            do 20 m=1,meqn
+            do 20 m=1,num_eqn
                wnorm2 = wnorm2 + wave(m,mw,i)**2
                dotr = dotr + wave(m,mw,i)*wave(m,mw,i+1)
    20          continue
@@ -50,7 +51,7 @@ c
                 wlimitr = philim(wnorm2, dotr, mthlim(mw))
               endif
 c
-            do 30 m=1,meqn
+            do 30 m=1,num_eqn
                wave(m,mw,i) = wlimitr * wave(m,mw,i)
    30          continue
    40       continue

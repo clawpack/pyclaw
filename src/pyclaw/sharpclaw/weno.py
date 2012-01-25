@@ -38,19 +38,19 @@ wrapper = pyweno.wrappers.WrapperGenerator('fortran')
 #### set fortran templatese to match clawpack
 
 pyweno.wrappers.templates['fortran']['reconstruct_compute_smoothness'] = '''
-subroutine {function}(q, ql, qr, meqn, maxnx, mbc)
+subroutine {function}(q, ql, qr, num_eqn, maxnx, num_ghost)
 
   implicit none
 
-  integer,          intent(in)  :: meqn, maxnx, mbc
-  double precision, intent(in)  :: q(meqn,maxnx+2*mbc)
-  double precision, intent(out) :: ql(meqn,maxnx+2*mbc), qr(meqn,maxnx+2*mbc)
+  integer,          intent(in)  :: num_eqn, maxnx, num_ghost
+  double precision, intent(in)  :: q(num_eqn,maxnx+2*num_ghost)
+  double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost), qr(num_eqn,maxnx+2*num_ghost)
 
   integer :: i, m
   double precision :: {variables}
 
-  do i = mbc-1, maxnx+mbc+1
-    do m = 1, meqn
+  do i = num_ghost-1, maxnx+num_ghost+1
+    do m = 1, num_eqn
       {kernel}
     end do
   end do
