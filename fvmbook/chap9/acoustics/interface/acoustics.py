@@ -18,10 +18,10 @@ def acoustics(solver_type='classic',iplot=True,htmlplot=False,outdir='./_output'
 
     solver.num_waves=2
     solver.limiters = pyclaw.limiters.tvd.MC
-    solver.bc_lower[0] = pyclaw.BC.outflow
-    solver.bc_upper[0] = pyclaw.BC.outflow
-    solver.aux_bc_lower[0] = pyclaw.BC.outflow
-    solver.aux_bc_upper[0] = pyclaw.BC.outflow
+    solver.bc_lower[0] = pyclaw.BC.extrap
+    solver.bc_upper[0] = pyclaw.BC.extrap
+    solver.aux_bc_lower[0] = pyclaw.BC.extrap
+    solver.aux_bc_upper[0] = pyclaw.BC.extrap
 
     x = pyclaw.Dimension('x',-5.0,5.0,500)
     grid = pyclaw.Grid(x)
@@ -54,7 +54,7 @@ def acoustics(solver_type='classic',iplot=True,htmlplot=False,outdir='./_output'
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.tfinal = 5.0
-    claw.nout   = 10
+    claw.num_output_times   = 10
 
     # Solve
     status = claw.run()

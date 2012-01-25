@@ -18,22 +18,22 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     else:
         raise Exception('Unrecognized solver_type.')
 
-    solver.dim_split=False
+    solver.dimensional_split=False
     solver.num_waves = 2
     solver.limiters = pyclaw.limiters.tvd.MC
 
-    solver.bc_lower[0]=pyclaw.BC.reflecting
+    solver.bc_lower[0]=pyclaw.BC.wall
     solver.bc_upper[0]=pyclaw.BC.periodic
-    solver.bc_lower[1]=pyclaw.BC.reflecting
+    solver.bc_lower[1]=pyclaw.BC.wall
     solver.bc_upper[1]=pyclaw.BC.periodic
-    solver.bc_lower[2]=pyclaw.BC.reflecting
+    solver.bc_lower[2]=pyclaw.BC.wall
     solver.bc_upper[2]=pyclaw.BC.periodic
 
-    solver.aux_bc_lower[0]=pyclaw.BC.reflecting
+    solver.aux_bc_lower[0]=pyclaw.BC.wall
     solver.aux_bc_upper[0]=pyclaw.BC.periodic
-    solver.aux_bc_lower[1]=pyclaw.BC.reflecting
+    solver.aux_bc_lower[1]=pyclaw.BC.wall
     solver.aux_bc_upper[1]=pyclaw.BC.periodic
-    solver.aux_bc_lower[2]=pyclaw.BC.reflecting
+    solver.aux_bc_lower[2]=pyclaw.BC.wall
     solver.aux_bc_upper[2]=pyclaw.BC.periodic
 
     # Initialize grid
@@ -86,19 +86,19 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
         pinitial=claw.frames[0].state.q[0,:,:,mz/2]
         pfinal=claw.frames[10].state.q[0,:,:,mz/2]
     import matplotlib.pyplot as plt
-    for i in range(claw.nout):
+    for i in range(claw.num_output_times):
         plt.pcolor(claw.frames[i].state.q[0,:,:,mz/2])
         plt.figure()
     plt.show()
 
     if use_petsc:
         pinitial=claw.frames[0].state.gqVec.getArray().reshape([state.num_eqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,:,:].reshape(-1)
-        pmiddle=claw.frames[claw.nout/2].state.gqVec.getArray().reshape([state.num_eqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,:,:].reshape(-1)
-        pfinal=claw.frames[claw.nout].state.gqVec.getArray().reshape([state.num_eqn,grid.ng[0],grid.ng[1],grid.ng[2]])[0,:,:,:].reshape(-1)
+        pmiddle=claw.frames[claw.num_output_times/2].state.gqVec.getArray().reshape([state.num_eqn,grid.ng[0],grid.ng[1],grid.ng[2]],order='F')[0,:,:,:].reshape(-1)
+        pfinal=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([state.num_eqn,grid.ng[0],grid.ng[1],grid.ng[2]])[0,:,:,:].reshape(-1)
     else:
         pinitial=claw.frames[0].state.q[0,:,:,:].reshape(-1)
         pmiddle  =claw.frames[3].state.q[0,:,:,:].reshape(-1)
-        pfinal  =claw.frames[claw.nout].state.q[0,:,:,:].reshape(-1)
+        pfinal  =claw.frames[claw.num_output_times].state.q[0,:,:,:].reshape(-1)
 
     print 'Final error: ', np.prod(grid.d)*np.linalg.norm(pfinal-pinitial,ord=1)
     print 'Middle error: ', np.prod(grid.d)*np.linalg.norm(pmiddle-pinitial,ord=1)

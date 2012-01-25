@@ -143,7 +143,7 @@ class State(pyclaw.state.State):
         # ========== Attribute Definitions ===================================
         self.grid = grid
         r"""pyclaw.Grid.grid - The grid this state lives on"""
-        self.aux_global = {}
+        self.problem_data = {}
         r"""(dict) - Dictionary of global values for this grid, 
             ``default = {}``"""
         self.t=0.

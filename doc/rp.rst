@@ -8,7 +8,7 @@ This package contains all of the Python-based Riemann solvers.  Each
 module solves the Riemann solver for a particular system of hyperbolic
 equations.  The solvers all have a common function signature::
 
-    rp_<name>_<dim>d(q_l,q_r,aux_l,aux_r,aux_global)
+    rp_<name>_<dim>d(q_l,q_r,aux_l,aux_r,problem_data)
     
 with ``<name>`` replaced with the appropriate solver name and ``<dim>`` with
 the appropriate dimension.
@@ -18,7 +18,7 @@ the appropriate dimension.
  - *q_r* - (ndarray(...,num_eqn)) Contains the right states of the Riemann problem
  - *aux_l* - (ndarray(...,num_aux)) Contains the left values of the auxiliary array
  - *aux_r* - (ndarray(...,num_aux)) Contains the right values oft he auxiliary array
- - *aux_global* - (dict) Dictionary containing miscellaneous data which is 
+ - *problem_data* - (dict) Dictionary containing miscellaneous data which is 
     usually problem dependent.
  
 :Output:
@@ -28,7 +28,7 @@ the appropriate dimension.
  - *amdq* - (ndarray(...,num_eqn)) Left going fluctuation
  - *apdq* - (ndarray(...,num_eqn)) Right going fluctuation
 
-Except for *aux_global*, all of the input and output values are arrays whose
+Except for *problem_data*, all of the input and output values are arrays whose
 elements represent grid values with locations indicated by the following scheme
 ::
 

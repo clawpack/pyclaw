@@ -17,7 +17,7 @@ except ImportError:
     from pyclaw.limiters import recon
 
 
-def start_step(solver,solution):
+def before_step(solver,solution):
     r"""
     Dummy routine called before each step
     
@@ -34,12 +34,12 @@ class SharpClawSolver(Solver):
     solver is implemented in the future, it should be based on this class,
     which then ought to be renamed to something like "MOLSolver".
 
-    .. attribute:: start_step
+    .. attribute:: before_step
     
         Function called before each time step is taken.
         The required signature for this function is:
         
-        def start_step(solver,solution)
+        def before_step(solver,solution)
 
     .. attribute:: lim_type
 
@@ -123,7 +123,7 @@ class SharpClawSolver(Solver):
         Set default options for SharpClawSolvers and call the super's __init__().
         """
         self.limiters = [1]
-        self.start_step = start_step
+        self.before_step = before_step
         self.lim_type = 2
         self.weno_order = 5
         self.time_integrator = 'SSP104'
@@ -156,7 +156,7 @@ class SharpClawSolver(Solver):
         """
         state = solution.states[0]
 
-        self.start_step(self,solution)
+        self.before_step(self,solution)
 
         try:
             if self.time_integrator=='Euler':
@@ -297,7 +297,7 @@ class SharpClawSolver(Solver):
         for i in xrange(nregisters-1):
             #Maybe should use State.copy() here?
             self._rk_stages.append(State(state.grid,state.num_eqn,state.num_aux))
-            self._rk_stages[-1].aux_global       = state.aux_global
+            self._rk_stages[-1].problem_data       = state.problem_data
             self._rk_stages[-1].set_num_ghost(self.num_ghost)
             self._rk_stages[-1].t                = state.t
             if state.num_aux > 0:
@@ -439,7 +439,7 @@ class SharpClawSolver1D(SharpClawSolver):
                 elif self.char_decomp==1: #Wave-based reconstruction
                     q_l=q[:,:-1]
                     q_r=q[:,1: ]
-                    wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.aux_global)
+                    wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.problem_data)
                     ql,qr=recon.weno5_wave(q,wave,s)
                 elif self.char_decomp==2: #Characteristic-wise reconstruction
                     raise NotImplementedError
@@ -447,7 +447,7 @@ class SharpClawSolver1D(SharpClawSolver):
             # Solve Riemann problem at each interface
             q_l=qr[:,:-1]
             q_r=ql[:,1: ]
-            wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.aux_global)
+            wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.problem_data)
 
             # Loop limits for local portion of grid
             # THIS WON'T WORK IN PARALLEL!
@@ -462,7 +462,7 @@ class SharpClawSolver1D(SharpClawSolver):
                 cfl = max(cfl,smax1,smax2)
 
             #Find total fluctuation within each cell
-            wave,s,amdq2,apdq2 = self.rp(ql,qr,aux,aux,state.aux_global)
+            wave,s,amdq2,apdq2 = self.rp(ql,qr,aux,aux,state.problem_data)
 
             # Compute dq
             for m in xrange(state.num_eqn):

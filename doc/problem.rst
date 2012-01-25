@@ -31,7 +31,7 @@ This script should:
     * Set solver.num_waves to the number of waves used in the Riemann solver
     * Set the boundary conditions
     * Instantiate some :class:`~pyclaw.grid.Dimension` object(s) and a :class:`~pyclaw.grid.Grid`
-    * Set any required global values in aux_global
+    * Set any required global values in problem_data
     * Set grid.num_eqn and grid.num_ghost
     * Set the initial condition (grid.q)
 
@@ -77,9 +77,9 @@ PyClaw includes the following built-in boundary condition implementations:
 
     * pyclaw.BC.periodic - periodic
 
-    * pyclaw.BC.outflow - zero-order extrapolation
+    * pyclaw.BC.extrap - zero-order extrapolation
 
-    * pyclaw.BC.reflecting - solid wall conditions, assuming that the 2nd/3rd component
+    * pyclaw.BC.wall - solid wall conditions, assuming that the 2nd/3rd component
                              of q is the normal velocity in x/y.
 
 Other boundary conditions can be implemented by using pyclaw.BC.custom, and
@@ -120,7 +120,7 @@ Adding source terms
 Non-hyperbolic terms (representing, e.g., reaction or diffusion) can be included
 in a PyClaw simulation by providing an appropriate function handle to 
 
-    * solver.step_src if using Classic Clawpack.  In this case, the function
+    * solver.step_source if using Classic Clawpack.  In this case, the function
       specified should modify q by taking a step on the equation :math:`q_t = \psi(q)`.
 
     * solver.dq_src if using SharpClaw.  In this case, the function should

@@ -385,12 +385,12 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
 
     # Dimensional splitting ?
     # =======================
-    solver.dim_split = 0
+    solver.dimensional_split = 0
  
     # Transverse increment waves and transverse correction waves are computed 
     # and propagated.
     # =======================================================================
-    solver.order_trans = 2
+    solver.transverse_waves = 2
     
     # Number of waves in each Riemann solution
     # ========================================
@@ -402,7 +402,7 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
 
     # Set source function
     # ===================
-    solver.step_src = fortran_src_wrapper
+    solver.step_source = fortran_src_wrapper
 
     # Set the limiter for the waves
     # =============================
@@ -477,8 +477,8 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     #===========================================================================
     claw = pyclaw.Controller()
     claw.keep_copy = True
-    claw.outstyle = 1
-    claw.nout = 10
+    claw.output_style = 1
+    claw.num_output_times = 10
     claw.tfinal = 10
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
@@ -497,7 +497,7 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
 
     # Define variable usedto verify the correctness of the regression test
     # ====================================================================
-    height = claw.frames[claw.nout].state.q[0,:,:]
+    height = claw.frames[claw.num_output_times].state.q[0,:,:]
     return height
 
 if __name__=="__main__":

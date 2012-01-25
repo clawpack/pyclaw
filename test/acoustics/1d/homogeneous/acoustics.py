@@ -28,10 +28,10 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
 
     rho = 1.0
     bulk = 1.0
-    state.aux_global['rho']=rho
-    state.aux_global['bulk']=bulk
-    state.aux_global['zz']=np.sqrt(rho*bulk)
-    state.aux_global['cc']=np.sqrt(rho/bulk)
+    state.problem_data['rho']=rho
+    state.problem_data['bulk']=bulk
+    state.problem_data['zz']=np.sqrt(rho*bulk)
+    state.problem_data['cc']=np.sqrt(rho/bulk)
 
     xc=grid.x.center
     beta=100; gamma=0; x0=0.75
@@ -49,13 +49,13 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
         solver.rp = rp_acoustics.rp_acoustics_1d
 
     solver.limiters = [4]*solver.num_waves
-    solver.dt_initial=grid.d[0]/state.aux_global['cc']*0.1
+    solver.dt_initial=grid.d[0]/state.problem_data['cc']*0.1
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
-    claw.nout = 5
+    claw.num_output_times = 5
     
     claw.output_format = output_format
 
@@ -72,10 +72,10 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
     #initial condition.  Here we output the 1-norm of their difference.
     if use_petsc==True:
         q0=claw.frames[0].state.gqVec.getArray().reshape([-1])
-        qfinal=claw.frames[claw.nout].state.gqVec.getArray().reshape([-1])
+        qfinal=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([-1])
     else:
         q0=claw.frames[0].state.q.reshape([-1])
-        qfinal=claw.frames[claw.nout].state.q.reshape([-1])
+        qfinal=claw.frames[claw.num_output_times].state.q.reshape([-1])
     dx=claw.frames[0].grid.d[0]
 
     return dx*np.sum(np.abs(qfinal-q0))

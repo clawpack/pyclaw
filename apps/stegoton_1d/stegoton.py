@@ -29,16 +29,16 @@ def b4step(solver,solution):
     #Reverse velocity at trtime
     #Note that trtime should be an output point
     state = solution.states[0]
-    if state.t>=state.aux_global['trtime']-1.e-10 and not state.aux_global['trdone']:
+    if state.t>=state.problem_data['trtime']-1.e-10 and not state.problem_data['trdone']:
         #print 'Time reversing'
         state.q[1,:]=-state.q[1,:]
         solution.state.q=state.q
-        state.aux_global['trdone']=True
-        if state.t>state.aux_global['trtime']:
-            print 'WARNING: trtime is '+str(state.aux_global['trtime'])+\
+        state.problem_data['trdone']=True
+        if state.t>state.problem_data['trtime']:
+            print 'WARNING: trtime is '+str(state.problem_data['trtime'])+\
                 ' but velocities reversed at time '+str(state.t)
     #Change to periodic BCs after initial pulse 
-    if state.t>5*state.aux_global['tw1'] and solver.bc_lower[0]==0:
+    if state.t>5*state.problem_data['tw1'] and solver.bc_lower[0]==0:
         solver.bc_lower[0]=2
         solver.bc_upper[0]=2
 
@@ -54,8 +54,8 @@ def moving_wall_bc(grid,dim,t,qbc,num_ghost):
     if dim.bc_lower==0:
         if dim.nstart==0:
            qbc[0,:num_ghost]=qbc[0,num_ghost] 
-           t=state.t; t1=state.aux_global['t1']; tw1=state.aux_global['tw1']
-           a1=state.aux_global['a1'];
+           t=state.t; t1=state.problem_data['t1']; tw1=state.problem_data['tw1']
+           a1=state.problem_data['a1'];
            t0 = (t-t1)/tw1
            if abs(t0)<=1.: vwall = -a1*(1.+np.cos(t0*np.pi))
            else: vwall=0.
@@ -108,28 +108,28 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
     KB    = 4.0
     rhoA  = 1.0
     rhoB  = 4.0
-    state.aux_global = {}
-    state.aux_global['t1']    = 10.0
-    state.aux_global['tw1']   = 10.0
-    state.aux_global['a1']    = 0.0
-    state.aux_global['alpha'] = alpha
-    state.aux_global['KA'] = KA
-    state.aux_global['KB'] = KB
-    state.aux_global['rhoA'] = rhoA
-    state.aux_global['rhoB'] = rhoB
-    state.aux_global['trtime'] = 250.0
-    state.aux_global['trdone'] = False
+    state.problem_data = {}
+    state.problem_data['t1']    = 10.0
+    state.problem_data['tw1']   = 10.0
+    state.problem_data['a1']    = 0.0
+    state.problem_data['alpha'] = alpha
+    state.problem_data['KA'] = KA
+    state.problem_data['KB'] = KB
+    state.problem_data['rhoA'] = rhoA
+    state.problem_data['rhoB'] = rhoB
+    state.problem_data['trtime'] = 250.0
+    state.problem_data['trdone'] = False
 
     #Initialize q and aux
     xc=grid.x.center
     state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,solver.aux_bc_lower[0],xupper=xupper)
     qinit(state,ic=2,a2=1.0,xupper=xupper)
 
-    tfinal=500.; nout = 10;
+    tfinal=500.; num_output_times = 10;
 
     solver.max_steps = 5000000
     solver.fwave = True 
-    solver.start_step = b4step 
+    solver.before_step = b4step 
     solver.user_bc_lower=moving_wall_bc
     solver.user_bc_upper=zero_bc
     solver.num_waves=2
@@ -140,8 +140,8 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
 
     claw = pyclaw.Controller()
     claw.keep_copy = False
-    claw.outstyle = 1
-    claw.nout = nout
+    claw.output_style = 1
+    claw.num_output_times = num_output_times
     claw.tfinal = tfinal
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
@@ -156,9 +156,9 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
             a2=1.0 #a2values[ii]
             KB = Z
             rhoB = Z
-            state.aux_global['KB'] = KB
-            state.aux_global['rhoB'] = rhoB
-            state.aux_global['trdone'] = False
+            state.problem_data['KB'] = KB
+            state.problem_data['rhoB'] = rhoB
+            state.problem_data['trdone'] = False
             state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,bc_lower,xupper=xupper)
             grid.x.bc_lower=2
             grid.x.bc_upper=2

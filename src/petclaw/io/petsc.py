@@ -86,11 +86,11 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
         if write_p:
             pickle.dump({'t':solution.t,'num_eqn':solution.mp,'nstates':len(solution.states),
                          'num_aux':solution.num_aux,'ndim':solution.ndim,'write_aux':write_aux,
-                         'aux_global' : solution.aux_global}, pickle_file)
+                         'problem_data' : solution.problem_data}, pickle_file)
         else:
             pickle.dump({'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
                          'num_aux':solution.num_aux,'ndim':solution.ndim,'write_aux':write_aux,
-                         'aux_global' : solution.aux_global}, pickle_file)
+                         'problem_data' : solution.problem_data}, pickle_file)
 
     # now set up the PETSc viewers
     if options['format'] == 'ascii':
@@ -228,7 +228,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         #state = pyclaw.state.State(grid)
         state = petclaw.State(grid,num_eqn,num_aux) ##
         state.t = value_dict['t']
-        state.aux_global = value_dict['aux_global']
+        state.problem_data = value_dict['problem_data']
 
 #       DA View/Load is broken in Petsc-3.1.8, we can load/view the DA if needed in petsc-3.2
 #       state.q_da.load(viewer)

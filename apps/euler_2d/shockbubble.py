@@ -177,22 +177,22 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
         solver.lim_type=2
     else:
         solver = pyclaw.ClawSolver2D()
-        solver.dim_split = 0
-        solver.order_trans = 2
+        solver.dimensional_split = 0
+        solver.transverse_waves = 2
         solver.limiters = [4,4,4,4,2]
-        solver.step_src=step_Euler_radial
+        solver.step_source=step_Euler_radial
 
     solver.num_waves = 5
     solver.bc_lower[0]=pyclaw.BC.custom
-    solver.bc_upper[0]=pyclaw.BC.outflow
-    solver.bc_lower[1]=pyclaw.BC.reflecting
-    solver.bc_upper[1]=pyclaw.BC.outflow
+    solver.bc_upper[0]=pyclaw.BC.extrap
+    solver.bc_lower[1]=pyclaw.BC.wall
+    solver.bc_upper[1]=pyclaw.BC.extrap
 
     #Aux variable in ghost cells doesn't matter
-    solver.aux_bc_lower[0]=pyclaw.BC.outflow
-    solver.aux_bc_upper[0]=pyclaw.BC.outflow
-    solver.aux_bc_lower[1]=pyclaw.BC.outflow
-    solver.aux_bc_upper[1]=pyclaw.BC.outflow
+    solver.aux_bc_lower[0]=pyclaw.BC.extrap
+    solver.aux_bc_upper[0]=pyclaw.BC.extrap
+    solver.aux_bc_lower[1]=pyclaw.BC.extrap
+    solver.aux_bc_upper[1]=pyclaw.BC.extrap
 
     # Initialize grid
     mx=320; my=80
@@ -203,8 +203,8 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     num_aux=1
     state = pyclaw.State(grid,num_eqn,num_aux)
 
-    state.aux_global['gamma']= gamma
-    state.aux_global['gamma1']= gamma1
+    state.problem_data['gamma']= gamma
+    state.problem_data['gamma1']= gamma1
 
     qinit(state)
     auxinit(state)
@@ -215,7 +215,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     claw.tfinal = 0.75
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
-    claw.nout = 10
+    claw.num_output_times = 10
     claw.outdir = outdir
 
     # Solve

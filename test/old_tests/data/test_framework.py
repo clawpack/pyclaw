@@ -16,7 +16,7 @@ def true_solution(t):
     x = pyclaw.solution.Dimension('x',0.0,1.0,100)
     grid = pyclaw.solution.Grid(x)
     grid.t = t
-    grid.aux_global['efix'] = efix
+    grid.problem_data['efix'] = efix
     grid.empty_q()
 
     # Gaussian
@@ -35,7 +35,7 @@ controller = pyclaw.controller.Controller()
 controller.verbosity = 0
 controller.output_format = None
 controller.keep_copy = True
-controller.outstyle = 2
+controller.output_style = 2
 controller.out_times = [0.0,0.5,1.0]
         
 # Setup solver, using mainly defaults so should be setup later

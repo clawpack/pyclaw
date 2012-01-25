@@ -47,7 +47,7 @@ class Solution(object):
         Grid Attributes:
             'dimensions'
         State Attributes:
-            't','num_eqn','q','aux','capa','aux_global'
+            't','num_eqn','q','aux','capa','problem_data'
             
     :Initialization:
         
@@ -144,13 +144,13 @@ class Solution(object):
             setattr(self.states[0],'capa',value)
 
     @property
-    def aux_global(self):
-        r"""(dict) - :attr:`State.aux_global` of base state"""
-        return self._get_base_state_attribute('aux_global')
-    @aux_global.setter
-    def aux_global(self, value):
+    def problem_data(self):
+        r"""(dict) - :attr:`State.problem_data` of base state"""
+        return self._get_base_state_attribute('problem_data')
+    @problem_data.setter
+    def problem_data(self, value):
         if len(self.states) == 1: 
-            setattr(self.states[0],'aux_global',value)
+            setattr(self.states[0],'problem_data',value)
 
     @property
     def num_aux(self):

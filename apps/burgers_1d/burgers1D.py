@@ -38,7 +38,7 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
 
     xc=grid.x.center
     state.q[0,:] = np.sin(np.pi*2*xc) + 0.50
-    state.aux_global['efix']=True
+    state.problem_data['efix']=True
 
     #===========================================================================
     # Setup controller and controller parameters. Then solve the problem

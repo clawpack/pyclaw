@@ -20,18 +20,18 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     elif solver_type=='sharpclaw':
         solver=pyclaw.SharpClawSolver2D()
 
-    solver.dim_split=False
+    solver.dimensional_split=False
     solver.num_waves = 2
     solver.limiters = pyclaw.limiters.tvd.MC
 
-    solver.bc_lower[0]=pyclaw.BC.reflecting
-    solver.bc_upper[0]=pyclaw.BC.outflow
-    solver.bc_lower[1]=pyclaw.BC.reflecting
-    solver.bc_upper[1]=pyclaw.BC.outflow
-    solver.aux_bc_lower[0]=pyclaw.BC.reflecting
-    solver.aux_bc_upper[0]=pyclaw.BC.outflow
-    solver.aux_bc_lower[1]=pyclaw.BC.reflecting
-    solver.aux_bc_upper[1]=pyclaw.BC.outflow
+    solver.bc_lower[0]=pyclaw.BC.wall
+    solver.bc_upper[0]=pyclaw.BC.extrap
+    solver.bc_lower[1]=pyclaw.BC.wall
+    solver.bc_upper[1]=pyclaw.BC.extrap
+    solver.aux_bc_lower[0]=pyclaw.BC.wall
+    solver.aux_bc_upper[0]=pyclaw.BC.extrap
+    solver.aux_bc_lower[1]=pyclaw.BC.wall
+    solver.aux_bc_upper[1]=pyclaw.BC.extrap
 
     # Initialize grid
     mx=200; my=200
@@ -69,7 +69,7 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir=outdir
-    claw.nout = 20
+    claw.num_output_times = 20
 
     # Solve
     claw.tfinal = 0.6
@@ -79,9 +79,9 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,format=claw.output_format)
 
     if use_petsc:
-        pressure=claw.frames[claw.nout].state.gqVec.getArray().reshape([grid.ng[0],grid.ng[1],state.num_eqn])[:,:,0]
+        pressure=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([grid.ng[0],grid.ng[1],state.num_eqn])[:,:,0]
     else:
-        pressure=claw.frames[claw.nout].state.q[:,:,0]
+        pressure=claw.frames[claw.num_output_times].state.q[:,:,0]
     return pressure
 
 

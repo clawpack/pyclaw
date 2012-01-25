@@ -29,7 +29,7 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
     grid = pyclaw.Grid(x)
     num_eqn = 1
     state = pyclaw.State(grid,num_eqn)
-    state.aux_global['u']=1.
+    state.problem_data['u']=1.
 
     xc=grid.x.center
     beta=100; gamma=0; x0=0.75

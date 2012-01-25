@@ -273,7 +273,7 @@ def test_2D_acoustics_1a_parallel():
         verify_x=numpy.loadtxt('test/acoustics2D_solution')
         return (numpy.linalg.norm(test_x-verify_x)<1.e-14)
 
-    method_options = {'use_petsc' : True, 'solver_type' : 'classic', 'np':6, 'nout':10}
+    method_options = {'use_petsc' : True, 'solver_type' : 'classic', 'np':6, 'num_output_times':10}
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_classic, method_options)
 
 
@@ -296,7 +296,7 @@ def test_2D_shockbubble_classic_parallel():
         verify_x=numpy.loadtxt('test/sb_density')
         return numpy.max(abs(test_x-verify_x))<1.e-14
 
-    method_options = {'use_petsc' : True, 'solver_type' : 'classic', 'np':6, 'nout':10}
+    method_options = {'use_petsc' : True, 'solver_type' : 'classic', 'np':6, 'num_output_times':10}
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
 
 

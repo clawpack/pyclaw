@@ -53,7 +53,7 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
 
     solver.num_waves = 1
 
-    solver.dim_split = 0
+    solver.dimensional_split = 0
 
     solver.cfl_max=1.0
     solver.cfl_desired = 0.9
@@ -75,8 +75,8 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
     num_eqn = 1
     state = pyclaw.State(grid,num_eqn)
 
-    state.aux_global['u'] = 0.5 # Parameters (global auxiliary variables)
-    state.aux_global['v'] = 1.0
+    state.problem_data['u'] = 0.5 # Parameters (global auxiliary variables)
+    state.problem_data['v'] = 1.0
 
     # Initial solution
     # ================

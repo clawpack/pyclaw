@@ -16,7 +16,7 @@ def qinit(state,width=0.2):
     state.q[2,:,:] = 0.
 
 
-def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=False,solver_type='classic', outdir = './_output', nout = 10):
+def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=False,solver_type='classic', outdir = './_output', num_output_times = 10):
     """
     Example python script for solving the 2d acoustics equations.
     """
@@ -27,7 +27,7 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
 
     if solver_type=='classic':
         solver = pyclaw.ClawSolver2D()
-        solver.dim_split = 1
+        solver.dimensional_split = 1
         solver.num_waves = 2
         solver.limiters = [4]*solver.num_waves
     elif solver_type=='sharpclaw':
@@ -36,10 +36,10 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
 
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
-    solver.bc_lower[0] = pyclaw.BC.outflow
-    solver.bc_upper[0] = pyclaw.BC.outflow
-    solver.bc_lower[1] = pyclaw.BC.outflow
-    solver.bc_upper[1] = pyclaw.BC.outflow
+    solver.bc_lower[0] = pyclaw.BC.extrap
+    solver.bc_upper[0] = pyclaw.BC.extrap
+    solver.bc_lower[1] = pyclaw.BC.extrap
+    solver.bc_upper[1] = pyclaw.BC.extrap
 
     # Initialize grid
     mx=100; my=100
@@ -53,17 +53,17 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     bulk = 4.0
     cc = np.sqrt(bulk/rho)
     zz = rho*cc
-    state.aux_global['rho']= rho
-    state.aux_global['bulk']=bulk
-    state.aux_global['zz']= zz
-    state.aux_global['cc']=cc
+    state.problem_data['rho']= rho
+    state.problem_data['bulk']=bulk
+    state.problem_data['zz']= zz
+    state.problem_data['cc']=cc
 
     tfinal = 0.12
 
     qinit(state)
     initial_solution = pyclaw.Solution(state)
 
-    solver.dt_initial=np.min(grid.d)/state.aux_global['cc']*solver.cfl_desired
+    solver.dt_initial=np.min(grid.d)/state.problem_data['cc']*solver.cfl_desired
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
@@ -72,7 +72,7 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     claw.solution = initial_solution
     claw.solver = solver
     claw.outdir = outdir
-    claw.nout = nout
+    claw.num_output_times = num_output_times
 
     # Solve
     status = claw.run()
@@ -81,9 +81,9 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     if iplot:     pyclaw.plot.interactive_plot()
 
     if use_petsc:
-        pressure=claw.frames[claw.nout].state.gqVec.getArray().reshape([state.num_eqn,grid.ng[0],grid.ng[1]],order='F')[0,:,:]
+        pressure=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([state.num_eqn,grid.ng[0],grid.ng[1]],order='F')[0,:,:]
     else:
-        pressure=claw.frames[claw.nout].state.q[0,:,:]
+        pressure=claw.frames[claw.num_output_times].state.q[0,:,:]
     return pressure
 
 

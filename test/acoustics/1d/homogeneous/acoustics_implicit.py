@@ -22,8 +22,8 @@ class AcousticEquation:
 
     def ijacobian(self, ts, t, X, Xdot, a, J, P):
         from assembly import formIJacobian
-        cc = self.grid.aux_global['cc']
-        zz = self.grid.aux_global['zz']
+        cc = self.grid.problem_data['cc']
+        zz = self.grid.problem_data['zz']
         xmin = self.grid.x.lower
         xmax = self.grid.x.upper
         return formIJacobian(ts, t, X, Xdot, a, J, P, cc, zz, xmin, xmax)
@@ -50,12 +50,12 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
     grid = Grid(x)
     rho = 1.0
     bulk = 1.0
-    grid.aux_global['rho']=rho
-    grid.aux_global['bulk']=bulk
-    grid.aux_global['zz']=np.sqrt(rho*bulk)
-    grid.aux_global['cc']=np.sqrt(rho/bulk)
+    grid.problem_data['rho']=rho
+    grid.problem_data['bulk']=bulk
+    grid.problem_data['zz']=np.sqrt(rho*bulk)
+    grid.problem_data['cc']=np.sqrt(rho/bulk)
     from classic1 import cparam 
-    for key,value in grid.aux_global.iteritems(): setattr(cparam,key,value)
+    for key,value in grid.problem_data.iteritems(): setattr(cparam,key,value)
     grid.num_eqn=2
     if sclaw:
         grid.num_ghost=3
@@ -88,13 +88,13 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
         solver.mthlim = limiters.tvd.MC
 
     if kernel_language=='Python': solver.set_riemann_solver('acoustics')
-    solver.dt=grid.d[0]/grid.aux_global['cc']*0.1
+    solver.dt=grid.d[0]/grid.problem_data['cc']*0.1
     solver.kernel_language=kernel_language
 
     claw = Controller()
-    #claw.outstyle = 3
+    #claw.output_style = 3
     claw.keep_copy = True
-    claw.nout = 5
+    claw.num_output_times = 5
     # The output format MUST be set to petsc!
     claw.output_format = 'ascii'
     claw.outdir = outdir
@@ -134,7 +134,7 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
         #exactly once, and the final solution should be equal to the
         #initial condition.  Here we output the 1-norm of their difference.
         q0=claw.frames[0].grid.gqVec.getArray().reshape([-1])
-        qfinal=claw.frames[claw.nout].grid.gqVec.getArray().reshape([-1])
+        qfinal=claw.frames[claw.num_output_times].grid.gqVec.getArray().reshape([-1])
         dx=claw.frames[0].grid.d[0]
 
     if htmlplot:  plot.html_plot(outdir=outdir,format=output_format)

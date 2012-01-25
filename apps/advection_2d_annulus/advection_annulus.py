@@ -199,8 +199,8 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
         solver = pyclaw.SharpClawSolver2D()
 
 
-    solver.bc_lower[0] = pyclaw.BC.outflow
-    solver.bc_upper[0] = pyclaw.BC.outflow
+    solver.bc_lower[0] = pyclaw.BC.extrap
+    solver.bc_upper[0] = pyclaw.BC.extrap
     solver.bc_lower[1] = pyclaw.BC.periodic
     solver.bc_upper[1] = pyclaw.BC.periodic
 
@@ -213,8 +213,8 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
 
     solver.num_waves = 1
 
-    solver.dim_split = 0
-    solver.order_trans = 2
+    solver.dimensional_split = 0
+    solver.transverse_waves = 2
     solver.order = 2
 
     solver.dt_initial = 0.1
@@ -261,8 +261,8 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     #===========================================================================
     claw = pyclaw.Controller()
     claw.keep_copy = False
-    claw.outstyle = 1
-    claw.nout = 10
+    claw.output_style = 1
+    claw.num_output_times = 10
     claw.tfinal = 1.0
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver

@@ -42,7 +42,7 @@ class State(object):
 
     Note that state.q and state.aux are initialized as empty arrays (not zeroed).
     Additional parameters, such as scalar values that are used in the Riemann solver,
-    can be set using the dictionary state.aux_global.
+    can be set using the dictionary state.problem_data.
     """
 
     # ========== Property Definitions ========================================
@@ -97,7 +97,7 @@ class State(object):
         r"""(ndarray(mp,...)) - Cell averages of derived quantities."""
         self.F   = None
         r"""(ndarray(mF,...)) - Cell averages of output functional densities."""
-        self.aux_global = {}
+        self.problem_data = {}
         r"""(dict) - Dictionary of global values for this grid, 
             ``default = {}``"""
         self.t=0.
@@ -115,8 +115,8 @@ class State(object):
         output += "Number of conserved quantities: %s\n" % str(self.q.shape[0])
         if self.aux is not None:
             output += "Number of auxiliary fields: %s\n" % str(self.aux.shape[0])
-        if self.aux_global != {}:
-            output += "aux_global: "+self.aux_global.__str__()
+        if self.problem_data != {}:
+            output += "problem_data: "+self.problem_data.__str__()
         return output
 
     def is_valid(self):
@@ -145,23 +145,23 @@ class State(object):
     def set_cparam(self,fortran_module):
         """
         Set the variables in fortran_module.cparam to the corresponding values in
-        grid.aux_global.  This is the mechanism for passing scalar variables to the
+        grid.problem_data.  This is the mechanism for passing scalar variables to the
         Fortran Riemann solvers; cparam must be defined as a common block in the
         Riemann solver.
 
         This function should be called from solver.setup().  This seems like a fragile
-        interdependency between solver and grid; perhaps aux_global should belong
+        interdependency between solver and grid; perhaps problem_data should belong
         to solver instead of state.
 
         This function also checks that the set of variables defined in cparam 
-        all appear in aux_global.
+        all appear in problem_data.
         """
         if hasattr(fortran_module,'cparam'):
-            if not set(dir(fortran_module.cparam)) <= set(self.aux_global.keys()):
+            if not set(dir(fortran_module.cparam)) <= set(self.problem_data.keys()):
                 raise Exception("""Some required value(s) in the cparam common 
                                    block in the Riemann solver have not been 
-                                   set in aux_global.""")
-            for global_var_name,global_var_value in self.aux_global.iteritems(): 
+                                   set in problem_data.""")
+            for global_var_name,global_var_value in self.problem_data.iteritems(): 
                 setattr(fortran_module.cparam,global_var_name,global_var_value)
 
     def set_num_ghost(self,num_ghost):
@@ -225,7 +225,7 @@ class State(object):
             result.q = copy.deepcopy(self.q)
         if self.aux is not None:
             result.aux = copy.deepcopy(self.aux)
-        result.aux_global = copy.deepcopy(self.aux_global)
+        result.problem_data = copy.deepcopy(self.problem_data)
         
         return result
 

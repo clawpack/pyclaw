@@ -42,7 +42,7 @@ def fig_61_62_63(kernel_language='Python',iplot=False,htmlplot=False,solver_type
     grid = pyclaw.Grid(x)
     num_eqn = 1
     state = pyclaw.State(grid,num_eqn)
-    state.aux_global['u']=1.
+    state.problem_data['u']=1.
 
     xc=grid.x.center
     if IC=='gauss_square':

@@ -13,9 +13,9 @@ class BC():
     """Enumeration of boundary condition names.
        This could instead just be a static dictionary."""
     custom     = 0
-    outflow    = 1
+    extrap    = 1
     periodic   = 2
-    reflecting = 3
+    wall = 3
 
 #################### Dummy routines ######################
 def default_compute_gauge_values(q,aux):
@@ -289,9 +289,9 @@ class Solver(object):
         
         - 'custom'     or 0: A user defined boundary condition will be used, the appropriate 
             Dimension method user_bc_lower or user_bc_upper will be called.
-        - 'outflow'    or 1: Zero-order extrapolation.
+        - 'extrap'    or 1: Zero-order extrapolation.
         - 'periodic'   or 2: Periodic boundary conditions.
-        - 'reflecting' or 3: Wall boundary conditions. It is assumed that the second 
+        - 'wall' or 3: Wall boundary conditions. It is assumed that the second 
             component of q represents velocity or momentum.
     
         :Input:
@@ -366,13 +366,13 @@ class Solver(object):
         """
         if self.bc_lower[idim] == BC.custom: 
             self.user_bc_lower(state,dim,t,qbc,self.num_ghost)
-        elif self.bc_lower[idim] == BC.outflow:
+        elif self.bc_lower[idim] == BC.extrap:
             for i in xrange(self.num_ghost):
                 qbc[:,i,...] = qbc[:,self.num_ghost,...]
         elif self.bc_lower[idim] == BC.periodic:
             # This process owns the whole grid
             qbc[:,:self.num_ghost,...] = qbc[:,-2*self.num_ghost:-self.num_ghost,...]
-        elif self.bc_lower[idim] == BC.reflecting:
+        elif self.bc_lower[idim] == BC.wall:
             for i in xrange(self.num_ghost):
                 qbc[:,i,...] = qbc[:,2*self.num_ghost-1-i,...]
                 qbc[idim+1,i,...] = -qbc[idim+1,2*self.num_ghost-1-i,...] # Negate normal velocity
@@ -401,13 +401,13 @@ class Solver(object):
  
         if self.bc_upper[idim] == BC.custom:
             self.user_bc_upper(state,dim,t,qbc,self.num_ghost)
-        elif self.bc_upper[idim] == BC.outflow:
+        elif self.bc_upper[idim] == BC.extrap:
             for i in xrange(self.num_ghost):
                 qbc[:,-i-1,...] = qbc[:,-self.num_ghost-1,...] 
         elif self.bc_upper[idim] == BC.periodic:
             # This process owns the whole grid
             qbc[:,-self.num_ghost:,...] = qbc[:,self.num_ghost:2*self.num_ghost,...]
-        elif self.bc_upper[idim] == BC.reflecting:
+        elif self.bc_upper[idim] == BC.wall:
             for i in xrange(self.num_ghost):
                 qbc[:,-i-1,...] = qbc[:,-2*self.num_ghost+i,...]
                 qbc[idim+1,-i-1,...] = -qbc[idim+1,-2*self.num_ghost+i,...] # Negate normal velocity
@@ -428,9 +428,9 @@ class Solver(object):
         
         - 'custom'     or 0: A user defined boundary condition will be used, the appropriate 
             Dimension method user_aux_bc_lower or user_aux_bc_upper will be called.
-        - 'outflow'    or 1: Zero-order extrapolation.
+        - 'extrap'    or 1: Zero-order extrapolation.
         - 'periodic'   or 2: Periodic boundary conditions.
-        - 'reflecting' or 3: Wall boundary conditions. It is assumed that the second 
+        - 'wall' or 3: Wall boundary conditions. It is assumed that the second 
             component of q represents velocity or momentum.
     
         :Input:
@@ -506,13 +506,13 @@ class Solver(object):
         """
         if self.aux_bc_lower[idim] == BC.custom: 
             self.user_aux_bc_lower(state,dim,t,auxbc,self.num_ghost)
-        elif self.aux_bc_lower[idim] == BC.outflow:
+        elif self.aux_bc_lower[idim] == BC.extrap:
             for i in xrange(self.num_ghost):
                 auxbc[:,i,...] = auxbc[:,self.num_ghost,...]
         elif self.aux_bc_lower[idim] == BC.periodic:
             # This process owns the whole grid
             auxbc[:,:self.num_ghost,...] = auxbc[:,-2*self.num_ghost:-self.num_ghost,...]
-        elif self.aux_bc_lower[idim] == BC.reflecting:
+        elif self.aux_bc_lower[idim] == BC.wall:
             for i in xrange(self.num_ghost):
                 auxbc[:,i,...] = auxbc[:,2*self.num_ghost-1-i,...]
         elif self.aux_bc_lower[idim] is None:
@@ -542,13 +542,13 @@ class Solver(object):
  
         if self.aux_bc_upper[idim] == BC.custom:
             self.user_aux_bc_upper(state,dim,t,auxbc,self.num_ghost)
-        elif self.aux_bc_upper[idim] == BC.outflow:
+        elif self.aux_bc_upper[idim] == BC.extrap:
             for i in xrange(self.num_ghost):
                 auxbc[:,-i-1,...] = auxbc[:,-self.num_ghost-1,...] 
         elif self.aux_bc_upper[idim] == BC.periodic:
             # This process owns the whole grid
             auxbc[:,-self.num_ghost:,...] = auxbc[:,self.num_ghost:2*self.num_ghost,...]
-        elif self.aux_bc_upper[idim] == BC.reflecting:
+        elif self.aux_bc_upper[idim] == BC.wall:
             for i in xrange(self.num_ghost):
                 auxbc[:,-i-1,...] = auxbc[:,-2*self.num_ghost+i,...]
         elif self.aux_bc_lower[idim] is None:

@@ -49,10 +49,10 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     #========================================================================
     rho = 1.0
     bulk = 1.0
-    state.aux_global['rho']=rho
-    state.aux_global['bulk']=bulk
-    state.aux_global['zz']=sqrt(rho*bulk)
-    state.aux_global['cc']=sqrt(bulk/rho)
+    state.problem_data['rho']=rho
+    state.problem_data['bulk']=bulk
+    state.problem_data['zz']=sqrt(rho*bulk)
+    state.problem_data['cc']=sqrt(bulk/rho)
 
     #========================================================================
     # Set the initial condition

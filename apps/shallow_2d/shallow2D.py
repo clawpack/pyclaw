@@ -47,11 +47,11 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     solver.num_waves = 3
     solver.limiters = pyclaw.limiters.tvd.MC
 
-    solver.bc_lower[0] = pyclaw.BC.outflow
-    solver.bc_upper[0] = pyclaw.BC.reflecting
-    solver.bc_lower[1] = pyclaw.BC.outflow
-    solver.bc_upper[1] = pyclaw.BC.reflecting
-    solver.dim_split=1
+    solver.bc_lower[0] = pyclaw.BC.extrap
+    solver.bc_upper[0] = pyclaw.BC.wall
+    solver.bc_lower[1] = pyclaw.BC.extrap
+    solver.bc_upper[1] = pyclaw.BC.wall
+    solver.dimensional_split=1
 
     #===========================================================================
     # Initialize grid and state, then initialize the solution associated to the 
@@ -73,7 +73,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     state = pyclaw.State(grid,num_eqn)
 
     grav = 1.0 # Parameter (global auxiliary variable)
-    state.aux_global['grav'] = grav
+    state.problem_data['grav'] = grav
 
     # Initial solution
     # ================
@@ -96,7 +96,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir
-    claw.nout = 10
+    claw.num_output_times = 10
 
     #===========================================================================
     # Solve the problem
