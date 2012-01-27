@@ -1,32 +1,21 @@
 #!/usr/bin/env python
 # encoding: utf-8
 r"""
-Controller for basic computation and plotting setup
+Controller for basic computation and plotting setup.
 
 This module defines the Pyclaw controller class.  It can be used to perform
-simulations similar to previous versions of clawpack, i.e. with outstyle and
-output time specification.  It also can be used to setup easy plotting and 
+simulations similar to previous versions of Clawpack, i.e. with output_style and
+output time specification.  It also can be used to set up easy plotting and 
 running of compiled fortran binaries.
-
-:Authors:
-    Kyle T. Mandli (2008-02-15) Initial version
-    
-    Randall J. LeVeque and Kyle T Mandli (2009) Plotting and run updates
-
-    David I. Ketcheson (2011) Minor additional functionality
 """
 
 import logging
 import sys
 import os
 import copy
-import shutil
-import time
 
-from data import Data
-from solution import Solution
-from solver import Solver
-from util import FrameCounter
+from pyclaw.solver import Solver
+from pyclaw.util import FrameCounter
 
 class Controller(object):
     r"""Controller for pyclaw simulation runs and plotting
@@ -35,7 +24,15 @@ class Controller(object):
     
         Input: None
     
-    :Version: 1.0 (2009-06-01)
+    :Examples:
+
+        >>> import pyclaw
+        >>> x = pyclaw.Dimension('x',0.,1.,100)
+        >>> grid = pyclaw.Grid((x))
+        >>> state = pyclaw.State(grid,3,2)
+        >>> claw = pyclaw.Controller()
+        >>> claw.solution = pyclaw.Solution(state)
+        >>> claw.solver = pyclaw.ClawSolver1D()
     """
     #  ======================================================================
     #   Initialization routines
@@ -53,8 +50,8 @@ class Controller(object):
                         'xclawcmd','xclawout','xclawerr','runmake','savecode',
                         'solver','keep_copy','write_aux_init',
                         'write_aux_always','output_format',
-                        'output_file_prefix','output_options','nout',
-                        'outstyle','verbosity']
+                        'output_file_prefix','output_options','num_output_times',
+                        'output_style','verbosity']
         r"""(list) - Viewable attributes of the `:class:`~pyclaw.controller.Controller`"""
 
         # Global information for running and/or plotting
@@ -72,7 +69,7 @@ class Controller(object):
         r"""(string) - Command to execute (if using fortran), defaults to xclaw or
         xclaw.exe if cygwin is being used (which it checks vis sys.platform)"""
         if sys.platform == 'cygwin':
-             self.xclawcmd = 'xclaw.exe'
+            self.xclawcmd = 'xclaw.exe'
 
         self.start_frame = 0
         self.xclawout = None
@@ -114,20 +111,20 @@ class Controller(object):
         # Classic output parameters, used in run convenience method
         self.tfinal = 1.0
         r"""(float) - Final time output, ``default = 1.0``"""
-        self.outstyle = 1
+        self.output_style = 1
         r"""(int) - Time output style, ``default = 1``"""
         self.verbosity = 0 
         r"""(int) - Level of output, ``default = 0``"""
-        self.nout = 10                  # Outstyle 1 defaults
-        r"""(int) - Number of output times, only used with ``outstyle = 1``,
+        self.num_output_times = 10                  # Outstyle 1 defaults
+        r"""(int) - Number of output times, only used with ``output_style = 1``,
         ``default = 10``"""
-        self.out_times = np.linspace(0.0,self.tfinal,self.nout) # Outstyle 2
-        r"""(int) - Output time list, only used with ``outstyle = 2``,
-        ``default = numpy.linspace(0.0,tfinal,nout)``"""
+        self.out_times = np.linspace(0.0,self.tfinal,self.num_output_times) # Outstyle 2
+        r"""(int) - Output time list, only used with ``output_style = 2``,
+        ``default = numpy.linspace(0.0,tfinal,num_output_times)``"""
         
         self.nstepout = 1               # Outstyle 3 defaults
         r"""(int) - Number of steps between output, only used with 
-        ``outstyle = 3``, ``default = 1``"""
+        ``output_style = 3``, ``default = 1``"""
         
         # Data objects
         self.plotdata = None
@@ -226,15 +223,15 @@ class Controller(object):
         self.solver.write_gauge_values(self.solution)
 
         # Output styles
-        if self.outstyle == 1:
+        if self.output_style == 1:
             output_times = np.linspace(self.solution.t,
-                    self.tfinal,self.nout+1)
-        elif self.outstyle == 2:
+                    self.tfinal,self.num_output_times+1)
+        elif self.output_style == 2:
             output_times = self.out_times
-        elif self.outstyle == 3:
-            output_times = np.ones((self.nout+1))
+        elif self.output_style == 3:
+            output_times = np.ones((self.num_output_times+1))
         else:
-            raise Exception("Invalid output style %s" % self.outstyle)  
+            raise Exception("Invalid output style %s" % self.output_style)  
          
         # Output and save initial frame
         if self.keep_copy:
@@ -264,7 +261,7 @@ class Controller(object):
                         (frame,self.solution.t) )
 
         for t in output_times[1:]:                
-            if self.outstyle < 3:
+            if self.output_style < 3:
                 status = self.solver.evolve_to_time(self.solution,t)
             else:
                 # Take nstepout steps and output
@@ -293,11 +290,11 @@ class Controller(object):
 
             logging.info("Solution %s computed for time t=%f"
                 % (frame,self.solution.t))
-            for file in self.solution.state.grid.gauge_files: 
-                file.flush()
+            for gfile in self.solution.state.grid.gauge_files: 
+                gfile.flush()
             
         self.solver.teardown()
-        for file in self.solution.state.grid.gauge_files: file.close()
+        for gfile in self.solution.state.grid.gauge_files: gfile.close()
 
         # Return the current status of the solver
         return status
@@ -319,115 +316,6 @@ class Controller(object):
     def is_proc_0(self):
         return True
 
-    # ========== Output Data object based on solver and solution =======
-    def get_data(self,claw_path=None):
-        r"""
-        Create a data object from this controller's solver and solution
-        
-        This function will take the current solver and solution and
-        create a data object that can be read in via classic clawpack.
-        
-        If claw_path is provided, then the data that should be written to the
-        claw.data file will be written to that path.
-        
-        :Input:
-            - *claw_path* - (string) Path to write data file to
-            
-        :Output:
-            - (:class:`~pyclaw.data.Data`) - Data object claw_data containing 
-              the appropriate data for a claw.data file.
-        """
-        
-        # Check to make sure we have a valid solver and solution
-        if not self.solver.is_valid() or not self.solution.is_valid():
-            raise Exception("Invalid solver or solution.")
-        
-        claw_data = Data()
-        
-        claw_data.add_attribute('ndim',value=self.solution.ndim)
-        claw_data.add_attribute('mx',value=self.solution.dimensions[0].n)
-        if claw_data.ndim > 1:
-            claw_data.add_attribute('my',value=self.solution.dimensions[1].n)
-        if claw_data.ndim > 2:
-            claw_data.add_attribute('mz',value=self.solution.dimensions[2].n)
-            
-        claw_data.add_attribute('nout',value=self.nout)
-        claw_data.add_attribute('outstyle',value=self.outstyle)
-        if claw_data.outstyle == 2:
-            claw_data.add_attribute('out_times',value=self.out_times)
-        elif claw_data.outstyle == 3:
-            claw_data.add_attribute('nstepout',value=self.nstepout)
-            
-        claw_data.add_attribute('dt_initial',value=self.solver.dt)
-        claw_data.add_attribute('dt_max',value=self.solver.dt_max)
-        claw_data.add_attribute('cfl_max',value=self.solver.cfl_max)
-        claw_data.add_attribute('cfl_desired',value=self.solver.cfl_desired)
-        claw_data.add_attribute('max_steps',value=self.solver.max_steps)
-        
-        if self.solver.dt_variable:
-            claw_data.add_attribute('dt_variable',value=1)
-        else:
-            claw_data.add_attribute('dt_variable',value=0)
-        claw_data.add_attribute('order',value=self.solver.order)
-        if claw_data.ndim == 1:
-            claw_data.add_attribute('order_trans',value=0)
-        else:
-            claw_data.add_attribute('order_trans',value=self.solver.order_trans)
-        claw_data.add_attribute('verbosity',value=self.verbosity)
-        claw_data.add_attribute('src_split',value=self.solver.src_split)
-        if self.solution.capa is not None:
-            raise Exception("Not sure what to do here, they're are different!")
-        else:
-            claw_data.add_attribute('mcapa',value=0)
-        claw_data.add_attribute('maux',value=self.solution.maux)
-        
-        claw_data.add_attribute('meqn',value=self.solution.meqn)
-        # claw_data.add_attribute('mwaves',value=self.solution.mwaves)
-        claw_data.add_attribute('mthlim',value=self.solver.mthlim)
-        
-        claw_data.add_attribute('t0',value=self.solution.t)
-        claw_data.add_attribute('xlower',
-                                    value=self.solution.dimensions[0].lower)
-        claw_data.add_attribute('xupper',
-                                    value=self.solution.dimensions[0].upper)
-        if claw_data.ndim > 1:
-            claw_data.add_attribute('ylower',
-                                    value=self.solution.dimensions[1].lower)
-            claw_data.add_attribute('yupper',
-                                    value=self.solution.dimensions[1].upper)
-        if claw_data.ndim > 2:
-            claw_data.add_attribute('zlower',
-                                    value=self.solution.dimensions[2].lower)
-            claw_data.add_attribute('zupper',
-                                    value=self.solution.dimensions[2].upper)
-        
-        claw_data.add_attribute('mbc',value=self.solution.mbc)
-        claw_data.add_attribute('bc_xlower',
-                                value=self.solution.dimensions[0].bc_lower)
-        claw_data.add_attribute('bc_xupper',
-                                value=self.solution.dimensions[0].bc_upper)
-        if claw_data.ndim > 1:
-            claw_data.add_attribute('bc_ylower',
-                                value=self.solution.dimensions[1].bc_lower)
-            claw_data.add_attribute('bc_yupper',
-                                value=self.solution.dimensions[1].bc_upper)
-        if claw_data.ndim > 2:
-            claw_data.add_attribute('bc_zlower',
-                                value=self.solution.dimensions[2].bc_lower)
-            claw_data.add_attribute('bc_zupper',
-                                value=self.solution.dimensions[2].bc_upper) 
-            
-        if claw_path is not None:
-            # Write out this data object
-            pass
-
-        return claw_data
-        
-    def read_data(self,path):
-        r"""Read in a claw.data file and initialize accordingly
-        
-        .. warning::
-            
-            Not implemented!
-        """
-        raise NotImplementedException()
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

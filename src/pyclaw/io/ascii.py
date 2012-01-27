@@ -32,7 +32,7 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
     that there are some parameters that assumed to be the same for every grid
     in this format which is not necessarily true for the actual data objects.
     Make sure that if you use this output format that all of you grids share
-    the appropriate values of ndim, meqn, maux, and t.  Only supports up to
+    the appropriate values of ndim, num_eqn, num_aux, and t.  Only supports up to
     3 dimensions.
     
     :Input:
@@ -43,19 +43,9 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
      - *file_prefix* - (string) Prefix for the file name.  ``default = 'fort'``
      - *write_aux* - (bool) Boolean controlling whether the associated 
        auxiliary array should be written out.  ``default = False``
-     - *options* - (dict) Optional argument dictionary which in the case for
-       ``ascii`` output contains nothing.
-
+     - *options* - (dict) Dictionary of optional arguments dependent on 
+       the format being written.  ``default = {}``
     """
-    
-    # Option parsing
-    option_defaults = {}
-    for (k,v) in option_defaults.iteritems():
-        if options.has_key(k):
-            exec("%s = options['%s']" % (k,k))
-        else:
-            exec('%s = v' % k)
-    
     try:
         # Create file name
         file_name = '%s.t%s' % (file_prefix,str(frame).zfill(4))
@@ -63,9 +53,9 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
         
         # Header for fort.txxxx file
         f.write("%18.8e     time\n" % solution.t)
-        f.write("%5i                  meqn\n" % solution.meqn)
+        f.write("%5i                  num_eqn\n" % solution.num_eqn)
         f.write("%5i                  nstates\n" % len(solution.states))
-        f.write("%5i                  maux\n" % solution.maux)
+        f.write("%5i                  num_aux\n" % solution.num_aux)
         f.write("%5i                  ndim\n" % solution.ndim)
         f.close()
         
@@ -73,8 +63,8 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
         file_name = 'fort.q%s' % str(frame).zfill(4)
         q_file = open(os.path.join(path,file_name),'w')
         
-        # If maux != 0 then we open up a file to write it out as well
-        if solution.maux > 0 and write_aux:
+        # If num_aux != 0 then we open up a file to write it out as well
+        if solution.num_aux > 0 and write_aux:
             file_name = 'fort.a%s' % str(frame).zfill(4)
             aux_file = open(os.path.join(path,file_name),'w')
         
@@ -102,13 +92,13 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
             dims = grid.dimensions
             if grid.ndim == 1:
                 for k in xrange(dims[0].n):
-                    for m in xrange(solution.meqn):
+                    for m in xrange(solution.num_eqn):
                         q_file.write("%18.8e" % q[m,k])
                     q_file.write('\n')
             elif grid.ndim == 2:
                 for j in xrange(dims[1].n):
                     for k in xrange(dims[0].n):
-                        for m in xrange(solution.meqn):
+                        for m in xrange(solution.num_eqn):
                             q_file.write("%18.8e" % q[m,k,j])
                         q_file.write('\n')
                     q_file.write('\n')
@@ -116,7 +106,7 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
                 for l in xrange(dims[2].n):
                     for j in xrange(dims[1].n):
                         for k in xrange(dims[0].n):
-                            for m in range(solution.meqn):
+                            for m in range(solution.num_eqn):
                                 q_file.write("%18.8e" % q[m,k,j,l])
                             q_file.write('\n')
                     q_file.write('\n')
@@ -124,7 +114,7 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
             else:
                 raise Exception("Dimension Exception in writing fort file.")
             
-            if state.maux > 0 and write_aux:
+            if state.num_aux > 0 and write_aux:
                 aux = state.aux
                 
                 aux_file.write("%5i                  grid_number\n" % grid.gridno)
@@ -140,13 +130,13 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
                 aux_file.write("\n")
                 if grid.ndim == 1:
                     for k in xrange(grid.dimensions[0]):
-                        for m in xrange(state.maux):
+                        for m in xrange(state.num_aux):
                             aux_file.write("%18.8e" % aux[m,k])
                         aux_file.write('\n')
                 elif grid.ndim == 2:
                     for j in xrange(grid.dimensions[1].n):
                         for k in xrange(grid.dimension[0].n):
-                            for m in xrange(state.maux):
+                            for m in xrange(state.num_aux):
                                 aux_file.write("%18.8e" % aux[m,k,j])
                             aux_file.write('\n')    
                         aux_file.write('\n')
@@ -154,14 +144,14 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
                     for l in xrange(grid.dimensions[2].n):
                         for j in xrange(grid.dimensions[1].n):
                             for k in xrange(grid.dimensions[0].n):
-                                for m in xrange(grid.maux):
+                                for m in xrange(grid.num_aux):
                                     aux_file.write("%18.8e" % aux[m,k,j,l])
                                 aux_file.write('\n')
                             aux_file.write('\n')    
                         aux_file.write('\n')
     
         q_file.close()
-        if state.maux > 0 and write_aux:
+        if state.num_aux > 0 and write_aux:
             aux_file.close()
     except IOError, (errno, strerror):
         logger.error("Error writing file: %s" % os.path.join(path,file_name))
@@ -189,21 +179,11 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
        ``default = 'fort'``
      - *read_aux* (bool) Whether or not an auxillary file will try to be read 
        in.  ``default = False``
-     - *options* - (dict) Dictionary of options particular to this format 
-       which in the case of ``ascii`` files is empty.
-    
+     - *options* - (dict) Dictionary of optional arguments dependent on 
+       the format being read in.  ``default = {}``
     """
     
     import numpy as np
-
-    # Option parsing
-    option_defaults = {}
-    
-    for (k,v) in option_defaults.iteritems():
-        if options.has_key(k):
-            exec("%s = options['%s']" % (k,k))
-        else:
-            exec('%s = v' % k)
 
     if frame < 0:
         # Don't construct file names with negative frameno values.
@@ -215,7 +195,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
     q_fname = os.path.join(base_path, '%s.q' % file_prefix) + str(frame).zfill(4)
 
     # Read in values from fort.t file:
-    [t,meqn,nstates,maux,ndim] = read_ascii_t(frame,path,file_prefix)
+    [t,num_eqn,nstates,num_aux,ndim] = read_ascii_t(frame,path,file_prefix)
     
     # Read in values from fort.q file:
     try:
@@ -249,7 +229,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 dimensions.append(
                     pyclaw.grid.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
             grid = pyclaw.grid.Grid(dimensions)
-            state= pyclaw.state.State(grid,meqn,maux)
+            state= pyclaw.state.State(grid,num_eqn,num_aux)
             state.t = t
 
 
@@ -258,38 +238,37 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
             # like to delete this and initialize grid.aux only if it will be
             # read in below, but for some reason that doesn't work.
 
-            if maux > 0:   
+            if num_aux > 0:   
                 state.aux[:]=0.
             
             # Fill in q values
             if grid.ndim == 1:
                 for i in xrange(grid.dimensions[0].n):
                     l = []
-                    while len(l)<state.meqn:
+                    while len(l)<state.num_eqn:
                         line = f.readline()
                         l = l + line.split()
-                    for m in xrange(state.meqn):
+                    for m in xrange(state.num_eqn):
                         state.q[m,i] = float(l[m])
             elif grid.ndim == 2:
                 for j in xrange(grid.dimensions[1].n):
                     for i in xrange(grid.dimensions[0].n):
                         l = []
-                        while len(l)<state.meqn:
+                        while len(l)<state.num_eqn:
                             line = f.readline()
                             l = l + line.split()
-                        for m in xrange(state.meqn):
+                        for m in xrange(state.num_eqn):
                             state.q[m,i,j] = float(l[m])
                     blank = f.readline()
             elif grid.ndim == 3:
-                raise NotImplementedError("3d still does not work!")
                 for k in xrange(grid.dimensions[2].n):
                     for j in xrange(grid.dimensions[1].n):
                         for i in xrange(grid.dimensions[0].n):
                             l=[]
-                            while len(l) < state.meqn:
+                            while len(l) < state.num_eqn:
                                 line = f.readline()
                                 l = l + line.split()
-                            for m in xrange(state.meqn):
+                            for m in xrange(state.num_eqn):
                                 state.q[m,i,j,k] = float(l[m])
                         blank = f.readline()
                     blank = f.readline()
@@ -312,7 +291,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
         raise
 
     # Read auxillary file if available and requested
-    if solution.states[0].maux > 0 and read_aux:
+    if solution.states[0].num_aux > 0 and read_aux:
         # Check for aux file
         fname1 = os.path.join(base_path,'%s.a' % file_prefix)+str(frame).zfill(4)
         fname2 = os.path.join(base_path,'%s.a' % file_prefix)
@@ -353,19 +332,19 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 if grid.ndim == 1:
                     for i in xrange(grid.dimensions[0].n):
                         l = []
-                        while len(l)<state.maux:
+                        while len(l)<state.num_aux:
                             line = f.readline()
                             l = l + line.split()
-                        for m in xrange(state.maux):
+                        for m in xrange(state.num_aux):
                             state.aux[i,m] = float(l[m])
                 elif grid.ndim == 2:
                     for j in xrange(grid.dimensions[1].n):
                         for i in xrange(grid.dimensions[0].n):
                             l = []
-                            while len(l)<state.maux:
+                            while len(l)<state.num_aux:
                                 line = f.readline()
                                 l = l + line.split()
-                            for m in xrange(state.maux):
+                            for m in xrange(state.num_aux):
                                 state.aux[i,j,m] = float(l[m])
                         blank = f.readline()
                 elif grid.ndim == 3:
@@ -373,10 +352,10 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                         for j in xrange(grid.dimensions[1].n):
                             for i in xrange(grid.dimensions[0].n):
                                 l = []
-                                while len(l)<state.maux:
+                                while len(l)<state.num_aux:
                                     line = f.readline()
                                     l = l + line.split()
-                                for m in xrange(state.maux):
+                                for m in xrange(state.num_aux):
                                     state.aux[i,j,k,m] = float(l[m])
                             blank = f.readline()
                         blank = f.readline()
@@ -402,9 +381,9 @@ def read_ascii_t(frame,path='./',file_prefix='fort'):
     :Output:
      - (list) List of output variables
      - *t* - (int) Time of frame
-     - *meqn* - (int) Number of equations in the frame
+     - *num_eqn* - (int) Number of equations in the frame
      - *nstates* - (int) Number of states
-     - *maux* - (int) Auxillary value in the frame
+     - *num_aux* - (int) Auxillary value in the frame
      - *ndim* - (int) Number of dimensions in q and aux
     
     """
@@ -416,17 +395,17 @@ def read_ascii_t(frame,path='./',file_prefix='fort'):
         f = open(path,'r')
         
         t = read_data_line(f)
-        meqn = read_data_line(f,type='int')
+        num_eqn = read_data_line(f,type='int')
         nstates = read_data_line(f,type='int')
-        maux = read_data_line(f,type='int')
+        num_aux = read_data_line(f,type='int')
         ndim = read_data_line(f,type='int')
         
         f.close()
     except(IOError):
         raise
     except:
-        logger.error("File " + t_fname + " should contain t, meqn, nstates, maux, ndim")
-        print "File " + t_fname + " should contain t, meqn, nstates, maux, ndim"
+        logger.error("File " + path + " should contain t, num_eqn, nstates, num_aux, ndim")
+        print "File " + path + " should contain t, num_eqn, nstates, num_aux, ndim"
         raise
         
-    return t,meqn,nstates,maux,ndim
+    return t,num_eqn,nstates,num_aux,ndim

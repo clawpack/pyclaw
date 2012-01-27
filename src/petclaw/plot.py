@@ -24,9 +24,8 @@ def plotPetsc(clawobj,delay=1):
     import pyclaw.controller, pyclaw.solution
 
     if isinstance(clawobj,pyclaw.controller.Controller):
-        for n in xrange(0,clawobj.nout):
+        for n in xrange(0,clawobj.num_output_times):
             sol = clawobj.frames[n]
-            plotTitle="time: {0}".format(sol.t)
             viewer = PETSc.Viewer.DRAW(sol.grid.gqVec.comm)
             OptDB = PETSc.Options()
             OptDB['draw_pause'] = delay

@@ -83,7 +83,7 @@ def verify_it_parallel(run_method, method_name, module_name, verifier, options, 
     (stdout_data, ignore) = p.communicate()
 
     # Read the last frame from the output files
-    output = Solution(options['nout'], format='petsc', path=outdir, read_aux=False )
+    output = Solution(options['num_output_times'], file_format='petsc', path=outdir, read_aux=False )
 
     # Remove the temporary output directory
     shutil.rmtree(outdir) 

@@ -9,76 +9,82 @@ import numpy as np
 
 class State(object):
     r"""
-    Contains the current state on a particular grid, including q, t, and aux.
-    Usually aux is time-independent.
+    A PyClaw State object contains the current state on a particular grid,
+    including the unkowns q, the time t, and the auxiliary coefficients aux.
 
     Both q and aux are initialized to None.  They cannot be accessed until
-    meqn and maux (respectively) are set.
+    num_eqn and num_aux (respectively) are set.
 
     :State Data:
     
         The arrays :attr:`q`, and :attr:`aux` have variable 
         extents based on the grid dimensions and the values of 
-        :attr:`meqn` and :attr:`maux`.  Note that these are initialy set to 
+        :attr:`num_eqn` and :attr:`num_aux`.  Note that these are initialy set to 
         None and later set to appropriately sized empty numpy arrays when
-        :attr:`meqn` and :attr:`maux` are set.
+        :attr:`num_eqn` and :attr:`num_aux` are set.
  
-    Typical usage, assuming a 1D grid::
+    To instantiate a State, we first need a grid:
 
-        >>> state = State(grid)
-        >>> meqn = 2
-        >>> state.q[0,:] = sin(grid.x.center)
-        >>> state.q[1,:] = cos(grid.x.center)
-        >>> maux = 1
-        >>> aux[0,:] = exp(grid.x.center)
+        >>> import pyclaw
+        >>> x = pyclaw.Dimension('x',0.,1.,100)
+        >>> grid = pyclaw.Grid((x))
+
+    The arguments to the constructor are the grid, the number of equations,
+    and the number of auxiliary fields:
+
+        >>> state = pyclaw.State(grid,3,2)
+        >>> state.q.shape
+        (3, 100)
+        >>> state.aux.shape
+        (2, 100)
+        >>> state.t
+        0.0
+
+    Note that state.q and state.aux are initialized as empty arrays (not zeroed).
+    Additional parameters, such as scalar values that are used in the Riemann solver,
+    can be set using the dictionary state.problem_data.
     """
 
     # ========== Property Definitions ========================================
-    def meqn():
-        doc = r"""(int) - Number of unknowns (components of q)"""
-        def fget(self):
-            if self.q is None:
-                raise Exception('state.meqn has not been set.')
-            else: return self.q.shape[0]
-        return locals()
-    meqn = property(**meqn())
+    @property
+    def num_eqn(self):
+        r"""(int) - Number of unknowns (components of q)"""
+        if self.q is None:
+            raise Exception('state.num_eqn has not been set.')
+        else: return self.q.shape[0]
 
-    def maux():
-        doc = r"""(int) - Number of auxiliary fields"""
-        def fget(self):
-            if self.aux is not None: return self.aux.shape[0]
-            else: return 0
-        return locals()
-    maux = property(**maux())
+    @property
+    def num_aux(self):
+        r"""(int) - Number of auxiliary fields"""
+        if self.aux is not None: return self.aux.shape[0]
+        else: return 0
 
-    def mp():
-        doc = r"""(int) - Number of derived quantities"""
-        def fset(self,mp):
-            if self.p is not None:
-                raise Exception('Cannot change state.mp after aux is initialized.')
-            else:
-                self.p = self.new_array(mp)
-        def fget(self):
-            if self.aux is not None: return self.aux.shape[0]
-            else: return 0
-        return locals()
-    mp = property(**mp())
+    @property
+    def mp(self):
+        r"""(int) - Number of derived quantities"""
+        if self.aux is not None: return self.aux.shape[0]
+        else: return 0
+    @mp.setter
+    def mp(self,mp):
+        if self.p is not None:
+            raise Exception('Cannot change state.mp after aux is initialized.')
+        else:
+            self.p = self.new_array(mp)
 
-    def mF():
-        doc = r"""(int) - Number of output functionals"""
-        def fset(self,mF):
-            if self.F is not None:
-                raise Exception('Cannot change state.mF after aux is initialized.')
-            else:
-                self.F = self.new_array(mF)
-        def fget(self):
-            if self.F is not None: return self.F.shape[0]
-            else: return 0
-        return locals()
-    mF = property(**mF())
+    @property
+    def mF(self):
+        r"""(int) - Number of output functionals"""
+        if self.F is not None: return self.F.shape[0]
+        else: return 0
+    @mF.setter
+    def mF(self,mF):
+        if self.F is not None:
+            raise Exception('Cannot change state.mF after aux is initialized.')
+        else:
+            self.F = self.new_array(mF)
 
     # ========== Class Methods ===============================================
-    def __init__(self,grid,meqn,maux=0):
+    def __init__(self,grid,num_eqn,num_aux=0):
         import pyclaw.grid
         if not isinstance(grid,pyclaw.grid.Grid):
             raise Exception("""A PyClaw State object must be initialized with
@@ -91,23 +97,26 @@ class State(object):
         r"""(ndarray(mp,...)) - Cell averages of derived quantities."""
         self.F   = None
         r"""(ndarray(mF,...)) - Cell averages of output functional densities."""
-        self.aux_global = {}
+        self.problem_data = {}
         r"""(dict) - Dictionary of global values for this grid, 
             ``default = {}``"""
         self.t=0.
         r"""(float) - Current time represented on this grid, 
             ``default = 0.0``"""
-        self.mcapa = -1
+        self.index_capa = -1
 
-        self.q   = self.new_array(meqn)
-        self.aux = self.new_array(maux)
+        self.q   = self.new_array(num_eqn)
+        self.aux = self.new_array(num_aux)
 
     def __str__(self):
-        output = "  t=%s meqn=%s\n  " % (self.t,self.meqn)
-        if self.q is not None:
-            output += "  q.shape=%s" % str(self.q.shape)
+        output = "PyClaw State object\n"
+        output += "Grid dimensions: %s\n" % str(self.grid.n)
+        output += "Time  t=%s\n" % (self.t)
+        output += "Number of conserved quantities: %s\n" % str(self.q.shape[0])
         if self.aux is not None:
-            output += " aux.shape=%s" % str(self.aux.shape)
+            output += "Number of auxiliary fields: %s\n" % str(self.aux.shape[0])
+        if self.problem_data != {}:
+            output += "problem_data: "+self.problem_data.__str__()
         return output
 
     def is_valid(self):
@@ -116,7 +125,7 @@ class State(object):
         
         The state is declared valid based on the following criteria:
             - :attr:`q` is not None
-            - :attr:`meqn` > 0
+            - :attr:`num_eqn` > 0
             
         A debug logger message will be sent documenting exactly what was not 
         valid.
@@ -128,12 +137,6 @@ class State(object):
         import logging
         valid = True
         logger = logging.getLogger('solution')
-        if self.q is None:
-            logger.debug('The array q has not been initialized.')
-            valid = False
-        if self.meqn == 0:
-            logger.debug('State.meqn has not been set.')
-            valid = False
         if not self.q.flags['F_CONTIGUOUS']:
             logger.debug('q array is not Fortran contiguous.')
             valid = False
@@ -142,33 +145,33 @@ class State(object):
     def set_cparam(self,fortran_module):
         """
         Set the variables in fortran_module.cparam to the corresponding values in
-        grid.aux_global.  This is the mechanism for passing scalar variables to the
+        grid.problem_data.  This is the mechanism for passing scalar variables to the
         Fortran Riemann solvers; cparam must be defined as a common block in the
         Riemann solver.
 
         This function should be called from solver.setup().  This seems like a fragile
-        interdependency between solver and grid; perhaps aux_global should belong
+        interdependency between solver and grid; perhaps problem_data should belong
         to solver instead of state.
 
         This function also checks that the set of variables defined in cparam 
-        all appear in aux_global.
+        all appear in problem_data.
         """
         if hasattr(fortran_module,'cparam'):
-            if not set(dir(fortran_module.cparam)) <= set(self.aux_global.keys()):
+            if not set(dir(fortran_module.cparam)) <= set(self.problem_data.keys()):
                 raise Exception("""Some required value(s) in the cparam common 
                                    block in the Riemann solver have not been 
-                                   set in aux_global.""")
-            for global_var_name,global_var_value in self.aux_global.iteritems(): 
+                                   set in problem_data.""")
+            for global_var_name,global_var_value in self.problem_data.iteritems(): 
                 setattr(fortran_module.cparam,global_var_name,global_var_value)
 
-    def set_mbc(self,mbc):
+    def set_num_ghost(self,num_ghost):
         """
-        Virtual routine (does nothing)
+        Virtual routine (does nothing).  Overridden in the parallel class.
         """
         pass
 
 
-    def set_q_from_qbc(self,mbc,qbc):
+    def set_q_from_qbc(self,num_ghost,qbc):
         """
         Set the value of q using the array qbc. for PetSolver, this
         involves setting qbc as the local vector array then perform
@@ -177,15 +180,15 @@ class State(object):
         
         grid = self.grid
         if grid.ndim == 1:
-            self.q = qbc[:,mbc:-mbc]
+            self.q = qbc[:,num_ghost:-num_ghost]
         elif grid.ndim == 2:
-            self.q = qbc[:,mbc:-mbc,mbc:-mbc]
+            self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
         elif grid.ndim == 3:
-            self.q = qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
+            self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost]
         else:
             raise Exception("Assumption (1 <= ndim <= 3) violated.")
 
-    def get_qbc_from_q(self,mbc,whichvec,qbc):
+    def get_qbc_from_q(self,num_ghost,whichvec,qbc):
         """
         Fills in the interior of qbc (local vector) by copying q (global vector) to it.
         """
@@ -197,11 +200,11 @@ class State(object):
             q    = self.aux
 
         if ndim == 1:
-            qbc[:,mbc:-mbc] = q
+            qbc[:,num_ghost:-num_ghost] = q
         elif ndim == 2:
-            qbc[:,mbc:-mbc,mbc:-mbc] = q
+            qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost] = q
         elif ndim == 3:
-            qbc[:,mbc:-mbc,mbc:-mbc,mbc:-mbc] = q
+            qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost] = q
 
         return qbc
 
@@ -212,8 +215,8 @@ class State(object):
         
     def __deepcopy__(self,memo={}):
         import copy
-        result = self.__class__(copy.deepcopy(self.grid),self.meqn,self.maux)
-        result.__init__(copy.deepcopy(self.grid),self.meqn,self.maux)
+        result = self.__class__(copy.deepcopy(self.grid),self.num_eqn,self.num_aux)
+        result.__init__(copy.deepcopy(self.grid),self.num_eqn,self.num_aux)
         
         for attr in ('t'):
             setattr(result,attr,copy.deepcopy(getattr(self,attr)))
@@ -222,7 +225,7 @@ class State(object):
             result.q = copy.deepcopy(self.q)
         if self.aux is not None:
             result.aux = copy.deepcopy(self.aux)
-        result.aux_global = copy.deepcopy(self.aux_global)
+        result.problem_data = copy.deepcopy(self.problem_data)
         
         return result
 
@@ -234,3 +237,8 @@ class State(object):
         shape = [dof]
         shape.extend(self.grid.n)
         return np.empty(shape,order='F')
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

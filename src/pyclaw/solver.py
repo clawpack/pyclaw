@@ -1,12 +1,7 @@
 r"""
 Module specifying the interface to every solver in PyClaw.
 """
-import time
-import copy
 import logging
-
-# Clawpack modules
-from pyclaw.data import Data
 
 class CFLError(Exception):
     """Error raised when cfl_max is exceeded.  Is this a
@@ -18,9 +13,9 @@ class BC():
     """Enumeration of boundary condition names.
        This could instead just be a static dictionary."""
     custom     = 0
-    outflow    = 1
+    extrap    = 1
     periodic   = 2
-    reflecting = 3
+    wall = 3
 
 #################### Dummy routines ######################
 def default_compute_gauge_values(q,aux):
@@ -37,10 +32,11 @@ class Solver(object):
 
     A Solver is typically instantiated as follows::
 
-        >>> solver = pyclaw.ClawSolver2d()
+        >>> import pyclaw
+        >>> solver = pyclaw.ClawSolver2D()
 
     After which solver options may be set.  It is always necessary to set
-    solver.mwaves to the number of waves used in the Riemann solver.
+    solver.num_waves to the number of waves used in the Riemann solver.
     Typically it is also necessary to set the boundary conditions (for q, and
     for aux if an aux array is used).  Many other options may be set
     for specific solvers; for instance the limiter to be used, whether to
@@ -104,7 +100,7 @@ class Solver(object):
         Fills the values of qbc with the correct boundary values.
         The appropriate signature is:
 
-        def user_bc_lower(grid,dim,t,qbc,mbc):
+        def user_bc_lower(grid,dim,t,qbc,num_ghost):
 
     .. attribute:: user_bc_upper 
     
@@ -112,27 +108,27 @@ class Solver(object):
         Fills the values of qbc with the correct boundary values.
         The appropriate signature is:
 
-        def user_bc_upper(grid,dim,t,qbc,mbc):
+        def user_bc_upper(grid,dim,t,qbc,num_ghost):
  
         
     :Initialization:
     
-    Input:
-     - *data* - (:class:`Data`) Data object to initialize the solver with (optional)
-    
     Output:
      - (:class:`Solver`) - Initialized Solver object
     """
-    _required_attrs = ['dt_initial','dt_max','cfl_max','cfl_desired',
-            'max_steps','dt_variable','mbc']
+
             
-    _default_attr_values = {'dt_initial':0.1, 'dt_max':1e99, 'max_steps':1000,
-            'dt_variable':True}
-    
+    def __setattr__(self, key, value):
+        if not hasattr(self, '_isinitialized'):
+            self.__dict__['_isinitialized'] = False
+        if self._isinitialized and not hasattr(self, key):
+            raise TypeError("%s has no attribute %s" % (self.__class__,key))
+        object.__setattr__(self,key,value)
+
     #  ======================================================================
     #   Initialization routines
     #  ======================================================================
-    def __init__(self,data=None,claw_package=None):
+    def __init__(self,claw_package=None):
         r"""
         Initialize a Solver object
         
@@ -141,15 +137,15 @@ class Solver(object):
         # Setup solve logger
         self.logger = logging.getLogger('evolve')
 
-        # Set default values
-        for (k,v) in self._default_attr_values.iteritems():
-            self.__dict__.setdefault(k,v)
-
-        # Set data values based on the data object
-        if data is not None and isinstance(data,Data):
-            for attr in self._required_attrs:
-                if hasattr(data,attr):
-                    setattr(self,attr,getattr(data,attr))
+        self.dt_initial = 0.1
+        self.dt_max = 1e99
+        self.max_steps = 1000
+        self.dt_variable = True
+        self.num_waves = None #Must be set later to agree with Riemann solver
+        self.so_name = None #Can remove this after merging fwaves commit
+        self.qbc = None
+        self.auxbc = None
+        self.rp = None
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
@@ -160,16 +156,15 @@ class Solver(object):
         if claw_package is not None and claw_package in sys.modules:
             self.claw_package = sys.modules[claw_package]
         else:
-            claw_package_name = self.__module__[0:self.__module__.rfind('.')]
+            claw_package_name = self.__module__[0:self.__module__.find('.')]
             if claw_package_name in sys.modules:
                 self.claw_package = sys.modules[claw_package_name]
             else:
                 raise NotImplementedError("Unable to determine solver package, please provide one")
 
-        
         # Initialize time stepper values
-        self.dt = self._default_attr_values['dt_initial']
-        self.cfl = self.claw_package.CFL(self._default_attr_values['cfl_desired'])
+        self.dt = self.dt_initial
+        self.cfl = self.claw_package.CFL(self.cfl_desired)
        
         # Status Dictionary
         self.status = {'cflmax':self.cfl.get_cached_max(),
@@ -196,6 +191,8 @@ class Solver(object):
         r""" Array to hold ghost cell values.  This is the one that gets passed
         to the Fortran code.  """
 
+        self._isinitialized = True
+
         super(Solver,self).__init__()
 
 
@@ -218,18 +215,14 @@ class Solver(object):
         
         """
         valid = True
-        for key in self._required_attrs:
-            if not self.__dict__.has_key(key):
-                self.logger.info('%s is not present.' % key)
+        if any([bcmeth == BC.custom for bcmeth in self.bc_lower]):
+            if self.user_bc_lower is None:
+                self.logger.debug('Lower custom BC function has not been set.')
                 valid = False
-            if any([bcmeth == BC.custom for bcmeth in self.bc_lower]):
-                if self.user_bc_lower is None:
-                    logger.debug('Lower custom BC function has not been set.')
-                    valid = False
-            if any([bcmeth == BC.custom for bcmeth in self.bc_upper]):
-                if self.user_bc_lower is None:
-                    logger.debug('Upper custom BC function has not been set.')
-                    valid = False
+        if any([bcmeth == BC.custom for bcmeth in self.bc_upper]):
+            if self.user_bc_lower is None:
+                self.logger.debug('Upper custom BC function has not been set.')
+                valid = False
         return valid
         
     def setup(self,solution):
@@ -263,34 +256,6 @@ class Solver(object):
         return output
 
 
-    def allocate_rk_stages(self,solution):
-        r"""
-        Instantiate State objects for Runge--Kutta stages.
-
-        This routine is only used by method-of-lines solvers (SharpClaw),
-        not by the Classic solvers.  It allocates additional State objects
-        to store the intermediate stages used by Runge--Kutta time integrators.
-
-        If we create a MethodOfLinesSolver subclass, this should be moved there.
-        """
-        if self.time_integrator   == 'Euler':  nregisters=1
-        elif self.time_integrator == 'SSP33':  nregisters=2
-        elif self.time_integrator == 'SSP104': nregisters=3
- 
-        state = solution.states[0]
-        # use the same class constructor as the solution for the Runge Kutta stages
-        State = type(state)
-        self._rk_stages = []
-        for i in range(nregisters-1):
-            #Maybe should use State.copy() here?
-            self._rk_stages.append(State(state.grid,state.meqn,state.maux))
-            self._rk_stages[-1].aux_global       = state.aux_global
-            self._rk_stages[-1].set_mbc(self.mbc)
-            self._rk_stages[-1].t                = state.t
-            if state.maux > 0:
-                self._rk_stages[-1].aux              = state.aux
-
-
     # ========================================================================
     #  Boundary Conditions
     # ========================================================================    
@@ -302,14 +267,14 @@ class Solver(object):
         This is typically called by solver.setup().
         """
         import numpy as np
-        qbc_dim = [n+2*self.mbc for n in state.grid.ng]
-        qbc_dim.insert(0,state.meqn)
+        qbc_dim = [n+2*self.num_ghost for n in state.grid.ng]
+        qbc_dim.insert(0,state.num_eqn)
         self.qbc = np.zeros(qbc_dim,order='F')
 
-        auxbc_dim = [n+2*self.mbc for n in state.grid.ng]
-        auxbc_dim.insert(0,state.maux)
+        auxbc_dim = [n+2*self.num_ghost for n in state.grid.ng]
+        auxbc_dim.insert(0,state.num_aux)
         self.auxbc = np.empty(auxbc_dim,order='F')
-        if state.maux>0:
+        if state.num_aux>0:
             self.apply_aux_bcs(state)
 
     def apply_q_bcs(self,state):
@@ -317,16 +282,16 @@ class Solver(object):
         Fills in solver.qbc (the local vector), including ghost cell values.
     
         This function returns an array of dimension determined by the 
-        :attr:`mbc` attribute.  The type of boundary condition set is 
+        :attr:`num_ghost` attribute.  The type of boundary condition set is 
         determined by :attr:`bc_lower` and :attr:`bc_upper` for the 
         approprate dimension.  Valid values for :attr:`bc_lower` and 
         :attr:`bc_upper` include:
         
         - 'custom'     or 0: A user defined boundary condition will be used, the appropriate 
             Dimension method user_bc_lower or user_bc_upper will be called.
-        - 'outflow'    or 1: Zero-order extrapolation.
+        - 'extrap'    or 1: Zero-order extrapolation.
         - 'periodic'   or 2: Periodic boundary conditions.
-        - 'reflecting' or 3: Wall boundary conditions. It is assumed that the second 
+        - 'wall' or 3: Wall boundary conditions. It is assumed that the second 
             component of q represents velocity or momentum.
     
         :Input:
@@ -337,7 +302,7 @@ class Solver(object):
                       but different for method-of-lines algorithms like SharpClaw.
 
         :Output:
-         - (ndarray(meqn,...)) q array with boundary ghost cells added and set
+         - (ndarray(num_eqn,...)) q array with boundary ghost cells added and set
          
 
         .. note:: 
@@ -348,7 +313,7 @@ class Solver(object):
         
         import numpy as np
 
-        self.qbc = state.get_qbc_from_q(self.mbc,'q',self.qbc)
+        self.qbc = state.get_qbc_from_q(self.num_ghost,'q',self.qbc)
         grid = state.grid
        
         for idim,dim in enumerate(grid.dimensions):
@@ -396,25 +361,23 @@ class Solver(object):
          - *grid* - (:class:`Grid`) Grid that the dimension belongs to
          
         :Input/Ouput:
-         - *qbc* - (ndarray(...,meqn)) Array with added ghost cells which will
+         - *qbc* - (ndarray(...,num_eqn)) Array with added ghost cells which will
            be set in this routines
         """
-        import numpy as np
-
         if self.bc_lower[idim] == BC.custom: 
-            self.user_bc_lower(state,dim,t,qbc,self.mbc)
-        elif self.bc_lower[idim] == BC.outflow:
-            for i in xrange(self.mbc):
-                qbc[:,i,...] = qbc[:,self.mbc,...]
+            self.user_bc_lower(state,dim,t,qbc,self.num_ghost)
+        elif self.bc_lower[idim] == BC.extrap:
+            for i in xrange(self.num_ghost):
+                qbc[:,i,...] = qbc[:,self.num_ghost,...]
         elif self.bc_lower[idim] == BC.periodic:
             # This process owns the whole grid
-            qbc[:,:self.mbc,...] = qbc[:,-2*self.mbc:-self.mbc,...]
-        elif self.bc_lower[idim] == BC.reflecting:
-            for i in xrange(self.mbc):
-                qbc[:,i,...] = qbc[:,2*self.mbc-1-i,...]
-                qbc[idim+1,i,...] = -qbc[idim+1,2*self.mbc-1-i,...] # Negate normal velocity
+            qbc[:,:self.num_ghost,...] = qbc[:,-2*self.num_ghost:-self.num_ghost,...]
+        elif self.bc_lower[idim] == BC.wall:
+            for i in xrange(self.num_ghost):
+                qbc[:,i,...] = qbc[:,2*self.num_ghost-1-i,...]
+                qbc[idim+1,i,...] = -qbc[idim+1,2*self.num_ghost-1-i,...] # Negate normal velocity
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.bc_lower)
+            raise NotImplementedError("Boundary condition %s not implemented" % self.bc_lower)
 
 
     def qbc_upper(self,state,dim,t,qbc,idim):
@@ -432,24 +395,24 @@ class Solver(object):
          - *grid* - (:class:`Grid`) Grid that the dimension belongs to
          
         :Input/Ouput:
-         - *qbc* - (ndarray(...,meqn)) Array with added ghost cells which will
+         - *qbc* - (ndarray(...,num_eqn)) Array with added ghost cells which will
            be set in this routines
         """
  
         if self.bc_upper[idim] == BC.custom:
-            self.user_bc_upper(state,dim,t,qbc,self.mbc)
-        elif self.bc_upper[idim] == BC.outflow:
-            for i in xrange(self.mbc):
-                qbc[:,-i-1,...] = qbc[:,-self.mbc-1,...] 
+            self.user_bc_upper(state,dim,t,qbc,self.num_ghost)
+        elif self.bc_upper[idim] == BC.extrap:
+            for i in xrange(self.num_ghost):
+                qbc[:,-i-1,...] = qbc[:,-self.num_ghost-1,...] 
         elif self.bc_upper[idim] == BC.periodic:
             # This process owns the whole grid
-            qbc[:,-self.mbc:,...] = qbc[:,self.mbc:2*self.mbc,...]
-        elif self.bc_upper[idim] == BC.reflecting:
-            for i in xrange(self.mbc):
-                qbc[:,-i-1,...] = qbc[:,-2*self.mbc+i,...]
-                qbc[idim+1,-i-1,...] = -qbc[idim+1,-2*self.mbc+i,...] # Negate normal velocity
+            qbc[:,-self.num_ghost:,...] = qbc[:,self.num_ghost:2*self.num_ghost,...]
+        elif self.bc_upper[idim] == BC.wall:
+            for i in xrange(self.num_ghost):
+                qbc[:,-i-1,...] = qbc[:,-2*self.num_ghost+i,...]
+                qbc[idim+1,-i-1,...] = -qbc[idim+1,-2*self.num_ghost+i,...] # Negate normal velocity
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.bc_lower)
+            raise NotImplementedError("Boundary condition %s not implemented" % self.bc_lower)
 
 
 
@@ -458,16 +421,16 @@ class Solver(object):
         Appends boundary cells to aux and fills them with appropriate values.
     
         This function returns an array of dimension determined by the 
-        :attr:`mbc` attribute.  The type of boundary condition set is 
+        :attr:`num_ghost` attribute.  The type of boundary condition set is 
         determined by :attr:`aux_bc_lower` and :attr:`aux_bc_upper` for the 
         approprate dimension.  Valid values for :attr:`aux_bc_lower` and 
         :attr:`aux_bc_upper` include:
         
         - 'custom'     or 0: A user defined boundary condition will be used, the appropriate 
             Dimension method user_aux_bc_lower or user_aux_bc_upper will be called.
-        - 'outflow'    or 1: Zero-order extrapolation.
+        - 'extrap'    or 1: Zero-order extrapolation.
         - 'periodic'   or 2: Periodic boundary conditions.
-        - 'reflecting' or 3: Wall boundary conditions. It is assumed that the second 
+        - 'wall' or 3: Wall boundary conditions. It is assumed that the second 
             component of q represents velocity or momentum.
     
         :Input:
@@ -478,7 +441,7 @@ class Solver(object):
                       but different for method-of-lines algorithms like SharpClaw.
 
         :Output:
-         - (ndarray(maux,...)) q array with boundary ghost cells added and set
+         - (ndarray(num_aux,...)) q array with boundary ghost cells added and set
          
 
         .. note:: 
@@ -489,7 +452,7 @@ class Solver(object):
         
         import numpy as np
 
-        self.auxbc = state.get_qbc_from_q(self.mbc,'aux',self.auxbc)
+        self.auxbc = state.get_qbc_from_q(self.num_ghost,'aux',self.auxbc)
 
         grid = state.grid
        
@@ -538,26 +501,24 @@ class Solver(object):
          - *grid* - (:class:`Grid`) Grid that the dimension belongs to
          
         :Input/Ouput:
-         - *auxbc* - (ndarray(maux,...)) Array with added ghost cells which will
+         - *auxbc* - (ndarray(num_aux,...)) Array with added ghost cells which will
            be set in this routines
         """
-        import numpy as np
-
         if self.aux_bc_lower[idim] == BC.custom: 
-            self.user_aux_bc_lower(state,dim,t,auxbc,self.mbc)
-        elif self.aux_bc_lower[idim] == BC.outflow:
-            for i in xrange(self.mbc):
-                auxbc[:,i,...] = auxbc[:,self.mbc,...]
+            self.user_aux_bc_lower(state,dim,t,auxbc,self.num_ghost)
+        elif self.aux_bc_lower[idim] == BC.extrap:
+            for i in xrange(self.num_ghost):
+                auxbc[:,i,...] = auxbc[:,self.num_ghost,...]
         elif self.aux_bc_lower[idim] == BC.periodic:
             # This process owns the whole grid
-            auxbc[:,:self.mbc,...] = auxbc[:,-2*self.mbc:-self.mbc,...]
-        elif self.aux_bc_lower[idim] == BC.reflecting:
-            for i in xrange(self.mbc):
-                auxbc[:,i,...] = auxbc[:,2*self.mbc-1-i,...]
+            auxbc[:,:self.num_ghost,...] = auxbc[:,-2*self.num_ghost:-self.num_ghost,...]
+        elif self.aux_bc_lower[idim] == BC.wall:
+            for i in xrange(self.num_ghost):
+                auxbc[:,i,...] = auxbc[:,2*self.num_ghost-1-i,...]
         elif self.aux_bc_lower[idim] is None:
             raise Exception("One or more of the aux boundary conditions aux_bc_upper has not been specified.")
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.aux_bc_lower)
+            raise NotImplementedError("Boundary condition %s not implemented" % self.aux_bc_lower)
 
 
     def auxbc_upper(self,state,dim,t,auxbc,idim):
@@ -575,25 +536,25 @@ class Solver(object):
          - *grid* - (:class:`Grid`) Grid that the dimension belongs to
          
         :Input/Ouput:
-         - *auxbc* - (ndarray(maux,...)) Array with added ghost cells which will
+         - *auxbc* - (ndarray(num_aux,...)) Array with added ghost cells which will
            be set in this routines
         """
  
         if self.aux_bc_upper[idim] == BC.custom:
-            self.user_aux_bc_upper(state,dim,t,auxbc,self.mbc)
-        elif self.aux_bc_upper[idim] == BC.outflow:
-            for i in xrange(self.mbc):
-                auxbc[:,-i-1,...] = auxbc[:,-self.mbc-1,...] 
+            self.user_aux_bc_upper(state,dim,t,auxbc,self.num_ghost)
+        elif self.aux_bc_upper[idim] == BC.extrap:
+            for i in xrange(self.num_ghost):
+                auxbc[:,-i-1,...] = auxbc[:,-self.num_ghost-1,...] 
         elif self.aux_bc_upper[idim] == BC.periodic:
             # This process owns the whole grid
-            auxbc[:,-self.mbc:,...] = auxbc[:,self.mbc:2*self.mbc,...]
-        elif self.aux_bc_upper[idim] == BC.reflecting:
-            for i in xrange(self.mbc):
-                auxbc[:,-i-1,...] = auxbc[:,-2*self.mbc+i,...]
+            auxbc[:,-self.num_ghost:,...] = auxbc[:,self.num_ghost:2*self.num_ghost,...]
+        elif self.aux_bc_upper[idim] == BC.wall:
+            for i in xrange(self.num_ghost):
+                auxbc[:,-i-1,...] = auxbc[:,-2*self.num_ghost+i,...]
         elif self.aux_bc_lower[idim] is None:
             raise Exception("One or more of the aux boundary conditions aux_bc_lower has not been specified.")
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % x.aux_bc_lower)
+            raise NotImplementedError("Boundary condition %s not implemented" % self.aux_bc_lower)
 
 
     # ========================================================================
@@ -623,7 +584,6 @@ class Solver(object):
             take_one_step = False
             
         # Parameters for time-stepping
-        retake_step = False
         tstart = solution.t
 
         # Reset status dictionary
@@ -659,7 +619,6 @@ class Solver(object):
             if self.dt_variable:
                 q_backup = state.q.copy('F')
                 told = solution.t
-            retake_step = False  # Reset flag
             
             self.step(solution)
 
@@ -689,8 +648,6 @@ class Solver(object):
                 if self.dt_variable:
                     state.q = q_backup
                     solution.t = told
-                    # Retake step
-                    retake_step = True
                 else:
                     # Give up, we cannot adapt, abort
                     self.status['cflmax'] = \
@@ -716,7 +673,7 @@ class Solver(object):
 
         return self.status
 
-    def step(self):
+    def step(self,solution):
         r"""
         Take one step
         
@@ -740,3 +697,7 @@ class Solver(object):
             t=solution.t
             solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
 
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

@@ -54,16 +54,16 @@ solver.rp attribute, which is a function handle::
 
     >>> from riemann import rp_acoustics
     >>> solver.rp = rp_acoustics.rp_acoustics_1d
-    >>> solver.mwaves = 2
+    >>> solver.num_waves = 2
 
-The `mwaves` property indicates the number of waves used in the Riemann solver.
+The `num_waves` property indicates the number of waves used in the Riemann solver.
 
-Finally, we set the boundary conditions.  We'll use a reflecting (wall)
-condition at the left boundary and a non-reflecting (zero-order extrapolation)
+Finally, we set the boundary conditions.  We'll use a wall (wall)
+condition at the left boundary and a non-wall (zero-order extrapolation)
 condition at the right boundary::
 
-    >>> solver.bc_lower[0] = pyclaw.BC.reflecting
-    >>> solver.bc_upper[0] = pyclaw.BC.outflow
+    >>> solver.bc_lower[0] = pyclaw.BC.wall
+    >>> solver.bc_upper[0] = pyclaw.BC.extrap
 
 Dimension, Grid, and State
 ===========================
@@ -113,15 +113,15 @@ bulk modulus :math:`K` and density :math:`\rho` -- that must be defined.
 Furthermore, checking the code for the Riemann solver we've chosen
 reveals that it expects us to provide values for the impedance :math:`Z`
 and sound speed :math:`c`.  These values are stored in a Python dictionary
-called aux_global that is a member of the :class:`~pyclaw.state.State`::
+called problem_data that is a member of the :class:`~pyclaw.state.State`::
 
     >>> from math import sqrt
     >>> rho = 1.0
     >>> bulk = 1.0
-    >>> state.aux_global['rho'] = rho
-    >>> state.aux_global['bulk'] = bulk
-    >>> state.aux_global['zz'] = sqrt(rho*bulk)
-    >>> state.aux_global['cc'] = sqrt(bulk/rho)
+    >>> state.problem_data['rho'] = rho
+    >>> state.problem_data['bulk'] = bulk
+    >>> state.problem_data['zz'] = sqrt(rho*bulk)
+    >>> state.problem_data['cc'] = sqrt(bulk/rho)
 
 The controller
 ===================

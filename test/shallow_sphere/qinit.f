@@ -1,6 +1,6 @@
 c     =====================================================
-       subroutine qinit(maxmx,maxmy,meqn,mbc,mx,my,xlower,ylower,
-     &                   dx,dy,q,maux,aux,Rsphere)
+       subroutine qinit(maxmx,maxmy,num_eqn,num_ghost,mx,my,xlower,
+     &                   ylower,dx,dy,q,num_aux,aux,Rsphere)
 c     =====================================================
 c
 c      # Set initial conditions for q. 
@@ -8,14 +8,16 @@ c      # Set initial conditions for q.
 c      # -------4-Rossby-Haurwitz wave-----------------------
 c
        implicit double precision (a-h,o-z)
-       dimension q(meqn, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
-       dimension aux(maux, 1-mbc:maxmx+mbc, 1-mbc:maxmy+mbc)
+       dimension q(num_eqn, 1-num_ghost:maxmx+num_ghost, 
+     &                          1-num_ghost:maxmy+num_ghost)
+       dimension aux(num_aux, 1-num_ghost:maxmx+num_ghost, 
+     &                          1-num_ghost:maxmy+num_ghost)
        double precision Uin(3),Uout(3)
        double precision K 
 cf2py integer intent(in) maxmx
 cf2py integer intent(in) maxmy
-cf2py integer optional,intent(in) meqn
-cf2py integer intent(in) mbc
+cf2py integer optional,intent(in) num_eqn
+cf2py integer intent(in) num_ghost
 cf2py integer intent(in) mx
 cf2py integer intent(in) my
 cf2py double precision intent(in) xlower
@@ -23,7 +25,7 @@ cf2py double precision intent(in) ylower
 cf2py double precision intent(in) dx
 cf2py double precision intent(in) dy
 cf2py intent(in,out) q
-cf2py integer optional, intent(in)  maux
+cf2py integer optional, intent(in)  num_aux
 cf2py intent(in) aux
 cf2py double precision intent(in) Rsphere
 

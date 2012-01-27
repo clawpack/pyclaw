@@ -9,21 +9,21 @@
 """Output package for Pyclaw"""
 
 import logging
-from ascii import read_ascii,write_ascii
+from pyclaw.io.ascii import read_ascii,write_ascii
 __all__ = ['read_ascii','write_ascii']
 
 # Check for HDF 5 support
 try:
     import h5py
-    from hdf5 import read_hdf5,write_hdf5
+    from pyclaw.io.hdf5 import read_hdf5,write_hdf5
     __all__ += ['read_hdf5','write_hdf5']
-except:
+except ImportError:
     logging.debug("No hdf5 support found.")
     
 # Check for netcdf support
 try:
     import netCDF4
-    from netcdf import read_netcdf, write_netcdf
+    from pyclaw.io.netcdf import read_netcdf, write_netcdf
     __all__ += ['read_netcdf','write_netcdf']
 except(ImportError):
     logging.debug("No netcdf4 support found.")

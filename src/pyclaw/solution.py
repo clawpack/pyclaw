@@ -15,12 +15,10 @@ Module containing all Pyclaw solution objects
 # ============================================================================
 
 import os
-import copy
 import logging
 
-from data import Data
-from grid import Grid, Dimension
-from state import State
+from pyclaw.grid import Grid, Dimension
+from pyclaw.state import State
 import io
 
 # ============================================================================
@@ -49,7 +47,7 @@ class Solution(object):
         Grid Attributes:
             'dimensions'
         State Attributes:
-            't','meqn','q','aux','capa','aux_global'
+            't','num_eqn','q','aux','capa','problem_data'
             
     :Initialization:
         
@@ -60,7 +58,6 @@ class Solution(object):
             3. args is a single Dimension or list of Dimensions
             4. args is a variable number of arguments that describes the 
                location of a file to be read in to initialize the object
-            5. args is a data object with the corresponding data fields
         
         Input:
             - if args == () -> Empty Solution object
@@ -71,168 +68,151 @@ class Solution(object):
               Dimensions is created, a state is initalized with this Grid
               and appended to the states list
             - if args == frame, format='ascii',path='./',file_prefix='fort'
-            - if args == Data, Create a new single grid solution based off of 
-              what is in args.
     
+    :Examples:
+
+        >>> import pyclaw
+        >>> x = pyclaw.Dimension('x',0.,1.,100)
+        >>> grid = pyclaw.Grid((x))
+        >>> state = pyclaw.State(grid,3,2)
+        >>> solution = pyclaw.Solution(state)
     """
 
     # ========== Attributes ==================================================
     
     # ========== Properties ==================================================
-    def state():
-        doc = r"""(:class:`State`) - Base state is returned"""
-        def fget(self): return self.states[0]
-        return locals()
-    def grid():
-        doc = r"""(:class:`Grid`) - Base state's grid is returned"""
-        def fget(self): return self.states[0].grid
-        return locals()
-    def t():
-        doc = r"""(float) - :attr:`State.t` of base state"""
-        def fget(self): return self._get_base_state_attribute('t')
-        def fset(self, value): self.set_all_states('t',value)
-        return locals()
-    def meqn():
-        doc = r"""(int) - :attr:`State.meqn` of base state"""
-        def fget(self): return self._get_base_state_attribute('meqn')
-        def fset(self, value): self.set_all_states('meqn',value)
-        return locals()   
-    def mp():
-        doc = r"""(int) - :attr:`State.mp` of base state"""
-        def fget(self): return self._get_base_state_attribute('mp')
-        def fset(self, value): self.set_all_states('mp',value)
-        return locals()
-    def mF():
-        doc = r"""(int) - :attr:`State.mF` of base state"""
-        def fget(self): return self._get_base_state_attribute('mF')
-        def fset(self, value): self.set_all_states('mF',value)
-        return locals()
-    def q():
-        doc = r"""(ndarray(...,:attr:`State.meqn`)) - :attr:`State.q` of base 
+    @property
+    def state(self):
+        r"""(:class:`State`) - Base state is returned"""
+        return self.states[0]
+    @property
+    def grid(self):
+        r"""(:class:`Grid`) - Base state's grid is returned"""
+        return self.states[0].grid
+
+    @property
+    def t(self):
+        r"""(float) - :attr:`State.t` of base state"""
+        return self._get_base_state_attribute('t')
+    @t.setter
+    def t(self,value):
+        self.set_all_states('t',value)
+
+    @property
+    def num_eqn(self):
+        r"""(int) - :attr:`State.num_eqn` of base state"""
+        return self._get_base_state_attribute('num_eqn')
+    @property
+    def mp(self):
+        r"""(int) - :attr:`State.mp` of base state"""
+        return self._get_base_state_attribute('mp')
+    @property
+    def mF(self):
+        r"""(int) - :attr:`State.mF` of base state"""
+        return self._get_base_state_attribute('mF')
+    @property
+    def q(self):
+        r"""(ndarray(...,:attr:`State.num_eqn`)) - :attr:`State.q` of base state"""
+        return self._get_base_state_attribute('q')
+    @property
+    def p(self):
+        r"""(ndarray(...,:attr:`State.mp`)) - :attr:`State.p` of base state"""
+        return self._get_base_state_attribute('p')
+    @property
+    def F(self):
+        r"""(ndarray(...,:attr:`State.mF`)) - :attr:`State.F` of base 
                   state"""
-        def fget(self): return self._get_base_state_attribute('q')
-        return locals()
-    def p():
-        doc = r"""(ndarray(...,:attr:`State.mp`)) - :attr:`State.p` 
-                   of base state"""
-        def fget(self): return self._get_base_state_attribute('p')
-        return locals()
-    def F():
-        doc = r"""(ndarray(...,:attr:`State.mF`)) - :attr:`State.F` of base 
+        return self._get_base_state_attribute('F')
+
+    @property
+    def aux(self):
+        r"""(ndarray(...,:attr:`State.num_aux`)) - :attr:`State.aux` of base 
                   state"""
-        def fget(self): return self._get_base_state_attribute('F')
-        return locals()
-    def aux():
-        doc = r"""(ndarray(...,:attr:`State.maux`)) - :attr:`State.aux` of base 
-                  state"""
-        def fget(self): return self._get_base_state_attribute('aux')
-        def fset(self, value): 
-            if len(self.states) == 1: 
-                setattr(self.states[0],'aux',value)
-        return locals()  
-    def capa():
-        doc = r"""(ndarray(...)) - :attr:`State.capa` of base state"""
-        def fget(self): return self._get_base_state_attribute('capa')
-        def fset(self, value):
-            if len(self.states) == 1: 
-                setattr(self.states[0],'capa',value)
-        return locals()  
-    def aux_global():
-        doc = r"""(dict) - :attr:`State.aux_global` of base state"""
-        def fget(self): return self._get_base_state_attribute('aux_global')
-        def fset(self, value):
-            if len(self.states) == 1: 
-                setattr(self.states[0],'aux_global',value)
-        return locals()
-    def maux():
-        doc = r"""(int) - :attr:`State.maux` of base state"""
-        def fget(self): return self._get_base_state_attribute('maux')
-        return locals()
-    def ndim():
-        doc = r"""(int) - :attr:`Grid.ndim` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('ndim')
-        return locals()
-    def dimensions():
-        doc = r"""(list) - :attr:`Grid.dimensions` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('dimensions')
-        return locals()
-    def n():
-        doc = r"""(list) - :attr:`Grid.n` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('n')
-        return locals()
-    def name():
-        doc = r"""(list) - :attr:`Grid.name` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('name')
-        return locals()
-    def lower():
-        doc = r"""(list) - :attr:`Grid.lower` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('lower')
-        return locals()
-    def upper():
-        doc = r"""(list) - :attr:`Grid.upper` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('upper')
-        return locals()
-    def d():
-        doc = r"""(list) - :attr:`Grid.d` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('d')
-        return locals()
-    def units():
-        doc = r"""(list) - :attr:`Grid.units` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('units')
-        return locals()
-    def center():
-        doc = r"""(list) - :attr:`Grid.center` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('center')
-        return locals()
-    def edge():
-        doc = r"""(list) - :attr:`Grid.edge` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('edge')
-        return locals()
-    def p_center():
-        doc = r"""(list) - :attr:`Grid.p_center` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('p_center')
-        return locals()
-    def p_edge():
-        doc = r"""(list) - :attr:`Grid.p_edge` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('p_edge')
-        return locals()
-    def c_center():
-        doc = r"""(list) - :attr:`Grid.c_center` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('c_center')
-        return locals()
-    def c_edge():
-        doc = r"""(list) - :attr:`Grid.c_edge` of base state.grid"""
-        def fget(self): return self._get_base_grid_attribute('c_edge')
-        return locals()
+        return self._get_base_state_attribute('aux')
+    @aux.setter
+    def aux(self, value): 
+        if len(self.states) == 1: 
+            setattr(self.states[0],'aux',value)
+
+    @property
+    def capa(self):
+        r"""(ndarray(...)) - :attr:`State.capa` of base state"""
+        return self._get_base_state_attribute('capa')
+    @capa.setter
+    def capa(self, value):
+        if len(self.states) == 1: 
+            setattr(self.states[0],'capa',value)
+
+    @property
+    def problem_data(self):
+        r"""(dict) - :attr:`State.problem_data` of base state"""
+        return self._get_base_state_attribute('problem_data')
+    @problem_data.setter
+    def problem_data(self, value):
+        if len(self.states) == 1: 
+            setattr(self.states[0],'problem_data',value)
+
+    @property
+    def num_aux(self):
+        r"""(int) - :attr:`State.num_aux` of base state"""
+        return self._get_base_state_attribute('num_aux')
+    @property
+    def ndim(self):
+        r"""(int) - :attr:`Grid.ndim` of base state.grid"""
+        return self._get_base_grid_attribute('ndim')
+    @property
+    def dimensions(self):
+        r"""(list) - :attr:`Grid.dimensions` of base state.grid"""
+        return self._get_base_grid_attribute('dimensions')
+    @property
+    def n(self):
+        r"""(list) - :attr:`Grid.n` of base state.grid"""
+        return self._get_base_grid_attribute('n')
+    @property
+    def name(self):
+        r"""(list) - :attr:`Grid.name` of base state.grid"""
+        return self._get_base_grid_attribute('name')
+    @property
+    def lower(self):
+        r"""(list) - :attr:`Grid.lower` of base state.grid"""
+        return self._get_base_grid_attribute('lower')
+    @property
+    def upper(self):
+        r"""(list) - :attr:`Grid.upper` of base state.grid"""
+        return self._get_base_grid_attribute('upper')
+    @property
+    def d(self):
+        r"""(list) - :attr:`Grid.d` of base state.grid"""
+        return self._get_base_grid_attribute('d')
+    @property
+    def units(self):
+        r"""(list) - :attr:`Grid.units` of base state.grid"""
+        return self._get_base_grid_attribute('units')
+    @property
+    def center(self):
+        r"""(list) - :attr:`Grid.center` of base state.grid"""
+        return self._get_base_grid_attribute('center')
+    @property
+    def edge(self):
+        r"""(list) - :attr:`Grid.edge` of base state.grid"""
+        return self._get_base_grid_attribute('edge')
+    @property
+    def p_center(self):
+        r"""(list) - :attr:`Grid.p_center` of base state.grid"""
+        return self._get_base_grid_attribute('p_center')
+    @property
+    def p_edge(self):
+        r"""(list) - :attr:`Grid.p_edge` of base state.grid"""
+        return self._get_base_grid_attribute('p_edge')
+    @property
+    def c_center(self):
+        r"""(list) - :attr:`Grid.c_center` of base state.grid"""
+        return self._get_base_grid_attribute('c_center')
+    @property
+    def c_edge(self):
+        r"""(list) - :attr:`Grid.c_edge` of base state.grid"""
+        return self._get_base_grid_attribute('c_edge')
         
-    state = property(**state())
-    grid = property(**grid())
-    t = property(**t())
-    meqn = property(**meqn())
-    mp = property(**mp())
-    mF = property(**mF())
-    q = property(**q())
-    p = property(**p())
-    F = property(**F())
-    aux = property(**aux())
-    capa = property(**capa())
-    aux_global = property(**aux_global())
-    maux = property(**maux())
-    ndim = property(**ndim())
-    dimensions = property(**dimensions())
-    n = property(**n())
-    name = property(**name())
-    lower = property(**lower())
-    upper = property(**upper())
-    d = property(**d())
-    units = property(**units())
-    center = property(**center())
-    edge = property(**edge())
-    p_center = property(**p_center())
-    p_edge = property(**p_edge())
-    c_center = property(**c_center())
-    c_edge = property(**c_edge())
-    
 
     # ========== Class Methods ===============================================
     def __init__(self,*arg,**kargs):
@@ -267,16 +247,9 @@ class Solution(object):
                 else:
                     raise Exception("Invalid argument list")
             elif isinstance(arg[0],int): 
+                import inspect
                 frame = arg[0]
-                defaults = {'format':'ascii','path':'./_output/','file_prefix':None,
-                    'read_aux':True,'options':{}}
-   
-                for (k,v) in defaults.iteritems():    
-                    if kargs.has_key(k):
-                        exec("%s = kargs['%s']" % (k,k))
-                    else:
-                        exec('%s = v' % k)
-                self.read(frame,path,format,file_prefix,read_aux,options)
+                self.read(frame,**kargs)
             else:
                 raise Exception("Invalid argument list")
                 
@@ -313,8 +286,9 @@ class Solution(object):
          - *overwrite* - (bool) Whether to overwrite the attribute if it 
            already exists.  ``default = True``
         """
-        [setattr(state,attr,value) for state in self.states if getattr(state,attr)
-                    is None or overwrite]
+        for state in self.states:
+            if getattr(state,attr) is None or overwrite:
+                setattr(state,attr,value) 
     
                     
     def _get_base_state_attribute(self, name):
@@ -340,7 +314,8 @@ class Solution(object):
         return self.__class__(self)
     
     
-    def __deepcopy__(self, memo={}):
+    def __deepcopy__(self,memo={}):
+        import copy
         # Create basic container
         result = self.__class__()
         result.__init__()
@@ -353,7 +328,7 @@ class Solution(object):
     
     
     # ========== IO Functions ================================================
-    def write(self,frame,path='./',format='ascii',file_prefix=None,
+    def write(self,frame,path='./',file_format='ascii',file_prefix=None,
                 write_aux=False,options={},write_p=False):
         r"""
         Write out a representation of the solution
@@ -384,10 +359,10 @@ class Solution(object):
                 print "directory already exists, ignoring"  
 
         # Call the correct write function based on the output format
-        if isinstance(format,str):
-            format_list = [format]
-        elif isinstance(format,list):
-            format_list = format
+        if isinstance(file_format,str):
+            format_list = [file_format]
+        elif isinstance(file_format,list):
+            format_list = file_format
         if 'petsc' in format_list:
             from petclaw import io
         # Loop over list of formats requested
@@ -403,8 +378,8 @@ class Solution(object):
             msg = "Wrote out solution in format %s for time t=%s" % (form,self.t)
             logging.getLogger('io').info(msg)
         
-    def read(self,frame,path='./',format='ascii',file_prefix=None,
-                read_aux=False,options={}):
+    def read(self,frame,path='./_output',file_format='ascii',file_prefix=None,
+                read_aux=True,options={}, **kargs):
         r"""
         Reads in a Solution object from a file
         
@@ -435,10 +410,10 @@ class Solution(object):
          - (bool) - True if read was successful, False otherwise
         """
         
-        if format=='petsc':
+        if file_format=='petsc':
             from petclaw import io
         path = os.path.expandvars(os.path.expanduser(path))
-        read_func = eval('io.read_%s' % format)
+        read_func = eval('io.read_%s' % file_format)
         if file_prefix is None:
             read_func(self,frame,path,read_aux=read_aux,options=options)
         else:
@@ -454,3 +429,7 @@ class Solution(object):
         raise NotImplementedError("Direct solution plotting has not been " +
             "implemented as of yet, please refer to the plotting module for" +
             " how to plot solutions.")
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

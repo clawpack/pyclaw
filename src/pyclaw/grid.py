@@ -9,12 +9,7 @@ Module containing all Pyclaw solution objects
     Amal Alghamdi
 """
 
-import copy
-import logging
-
 import numpy as np
-
-from data import Data
 
 # ============================================================================
 #  Default function definitions
@@ -48,44 +43,60 @@ class Dimension(object):
        
     Output:
      - (:class:`Dimension`) - Initialized Dimension object
+
+    Example:
+
+    >>> x = Dimension('x',0.,1.,100)
+    >>> print x
+    Dimension x:  (n,d,[lower,upper]) = (100,0.01,[0.0,1.0])
+    >>> x.name
+    'x'
+    >>> x.n
+    100
+    >>> x.d
+    0.01
+    >>> x.edge[0]
+    0.0
+    >>> x.edge[1]
+    0.01
+    >>> x.edge[-1]
+    1.0
+    >>> x.center[-1]
+    0.995
+    >>> len(x.center)
+    100
+    >>> len(x.edge)
+    101
     """
     
     # ========== Property Definitions ========================================
-    def ng():
-        doc = r"""(int) - Number of grid cells in this dimension, on this process"""
-        def fget(self):
-            return self.n
-        return locals()
-    ng = property(**ng())
-    def d():
-        doc = r"""(float) - Size of an individual, computational grid cell"""
-        def fget(self):
-            return (self.upper-self.lower) / float(self.n)
-        return locals()
-    d = property(**d())
-    def edge():
-        doc = r"""(ndarrary(:)) - Location of all grid cell edge coordinates
+    @property
+    def ng(self):
+        r"""(int) - Number of grid cells in this dimension, on this process"""
+        return self.n
+    @property
+    def d(self):
+        r"""(float) - Size of an individual, computational grid cell"""
+        return (self.upper-self.lower) / float(self.n)
+    @property
+    def edge(self):
+        r"""(ndarrary(:)) - Location of all grid cell edge coordinates
         for this dimension"""
-        def fget(self): 
-            if self._edge is None:
-                self._edge = np.empty(self.n+1)   
-                for i in xrange(0,self.n+1):
-                    self._edge[i] = self.lower + i*self.d 
-            return self._edge
-        return locals()
-    edge = property(**edge())
+        if self._edge is None:
+            self._edge = np.empty(self.n+1)   
+            for i in xrange(0,self.n+1):
+                self._edge[i] = self.lower + i*self.d 
+        return self._edge
     _edge = None
-    def center():
-        doc = r"""(ndarrary(:)) - Location of all grid cell center coordinates
+    @property
+    def center(self):
+        r"""(ndarrary(:)) - Location of all grid cell center coordinates
         for this dimension"""
-        def fget(self): 
-            if self._center is None:
-                self._center = np.empty(self.n)
-                for i in xrange(0,self.n):
-                    self._center[i] = self.lower + (i+0.5)*self.d
-            return self._center
-        return locals()
-    center = property(**center())
+        if self._center is None:
+            self._center = np.empty(self.n)
+            for i in xrange(0,self.n):
+                self._center[i] = self.lower + (i+0.5)*self.d
+        return self._center
     _center = None
     
     def __init__(self, *args, **kargs):
@@ -113,13 +124,13 @@ class Dimension(object):
             self.lower = float(args[0])
             self.upper = float(args[1])
             self.n = int(args[2])
-    	elif isinstance(args[0],basestring):
+        elif isinstance(args[0],basestring):
             self.name = args[0]
             self.lower = float(args[1])
             self.upper = float(args[2])
             self.n = int(args[3])
-    	else:
-    	    raise Exception("Invalid initializer for Dimension.")
+        else:
+            raise Exception("Invalid initializer for Dimension.")
         
         for (k,v) in kargs.iteritems():
             setattr(self,k,v)
@@ -131,9 +142,6 @@ class Dimension(object):
         self.nend = self.n
         self.lowerg = self.lower
             
-        # Function attribute assignments
-    
-
     def __str__(self):
         output = "Dimension %s" % self.name
         if self.units:
@@ -160,7 +168,6 @@ class Grid(object):
     
         Each grid has a value for :attr:`level` and :attr:`gridno`.
         
-       
     :Properties:
 
         If the requested property has multiple values, a list will be returned
@@ -174,123 +181,133 @@ class Grid(object):
             
         Output:
          - (:class:`Grid`) Initialized grid object
+
+    A PyClaw Grid is usually constructed from a tuple of PyClaw Dimension objects:
+
+        >>> x = Dimension('x',0.,1.,10)
+        >>> y = Dimension('y',-1.,1.,25)
+        >>> grid = Grid((x,y))
+        >>> print grid
+        Grid 1:
+        Dimension x:  (n,d,[lower,upper]) = (10,0.1,[0.0,1.0])
+        Dimension y:  (n,d,[lower,upper]) = (25,0.08,[-1.0,1.0])
+        >>> grid.ndim
+        2
+        >>> grid.n
+        [10, 25]
+        >>> grid.lower
+        [0.0, -1.0]
+        >>> grid.d
+        [0.1, 0.08]
+
+    A grid can be extended to higher dimensions using the add_dimension() method:
+
+        >>> z=Dimension('z',-2.0,2.0,21)
+        >>> grid.add_dimension(z)
+        >>> grid.ndim
+        3
+        >>> grid.n
+        [10, 25, 21]
+        >>> grid.c_edge[0][0,0,0]
+        0.0
+        >>> grid.c_edge[1][0,0,0]
+        -1.0
+        >>> grid.c_edge[2][0,0,0]
+        -2.0
     """
-    
+
     # ========== Property Definitions ========================================
-    def ndim():
-        doc = r"""(int) - Number of dimensions"""
-        def fget(self): return len(self._dimensions)
-        return locals()
-    def dimensions():
-        doc = r"""(list) - List of :class:`Dimension` objects defining the 
+    @property
+    def ndim(self):
+        r"""(int) - Number of dimensions"""
+        return len(self._dimensions)
+    @property
+    def dimensions(self):
+        r"""(list) - List of :class:`Dimension` objects defining the 
                 grid's extent and resolution"""
-        def fget(self): return [getattr(self,name) for name in self._dimensions]
-        return locals()
-    def n():
-        doc = r"""(list) - List of the total number of grid cells in each dimension"""
-        def fget(self): return self.get_dim_attribute('n')
-        return locals()
-    def ng():
-        doc = r"""(list) - List of the local (to this process)number of grid cells in each dimension"""
-        def fget(self): return self.get_dim_attribute('ng')
-        return locals()
-    def nstart():
-        doc = r"""(list) - List of the number of grid cells in each dimension"""
-        def fget(self): return self.get_dim_attribute('nstart')
-        return locals()
-    def nend():
-        doc = r"""(list) - List of the number of grid cells in each dimension"""
-        def fget(self): return self.get_dim_attribute('nend')
-        return locals()
-    def name():
-        doc = r"""(list) - List of names of each dimension"""
-        def fget(self): return self._dimensions
-        return locals()
-    def lower():
-        doc = r"""(list) - Lower coordinate extents of each dimension"""
-        def fget(self): return self.get_dim_attribute('lower')
-        return locals()
-    def lowerg():
-        doc = r"""(list) - Lower coordinate extents of each dimension on this process"""
-        def fget(self): return self.get_dim_attribute('lowerg')
-        return locals()
-    def upper():
-        doc = r"""(list) - Upper coordinate extends of each dimension"""
-        def fget(self): return self.get_dim_attribute('upper')
-        return locals()
-    def d():
-        doc = r"""(list) - List of computational grid cell widths"""
-        def fget(self): return self.get_dim_attribute('d')
-        return locals()
-    def units():
-        doc = r"""(list) - List of dimension units"""
-        def fget(self): return self.get_dim_attribute('units')
-        return locals()
-    def center():
-        doc = r"""(list) - List of center coordinate arrays"""
-        def fget(self): return self.get_dim_attribute('center')
-        return locals()
-    def edge():
-        doc = "List of edge coordinate arrays"
-        def fget(self): return self.get_dim_attribute('edge')
-        return locals()
-    def p_center():
-        doc = r"""(list of ndarray(...)) - List containing the arrays locating
+        return [getattr(self,name) for name in self._dimensions]
+    @property
+    def n(self): 
+        r"""(list) - List of the number of grid cells in each dimension"""
+        return self.get_dim_attribute('n')
+    @property
+    def ng(self):
+        r"""(list) - List of the local (to this process)number of grid cells in each dimension"""
+        return self.get_dim_attribute('ng')
+    @property
+    def nstart(self):
+        r"""(list) - List of the number of grid cells in each dimension"""
+        return self.get_dim_attribute('nstart')
+    @property
+    def nend(self):
+        r"""(list) - List of the number of grid cells in each dimension"""
+        return self.get_dim_attribute('nend')
+    @property
+    def name(self):
+        r"""(list) - List of names of each dimension"""
+        return self._dimensions
+    @property
+    def lower(self):
+        r"""(list) - Lower coordinate extents of each dimension"""
+        return self.get_dim_attribute('lower')
+    @property
+    def lowerg(self):
+        r"""(list) - Lower coordinate extents of each dimension on this process"""
+        return self.get_dim_attribute('lowerg')
+    @property
+    def upper(self):
+        r"""(list) - Upper coordinate extends of each dimension"""
+        return self.get_dim_attribute('upper')
+    @property
+    def d(self):
+        r"""(list) - List of computational grid cell widths"""
+        return self.get_dim_attribute('d')
+    @property
+    def units(self):
+        r"""(list) - List of dimension units"""
+        return self.get_dim_attribute('units')
+    @property
+    def center(self):
+        r"""(list) - List of center coordinate arrays"""
+        return self.get_dim_attribute('center')
+    @property
+    def edge(self):
+        "List of edge coordinate arrays"
+        return self.get_dim_attribute('edge')
+    @property
+    def p_center(self):
+        r"""(list of ndarray(...)) - List containing the arrays locating
                   the physical locations of cell centers, see 
                   :meth:`compute_p_center` for more info."""
-        def fget(self):
-            self.compute_p_center(self)
-            return self._p_center
-        return locals()
+        self.compute_p_center(self)
+        return self._p_center
     _p_center = None
-    def p_edge():
-        doc = r"""(list of ndarray(...)) - List containing the arrays locating
+    @property
+    def p_edge(self):
+        r"""(list of ndarray(...)) - List containing the arrays locating
                   the physical locations of cell edges, see 
                   :meth:`compute_p_edge` for more info."""
-        def fget(self):
-            self.compute_p_edge(self)
-            return self._p_edge
-        return locals()
+        self.compute_p_edge(self)
+        return self._p_edge
     _p_edge = None
-    def c_center():
-        doc = r"""(list of ndarray(...)) - List containing the arrays locating
+    @property
+    def c_center(self):
+        r"""(list of ndarray(...)) - List containing the arrays locating
                   the computational locations of cell centers, see 
                   :meth:`compute_c_center` for more info."""
-        def fget(self):
-            self.compute_c_center(self)
-            return self._c_center
-        return locals()
+        self.compute_c_center(self)
+        return self._c_center
     _c_center = None
-    def c_edge():
-        doc = r"""(list of ndarray(...)) - List containing the arrays locating
+    @property
+    def c_edge(self):
+        r"""(list of ndarray(...)) - List containing the arrays locating
                   the computational locations of cell edges, see 
                   :meth:`compute_c_edge` for more info."""
-        def fget(self):
-            self.compute_c_edge(self)
-            return self._c_edge
-        return locals()
+        self.compute_c_edge(self)
+        return self._c_edge
     _c_edge = None
 
        
-    ndim = property(**ndim())
-    dimensions = property(**dimensions())
-    n = property(**n())
-    ng = property(**ng())
-    nstart = property(**nstart())
-    nend = property(**nend())
-    name = property(**name())
-    lower = property(**lower())
-    lowerg = property(**lowerg())
-    upper = property(**upper())
-    d = property(**d())
-    units = property(**units())
-    center = property(**center())
-    edge = property(**edge())
-    p_center = property(**p_center())
-    p_edge = property(**p_edge())
-    c_center = property(**c_center())
-    c_edge = property(**c_edge())
-    
     
     # ========== Class Methods ===============================================
     def __init__(self,dimensions):
@@ -323,23 +340,8 @@ class Grid(object):
     
     def __str__(self):
         output = "Grid %s:\n" % self.gridno
-        output += '\n  '.join((str(getattr(self,dim)) for dim in self._dimensions))
-        output += '\n'
+        output += '\n'.join((str(getattr(self,dim)) for dim in self._dimensions))
         return output
-    
-    
-    def is_valid(self):
-        r"""
-        Checks to see if this grid is valid
-        
-        Nothing to do here, since both q and mbc have been moved out of grid.
-            
-        :Output:
-         - (bool) - True if valid, false otherwise.
-        
-        """
-        valid = True
-        return valid
     
     
     # ========== Dimension Manipulation ======================================
@@ -369,6 +371,7 @@ class Grid(object):
         
         
     def __deepcopy__(self,memo={}):
+        import copy
         result = self.__class__(copy.deepcopy(self.dimensions))
         result.__init__(copy.deepcopy(self.dimensions))
         
@@ -410,7 +413,6 @@ class Grid(object):
                 self._p_center[0] = self.mapc2p(self,self.dimensions[0].center)
             # Higer dimensional calculate center arrays
             else:
-                mgrid = np.lib.index_tricks.nd_grid()
                 index = np.indices(self.ng)
                 array_list = []
                 for i,center_array in enumerate(self.get_dim_attribute('center')):
@@ -442,7 +444,6 @@ class Grid(object):
             if self.ndim == 1:        
                 self._p_edge[0] = self.mapc2p(self,self.dimensions[0].edge)
             else:
-                mgrid = np.lib.index_tricks.nd_grid()
                 index = np.indices([n+1 for n in self.ng])
                 array_list = []
                 for i,edge_array in enumerate(self.get_dim_attribute('edge')):
@@ -476,7 +477,6 @@ class Grid(object):
                 self._c_center[0] = self.dimensions[0].center
             else:
                 # Produce ndim mesh grid function
-                mgrid = np.lib.index_tricks.nd_grid()
                 index = np.indices(self.ng)
                 self._c_center = []
                 for i,center_array in enumerate(self.get_dim_attribute('center')):
@@ -504,7 +504,6 @@ class Grid(object):
             if self.ndim == 1:
                 self._c_edge[0] = self.dimensions[0].edge
             else:
-                mgrid = np.lib.index_tricks.nd_grid()
                 index = np.indices([n+1 for n in self.ng])
                 self._c_edge = []
                 for i,edge_array in enumerate(self.get_dim_attribute('edge')):
@@ -545,3 +544,6 @@ class Grid(object):
                 self.gauge_files.append(open(gauge_path,'a'))
 
 
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
