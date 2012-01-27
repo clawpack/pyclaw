@@ -74,7 +74,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
 !            case(1)
 !                ! wave-based unlimited reconstruction
 !                call rpn2(ixy,maxnx,num_eqn,num_waves,num_ghost,mx,&
-!                        q1d,q1d,aux,aux,wave,s,amdq,apdq)
+!                        q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
 !                call q2qlqr_poly_wave(q1d,ql,qr,wave,s,mx)
 !        end select
         case(1)
@@ -85,7 +85,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
             case(1)
                 ! wave-based second order reconstruction
                 call rpn2(ixy,maxnx,num_eqn,num_waves,num_ghost,mx,&
-                        q1d,q1d,aux,aux,wave,s,amdq,apdq)
+                        q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
                 call tvd2_wave(q1d,ql,qr,wave,s,mthlim)
             case(2)
                 ! characteristic-wise second order reconstruction
@@ -100,7 +100,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
             case (1)
                 ! wave-based reconstruction
                 call rpn2(ixy,maxnx,num_eqn,num_waves,num_ghost,mx,&
-                        q1d,q1d,aux,aux,wave,s,amdq,apdq)
+                        q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
                 if (fwave.eqv. .True.) then
                     call weno5_fwave(q1d,ql,qr,wave,s)
                 else
@@ -127,7 +127,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
     ! solve Riemann problem at each interface 
     ! -----------------------------------------
     call rpn2(ixy,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr,aux,aux, &
-              wave,s,amdq,apdq)
+              wave,s,amdq,apdq,num_aux)
 
     ! compute maximum wave speed:
     cfl = 0.d0
@@ -184,7 +184,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
         endif
         
         call rpn2(ixy,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr, &
-                 auxl,auxr,wave,s,amdq2,apdq2)
+                 auxl,auxr,wave,s,amdq2,apdq2,num_aux)
 
         forall(i=1:mx, m=1:num_eqn)
             dq1d(m,i) = dq1d(m,i)-dtdx(i)*(amdq(m,i+1)+ &

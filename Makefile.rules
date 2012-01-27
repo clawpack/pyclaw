@@ -10,23 +10,23 @@ classic2.so: $(TWO_D_CLASSIC_SOURCES) $(RP_SOURCE)
 sharpclaw2.so: $(TWO_D_SHARPCLAW_SOURCES) $(RP_SOURCE) 
 	${F2PY} -m sharpclaw2 -c $(TWO_D_SHARPCLAW_SOURCES) $(RP_SOURCE) 
 
-step2ds.o: $(CLASSIC)/step2ds.f
-	$(FC) $(FFLAGS) -o step2ds.o -c $(CLASSIC)/step2ds.f
+step2ds.o: $(CLASSIC)/step2ds.f90
+	$(FC) $(FFLAGS) -o step2ds.o -c $(CLASSIC)/step2ds.f90
 
 classic3.so: $(THREE_D_CLASSIC_SOURCES) $(RP_SOURCE) 
 	${F2PY} -m classic3 -c $(THREE_D_CLASSIC_SOURCES) $(RP_SOURCE) 	
 
-flux2.o: $(CLASSIC)/flux2.f
-	$(FC) $(FFLAGS) -o flux2.o -c $(CLASSIC)/flux2.f
+flux2.o: $(CLASSIC)/flux2.f90
+	$(FC) $(FFLAGS) -o flux2.o -c $(CLASSIC)/flux2.f90
 
 flux3.o: $(CLASSIC)/flux3.f
 	$(FC) $(FFLAGS) -o flux3.o -c $(CLASSIC)/flux3.f
 
-limiter.o: $(CLASSIC)/limiter.f
-	$(FC) $(FFLAGS) -o limiter.o -c $(CLASSIC)/limiter.f
+limiter.o: $(CLASSIC)/limiter.f90
+	$(FC) $(FFLAGS) -o limiter.o -c $(CLASSIC)/limiter.f90
 
-philim.o: $(CLASSIC)/philim.f
-	$(FC) $(FFLAGS) -o philim.o -c $(CLASSIC)/philim.f
+philim.o: $(CLASSIC)/philim.f90
+	$(FC) $(FFLAGS) -o philim.o -c $(CLASSIC)/philim.f90
 
 clean:
 	rm -f *.o *.so *.pyc *.log

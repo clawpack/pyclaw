@@ -8,7 +8,7 @@ PYCLAWMAKE = $(PYCLAW)/Makefile.common
 
 FCOMPILE_SINGLE = ${FC} -c ${FC_FLAGS} ${FFLAGS} ${FCPPFLAGS}
 
-RP_SOURCE =  $(RIEMANN)/src/rp1_euler-with-efix.f
+RP_SOURCE =  $(RIEMANN)/src/rp1_euler-with-efix.f90
 
 F2PY = f2py
 PYTHON = python
