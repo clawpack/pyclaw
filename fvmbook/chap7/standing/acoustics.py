@@ -28,13 +28,13 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     #========================================================================
     solver.kernel_language=kernel_language
     from riemann import rp_acoustics
-    solver.mwaves=rp_acoustics.mwaves
+    solver.num_waves=rp_acoustics.num_waves
     if kernel_language=='Python': 
         solver.rp = rp_acoustics.rp_acoustics_1d
  
     solver.limiters = pyclaw.limiters.tvd.MC
-    solver.bc_lower[0] = pyclaw.BC.reflecting
-    solver.bc_upper[0] = pyclaw.BC.reflecting
+    solver.bc_lower[0] = pyclaw.BC.wall
+    solver.bc_upper[0] = pyclaw.BC.wall
 
     solver.cfl_desired = 1.0
     solver.cfl_max     = 1.0
@@ -44,18 +44,18 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     #========================================================================
     x = pyclaw.Dimension('x',0.0,1.0,200)
     grid = pyclaw.Grid(x)
-    meqn = 2
-    state = pyclaw.State(grid,meqn)
+    num_eqn = 2
+    state = pyclaw.State(grid,num_eqn)
 
     #========================================================================
     # Set problem-specific variables
     #========================================================================
     rho = 1.0
     bulk = 1.0
-    state.aux_global['rho']=rho
-    state.aux_global['bulk']=bulk
-    state.aux_global['zz']=np.sqrt(rho*bulk)
-    state.aux_global['cc']=np.sqrt(bulk/rho)
+    state.problem_data['rho']=rho
+    state.problem_data['bulk']=bulk
+    state.problem_data['zz']=np.sqrt(rho*bulk)
+    state.problem_data['cc']=np.sqrt(bulk/rho)
 
     #========================================================================
     # Set the initial condition
@@ -71,7 +71,7 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver
     claw.outdir = outdir
-    claw.nout = 40
+    claw.num_output_times = 40
     claw.tfinal = 2.0
 
     # Solve

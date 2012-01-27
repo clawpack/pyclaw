@@ -4,7 +4,7 @@ r"""
 Controller for basic computation and plotting setup.
 
 This module defines the Pyclaw controller class.  It can be used to perform
-simulations similar to previous versions of Clawpack, i.e. with outstyle and
+simulations similar to previous versions of Clawpack, i.e. with output_style and
 output time specification.  It also can be used to set up easy plotting and 
 running of compiled fortran binaries.
 """
@@ -50,8 +50,8 @@ class Controller(object):
                         'xclawcmd','xclawout','xclawerr','runmake','savecode',
                         'solver','keep_copy','write_aux_init',
                         'write_aux_always','output_format',
-                        'output_file_prefix','output_options','nout',
-                        'outstyle','verbosity']
+                        'output_file_prefix','output_options','num_output_times',
+                        'output_style','verbosity']
         r"""(list) - Viewable attributes of the `:class:`~pyclaw.controller.Controller`"""
 
         # Global information for running and/or plotting
@@ -111,20 +111,20 @@ class Controller(object):
         # Classic output parameters, used in run convenience method
         self.tfinal = 1.0
         r"""(float) - Final time output, ``default = 1.0``"""
-        self.outstyle = 1
+        self.output_style = 1
         r"""(int) - Time output style, ``default = 1``"""
         self.verbosity = 0 
         r"""(int) - Level of output, ``default = 0``"""
-        self.nout = 10                  # Outstyle 1 defaults
-        r"""(int) - Number of output times, only used with ``outstyle = 1``,
+        self.num_output_times = 10                  # Outstyle 1 defaults
+        r"""(int) - Number of output times, only used with ``output_style = 1``,
         ``default = 10``"""
-        self.out_times = np.linspace(0.0,self.tfinal,self.nout) # Outstyle 2
-        r"""(int) - Output time list, only used with ``outstyle = 2``,
-        ``default = numpy.linspace(0.0,tfinal,nout)``"""
+        self.out_times = np.linspace(0.0,self.tfinal,self.num_output_times) # Outstyle 2
+        r"""(int) - Output time list, only used with ``output_style = 2``,
+        ``default = numpy.linspace(0.0,tfinal,num_output_times)``"""
         
         self.nstepout = 1               # Outstyle 3 defaults
         r"""(int) - Number of steps between output, only used with 
-        ``outstyle = 3``, ``default = 1``"""
+        ``output_style = 3``, ``default = 1``"""
         
         # Data objects
         self.plotdata = None
@@ -223,15 +223,15 @@ class Controller(object):
         self.solver.write_gauge_values(self.solution)
 
         # Output styles
-        if self.outstyle == 1:
+        if self.output_style == 1:
             output_times = np.linspace(self.solution.t,
-                    self.tfinal,self.nout+1)
-        elif self.outstyle == 2:
+                    self.tfinal,self.num_output_times+1)
+        elif self.output_style == 2:
             output_times = self.out_times
-        elif self.outstyle == 3:
-            output_times = np.ones((self.nout+1))
+        elif self.output_style == 3:
+            output_times = np.ones((self.num_output_times+1))
         else:
-            raise Exception("Invalid output style %s" % self.outstyle)  
+            raise Exception("Invalid output style %s" % self.output_style)  
          
         # Output and save initial frame
         if self.keep_copy:
@@ -261,7 +261,7 @@ class Controller(object):
                         (frame,self.solution.t) )
 
         for t in output_times[1:]:                
-            if self.outstyle < 3:
+            if self.output_style < 3:
                 status = self.solver.evolve_to_time(self.solution,t)
             else:
                 # Take nstepout steps and output

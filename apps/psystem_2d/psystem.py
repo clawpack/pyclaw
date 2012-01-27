@@ -86,8 +86,8 @@ def b4step(solver,solution):
     state.aux[3,:,:] = state.q[0,:,:]
 
     # To set to 0 1st 1/2 of the domain. Used in rect domains with PBC in x
-    if state.aux_global['turnZero_half_2D']==1:
-        if state.t>=state.aux_global['t_turnZero'] and state.t<=state.aux_global['t_turnZero']+1:
+    if state.problem_data['turnZero_half_2D']==1:
+        if state.t>=state.problem_data['t_turnZero'] and state.t<=state.problem_data['t_turnZero']+1:
             if state.grid.x.nend <= np.floor(state.grid.x.n/2):
                 state.q[:,:,:]=0
 
@@ -141,20 +141,20 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
     y0=0.25 # Center of initial perturbation
     varx=0.5; vary=0.5 # Width of initial perturbation
     # Boundary conditions
-    bc_x_lower=pyclaw.BC.reflecting; bc_x_upper=pyclaw.BC.outflow
-    bc_y_lower=pyclaw.BC.reflecting; bc_y_upper=pyclaw.BC.outflow
+    bc_x_lower=pyclaw.BC.wall; bc_x_upper=pyclaw.BC.extrap
+    bc_y_lower=pyclaw.BC.wall; bc_y_upper=pyclaw.BC.extrap
     # Turning off 1st half of the domain. Useful in rect domains
     turnZero_half_2D=0 #flag
     t_turnZero=50
     # Regarding time
     tfinal=20.0
-    nout=10
+    num_output_times=10
     t0=0.0
     # restart options
     restart_from_frame = None
     solver = pyclaw.ClawSolver2D()
     #solver = pyclaw.SharpClawSolver2D()
-    solver.mwaves = 2
+    solver.num_waves = 2
     solver.limiters = pyclaw.limiters.tvd.superbee
 
     solver.bc_lower[0]=bc_x_lower
@@ -169,8 +169,8 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
     solver.fwave = True
     solver.cfl_max = 0.9
     solver.cfl_desired = 0.8
-    solver.start_step = b4step
-    solver.dim_split=False
+    solver.before_step = b4step
+    solver.dimensional_split=False
 
     #controller
     claw = pyclaw.Controller()
@@ -182,7 +182,7 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
         claw.solution.state.mp = 1
         grid = claw.solution.grid
         claw.solution.state.aux = setaux(grid.x.center,grid.y.center)
-        claw.nout = nout - restart_from_frame
+        claw.num_output_times = num_output_times - restart_from_frame
         claw.start_frame = restart_from_frame
     else:
         ####################################
@@ -192,15 +192,15 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
         x = pyclaw.Dimension('x',x_lower,x_upper,mx)
         y = pyclaw.Dimension('y',y_lower,y_upper,my)
         grid = pyclaw.Grid([x,y])
-        meqn = 3
-        maux = 4
-        state = pyclaw.State(grid,meqn,maux)
+        num_eqn = 3
+        num_aux = 4
+        state = pyclaw.State(grid,num_eqn,num_aux)
         state.mF = 3
         state.t=t0
         #Set global parameters
-        state.aux_global = {}
-        state.aux_global['turnZero_half_2D'] = turnZero_half_2D
-        state.aux_global['t_turnZero'] = t_turnZero
+        state.problem_data = {}
+        state.problem_data['turnZero_half_2D'] = turnZero_half_2D
+        state.problem_data['t_turnZero'] = t_turnZero
         state.mp = 1
 
         state.aux = setaux(grid.x.center,grid.y.center)
@@ -208,7 +208,7 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
         qinit(state,A,x0,y0,varx,vary)
 
         claw.solution = pyclaw.Solution(state)
-        claw.nout = nout
+        claw.num_output_times = num_output_times
 
     #claw.p_function = p_function
     claw.compute_F = compute_F
@@ -219,7 +219,7 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
     #Solve
     status = claw.run()
     
-    #strain=claw.frames[claw.nout].state.gqVec.getArray().reshape([grid.ng[0],grid.ng[1],meqn])[:,:,0]
+    #strain=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([grid.ng[0],grid.ng[1],num_eqn])[:,:,0]
     #return strain
 
     if iplot:    pyclaw.plot.interactive_plot()

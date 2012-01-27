@@ -40,7 +40,7 @@ class ClawSolver(Solver):
         or 2 for second order (Lax-Wendroff-LeVeque).
         ``Default = 2``
     
-    .. attribute:: src_split
+    .. attribute:: source_split
     
         Which source splitting method to use: 1 for first 
         order Godunov splitting and 2 for second order Strang splitting.
@@ -52,19 +52,19 @@ class ClawSolver(Solver):
         requires that the Riemann solver performs the splitting.  
         ``Default = False``
         
-    .. attribute:: step_src
+    .. attribute:: step_source
     
         Handle for function that evaluates the source term.  
         The required signature for this function is:
 
-        def step_src(solver,state,dt)
+        def step_source(solver,state,dt)
     
-    .. attribute:: start_step
+    .. attribute:: before_step
     
         Function called before each time step is taken.
         The required signature for this function is:
         
-        def start_step(solver,solution)
+        def before_step(solver,solution)
 
     .. attribute:: kernel_language
 
@@ -84,13 +84,13 @@ class ClawSolver(Solver):
         r"""
         See :class:`ClawSolver` for full documentation.
         """
-        self.mbc = 2
+        self.num_ghost = 2
         self.limiters = tvd.minmod
         self.order = 2
-        self.src_split = 1
+        self.source_split = 1
         self.fwave = False
-        self.step_src = None
-        self.start_step = None
+        self.step_source = None
+        self.before_step = None
         self.kernel_language = 'Fortran'
         self.verbosity = 0
         self.cfl_max = 1.0
@@ -108,17 +108,17 @@ class ClawSolver(Solver):
 
         The elements of the algorithm for taking one step are:
         
-        1. The :meth:`start_step` function is called
+        1. The :meth:`before_step` function is called
         
-        2. A half step on the source term :func:`step_src` if Strang splitting is 
-           being used (:attr:`src_split` = 2)
+        2. A half step on the source term :func:`step_source` if Strang splitting is 
+           being used (:attr:`source_split` = 2)
         
         3. A step on the homogeneous problem :math:`q_t + f(q)_x = 0` is taken
         
         4. A second half step or a full step is taken on the source term
-           :func:`step_src` depending on whether Strang splitting was used 
-           (:attr:`src_split` = 2) or Godunov splitting 
-           (:attr:`src_split` = 1)
+           :func:`step_source` depending on whether Strang splitting was used 
+           (:attr:`source_split` = 2) or Godunov splitting 
+           (:attr:`source_split` = 1)
 
         This routine is called from the method evolve_to_time defined in the
         pyclaw.solver.Solver superclass.
@@ -130,11 +130,11 @@ class ClawSolver(Solver):
          - (bool) - True if full step succeeded, False otherwise
         """
 
-        if self.start_step is not None:
-            self.start_step(self,solution)
+        if self.before_step is not None:
+            self.before_step(self,solution)
 
-        if self.src_split == 2 and self.step_src is not None:
-            self.step_src(self,solution.states[0],self.dt/2.0)
+        if self.source_split == 2 and self.step_source is not None:
+            self.step_source(self,solution.states[0],self.dt/2.0)
     
         self.step_hyperbolic(solution)
 
@@ -144,14 +144,14 @@ class ClawSolver(Solver):
         if self.cfl.get_cached_max() >= self.cfl_max:
             return False
 
-        if self.step_src is not None:
+        if self.step_source is not None:
             # Strang splitting
-            if self.src_split == 2:
-                self.step_src(self,solution.states[0],self.dt/2.0)
+            if self.source_split == 2:
+                self.step_source(self,solution.states[0],self.dt/2.0)
 
             # Godunov Splitting
-            if self.src_split == 1:
-                self.step_src(self,solution.states[0],self.dt)
+            if self.source_split == 1:
+                self.step_source(self,solution.states[0],self.dt)
                 
         return True
             
@@ -172,13 +172,13 @@ class ClawSolver(Solver):
     def set_mthlim(self):
         r"""
         Convenience routine to convert users limiter specification to 
-        the format understood by the Fortran code (i.e., a list of length mwaves).
+        the format understood by the Fortran code (i.e., a list of length num_waves).
         """
         self._mthlim = self.limiters
         if not isinstance(self.limiters,list): self._mthlim=[self._mthlim]
-        if len(self._mthlim)==1: self._mthlim = self._mthlim * self.mwaves
-        if len(self._mthlim)!=self.mwaves:
-            raise Exception('Length of solver.limiters is not equal to 1 or to solver.mwaves')
+        if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_waves
+        if len(self._mthlim)!=self.num_waves:
+            raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_waves')
  
     def set_method(self,state):
         r"""
@@ -193,14 +193,14 @@ class ClawSolver(Solver):
         self._method[1] = self.order
         if self.ndim==1:
             self._method[2] = 0  # Not used in 1D
-        elif self.dim_split:
+        elif self.dimensional_split:
             self._method[2] = -1  # First-order dimensional splitting
         else:
-            self._method[2] = self.order_trans
+            self._method[2] = self.transverse_waves
         self._method[3] = self.verbosity
-        self._method[4] = 0  # Not used for PyClaw (would be self.src_split)
-        self._method[5] = state.mcapa + 1
-        self._method[6] = state.maux
+        self._method[4] = 0  # Not used for PyClaw (would be self.source_split)
+        self._method[5] = state.index_capa + 1
+        self._method[6] = state.num_aux
 
     def setup(self,solution):
         r"""
@@ -212,8 +212,8 @@ class ClawSolver(Solver):
             self.so_name = 'classic'+str(self.ndim)
 
         # This is a hack to deal with the fact that petsc4py
-        # doesn't allow us to change the stencil_width (mbc)
-        solution.state.set_mbc(self.mbc)
+        # doesn't allow us to change the stencil_width (num_ghost)
+        solution.state.set_num_ghost(self.num_ghost)
         # End hack
 
         self.check_cfl_settings()
@@ -296,16 +296,16 @@ class ClawSolver1D(ClawSolver):
 
         self.apply_q_bcs(state)
             
-        meqn,mbc = state.meqn,self.mbc
+        num_eqn,num_ghost = state.num_eqn,self.num_ghost
           
         if(self.kernel_language == 'Fortran'):
             classic = __import__(self.so_name)
 
             mx = grid.ng[0]
             dx,dt = grid.d[0],self.dt
-            dtdx = np.zeros( (mx+2*mbc) ) + dt/dx
+            dtdx = np.zeros( (mx+2*num_ghost) ) + dt/dx
             
-            self.qbc,cfl = classic.step1(mbc,mx,self.qbc,self.auxbc,dx,dt,self._method,self._mthlim,self.fwave)
+            self.qbc,cfl = classic.step1(num_ghost,mx,self.qbc,self.auxbc,dx,dt,self._method,self._mthlim,self.fwave)
             
         elif(self.kernel_language == 'Python'):
  
@@ -314,11 +314,11 @@ class ClawSolver1D(ClawSolver):
             # Limiter to use in the pth family
             limiter = np.array(self._mthlim,ndmin=1)  
         
-            dtdx = np.zeros( (2*self.mbc+grid.ng[0]) )
+            dtdx = np.zeros( (2*self.num_ghost+grid.ng[0]) )
 
             # Find local value for dt/dx
-            if state.mcapa>=0:
-                dtdx = self.dt / (grid.d[0] * state.aux[state.mcapa,:])
+            if state.index_capa>=0:
+                dtdx = self.dt / (grid.d[0] * state.aux[state.index_capa,:])
             else:
                 dtdx += self.dt/grid.d[0]
         
@@ -331,7 +331,7 @@ class ClawSolver1D(ClawSolver):
             else:
                 aux_l = None
                 aux_r = None
-            wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.aux_global)
+            wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.problem_data)
             
             # Update loop limits, these are the limits for the Riemann solver
             # locations, which then update a grid cell value
@@ -341,11 +341,11 @@ class ClawSolver1D(ClawSolver):
             #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
             #              |                               |
 
-            LL = self.mbc - 1
-            UL = self.mbc + grid.ng[0] + 1 
+            LL = self.num_ghost - 1
+            UL = self.num_ghost + grid.ng[0] + 1 
 
             # Update q for Godunov update
-            for m in xrange(meqn):
+            for m in xrange(num_eqn):
                 q[m,LL:UL] -= dtdx[LL:UL]*apdq[m,LL-1:UL-1]
                 q[m,LL-1:UL-1] -= dtdx[LL-1:UL-1]*amdq[m,LL-1:UL-1]
         
@@ -359,11 +359,11 @@ class ClawSolver1D(ClawSolver):
             # If we are doing slope limiting we have more work to do
             if self.order == 2:
                 # Initialize flux corrections
-                f = np.zeros( (meqn,grid.ng[0] + 2*self.mbc) )
+                f = np.zeros( (num_eqn,grid.ng[0] + 2*self.num_ghost) )
             
                 # Apply Limiters to waves
                 if (limiter > 0).any():
-                    wave = tvd.limit(state.meqn,wave,s,limiter,dtdx)
+                    wave = tvd.limit(state.num_eqn,wave,s,limiter,dtdx)
 
                 # Compute correction fluxes for second order q_{xx} terms
                 dtdxave = 0.5 * (dtdx[LL-1:UL-1] + dtdx[LL:UL])
@@ -372,23 +372,23 @@ class ClawSolver1D(ClawSolver):
                         sabs = np.abs(s[mw,LL-1:UL-1])
                         om = 1.0 - sabs*dtdxave[:UL-LL]
                         ssign = np.sign(s[mw,LL-1:UL-1])
-                        for m in xrange(meqn):
+                        for m in xrange(num_eqn):
                             f[m,LL:UL] += 0.5 * ssign * om * wave[m,mw,LL-1:UL-1]
                 else:
                     for mw in xrange(wave.shape[1]):
                         sabs = np.abs(s[mw,LL-1:UL-1])
                         om = 1.0 - sabs*dtdxave[:UL-LL]
-                        for m in xrange(meqn):
+                        for m in xrange(num_eqn):
                             f[m,LL:UL] += 0.5 * sabs * om * wave[m,mw,LL-1:UL-1]
 
                 # Update q by differencing correction fluxes
-                for m in xrange(meqn):
+                for m in xrange(num_eqn):
                     q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1]) 
 
         else: raise Exception("Unrecognized kernel_language; choose 'Fortran' or 'Python'")
 
         self.cfl.update_global_max(cfl)
-        state.set_q_from_qbc(mbc,self.qbc)
+        state.set_q_from_qbc(num_ghost,self.qbc)
    
 
 # ============================================================================
@@ -405,7 +405,7 @@ class ClawSolver2D(ClawSolver):
     In addition to the attributes of ClawSolver1D, ClawSolver2D
     also has the following options:
     
-    .. attribute:: dim_split
+    .. attribute:: dimensional_split
     
         If True, use dimensional splitting (Godunov splitting).
         Dimensional splitting with Strang splitting is not supported
@@ -413,10 +413,10 @@ class ClawSolver2D(ClawSolver):
         If False, use unsplit Clawpack algorithms, possibly including
         transverse Riemann solves.
 
-    .. attribute:: order_trans
+    .. attribute:: transverse_waves
     
-        If dim_split is True, this option has no effect.  If
-        dim_plit is False, then order_trans should be one of
+        If dimensional_split is True, this option has no effect.  If
+        dim_plit is False, then transverse_waves should be one of
         the following values:
 
         ClawSolver2D.no_trans: Transverse Riemann solver
@@ -441,8 +441,8 @@ class ClawSolver2D(ClawSolver):
         
         See :class:`ClawSolver2D` for more info.
         """   
-        self.dim_split = True
-        self.order_trans = self.trans_inc
+        self.dimensional_split = True
+        self.transverse_waves = self.trans_inc
 
         self.ndim = 2
 
@@ -454,7 +454,7 @@ class ClawSolver2D(ClawSolver):
         super(ClawSolver2D,self).__init__()
 
     def check_cfl_settings(self):
-        if (not self.dim_split) and (self.order_trans==0):
+        if (not self.dimensional_split) and (self.transverse_waves==0):
             cfl_recommended = 0.5
         else:
             cfl_recommended = 1.0
@@ -475,13 +475,13 @@ class ClawSolver2D(ClawSolver):
 
         state = solution.state
 
-        meqn,maux,mwaves,mbc,aux = state.meqn,state.maux,self.mwaves,self.mbc,state.aux
+        num_eqn,num_aux,num_waves,num_ghost,aux = state.num_eqn,state.num_aux,self.num_waves,self.num_ghost,state.aux
 
         #The following is a hack to work around an issue
         #with f2py.  It involves wastefully allocating three arrays.
         #f2py seems not able to handle multiple zero-size arrays being passed.
         # it appears the bug is related to f2py/src/fortranobject.c line 841.
-        if(aux == None): maux=1
+        if(aux == None): num_aux=1
 
         grid  = state.grid
         maxmx,maxmy = grid.ng[0],grid.ng[1]
@@ -489,10 +489,10 @@ class ClawSolver2D(ClawSolver):
 
         # These work arrays really ought to live inside a fortran module
         # as is done for sharpclaw
-        self.aux1 = np.empty((maux,maxm+2*mbc),order='F')
-        self.aux2 = np.empty((maux,maxm+2*mbc),order='F')
-        self.aux3 = np.empty((maux,maxm+2*mbc),order='F')
-        mwork = (maxm+2*mbc) * (5*meqn + mwaves + meqn*mwaves)
+        self.aux1 = np.empty((num_aux,maxm+2*num_ghost),order='F')
+        self.aux2 = np.empty((num_aux,maxm+2*num_ghost),order='F')
+        self.aux3 = np.empty((num_aux,maxm+2*num_ghost),order='F')
+        mwork = (maxm+2*num_ghost) * (5*num_eqn + num_waves + num_eqn*num_waves)
         self.work = np.empty((mwork),order='F')
 
 
@@ -518,15 +518,15 @@ class ClawSolver2D(ClawSolver):
             
             classic = __import__(self.so_name)
 
-            if self.dim_split:
+            if self.dimensional_split:
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
-                q, cfl_x = classic.step2ds(maxm,self.mbc,mx,my, \
+                q, cfl_x = classic.step2ds(maxm,self.num_ghost,mx,my, \
                       qold,qnew,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1,self.fwave)
 
-                q, cfl_y = classic.step2ds(maxm,self.mbc,mx,my, \
+                q, cfl_y = classic.step2ds(maxm,self.num_ghost,mx,my, \
                       q,q,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2,self.fwave)
 
@@ -534,12 +534,12 @@ class ClawSolver2D(ClawSolver):
 
             else:
 
-                q, cfl = classic.step2(maxm,self.mbc,mx,my, \
+                q, cfl = classic.step2(maxm,self.num_ghost,mx,my, \
                       qold,qnew,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,self.fwave)
 
             self.cfl.update_global_max(cfl)
-            state.set_q_from_qbc(self.mbc,self.qbc)
+            state.set_q_from_qbc(self.num_ghost,self.qbc)
 
         else:
             raise NotImplementedError("No python implementation for step_hyperbolic in 2D.")
@@ -558,7 +558,7 @@ class ClawSolver3D(ClawSolver):
     In addition to the attributes of ClawSolver1D, ClawSolver3D
     also has the following options:
     
-    .. attribute:: dim_split
+    .. attribute:: dimensional_split
     
         If True, use dimensional splitting (Godunov splitting).
         Dimensional splitting with Strang splitting is not supported
@@ -566,10 +566,10 @@ class ClawSolver3D(ClawSolver):
         If False, use unsplit Clawpack algorithms, possibly including
         transverse Riemann solves.
 
-    .. attribute:: order_trans
+    .. attribute:: transverse_waves
     
-        If dim_split is True, this option has no effect.  If
-        dim_plit is False, then order_trans should be one of
+        If dimensional_split is True, this option has no effect.  If
+        dim_plit is False, then transverse_waves should be one of
         the following values:
 
         ClawSolver3D.no_trans: Transverse Riemann solver
@@ -596,8 +596,8 @@ class ClawSolver3D(ClawSolver):
         See :class:`ClawSolver3D` for more info.
         """   
         # Add the functions as required attributes
-        self.dim_split = True
-        self.order_trans = self.trans_cor
+        self.dimensional_split = True
+        self.transverse_waves = self.trans_cor
 
         self.ndim = 3
 
@@ -617,13 +617,13 @@ class ClawSolver3D(ClawSolver):
 
         state = solution.states[0]
 
-        meqn,maux,mwaves,mbc,aux = state.meqn,state.maux,self.mwaves,self.mbc,state.aux
+        num_eqn,num_aux,num_waves,num_ghost,aux = state.num_eqn,state.num_aux,self.num_waves,self.num_ghost,state.aux
 
         #The following is a hack to work around an issue
         #with f2py.  It involves wastefully allocating three arrays.
         #f2py seems not able to handle multiple zero-size arrays being passed.
         # it appears the bug is related to f2py/src/fortranobject.c line 841.
-        if(aux == None): maux=1
+        if(aux == None): num_aux=1
 
         grid  = state.grid
         maxmx,maxmy = grid.ng[0],grid.ng[1]
@@ -631,10 +631,10 @@ class ClawSolver3D(ClawSolver):
 
         # These work arrays really ought to live inside a fortran module
         # as is done for sharpclaw
-        self.aux1 = np.empty((maux,maxm+2*mbc,3),order='F')
-        self.aux2 = np.empty((maux,maxm+2*mbc,3),order='F')
-        self.aux3 = np.empty((maux,maxm+2*mbc,3),order='F')
-        mwork = (maxm+2*mbc) * (31*meqn + mwaves + meqn*mwaves)
+        self.aux1 = np.empty((num_aux,maxm+2*num_ghost,3),order='F')
+        self.aux2 = np.empty((num_aux,maxm+2*num_ghost,3),order='F')
+        self.aux3 = np.empty((num_aux,maxm+2*num_ghost,3),order='F')
+        mwork = (maxm+2*num_ghost) * (31*num_eqn + num_waves + num_eqn*num_waves)
         self.work = np.empty((mwork),order='F')
 
 
@@ -660,19 +660,19 @@ class ClawSolver3D(ClawSolver):
             
             classic = __import__(self.so_name)
 
-            if self.dim_split:
+            if self.dimensional_split:
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
-                q, cfl_x = classic.step3ds(maxm,self.mbc,mx,my,mz, \
+                q, cfl_x = classic.step3ds(maxm,self.num_ghost,mx,my,mz, \
                       qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1)
 
-                q, cfl_y = classic.step3ds(maxm,self.mbc,mx,my,mz, \
+                q, cfl_y = classic.step3ds(maxm,self.num_ghost,mx,my,mz, \
                       q,q,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2)
 
-                q, cfl_z = classic.step3ds(maxm,self.mbc,mx,my,mz, \
+                q, cfl_z = classic.step3ds(maxm,self.num_ghost,mx,my,mz, \
                       q,q,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,3)
 
@@ -680,12 +680,12 @@ class ClawSolver3D(ClawSolver):
 
             else:
 
-                q, cfl = classic.step3(maxm,self.mbc,mx,my,mz, \
+                q, cfl = classic.step3(maxm,self.num_ghost,mx,my,mz, \
                       qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work)
 
             self.cfl.update_global_max(cfl)
-            state.set_q_from_qbc(self.mbc,self.qbc)
+            state.set_q_from_qbc(self.num_ghost,self.qbc)
 
         else:
             raise NotImplementedError("No python implementation for step_hyperbolic in 3D.")

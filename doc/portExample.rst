@@ -76,17 +76,17 @@ the following output::
         This module 'problem' is auto-generated with f2py (version:1).
         Functions:
         mapc2p(x1,y1,xp,yp,zp,rsphere)
-        aux = setaux(maxmx,maxmy,mbc,mx,my,xlower,ylower,dxc,dyc,aux,rsphere,maux=shape(aux,0))
-        q = qinit(maxmx,maxmy,mbc,mx,my,xlower,ylower,dx,dy,q,aux,rsphere,meqn=shape(q,0),maux=shape(aux,0))
-        q = src2(maxmx,maxmy,mbc,xlower,ylower,dx,dy,q,aux,t,dt,rsphere,meqn=shape(q,0),mx=shape(q,1),my=shape(q,2),maux=shape(aux,0))
+        aux = setaux(maxmx,maxmy,num_ghost,mx,my,xlower,ylower,dxc,dyc,aux,rsphere,num_aux=shape(aux,0))
+        q = qinit(maxmx,maxmy,num_ghost,mx,my,xlower,ylower,dx,dy,q,aux,rsphere,num_eqn=shape(q,0),num_aux=shape(aux,0))
+        q = src2(maxmx,maxmy,num_ghost,xlower,ylower,dx,dy,q,aux,t,dt,rsphere,num_eqn=shape(q,0),mx=shape(q,1),my=shape(q,2),num_aux=shape(aux,0))
 
 For instance, the function ``src2``, which computes the contribution of the 
 (non-hyperbolic) source term, has the following intent variables::
 
     >>> cf2py integer intent(in) maxmx
     >>> cf2py integer intent(in) maxmy
-    >>> cf2py integer optional, intent(in) meqn
-    >>> cf2py integer intent(in) mbc
+    >>> cf2py integer optional, intent(in) num_eqn
+    >>> cf2py integer intent(in) num_ghost
     >>> cf2py integer intent(in) mx
     >>> cf2py integer intent(in) my
     >>> cf2py double precision intent(in) xlower
@@ -94,13 +94,13 @@ For instance, the function ``src2``, which computes the contribution of the
     >>> cf2py double precision intent(in) dx
     >>> cf2py double precision intent(in) dy
     >>> cf2py intent(in,out) q
-    >>> cf2py integer optional, intent(in)  maux
+    >>> cf2py integer optional, intent(in)  num_aux
     >>> cf2py intent(in) aux
     >>> cf2py double precision intent(in) t
     >>> cf2py double precision intent(in) dt
     >>> cf2py double precision intent(in) Rsphere
 
-Note that ``meqn``, ``mx``, ``my`` ``maux`` are identified by f2py as optional
+Note that ``num_eqn``, ``mx``, ``my`` ``num_aux`` are identified by f2py as optional
 arguments since their values can be retrieved by looking at the dimensions of
 other multidimensional arrays, i.e. ``q`` and ``aux``.
 
@@ -110,7 +110,7 @@ script. For instance, the ``src2`` function is called in the
 
     >>> # Call src2 function
     >>> import problem
-    >>> state.q = problem.src2(mx,my,mbc,xlowerg,ylowerg,dx,dy,q,aux,t,dt,Rsphere)
+    >>> state.q = problem.src2(mx,my,num_ghost,xlowerg,ylowerg,dx,dy,q,aux,t,dt,Rsphere)
 
 A similar approach is used to call other wrapped Fortran functions like 
 ``qinit``, ``setaux``, etc.

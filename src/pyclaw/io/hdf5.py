@@ -128,7 +128,7 @@ def write_hdf5(solution,frame,path,file_prefix='claw',write_aux=False,
             subgroup = f.create_group('grid%s' % grid.gridno)
             
             # General grid properties
-            for attr in ['t','meqn','mbc','gridno','level']:
+            for attr in ['t','num_eqn','num_ghost','gridno','level']:
                 if hasattr(grid,attr):
                     if getattr(grid,attr) is not None:
                         subgroup.attrs[attr] = getattr(grid,attr)
@@ -151,7 +151,7 @@ def write_hdf5(solution,frame,path,file_prefix='claw',write_aux=False,
                                         compression_opts=compression_opts,
                                         chunks=chunks,shuffle=shuffle,
                                         fletcher32=fletcher32)
-            if write_aux and grid.maux > 0:
+            if write_aux and grid.num_aux > 0:
                 subgroup.create_dataset('aux',data=grid.aux,
                                         compression=compression,
                                         compression_opts=compression_opts,
@@ -225,7 +225,7 @@ def read_hdf5(solution,frame,path='./',file_prefix='claw',read_aux=True,
             grid = pyclaw.solution.Grid(dimensions)
                 
             # Fetch general grid properties
-            for attr in ['t','meqn','gridno','level']:
+            for attr in ['t','num_eqn','gridno','level']:
                 setattr(grid,attr,subgroup.attrs[attr])
             
             # Read in q

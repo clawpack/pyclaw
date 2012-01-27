@@ -188,7 +188,7 @@ def write_netcdf(solution,frame,path,file_prefix='claw',write_aux=False,
             subgroup = f.createGroup('grid%s' % grid.gridno)
         
             # General grid properties
-            for attr in ['t','meqn','gridno','level','mbc']:
+            for attr in ['t','num_eqn','gridno','level','num_ghost']:
                 setattr(subgroup,attr,getattr(grid,attr))
             
             # Write out dimension names
@@ -204,11 +204,11 @@ def write_netcdf(solution,frame,path,file_prefix='claw',write_aux=False,
                         if getattr(dim,attr) is not None:
                             attr_name = '%s.%s' % (dim.name,attr)
                             setattr(subgroup,attr_name,getattr(dim,attr))
-            subgroup.createDimension('meqn',grid.meqn)
+            subgroup.createDimension('num_eqn',grid.num_eqn)
             
             # Write q array
             dim_names = grid.name
-            dim_names.append('meqn')
+            dim_names.append('num_eqn')
             index_str = ','.join( [':' for name in dim_names] )
             q = subgroup.createVariable('q','f8',dim_names,zlib,
                                             complevel,shuffle,fletcher32,
@@ -217,9 +217,9 @@ def write_netcdf(solution,frame,path,file_prefix='claw',write_aux=False,
             exec("q[%s] = grid.q" % index_str)
             
             # Write out aux
-            if grid.maux > 0 and write_aux:
-                dim_names[-1] = 'maux'
-                subgroup.createDimension('maux',grid.maux)
+            if grid.num_aux > 0 and write_aux:
+                dim_names[-1] = 'num_aux'
+                subgroup.createDimension('num_aux',grid.num_aux)
                 aux = subgroup.createVariable('aux','f8',dim_names,
                                             zlib,complevel,shuffle,fletcher32,
                                             contiguous,chunksizes,endian,
@@ -291,7 +291,7 @@ def read_netcdf(solution,frame,path='./',file_prefix='claw',read_aux=True,
             grid = pyclaw.solution.Grid(dimensions)
             
             # General grid properties
-            for attr in ['t','meqn','gridno','level']:
+            for attr in ['t','num_eqn','gridno','level']:
                 setattr(grid,attr,getattr(subgroup,attr))
                 
             # Read in q
@@ -299,7 +299,7 @@ def read_netcdf(solution,frame,path='./',file_prefix='claw',read_aux=True,
             exec("grid.q = subgroup.variables['q'][%s]" % index_str)
             
             # Read in aux if applicable
-            if read_aux and subgroup.dimensions.has_key('maux'):
+            if read_aux and subgroup.dimensions.has_key('num_aux'):
                 exec("grid.aux = subgroup.variables['aux'][%s]" % index_str)
         
             solution.grids.append(grid)

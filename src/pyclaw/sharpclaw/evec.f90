@@ -2,7 +2,7 @@
 !
 !
 !     =====================================================
-      subroutine evec(ixy,maxm,meqn,mbc,mx,q,auxl,auxr,evl,evr)
+      subroutine evec(ixy,maxm,num_eqn,num_ghost,mx,q,auxl,auxr,evl,evr)
 !     =====================================================
 !
 !     # Calculation of left and right eigenvectors

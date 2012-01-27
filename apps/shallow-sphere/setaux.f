@@ -1,6 +1,6 @@
 c     ============================================
-      subroutine setaux(maxmx,maxmy,mbc,mx,my,xlower,ylower,dxc,dyc,
-     &                  maux,aux,Rsphere)
+      subroutine setaux(maxmx,maxmy,num_ghost,mx,my,xlower,ylower,dxc,dyc,
+     &                  num_aux,aux,Rsphere)
 c     ============================================
 c
 c     # Set auxiliary arrays for shallow water equations on the sphere.
@@ -31,29 +31,29 @@ c
       dimension xp(-3:maxm3,-3:maxm3), yp(-3:maxm3,-3:maxm3)
       dimension zp(-3:maxm3,-3:maxm3)
       dimension theta(-3:maxm3,-3:maxm3), phi(-3:maxm3,-3:maxm3)
-      dimension aux(maux,1-mbc:maxmx+mbc,1-mbc:maxmy+mbc)
+      dimension aux(num_aux,1-num_ghost:maxmx+num_ghost,1-num_ghost:maxmy+num_ghost)
 
 cf2py integer intent(in) maxmx
 cf2py integer intent(in) maxmy
-cf2py integer intent(in) mbc
+cf2py integer intent(in) num_ghost
 cf2py integer intent(in) mx
 cf2py integer intent(in) my
 cf2py double precision intent(in) xlower
 cf2py double precision intent(in) ylower
 cf2py double precision intent(in) dx
 cf2py double precision intent(in) dy
-cf2py integer optional, intent(in)  maux
+cf2py integer optional, intent(in)  num_aux
 cf2py intent(in,out) aux
 cf2py double precision intent(in) Rsphere
 
       pi = 4.d0*datan(1.d0)
 
-      if (mbc .gt. 4) then
+      if (num_ghost .gt. 4) then
           write(6,*)'***  increase size of local arrays in setaux ***'
           stop
       endif
       
-      if (mx+mbc+1.gt.1005 .or. my+mbc+1.gt.1005) then
+      if (mx+num_ghost+1.gt.1005 .or. my+num_ghost+1.gt.1005) then
           write(6,*)'***  increase size of 1005 in setaux ***'
           stop
       endif
@@ -61,19 +61,19 @@ c
 c     # Set xc and yc so that (xc(i),yc(j)) is the 
 c     # lower left corner of (i,j) cell in computational space:
 c
-      do 10 i=1-mbc,mx+mbc+1
+      do 10 i=1-num_ghost,mx+num_ghost+1
          xc(i) = xlower + (i-1.d0) * dxc
    10    continue
 c
-      do 12 j=1-mbc,my+mbc+1
+      do 12 j=1-num_ghost,my+num_ghost+1
          yc(j) = ylower + (j-1.d0) * dyc
    12    continue
 
 c     # compute cell corners on sphere and angles phi, theta
 c     # related to latitude and longitude
 c
-      do 15 j=1-mbc,my+mbc+1
-         do 15 i=1-mbc,mx+mbc+1
+      do 15 j=1-num_ghost,my+num_ghost+1
+         do 15 i=1-num_ghost,mx+num_ghost+1
 
 c           # map computational point to (xp,yp,zp) on sphere:
             call mapc2p(xc(i),yc(j),xp(i,j),yp(i,j),zp(i,j),Rsphere)
@@ -100,8 +100,8 @@ c           # compute phi, angle down from north pole:
    15	    continue
 
 c
-      do 20 j=1-mbc,my+mbc
-         do 20 i=1-mbc,mx+mbc
+      do 20 j=1-num_ghost,my+num_ghost
+         do 20 i=1-num_ghost,mx+num_ghost
 c
 c           # compute normal and tangent vectors to left edge (in tangent plane)
 c

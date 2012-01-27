@@ -49,7 +49,7 @@ def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',
 
     solver.kernel_language = kernel_language
     from riemann import rp_vc_advection
-    solver.mwaves = rp_vc_advection.mwaves
+    solver.num_waves = rp_vc_advection.num_waves
     if solver.kernel_language=='Python': 
         solver.rp = rp_vc_advection.rp_vc_advection_1d
     solver.limiters = pyclaw.limiters.tvd.MC
@@ -61,9 +61,9 @@ def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',
     xlower=0.0; xupper=1.0; mx=100
     x    = pyclaw.Dimension('x',xlower,xupper,mx)
     grid = pyclaw.Grid(x)
-    maux=1
-    meqn = 1
-    state = pyclaw.State(grid,meqn,maux)
+    num_aux=1
+    num_eqn = 1
+    state = pyclaw.State(grid,num_eqn,num_aux)
 
     qinit(state)
     auxinit(state)

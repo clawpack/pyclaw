@@ -107,7 +107,7 @@ The extended summary should be used to clarify functionality, not to discuss imp
 
 .. code-block:: fortran
     
-    subroutine tfluct(ixy,maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,s,adq)
+    subroutine tfluct(ixy,maxmx,num_eqn,num_waves,num_ghost,mx,ql,qr,auxl,auxr,s,adq)
 
     ! Solve Riemann problems for the 2D shallow water equations
     ! using f-wave algorithm and Roe's approximate Riemann solver.  

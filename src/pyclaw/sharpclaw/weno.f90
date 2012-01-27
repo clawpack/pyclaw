@@ -2,13 +2,13 @@
 module weno
 contains
 
-  subroutine weno5(q, ql, qr, meqn, maxnx, mbc)
+  subroutine weno5(q, ql, qr, num_eqn, maxnx, num_ghost)
 
     implicit none
 
-    integer,          intent(in)  :: meqn, maxnx, mbc
-    double precision, intent(in)  :: q(meqn,maxnx+2*mbc)
-    double precision, intent(out) :: ql(meqn,maxnx+2*mbc), qr(meqn,maxnx+2*mbc)
+    integer,          intent(in)  :: num_eqn, maxnx, num_ghost
+    double precision, intent(in)  :: q(num_eqn,maxnx+2*num_ghost)
+    double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost), qr(num_eqn,maxnx+2*num_ghost)
 
     integer :: i, m
     double precision :: acc, &
@@ -30,8 +30,8 @@ contains
          fr3, &
          fr2
 
-    do i = mbc-1, maxnx+mbc+1
-       do m = 1, meqn
+    do i = num_ghost-1, maxnx+num_ghost+1
+       do m = 1, num_eqn
           sigma0 = ((+3.33333333333333) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-10.3333333333333) * (q(m,i+0))) * (q(m,i+1)) &
                + ((+3.66666666666667) * (q(m,i+0))) * (q(m,i+2)) &
@@ -101,13 +101,13 @@ contains
 
   end subroutine weno5
 
-  subroutine weno7(q, ql, qr, meqn, maxnx, mbc)
+  subroutine weno7(q, ql, qr, num_eqn, maxnx, num_ghost)
 
     implicit none
 
-    integer,          intent(in)  :: meqn, maxnx, mbc
-    double precision, intent(in)  :: q(meqn,maxnx+2*mbc)
-    double precision, intent(out) :: ql(meqn,maxnx+2*mbc), qr(meqn,maxnx+2*mbc)
+    integer,          intent(in)  :: num_eqn, maxnx, num_ghost
+    double precision, intent(in)  :: q(num_eqn,maxnx+2*num_ghost)
+    double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost), qr(num_eqn,maxnx+2*num_ghost)
 
     integer :: i, m
     double precision :: acc, &
@@ -134,8 +134,8 @@ contains
          fr3, &
          fr5
 
-    do i = mbc-1, maxnx+mbc+1
-       do m = 1, meqn
+    do i = num_ghost-1, maxnx+num_ghost+1
+       do m = 1, num_eqn
           sigma0 = ((+8.77916666666667) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-39.175) * (q(m,i+0))) * (q(m,i+1)) &
                + ((+29.3416666666667) * (q(m,i+0))) * (q(m,i+2)) &
@@ -249,13 +249,13 @@ contains
 
   end subroutine weno7
 
-  subroutine weno9(q, ql, qr, meqn, maxnx, mbc)
+  subroutine weno9(q, ql, qr, num_eqn, maxnx, num_ghost)
 
     implicit none
 
-    integer,          intent(in)  :: meqn, maxnx, mbc
-    double precision, intent(in)  :: q(meqn,maxnx+2*mbc)
-    double precision, intent(out) :: ql(meqn,maxnx+2*mbc), qr(meqn,maxnx+2*mbc)
+    integer,          intent(in)  :: num_eqn, maxnx, num_ghost
+    double precision, intent(in)  :: q(num_eqn,maxnx+2*num_ghost)
+    double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost), qr(num_eqn,maxnx+2*num_ghost)
 
     integer :: i, m
     double precision :: acc, &
@@ -287,8 +287,8 @@ contains
          fr3, &
          fr5
 
-    do i = mbc-1, maxnx+mbc+1
-       do m = 1, meqn
+    do i = num_ghost-1, maxnx+num_ghost+1
+       do m = 1, num_eqn
           sigma0 = ((+21.4123015873016) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-128.869246031746) * (q(m,i+0))) * (q(m,i+1)) &
                + ((+150.560119047619) * (q(m,i+0))) * (q(m,i+2)) &
@@ -463,13 +463,13 @@ contains
 
   end subroutine weno9
 
-  subroutine weno11(q, ql, qr, meqn, maxnx, mbc)
+  subroutine weno11(q, ql, qr, num_eqn, maxnx, num_ghost)
 
     implicit none
 
-    integer,          intent(in)  :: meqn, maxnx, mbc
-    double precision, intent(in)  :: q(meqn,maxnx+2*mbc)
-    double precision, intent(out) :: ql(meqn,maxnx+2*mbc), qr(meqn,maxnx+2*mbc)
+    integer,          intent(in)  :: num_eqn, maxnx, num_ghost
+    double precision, intent(in)  :: q(num_eqn,maxnx+2*num_ghost)
+    double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost), qr(num_eqn,maxnx+2*num_ghost)
 
     integer :: i, m
     double precision :: acc, &
@@ -506,8 +506,8 @@ contains
          fr3, &
          fr2
 
-    do i = mbc-1, maxnx+mbc+1
-       do m = 1, meqn
+    do i = num_ghost-1, maxnx+num_ghost+1
+       do m = 1, num_eqn
           sigma0 = ((+50.8449983465608) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-392.364947089947) * (q(m,i+0))) * (q(m,i+1)) &
                + ((+630.016005291005) * (q(m,i+0))) * (q(m,i+2)) &
@@ -763,13 +763,13 @@ contains
 
   end subroutine weno11
 
-  subroutine weno13(q, ql, qr, meqn, maxnx, mbc)
+  subroutine weno13(q, ql, qr, num_eqn, maxnx, num_ghost)
 
     implicit none
 
-    integer,          intent(in)  :: meqn, maxnx, mbc
-    double precision, intent(in)  :: q(meqn,maxnx+2*mbc)
-    double precision, intent(out) :: ql(meqn,maxnx+2*mbc), qr(meqn,maxnx+2*mbc)
+    integer,          intent(in)  :: num_eqn, maxnx, num_ghost
+    double precision, intent(in)  :: q(num_eqn,maxnx+2*num_ghost)
+    double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost), qr(num_eqn,maxnx+2*num_ghost)
 
     integer :: i, m
     double precision :: acc, &
@@ -811,8 +811,8 @@ contains
          fr3, &
          fr2
 
-    do i = mbc-1, maxnx+mbc+1
-       do m = 1, meqn
+    do i = num_ghost-1, maxnx+num_ghost+1
+       do m = 1, num_eqn
           sigma0 = ((+119.876965822244) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-1140.52691383077) * (q(m,i+0))) * (q(m,i+1)) &
                + ((+2345.30742098565) * (q(m,i+0))) * (q(m,i+2)) &
@@ -1172,13 +1172,13 @@ contains
 
   end subroutine weno13
 
-  subroutine weno15(q, ql, qr, meqn, maxnx, mbc)
+  subroutine weno15(q, ql, qr, num_eqn, maxnx, num_ghost)
 
     implicit none
 
-    integer,          intent(in)  :: meqn, maxnx, mbc
-    double precision, intent(in)  :: q(meqn,maxnx+2*mbc)
-    double precision, intent(out) :: ql(meqn,maxnx+2*mbc), qr(meqn,maxnx+2*mbc)
+    integer,          intent(in)  :: num_eqn, maxnx, num_ghost
+    double precision, intent(in)  :: q(num_eqn,maxnx+2*num_ghost)
+    double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost), qr(num_eqn,maxnx+2*num_ghost)
 
     integer :: i, m
     double precision :: acc, &
@@ -1225,8 +1225,8 @@ contains
          fr3, &
          fr2
 
-    do i = mbc-1, maxnx+mbc+1
-       do m = 1, meqn
+    do i = num_ghost-1, maxnx+num_ghost+1
+       do m = 1, num_eqn
           sigma0 = ((+282.837600612977) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-3217.68658751845) * (q(m,i+0))) * (q(m,i+1)) &
                + ((+8098.17149379591) * (q(m,i+0))) * (q(m,i+2)) &
@@ -1716,13 +1716,13 @@ contains
 
   end subroutine weno15
 
-  subroutine weno17(q, ql, qr, meqn, maxnx, mbc)
+  subroutine weno17(q, ql, qr, num_eqn, maxnx, num_ghost)
 
     implicit none
 
-    integer,          intent(in)  :: meqn, maxnx, mbc
-    double precision, intent(in)  :: q(meqn,maxnx+2*mbc)
-    double precision, intent(out) :: ql(meqn,maxnx+2*mbc), qr(meqn,maxnx+2*mbc)
+    integer,          intent(in)  :: num_eqn, maxnx, num_ghost
+    double precision, intent(in)  :: q(num_eqn,maxnx+2*num_ghost)
+    double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost), qr(num_eqn,maxnx+2*num_ghost)
 
     integer :: i, m
     double precision :: acc, &
@@ -1774,8 +1774,8 @@ contains
          fr8, &
          fr2
 
-    do i = mbc-1, maxnx+mbc+1
-       do m = 1, meqn
+    do i = num_ghost-1, maxnx+num_ghost+1
+       do m = 1, num_eqn
           sigma0 = ((+669.714981108808) * (q(m,i+0))) * (q(m,i+0)) &
                + ((-8893.78045641284) * (q(m,i+0))) * (q(m,i+1)) &
                + ((+26542.9748247279) * (q(m,i+0))) * (q(m,i+2)) &

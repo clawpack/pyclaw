@@ -66,7 +66,7 @@ contain our :class:`~pyclaw.grid.Dimension` objects.
 
     >>> grid = Grid([x,y])
     >>> state = State(grid)
-    >>> state.meqn = 2
+    >>> state.num_eqn = 2
 
 Here we create a grid with the dimensions we created earlier to make a single
 2D :class:`~pyclaw.grid.Grid` object.  Then we create a `~pyclaw.state.State`
@@ -92,13 +92,13 @@ evaluated at the grid cell centers.
 Many Riemann solvers also require information about the problem we are going
 to run which happen to be grid properties such as the impedence ``Z`` and 
 speed of sound ``c`` for linear acoustics.  We can set these values in the 
-``aux_global`` dictionary in one of two ways.  The first way is to set them
+``problem_data`` dictionary in one of two ways.  The first way is to set them
 directly as in:
 
 ::
 
-    >>> state.aux_global['c'] = 1.0
-    >>> state.aux_global[`Z`] = 0.25
+    >>> state.problem_data['c'] = 1.0
+    >>> state.problem_data[`Z`] = 0.25
     
 If you're using a Fortran Riemann solver, these values will automatically get
 copied to the corresponding variables in the cparam common block of the
@@ -196,8 +196,8 @@ format.
 
 ::
 
-    >>> claw.outstyle = 1
-    >>> claw.nout = 10
+    >>> claw.output_style = 1
+    >>> claw.num_output_times = 10
     >>> claw.tfinal = 1.0
     
 When we are ready to run the simulation, we can call the 

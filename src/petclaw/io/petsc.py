@@ -66,7 +66,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
     else:
         viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
 
-    if solution.maux > 0 and write_aux:
+    if solution.num_aux > 0 and write_aux:
         write_aux = True
         aux_filename = os.path.join(path, '%s_aux.ptc' % file_prefix)
     else:
@@ -84,13 +84,13 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
         pickle_file = open(pickle_filename,'wb')
         # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
         if write_p:
-            pickle.dump({'t':solution.t,'meqn':solution.mp,'nstates':len(solution.states),
-                         'maux':solution.maux,'ndim':solution.ndim,'write_aux':write_aux,
-                         'aux_global' : solution.aux_global}, pickle_file)
+            pickle.dump({'t':solution.t,'num_eqn':solution.mp,'nstates':len(solution.states),
+                         'num_aux':solution.num_aux,'ndim':solution.ndim,'write_aux':write_aux,
+                         'problem_data' : solution.problem_data}, pickle_file)
         else:
-            pickle.dump({'t':solution.t,'meqn':solution.meqn,'nstates':len(solution.states),
-                         'maux':solution.maux,'ndim':solution.ndim,'write_aux':write_aux,
-                         'aux_global' : solution.aux_global}, pickle_file)
+            pickle.dump({'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
+                         'num_aux':solution.num_aux,'ndim':solution.ndim,'write_aux':write_aux,
+                         'problem_data' : solution.problem_data}, pickle_file)
 
     # now set up the PETSc viewers
     if options['format'] == 'ascii':
@@ -180,8 +180,8 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     value_dict = pickle.load(pickle_file)
     nstates    = value_dict['nstates']                    
     ndim       = value_dict['ndim']
-    maux       = value_dict['maux']
-    meqn       = value_dict['meqn']
+    num_aux       = value_dict['num_aux']
+    num_eqn       = value_dict['num_eqn']
 
     # now set up the PETSc viewer
     if options['format'] == 'ascii':
@@ -226,9 +226,9 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         grid = petclaw.Grid(dimensions)
         grid.level = level 
         #state = pyclaw.state.State(grid)
-        state = petclaw.State(grid,meqn,maux) ##
+        state = petclaw.State(grid,num_eqn,num_aux) ##
         state.t = value_dict['t']
-        state.aux_global = value_dict['aux_global']
+        state.problem_data = value_dict['problem_data']
 
 #       DA View/Load is broken in Petsc-3.1.8, we can load/view the DA if needed in petsc-3.2
 #       state.q_da.load(viewer)
@@ -256,9 +256,9 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
     :Output:
      - (list) List of output variables
       - *t* - (int) Time of frame
-      - *meqn* - (int) Number of equations in the frame
+      - *num_eqn* - (int) Number of equations in the frame
       - *ngrids* - (int) Number of grids
-      - *maux* - (int) Auxillary value in the frame
+      - *num_aux* - (int) Auxillary value in the frame
       - *ndim* - (int) Number of dimensions in q and aux
     
     """
@@ -271,17 +271,17 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
         grid_dict = pickle.load(f)
 
         t      = grid_dict['t']
-        meqn   = grid_dict['meqn']
+        num_eqn   = grid_dict['num_eqn']
         nstates = grid_dict['nstates']                    
-        maux   = grid_dict['maux']                    
+        num_aux   = grid_dict['num_aux']                    
         ndim   = grid_dict['ndim']
 
         f.close()
     except(IOError):
         raise
     except:
-        logger.error("File " + path + " should contain t, meqn, ngrids, maux, ndim")
-        print "File " + path + " should contain t, meqn, ngrids, maux, ndim"
+        logger.error("File " + path + " should contain t, num_eqn, ngrids, num_aux, ndim")
+        print "File " + path + " should contain t, num_eqn, ngrids, num_aux, ndim"
         raise
         
-    return t,meqn,nstates,maux,ndim
+    return t,num_eqn,nstates,num_aux,ndim

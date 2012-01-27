@@ -2,7 +2,7 @@ c
 c
 c
 c     =====================================================
-      subroutine flux2(ixy,maxm,meqn,mwaves,maux,mbc,mx,
+      subroutine flux2(ixy,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,
      &                 q1d,dtdx1d,aux1,aux2,aux3,method,mthlim,
      &               qadd,fadd,gadd,cfl1d,wave,s,
      &                 amdq,apdq,cqxx,bmasdq,bpasdq,rpn2,rpt2,use_fwave)
@@ -55,37 +55,37 @@ c
 c
       implicit double precision (a-h,o-z)
       external rpn2,rpt2
-      dimension    q1d(meqn, 1-mbc:maxm+mbc)
-      dimension   amdq(meqn, 1-mbc:maxm+mbc)
-      dimension   apdq(meqn, 1-mbc:maxm+mbc)
-      dimension bmasdq(meqn, 1-mbc:maxm+mbc)
-      dimension bpasdq(meqn, 1-mbc:maxm+mbc)
-      dimension   cqxx(meqn, 1-mbc:maxm+mbc)
-      dimension   qadd(meqn, 1-mbc:maxm+mbc)
-      dimension   fadd(meqn, 1-mbc:maxm+mbc)
-      dimension   gadd(meqn, 2, 1-mbc:maxm+mbc)
+      dimension    q1d(num_eqn, 1-num_ghost:maxm+num_ghost)
+      dimension   amdq(num_eqn, 1-num_ghost:maxm+num_ghost)
+      dimension   apdq(num_eqn, 1-num_ghost:maxm+num_ghost)
+      dimension bmasdq(num_eqn, 1-num_ghost:maxm+num_ghost)
+      dimension bpasdq(num_eqn, 1-num_ghost:maxm+num_ghost)
+      dimension   cqxx(num_eqn, 1-num_ghost:maxm+num_ghost)
+      dimension   qadd(num_eqn, 1-num_ghost:maxm+num_ghost)
+      dimension   fadd(num_eqn, 1-num_ghost:maxm+num_ghost)
+      dimension   gadd(num_eqn, 2, 1-num_ghost:maxm+num_ghost)
 c
-      dimension dtdx1d(1-mbc:maxm+mbc)
-      dimension aux1(maux,1-mbc:maxm+mbc)
-      dimension aux2(maux,1-mbc:maxm+mbc)
-      dimension aux3(maux,1-mbc:maxm+mbc)
+      dimension dtdx1d(1-num_ghost:maxm+num_ghost)
+      dimension aux1(num_aux,1-num_ghost:maxm+num_ghost)
+      dimension aux2(num_aux,1-num_ghost:maxm+num_ghost)
+      dimension aux3(num_aux,1-num_ghost:maxm+num_ghost)
 c
-      dimension     s(mwaves,1-mbc:maxm+mbc)
-      dimension  wave(meqn, mwaves, 1-mbc:maxm+mbc)
+      dimension     s(num_waves,1-num_ghost:maxm+num_ghost)
+      dimension  wave(num_eqn, num_waves, 1-num_ghost:maxm+num_ghost)
 c
-      dimension method(7),mthlim(mwaves)
+      dimension method(7),mthlim(num_waves)
       logical limit, use_fwave
       common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom
 c
       limit = .false.
-      do 5 mw=1,mwaves
+      do 5 mw=1,num_waves
          if (mthlim(mw) .gt. 0) limit = .true.
    5  continue
 c
 c     # initialize flux increments:
 c     -----------------------------
 c
-      forall (m=1:meqn, i = 1-mbc: mx+mbc)
+      forall (m=1:num_eqn, i = 1-num_ghost: mx+num_ghost)
              qadd(m,i) = 0.d0
              fadd(m,i) = 0.d0
              gadd(m,1,i) = 0.d0
@@ -96,18 +96,18 @@ c
 c     # solve Riemann problem at each interface and compute Godunov updates
 c     ---------------------------------------------------------------------
 c
-      call rpn2(ixy,maxm,meqn,mwaves,mbc,mx,q1d,q1d,aux2,aux2,
-     &        wave,s,amdq,apdq)
+      call rpn2(ixy,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,
+     &        aux2,aux2,wave,s,amdq,apdq)
 c
 c     # Set qadd for the donor-cell upwind method (Godunov)
-      forall(m=1:meqn, i=1:mx+1)
+      forall(m=1:num_eqn, i=1:mx+1)
             qadd(m,i) = qadd(m,i) - dtdx1d(i)*apdq(m,i)
             qadd(m,i-1) = qadd(m,i-1) - dtdx1d(i-1)*amdq(m,i)
       end forall
 c
 c     # compute maximum wave speed for checking Courant number:
       cfl1d = 0.d0
-      do 51 mw=1,mwaves
+      do 51 mw=1,num_waves
          do 50 i=1,mx+1
 c          # if s>0 use dtdx1d(i) to compute CFL,
 c          # if s<0 use dtdx1d(i-1) to compute CFL:
@@ -122,19 +122,20 @@ c     # modify F fluxes for second order q_{xx} correction terms:
 c     -----------------------------------------------------------
 c
 c     # apply limiter to waves:
-      if (limit) call limiter(maxm,meqn,mwaves,mbc,mx,wave,s,mthlim)
+      if (limit) call limiter(maxm,num_eqn,num_waves,num_ghost,mx,
+     &                          wave,s,mthlim)
 c
 c     # For correction terms below, need average of dtdx in cell
 c     # i-1 and i.  We compute these and overwrite dtdx1d.
 c
 c     # Second order corrections:
       if (use_fwave.eqv..false.) then
-          do i = 2-mbc, mx+mbc
+          do i = 2-num_ghost, mx+num_ghost
 c            # modified in Version 4.3 to use average only in cqxx, not transverse
              dtdxave = 0.5d0 * (dtdx1d(i-1) + dtdx1d(i))
-             do m=1,meqn
+             do m=1,num_eqn
                 cqxx(m,i) = 0.d0
-                do mw=1,mwaves
+                do mw=1,num_waves
                    cqxx(m,i) = cqxx(m,i) + dabs(s(mw,i))
      &                * (1.d0 - dabs(s(mw,i))*dtdxave) * wave(m,mw,i)
                 enddo
@@ -142,11 +143,11 @@ c            # modified in Version 4.3 to use average only in cqxx, not transver
              enddo
          enddo
       else
-          do i = 2-mbc, mx+mbc
+          do i = 2-num_ghost, mx+num_ghost
              dtdxave = 0.5d0 * (dtdx1d(i-1) + dtdx1d(i))
-             do m=1,meqn
+             do m=1,num_eqn
                 cqxx(m,i) = 0.d0
-                do mw=1,mwaves
+                do mw=1,num_waves
 c                 # second order corrections:
                    cqxx(m,i) = cqxx(m,i) + dsign(1.d0,s(mw,i))
      &                  * (1.d0 - dabs(s(mw,i))*dtdxave) * wave(m,mw,i)
@@ -163,7 +164,7 @@ c
 c
       if (method(2).gt.1 .and. method(3).eq.2) then
 c        # incorporate cqxx into amdq and apdq so that it is split also.
-         forall (m=1:meqn, i = 1: mx+1)
+         forall (m=1:num_eqn, i = 1: mx+1)
                amdq(m,i) = amdq(m,i) + cqxx(m,i)
                apdq(m,i) = apdq(m,i) - cqxx(m,i)
          end forall
@@ -175,11 +176,11 @@ c      --------------------------------------------
 c
 c
 c     # split the left-going flux difference into down-going and up-going:
-      call rpt2(ixy,maxm,meqn,mwaves,mbc,mx,q1d,q1d,aux1,aux2,aux3,
-     &        1,amdq,bmasdq,bpasdq)
+      call rpt2(ixy,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,
+     &        aux1,aux2,aux3,1,amdq,bmasdq,bpasdq)
 c
 c     # modify flux below and above by B^- A^- Delta q and  B^+ A^- Delta q:
-      forall ( m=1:meqn , i = 1:mx+1)
+      forall ( m=1:num_eqn , i = 1:mx+1)
              gadd(m,1,i-1) = gadd(m,1,i-1) - 
      &                 0.5d0*dtdx1d(i-1) * bmasdq(m,i)
              gadd(m,2,i-1) = gadd(m,2,i-1) -
@@ -188,11 +189,11 @@ c     # modify flux below and above by B^- A^- Delta q and  B^+ A^- Delta q:
  
 c
 c     # split the right-going flux difference into down-going and up-going:
-      call rpt2(ixy,maxm,meqn,mwaves,mbc,mx,q1d,q1d,aux1,aux2,aux3,
-     &        2,apdq,bmasdq,bpasdq)
+      call rpt2(ixy,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,
+     &        aux1,aux2,aux3,2,apdq,bmasdq,bpasdq)
 c
 c     # modify flux below and above by B^- A^+ Delta q and  B^+ A^+ Delta q:
-      forall ( m=1:meqn , i = 1: mx+1)
+      forall ( m=1:num_eqn , i = 1: mx+1)
             gadd(m,1,i) = gadd(m,1,i) - 
      &                0.5d0*dtdx1d(i) * bmasdq(m,i)
             gadd(m,2,i) = gadd(m,2,i) - 

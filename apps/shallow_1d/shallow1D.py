@@ -25,15 +25,15 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     #===========================================================================
     # Setup solver and solver parameters
     #===========================================================================
-    solver.mwaves = 2
+    solver.num_waves = 2
     solver.limiters = pyclaw.limiters.tvd.vanleer
     solver.kernel_language=kernel_language
     if kernel_language =='Python': 
         solver.set_riemann_solver('shallow_roe')
-        grid.aux_global['g'] = 1.0
-        grid.aux_global['efix'] = False
-    solver.bc_lower[0] = pyclaw.BC.outflow
-    solver.bc_upper[0] = pyclaw.BC.outflow
+        grid.problem_data['g'] = 1.0
+        grid.problem_data['efix'] = False
+    solver.bc_lower[0] = pyclaw.BC.extrap
+    solver.bc_upper[0] = pyclaw.BC.extrap
 
     #===========================================================================
     # Initialize grids and then initialize the solution associated to the grid
@@ -43,11 +43,11 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     mx = 500
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     grid = pyclaw.Grid(x)
-    meqn = 2
-    state = pyclaw.State(grid,meqn)
+    num_eqn = 2
+    state = pyclaw.State(grid,num_eqn)
 
     # Parameters
-    state.aux_global['grav'] = 1.0
+    state.problem_data['grav'] = 1.0
 
     xc = grid.x.center
 

@@ -37,18 +37,18 @@ def fortran_src_wrapper(solver,state,dt):
     # Get parameters and variables that have to be passed to the fortran src2
     # routine.
     mx, my = grid.ng[0], grid.ng[1]
-    meqn = state.meqn
-    mbc = solver.mbc
+    num_eqn = state.num_eqn
+    num_ghost = solver.num_ghost
     xlowerg, ylowerg = grid.lowerg[0], grid.lowerg[1]
     dx, dy = grid.d[0], grid.d[1]
     q = state.q
-    maux = state.maux
+    num_aux = state.num_aux
     aux = state.aux
     t = state.t
 
     # Call src2 function
     import problem
-    state.q = problem.src2(mx,my,mbc,xlowerg,ylowerg,dx,dy,q,aux,t,dt,Rsphere)
+    state.q = problem.src2(mx,my,num_ghost,xlowerg,ylowerg,dx,dy,q,aux,t,dt,Rsphere)
 
 
 def mapc2p_sphere_nonvectorized(grid,mC):
@@ -292,28 +292,28 @@ def qinit(state,mx,my):
             state.q[3,i,j] = state.q[0,i,j]*Uout[2] 
 
 
-def qbc_lower_y(state,dim,t,qbc,mbc):
+def qbc_lower_y(state,dim,t,qbc,num_ghost):
     """
     Impose periodic boundary condition to q at the bottom boundary for the 
     sphere. This function does not work in parallel.
     """
-    for j in range(mbc):
-        qbc1D = np.copy(qbc[:,:,2*mbc-1-j])
+    for j in range(num_ghost):
+        qbc1D = np.copy(qbc[:,:,2*num_ghost-1-j])
         qbc[:,:,j] = qbc1D[:,::-1]
 
 
-def qbc_upper_y(state,dim,t,qbc,mbc):
+def qbc_upper_y(state,dim,t,qbc,num_ghost):
     """
     Impose periodic boundary condition to q at the top boundary for the sphere.
     This function does not work in parallel.
     """
     my = state.grid.ng[1]
-    for j in range(mbc):
-        qbc1D = np.copy(qbc[:,:,my+mbc-1-j])
-        qbc[:,:,my+mbc+j] = qbc1D[:,::-1]
+    for j in range(num_ghost):
+        qbc1D = np.copy(qbc[:,:,my+num_ghost-1-j])
+        qbc[:,:,my+num_ghost+j] = qbc1D[:,::-1]
 
 
-def auxbc_lower_y(state,dim,t,auxbc,mbc):
+def auxbc_lower_y(state,dim,t,auxbc,num_ghost):
     """
     Impose periodic boundary condition to aux at the bottom boundary for the 
     sphere.
@@ -330,10 +330,10 @@ def auxbc_lower_y(state,dim,t,auxbc,mbc):
 
     # Impose BC
     auxtemp = auxbc.copy()
-    auxtemp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
-    auxbc[:,:,:mbc] = auxtemp[:,:,:mbc]
+    auxtemp = problem.setaux(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
+    auxbc[:,:,:num_ghost] = auxtemp[:,:,:num_ghost]
 
-def auxbc_upper_y(state,dim,t,auxbc,mbc):
+def auxbc_upper_y(state,dim,t,auxbc,num_ghost):
     """
     Impose periodic boundary condition to aux at the top boundary for the 
     sphere. 
@@ -350,8 +350,8 @@ def auxbc_upper_y(state,dim,t,auxbc,mbc):
     
     # Impose BC
     auxtemp = auxbc.copy()
-    auxtemp = problem.setaux(mx,my,mbc,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
-    auxbc[:,:,-mbc:] = auxtemp[:,:,-mbc:]
+    auxtemp = problem.setaux(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
+    auxbc[:,:,-num_ghost:] = auxtemp[:,:,-num_ghost:]
 
 
 def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
@@ -388,24 +388,24 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
 
     # Dimensional splitting ?
     # =======================
-    solver.dim_split = 0
+    solver.dimensional_split = 0
  
     # Transverse increment waves and transverse correction waves are computed 
     # and propagated.
     # =======================================================================
-    solver.order_trans = 2
+    solver.transverse_waves = 2
     
     # Number of waves in each Riemann solution
     # ========================================
-    solver.mwaves = 3
+    solver.num_waves = 3
 
     # Use source splitting method
     # ===========================
-    solver.src_split = 2
+    solver.source_split = 2
 
     # Set source function
     # ===================
-    solver.step_src = fortran_src_wrapper
+    solver.step_source = fortran_src_wrapper
 
     # Set the limiter for the waves
     # =============================
@@ -456,9 +456,9 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
         
     # Define state object
     # ===================
-    meqn = 4  # Number of equations
-    maux = 16 # Number of auxiliary variables
-    state = pyclaw.State(grid,meqn,maux)
+    num_eqn = 4  # Number of equations
+    num_aux = 16 # Number of auxiliary variables
+    state = pyclaw.State(grid,num_eqn,num_aux)
 
 
     # Set auxiliary variables
@@ -468,20 +468,20 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     # Get lower left corner coordinates 
     xlowerg,ylowerg = grid.lowerg[0],grid.lowerg[1]
 
-    mbc = 2
-    auxtmp = np.ndarray(shape=(maux,mx+2*mbc,my+2*mbc), dtype=float, order='F')
-    auxtmp = problem.setaux(mx,my,mbc,mx,my,xlowerg,ylowerg,dx,dy,auxtmp,Rsphere)
-    state.aux[:,:,:] = auxtmp[:,mbc:-mbc,mbc:-mbc]
+    num_ghost = 2
+    auxtmp = np.ndarray(shape=(num_aux,mx+2*num_ghost,my+2*num_ghost), dtype=float, order='F')
+    auxtmp = problem.setaux(mx,my,num_ghost,mx,my,xlowerg,ylowerg,dx,dy,auxtmp,Rsphere)
+    state.aux[:,:,:] = auxtmp[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
 
     # Set index for capa
-    state.mcapa = 0
+    state.index_capa = 0
 
     # Set initial conditions
     # ====================== 
     # 1) Call fortran function
-    qtmp = np.ndarray(shape=(meqn,mx+2*mbc,my+2*mbc), dtype=float, order='F')
-    qtmp = problem.qinit(mx,my,mbc,mx,my,xlowerg,ylowerg,dx,dy,qtmp,auxtmp,Rsphere)
-    state.q[:,:,:] = qtmp[:,mbc:-mbc,mbc:-mbc]
+    qtmp = np.ndarray(shape=(num_eqn,mx+2*num_ghost,my+2*num_ghost), dtype=float, order='F')
+    qtmp = problem.qinit(mx,my,num_ghost,mx,my,xlowerg,ylowerg,dx,dy,qtmp,auxtmp,Rsphere)
+    state.q[:,:,:] = qtmp[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
 
     # 2) call python function define above
     #qinit(state,mx,my)
@@ -492,8 +492,8 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     #===========================================================================
     claw = pyclaw.Controller()
     claw.keep_copy = False
-    claw.outstyle = 1
-    claw.nout = 10
+    claw.output_style = 1
+    claw.num_output_times = 10
     claw.tfinal = 10
     claw.solution = pyclaw.Solution(state)
     claw.solver = solver

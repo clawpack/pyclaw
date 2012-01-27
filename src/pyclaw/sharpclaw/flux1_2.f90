@@ -1,5 +1,5 @@
 ! ===================================================================
-subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
+subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
 ! ===================================================================
 !
 !     # Evaluate (delta t) * dq(t)/dt
@@ -9,18 +9,18 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
 !
 !     amdq, apdq, amdq2, apdq2, wave, and s are used locally:
 !
-!     amdq(meqn,1-mbc:mx+mbc) = left-going flux-differences
-!     apdq(meqn,1-mbc:mx+mbc) = right-going flux-differences
+!     amdq(num_eqn,1-num_ghost:mx+num_ghost) = left-going flux-differences
+!     apdq(num_eqn,1-num_ghost:mx+num_ghost) = right-going flux-differences
 !        e.g. amdq(m,i) = m'th component of A^- \Delta q from i'th Riemann
 !                         problem (between cells i-1 and i).
 !
-!     wave(1-mbc:mx+mbc, meqn, mwaves) = waves from solution of
+!     wave(1-num_ghost:mx+num_ghost, num_eqn, num_waves) = waves from solution of
 !                                           Riemann problems,
 !            wave(m,mw,i) = mth component of jump in q across
 !                           wave in family mw in Riemann problem between
 !                           states i-1 and i.
 !
-!     s(mwaves,1-mbc:mx+mbc) = wave speeds,
+!     s(num_waves,1-num_ghost:mx+num_ghost) = wave speeds,
 !            s(mw,i) = speed of wave in family mw in Riemann problem between
 !                      states i-1 and i.
 !
@@ -43,11 +43,11 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
 
     implicit double precision (a-h,o-z)
 
-    integer :: maux,meqn,mbc,maxnx,mx
-    double precision :: q1d(meqn,1-mbc:mx+mbc)
-    double precision :: dq1d(meqn,1-mbc:maxnx+mbc)
-    dimension aux(maux,1-mbc:mx+mbc)
-    double precision :: auxl(maux,1-mbc:mx+mbc), auxr(maux,1-mbc:mx+mbc)
+    integer :: num_aux,num_eqn,num_ghost,maxnx,mx
+    double precision :: q1d(num_eqn,1-num_ghost:mx+num_ghost)
+    double precision :: dq1d(num_eqn,1-num_ghost:maxnx+num_ghost)
+    dimension aux(num_aux,1-num_ghost:mx+num_ghost)
+    double precision :: auxl(num_aux,1-num_ghost:mx+num_ghost), auxr(num_aux,1-num_ghost:mx+num_ghost)
     double precision, intent(out) :: cfl
     integer, intent(in) :: ixy
     integer t
@@ -57,8 +57,8 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
 !f2py optional dq1d
 
 
-    if (mcapa.gt.0) then
-        dtdx = dt / (dx(ixy)*aux(mcapa,:))
+    if (index_capa.gt.0) then
+        dtdx = dt / (dx(ixy)*aux(index_capa,:))
     else
         dtdx = dt/dx(ixy)
     endif
@@ -73,7 +73,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
 !                call q2qlqr_poly(q1d,ql,qr,mx)
 !            case(1)
 !                ! wave-based unlimited reconstruction
-!                call rpn2(ixy,maxnx,meqn,mwaves,mbc,mx,&
+!                call rpn2(ixy,maxnx,num_eqn,num_waves,num_ghost,mx,&
 !                        q1d,q1d,aux,aux,wave,s,amdq,apdq)
 !                call q2qlqr_poly_wave(q1d,ql,qr,wave,s,mx)
 !        end select
@@ -84,22 +84,22 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
                 call tvd2(q1d,ql,qr,mthlim)
             case(1)
                 ! wave-based second order reconstruction
-                call rpn2(ixy,maxnx,meqn,mwaves,mbc,mx,&
+                call rpn2(ixy,maxnx,num_eqn,num_waves,num_ghost,mx,&
                         q1d,q1d,aux,aux,wave,s,amdq,apdq)
                 call tvd2_wave(q1d,ql,qr,wave,s,mthlim)
             case(2)
                 ! characteristic-wise second order reconstruction
-                call evec(mx,meqn,mbc,mx,q1d,aux,aux,evl,evr)
+                call evec(mx,num_eqn,num_ghost,mx,q1d,aux,aux,evl,evr)
                 call tvd2_char(q1d,ql,qr,mthlim,evl,evr)
         end select
         case(2)
         select case (char_decomp)
             case (0)
                 ! no characteristic decomposition
-                call weno_comp(q1d,ql,qr,meqn,maxnx,mbc)
+                call weno_comp(q1d,ql,qr,num_eqn,maxnx,num_ghost)
             case (1)
                 ! wave-based reconstruction
-                call rpn2(ixy,maxnx,meqn,mwaves,mbc,mx,&
+                call rpn2(ixy,maxnx,num_eqn,num_waves,num_ghost,mx,&
                         q1d,q1d,aux,aux,wave,s,amdq,apdq)
                 if (fwave.eqv. .True.) then
                     call weno5_fwave(q1d,ql,qr,wave,s)
@@ -108,11 +108,11 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
                 endif
             case (2)
                 ! characteristic-wise reconstruction
-                call evec(mx,meqn,mbc,mx,q1d,aux,aux,evl,evr)
+                call evec(mx,num_eqn,num_ghost,mx,q1d,aux,aux,evl,evr)
                 call weno5_char(q1d,ql,qr,evl,evr)
             case (3)
                 ! transmission-based reconstruction
-                call evec(mx,meqn,mbc,mx,q1d,aux,aux,evl,evr)
+                call evec(mx,num_eqn,num_ghost,mx,q1d,aux,aux,evl,evr)
                 call weno5_trans(q1d,ql,qr,evl,evr)
             case default
                 write(*,*) 'ERROR: Unrecognized characteristic decomposition option'
@@ -120,18 +120,18 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
                 stop
         end select
         case(3)
-            call weno5(q1d,ql,qr,meqn,maxnx,mbc)
+            call weno5(q1d,ql,qr,num_eqn,maxnx,num_ghost)
       end select
 
 
     ! solve Riemann problem at each interface 
     ! -----------------------------------------
-    call rpn2(ixy,maxnx,meqn,mwaves,mbc,mx,ql,qr,aux,aux, &
+    call rpn2(ixy,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr,aux,aux, &
               wave,s,amdq,apdq)
 
     ! compute maximum wave speed:
     cfl = 0.d0
-    do mw=1,mwaves
+    do mw=1,num_waves
         do i=1,mx+1
             ! if s>0 use dtdx(i) to compute CFL,
             ! if s<0 use dtdx(i-1) to compute CFL:
@@ -146,7 +146,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
         ! and right state qr(i), and returns a total fluctuation in amdq2
         ! NOTE that here amdq2 is really a total fluctuation (should be
         ! called adq); we do it this way just to avoid declaring more storage
-        call tfluct(ixy,maxnx,meqn,mwaves,mbc,mx,ql,qr, &
+        call tfluct(ixy,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr, &
                      aux,aux,s,amdq2)
 
         ! Modify q using fluctuations:
@@ -154,7 +154,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
         ! for equations not in conservation form.  It is conservative if
         ! adq = f(qr(i)) - f(ql(i)).
 
-        forall (i=1:mx, m=1:meqn)
+        forall (i=1:mx, m=1:num_eqn)
             dq1d(m,i) = dq1d(m,i) - dtdx(i)*(apdq(m,i) + &
                             amdq2(m,i) + amdq(m,i+1))
         end forall
@@ -167,26 +167,26 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,maux,meqn,mx,mbc,maxnx)
         ! 
         ! TODO: Working with pointers!!!
         
-        do i = 1-mbc+1,mx+mbc
-            do m = 1, meqn
+        do i = 1-num_ghost+1,mx+num_ghost
+            do m = 1, num_eqn
                 qr(m,i-1) = ql(m,i)
                 ql(m,i  ) = qr(m,i)
             enddo
         enddo
 
-        if (maux .gt. 0) then
-             do i = 1-mbc+1,mx+mbc
-                do m = 1, maux
+        if (num_aux .gt. 0) then
+             do i = 1-num_ghost+1,mx+num_ghost
+                do m = 1, num_aux
                     auxr(m,i-1) = aux(m,i) !aux is not griddat type
                     auxl(m,i  ) = aux(m,i) !aux is not griddat type
                 enddo
             enddo
         endif
         
-        call rpn2(ixy,maxnx,meqn,mwaves,mbc,mx,ql,qr, &
+        call rpn2(ixy,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr, &
                  auxl,auxr,wave,s,amdq2,apdq2)
 
-        forall(i=1:mx, m=1:meqn)
+        forall(i=1:mx, m=1:num_eqn)
             dq1d(m,i) = dq1d(m,i)-dtdx(i)*(amdq(m,i+1)+ &
                         apdq(m,i)+amdq2(m,i)+apdq2(m,i))
         end forall
