@@ -85,13 +85,13 @@ class Solver(object):
     .. attribute:: bc_lower 
     
         (list of ints) Lower boundary condition types, listed in the
-        same order as the Dimensions of the Grid.  See Solver.BC for
+        same order as the Dimensions of the Patch.  See Solver.BC for
         an enumeration.
 
     .. attribute:: bc_upper 
     
         (list of ints) Upper boundary condition types, listed in the
-        same order as the Dimensions of the Grid.  See Solver.BC for
+        same order as the Dimensions of the Patch.  See Solver.BC for
         an enumeration.
 
     .. attribute:: user_bc_lower 
@@ -100,7 +100,7 @@ class Solver(object):
         Fills the values of qbc with the correct boundary values.
         The appropriate signature is:
 
-        def user_bc_lower(grid,dim,t,qbc,num_ghost):
+        def user_bc_lower(patch,dim,t,qbc,num_ghost):
 
     .. attribute:: user_bc_upper 
     
@@ -108,7 +108,7 @@ class Solver(object):
         Fills the values of qbc with the correct boundary values.
         The appropriate signature is:
 
-        def user_bc_upper(grid,dim,t,qbc,num_ghost):
+        def user_bc_upper(patch,dim,t,qbc,num_ghost):
  
         
     :Initialization:
@@ -267,11 +267,11 @@ class Solver(object):
         This is typically called by solver.setup().
         """
         import numpy as np
-        qbc_dim = [n+2*self.num_ghost for n in state.grid.ng]
+        qbc_dim = [n+2*self.num_ghost for n in state.patch.ng]
         qbc_dim.insert(0,state.num_eqn)
         self.qbc = np.zeros(qbc_dim,order='F')
 
-        auxbc_dim = [n+2*self.num_ghost for n in state.grid.ng]
+        auxbc_dim = [n+2*self.num_ghost for n in state.patch.ng]
         auxbc_dim.insert(0,state.num_aux)
         self.auxbc = np.empty(auxbc_dim,order='F')
         if state.num_aux>0:
@@ -295,9 +295,9 @@ class Solver(object):
             component of q represents velocity or momentum.
     
         :Input:
-         -  *grid* - (:class:`Grid`) The grid being operated on.
+         -  *patch* - (:class:`Patch`) The patch being operated on.
          -  *state* - The state being operated on; this may or may not be the
-                      same as *grid*.  Generally it is the same as *grid* for
+                      same as *patch*.  Generally it is the same as *patch* for
                       the classic algorithms and other one-level algorithms, 
                       but different for method-of-lines algorithms like SharpClaw.
 
@@ -314,9 +314,9 @@ class Solver(object):
         import numpy as np
 
         self.qbc = state.get_qbc_from_q(self.num_ghost,'q',self.qbc)
-        grid = state.grid
+        patch = state.patch
        
-        for idim,dim in enumerate(grid.dimensions):
+        for idim,dim in enumerate(patch.dimensions):
             # First check if we are actually on the boundary
             # (in case of a parallel run)
             if dim.nstart == 0:
@@ -326,7 +326,7 @@ class Solver(object):
                     self.qbc_lower(state,dim,state.t,self.qbc,idim)
                 elif self.bc_lower[idim] == BC.periodic:
                     if dim.nend == dim.n:
-                        # This process owns the whole grid
+                        # This process owns the whole patch
                         self.qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
@@ -338,7 +338,7 @@ class Solver(object):
                     self.qbc_upper(state,dim,state.t,self.qbc,idim)
                 elif self.bc_upper[idim] == BC.periodic:
                     if dim.nstart == 0:
-                        # This process owns the whole grid
+                        # This process owns the whole patch
                         self.qbc_upper(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
@@ -358,7 +358,7 @@ class Solver(object):
         conditions at once with the appropriate calling sequence.
         
         :Input:
-         - *grid* - (:class:`Grid`) Grid that the dimension belongs to
+         - *patch* - (:class:`Patch`) Patch that the dimension belongs to
          
         :Input/Ouput:
          - *qbc* - (ndarray(...,num_eqn)) Array with added ghost cells which will
@@ -370,7 +370,7 @@ class Solver(object):
             for i in xrange(self.num_ghost):
                 qbc[:,i,...] = qbc[:,self.num_ghost,...]
         elif self.bc_lower[idim] == BC.periodic:
-            # This process owns the whole grid
+            # This process owns the whole patch
             qbc[:,:self.num_ghost,...] = qbc[:,-2*self.num_ghost:-self.num_ghost,...]
         elif self.bc_lower[idim] == BC.wall:
             for i in xrange(self.num_ghost):
@@ -392,7 +392,7 @@ class Solver(object):
         conditions at once with the appropriate calling sequence.
         
         :Input:
-         - *grid* - (:class:`Grid`) Grid that the dimension belongs to
+         - *patch* - (:class:`Patch`) Patch that the dimension belongs to
          
         :Input/Ouput:
          - *qbc* - (ndarray(...,num_eqn)) Array with added ghost cells which will
@@ -405,7 +405,7 @@ class Solver(object):
             for i in xrange(self.num_ghost):
                 qbc[:,-i-1,...] = qbc[:,-self.num_ghost-1,...] 
         elif self.bc_upper[idim] == BC.periodic:
-            # This process owns the whole grid
+            # This process owns the whole patch
             qbc[:,-self.num_ghost:,...] = qbc[:,self.num_ghost:2*self.num_ghost,...]
         elif self.bc_upper[idim] == BC.wall:
             for i in xrange(self.num_ghost):
@@ -434,9 +434,9 @@ class Solver(object):
             component of q represents velocity or momentum.
     
         :Input:
-         -  *grid* - (:class:`Grid`) The grid being operated on.
+         -  *patch* - (:class:`Patch`) The patch being operated on.
          -  *state* - The state being operated on; this may or may not be the
-                      same as *grid*.  Generally it is the same as *grid* for
+                      same as *patch*.  Generally it is the same as *patch* for
                       the classic algorithms and other one-level algorithms, 
                       but different for method-of-lines algorithms like SharpClaw.
 
@@ -454,9 +454,9 @@ class Solver(object):
 
         self.auxbc = state.get_qbc_from_q(self.num_ghost,'aux',self.auxbc)
 
-        grid = state.grid
+        patch = state.patch
        
-        for idim,dim in enumerate(grid.dimensions):
+        for idim,dim in enumerate(patch.dimensions):
             # First check if we are actually on the boundary
             # (in case of a parallel run)
             if dim.nstart == 0:
@@ -466,7 +466,7 @@ class Solver(object):
                     self.auxbc_lower(state,dim,state.t,self.auxbc,idim)
                 elif self.aux_bc_lower[idim] == BC.periodic:
                     if dim.nend == dim.n:
-                        # This process owns the whole grid
+                        # This process owns the whole patch
                         self.auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
@@ -478,7 +478,7 @@ class Solver(object):
                     self.auxbc_upper(state,dim,state.t,self.auxbc,idim)
                 elif self.aux_bc_upper[idim] == BC.periodic:
                     if dim.nstart == 0:
-                        # This process owns the whole grid
+                        # This process owns the whole patch
                         self.auxbc_upper(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
@@ -498,7 +498,7 @@ class Solver(object):
         conditions at once with the appropriate calling sequence.
         
         :Input:
-         - *grid* - (:class:`Grid`) Grid that the dimension belongs to
+         - *patch* - (:class:`Patch`) Patch that the dimension belongs to
          
         :Input/Ouput:
          - *auxbc* - (ndarray(num_aux,...)) Array with added ghost cells which will
@@ -510,7 +510,7 @@ class Solver(object):
             for i in xrange(self.num_ghost):
                 auxbc[:,i,...] = auxbc[:,self.num_ghost,...]
         elif self.aux_bc_lower[idim] == BC.periodic:
-            # This process owns the whole grid
+            # This process owns the whole patch
             auxbc[:,:self.num_ghost,...] = auxbc[:,-2*self.num_ghost:-self.num_ghost,...]
         elif self.aux_bc_lower[idim] == BC.wall:
             for i in xrange(self.num_ghost):
@@ -533,7 +533,7 @@ class Solver(object):
         conditions at once with the appropriate calling sequence.
         
         :Input:
-         - *grid* - (:class:`Grid`) Grid that the dimension belongs to
+         - *patch* - (:class:`Patch`) Patch that the dimension belongs to
          
         :Input/Ouput:
          - *auxbc* - (ndarray(num_aux,...)) Array with added ghost cells which will
@@ -546,7 +546,7 @@ class Solver(object):
             for i in xrange(self.num_ghost):
                 auxbc[:,-i-1,...] = auxbc[:,-self.num_ghost-1,...] 
         elif self.aux_bc_upper[idim] == BC.periodic:
-            # This process owns the whole grid
+            # This process owns the whole patch
             auxbc[:,-self.num_ghost:,...] = auxbc[:,self.num_ghost:2*self.num_ghost,...]
         elif self.aux_bc_upper[idim] == BC.wall:
             for i in xrange(self.num_ghost):
@@ -689,13 +689,13 @@ class Solver(object):
         r"""Write solution (or derived quantity) values at each gauge coordinate
             to file.
         """
-        for i,gauge in enumerate(solution.state.grid.gauges):
+        for i,gauge in enumerate(solution.state.patch.gauges):
             x=gauge[0]; y=gauge[1]
             aux=solution.state.aux[:,x,y]
             q=solution.state.q[:,x,y]
             p=self.compute_gauge_values(q,aux)
             t=solution.t
-            solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
+            solution.state.patch.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
 
 
 if __name__ == "__main__":

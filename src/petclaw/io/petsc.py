@@ -115,11 +115,11 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
         raise IOError('format type %s not supported' % options['format'])
     
     for state in solution.states:
-        grid = state.grid
+        patch = state.patch
         if rank==0:
-            pickle.dump({'level':grid.level,
-                         'names':grid.name,'lower':grid.lower,
-                         'n':grid.n,'d':grid.d}, pickle_file)
+            pickle.dump({'level':patch.level,
+                         'names':patch.name,'lower':patch.lower,
+                         'n':patch.n,'d':patch.d}, pickle_file)
 #       we will reenable this bad boy when we switch over to petsc-dev
 #        state.q_da.view(viewer)
         if write_p:
@@ -176,7 +176,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     pickle_file = open(pickle_filename,'rb')
 
     # this dictionary is mostly holding debugging information, only nstates is needed
-    # most of this information is explicitly saved in the individual grids
+    # most of this information is explicitly saved in the individual patchs
     value_dict = pickle.load(pickle_file)
     nstates    = value_dict['nstates']                    
     ndim       = value_dict['ndim']
@@ -208,13 +208,13 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         raise IOError('format type %s not supported' % options['format'])
 
     for m in xrange(nstates):
-        grid_dict = pickle.load(pickle_file)
+        patch_dict = pickle.load(pickle_file)
 
-        level   = grid_dict['level']
-        names   = grid_dict['names']
-        lower   = grid_dict['lower']
-        n       = grid_dict['n']
-        d       = grid_dict['d']
+        level   = patch_dict['level']
+        names   = patch_dict['names']
+        lower   = patch_dict['lower']
+        n       = patch_dict['n']
+        d       = patch_dict['d']
 
         import petclaw ##
         dimensions = []
@@ -222,11 +222,11 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
             dimensions.append(
                 #pyclaw.solution.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
                 petclaw.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
-        #grid = pyclaw.solution.Grid(dimensions)
-        grid = petclaw.Grid(dimensions)
-        grid.level = level 
-        #state = pyclaw.state.State(grid)
-        state = petclaw.State(grid,num_eqn,num_aux) ##
+        #patch = pyclaw.solution.Patch(dimensions)
+        patch = petclaw.Patch(dimensions)
+        patch.level = level 
+        #state = pyclaw.state.State(patch)
+        state = petclaw.State(patch,num_eqn,num_aux) ##
         state.t = value_dict['t']
         state.problem_data = value_dict['problem_data']
 
@@ -257,7 +257,7 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
      - (list) List of output variables
       - *t* - (int) Time of frame
       - *num_eqn* - (int) Number of equations in the frame
-      - *ngrids* - (int) Number of grids
+      - *npatchs* - (int) Number of patchs
       - *num_aux* - (int) Auxillary value in the frame
       - *ndim* - (int) Number of dimensions in q and aux
     
@@ -268,20 +268,20 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
     try:
         f = open(path,'rb')
         logger.debug("Opening %s file." % path)
-        grid_dict = pickle.load(f)
+        patch_dict = pickle.load(f)
 
-        t      = grid_dict['t']
-        num_eqn   = grid_dict['num_eqn']
-        nstates = grid_dict['nstates']                    
-        num_aux   = grid_dict['num_aux']                    
-        ndim   = grid_dict['ndim']
+        t      = patch_dict['t']
+        num_eqn   = patch_dict['num_eqn']
+        nstates = patch_dict['nstates']                    
+        num_aux   = patch_dict['num_aux']                    
+        ndim   = patch_dict['ndim']
 
         f.close()
     except(IOError):
         raise
     except:
-        logger.error("File " + path + " should contain t, num_eqn, ngrids, num_aux, ndim")
-        print "File " + path + " should contain t, num_eqn, ngrids, num_aux, ndim"
+        logger.error("File " + path + " should contain t, num_eqn, npatchs, num_aux, ndim")
+        print "File " + path + " should contain t, num_eqn, npatchs, num_aux, ndim"
         raise
         
     return t,num_eqn,nstates,num_aux,ndim

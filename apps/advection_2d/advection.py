@@ -16,8 +16,8 @@ def qinit(state):
     # q = 1.0  if  0.1 < x < 0.6   and   0.1 < y < 0.6
     #     0.1  otherwise
     
-    x = state.grid.x.center
-    y = state.grid.y.center
+    x = state.patch.x.center
+    y = state.patch.y.center
     for i in range(len(x)):
         for j in range(len(y)):
             if x[i] > 0.0 and x[i] < 0.5 and y[j]>0.0 and y[j] < 0.5:
@@ -62,18 +62,18 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
 
 
     #===========================================================================
-    # Initialize grids, then initialize the solution associated to the grid and
+    # Initialize patchs, then initialize the solution associated to the patch and
     # finally initialize aux array
     #===========================================================================
 
-    # Grid:
+    # Patch:
     mx=50; my=50
     x = pyclaw.Dimension('x',0.0,1.0,mx)
     y = pyclaw.Dimension('y',0.0,1.0,my)
-    grid = pyclaw.Grid([x,y])
+    patch = pyclaw.Patch([x,y])
 
     num_eqn = 1
-    state = pyclaw.State(grid,num_eqn)
+    state = pyclaw.State(patch,num_eqn)
 
     state.problem_data['u'] = 0.5 # Parameters (global auxiliary variables)
     state.problem_data['v'] = 1.0

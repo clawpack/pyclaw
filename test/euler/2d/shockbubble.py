@@ -7,7 +7,7 @@ gamma = 1.4
 gamma1 = gamma - 1.
 
 def qinit(state,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
-    grid = state.grid
+    patch = state.patch
 
     rhoout = 1.
     pout   = 1.
@@ -18,8 +18,8 @@ def qinit(state,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
     einf = 0.5*rinf*vinf**2 + pinf/gamma1
     
     # Create an array with fortran native ordering
-    x =grid.x.center
-    y =grid.y.center
+    x =patch.x.center
+    y =patch.y.center
     Y,X = np.meshgrid(y,x)
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
 
@@ -33,8 +33,8 @@ def auxinit(state):
     """
     aux[1,i,j] = y-coordinate of cell center for cylindrical source terms
     """
-    x=state.grid.x.center
-    y=state.grid.y.center
+    x=state.patch.x.center
+    y=state.patch.y.center
     for j,ycoord in enumerate(y):
         state.aux[0,:,j] = ycoord
 
@@ -108,14 +108,14 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     from pyclaw import ClawSolver2D 
 
 
-    # Initialize grid
+    # Initialize patch
     mx=160; my=40
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
-    grid = pyclaw.Grid([x,y])
+    patch = pyclaw.Patch([x,y])
     num_eqn = 5
     num_aux=1
-    state = pyclaw.State(grid,num_eqn,num_aux)
+    state = pyclaw.State(patch,num_eqn,num_aux)
 
     state.problem_data['gamma']= gamma
     state.problem_data['gamma1']= gamma1
@@ -160,7 +160,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     if iplot:     pyclaw.plot.interactive_plot(format=claw.output_format)
 
     if use_petsc:
-        density=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([state.num_eqn,grid.n[0],grid.n[1]],order='F')[0,:,:]
+        density=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([state.num_eqn,patch.n[0],patch.n[1]],order='F')[0,:,:]
     else:
         density=claw.frames[claw.num_output_times].state.q[0,:,:]
     return density

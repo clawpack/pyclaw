@@ -28,8 +28,8 @@ class Controller(object):
 
         >>> import pyclaw
         >>> x = pyclaw.Dimension('x',0.,1.,100)
-        >>> grid = pyclaw.Grid((x))
-        >>> state = pyclaw.State(grid,3,2)
+        >>> patch = pyclaw.Patch((x))
+        >>> state = pyclaw.State(patch,3,2)
         >>> claw = pyclaw.Controller()
         >>> claw.solution = pyclaw.Solution(state)
         >>> claw.solver = pyclaw.ClawSolver1D()
@@ -290,11 +290,11 @@ class Controller(object):
 
             logging.info("Solution %s computed for time t=%f"
                 % (frame,self.solution.t))
-            for gfile in self.solution.state.grid.gauge_files: 
+            for gfile in self.solution.state.patch.gauge_files: 
                 gfile.flush()
             
         self.solver.teardown()
-        for gfile in self.solution.state.grid.gauge_files: gfile.close()
+        for gfile in self.solution.state.patch.gauge_files: gfile.close()
 
         # Return the current status of the solver
         return status

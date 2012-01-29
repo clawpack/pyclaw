@@ -19,10 +19,10 @@ logging.config.fileConfig(_DEFAULT_LOG_CONFIG_PATH)
 __all__ = []
 
 # Module imports
-__all__.extend(['Controller','Dimension','Grid','Solution','State','CFL','riemann','plot'])
+__all__.extend(['Controller','Dimension','Patch','Solution','State','CFL','riemann','plot'])
 from pyclaw.controller import Controller
 from pyclaw.solution import Solution
-from pyclaw.grid import Dimension, Grid
+from pyclaw.geometry import Dimension, Patch
 from pyclaw.state import State
 from pyclaw.cfl import CFL
 import riemann

@@ -29,14 +29,14 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
     solver.bc_upper[0] = pyclaw.BC.periodic
 
     #===========================================================================
-    # Initialize grids and then initialize the solution associated to the grid
+    # Initialize patchs and then initialize the solution associated to the patch
     #===========================================================================
     x = pyclaw.Dimension('x',0.0,1.0,500)
-    grid = pyclaw.Grid(x)
+    patch = pyclaw.Patch(x)
     num_eqn = 1
-    state = pyclaw.State(grid,num_eqn)
+    state = pyclaw.State(patch,num_eqn)
 
-    xc=grid.x.center
+    xc=patch.x.center
     state.q[0,:] = np.sin(np.pi*2*xc) + 0.50
     state.problem_data['efix']=True
 

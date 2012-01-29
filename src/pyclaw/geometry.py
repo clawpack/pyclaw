@@ -2,11 +2,6 @@
 # encoding: utf-8
 r"""
 Module containing all Pyclaw solution objects
-
-:Authors:
-    Kyle T. Mandli (2008-08-07) Initial version
-    David I. Ketcheson
-    Amal Alghamdi
 """
 
 import numpy as np
@@ -16,7 +11,7 @@ import numpy as np
 # ============================================================================
 
 # Default mapc2p function
-def default_mapc2p(grid,x):
+def default_mapc2p(patch,x):
     r"""
     Returns the physical coordinate of the point x
     
@@ -30,7 +25,7 @@ def default_mapc2p(grid,x):
 # ============================================================================
 class Dimension(object):
     r"""
-    Basic class representing a dimension of a Grid object
+    Basic class representing a dimension of a Patch object
     
     :Initialization:
     
@@ -38,7 +33,7 @@ class Dimension(object):
      - *name* - (string) string Name of dimension
      - *lower* - (float) Lower extent of dimension
      - *upper* - (float) Upper extent of dimension
-     - *n* - (int) Number of grid cells
+     - *n* - (int) Number of cells
      - *units* - (string) Type of units, used for informational purposes only
        
     Output:
@@ -72,15 +67,15 @@ class Dimension(object):
     # ========== Property Definitions ========================================
     @property
     def ng(self):
-        r"""(int) - Number of grid cells in this dimension, on this process"""
+        r"""(int) - Number of cells in this dimension, on this process"""
         return self.n
     @property
     def d(self):
-        r"""(float) - Size of an individual, computational grid cell"""
+        r"""(float) - Size of an individual, computational cell"""
         return (self.upper-self.lower) / float(self.n)
     @property
     def edge(self):
-        r"""(ndarrary(:)) - Location of all grid cell edge coordinates
+        r"""(ndarrary(:)) - Location of all cell edge coordinates
         for this dimension"""
         if self._edge is None:
             self._edge = np.empty(self.n+1)   
@@ -90,7 +85,7 @@ class Dimension(object):
     _edge = None
     @property
     def center(self):
-        r"""(ndarrary(:)) - Location of all grid cell center coordinates
+        r"""(ndarrary(:)) - Location of all cell center coordinates
         for this dimension"""
         if self._center is None:
             self._center = np.empty(self.n)
@@ -110,11 +105,11 @@ class Dimension(object):
         self.name = 'x'
         r"""(string) Name of this coordinate dimension (e.g. 'x')"""
         self.n = None
-        r"""(int) - Number of grid cells in this dimension :attr:`units`"""
+        r"""(int) - Number of cells in this dimension :attr:`units`"""
         self.lower = 0.0
-        r"""(float) - Lower computational grid extent"""
+        r"""(float) - Lower computational patch extent"""
         self.upper = 1.0
-        r"""(float) - Upper computational grid extent"""
+        r"""(float) - Upper computational patch extent"""
         self.units = None
         r"""(string) Corresponding physical units of this dimension (e.g. 
         'm/s'), ``default = None``"""
@@ -136,8 +131,8 @@ class Dimension(object):
             setattr(self,k,v)
 
         #These aren't need for PyClaw, but we set them so that
-        # the PyClaw grid has the same attributes as the PetClaw
-        # grid, which allows for simpler programming elsewhere.
+        # the PyClaw patch has the same attributes as the PetClaw
+        # patch, which allows for simpler programming elsewhere.
         self.nstart = 0
         self.nend = self.n
         self.lowerg = self.lower
@@ -152,21 +147,21 @@ class Dimension(object):
         
 
 # ============================================================================
-#  Pyclaw Grid object definition
+#  Pyclaw Patch object definition
 # ============================================================================
-class Grid(object):
+class Patch(object):
     r"""
-    Basic representation of a single grid in Pyclaw
+    Basic representation of a single patch in Pyclaw
     
     :Dimension information:
     
         Each dimension has an associated name with it that can be accessed via
-        that name such as ``grid.x.n`` which would access the x dimension's
-        number of grid cells.
+        that name such as ``patch.x.n`` which would access the x dimension's
+        number of cells.
     
-    :Global Grid information:
+    :Global Patch information:
     
-        Each grid has a value for :attr:`level` and :attr:`gridno`.
+        Each patch has a value for :attr:`level` and :attr:`patchno`.
         
     :Properties:
 
@@ -177,42 +172,42 @@ class Grid(object):
     
         Input:
          - *dimensions* - (list of :class:`Dimension`) Dimensions that are to 
-           be associated with this grid
+           be associated with this patch
             
         Output:
-         - (:class:`Grid`) Initialized grid object
+         - (:class:`Patch`) Initialized patch object
 
-    A PyClaw Grid is usually constructed from a tuple of PyClaw Dimension objects:
+    A PyClaw Patch is usually constructed from a tuple of PyClaw Dimension objects:
 
         >>> x = Dimension('x',0.,1.,10)
         >>> y = Dimension('y',-1.,1.,25)
-        >>> grid = Grid((x,y))
-        >>> print grid
-        Grid 1:
+        >>> patch = Patch((x,y))
+        >>> print patch
+        Patch 1:
         Dimension x:  (n,d,[lower,upper]) = (10,0.1,[0.0,1.0])
         Dimension y:  (n,d,[lower,upper]) = (25,0.08,[-1.0,1.0])
-        >>> grid.ndim
+        >>> patch.ndim
         2
-        >>> grid.n
+        >>> patch.n
         [10, 25]
-        >>> grid.lower
+        >>> patch.lower
         [0.0, -1.0]
-        >>> grid.d
+        >>> patch.d
         [0.1, 0.08]
 
-    A grid can be extended to higher dimensions using the add_dimension() method:
+    A patch can be extended to higher dimensions using the add_dimension() method:
 
         >>> z=Dimension('z',-2.0,2.0,21)
-        >>> grid.add_dimension(z)
-        >>> grid.ndim
+        >>> patch.add_dimension(z)
+        >>> patch.ndim
         3
-        >>> grid.n
+        >>> patch.n
         [10, 25, 21]
-        >>> grid.c_edge[0][0,0,0]
+        >>> patch.c_edge[0][0,0,0]
         0.0
-        >>> grid.c_edge[1][0,0,0]
+        >>> patch.c_edge[1][0,0,0]
         -1.0
-        >>> grid.c_edge[2][0,0,0]
+        >>> patch.c_edge[2][0,0,0]
         -2.0
     """
 
@@ -224,23 +219,23 @@ class Grid(object):
     @property
     def dimensions(self):
         r"""(list) - List of :class:`Dimension` objects defining the 
-                grid's extent and resolution"""
+                patch's extent and resolution"""
         return [getattr(self,name) for name in self._dimensions]
     @property
     def n(self): 
-        r"""(list) - List of the number of grid cells in each dimension"""
+        r"""(list) - List of the number of cells in each dimension"""
         return self.get_dim_attribute('n')
     @property
     def ng(self):
-        r"""(list) - List of the local (to this process)number of grid cells in each dimension"""
+        r"""(list) - List of the local (to this process)number of cells in each dimension"""
         return self.get_dim_attribute('ng')
     @property
     def nstart(self):
-        r"""(list) - List of the number of grid cells in each dimension"""
+        r"""(list) - List of the number of cells in each dimension"""
         return self.get_dim_attribute('nstart')
     @property
     def nend(self):
-        r"""(list) - List of the number of grid cells in each dimension"""
+        r"""(list) - List of the number of cells in each dimension"""
         return self.get_dim_attribute('nend')
     @property
     def name(self):
@@ -260,7 +255,7 @@ class Grid(object):
         return self.get_dim_attribute('upper')
     @property
     def d(self):
-        r"""(list) - List of computational grid cell widths"""
+        r"""(list) - List of computational cell widths"""
         return self.get_dim_attribute('d')
     @property
     def units(self):
@@ -312,18 +307,18 @@ class Grid(object):
     # ========== Class Methods ===============================================
     def __init__(self,dimensions):
         r"""
-        Instantiate a Grid object
+        Instantiate a Patch object
         
-        See :class:`Grid` for more info.
+        See :class:`Patch` for more info.
         """
         
         # ========== Attribute Definitions ===================================
         self.level = 1
-        r"""(int) - AMR level this grid belongs to, ``default = 1``"""
-        self.gridno = 1
-        r"""(int) - Grid number of current grid, ``default = 0``"""
+        r"""(int) - AMR level this patch belongs to, ``default = 1``"""
+        self.patchno = 1
+        r"""(int) - Patch number of current patch, ``default = 0``"""
         self.mapc2p = default_mapc2p
-        r"""(func) - Grid mapping function"""
+        r"""(func) - Patch mapping function"""
         self.gauges = []
         r"""(list) - List of gauges"""
         self.gauge_files     = []
@@ -339,7 +334,7 @@ class Grid(object):
     
     
     def __str__(self):
-        output = "Grid %s:\n" % self.gridno
+        output = "Patch %s:\n" % self.patchno
         output += '\n'.join((str(getattr(self,dim)) for dim in self._dimensions))
         return output
     
@@ -347,7 +342,7 @@ class Grid(object):
     # ========== Dimension Manipulation ======================================
     def add_dimension(self,dimension):
         r"""
-        Add the specified dimension to this grid
+        Add the specified dimension to this patch
         
         :Input:
          - *dimension* - (:class:`Dimension`) Dimension to be added
@@ -375,7 +370,7 @@ class Grid(object):
         result = self.__class__(copy.deepcopy(self.dimensions))
         result.__init__(copy.deepcopy(self.dimensions))
         
-        for attr in ('level','gridno','_p_center','_p_edge',
+        for attr in ('level','patchno','_p_center','_p_edge',
                         '_c_center','_c_edge'):
             setattr(result,attr,copy.deepcopy(getattr(self,attr)))
         
@@ -384,13 +379,13 @@ class Grid(object):
         return result
         
     
-    # ========== Grid Operations =============================================
+    # ========== Patch Operations =============================================
     def compute_p_center(self, recompute=False):
         r"""Calculates the :attr:`p_center` array, which contains the physical
-        coordinates of the grid cell centers when a grid mapping is used.
+        coordinates of the cell centers when a mapping is used.
 
-        grid._p_center is a list of numpy arrays.  Each array has shape equal
-        to the shape of the grid; the number of arrays is equal to the 
+        patch._p_center is a list of numpy arrays.  Each array has shape equal
+        to the shape of the patch; the number of arrays is equal to the 
         dimension of the embedding space for the mapping.
         
         This array is computed only when requested and then stored for later 
@@ -398,7 +393,7 @@ class Grid(object):
         for time-dependent mappings).
         
         Access the resulting physical coordinate array via the corresponding
-        dimensions or via the computational grid properties :attr:`p_center`.
+        dimensions or via the computational patch properties :attr:`p_center`.
         
         :Input:
          - *recompute* - (bool) Whether to force a recompute of the arrays
@@ -431,7 +426,7 @@ class Grid(object):
         for time dependent mappings).
         
         Access the resulting physical coordinate array via the corresponding
-        dimensions or via the computational grid properties :attr:`p_edge`.
+        dimensions or via the computational patch properties :attr:`p_edge`.
         
         :Input:
          - *recompute* - (bool) Whether to force a recompute of the arrays
@@ -462,7 +457,7 @@ class Grid(object):
         use unless the recompute flag is set to True.
         
         Access the resulting computational coodinate array via the
-        corresponding dimensions or via the computational grid properties
+        corresponding dimensions or via the computational patch properties
         :attr:`c_center`.
         
         :Input:
@@ -476,7 +471,6 @@ class Grid(object):
             if self.ndim == 1:
                 self._c_center[0] = self.dimensions[0].center
             else:
-                # Produce ndim mesh grid function
                 index = np.indices(self.ng)
                 self._c_center = []
                 for i,center_array in enumerate(self.get_dim_attribute('center')):
@@ -492,7 +486,7 @@ class Grid(object):
         use unless the recompute flag is set to True.
         
         Access the resulting computational coodinate array via the
-        corresponding dimensions or via the computational grid properties
+        corresponding dimensions or via the computational patch properties
         :attr:`c_edge`.
         
         :Input:
@@ -517,11 +511,13 @@ class Grid(object):
     # ========================================================================
     def add_gauges(self,gauge_coords):
         r"""
-        Determine the grid indices of each gauge and make a list of all gauges
-        with their grid indices.  
+        Determine the cell indices of each gauge and make a list of all gauges
+        with their cell indices.  
         
-        For PetClaw, first check whether each gauge is in the part of the grid
-        corresponding to this processor.
+        For PetClaw, first check whether each gauge is in the part of the patch
+        corresponding to this patch.
+
+        THIS SHOULD BE MOVED TO GRID
         """
         import os
         from numpy import floor
@@ -532,14 +528,15 @@ class Grid(object):
                 print "gauge directory already exists, ignoring"
         
         for gauge in gauge_coords: 
-            # Determine gauge locations in units of grid spacing
+            # Determine gauge locations in units of mesh spacing
             gauge_ind = [int(floor(gauge[n]/self.d[n])) for n in xrange(self.ndim)]
             if all(self.nstart[n]<=gauge_ind[n]<self.nend[n] for n in range(self.ndim)):
-                #Set indices relative to this processor's part of grid
+                #Set indices relative to this patch
                 gauge_ind = [gauge_ind[n] - self.nstart[n] for n in range(self.ndim)]
                 gauge_path = self.gauge_path+'gauge'+'_'.join(str(coord) for coord in gauge)+'.txt'
                 # Is this a good idea???  It should depend on self.overwrite.
-                if os.path.isfile(gauge_path): os.remove(gauge_path)
+                if os.path.isfile(gauge_path): 
+                    os.remove(gauge_path)
                 self.gauges.append(list(gauge_ind))
                 self.gauge_files.append(open(gauge_path,'a'))
 

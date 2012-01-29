@@ -33,18 +33,18 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     solver.aux_bc_lower[1]=pyclaw.BC.wall
     solver.aux_bc_upper[1]=pyclaw.BC.extrap
 
-    # Initialize grid
+    # Initialize patch
     mx=200; my=200
     x = pyclaw.Dimension('x',-1.0,1.0,mx)
     y = pyclaw.Dimension('y',-1.0,1.0,my)
-    grid = pyclaw.Grid([x,y])
+    patch = pyclaw.Patch([x,y])
 
     num_eqn = 3
     num_aux = 2 # density, sound speed
-    state = pyclaw.State(grid,num_eqn,num_aux)
+    state = pyclaw.State(patch,num_eqn,num_aux)
 
     # Cell center coordinates
-    Y,X = np.meshgrid(grid.y.center,grid.x.center)
+    Y,X = np.meshgrid(patch.y.center,patch.x.center)
 
     # Set aux arrays
     rhol = 4.0
@@ -79,7 +79,7 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,format=claw.output_format)
 
     if use_petsc:
-        pressure=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([grid.ng[0],grid.ng[1],state.num_eqn])[:,:,0]
+        pressure=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([patch.ng[0],patch.ng[1],state.num_eqn])[:,:,0]
     else:
         pressure=claw.frames[claw.num_output_times].state.q[:,:,0]
     return pressure

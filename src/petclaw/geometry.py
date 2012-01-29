@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 r"""
-Module containing petclaw grid.
+Module containing petclaw.geometry.
 
 :Authors:
     Amal Alghamdi
@@ -9,18 +9,18 @@ Module containing petclaw grid.
     Aron Ahmadia
 """
 
-import pyclaw.grid
-# We don't use Grid directly but we need it to appear in this namespace:
-from pyclaw.grid import Grid
+import pyclaw.geometry
+# We don't use Patch directly but we need it to appear in this namespace:
+from pyclaw.geometry import Patch
 
 # ============================================================================
 #  Dimension Object
 # ============================================================================
-class Dimension(pyclaw.grid.Dimension):
+class Dimension(pyclaw.geometry.Dimension):
     r"""
-    Basic class representing a dimension of a Grid object
+    Basic class representing a dimension of a Patch object
 
-    The only difference between PyClaw and PetClaw grids are the
+    The only difference between PyClaw and PetClaw patchs are the
     boundary conditions.
     
     :Initialization:
@@ -29,7 +29,7 @@ class Dimension(pyclaw.grid.Dimension):
      - *name* - (string) string Name of dimension
      - *lower* - (float) Lower extent of dimension
      - *upper* - (float) Upper extent of dimension
-     - *n* - (int) Number of grid cells
+     - *n* - (int) Number of patch cells
      - *units* - (string) Type of units, used for informational purposes only
         
     Output:
@@ -41,12 +41,12 @@ class Dimension(pyclaw.grid.Dimension):
     """
     @property
     def ng(self):
-        r"""Size of this processes' piece of grid in given dimension."""
+        r"""Size of this processes' piece of patch in given dimension."""
         return self.nend-self.nstart
 
     @property
     def edge(self):
-        r"""(ndarrary(:)) - Location of all grid cell edge coordinates
+        r"""(ndarrary(:)) - Location of all patch cell edge coordinates
         for this dimension"""
         import numpy as np
         if self._edge is None:
@@ -58,7 +58,7 @@ class Dimension(pyclaw.grid.Dimension):
 
     @property
     def center(self):
-        r"""(ndarrary(:)) - Location of all grid cell center coordinates
+        r"""(ndarrary(:)) - Location of all patch cell center coordinates
         for this dimension"""
         import numpy as np
         if self._center is None:

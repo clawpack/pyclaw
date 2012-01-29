@@ -20,11 +20,11 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
         solver.weno_order = weno_order
     else: raise Exception('Unrecognized value of solver_type.')
 
-    # Initialize grids and solution
+    # Initialize patchs and solution
     x = pyclaw.Dimension('x',0.0,1.0,100)
-    grid = pyclaw.Grid(x)
+    patch = pyclaw.Patch(x)
     num_eqn=2
-    state = pyclaw.State(grid,num_eqn)
+    state = pyclaw.State(patch,num_eqn)
 
     rho = 1.0
     bulk = 1.0
@@ -33,7 +33,7 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
     state.problem_data['zz']=np.sqrt(rho*bulk)
     state.problem_data['cc']=np.sqrt(rho/bulk)
 
-    xc=grid.x.center
+    xc=patch.x.center
     beta=100; gamma=0; x0=0.75
     state.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
     state.q[1,:]=0.
@@ -49,7 +49,7 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
         solver.rp = rp_acoustics.rp_acoustics_1d
 
     solver.limiters = [4]*solver.num_waves
-    solver.dt_initial=grid.d[0]/state.problem_data['cc']*0.1
+    solver.dt_initial=patch.d[0]/state.problem_data['cc']*0.1
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
 
@@ -76,7 +76,7 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
     else:
         q0=claw.frames[0].state.q.reshape([-1])
         qfinal=claw.frames[claw.num_output_times].state.q.reshape([-1])
-    dx=claw.frames[0].grid.d[0]
+    dx=claw.frames[0].patch.d[0]
 
     return dx*np.sum(np.abs(qfinal-q0))
 

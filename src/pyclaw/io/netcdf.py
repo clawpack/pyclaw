@@ -182,20 +182,20 @@ def write_netcdf(solution,frame,path,file_prefix='claw',write_aux=False,
         for (k,v) in description.iteritems():
             exec('f.%s = %s' % (k,v))
         
-        # For each grid, write out attributes
-        for grid in solution.grids:
-            # Create group for this grid
-            subgroup = f.createGroup('grid%s' % grid.gridno)
+        # For each patch, write out attributes
+        for patch in solution.patchs:
+            # Create group for this patch
+            subgroup = f.createGroup('patch%s' % patch.patchno)
         
-            # General grid properties
-            for attr in ['t','num_eqn','gridno','level','num_ghost']:
-                setattr(subgroup,attr,getattr(grid,attr))
+            # General patch properties
+            for attr in ['t','num_eqn','patchno','level','num_ghost']:
+                setattr(subgroup,attr,getattr(patch,attr))
             
             # Write out dimension names
-            setattr(subgroup,'dim_names',grid.name)
+            setattr(subgroup,'dim_names',patch.name)
             
             # Create dimensions for q (and aux)
-            for dim in grid.dimensions:
+            for dim in patch.dimensions:
                 subgroup.createDimension(dim.name,dim.n)
                 # Write other dimension attributes
                 for attr in ['n','lower','d','upper','bc_lower',
@@ -204,27 +204,27 @@ def write_netcdf(solution,frame,path,file_prefix='claw',write_aux=False,
                         if getattr(dim,attr) is not None:
                             attr_name = '%s.%s' % (dim.name,attr)
                             setattr(subgroup,attr_name,getattr(dim,attr))
-            subgroup.createDimension('num_eqn',grid.num_eqn)
+            subgroup.createDimension('num_eqn',patch.num_eqn)
             
             # Write q array
-            dim_names = grid.name
+            dim_names = patch.name
             dim_names.append('num_eqn')
             index_str = ','.join( [':' for name in dim_names] )
             q = subgroup.createVariable('q','f8',dim_names,zlib,
                                             complevel,shuffle,fletcher32,
                                             contiguous,chunksizes,endian,
                                             least_significant_digit,fill_value)
-            exec("q[%s] = grid.q" % index_str)
+            exec("q[%s] = patch.q" % index_str)
             
             # Write out aux
-            if grid.num_aux > 0 and write_aux:
+            if patch.num_aux > 0 and write_aux:
                 dim_names[-1] = 'num_aux'
-                subgroup.createDimension('num_aux',grid.num_aux)
+                subgroup.createDimension('num_aux',patch.num_aux)
                 aux = subgroup.createVariable('aux','f8',dim_names,
                                             zlib,complevel,shuffle,fletcher32,
                                             contiguous,chunksizes,endian,
                                             least_significant_digit,fill_value)
-                exec("aux[%s] = grid.aux" % index_str)
+                exec("aux[%s] = patch.aux" % index_str)
         
         f.close()
     elif use_pupynere:
@@ -267,7 +267,7 @@ def read_netcdf(solution,frame,path='./',file_prefix='claw',read_aux=True,
         # Open file
         f = netCDF4.Dataset(filename,'r')
         
-        # We only expect subgroups of grids, otherwise we need to put some
+        # We only expect subgroups of patchs, otherwise we need to put some
         # sort of conditional here
         for subgroup in f.groups.itervalues():
             # Construct each dimension
@@ -287,22 +287,22 @@ def read_netcdf(solution,frame,path='./',file_prefix='claw',read_aux=True,
                         setattr(dim,attr,getattr(subgroup, "%s.%s" % (dim_name,attr)))
                 dimensions.append(dim)
             
-            # Create grid
-            grid = pyclaw.solution.Grid(dimensions)
+            # Create patch
+            patch = pyclaw.solution.Patch(dimensions)
             
-            # General grid properties
-            for attr in ['t','num_eqn','gridno','level']:
-                setattr(grid,attr,getattr(subgroup,attr))
+            # General patch properties
+            for attr in ['t','num_eqn','patchno','level']:
+                setattr(patch,attr,getattr(subgroup,attr))
                 
             # Read in q
-            index_str = ','.join( [':' for i in xrange(grid.ndim+1)] )
-            exec("grid.q = subgroup.variables['q'][%s]" % index_str)
+            index_str = ','.join( [':' for i in xrange(patch.ndim+1)] )
+            exec("patch.q = subgroup.variables['q'][%s]" % index_str)
             
             # Read in aux if applicable
             if read_aux and subgroup.dimensions.has_key('num_aux'):
-                exec("grid.aux = subgroup.variables['aux'][%s]" % index_str)
+                exec("patch.aux = subgroup.variables['aux'][%s]" % index_str)
         
-            solution.grids.append(grid)
+            solution.patchs.append(patch)
             
         f.close()
     elif use_pupynere:

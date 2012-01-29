@@ -67,7 +67,7 @@ def setplot(plotdata):
     plotitem = plotaxes.new_plotitem(plot_type='1d_from_2d_data')
     
     def p_vs_r(current_data):
-        # Return radius of each grid cell and p value in the cell
+        # Return radius of each patch cell and p value in the cell
         from pylab import sqrt
         x = current_data.x
         y = current_data.y

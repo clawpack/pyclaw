@@ -29,9 +29,9 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
     
     Write out an ascii file formatted identical to the fortran clawpack files
     including writing out fort.t, fort.q, and fort.aux if necessary.  Note
-    that there are some parameters that assumed to be the same for every grid
+    that there are some parameters that assumed to be the same for every patch
     in this format which is not necessarily true for the actual data objects.
-    Make sure that if you use this output format that all of you grids share
+    Make sure that if you use this output format that all of you patchs share
     the appropriate values of ndim, num_eqn, num_aux, and t.  Only supports up to
     3 dimensions.
     
@@ -68,17 +68,17 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
             file_name = 'fort.a%s' % str(frame).zfill(4)
             aux_file = open(os.path.join(path,file_name),'w')
         
-        # for i in range(0,len(solution.grids)):
+        # for i in range(0,len(solution.patchs)):
         for state in solution.states:
-            grid = state.grid
+            patch = state.patch
             # Header for fort.qxxxx file
-            q_file.write("%5i                  grid_number\n" % grid.gridno)
-            q_file.write("%5i                  AMR_level\n" % grid.level)
-            for dim in grid.dimensions:
+            q_file.write("%5i                  patch_number\n" % patch.patchno)
+            q_file.write("%5i                  AMR_level\n" % patch.level)
+            for dim in patch.dimensions:
                 q_file.write("%5i                  m%s\n" % (dim.n,dim.name))
-            for dim in grid.dimensions:
+            for dim in patch.dimensions:
                 q_file.write("%18.8e     %slow\n" % (dim.lower,dim.name))
-            for dim in grid.dimensions:
+            for dim in patch.dimensions:
                 q_file.write("%18.8e     d%s\n" % (dim.d,dim.name))
             
             q_file.write("\n")
@@ -89,20 +89,20 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
             else:
                 q = state.q
 
-            dims = grid.dimensions
-            if grid.ndim == 1:
+            dims = patch.dimensions
+            if patch.ndim == 1:
                 for k in xrange(dims[0].n):
                     for m in xrange(solution.num_eqn):
                         q_file.write("%18.8e" % q[m,k])
                     q_file.write('\n')
-            elif grid.ndim == 2:
+            elif patch.ndim == 2:
                 for j in xrange(dims[1].n):
                     for k in xrange(dims[0].n):
                         for m in xrange(solution.num_eqn):
                             q_file.write("%18.8e" % q[m,k,j])
                         q_file.write('\n')
                     q_file.write('\n')
-            elif grid.ndim == 3:
+            elif patch.ndim == 3:
                 for l in xrange(dims[2].n):
                     for j in xrange(dims[1].n):
                         for k in xrange(dims[0].n):
@@ -117,34 +117,34 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
             if state.num_aux > 0 and write_aux:
                 aux = state.aux
                 
-                aux_file.write("%5i                  grid_number\n" % grid.gridno)
-                aux_file.write("%5i                  AMR_level\n" % grid.level)
+                aux_file.write("%5i                  patch_number\n" % patch.patchno)
+                aux_file.write("%5i                  AMR_level\n" % patch.level)
                 
-                for dim in grid.dimensions:
+                for dim in patch.dimensions:
                     aux_file.write("%5i                  m%s\n" % (dim.n,dim.name))
-                for dim in grid.dimensions:
+                for dim in patch.dimensions:
                     aux_file.write("%18.8e     %slow\n" % (dim.lower,dim.name))
-                for dim in grid.dimensions:
+                for dim in patch.dimensions:
                     aux_file.write("%18.8e     d%s\n" % (dim.d,dim.name))
 
                 aux_file.write("\n")
-                if grid.ndim == 1:
-                    for k in xrange(grid.dimensions[0]):
+                if patch.ndim == 1:
+                    for k in xrange(patch.dimensions[0]):
                         for m in xrange(state.num_aux):
                             aux_file.write("%18.8e" % aux[m,k])
                         aux_file.write('\n')
-                elif grid.ndim == 2:
-                    for j in xrange(grid.dimensions[1].n):
-                        for k in xrange(grid.dimension[0].n):
+                elif patch.ndim == 2:
+                    for j in xrange(patch.dimensions[1].n):
+                        for k in xrange(patch.dimension[0].n):
                             for m in xrange(state.num_aux):
                                 aux_file.write("%18.8e" % aux[m,k,j])
                             aux_file.write('\n')    
                         aux_file.write('\n')
-                elif grid.ndim == 3:
-                    for l in xrange(grid.dimensions[2].n):
-                        for j in xrange(grid.dimensions[1].n):
-                            for k in xrange(grid.dimensions[0].n):
-                                for m in xrange(grid.num_aux):
+                elif patch.ndim == 3:
+                    for l in xrange(patch.dimensions[2].n):
+                        for j in xrange(patch.dimensions[1].n):
+                            for k in xrange(patch.dimensions[0].n):
+                                for m in xrange(patch.num_aux):
                                     aux_file.write("%18.8e" % aux[m,k,j,l])
                                 aux_file.write('\n')
                             aux_file.write('\n')    
@@ -201,12 +201,12 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
     try:
         f = open(q_fname,'r')
     
-        # Loop through every grid setting the appropriate information
-        # for ng in range(len(solution.grids)):
+        # Loop through every patch setting the appropriate information
+        # for ng in range(len(solution.patchs)):
         for m in xrange(nstates):
         
-            # Read in base header for this grid
-            gridno = read_data_line(f,type='int')
+            # Read in base header for this patch
+            patchno = read_data_line(f,type='int')
             level = read_data_line(f,type='int')
             n = np.zeros((ndim))
             lower = np.zeros((ndim))
@@ -220,39 +220,39 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
         
             blank = f.readline()
         
-            # Construct the grid
-            # Since we do not have names here, we will construct the grid with
+            # Construct the patch
+            # Since we do not have names here, we will construct the patch with
             # the assumed dimensions x,y,z
             names = ['x','y','z']
             dimensions = []
             for i in xrange(ndim):
                 dimensions.append(
-                    pyclaw.grid.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
-            grid = pyclaw.grid.Grid(dimensions)
-            state= pyclaw.state.State(grid,num_eqn,num_aux)
+                    pyclaw.geometry.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
+            patch = pyclaw.geometry.Patch(dimensions)
+            state= pyclaw.state.State(patch,num_eqn,num_aux)
             state.t = t
 
 
             # RJL 1/8/10:  Changed empty_aux to zeros_aux below so aux won't
             # be filled with random values if aux arrays not read in.  Would
-            # like to delete this and initialize grid.aux only if it will be
+            # like to delete this and initialize patch.aux only if it will be
             # read in below, but for some reason that doesn't work.
 
             if num_aux > 0:   
                 state.aux[:]=0.
             
             # Fill in q values
-            if grid.ndim == 1:
-                for i in xrange(grid.dimensions[0].n):
+            if patch.ndim == 1:
+                for i in xrange(patch.dimensions[0].n):
                     l = []
                     while len(l)<state.num_eqn:
                         line = f.readline()
                         l = l + line.split()
                     for m in xrange(state.num_eqn):
                         state.q[m,i] = float(l[m])
-            elif grid.ndim == 2:
-                for j in xrange(grid.dimensions[1].n):
-                    for i in xrange(grid.dimensions[0].n):
+            elif patch.ndim == 2:
+                for j in xrange(patch.dimensions[1].n):
+                    for i in xrange(patch.dimensions[0].n):
                         l = []
                         while len(l)<state.num_eqn:
                             line = f.readline()
@@ -260,10 +260,10 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                         for m in xrange(state.num_eqn):
                             state.q[m,i,j] = float(l[m])
                     blank = f.readline()
-            elif grid.ndim == 3:
-                for k in xrange(grid.dimensions[2].n):
-                    for j in xrange(grid.dimensions[1].n):
-                        for i in xrange(grid.dimensions[0].n):
+            elif patch.ndim == 3:
+                for k in xrange(patch.dimensions[2].n):
+                    for j in xrange(patch.dimensions[1].n):
+                        for i in xrange(patch.dimensions[0].n):
                             l=[]
                             while len(l) < state.num_eqn:
                                 line = f.readline()
@@ -278,10 +278,10 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 raise Exception(msg)
         
             # Add AMR attributes:
-            grid.gridno = gridno
-            grid.level = level
+            patch.patchno = patchno
+            patch.level = level
 
-            # Add new grid to solution
+            # Add new patch to solution
             solution.states.append(state)
             
     except(IOError):
@@ -309,37 +309,37 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
             
             # Read in aux file
             for n in xrange(len(solution.states)):
-                # Fetch correct grid
-                gridno = read_data_line(f,type='int')
-                grid = solution.states[gridno-1].grid
+                # Fetch correct patch
+                patchno = read_data_line(f,type='int')
+                patch = solution.states[patchno-1].patch
         
-                # These should match this grid already, raise exception otherwise
-                if not (grid.level == read_data_line(f,type='int')):
-                    raise IOError("Grid level in aux file header did not match grid no %s." % grid.gridno)
-                for dim in grid.dimensions:
+                # These should match this patch already, raise exception otherwise
+                if not (patch.level == read_data_line(f,type='int')):
+                    raise IOError("Patch level in aux file header did not match patch no %s." % patch.patchno)
+                for dim in patch.dimensions:
                     if not (dim.n == read_data_line(f,type='int')):
-                        raise IOError("Dimension %s's n in aux file header did not match grid no %s." % (dim.name,grid.gridno))
-                for dim in grid.dimensions:
+                        raise IOError("Dimension %s's n in aux file header did not match patch no %s." % (dim.name,patch.patchno))
+                for dim in patch.dimensions:
                     if not (dim.lower == read_data_line(f,type='float')):
-                        raise IOError("Dimension %s's lower in aux file header did not match grid no %s." % (dim.name,grid.gridno))
-                for dim in grid.dimensions:
+                        raise IOError("Dimension %s's lower in aux file header did not match patch no %s." % (dim.name,patch.patchno))
+                for dim in patch.dimensions:
                     if not (dim.d == read_data_line(f,type='float')):
-                        raise IOError("Dimension %s's d in aux file header did not match grid no %s." % (dim.name,grid.gridno))
+                        raise IOError("Dimension %s's d in aux file header did not match patch no %s." % (dim.name,patch.patchno))
 
                 f.readline()
         
                 # Read in auxillary array
-                if grid.ndim == 1:
-                    for i in xrange(grid.dimensions[0].n):
+                if patch.ndim == 1:
+                    for i in xrange(patch.dimensions[0].n):
                         l = []
                         while len(l)<state.num_aux:
                             line = f.readline()
                             l = l + line.split()
                         for m in xrange(state.num_aux):
                             state.aux[i,m] = float(l[m])
-                elif grid.ndim == 2:
-                    for j in xrange(grid.dimensions[1].n):
-                        for i in xrange(grid.dimensions[0].n):
+                elif patch.ndim == 2:
+                    for j in xrange(patch.dimensions[1].n):
+                        for i in xrange(patch.dimensions[0].n):
                             l = []
                             while len(l)<state.num_aux:
                                 line = f.readline()
@@ -347,10 +347,10 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                             for m in xrange(state.num_aux):
                                 state.aux[i,j,m] = float(l[m])
                         blank = f.readline()
-                elif grid.ndim == 3:
-                    for k in xrange(grid.dimensions[2].n):
-                        for j in xrange(grid.dimensions[1].n):
-                            for i in xrange(grid.dimensions[0].n):
+                elif patch.ndim == 3:
+                    for k in xrange(patch.dimensions[2].n):
+                        for j in xrange(patch.dimensions[1].n):
+                            for i in xrange(patch.dimensions[0].n):
                                 l = []
                                 while len(l)<state.num_aux:
                                     line = f.readline()

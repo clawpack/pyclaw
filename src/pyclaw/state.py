@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# encoding: utf-8
 r"""
 Module containing all Pyclaw solution objects
 
@@ -9,7 +11,7 @@ import numpy as np
 
 class State(object):
     r"""
-    A PyClaw State object contains the current state on a particular grid,
+    A PyClaw State object contains the current state on a particular patch,
     including the unkowns q, the time t, and the auxiliary coefficients aux.
 
     Both q and aux are initialized to None.  They cannot be accessed until
@@ -18,21 +20,21 @@ class State(object):
     :State Data:
     
         The arrays :attr:`q`, and :attr:`aux` have variable 
-        extents based on the grid dimensions and the values of 
+        extents based on the patch dimensions and the values of 
         :attr:`num_eqn` and :attr:`num_aux`.  Note that these are initialy set to 
         None and later set to appropriately sized empty numpy arrays when
         :attr:`num_eqn` and :attr:`num_aux` are set.
  
-    To instantiate a State, we first need a grid:
+    To instantiate a State, we first need a patch:
 
         >>> import pyclaw
         >>> x = pyclaw.Dimension('x',0.,1.,100)
-        >>> grid = pyclaw.Grid((x))
+        >>> patch = pyclaw.Patch((x))
 
-    The arguments to the constructor are the grid, the number of equations,
+    The arguments to the constructor are the patch, the number of equations,
     and the number of auxiliary fields:
 
-        >>> state = pyclaw.State(grid,3,2)
+        >>> state = pyclaw.State(patch,3,2)
         >>> state.q.shape
         (3, 100)
         >>> state.aux.shape
@@ -84,24 +86,24 @@ class State(object):
             self.F = self.new_array(mF)
 
     # ========== Class Methods ===============================================
-    def __init__(self,grid,num_eqn,num_aux=0):
-        import pyclaw.grid
-        if not isinstance(grid,pyclaw.grid.Grid):
+    def __init__(self,patch,num_eqn,num_aux=0):
+        import pyclaw.geometry
+        if not isinstance(patch,pyclaw.geometry.Patch):
             raise Exception("""A PyClaw State object must be initialized with
-                             a PyClaw Grid object.""")
+                             a PyClaw Patch object.""")
 
         # ========== Attribute Definitions ===================================
-        self.grid = grid
-        r"""pyclaw.Grid.grid - The grid this state lives on"""
+        self.patch = patch
+        r"""pyclaw.Patch.patch - The patch this state lives on"""
         self.p   = None
         r"""(ndarray(mp,...)) - Cell averages of derived quantities."""
         self.F   = None
         r"""(ndarray(mF,...)) - Cell averages of output functional densities."""
         self.problem_data = {}
-        r"""(dict) - Dictionary of global values for this grid, 
+        r"""(dict) - Dictionary of global values for this patch, 
             ``default = {}``"""
         self.t=0.
-        r"""(float) - Current time represented on this grid, 
+        r"""(float) - Current time represented on this patch, 
             ``default = 0.0``"""
         self.index_capa = -1
 
@@ -110,7 +112,7 @@ class State(object):
 
     def __str__(self):
         output = "PyClaw State object\n"
-        output += "Grid dimensions: %s\n" % str(self.grid.n)
+        output += "Patch dimensions: %s\n" % str(self.patch.n)
         output += "Time  t=%s\n" % (self.t)
         output += "Number of conserved quantities: %s\n" % str(self.q.shape[0])
         if self.aux is not None:
@@ -145,12 +147,12 @@ class State(object):
     def set_cparam(self,fortran_module):
         """
         Set the variables in fortran_module.cparam to the corresponding values in
-        grid.problem_data.  This is the mechanism for passing scalar variables to the
+        patch.problem_data.  This is the mechanism for passing scalar variables to the
         Fortran Riemann solvers; cparam must be defined as a common block in the
         Riemann solver.
 
         This function should be called from solver.setup().  This seems like a fragile
-        interdependency between solver and grid; perhaps problem_data should belong
+        interdependency between solver and patch; perhaps problem_data should belong
         to solver instead of state.
 
         This function also checks that the set of variables defined in cparam 
@@ -178,12 +180,12 @@ class State(object):
         a local to global communication. 
         """
         
-        grid = self.grid
-        if grid.ndim == 1:
+        patch = self.patch
+        if patch.ndim == 1:
             self.q = qbc[:,num_ghost:-num_ghost]
-        elif grid.ndim == 2:
+        elif patch.ndim == 2:
             self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
-        elif grid.ndim == 3:
+        elif patch.ndim == 3:
             self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost]
         else:
             raise Exception("Assumption (1 <= ndim <= 3) violated.")
@@ -192,7 +194,7 @@ class State(object):
         """
         Fills in the interior of qbc (local vector) by copying q (global vector) to it.
         """
-        ndim = self.grid.ndim
+        ndim = self.patch.ndim
         
         if whichvec == 'q':
             q    = self.q
@@ -215,8 +217,8 @@ class State(object):
         
     def __deepcopy__(self,memo={}):
         import copy
-        result = self.__class__(copy.deepcopy(self.grid),self.num_eqn,self.num_aux)
-        result.__init__(copy.deepcopy(self.grid),self.num_eqn,self.num_aux)
+        result = self.__class__(copy.deepcopy(self.patch),self.num_eqn,self.num_aux)
+        result.__init__(copy.deepcopy(self.patch),self.num_eqn,self.num_aux)
         
         for attr in ('t'):
             setattr(result,attr,copy.deepcopy(getattr(self,attr)))
@@ -235,7 +237,7 @@ class State(object):
     def new_array(self,dof):
         if dof==0: return None
         shape = [dof]
-        shape.extend(self.grid.n)
+        shape.extend(self.patch.n)
         return np.empty(shape,order='F')
 
 

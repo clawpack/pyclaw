@@ -16,8 +16,8 @@ from petclaw import plot
 def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
     x0=0.
     y0=0.
-    xCenter = state.grid.x.center
-    yCenter = state.grid.y.center
+    xCenter = state.patch.x.center
+    yCenter = state.patch.y.center
     Y,X = np.meshgrid(yCenter,xCenter)
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
     state.q[0,:,:] = hl*(r<=radDam) + hr*(r>radDam)
@@ -54,11 +54,11 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     solver.dimensional_split=1
 
     #===========================================================================
-    # Initialize grid and state, then initialize the solution associated to the 
+    # Initialize patch and state, then initialize the solution associated to the 
     # state and finally initialize aux array
     #===========================================================================
 
-    # Grid:
+    # Patch:
     xlower = -2.5
     xupper = 2.5
     mx = 150
@@ -67,10 +67,10 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     my = 150
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
-    grid = pyclaw.Grid([x,y])
+    patch = pyclaw.Patch([x,y])
 
     num_eqn = 3  # Number of equations
-    state = pyclaw.State(grid,num_eqn)
+    state = pyclaw.State(patch,num_eqn)
 
     grav = 1.0 # Parameter (global auxiliary variable)
     state.problem_data['grav'] = grav

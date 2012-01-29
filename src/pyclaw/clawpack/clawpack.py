@@ -10,7 +10,7 @@ are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`
 :Authors:
     Kyle T. Mandli (2008-09-11) Initial version
     Amal Alghamdi (2010-2011)   Wrapped Fortran routines
-    David I. Ketcheson (2011)   Various refinements, including removing BCs from grid
+    David I. Ketcheson (2011)   Various refinements, including removing BCs from patch
 """
 
 from pyclaw.solver import Solver
@@ -259,7 +259,7 @@ class ClawSolver1D(ClawSolver):
     r"""
     Clawpack evolution routine in 1D
     
-    This class represents the 1d clawpack solver on a single grid.  Note that 
+    This class represents the 1d clawpack solver on a single patch.  Note that 
     there are routines here for interfacing with the fortran time stepping 
     routines and the Python time stepping routines.  The ones used are 
     dependent on the argument given to the initialization of the solver 
@@ -292,7 +292,7 @@ class ClawSolver1D(ClawSolver):
         import numpy as np
 
         state = solution.states[0]
-        grid = state.grid
+        patch = state.patch
 
         self.apply_q_bcs(state)
             
@@ -301,8 +301,8 @@ class ClawSolver1D(ClawSolver):
         if(self.kernel_language == 'Fortran'):
             classic = __import__(self.so_name)
 
-            mx = grid.ng[0]
-            dx,dt = grid.d[0],self.dt
+            mx = patch.ng[0]
+            dx,dt = patch.d[0],self.dt
             dtdx = np.zeros( (mx+2*num_ghost) ) + dt/dx
             
             self.qbc,cfl = classic.step1(num_ghost,mx,self.qbc,self.auxbc,dx,dt,self._method,self._mthlim,self.fwave)
@@ -314,13 +314,13 @@ class ClawSolver1D(ClawSolver):
             # Limiter to use in the pth family
             limiter = np.array(self._mthlim,ndmin=1)  
         
-            dtdx = np.zeros( (2*self.num_ghost+grid.ng[0]) )
+            dtdx = np.zeros( (2*self.num_ghost+patch.ng[0]) )
 
             # Find local value for dt/dx
             if state.index_capa>=0:
-                dtdx = self.dt / (grid.d[0] * state.aux[state.index_capa,:])
+                dtdx = self.dt / (patch.d[0] * state.aux[state.index_capa,:])
             else:
-                dtdx += self.dt/grid.d[0]
+                dtdx += self.dt/patch.d[0]
         
             # Solve Riemann problem at each interface
             q_l=q[:,:-1]
@@ -334,15 +334,15 @@ class ClawSolver1D(ClawSolver):
             wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.problem_data)
             
             # Update loop limits, these are the limits for the Riemann solver
-            # locations, which then update a grid cell value
-            # We include the Riemann problem just outside of the grid so we can
-            # do proper limiting at the grid edges
+            # locations, which then update a patch cell value
+            # We include the Riemann problem just outside of the patch so we can
+            # do proper limiting at the patch edges
             #        LL    |                               |     UL
             #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
             #              |                               |
 
             LL = self.num_ghost - 1
-            UL = self.num_ghost + grid.ng[0] + 1 
+            UL = self.num_ghost + patch.ng[0] + 1 
 
             # Update q for Godunov update
             for m in xrange(num_eqn):
@@ -359,7 +359,7 @@ class ClawSolver1D(ClawSolver):
             # If we are doing slope limiting we have more work to do
             if self.order == 2:
                 # Initialize flux corrections
-                f = np.zeros( (num_eqn,grid.ng[0] + 2*self.num_ghost) )
+                f = np.zeros( (num_eqn,patch.ng[0] + 2*self.num_ghost) )
             
                 # Apply Limiters to waves
                 if (limiter > 0).any():
@@ -483,8 +483,8 @@ class ClawSolver2D(ClawSolver):
         # it appears the bug is related to f2py/src/fortranobject.c line 841.
         if(aux == None): num_aux=1
 
-        grid  = state.grid
-        maxmx,maxmy = grid.ng[0],grid.ng[1]
+        patch  = state.patch
+        maxmx,maxmy = patch.ng[0],patch.ng[1]
         maxm = max(maxmx, maxmy)
 
         # These work arrays really ought to live inside a fortran module
@@ -507,9 +507,9 @@ class ClawSolver2D(ClawSolver):
         """
         if(self.kernel_language == 'Fortran'):
             state = solution.states[0]
-            grid = state.grid
-            dx,dy = grid.d
-            mx,my = grid.ng
+            patch = state.patch
+            dx,dy = patch.d
+            mx,my = patch.ng
             maxm = max(mx,my)
             
             self.apply_q_bcs(state)
@@ -625,8 +625,8 @@ class ClawSolver3D(ClawSolver):
         # it appears the bug is related to f2py/src/fortranobject.c line 841.
         if(aux == None): num_aux=1
 
-        grid  = state.grid
-        maxmx,maxmy = grid.ng[0],grid.ng[1]
+        patch  = state.patch
+        maxmx,maxmy = patch.ng[0],patch.ng[1]
         maxm = max(maxmx, maxmy)
 
         # These work arrays really ought to live inside a fortran module
@@ -649,9 +649,9 @@ class ClawSolver3D(ClawSolver):
         """
         if(self.kernel_language == 'Fortran'):
             state = solution.states[0]
-            grid = state.grid
-            dx,dy,dz = grid.d
-            mx,my,mz = grid.ng
+            patch = state.patch
+            dx,dy,dz = patch.d
+            mx,my,mz = patch.ng
             maxm = max(mx,my,mz)
             
             self.apply_q_bcs(state)

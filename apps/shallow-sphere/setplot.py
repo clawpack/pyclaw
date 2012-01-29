@@ -39,7 +39,7 @@ def setplot(plotdata):
     plotitem.plot_var = 0
     plotitem.contour_levels = np.linspace(-1.59729945e-03, 1.59729945e-03, 200)
     plotitem.contour_colors = 'k'
-    plotitem.gridedges_show = 1
+    plotitem.patchedges_show = 1
 
     plotitem.show = True       # show on plot?
 

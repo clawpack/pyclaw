@@ -5,9 +5,9 @@ import numpy as np
 
 def qinit(state,width=0.2):
     
-    grid = state.grid
-    x =grid.x.center
-    y =grid.y.center
+    patch = state.patch
+    x =patch.x.center
+    y =patch.y.center
     Y,X = np.meshgrid(y,x)
     r = np.sqrt(X**2 + Y**2)
 
@@ -41,13 +41,13 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     solver.bc_lower[1] = pyclaw.BC.extrap
     solver.bc_upper[1] = pyclaw.BC.extrap
 
-    # Initialize grid
+    # Initialize patch
     mx=100; my=100
-    x = pyclaw.grid.Dimension('x',-1.0,1.0,mx)
-    y = pyclaw.grid.Dimension('y',-1.0,1.0,my)
-    grid = pyclaw.grid.Grid([x,y])
+    x = pyclaw.geometry.Dimension('x',-1.0,1.0,mx)
+    y = pyclaw.geometry.Dimension('y',-1.0,1.0,my)
+    patch = pyclaw.geometry.Patch([x,y])
     num_eqn = 3
-    state = pyclaw.State(grid,num_eqn)
+    state = pyclaw.State(patch,num_eqn)
 
     rho = 1.0
     bulk = 4.0
@@ -63,7 +63,7 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     qinit(state)
     initial_solution = pyclaw.Solution(state)
 
-    solver.dt_initial=np.min(grid.d)/state.problem_data['cc']*solver.cfl_desired
+    solver.dt_initial=np.min(patch.d)/state.problem_data['cc']*solver.cfl_desired
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
@@ -81,7 +81,7 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     if iplot:     pyclaw.plot.interactive_plot()
 
     if use_petsc:
-        pressure=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([state.num_eqn,grid.ng[0],grid.ng[1]],order='F')[0,:,:]
+        pressure=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([state.num_eqn,patch.ng[0],patch.ng[1]],order='F')[0,:,:]
     else:
         pressure=claw.frames[claw.num_output_times].state.q[0,:,:]
     return pressure

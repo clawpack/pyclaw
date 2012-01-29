@@ -6,7 +6,7 @@
 three-dimensional equations is restricted to the surface of the sphere. 
 Therefore only the solution on the surface is updated. 
 
-Reference: Logically Rectangular Grids and Finite Volume Methods for PDEs in 
+Reference: Logically Rectangular Patchs and Finite Volume Methods for PDEs in 
            Circular and Spherical Domains. 
            By Donna A. Calhoun, Christiane Helzel, and Randall J. LeVeque
            SIAM Review 50 (2008), 723-752. 
@@ -32,15 +32,15 @@ def fortran_src_wrapper(solver,state,dt):
     src2.f contains the discretization of the source term.
     """
     # Some simplifications
-    grid = state.grid
+    patch = state.patch
 
     # Get parameters and variables that have to be passed to the fortran src2
     # routine.
-    mx, my = grid.ng[0], grid.ng[1]
+    mx, my = patch.ng[0], patch.ng[1]
     num_eqn = state.num_eqn
     num_ghost = solver.num_ghost
-    xlowerg, ylowerg = grid.lowerg[0], grid.lowerg[1]
-    dx, dy = grid.d[0], grid.d[1]
+    xlowerg, ylowerg = patch.lowerg[0], patch.lowerg[1]
+    dx, dy = patch.d[0], patch.d[1]
     q = state.q
     num_aux = state.num_aux
     aux = state.aux
@@ -51,7 +51,7 @@ def fortran_src_wrapper(solver,state,dt):
     state.q = problem.src2(mx,my,num_ghost,xlowerg,ylowerg,dx,dy,q,aux,t,dt,Rsphere)
 
 
-def mapc2p_sphere_nonvectorized(grid,mC):
+def mapc2p_sphere_nonvectorized(patch,mC):
     """
     Maps to points on a sphere of radius Rsphere. Nonvectorized version (slow).
     
@@ -73,7 +73,7 @@ def mapc2p_sphere_nonvectorized(grid,mC):
     import math
 
     # Get number of cells in both directions
-    mx, my = grid.ng[0], grid.ng[1]
+    mx, my = patch.ng[0], patch.ng[1]
 
     # Define new list of numpy array, pC = physical coordinates
     pC = []
@@ -134,7 +134,7 @@ def mapc2p_sphere_nonvectorized(grid,mC):
     return pC
 
 
-def mapc2p_sphere_vectorized(grid,mC):
+def mapc2p_sphere_vectorized(patch,mC):
     """
     Maps to points on a sphere of radius Rsphere. Vectorized version (fast).  
 
@@ -154,7 +154,7 @@ def mapc2p_sphere_vectorized(grid,mC):
     """
 
     # Get number of cells in both directions
-    mx, my = grid.ng[0], grid.ng[1]
+    mx, my = patch.ng[0], patch.ng[1]
     
     # 2D array useful for the vectorization of the function
     sgnz = np.ones((mx,my))
@@ -221,13 +221,13 @@ def qinit(state,mx,my):
     R = 4.0
 
     # Compute the the physical coordinates of the cells' centers
-    state.grid.compute_p_center(recompute=True)
+    state.patch.compute_p_center(recompute=True)
  
     for i in range(mx):
         for j in range(my):
-            xp = state.grid.p_center[0][i][j]
-            yp = state.grid.p_center[1][i][j]
-            zp = state.grid.p_center[2][i][j]
+            xp = state.patch.p_center[0][i][j]
+            yp = state.patch.p_center[1][i][j]
+            zp = state.patch.p_center[2][i][j]
 
             rad = np.maximum(np.sqrt(xp**2 + yp**2),1.e-6)
 
@@ -307,7 +307,7 @@ def qbc_upper_y(state,dim,t,qbc,num_ghost):
     Impose periodic boundary condition to q at the top boundary for the sphere.
     This function does not work in parallel.
     """
-    my = state.grid.ng[1]
+    my = state.patch.ng[1]
     for j in range(num_ghost):
         qbc1D = np.copy(qbc[:,:,my+num_ghost-1-j])
         qbc[:,:,my+num_ghost+j] = qbc1D[:,::-1]
@@ -320,13 +320,13 @@ def auxbc_lower_y(state,dim,t,auxbc,num_ghost):
     """
     # Import shared object (.so)
     import problem
-    grid=state.grid
+    patch=state.patch
 
     # Get parameters and variables that have to be passed to the fortran src2
     # routine.
-    mx, my = grid.ng[0], grid.ng[1]
-    xlower, ylower = grid.lower[0], grid.lower[1]
-    dx, dy = grid.d[0],grid.d[1]
+    mx, my = patch.ng[0], patch.ng[1]
+    xlower, ylower = patch.lower[0], patch.lower[1]
+    dx, dy = patch.d[0],patch.d[1]
 
     # Impose BC
     auxtemp = auxbc.copy()
@@ -340,13 +340,13 @@ def auxbc_upper_y(state,dim,t,auxbc,num_ghost):
     """
     # Import shared object (.so)
     import problem
-    grid=state.grid
+    patch=state.patch
 
     # Get parameters and variables that have to be passed to the fortran src2
     # routine.
-    mx, my = grid.ng[0], grid.ng[1]
-    xlower, ylower = grid.lower[0], grid.lower[1]
-    dx, dy = grid.d[0],grid.d[1]
+    mx, my = patch.ng[0], patch.ng[1]
+    xlower, ylower = patch.lower[0], patch.lower[1]
+    dx, dy = patch.d[0],patch.d[1]
     
     # Impose BC
     auxtemp = auxbc.copy()
@@ -413,10 +413,10 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
 
 
     #===========================================================================
-    # Initialize grid and state, then initialize the solution associated to the 
+    # Initialize patch and state, then initialize the solution associated to the 
     # state and finally initialize aux array
     #===========================================================================
-    # Grid:
+    # Patch:
     # ====
     xlower = -3.0
     xupper = 1.0
@@ -440,9 +440,9 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
-    grid = pyclaw.Grid([x,y])
-    dx = grid.d[0]
-    dy = grid.d[1]
+    patch = pyclaw.Patch([x,y])
+    dx = patch.d[0]
+    dy = patch.d[1]
 
     # Define some parameters used in classic2 
     import classic2
@@ -452,13 +452,13 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
 
     # Override default mapc2p function
     # ================================
-    grid.mapc2p = mapc2p_sphere_vectorized
+    patch.mapc2p = mapc2p_sphere_vectorized
         
     # Define state object
     # ===================
     num_eqn = 4  # Number of equations
     num_aux = 16 # Number of auxiliary variables
-    state = pyclaw.State(grid,num_eqn,num_aux)
+    state = pyclaw.State(patch,num_eqn,num_aux)
 
 
     # Set auxiliary variables
@@ -466,7 +466,7 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     import problem
     
     # Get lower left corner coordinates 
-    xlowerg,ylowerg = grid.lowerg[0],grid.lowerg[1]
+    xlowerg,ylowerg = patch.lowerg[0],patch.lowerg[1]
 
     num_ghost = 2
     auxtmp = np.ndarray(shape=(num_aux,mx+2*num_ghost,my+2*num_ghost), dtype=float, order='F')

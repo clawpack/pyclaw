@@ -32,8 +32,8 @@ def qinit(state,rhoin=0.1,bubble_shape='circle'):
     vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
     einf = 0.5*rinf*vinf**2 + pinf/gamma1
     
-    x =state.grid.x.center
-    y =state.grid.y.center
+    x =state.patch.x.center
+    y =state.patch.y.center
     Y,X = np.meshgrid(y,x)
     if bubble_shape=='circle':
         r = np.sqrt((X-x0)**2 + (Y-y0)**2)
@@ -51,11 +51,11 @@ def qinit(state,rhoin=0.1,bubble_shape='circle'):
     state.q[4,:,:] = 1.*(r<=r0)
 
     #Now average for the cells on the edge of the bubble
-    d2 = np.linalg.norm(state.grid.d)/2.
-    dx = state.grid.d[0]
-    dy = state.grid.d[1]
-    dx2 = state.grid.d[0]/2.
-    dy2 = state.grid.d[1]/2.
+    d2 = np.linalg.norm(state.patch.d)/2.
+    dx = state.patch.d[0]
+    dy = state.patch.d[1]
+    dx2 = state.patch.d[0]/2.
+    dy2 = state.patch.d[1]/2.
     for i in xrange(state.q.shape[1]):
         for j in xrange(state.q.shape[2]):
             ydown = y[j]-dy2
@@ -72,7 +72,7 @@ def auxinit(state):
     """
     aux[0,i,j] = y-coordinate of cell center for cylindrical source terms
     """
-    y=state.grid.y.center
+    y=state.patch.y.center
     for j,ycoord in enumerate(y):
         state.aux[0,:,j] = ycoord
 
@@ -194,14 +194,14 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     solver.aux_bc_lower[1]=pyclaw.BC.extrap
     solver.aux_bc_upper[1]=pyclaw.BC.extrap
 
-    # Initialize grid
+    # Initialize patch
     mx=320; my=80
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
-    grid = pyclaw.Grid([x,y])
+    patch = pyclaw.Patch([x,y])
     num_eqn = 5
     num_aux=1
-    state = pyclaw.State(grid,num_eqn,num_aux)
+    state = pyclaw.State(patch,num_eqn,num_aux)
 
     state.problem_data['gamma']= gamma
     state.problem_data['gamma1']= gamma1
