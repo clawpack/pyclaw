@@ -204,7 +204,7 @@ class ClawSolver(Solver):
         """
         if(self.kernel_language == 'Fortran'):
             # Set name of expected .so file with compile Fortran routines
-            self.so_name = 'classic'+str(self.num_dim)
+            self.so_name = 'pyclaw.clawpack.classic'+str(self.num_dim)
 
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (num_ghost)
@@ -230,7 +230,9 @@ class ClawSolver(Solver):
         Sets the solver._method array and the cparam common block for the Riemann solver.
         """
         self.set_method(solution.state)
-        classic = __import__(self.so_name)
+        classic = __import__(self.so_name,fromlist=['pyclaw.clawpack'])
+        print self.so_name
+        print classic
         # The reload here is necessary because otherwise the common block
         # cparam in the Riemann solver doesn't get flushed between running
         # different tests in a single Python session.
@@ -242,7 +244,7 @@ class ClawSolver(Solver):
         Delete Fortran objects, which otherwise tend to persist in Python sessions.
         """
         if(self.kernel_language == 'Fortran'):
-            classic = __import__(self.so_name)
+            classic = __import__(self.so_name,fromlist=['pyclaw.clawpack'])
             del classic
 
 
@@ -294,7 +296,15 @@ class ClawSolver1D(ClawSolver):
         num_eqn,num_ghost = state.num_eqn,self.num_ghost
           
         if(self.kernel_language == 'Fortran'):
-            classic = __import__(self.so_name)
+            classic = __import__(self.so_name,fromlist=['pyclaw.clawpack'])
+
+            #rpname=self.rp.__name__.split('.')[-1]
+            #import os
+            #import ctypes
+            #rpfname = os.environ['RIEMANN']+'/src/python/riemann/'+rpname+'.so'
+            #rp = ctypes.CDLL(rpfname)
+            #rp1 = ctypes.addressof(rp.rp1_)
+            #print rp1
 
             mx = grid.num_cells[0]
             dx,dt = grid.delta[0],self.dt

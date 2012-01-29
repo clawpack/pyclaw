@@ -7,6 +7,7 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     medium.
     """
     from numpy import sqrt, exp, cos
+    from riemann import rp1_acoustics
 
     #=================================================================
     # Import the appropriate classes, depending on the options passed

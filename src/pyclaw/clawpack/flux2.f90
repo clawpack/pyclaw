@@ -54,6 +54,8 @@
 
 
 !cf2py intent(in) num_aux
+!f2py external rpn2, rpt2
+!f2py intent(callback) rpn2,rpt2
 
     implicit double precision (a-h,o-z)
     integer num_aux
