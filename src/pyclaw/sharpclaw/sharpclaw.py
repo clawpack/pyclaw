@@ -254,8 +254,8 @@ class SharpClawSolver(Solver):
         The modules should be imported and passed as arguments to this function.
 
         """
-        patch = state.patch
-        clawparams.num_dim          = patch.num_dim
+        grid = state.grid
+        clawparams.num_dim       = grid.num_dim
         clawparams.lim_type      = self.lim_type
         clawparams.weno_order    = self.weno_order
         clawparams.char_decomp   = self.char_decomp
@@ -263,15 +263,15 @@ class SharpClawSolver(Solver):
         clawparams.fwave         = self.fwave
         clawparams.index_capa         = state.index_capa+1
 
-        clawparams.num_waves        = self.num_waves
+        clawparams.num_waves     = self.num_waves
         clawparams.alloc_clawparams()
-        for idim in range(patch.num_dim):
-            clawparams.xlower[idim]=patch.dimensions[idim].lower
-            clawparams.xupper[idim]=patch.dimensions[idim].upper
-        clawparams.dx       =patch.delta
+        for idim in range(grid.num_dim):
+            clawparams.xlower[idim]=grid.dimensions[idim].lower
+            clawparams.xupper[idim]=grid.dimensions[idim].upper
+        clawparams.dx       =grid.delta
         clawparams.mthlim   =self._mthlim
 
-        maxnx = max(patch.ng)+2*self.num_ghost
+        maxnx = max(grid.num_cells)+2*self.num_ghost
         workspace.alloc_workspace(maxnx,self.num_ghost,state.num_eqn,self.num_waves,self.char_decomp)
         reconstruct.alloc_recon_workspace(maxnx,self.num_ghost,state.num_eqn,self.num_waves,
                                             clawparams.lim_type,clawparams.char_decomp)
@@ -378,17 +378,17 @@ class SharpClawSolver1D(SharpClawSolver):
             0     1  |  2     3            mx+num_ghost-2    |mx+num_ghost       
                                                   mx+num_ghost-1   mx+num_ghost+1
 
-        The top indices represent the values that are located on the patch
+        The top indices represent the values that are located on the grid
         cell boundaries such as waves, s and other Riemann problem values, 
         the bottom for the cell centered values such as q.  In particular
-        the ith patch cell boundary has the following related information::
+        the ith grid cell boundary has the following related information::
 
                           i-1         i         i+1
                            |          |          |
                            |   i-1    |     i    |
                            |          |          |
 
-        Again, patch cell boundary quantities are at the top, cell centered
+        Again, grid cell boundary quantities are at the top, cell centered
         values are in the cell.
 
         """
@@ -398,8 +398,8 @@ class SharpClawSolver1D(SharpClawSolver):
         self.apply_q_bcs(state)
         q = self.qbc 
 
-        patch = state.patch
-        mx = patch.ng[0]
+        grid = state.grid
+        mx = grid.num_cells[0]
 
         ixy=1
 
@@ -414,9 +414,9 @@ class SharpClawSolver1D(SharpClawSolver):
 
             # Find local value for dt/dx
             if state.index_capa>=0:
-                dtdx = self.dt / (patch.delta[0] * state.aux[state.index_capa,:])
+                dtdx = self.dt / (grid.delta[0] * state.aux[state.index_capa,:])
             else:
-                dtdx += self.dt/patch.delta[0]
+                dtdx += self.dt/grid.delta[0]
  
             aux=self.auxbc
             if aux.shape[0]>0:
@@ -449,10 +449,10 @@ class SharpClawSolver1D(SharpClawSolver):
             q_r=ql[:,1: ]
             wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.problem_data)
 
-            # Loop limits for local portion of patch
+            # Loop limits for local portion of grid
             # THIS WON'T WORK IN PARALLEL!
             LL = self.num_ghost - 1
-            UL = patch.ng[0] + self.num_ghost + 1
+            UL = grid.num_cells[0] + self.num_ghost + 1
 
             # Compute maximum wave speed
             cfl = 0.0
@@ -547,28 +547,28 @@ class SharpClawSolver2D(SharpClawSolver):
             0     1  |  2     3            mx+num_ghost-2    |mx+num_ghost       
                                                   mx+num_ghost-1   mx+num_ghost+1
 
-        The top indices represent the values that are located on the patch
+        The top indices represent the values that are located on the grid
         cell boundaries such as waves, s and other Riemann problem values, 
         the bottom for the cell centered values such as q.  In particular
-        the ith patch cell boundary has the following related information::
+        the ith grid cell boundary has the following related information::
 
                           i-1         i         i+1
                            |          |          |
                            |   i-1    |     i    |
                            |          |          |
 
-        Again, patch cell boundary quantities are at the top, cell centered
+        Again, grid cell boundary quantities are at the top, cell centered
         values are in the cell.
 
         """
         self.apply_q_bcs(state)
         q = self.qbc 
 
-        patch = state.patch
+        grid = state.grid
 
         num_ghost=self.num_ghost
-        mx=patch.ng[0]
-        my=patch.ng[1]
+        mx=grid.num_cells[0]
+        my=grid.num_cells[1]
         maxm = max(mx,my)
 
         if self.kernel_language=='Fortran':

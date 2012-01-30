@@ -15,8 +15,8 @@ __all__ = []
 # Module imports
 __all__.extend(['Controller','Dimension','Patch','Domain','Solution','State','CFL','riemann'])
 from petclaw.controller import Controller
-from petclaw.geometry import Dimension
-from pyclaw.geometry import Patch, Domain 
+from petclaw.geometry import Patch, Domain 
+from pyclaw.geometry import Dimension
 from pyclaw.solution import Solution
 from petclaw.state import State
 from petclaw.cfl import CFL

@@ -93,14 +93,6 @@ class Grid(object):
         r"""(list) - List of the number of cells in each dimension"""
         return self.get_dim_attribute('num_cells')
     @property
-    def ng(self):
-        r"""(list) - List of the local (to this process)number of cells in each dimension"""
-        return self.get_dim_attribute('ng')
-    @property
-    def nstart(self):
-        r"""(list) - List of the number of cells in each dimension"""
-        return self.get_dim_attribute('nstart')
-    @property
     def nend(self):
         r"""(list) - List of the number of cells in each dimension"""
         return self.get_dim_attribute('nend')
@@ -112,10 +104,6 @@ class Grid(object):
     def lower(self):
         r"""(list) - Lower coordinate extents of each dimension"""
         return self.get_dim_attribute('lower')
-    @property
-    def lowerg(self):
-        r"""(list) - Lower coordinate extents of each dimension on this process"""
-        return self.get_dim_attribute('lowerg')
     @property
     def upper(self):
         r"""(list) - Upper coordinate extends of each dimension"""
@@ -257,7 +245,7 @@ class Grid(object):
                 self._p_centers[0] = self.mapc2p(self,self.dimensions[0].centers)
             # Higer dimensional calculate center arrays
             else:
-                index = np.indices(self.ng)
+                index = np.indices(self.num_cells)
                 array_list = []
                 for i,center_array in enumerate(self.get_dim_attribute('centers')):
                     #We could just use indices directly and deal with
@@ -288,7 +276,7 @@ class Grid(object):
             if self.num_dim == 1:        
                 self._p_edges[0] = self.mapc2p(self,self.dimensions[0].edges)
             else:
-                index = np.indices([n+1 for n in self.ng])
+                index = np.indices([n+1 for n in self.num_cells])
                 array_list = []
                 for i,edge_array in enumerate(self.get_dim_attribute('edges')):
                     #We could just use indices directly and deal with
@@ -320,7 +308,7 @@ class Grid(object):
             if self.num_dim == 1:
                 self._c_centers[0] = self.dimensions[0].centers
             else:
-                index = np.indices(self.ng)
+                index = np.indices(self.num_cells)
                 self._c_centers = []
                 for i,center_array in enumerate(self.get_dim_attribute('centers')):
                     #We could just use indices directly and deal with
@@ -347,7 +335,7 @@ class Grid(object):
             if self.num_dim == 1:
                 self._c_edges[0] = self.dimensions[0].edges
             else:
-                index = np.indices([n+1 for n in self.ng])
+                index = np.indices([n+1 for n in self.num_cells])
                 self._c_edges = []
                 for i,edge_array in enumerate(self.get_dim_attribute('edges')):
                     #We could just use indices directly and deal with
@@ -479,9 +467,9 @@ class Dimension(object):
         self.num_cells = None
         r"""(int) - Number of cells in this dimension :attr:`units`"""
         self.lower = 0.0
-        r"""(float) - Lower computational patch extent"""
+        r"""(float) - Lower computational dimension extent"""
         self.upper = 1.0
-        r"""(float) - Upper computational patch extent"""
+        r"""(float) - Upper computational dimension extent"""
         self.units = None
         r"""(string) Corresponding physical units of this dimension (e.g. 
         'm/s'), ``default = None``"""
@@ -502,13 +490,6 @@ class Dimension(object):
         for (k,v) in kargs.iteritems():
             setattr(self,k,v)
 
-        #These aren't need for PyClaw, but we set them so that
-        # the PyClaw patch has the same attributes as the PetClaw
-        # patch, which allows for simpler programming elsewhere.
-        self.nstart = 0
-        self.nend = self.num_cells
-        self.lowerg = self.lower
-            
     def __str__(self):
         output = "Dimension %s" % self.name
         if self.units:
@@ -632,7 +613,6 @@ class Domain(object):
         return self._get_base_patch_attribute('c_edge')
  
     def __init__(self,geom):
-
         if not isinstance(geom,list):
             geom = [geom]
         if isinstance(geom[0],Patch):
