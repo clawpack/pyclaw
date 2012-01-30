@@ -78,7 +78,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
                          'problem_data' : solution.problem_data}, pickle_file)
         else:
             pickle.dump({'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
-                         'num_aux':solution.num_aux,'num_dim':solution.num_dim,'write_aux':write_aux,
+                         'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,'write_aux':write_aux,
                          'problem_data' : solution.problem_data}, pickle_file)
 
     # now set up the PETSc viewers
@@ -165,7 +165,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     pickle_file = open(pickle_filename,'rb')
 
     # this dictionary is mostly holding debugging information, only nstates is needed
-    # most of this information is explicitly saved in the individual patchs
+    # most of this information is explicitly saved in the individual patches
     value_dict = pickle.load(pickle_file)
     nstates    = value_dict['nstates']                    
     num_dim       = value_dict['num_dim']
@@ -246,7 +246,7 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
      - (list) List of output variables
       - *t* - (int) Time of frame
       - *num_eqn* - (int) Number of equations in the frame
-      - *npatchs* - (int) Number of patchs
+      - *npatches* - (int) Number of patches
       - *num_aux* - (int) Auxillary value in the frame
       - *num_dim* - (int) Number of dimensions in q and aux
     
@@ -269,8 +269,8 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
     except(IOError):
         raise
     except:
-        logger.error("File " + path + " should contain t, num_eqn, npatchs, num_aux, num_dim")
-        print "File " + path + " should contain t, num_eqn, npatchs, num_aux, num_dim"
+        logger.error("File " + path + " should contain t, num_eqn, npatches, num_aux, num_dim")
+        print "File " + path + " should contain t, num_eqn, npatches, num_aux, num_dim"
         raise
         
     return t,num_eqn,nstates,num_aux,num_dim

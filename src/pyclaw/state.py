@@ -74,6 +74,10 @@ class State(object):
             self.p = self.new_array(mp)
 
     @property
+    def grid(self):
+        return self.patch.grid
+
+    @property
     def mF(self):
         r"""(int) - Number of output functionals"""
         if self.F is not None: return self.F.shape[0]
@@ -86,14 +90,17 @@ class State(object):
             self.F = self.new_array(mF)
 
     # ========== Class Methods ===============================================
-    def __init__(self,patch,num_eqn,num_aux=0):
+    def __init__(self,geom,num_eqn,num_aux=0):
         import pyclaw.geometry
-        if not isinstance(patch,pyclaw.geometry.Patch):
+        if isinstance(geom,pyclaw.geometry.Patch):
+            self.patch = geom
+        elif isinstance(geom,pyclaw.geometry.Domain):
+            self.patch = geom.patches[0]
+        else:
             raise Exception("""A PyClaw State object must be initialized with
                              a PyClaw Patch object.""")
 
         # ========== Attribute Definitions ===================================
-        self.patch = patch
         r"""pyclaw.Patch.patch - The patch this state lives on"""
         self.p   = None
         r"""(ndarray(mp,...)) - Cell averages of derived quantities."""
@@ -112,7 +119,7 @@ class State(object):
 
     def __str__(self):
         output = "PyClaw State object\n"
-        output += "Patch dimensions: %s\n" % str(self.patch.n)
+        output += "Patch dimensions: %s\n" % str(self.patch.num_cells)
         output += "Time  t=%s\n" % (self.t)
         output += "Number of conserved quantities: %s\n" % str(self.q.shape[0])
         if self.aux is not None:

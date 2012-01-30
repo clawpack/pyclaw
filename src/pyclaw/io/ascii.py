@@ -56,7 +56,7 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
         f.write("%5i                  num_eqn\n" % solution.num_eqn)
         f.write("%5i                  nstates\n" % len(solution.states))
         f.write("%5i                  num_aux\n" % solution.num_aux)
-        f.write("%5i                  num_dim\n" % solution.num_dim)
+        f.write("%5i                  num_dim\n" % solution.domain.num_dim)
         f.close()
         
         # Open fort.qxxxx for writing
@@ -229,6 +229,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 dimensions.append(
                     pyclaw.geometry.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
             patch = pyclaw.geometry.Patch(dimensions)
+            domain = pyclaw.geometry.Domain(patch)
             state= pyclaw.state.State(patch,num_eqn,num_aux)
             state.t = t
 
@@ -283,6 +284,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
 
             # Add new patch to solution
             solution.states.append(state)
+            solution.domain=domain
             
     except(IOError):
         raise

@@ -121,16 +121,23 @@ class State(pyclaw.state.State):
         return self.patch.num_dim
 
 
-    def __init__(self,patch,num_eqn,num_aux=0):
+    def __init__(self,geom,num_eqn,num_aux=0):
         r"""
         Here we don't call super because q and aux must be properties in PetClaw
         but should not be properties in PyClaw.
 
+        :attributes:
+        patch - The patch this state lives on
         """
         import petclaw.geometry
-        if not isinstance(patch,petclaw.geometry.Patch):
+        if isinstance(geom,pyclaw.geometry.Patch):
+            self.patch = geom
+        elif isinstance(geom,pyclaw.geometry.Domain):
+            self.patch = geom.patches[0]
+        else:
             raise Exception("""A PetClaw State object must be initialized with
                              a PetClaw Patch object.""")
+
         self.aux_da = None
         self.q_da = None
 
@@ -141,8 +148,6 @@ class State(pyclaw.state.State):
         self.gFVec = None
 
         # ========== Attribute Definitions ===================================
-        self.patch = patch
-        r"""pyclaw.Patch.patch - The patch this state lives on"""
         self.problem_data = {}
         r"""(dict) - Dictionary of global values for this patch, 
             ``default = {}``"""
@@ -176,13 +181,14 @@ class State(pyclaw.state.State):
         self.gqVec = self.q_da.createGlobalVector()
         self.lqVec = self.q_da.createLocalVector()
 
+        #DELETE THIS BEFORE PUSHING
         #Now set the local indices for the Dimension objects:
-        ranges = self.q_da.getRanges()
-        for i,nrange in enumerate(ranges):
-            dim = self.patch.dimensions[i]
-            dim.nstart = nrange[0]
-            dim.nend   = nrange[1]
-            dim.lowerg = dim.lower + dim.nstart*dim.delta
+        #ranges = self.q_da.getRanges()
+        #for i,nrange in enumerate(ranges):
+        #    self.grid.dim.nstart = nrange[0]
+        #    self.grid.dim.nend   = nrange[1]
+        #    self.grid.dim.num_cells   = nrange[1]-nrange[0]+1
+        #    self.grid.lower = self.patch.dim.lower + self.patch.dim.nstart*self.patch.dim.delta
 
     def _create_DA(self,dof,num_ghost=0):
         r"""Returns a PETSc DA and associated global Vec.

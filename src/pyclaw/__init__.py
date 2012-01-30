@@ -1,9 +1,3 @@
-#  =====================================================================
-#  Package:     pyclaw
-#  File:        __init__.py
-#  Created:     Feb 19, 2008
-#  Author:      Kyle Mandli
-#  ======================================================================
 """Main pyclaw package"""
 
 import os
@@ -19,10 +13,10 @@ logging.config.fileConfig(_DEFAULT_LOG_CONFIG_PATH)
 __all__ = []
 
 # Module imports
-__all__.extend(['Controller','Dimension','Patch','Solution','State','CFL','riemann','plot'])
+__all__.extend(['Controller','Dimension','Patch','Domain','Solution','State','CFL','riemann','plot'])
 from pyclaw.controller import Controller
 from pyclaw.solution import Solution
-from pyclaw.geometry import Dimension, Patch
+from pyclaw.geometry import Dimension, Patch, Domain
 from pyclaw.state import State
 from pyclaw.cfl import CFL
 import riemann
