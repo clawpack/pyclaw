@@ -62,9 +62,9 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
     patch.t = 0.0
 
     # init_q_petsc_structures must be called 
-    # before patch.x.center and such can be accessed.
+    # before patch.x.centers and such can be accessed.
     patch.init_q_petsc_structures()
-    xc=patch.x.center
+    xc=patch.x.centers
     q=np.zeros([patch.num_eqn,len(xc)], order = 'F')
     beta=100; gamma=0; x0=0.75
     q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
@@ -88,7 +88,7 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
         solver.mthlim = limiters.tvd.MC
 
     if kernel_language=='Python': solver.set_riemann_solver('acoustics')
-    solver.dt=patch.d[0]/patch.problem_data['cc']*0.1
+    solver.dt=patch.delta[0]/patch.problem_data['cc']*0.1
     solver.kernel_language=kernel_language
 
     claw = Controller()
@@ -127,7 +127,7 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
         q0 = x[:].copy()
         ts.solve(x)
         qfinal = x[:].copy()
-        dx = patch.d[0]
+        dx = patch.delta[0]
     else:
         status = claw.run()
         #This test is set up so that the waves pass through the domain
@@ -135,7 +135,7 @@ def acoustics(kernel_language='Python',petscPlot=False,iplot=False,htmlplot=Fals
         #initial condition.  Here we output the 1-norm of their difference.
         q0=claw.frames[0].patch.gqVec.getArray().reshape([-1])
         qfinal=claw.frames[claw.num_output_times].patch.gqVec.getArray().reshape([-1])
-        dx=claw.frames[0].patch.d[0]
+        dx=claw.frames[0].patch.delta[0]
 
     if htmlplot:  plot.html_plot(outdir=outdir,format=output_format)
     if iplot:     plot.interactive_plot(outdir=outdir,format=output_format)

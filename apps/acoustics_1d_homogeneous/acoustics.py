@@ -57,7 +57,7 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     #========================================================================
     # Set the initial condition
     #========================================================================
-    xc=patch.x.center
+    xc=patch.x.centers
     beta=100; gamma=0; x0=0.75
     state.q[0,:] = exp(-beta * (xc-x0)**2) * cos(gamma * (xc - x0))
     state.q[1,:] = 0.

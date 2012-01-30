@@ -52,8 +52,8 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     zr = 2.0  # Impedance in right half
     cr = 2.0  # Sound speed in right half
 
-    patch.compute_c_center()
-    X,Y,Z = patch._c_center
+    patch.compute_c_centers()
+    X,Y,Z = patch._c_centers
 
     state.aux[0,:,:,:] = zl*(X<0.) + zr*(X>=0.) # Impedance
     state.aux[1,:,:,:] = cl*(X<0.) + cr*(X>=0.) # Sound speed

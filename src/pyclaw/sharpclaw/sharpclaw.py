@@ -255,7 +255,7 @@ class SharpClawSolver(Solver):
 
         """
         patch = state.patch
-        clawparams.ndim          = patch.ndim
+        clawparams.num_dim          = patch.num_dim
         clawparams.lim_type      = self.lim_type
         clawparams.weno_order    = self.weno_order
         clawparams.char_decomp   = self.char_decomp
@@ -265,10 +265,10 @@ class SharpClawSolver(Solver):
 
         clawparams.num_waves        = self.num_waves
         clawparams.alloc_clawparams()
-        for idim in range(patch.ndim):
+        for idim in range(patch.num_dim):
             clawparams.xlower[idim]=patch.dimensions[idim].lower
             clawparams.xupper[idim]=patch.dimensions[idim].upper
-        clawparams.dx       =patch.d
+        clawparams.dx       =patch.delta
         clawparams.mthlim   =self._mthlim
 
         maxnx = max(patch.ng)+2*self.num_ghost
@@ -319,7 +319,7 @@ class SharpClawSolver1D(SharpClawSolver):
         r"""
         See :class:`SharpClawSolver1D` for more info.
         """   
-        self.ndim = 1
+        self.num_dim = 1
         super(SharpClawSolver1D,self).__init__()
 
 
@@ -414,9 +414,9 @@ class SharpClawSolver1D(SharpClawSolver):
 
             # Find local value for dt/dx
             if state.index_capa>=0:
-                dtdx = self.dt / (patch.d[0] * state.aux[state.index_capa,:])
+                dtdx = self.dt / (patch.delta[0] * state.aux[state.index_capa,:])
             else:
-                dtdx += self.dt/patch.d[0]
+                dtdx += self.dt/patch.delta[0]
  
             aux=self.auxbc
             if aux.shape[0]>0:
@@ -489,7 +489,7 @@ class SharpClawSolver2D(SharpClawSolver):
         
         See :class:`SharpClawSolver2D` for more info.
         """   
-        self.ndim = 2
+        self.num_dim = 2
 
         super(SharpClawSolver2D,self).__init__()
 

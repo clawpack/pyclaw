@@ -173,10 +173,10 @@ class Solver(object):
                        'numsteps':0 }
         
         # No default BCs; user must set them
-        self.bc_lower =    [None]*self.ndim
-        self.bc_upper =    [None]*self.ndim
-        self.aux_bc_lower = [None]*self.ndim
-        self.aux_bc_upper = [None]*self.ndim
+        self.bc_lower =    [None]*self.num_dim
+        self.bc_upper =    [None]*self.num_dim
+        self.aux_bc_lower = [None]*self.num_dim
+        self.aux_bc_upper = [None]*self.num_dim
         
         self.user_bc_lower = None
         self.user_bc_upper = None
@@ -325,7 +325,7 @@ class Solver(object):
                 if self.bc_lower[idim] == BC.custom:
                     self.qbc_lower(state,dim,state.t,self.qbc,idim)
                 elif self.bc_lower[idim] == BC.periodic:
-                    if dim.nend == dim.n:
+                    if dim.nend == dim.num_cells:
                         # This process owns the whole patch
                         self.qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
                     else:
@@ -333,7 +333,7 @@ class Solver(object):
                 else:
                     self.qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
 
-            if dim.nend == dim.n :
+            if dim.nend == dim.num_cells :
                 if self.bc_upper[idim] == BC.custom:
                     self.qbc_upper(state,dim,state.t,self.qbc,idim)
                 elif self.bc_upper[idim] == BC.periodic:
@@ -465,7 +465,7 @@ class Solver(object):
                 if self.aux_bc_lower[idim] == BC.custom:
                     self.auxbc_lower(state,dim,state.t,self.auxbc,idim)
                 elif self.aux_bc_lower[idim] == BC.periodic:
-                    if dim.nend == dim.n:
+                    if dim.nend == dim.num_cells:
                         # This process owns the whole patch
                         self.auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
                     else:
@@ -473,7 +473,7 @@ class Solver(object):
                 else:
                     self.auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
 
-            if dim.nend == dim.n :
+            if dim.nend == dim.num_cells:
                 if self.aux_bc_upper[idim] == BC.custom:
                     self.auxbc_upper(state,dim,state.t,self.auxbc,idim)
                 elif self.aux_bc_upper[idim] == BC.periodic:

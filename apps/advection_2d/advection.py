@@ -16,8 +16,8 @@ def qinit(state):
     # q = 1.0  if  0.1 < x < 0.6   and   0.1 < y < 0.6
     #     0.1  otherwise
     
-    x = state.patch.x.center
-    y = state.patch.y.center
+    x = state.patch.x.centers
+    y = state.patch.y.centers
     for i in range(len(x)):
         for j in range(len(y)):
             if x[i] > 0.0 and x[i] < 0.5 and y[j]>0.0 and y[j] < 0.5:
@@ -58,7 +58,7 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
     solver.cfl_max=1.0
     solver.cfl_desired = 0.9
 
-    solver.mthlim = pyclaw.limiters.tvd.vanleer
+    solver.limiters = pyclaw.limiters.tvd.vanleer
 
 
     #===========================================================================

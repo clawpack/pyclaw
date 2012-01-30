@@ -185,10 +185,10 @@ def write_netcdf(solution,frame,path,file_prefix='claw',write_aux=False,
         # For each patch, write out attributes
         for patch in solution.patchs:
             # Create group for this patch
-            subgroup = f.createGroup('patch%s' % patch.patchno)
+            subgroup = f.createGroup('patch%s' % patch.patch_index)
         
             # General patch properties
-            for attr in ['t','num_eqn','patchno','level','num_ghost']:
+            for attr in ['t','num_eqn','patch_index','level','num_ghost']:
                 setattr(subgroup,attr,getattr(patch,attr))
             
             # Write out dimension names
@@ -291,11 +291,11 @@ def read_netcdf(solution,frame,path='./',file_prefix='claw',read_aux=True,
             patch = pyclaw.solution.Patch(dimensions)
             
             # General patch properties
-            for attr in ['t','num_eqn','patchno','level']:
+            for attr in ['t','num_eqn','patch_index','level']:
                 setattr(patch,attr,getattr(subgroup,attr))
                 
             # Read in q
-            index_str = ','.join( [':' for i in xrange(patch.ndim+1)] )
+            index_str = ','.join( [':' for i in xrange(patch.num_dim+1)] )
             exec("patch.q = subgroup.variables['q'][%s]" % index_str)
             
             # Read in aux if applicable

@@ -45,21 +45,21 @@ def qinit(state,mx,my):
     # First gaussian pulse
     A1    = 1.    # Amplitude
     beta1 = 40.   # Decay factor
-    x1    = -0.5  # x-coordinate of the center
-    y1    = 0.    # y-coordinate of the center
+    x1    = -0.5  # x-coordinate of the centers
+    y1    = 0.    # y-coordinate of the centers
 
     # Second gaussian pulse
     A2    = -1.   # Amplitude
     beta2 = 40.   # Decay factor
-    x2    = 0.5   # x-coordinate of the center
-    y2    = 0.    # y-coordinate of the center
+    x2    = 0.5   # x-coordinate of the centers
+    y2    = 0.    # y-coordinate of the centers
 
     
-    # Compute location of all patch cell center coordinates and store them
-    state.patch.compute_p_center(recompute=True)
+    # Compute location of all patch cell centers coordinates and store them
+    state.patch.compute_p_centers(recompute=True)
 
-    xp = state.patch.p_center[0]
-    yp = state.patch.p_center[1]
+    xp = state.patch.p_centers[0]
+    yp = state.patch.p_centers[1]
     state.q[0,:,:] = A1*np.exp(-beta1*(np.square(xp-x1) + np.square(yp-y1)))\
                    + A2*np.exp(-beta2*(np.square(xp-x2) + np.square(yp-y2)))
 
@@ -67,18 +67,18 @@ def qinit(state,mx,my):
 def setaux(state,mx,my):
     """ 
     Set auxiliary array
-    aux[0,i,j] is edge velocity at "left" boundary of patch point (i,j)
-    aux[1,i,j] is edge velocity at "bottom" boundary of patch point (i,j)
+    aux[0,i,j] is edges velocity at "left" boundary of patch point (i,j)
+    aux[1,i,j] is edges velocity at "bottom" boundary of patch point (i,j)
     aux[2,i,j] = kappa  is ratio of cell area to (dxc * dyc)
     """    
     
     # Compute location of all patch cell corner coordinates and store them
-    state.patch.compute_p_edge(recompute=True)
+    state.patch.compute_p_edges(recompute=True)
 
     # Get patch spacing
     dxc = state.patch.d[0]
     dyc = state.patch.d[1]
-    pcorners = state.patch.p_edge
+    pcorners = state.patch.p_edges
 
     aux = velocities_capa(pcorners[0],pcorners[1],dxc,dyc)
     return aux

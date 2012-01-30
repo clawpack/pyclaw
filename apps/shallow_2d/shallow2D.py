@@ -16,8 +16,8 @@ from petclaw import plot
 def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
     x0=0.
     y0=0.
-    xCenter = state.patch.x.center
-    yCenter = state.patch.y.center
+    xCenter = state.patch.x.centers
+    yCenter = state.patch.y.centers
     Y,X = np.meshgrid(yCenter,xCenter)
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
     state.q[0,:,:] = hl*(r<=radDam) + hr*(r>radDam)

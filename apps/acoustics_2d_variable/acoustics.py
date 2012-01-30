@@ -43,8 +43,8 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     num_aux = 2 # density, sound speed
     state = pyclaw.State(patch,num_eqn,num_aux)
 
-    # Cell center coordinates
-    Y,X = np.meshgrid(patch.y.center,patch.x.center)
+    # Cell centers coordinates
+    Y,X = np.meshgrid(patch.y.centers,patch.x.centers)
 
     # Set aux arrays
     rhol = 4.0

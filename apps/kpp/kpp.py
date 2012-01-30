@@ -4,8 +4,8 @@
 import numpy as np
 
 def qinit(state,rad=1.0):
-    x = state.patch.x.center
-    y = state.patch.y.center
+    x = state.patch.x.centers
+    y = state.patch.y.centers
     Y,X = np.meshgrid(y,x)
     r = np.sqrt(X**2 + Y**2)
 

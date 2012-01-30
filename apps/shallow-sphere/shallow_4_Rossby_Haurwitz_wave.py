@@ -115,15 +115,15 @@ def mapc2p_sphere_nonvectorized(patch,mC):
 
             DD = Rsphere*d*(2.0 - d) / np.sqrt(2.0)
             R = Rsphere
-            center = DD - np.sqrt(np.maximum(R**2 - DD**2, 0.0))
+            centers = DD - np.sqrt(np.maximum(R**2 - DD**2, 0.0))
             
             xp = DD/d * xc1
             yp = DD/d * yc1
 
             if (yc1 >= xc1):
-                yp = center + np.sqrt(np.maximum(R**2 - xp**2, 0.0))
+                yp = centers + np.sqrt(np.maximum(R**2 - xp**2, 0.0))
             else:
-                xp = center + np.sqrt(np.maximum(R**2 - yp**2, 0.0))
+                xp = centers + np.sqrt(np.maximum(R**2 - yp**2, 0.0))
 
             # Compute physical coordinates
             zp = np.sqrt(np.maximum(Rsphere**2 - (xp**2 + yp**2), 0.0))
@@ -181,14 +181,14 @@ def mapc2p_sphere_vectorized(patch,mC):
     D = Rsphere*d*(2-d) / np.sqrt(2)
     R = Rsphere*np.ones((np.shape(d)))
 
-    center = D - np.sqrt(R**2 - D**2)
+    centers = D - np.sqrt(R**2 - D**2)
     xp = D/d * xc1
     yp = D/d * yc1
 
     ij = np.where(yc1==d)
-    yp[ij] = center[ij] + np.sqrt(R[ij]**2 - xp[ij]**2)
+    yp[ij] = centers[ij] + np.sqrt(R[ij]**2 - xp[ij]**2)
     ij = np.where(xc1==d)
-    xp[ij] = center[ij] + np.sqrt(R[ij]**2 - yp[ij]**2)
+    xp[ij] = centers[ij] + np.sqrt(R[ij]**2 - yp[ij]**2)
     
     # Define new list of numpy array, pC = physical coordinates
     pC = []
@@ -220,14 +220,14 @@ def qinit(state,mx,my):
     h0 = 8.e3         # Minimum fluid height at the poles        
     R = 4.0
 
-    # Compute the the physical coordinates of the cells' centers
-    state.patch.compute_p_center(recompute=True)
+    # Compute the the physical coordinates of the cells' centerss
+    state.patch.compute_p_centers(recompute=True)
  
     for i in range(mx):
         for j in range(my):
-            xp = state.patch.p_center[0][i][j]
-            yp = state.patch.p_center[1][i][j]
-            zp = state.patch.p_center[2][i][j]
+            xp = state.patch.p_centers[0][i][j]
+            yp = state.patch.p_centers[1][i][j]
+            zp = state.patch.p_centers[2][i][j]
 
             rad = np.maximum(np.sqrt(xp**2 + yp**2),1.e-6)
 

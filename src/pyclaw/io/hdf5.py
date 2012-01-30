@@ -125,10 +125,10 @@ def write_hdf5(solution,frame,path,file_prefix='claw',write_aux=False,
         # For each patch, write out attributes
         for patch in solution.patchs:
             # Create group for this patch
-            subgroup = f.create_group('patch%s' % patch.patchno)
+            subgroup = f.create_group('patch%s' % patch.patch_index)
             
             # General patch properties
-            for attr in ['t','num_eqn','num_ghost','patchno','level']:
+            for attr in ['t','num_eqn','num_ghost','patch_index','level']:
                 if hasattr(patch,attr):
                     if getattr(patch,attr) is not None:
                         subgroup.attrs[attr] = getattr(patch,attr)
@@ -225,7 +225,7 @@ def read_hdf5(solution,frame,path='./',file_prefix='claw',read_aux=True,
             patch = pyclaw.solution.Patch(dimensions)
                 
             # Fetch general patch properties
-            for attr in ['t','num_eqn','patchno','level']:
+            for attr in ['t','num_eqn','patch_index','level']:
                 setattr(patch,attr,subgroup.attrs[attr])
             
             # Read in q

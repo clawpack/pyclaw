@@ -22,7 +22,7 @@ def ycirc(x,ymin,ymax):
 def qinit(state,rhoin=0.1,bubble_shape='circle'):
     r"""
     Initialize data with a shock at x=xshock and a low-density bubble (of density rhoin)
-    centered at (x0,y0) with radius r0.
+    centersed at (x0,y0) with radius r0.
     """
     rhoout = 1.
     pout   = 1.
@@ -32,8 +32,8 @@ def qinit(state,rhoin=0.1,bubble_shape='circle'):
     vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
     einf = 0.5*rinf*vinf**2 + pinf/gamma1
     
-    x =state.patch.x.center
-    y =state.patch.y.center
+    x =state.patch.x.centers
+    y =state.patch.y.centers
     Y,X = np.meshgrid(y,x)
     if bubble_shape=='circle':
         r = np.sqrt((X-x0)**2 + (Y-y0)**2)
@@ -50,7 +50,7 @@ def qinit(state,rhoin=0.1,bubble_shape='circle'):
     state.q[3,:,:] = einf*(X<xshock) + (pin*(r<=r0) + pout*(r>r0)*(X>xshock))/gamma1
     state.q[4,:,:] = 1.*(r<=r0)
 
-    #Now average for the cells on the edge of the bubble
+    #Now average for the cells on the edges of the bubble
     d2 = np.linalg.norm(state.patch.d)/2.
     dx = state.patch.d[0]
     dy = state.patch.d[1]
@@ -70,9 +70,9 @@ def qinit(state,rhoin=0.1,bubble_shape='circle'):
 
 def auxinit(state):
     """
-    aux[0,i,j] = y-coordinate of cell center for cylindrical source terms
+    aux[0,i,j] = y-coordinate of cell centers for cylindrical source terms
     """
-    y=state.patch.y.center
+    y=state.patch.y.centers
     for j,ycoord in enumerate(y):
         state.aux[0,:,j] = ycoord
 

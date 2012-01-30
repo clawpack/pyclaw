@@ -32,7 +32,7 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
     that there are some parameters that assumed to be the same for every patch
     in this format which is not necessarily true for the actual data objects.
     Make sure that if you use this output format that all of you patchs share
-    the appropriate values of ndim, num_eqn, num_aux, and t.  Only supports up to
+    the appropriate values of num_dim, num_eqn, num_aux, and t.  Only supports up to
     3 dimensions.
     
     :Input:
@@ -56,7 +56,7 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
         f.write("%5i                  num_eqn\n" % solution.num_eqn)
         f.write("%5i                  nstates\n" % len(solution.states))
         f.write("%5i                  num_aux\n" % solution.num_aux)
-        f.write("%5i                  ndim\n" % solution.ndim)
+        f.write("%5i                  num_dim\n" % solution.num_dim)
         f.close()
         
         # Open fort.qxxxx for writing
@@ -72,14 +72,14 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
         for state in solution.states:
             patch = state.patch
             # Header for fort.qxxxx file
-            q_file.write("%5i                  patch_number\n" % patch.patchno)
+            q_file.write("%5i                  patch_number\n" % patch.patch_index)
             q_file.write("%5i                  AMR_level\n" % patch.level)
             for dim in patch.dimensions:
-                q_file.write("%5i                  m%s\n" % (dim.n,dim.name))
+                q_file.write("%5i                  m%s\n" % (dim.num_cells,dim.name))
             for dim in patch.dimensions:
                 q_file.write("%18.8e     %slow\n" % (dim.lower,dim.name))
             for dim in patch.dimensions:
-                q_file.write("%18.8e     d%s\n" % (dim.d,dim.name))
+                q_file.write("%18.8e     d%s\n" % (dim.delta,dim.name))
             
             q_file.write("\n")
             
@@ -90,22 +90,22 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
                 q = state.q
 
             dims = patch.dimensions
-            if patch.ndim == 1:
-                for k in xrange(dims[0].n):
+            if patch.num_dim == 1:
+                for k in xrange(dims[0].num_cells):
                     for m in xrange(solution.num_eqn):
                         q_file.write("%18.8e" % q[m,k])
                     q_file.write('\n')
-            elif patch.ndim == 2:
-                for j in xrange(dims[1].n):
-                    for k in xrange(dims[0].n):
+            elif patch.num_dim == 2:
+                for j in xrange(dims[1].num_cells):
+                    for k in xrange(dims[0].num_cells):
                         for m in xrange(solution.num_eqn):
                             q_file.write("%18.8e" % q[m,k,j])
                         q_file.write('\n')
                     q_file.write('\n')
-            elif patch.ndim == 3:
-                for l in xrange(dims[2].n):
-                    for j in xrange(dims[1].n):
-                        for k in xrange(dims[0].n):
+            elif patch.num_dim == 3:
+                for l in xrange(dims[2].num_cells):
+                    for j in xrange(dims[1].num_cells):
+                        for k in xrange(dims[0].num_cells):
                             for m in range(solution.num_eqn):
                                 q_file.write("%18.8e" % q[m,k,j,l])
                             q_file.write('\n')
@@ -117,7 +117,7 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
             if state.num_aux > 0 and write_aux:
                 aux = state.aux
                 
-                aux_file.write("%5i                  patch_number\n" % patch.patchno)
+                aux_file.write("%5i                  patch_number\n" % patch.patch_index)
                 aux_file.write("%5i                  AMR_level\n" % patch.level)
                 
                 for dim in patch.dimensions:
@@ -125,25 +125,25 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
                 for dim in patch.dimensions:
                     aux_file.write("%18.8e     %slow\n" % (dim.lower,dim.name))
                 for dim in patch.dimensions:
-                    aux_file.write("%18.8e     d%s\n" % (dim.d,dim.name))
+                    aux_file.write("%18.8e     d%s\n" % (dim.delta,dim.name))
 
                 aux_file.write("\n")
-                if patch.ndim == 1:
+                if patch.num_dim == 1:
                     for k in xrange(patch.dimensions[0]):
                         for m in xrange(state.num_aux):
                             aux_file.write("%18.8e" % aux[m,k])
                         aux_file.write('\n')
-                elif patch.ndim == 2:
-                    for j in xrange(patch.dimensions[1].n):
-                        for k in xrange(patch.dimension[0].n):
+                elif patch.num_dim == 2:
+                    for j in xrange(patch.dimensions[1].num_cells):
+                        for k in xrange(patch.dimension[0].num_cells):
                             for m in xrange(state.num_aux):
                                 aux_file.write("%18.8e" % aux[m,k,j])
                             aux_file.write('\n')    
                         aux_file.write('\n')
-                elif patch.ndim == 3:
-                    for l in xrange(patch.dimensions[2].n):
-                        for j in xrange(patch.dimensions[1].n):
-                            for k in xrange(patch.dimensions[0].n):
+                elif patch.num_dim == 3:
+                    for l in xrange(patch.dimensions[2].num_cells):
+                        for j in xrange(patch.dimensions[1].num_cells):
+                            for k in xrange(patch.dimensions[0].num_cells):
                                 for m in xrange(patch.num_aux):
                                     aux_file.write("%18.8e" % aux[m,k,j,l])
                                 aux_file.write('\n')
@@ -195,7 +195,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
     q_fname = os.path.join(base_path, '%s.q' % file_prefix) + str(frame).zfill(4)
 
     # Read in values from fort.t file:
-    [t,num_eqn,nstates,num_aux,ndim] = read_ascii_t(frame,path,file_prefix)
+    [t,num_eqn,nstates,num_aux,num_dim] = read_ascii_t(frame,path,file_prefix)
     
     # Read in values from fort.q file:
     try:
@@ -206,16 +206,16 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
         for m in xrange(nstates):
         
             # Read in base header for this patch
-            patchno = read_data_line(f,type='int')
+            patch_index = read_data_line(f,type='int')
             level = read_data_line(f,type='int')
-            n = np.zeros((ndim))
-            lower = np.zeros((ndim))
-            d = np.zeros((ndim))
-            for i in xrange(ndim):
+            n = np.zeros((num_dim))
+            lower = np.zeros((num_dim))
+            d = np.zeros((num_dim))
+            for i in xrange(num_dim):
                 n[i] = read_data_line(f,type='int')
-            for i in xrange(ndim):
+            for i in xrange(num_dim):
                 lower[i] = read_data_line(f)
-            for i in xrange(ndim):
+            for i in xrange(num_dim):
                 d[i] = read_data_line(f)
         
             blank = f.readline()
@@ -225,7 +225,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
             # the assumed dimensions x,y,z
             names = ['x','y','z']
             dimensions = []
-            for i in xrange(ndim):
+            for i in xrange(num_dim):
                 dimensions.append(
                     pyclaw.geometry.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
             patch = pyclaw.geometry.Patch(dimensions)
@@ -242,17 +242,17 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 state.aux[:]=0.
             
             # Fill in q values
-            if patch.ndim == 1:
-                for i in xrange(patch.dimensions[0].n):
+            if patch.num_dim == 1:
+                for i in xrange(patch.dimensions[0].num_cells):
                     l = []
                     while len(l)<state.num_eqn:
                         line = f.readline()
                         l = l + line.split()
                     for m in xrange(state.num_eqn):
                         state.q[m,i] = float(l[m])
-            elif patch.ndim == 2:
-                for j in xrange(patch.dimensions[1].n):
-                    for i in xrange(patch.dimensions[0].n):
+            elif patch.num_dim == 2:
+                for j in xrange(patch.dimensions[1].num_cells):
+                    for i in xrange(patch.dimensions[0].num_cells):
                         l = []
                         while len(l)<state.num_eqn:
                             line = f.readline()
@@ -260,10 +260,10 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                         for m in xrange(state.num_eqn):
                             state.q[m,i,j] = float(l[m])
                     blank = f.readline()
-            elif patch.ndim == 3:
-                for k in xrange(patch.dimensions[2].n):
-                    for j in xrange(patch.dimensions[1].n):
-                        for i in xrange(patch.dimensions[0].n):
+            elif patch.num_dim == 3:
+                for k in xrange(patch.dimensions[2].num_cells):
+                    for j in xrange(patch.dimensions[1].num_cells):
+                        for i in xrange(patch.dimensions[0].num_cells):
                             l=[]
                             while len(l) < state.num_eqn:
                                 line = f.readline()
@@ -278,7 +278,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 raise Exception(msg)
         
             # Add AMR attributes:
-            patch.patchno = patchno
+            patch.patch_index = patch_index
             patch.level = level
 
             # Add new patch to solution
@@ -310,26 +310,26 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
             # Read in aux file
             for n in xrange(len(solution.states)):
                 # Fetch correct patch
-                patchno = read_data_line(f,type='int')
-                patch = solution.states[patchno-1].patch
+                patch_index = read_data_line(f,type='int')
+                patch = solution.states[patch_index-1].patch
         
                 # These should match this patch already, raise exception otherwise
                 if not (patch.level == read_data_line(f,type='int')):
-                    raise IOError("Patch level in aux file header did not match patch no %s." % patch.patchno)
+                    raise IOError("Patch level in aux file header did not match patch no %s." % patch.patch_index)
                 for dim in patch.dimensions:
                     if not (dim.n == read_data_line(f,type='int')):
-                        raise IOError("Dimension %s's n in aux file header did not match patch no %s." % (dim.name,patch.patchno))
+                        raise IOError("Dimension %s's n in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
                 for dim in patch.dimensions:
                     if not (dim.lower == read_data_line(f,type='float')):
-                        raise IOError("Dimension %s's lower in aux file header did not match patch no %s." % (dim.name,patch.patchno))
+                        raise IOError("Dimension %s's lower in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
                 for dim in patch.dimensions:
-                    if not (dim.d == read_data_line(f,type='float')):
-                        raise IOError("Dimension %s's d in aux file header did not match patch no %s." % (dim.name,patch.patchno))
+                    if not (dim.delta == read_data_line(f,type='float')):
+                        raise IOError("Dimension %s's d in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
 
                 f.readline()
         
                 # Read in auxillary array
-                if patch.ndim == 1:
+                if patch.num_dim == 1:
                     for i in xrange(patch.dimensions[0].n):
                         l = []
                         while len(l)<state.num_aux:
@@ -337,7 +337,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                             l = l + line.split()
                         for m in xrange(state.num_aux):
                             state.aux[i,m] = float(l[m])
-                elif patch.ndim == 2:
+                elif patch.num_dim == 2:
                     for j in xrange(patch.dimensions[1].n):
                         for i in xrange(patch.dimensions[0].n):
                             l = []
@@ -347,7 +347,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                             for m in xrange(state.num_aux):
                                 state.aux[i,j,m] = float(l[m])
                         blank = f.readline()
-                elif patch.ndim == 3:
+                elif patch.num_dim == 3:
                     for k in xrange(patch.dimensions[2].n):
                         for j in xrange(patch.dimensions[1].n):
                             for i in xrange(patch.dimensions[0].n):
@@ -384,7 +384,7 @@ def read_ascii_t(frame,path='./',file_prefix='fort'):
      - *num_eqn* - (int) Number of equations in the frame
      - *nstates* - (int) Number of states
      - *num_aux* - (int) Auxillary value in the frame
-     - *ndim* - (int) Number of dimensions in q and aux
+     - *num_dim* - (int) Number of dimensions in q and aux
     
     """
 
@@ -398,14 +398,14 @@ def read_ascii_t(frame,path='./',file_prefix='fort'):
         num_eqn = read_data_line(f,type='int')
         nstates = read_data_line(f,type='int')
         num_aux = read_data_line(f,type='int')
-        ndim = read_data_line(f,type='int')
+        num_dim = read_data_line(f,type='int')
         
         f.close()
     except(IOError):
         raise
     except:
-        logger.error("File " + path + " should contain t, num_eqn, nstates, num_aux, ndim")
-        print "File " + path + " should contain t, num_eqn, nstates, num_aux, ndim"
+        logger.error("File " + path + " should contain t, num_eqn, nstates, num_aux, num_dim")
+        print "File " + path + " should contain t, num_eqn, nstates, num_aux, num_dim"
         raise
         
-    return t,num_eqn,nstates,num_aux,ndim
+    return t,num_eqn,nstates,num_aux,num_dim

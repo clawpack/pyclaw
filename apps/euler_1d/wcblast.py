@@ -39,7 +39,7 @@ def wcblast(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver
 
     state.q[0,:] = 1.
     state.q[1,:] = 0.
-    x =state.patch.x.center
+    x =state.patch.x.centers
     state.q[2,:] = ( (x<0.1)*1.e3 + (0.1<=x)*(x<0.9)*1.e-2 + (0.9<=x)*1.e2 ) / gamma1
 
     solver.limiters = 4

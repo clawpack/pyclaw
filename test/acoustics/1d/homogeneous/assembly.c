@@ -66,7 +66,7 @@
      Py_ssize_t len;
      Py_ssize_t itemsize;
      int readonly;
-     int ndim;
+     int num_dim;
      char *format;
      Py_ssize_t *shape;
      Py_ssize_t *strides;

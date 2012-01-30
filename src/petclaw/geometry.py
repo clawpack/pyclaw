@@ -45,25 +45,25 @@ class Dimension(pyclaw.geometry.Dimension):
         return self.nend-self.nstart
 
     @property
-    def edge(self):
+    def edges(self):
         r"""(ndarrary(:)) - Location of all patch cell edge coordinates
         for this dimension"""
         import numpy as np
-        if self._edge is None:
-            self._edge = np.empty(self.ng+1)
+        if self._edges is None:
+            self._edges = np.empty(self.ng+1)
             for i in xrange(self.nstart,self.nend+1):
-                self._edge[i] = self.lower + i*self.d
-        return self._edge
-    _edge = None
+                self._edges[i] = self.lower + i*self.delta
+        return self._edges
+    _edges = None
 
     @property
-    def center(self):
+    def centers(self):
         r"""(ndarrary(:)) - Location of all patch cell center coordinates
         for this dimension"""
         import numpy as np
-        if self._center is None:
-            self._center = np.empty(self.ng)
+        if self._centers is None:
+            self._centers = np.empty(self.ng)
             for i in xrange(self.nstart,self.nend):
-                self._center[i-self.nstart] = self.lower + (i+0.5)*self.d
-        return self._center
-    _center = None
+                self._centers[i-self.nstart] = self.lower + (i+0.5)*self.delta
+        return self._centers
+    _centers = None

@@ -37,7 +37,7 @@ def fortran_src_wrapper(solver,state,dt):
     num_eqn = state.num_eqn
     num_ghost = solver.num_ghost
     xlowerg, ylowerg = patch.lowerg[0], patch.lowerg[1]
-    dx, dy = patch.d[0], patch.d[1]
+    dx, dy = patch.delta[0], patch.delta[1]
     q = state.q
     t = state.t
     num_aux = state.num_aux
@@ -112,15 +112,15 @@ def mapc2p_sphere_nonvectorized(patch,mC):
 
             DD = Rsphere*d*(2.0 - d) / np.sqrt(2.0)
             R = Rsphere
-            center = DD - np.sqrt(np.maximum(R**2 - DD**2, 0.0))
+            centers = DD - np.sqrt(np.maximum(R**2 - DD**2, 0.0))
             
             xp = DD/d * xc1
             yp = DD/d * yc1
 
             if (yc1 >= xc1):
-                yp = center + np.sqrt(np.maximum(R**2 - xp**2, 0.0))
+                yp = centers + np.sqrt(np.maximum(R**2 - xp**2, 0.0))
             else:
-                xp = center + np.sqrt(np.maximum(R**2 - yp**2, 0.0))
+                xp = centers + np.sqrt(np.maximum(R**2 - yp**2, 0.0))
 
             # Compute physical coordinates
             zp = np.sqrt(np.maximum(Rsphere**2 - (xp**2 + yp**2), 0.0))
@@ -178,14 +178,14 @@ def mapc2p_sphere_vectorized(patch,mC):
     D = Rsphere*d*(2-d) / np.sqrt(2)
     R = Rsphere*np.ones((np.shape(d)))
 
-    center = D - np.sqrt(R**2 - D**2)
+    centers = D - np.sqrt(R**2 - D**2)
     xp = D/d * xc1
     yp = D/d * yc1
 
     ij = np.where(yc1==d)
-    yp[ij] = center[ij] + np.sqrt(R[ij]**2 - xp[ij]**2)
+    yp[ij] = centers[ij] + np.sqrt(R[ij]**2 - xp[ij]**2)
     ij = np.where(xc1==d)
-    xp[ij] = center[ij] + np.sqrt(R[ij]**2 - yp[ij]**2)
+    xp[ij] = centers[ij] + np.sqrt(R[ij]**2 - yp[ij]**2)
     
     # Define new list of numpy array, pC = physical coordinates
     pC = []
@@ -217,14 +217,14 @@ def qinit(state,mx,my):
     h0 = 8.e3         # Minimum fluid height at the poles        
     R = 4.0
 
-    # Compute the the physical coordinates of the cells' centers
-    state.patch.compute_p_center(recompute=True)
+    # Compute the the physical coordinates of the cells' centerss
+    state.patch.compute_p_centers(recompute=True)
  
     for i in range(mx):
         for j in range(my):
-            xp = state.patch.p_center[0][i][j]
-            yp = state.patch.p_center[1][i][j]
-            zp = state.patch.p_center[2][i][j]
+            xp = state.patch.p_centers[0][i][j]
+            yp = state.patch.p_centers[1][i][j]
+            zp = state.patch.p_centers[2][i][j]
 
             rad = np.maximum(np.sqrt(xp**2 + yp**2),1.e-6)
 
@@ -323,7 +323,7 @@ def auxbc_lower_y(state,dim,t,auxbc,num_ghost):
     # routine.
     mx, my = patch.ng[0], patch.ng[1]
     xlower, ylower = patch.lower[0], patch.lower[1]
-    dx, dy = patch.d[0],patch.d[1]
+    dx, dy = patch.delta[0],patch.delta[1]
 
     # Impose BC
     auxtemp = auxbc.copy()
@@ -343,7 +343,7 @@ def auxbc_upper_y(state,dim,t,auxbc,num_ghost):
     # routine.
     mx, my = patch.ng[0], patch.ng[1]
     xlower, ylower = patch.lower[0], patch.lower[1]
-    dx, dy = patch.d[0],patch.d[1]
+    dx, dy = patch.delta[0],patch.delta[1]
     
     # Impose BC
     auxtemp = auxbc.copy()
@@ -426,8 +426,8 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
     patch = pyclaw.Patch([x,y])
-    dx = patch.d[0]
-    dy = patch.d[1]
+    dx = patch.delta[0]
+    dy = patch.delta[1]
 
     # Define some parameters used in classic2 
     import classic2

@@ -8,18 +8,18 @@
 !     # On input: (xc(i),yc(j)) gives uniformly spaced computational grid.
 !     # On output: he aux array has the following elements:
 !         1  kappa = ratio of cell area to dxc*dyc
-!         2  enx = x-component of normal vector to left edge in tangent plane
-!         3  eny = y-component of normal vector to left edge in tangent plane
-!         4  enz = z-component of normal vector to left edge in tangent plane
-!         5  etx = x-component of tangent vector to left edge in tangent plane
-!         6  ety = y-component of tangent vector to left edge in tangent plane
-!         7  etz = z-component of tangent vector to left edge in tangent plane
-!         8  enx = x-component of normal vector to bottom edge in tangent plane
-!         9  eny = y-component of normal vector to bottom edge in tangent plane
-!        10  enz = z-component of normal vector to bottom edge in tangent plane
-!        11  etx = x-component of tangent vector to bottom edge in tangent plane
-!        12  ety = y-component of tangent vector to bottom edge in tangent plane
-!        13  etz = z-component of tangent vector to bottom edge in tangent plane
+!         2  enx = x-component of normal vector to left edges in tangent plane
+!         3  eny = y-component of normal vector to left edges in tangent plane
+!         4  enz = z-component of normal vector to left edges in tangent plane
+!         5  etx = x-component of tangent vector to left edges in tangent plane
+!         6  ety = y-component of tangent vector to left edges in tangent plane
+!         7  etz = z-component of tangent vector to left edges in tangent plane
+!         8  enx = x-component of normal vector to bottom edges in tangent plane
+!         9  eny = y-component of normal vector to bottom edges in tangent plane
+!        10  enz = z-component of normal vector to bottom edges in tangent plane
+!        11  etx = x-component of tangent vector to bottom edges in tangent plane
+!        12  ety = y-component of tangent vector to bottom edges in tangent plane
+!        13  etz = z-component of tangent vector to bottom edges in tangent plane
 !        14  erx = x-component of unit vector in radial direction at cell ctr
 !        15  ery = y-component of unit vector in radial direction at cell ctr
 !        16  erz = z-component of unit vector in radial direction at cell ctr
@@ -103,9 +103,9 @@
     do 20 j=1-num_ghost,my+num_ghost
         do 20 i=1-num_ghost,mx+num_ghost
         
-        !           # compute normal and tangent vectors to left edge (in tangent plane)
+        !           # compute normal and tangent vectors to left edges (in tangent plane)
         
-        !           # tangent vector is edge vector:
+        !           # tangent vector is edges vector:
             etx = xp(i,j+1) - xp(i,j)
             ety = yp(i,j+1) - yp(i,j)
             etz = zp(i,j+1) - zp(i,j)
@@ -113,12 +113,12 @@
             aux(6,i,j) = ety
             aux(7,i,j) = etz
 
-        !           # normal to sphere in radial direction at midpoint of edge:
+        !           # normal to sphere in radial direction at midpoint of edges:
             erx = 0.5d0*(xp(i,j) + xp(i,j+1))
             ery = 0.5d0*(yp(i,j) + yp(i,j+1))
             erz = 0.5d0*(zp(i,j) + zp(i,j+1))
         
-        !           # normal to edge in tangent plane is cross product of et and er:
+        !           # normal to edges in tangent plane is cross product of et and er:
             enx = ety*erz - etz*ery
             eny = etz*erx - etx*erz
             enz = etx*ery - ety*erx
@@ -128,9 +128,9 @@
             aux(4,i,j) = enz/ennorm
 
 
-        !           # compute normal and tangent vectors to bottom edge (in tang. pl.)
+        !           # compute normal and tangent vectors to bottom edges (in tang. pl.)
         
-        !           # tangent vector is edge vector:
+        !           # tangent vector is edges vector:
             etx = xp(i+1,j) - xp(i,j)
             ety = yp(i+1,j) - yp(i,j)
             etz = zp(i+1,j) - zp(i,j)
@@ -138,12 +138,12 @@
             aux(12,i,j) = ety
             aux(13,i,j) = etz
 
-        !           # normal to sphere in radial direction at midpoint of edge:
+        !           # normal to sphere in radial direction at midpoint of edges:
             erx = 0.5d0*(xp(i,j) + xp(i+1,j))
             ery = 0.5d0*(yp(i,j) + yp(i+1,j))
             erz = 0.5d0*(zp(i,j) + zp(i+1,j))
         
-        !           # normal to edge in tangent plane is cross product of er and et:
+        !           # normal to edges in tangent plane is cross product of er and et:
             enx = ery*etz - erz*ety
             eny = erz*etx - erx*etz
             enz = erx*ety - ery*etx
@@ -152,7 +152,7 @@
             aux(9,i,j) = eny/ennorm
             aux(10,i,j) = enz/ennorm
 
-        !           # normal to sphere in radial direction at cell center:
+        !           # normal to sphere in radial direction at cell centers:
             xcm = xlower+(i-0.5)*dxc
             ycm = ylower+(j-0.5)*dyc
             call mapc2p(xcm,ycm,xpm,ypm,zpm,Rsphere)

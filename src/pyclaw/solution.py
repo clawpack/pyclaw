@@ -157,9 +157,9 @@ class Solution(object):
         r"""(int) - :attr:`State.num_aux` of base state"""
         return self._get_base_state_attribute('num_aux')
     @property
-    def ndim(self):
-        r"""(int) - :attr:`Patch.ndim` of base state.patch"""
-        return self._get_base_patch_attribute('ndim')
+    def num_dim(self):
+        r"""(int) - :attr:`Patch.num_dim` of base state.patch"""
+        return self._get_base_patch_attribute('num_dim')
     @property
     def dimensions(self):
         r"""(list) - :attr:`Patch.dimensions` of base state.patch"""

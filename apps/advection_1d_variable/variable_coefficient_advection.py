@@ -17,7 +17,7 @@ def qinit(state):
     x1 = 0.7
     x2 = 0.9
 
-    x =state.patch.x.center
+    x =state.patch.x.centers
     
     # Gaussian
     qg = np.exp(-beta * (x-x0)**2) * np.cos(gamma * (x - x0))
@@ -31,7 +31,7 @@ def qinit(state):
 
 def auxinit(state):
     # Initilize petsc Structures for aux
-    xc=state.patch.x.center
+    xc=state.patch.x.centers
     state.aux[0,:] = np.sin(2.*np.pi*xc)+2
     
 

@@ -19,7 +19,7 @@ sharpness=10
 
 def qinit(state,A,x0,y0,varx,vary):
     r""" Set initial conditions for q."""
-    x =state.patch.x.center; y =state.patch.y.center
+    x =state.patch.x.centers; y =state.patch.y.centers
     # Create meshgrid
     [yy,xx]=np.meshgrid(y,x)
     s=A*np.exp(-(xx-x0)**2/(2*varx)-(yy-y0)**2/(2*vary)) #sigma(@t=0)
@@ -181,7 +181,7 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
         claw.solution = pyclaw.Solution(restart_from_frame, format='petsc',read_aux=False)
         claw.solution.state.mp = 1
         patch = claw.solution.patch
-        claw.solution.state.aux = setaux(patch.x.center,patch.y.center)
+        claw.solution.state.aux = setaux(patch.x.centers,patch.y.centers)
         claw.num_output_times = num_output_times - restart_from_frame
         claw.start_frame = restart_from_frame
     else:
@@ -203,7 +203,7 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
         state.problem_data['t_turnZero'] = t_turnZero
         state.mp = 1
 
-        state.aux = setaux(patch.x.center,patch.y.center)
+        state.aux = setaux(patch.x.centers,patch.y.centers)
         #Initial condition
         qinit(state,A,x0,y0,varx,vary)
 

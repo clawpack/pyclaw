@@ -87,7 +87,7 @@ class SolverTestCase(unittest.TestCase):
         for m in solution.patchs[0].q.shape[0]:
             plt.figure(m)
             plt.hold(True)
-            plt.plot(solution.patchs[0].dimensions[0].center,
+            plt.plot(solution.patchs[0].dimensions[0].centers,
                      solution.patchs[0].q[m,:],'%s%s' % markers[m])
         if output == None:
             plt.show()
@@ -140,11 +140,11 @@ class AdvectionTest(SolverTestCase):
             patch.t = t
     
             # Gaussian
-            qg = (np.exp(-beta * ((x.center-u*patch.t)-x0)**2) 
-                            * np.cos(gamma * ((x.center-u*patch.t) - x0)))
+            qg = (np.exp(-beta * ((x.centers-u*patch.t)-x0)**2) 
+                            * np.cos(gamma * ((x.centers-u*patch.t) - x0)))
 
             # Step Function
-            qs = ((x.center-u*patch.t) > x1)*1.0 - ((x.center-u*patch.t) > x2)*1.0
+            qs = ((x.centers-u*patch.t) > x1)*1.0 - ((x.centers-u*patch.t) > x2)*1.0
     
             patch.q[0,:] = qg + qs
             
@@ -225,8 +225,8 @@ class AcousticsTest(SolverTestCase):
 
         # Initial Condition
         patch.zeros_q()
-        patch.q[0,:] = np.exp(-beta * (x.center - x0)**2) \
-            * np.cos(gamma * (x.center - x0)**2)
+        patch.q[0,:] = np.exp(-beta * (x.centers - x0)**2) \
+            * np.cos(gamma * (x.centers - x0)**2)
 
         return pyclaw.solution.Solution(patch)
 
@@ -264,10 +264,10 @@ class BurgersTest(SolverTestCase):
         patch.empty_q()
     
         # Gaussian
-        qg = np.exp(-beta * (x.center-x0)**2) * np.cos(gamma * (x.center - x0))
+        qg = np.exp(-beta * (x.centers-x0)**2) * np.cos(gamma * (x.centers - x0))
 
         # Step Function
-        qs = (x.center > x1) * 1.0 - (x.center > x2) * 1.0
+        qs = (x.centers > x1) * 1.0 - (x.centers > x2) * 1.0
     
         if ic == 1:
             patch.q[0,:] = qg
@@ -319,9 +319,9 @@ class EulerTest(SolverTestCase):
         Er = pr/gamma1 + 0.5*rhor*ur**2
     
         patch.empty_q()
-        patch.q[0,:] = (x.center < sloc) * rhol + (x.center >= sloc) * rhor
-        patch.q[1,:] = (x.center < sloc) * rhol*ul + (x.center >= sloc) * rhor*ur
-        patch.q[2,:] = (x.center < sloc) * El + (x.center >= sloc) * Er
+        patch.q[0,:] = (x.centers < sloc) * rhol + (x.centers >= sloc) * rhor
+        patch.q[1,:] = (x.centers < sloc) * rhol*ul + (x.centers >= sloc) * rhor*ur
+        patch.q[2,:] = (x.centers < sloc) * El + (x.centers >= sloc) * Er
 
         return pyclaw.solution.Solution(patch)
         
@@ -361,8 +361,8 @@ class ShallowTest(SolverTestCase):
         
         # Initial data
         patch.empty_q()
-        patch.q[0,:] = hl * (patch.p_center[0] <= sloc) + hr * (patch.p_center[0] > sloc)
-        patch.q[1,:] = hl*ul * (patch.p_center[0] <= sloc) + hr*ur * (patch.p_center[0] > sloc)
+        patch.q[0,:] = hl * (patch.p_centers[0] <= sloc) + hr * (patch.p_centers[0] > sloc)
+        patch.q[1,:] = hl*ul * (patch.p_centers[0] <= sloc) + hr*ur * (patch.p_centers[0] > sloc)
 
         return pyclaw.solution.Solution(patch)
         

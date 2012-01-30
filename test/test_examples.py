@@ -476,7 +476,7 @@ def test_2D_shallowwatersphere():
 @attr(solver_type='classic')
 @attr(kernel_language='fortran')
 @attr(petsc=False)
-@attr(ndim=3)
+@attr(num_dim=3)
 @attr(speed='fast')
 def test_3D_acoustics_homogeneous():  
     path           = './test/acoustics/3d/'
@@ -492,7 +492,7 @@ def test_3D_acoustics_homogeneous():
 @attr(solver_type='classic')
 @attr(kernel_language='fortran')
 @attr(petsc=False)
-@attr(ndim=3)
+@attr(num_dim=3)
 @attr(speed='fast')
 def test_3D_acoustics_heterogeneous():
     path           = './test/acoustics/3d/'

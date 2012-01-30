@@ -65,8 +65,8 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     zl = 1.0  # Impedance in left half
     cl = 1.0  # Sound speed in left half
 
-    patch.compute_c_center()
-    X,Y,Z = patch._c_center
+    patch.compute_c_centers()
+    X,Y,Z = patch._c_centers
 
     state.aux[0,:,:,:] = zl*(X<0.) + zr*(X>=0.) # Impedance
     state.aux[1,:,:,:] = cl*(X<0.) + cr*(X>=0.) # Sound speed
@@ -119,8 +119,8 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
         pmiddle  =claw.frames[3].state.q[0,:,:,:].reshape(-1)
         pfinal  =claw.frames[claw.num_output_times].state.q[0,:,:,:].reshape(-1)
 
-    final_difference =np.prod(patch.d)*np.linalg.norm(pfinal-pinitial,ord=1)
-    middle_difference=np.prod(patch.d)*np.linalg.norm(pmiddle-pinitial,ord=1)
+    final_difference =np.prod(patch.delta)*np.linalg.norm(pfinal-pinitial,ord=1)
+    middle_difference=np.prod(patch.delta)*np.linalg.norm(pmiddle-pinitial,ord=1)
 
     if test=='hom':
         return final_difference

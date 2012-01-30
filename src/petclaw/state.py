@@ -117,8 +117,8 @@ class State(pyclaw.state.State):
             self._init_aux_da(num_aux)
         self.gauxVec.setArray(val.reshape([-1], order = 'F'))
     @property
-    def ndim(self):
-        return self.patch.ndim
+    def num_dim(self):
+        return self.patch.num_dim
 
 
     def __init__(self,patch,num_eqn,num_aux=0):
@@ -182,7 +182,7 @@ class State(pyclaw.state.State):
             dim = self.patch.dimensions[i]
             dim.nstart = nrange[0]
             dim.nend   = nrange[1]
-            dim.lowerg = dim.lower + dim.nstart*dim.d
+            dim.lowerg = dim.lower + dim.nstart*dim.delta
 
     def _create_DA(self,dof,num_ghost=0):
         r"""Returns a PETSc DA and associated global Vec.
@@ -196,25 +196,25 @@ class State(pyclaw.state.State):
         #and then impose the real boundary conditions (if non-periodic).
 
         if hasattr(PETSc.DA, 'PeriodicType'):
-            if self.ndim == 1:
+            if self.num_dim == 1:
                 periodic_type = PETSc.DA.PeriodicType.X
-            elif self.ndim == 2:
+            elif self.num_dim == 2:
                 periodic_type = PETSc.DA.PeriodicType.XY
-            elif self.ndim == 3:
+            elif self.num_dim == 3:
                 periodic_type = PETSc.DA.PeriodicType.XYZ
             else:
                 raise Exception("Invalid number of dimensions")
 
-            DA = PETSc.DA().create(dim=self.ndim,
+            DA = PETSc.DA().create(dim=self.num_dim,
                                           dof=dof,
-                                          sizes=self.patch.n,
+                                          sizes=self.patch.num_cells,
                                           periodic_type = periodic_type,
                                           stencil_width=num_ghost,
                                           comm=PETSc.COMM_WORLD)
         else:
-            DA = PETSc.DA().create(dim=self.ndim,
+            DA = PETSc.DA().create(dim=self.num_dim,
                                           dof=dof,
-                                          sizes=self.patch.n,
+                                          sizes=self.patch.num_cells,
                                           boundary_type = PETSc.DA.BoundaryType.PERIODIC,
                                           stencil_width=num_ghost,
                                           comm=PETSc.COMM_WORLD)
@@ -229,11 +229,11 @@ class State(pyclaw.state.State):
         """
         
         patch = self.patch
-        if patch.ndim == 1:
+        if patch.num_dim == 1:
             self.q = qbc[:,num_ghost:-num_ghost]
-        elif patch.ndim == 2:
+        elif patch.num_dim == 2:
             self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
-        elif patch.ndim == 3:
+        elif patch.num_dim == 3:
             self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost]
         else:
             raise NotImplementedError("The case of 3D is not handled in "\

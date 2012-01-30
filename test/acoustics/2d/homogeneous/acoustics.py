@@ -6,8 +6,8 @@ import numpy as np
 def qinit(state,width=0.2):
     
     patch = state.patch
-    x =patch.x.center
-    y =patch.y.center
+    x =patch.x.centers
+    y =patch.y.centers
     Y,X = np.meshgrid(y,x)
     r = np.sqrt(X**2 + Y**2)
 
@@ -63,7 +63,7 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     qinit(state)
     initial_solution = pyclaw.Solution(state)
 
-    solver.dt_initial=np.min(patch.d)/state.problem_data['cc']*solver.cfl_desired
+    solver.dt_initial=np.min(patch.delta)/state.problem_data['cc']*solver.cfl_desired
 
     claw = pyclaw.Controller()
     claw.keep_copy = True

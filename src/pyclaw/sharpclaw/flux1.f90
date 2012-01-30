@@ -61,7 +61,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
     else
         dtdx = dt/dx(ixy)
     endif
-    if (ndim.gt.1) dq1d=0.d0
+    if (num_dim.gt.1) dq1d=0.d0
 
 
     select case(lim_type)

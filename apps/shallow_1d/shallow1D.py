@@ -49,7 +49,7 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     # Parameters
     state.problem_data['grav'] = 1.0
 
-    xc = patch.x.center
+    xc = patch.x.centers
 
     IC='2-shock'
     x0=0.

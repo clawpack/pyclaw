@@ -191,7 +191,7 @@ class ClawSolver(Solver):
         self._method =np.empty(7, dtype=int,order='F')
         self._method[0] = self.dt_variable
         self._method[1] = self.order
-        if self.ndim==1:
+        if self.num_dim==1:
             self._method[2] = 0  # Not used in 1D
         elif self.dimensional_split:
             self._method[2] = -1  # First-order dimensional splitting
@@ -209,7 +209,7 @@ class ClawSolver(Solver):
         """
         if(self.kernel_language == 'Fortran'):
             # Set name of expected .so file with compile Fortran routines
-            self.so_name = 'classic'+str(self.ndim)
+            self.so_name = 'classic'+str(self.num_dim)
 
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (num_ghost)
@@ -222,7 +222,7 @@ class ClawSolver(Solver):
         if(self.kernel_language == 'Fortran'):
             self.set_fortran_parameters(solution)
             self.allocate_workspace(solution)
-        elif self.ndim>1:
+        elif self.num_dim>1:
             raise Exception('Only Fortran kernels are supported in multi-D.')
 
         self.allocate_bc_arrays(solution.states[0])
@@ -275,7 +275,7 @@ class ClawSolver1D(ClawSolver):
         
         See :class:`ClawSolver1D` for more info.
         """   
-        self.ndim = 1
+        self.num_dim = 1
 
         super(ClawSolver1D,self).__init__()
 
@@ -302,7 +302,7 @@ class ClawSolver1D(ClawSolver):
             classic = __import__(self.so_name)
 
             mx = patch.ng[0]
-            dx,dt = patch.d[0],self.dt
+            dx,dt = patch.delta[0],self.dt
             dtdx = np.zeros( (mx+2*num_ghost) ) + dt/dx
             
             self.qbc,cfl = classic.step1(num_ghost,mx,self.qbc,self.auxbc,dx,dt,self._method,self._mthlim,self.fwave)
@@ -318,9 +318,9 @@ class ClawSolver1D(ClawSolver):
 
             # Find local value for dt/dx
             if state.index_capa>=0:
-                dtdx = self.dt / (patch.d[0] * state.aux[state.index_capa,:])
+                dtdx = self.dt / (patch.delta[0] * state.aux[state.index_capa,:])
             else:
-                dtdx += self.dt/patch.d[0]
+                dtdx += self.dt/patch.delta[0]
         
             # Solve Riemann problem at each interface
             q_l=q[:,:-1]
@@ -444,7 +444,7 @@ class ClawSolver2D(ClawSolver):
         self.dimensional_split = True
         self.transverse_waves = self.trans_inc
 
-        self.ndim = 2
+        self.num_dim = 2
 
         self.aux1 = None
         self.aux2 = None
@@ -508,7 +508,7 @@ class ClawSolver2D(ClawSolver):
         if(self.kernel_language == 'Fortran'):
             state = solution.states[0]
             patch = state.patch
-            dx,dy = patch.d
+            dx,dy = patch.delta
             mx,my = patch.ng
             maxm = max(mx,my)
             
@@ -599,7 +599,7 @@ class ClawSolver3D(ClawSolver):
         self.dimensional_split = True
         self.transverse_waves = self.trans_cor
 
-        self.ndim = 3
+        self.num_dim = 3
 
         self.aux1 = None
         self.aux2 = None
@@ -650,7 +650,7 @@ class ClawSolver3D(ClawSolver):
         if(self.kernel_language == 'Fortran'):
             state = solution.states[0]
             patch = state.patch
-            dx,dy,dz = patch.d
+            dx,dy,dz = patch.delta
             mx,my,mz = patch.ng
             maxm = max(mx,my,mz)
             

@@ -92,16 +92,16 @@ def contourLineSphere(fileName='fort.q0000',path='./_output'):
     patch.mapc2p = rh.mapc2p_sphere_vectorized  
 
 
-    # Compute the physical coordinates of each cell's center
+    # Compute the physical coordinates of each cell's centers
     # ======================================================
-    patch.compute_p_center(recompute=True)
-    xp = patch._p_center[0]
-    yp = patch._p_center[1]
-    zp = patch._p_center[2]
+    patch.compute_p_centers(recompute=True)
+    xp = patch._p_centers[0]
+    yp = patch._p_centers[1]
+    zp = patch._p_centers[2]
 
-    patch.compute_c_center(recompute=True)
-    xc = patch._c_center[0]
-    yc = patch._c_center[1]
+    patch.compute_c_centers(recompute=True)
+    xc = patch._c_centers[0]
+    yc = patch._c_centers[1]
     
     # Define arrays of conserved variables
     h = np.zeros((mx,my))

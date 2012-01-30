@@ -36,7 +36,7 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
     num_eqn = 1
     state = pyclaw.State(patch,num_eqn)
 
-    xc=patch.x.center
+    xc=patch.x.centers
     state.q[0,:] = np.sin(np.pi*2*xc) + 0.50
     state.problem_data['efix']=True
 

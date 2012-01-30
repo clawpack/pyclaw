@@ -45,7 +45,7 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     state.problem_data['zz']= zz
     state.problem_data['cc']=cc
 
-    Y,X = np.meshgrid(patch.y.center,patch.x.center)
+    Y,X = np.meshgrid(patch.y.centers,patch.x.centers)
     r = np.sqrt(X**2 + Y**2)
     width=0.2
     state.q[0,:,:] = (np.abs(r-0.5)<=width)*(1.+np.cos(np.pi*(r-0.5)/width))

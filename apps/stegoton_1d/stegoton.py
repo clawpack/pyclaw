@@ -3,7 +3,7 @@
 import numpy as np
 
 def qinit(state,ic=2,a2=1.0,xupper=600.):
-    x = state.patch.x.center
+    x = state.patch.x.centers
     
     if ic==1: #Zero ic
         state.q[:,:] = 0.
@@ -121,7 +121,7 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
     state.problem_data['trdone'] = False
 
     #Initialize q and aux
-    xc=patch.x.center
+    xc=patch.x.centers
     state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,solver.aux_bc_lower[0],xupper=xupper)
     qinit(state,ic=2,a2=1.0,xupper=xupper)
 

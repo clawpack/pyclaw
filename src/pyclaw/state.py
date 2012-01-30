@@ -181,31 +181,31 @@ class State(object):
         """
         
         patch = self.patch
-        if patch.ndim == 1:
+        if patch.num_dim == 1:
             self.q = qbc[:,num_ghost:-num_ghost]
-        elif patch.ndim == 2:
+        elif patch.num_dim == 2:
             self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
-        elif patch.ndim == 3:
+        elif patch.num_dim == 3:
             self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost]
         else:
-            raise Exception("Assumption (1 <= ndim <= 3) violated.")
+            raise Exception("Assumption (1 <= num_dim <= 3) violated.")
 
     def get_qbc_from_q(self,num_ghost,whichvec,qbc):
         """
         Fills in the interior of qbc (local vector) by copying q (global vector) to it.
         """
-        ndim = self.patch.ndim
+        num_dim = self.patch.num_dim
         
         if whichvec == 'q':
             q    = self.q
         elif whichvec == 'aux':
             q    = self.aux
 
-        if ndim == 1:
+        if num_dim == 1:
             qbc[:,num_ghost:-num_ghost] = q
-        elif ndim == 2:
+        elif num_dim == 2:
             qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost] = q
-        elif ndim == 3:
+        elif num_dim == 3:
             qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost] = q
 
         return qbc
@@ -237,7 +237,7 @@ class State(object):
     def new_array(self,dof):
         if dof==0: return None
         shape = [dof]
-        shape.extend(self.patch.n)
+        shape.extend(self.patch.num_cells)
         return np.empty(shape,order='F')
 
 
