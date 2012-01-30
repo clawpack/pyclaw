@@ -42,7 +42,13 @@ def shockbc(state,dim,t,qbc,num_ghost):
     """
     Incoming shock at left boundary.
     """
-    if dim.nstart == 0:
+    for (i,state_dim) in enumerate(state.patch.dimensions):
+        if state_dim.name == dim.name:
+            dim_index = i
+            break
+      
+    if (state.patch.dimensions[dim_index].lower == 
+                        state.grid.dimensions[dim_index].lower):
 
         pinf=5.
         rinf = (gamma1 + pinf*(gamma+1.))/ ((gamma+1.) + gamma1*pinf)

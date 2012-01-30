@@ -88,8 +88,8 @@ def b4step(solver,solution):
     # To set to 0 1st 1/2 of the domain. Used in rect domains with PBC in x
     if state.problem_data['turnZero_half_2D']==1:
         if state.t>=state.problem_data['t_turnZero'] and state.t<=state.problem_data['t_turnZero']+1:
-            if state.grid.x.nend <= np.floor(state.grid.x.n/2):
-                state.q[:,:,:]=0
+            Y,X = np.meshgrid(state.grid.y,state.grid.x)
+            state.q = state.q * (X<solution.domain.upper[0]/2)
 
 def compute_p(state):
     state.p[0,:,:]=np.exp(state.q[0,:,:]*state.aux[1,:,:])-1

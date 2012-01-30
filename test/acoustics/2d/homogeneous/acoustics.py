@@ -43,8 +43,8 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
 
     # Initialize domain
     mx=100; my=100
-    x = pyclaw.geometry.Dimension('x',-1.0,1.0,mx)
-    y = pyclaw.geometry.Dimension('y',-1.0,1.0,my)
+    x = pyclaw.Dimension('x',-1.0,1.0,mx)
+    y = pyclaw.Dimension('y',-1.0,1.0,my)
     domain = pyclaw.Domain([x,y])
     num_eqn = 3
     state = pyclaw.State(domain,num_eqn)
