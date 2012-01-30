@@ -8,19 +8,20 @@ import pyclaw.geometry
 
 class Patch(pyclaw.geometry.Patch):
     def __init__(self,dimensions):
-
+        
         super(Patch,self).__init__(dimensions)
 
         self._da = self._create_DA()
         ranges = self._da.getRanges()
-        dimensions = []
+        grid_dimensions = []
         for i,nrange in enumerate(ranges):
             lower = self.lower[i] + nrange[0]*self.delta[i]
-            upper = self.lower[i] + (nrange[1]+1)*self.delta[i]
+            upper = self.lower[i] + nrange[1]*self.delta[i]
             num_cells   = nrange[1]-nrange[0]
-            dimensions.append(pyclaw.geometry.Dimension(lower,upper,num_cells))
+            grid_dimensions.append(pyclaw.geometry.Dimension(lower,upper,
+                                        num_cells,name=dimensions[i].name))
 
-        self.grid = pyclaw.geometry.Grid(dimensions)
+        self.grid = pyclaw.geometry.Grid(grid_dimensions)
 
 
     def _create_DA(self):

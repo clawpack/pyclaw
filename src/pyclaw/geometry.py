@@ -366,15 +366,14 @@ class Grid(object):
         
         for gauge in gauge_coords: 
             # Determine gauge locations in units of mesh spacing
-            gauge_ind = [int(floor(gauge[n]/self.delta[n])) for n in xrange(self.num_dim)]
-            if all(self.nstart[n]<=gauge_ind[n]<self.nend[n] for n in range(self.num_dim)):
-                #Set indices relative to this grid
-                gauge_ind = [gauge_ind[n] - self.nstart[n] for n in range(self.num_dim)]
+            if all(self.lower[n]<=gauge[n]<self.upper[n] for n in range(self.num_dim)):
+                # Set indices relative to this grid
+                gauge_index = [int(floor(gauge[n]/self.delta[n])) for n in xrange(self.num_dim)]
                 gauge_path = self.gauge_path+'gauge'+'_'.join(str(coord) for coord in gauge)+'.txt'
-                # Is this a good idea???  It should depend on self.overwrite.
+
                 if os.path.isfile(gauge_path): 
                     os.remove(gauge_path)
-                self.gauges.append(list(gauge_ind))
+                self.gauges.append(gauge_index)
                 self.gauge_files.append(open(gauge_path,'a'))
 
    
