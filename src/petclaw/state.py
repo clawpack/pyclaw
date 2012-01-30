@@ -53,7 +53,7 @@ class State(pyclaw.state.State):
         setting q itself.
         """
         if self.q_da is None: return 0
-        shape = self.patch.ng
+        shape = self.grid.num_cells
         shape.insert(0,self.num_eqn)
         q=self.gqVec.getArray().reshape(shape, order = 'F')
         return q
@@ -69,7 +69,7 @@ class State(pyclaw.state.State):
         Array containing values of derived quantities for output.
         """
         if self._p_da is None: return 0
-        shape = self.patch.ng
+        shape = self.grid.num_cells
         shape.insert(0,self.mp)
         p=self.gpVec.getArray().reshape(shape, order = 'F')
         return p
@@ -86,7 +86,7 @@ class State(pyclaw.state.State):
         This is just used as temporary workspace before summing.
         """
         if self._F_da is None: return 0
-        shape = self.patch.ng
+        shape = self.grid.num_cells
         shape.insert(0,self.mF)
         F=self.gFVec.getArray().reshape(shape, order = 'F')
         return F
@@ -104,7 +104,7 @@ class State(pyclaw.state.State):
         the aux values to file; everywhere else we use the local vector.
         """
         if self.aux_da is None: return None
-        shape = self.patch.ng
+        shape = self.grid.num_cells
         shape.insert(0,self.num_aux)
         aux=self.gauxVec.getArray().reshape(shape, order = 'F')
         return aux
@@ -130,9 +130,9 @@ class State(pyclaw.state.State):
         patch - The patch this state lives on
         """
         import petclaw.geometry
-        if isinstance(geom,pyclaw.geometry.Patch):
+        if isinstance(geom,petclaw.geometry.Patch):
             self.patch = geom
-        elif isinstance(geom,pyclaw.geometry.Domain):
+        elif isinstance(geom,petclaw.geometry.Domain):
             self.patch = geom.patches[0]
         else:
             raise Exception("""A PetClaw State object must be initialized with
@@ -174,21 +174,11 @@ class State(pyclaw.state.State):
         r"""
         Initializes PETSc DA and Vecs for handling the solution, q. 
         
-        Initializes q_da, gqVec and lqVec,
-        and also sets up nstart, nend, and num_ghost for the dimensions.
+        Initializes q_da, gqVec and lqVec.
         """
         self.q_da = self._create_DA(num_eqn,num_ghost)
         self.gqVec = self.q_da.createGlobalVector()
         self.lqVec = self.q_da.createLocalVector()
-
-        #DELETE THIS BEFORE PUSHING
-        #Now set the local indices for the Dimension objects:
-        #ranges = self.q_da.getRanges()
-        #for i,nrange in enumerate(ranges):
-        #    self.grid.dim.nstart = nrange[0]
-        #    self.grid.dim.nend   = nrange[1]
-        #    self.grid.dim.num_cells   = nrange[1]-nrange[0]+1
-        #    self.grid.lower = self.patch.dim.lower + self.patch.dim.nstart*self.patch.dim.delta
 
     def _create_DA(self,dof,num_ghost=0):
         r"""Returns a PETSc DA and associated global Vec.
@@ -250,7 +240,7 @@ class State(pyclaw.state.State):
         Returns q with ghost cells attached.  For PetSolver,
         this means returning the local vector.  
         """
-        shape = [n + 2*num_ghost for n in self.patch.ng]
+        shape = [n + 2*num_ghost for n in self.grid.num_cells]
         
         if whichvec == 'q':
             self.q_da.globalToLocal(self.gqVec, self.lqVec)

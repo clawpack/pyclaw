@@ -267,11 +267,11 @@ class Solver(object):
         This is typically called by solver.setup().
         """
         import numpy as np
-        qbc_dim = [n+2*self.num_ghost for n in state.patch.ng]
+        qbc_dim = [n+2*self.num_ghost for n in state.grid.num_cells]
         qbc_dim.insert(0,state.num_eqn)
         self.qbc = np.zeros(qbc_dim,order='F')
 
-        auxbc_dim = [n+2*self.num_ghost for n in state.patch.ng]
+        auxbc_dim = [n+2*self.num_ghost for n in state.grid.num_cells]
         auxbc_dim.insert(0,state.num_aux)
         self.auxbc = np.empty(auxbc_dim,order='F')
         if state.num_aux>0:
@@ -295,9 +295,9 @@ class Solver(object):
             component of q represents velocity or momentum.
     
         :Input:
-         -  *patch* - (:class:`Patch`) The patch being operated on.
+         -  *grid* - (:class:`Patch`) The grid being operated on.
          -  *state* - The state being operated on; this may or may not be the
-                      same as *patch*.  Generally it is the same as *patch* for
+                      same as *grid*.  Generally it is the same as *grid* for
                       the classic algorithms and other one-level algorithms, 
                       but different for method-of-lines algorithms like SharpClaw.
 
@@ -314,31 +314,31 @@ class Solver(object):
         import numpy as np
 
         self.qbc = state.get_qbc_from_q(self.num_ghost,'q',self.qbc)
-        patch = state.patch
+        grid = state.grid
        
-        for idim,dim in enumerate(patch.dimensions):
+        for idim,dim in enumerate(grid.dimensions):
             # First check if we are actually on the boundary
             # (in case of a parallel run)
-            if dim.nstart == 0:
+            if state.grid.lower[idim] == state.patch.lower[idim]:
                 # If a user defined boundary condition is being used, send it on,
                 # otherwise roll the axis to front position and operate on it
                 if self.bc_lower[idim] == BC.custom:
                     self.qbc_lower(state,dim,state.t,self.qbc,idim)
                 elif self.bc_lower[idim] == BC.periodic:
-                    if dim.nend == dim.num_cells:
-                        # This process owns the whole patch
+                    if state.grid.upper[idim] == state.patch.upper[idim]:
+                        # This process owns the whole domain
                         self.qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
                 else:
                     self.qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
 
-            if dim.nend == dim.num_cells :
+            if state.grid.upper[idim] == state.patch.upper[idim]:
                 if self.bc_upper[idim] == BC.custom:
                     self.qbc_upper(state,dim,state.t,self.qbc,idim)
                 elif self.bc_upper[idim] == BC.periodic:
-                    if dim.nstart == 0:
-                        # This process owns the whole patch
+                    if state.grid.lower[idim] == state.patch.lower[idim]:
+                        # This process owns the whole domain
                         self.qbc_upper(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
@@ -459,13 +459,13 @@ class Solver(object):
         for idim,dim in enumerate(patch.dimensions):
             # First check if we are actually on the boundary
             # (in case of a parallel run)
-            if dim.nstart == 0:
+            if state.grid.lower[idim] == state.patch.lower[idim]:
                 # If a user defined boundary condition is being used, send it on,
                 # otherwise roll the axis to front position and operate on it
                 if self.aux_bc_lower[idim] == BC.custom:
                     self.auxbc_lower(state,dim,state.t,self.auxbc,idim)
                 elif self.aux_bc_lower[idim] == BC.periodic:
-                    if dim.nend == dim.num_cells:
+                    if state.grid.upper[idim] == state.patch.upper[idim]:
                         # This process owns the whole patch
                         self.auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
                     else:
@@ -473,11 +473,11 @@ class Solver(object):
                 else:
                     self.auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
 
-            if dim.nend == dim.num_cells:
+            if state.grid.upper[idim] == state.patch.upper[idim]:
                 if self.aux_bc_upper[idim] == BC.custom:
                     self.auxbc_upper(state,dim,state.t,self.auxbc,idim)
                 elif self.aux_bc_upper[idim] == BC.periodic:
-                    if dim.nstart == 0:
+                    if state.grid.lower[idim] == state.patch.lower[idim]:
                         # This process owns the whole patch
                         self.auxbc_upper(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
                     else:
