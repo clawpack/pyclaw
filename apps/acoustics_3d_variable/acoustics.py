@@ -86,11 +86,11 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     else:
         pinitial=claw.frames[0].state.q[0,:,:,mz/2]
         pfinal=claw.frames[10].state.q[0,:,:,mz/2]
-    import matplotlib.pyplot as plt
-    for i in range(claw.num_output_times):
-        plt.pcolor(claw.frames[i].state.q[0,:,:,mz/2])
-        plt.figure()
-    plt.show()
+    #import matplotlib.pyplot as plt
+    #for i in range(claw.num_output_times):
+    #    plt.pcolor(claw.frames[i].state.q[0,:,:,mz/2])
+    #    plt.figure()
+    #plt.show()
 
     if use_petsc:
         pinitial=claw.frames[0].state.gqVec.getArray().reshape([state.num_eqn,grid.num_cells[0],grid.num_cells[1],grid.num_cells[2]],order='F')[0,:,:,:].reshape(-1)

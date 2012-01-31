@@ -79,7 +79,7 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     claw = pyclaw.Controller()
     claw.keep_copy = True
     claw.tfinal = 2.0
-    claw.solution = pyclaw.Solution(state)
+    claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
 
@@ -92,8 +92,8 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     #===========================================================================
     # Plot results
     #===========================================================================
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,format=claw.output_format)
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,format=claw.output_format)
+    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,file_format=claw.output_format)
+    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,file_format=claw.output_format)
 
 
 if __name__=="__main__":

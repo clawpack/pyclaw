@@ -208,7 +208,7 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
         #Initial condition
         qinit(state,A,x0,y0,varx,vary)
 
-        claw.solution = pyclaw.Solution(state)
+        claw.solution = pyclaw.Solution(state,domain)
         claw.num_output_times = num_output_times
 
     #claw.p_function = p_function

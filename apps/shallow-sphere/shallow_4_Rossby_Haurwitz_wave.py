@@ -495,7 +495,7 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     claw.output_style = 1
     claw.num_output_times = 10
     claw.tfinal = 10
-    claw.solution = pyclaw.Solution(state)
+    claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
 
