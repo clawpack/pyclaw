@@ -93,21 +93,20 @@ Initial condition
 =================
 Now we will set the initial value of the solution::
 
-    >>> xc = grid.x.center
+    >>> xc = domain.grid.x.centers
     >>> from numpy import exp
     >>> state.q[0,:] = exp(-100 * (xc-0.75)**2)
     >>> state.q[1,:] = 0.
 
-The pressure (`state.q[0,:]`) is set to a Gaussian centered at :math:`x=0.75`.
-The velocity (`state.q[1,:]`) is set to zero everywhere.
+The pressure (``state.q[0,:]``) is set to a Gaussian centered at :math:`x=0.75`.
+The velocity (``state.q[1,:]``) is set to zero everywhere.
 
 Finally, we put the state into a Solution object::
 
     >>> solution = pyclaw.Solution(state,domain)
 
-
 Problem-specific parameters
-============================
+===========================
 The acoustics equations above have some coefficients -- namely, the
 bulk modulus :math:`K` and density :math:`\rho` -- that must be defined.
 Furthermore, checking the code for the Riemann solver we've chosen

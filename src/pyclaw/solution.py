@@ -49,25 +49,24 @@ class Solution(object):
         State Attributes:
             't','num_eqn','q','aux','capa','problem_data'
             
+            
     :Initialization:
         
-        The initialization of a Solution can happen on of these ways
-            1. args is empty and an empty Solution is created
-            2. args is a single State or list of States
-            2. args is a single Patch or list of Patchs
-            3. args is a single Dimension or list of Dimensions
-            4. args is a variable number of arguments that describes the 
-               location of a file to be read in to initialize the object
+        The initialization of a Solution can happen one of these ways
         
-        Input:
-            - if args == () -> Empty Solution object
-            - if args == States -> States are appended to states list
-            - if args == Patchs -> States are initialized with these Patchs 
-              and appended to states list
-            - if args == Dimensions -> A single Patch with the given
-              Dimensions is created, a state is initalized with this Patch
-              and appended to the states list
-            - if args == frame, format='ascii',path='./',file_prefix='fort'
+            1. `args` is empty and an empty Solution is created
+            2. `args` is a single State or list of States and is followed
+               by the appropriate :ref:`geometry <pyclaw_geometry>` object
+               which can be one of:
+                
+                 - (:class:`~pyclaw.geometry.Domain`)
+                 - (:class:`~pyclaw.geometry.Patch`) - A domain is created
+                   with the patch or list of patches provided.
+                 - (:class:`~pyclaw.geometry.Dimension`) - A domain and 
+                   patch is created with the dimensions or list of 
+                   dimensions provided.
+            3. `args` is a variable number of arguments that describes the 
+               location of a file to be read in to initialize the object
     
     :Examples:
 
@@ -186,7 +185,14 @@ class Solution(object):
                 if isinstance(arg[1],Domain):
                     self.domain = arg[1]
                 else:
-                    self.domain = Domain(arg[1])
+                    if not isinstance(arg[1],list):
+                        arg[1] = list(arg[1])
+                    if isinstance(arg[1][0],Dimension):
+                        self.domain = Domain(Patch(arg[1]))
+                    elif isinstance(arg[1][0],Patch):
+                        self.domain = Domain(arg[1])
+                    else:
+                        raise Exception("Invalid argument list")
 
             if self.states == [] or self.domain is None:
                 raise Exception("Invalid argument list")

@@ -1,21 +1,45 @@
 .. _pyclaw_solution:
 
 ****************
-Pyclaw Solutions
+PyClaw Solutions
 ****************
 
-Pyclaw Solutions are containers for Grid and State objects:
+PyClaw :class:`~pyclaw.solution.Solution` objects are containers for 
+:class:`~pyclaw.state.State` and :class:`~pyclaw.geometry.Domain` objects
+that define an entire solution.
+The :class:`~pyclaw.state.State` class is responsible for containing all 
+the data of the solution on the given :class:`~pyclaw.geometry.Domain`.
+The :class:`~pyclaw.geometry.Domain` is responsible for containing
+the geometry of the :class:`~pyclaw.solution.Solution`.  The structure of a 
+solution may look something like the :ref:`figure <pyclaw_solution_structure>`.
 
-.. image:: images/pyclaw_solution_structure.pdf
+.. _pyclaw_solution_structure:
 
-Each solution contains a list of Grids which in turn contain a list of 
-Dimensions, each containing higher level attributes.
+.. figure:: images/pyclaw_solution_structure.pdf
+   :align: center
+   
+   Pyclaw solution structure including a :class:`~pyclaw.geometry.Domain`,
+   a set of :class:`~pyclaw.geometry.Patch` objects and corresponding 
+   :class:`~pyclaw.geometry.Dimension` objects defining the solution's
+   geometry and three :class:`~pyclaw.state.State` objects pointing to 
+   the appropriate :class:`~pyclaw.geometry.Patch` with varying fields.
+    
 
-List of classes:
- - Solution_
- - State_
- - Grid_
- - Dimension_
+List of serial and parallel objects in a :class:`~pyclaw.solution.Solution` class:
+
++------------------------------------+-------------------------------------+
+| Serial                             | Parallel                            |
++====================================+=====================================+
+| :class:`pyclaw.state.State`        | :class:`petclaw.state.State`        |
++------------------------------------+-------------------------------------+
+| :class:`pyclaw.geometry.Domain`    | :class:`petclaw.geometry.Domain`    |
++------------------------------------+-------------------------------------+
+| :class:`pyclaw.geometry.Patch`     | :class:`petclaw.geometry.Patch`     |
++------------------------------------+-------------------------------------+
+| :class:`pyclaw.geometry.Grid`      |                                     |
++------------------------------------+-------------------------------------+
+| :class:`pyclaw.geometry.Dimension` |                                     |
++------------------------------------+-------------------------------------+
 
 .. _Solution:
 
@@ -23,30 +47,5 @@ List of classes:
 =================================
 
 .. autoclass:: pyclaw.solution.Solution
-   :members:
-   :member-order: groupwise
-
-.. _Grid:
-
-:class:`pyclaw.state.State`
-=============================
-   
-.. autoclass:: pyclaw.state.State
-   :members:
-   :member-order: groupwise
-
-:class:`pyclaw.grid.Grid`
-=============================
-   
-.. autoclass:: pyclaw.grid.Grid
-   :members:
-   :member-order: groupwise
-
-.. _Dimension:
-
-:class:`pyclaw.grid.Dimension`
-==================================
-
-.. autoclass:: pyclaw.grid.Dimension
    :members:
    :member-order: groupwise
