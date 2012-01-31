@@ -3,7 +3,7 @@
 import numpy as np
 
 def qinit(state,ic=2,a2=1.0,xupper=600.):
-    x = state.patch.x.centers
+    x = state.grid.x.centers
     
     if ic==1: #Zero ic
         state.q[:,:] = 0.
@@ -43,13 +43,13 @@ def b4step(solver,solution):
         solver.bc_upper[0]=2
 
 
-def zero_bc(patch,dim,t,qbc,num_ghost):
+def zero_bc(grid,dim,t,qbc,num_ghost):
     """Set everything to zero"""
     print 'hello'
     if dim.nend==dim.n:
         qbc[:,-num_ghost:]=0.
 
-def moving_wall_bc(patch,dim,t,qbc,num_ghost):
+def moving_wall_bc(grid,dim,t,qbc,num_ghost):
     """Initial pulse generated at left boundary by prescribed motion"""
     if dim.bc_lower==0:
         if dim.nstart==0:
@@ -98,9 +98,9 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
     xlower=0.0; xupper=600.0
     cellsperlayer=6; mx=int(round(xupper-xlower))*cellsperlayer
     x = pyclaw.Dimension('x',xlower,xupper,mx)
-    patch = pyclaw.Patch(x)
+    domain = pyclaw.Domain(x)
     num_eqn = 2
-    state = pyclaw.State(patch,num_eqn)
+    state = pyclaw.State(domain,num_eqn)
 
     #Set global parameters
     alpha = 0.5
@@ -121,7 +121,7 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
     state.problem_data['trdone'] = False
 
     #Initialize q and aux
-    xc=patch.x.centers
+    xc=state.grid.x.centers
     state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,solver.aux_bc_lower[0],xupper=xupper)
     qinit(state,ic=2,a2=1.0,xupper=xupper)
 
@@ -143,7 +143,7 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
     claw.output_style = 1
     claw.num_output_times = num_output_times
     claw.tfinal = tfinal
-    claw.solution = pyclaw.Solution(state)
+    claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
 
 
@@ -164,7 +164,7 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
             patch.x.bc_upper=2
             state.t = 0.0
             qinit(state,ic=2,a2=a2)
-            init_solution = Solution(state)
+            init_solution = Solution(state,domain)
             claw.solution = init_solution
             claw.solution.t = 0.0
 

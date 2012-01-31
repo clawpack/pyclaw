@@ -19,7 +19,7 @@ sharpness=10
 
 def qinit(state,A,x0,y0,varx,vary):
     r""" Set initial conditions for q."""
-    x =state.patch.x.centers; y =state.patch.y.centers
+    x =state.grid.x.centers; y =state.grid.y.centers
     # Create meshgrid
     [yy,xx]=np.meshgrid(y,x)
     s=A*np.exp(-(xx-x0)**2/(2*varx)-(yy-y0)**2/(2*vary)) #sigma(@t=0)
@@ -31,12 +31,12 @@ def qinit(state,A,x0,y0,varx,vary):
     state.q[1,:,:]=0; state.q[2,:,:]=0
 
 def setaux(x,y):
-    r"""Creates a matrix representing every patch cell in the domain, 
+    r"""Creates a matrix representing every grid cell in the domain, 
     whose size is len(x),len(y)
     Each entry of the matrix contains a vector of size 3 with:
     The material density p
     The young modulus E
-    A flag indicating which material the patch is made of.
+    A flag indicating which material the grid is made of.
     The domain pattern is a checkerboard."""
 
     aux = np.empty((4,len(x),len(y)), order='F')
@@ -88,8 +88,8 @@ def b4step(solver,solution):
     # To set to 0 1st 1/2 of the domain. Used in rect domains with PBC in x
     if state.problem_data['turnZero_half_2D']==1:
         if state.t>=state.problem_data['t_turnZero'] and state.t<=state.problem_data['t_turnZero']+1:
-            if state.patch.x.nend <= np.floor(state.patch.x.n/2):
-                state.q[:,:,:]=0
+            Y,X = np.meshgrid(state.grid.y,state.grid.x)
+            state.q = state.q * (X<solution.domain.upper[0]/2)
 
 def compute_p(state):
     state.p[0,:,:]=np.exp(state.q[0,:,:]*state.aux[1,:,:])-1
@@ -107,7 +107,7 @@ def compute_F(state):
     sigma = np.exp(E*eps) - 1.
     sigint = (sigma-np.log(sigma+1.))/E
 
-    dx=state.patch.d[0]; dy=state.patch.d[1]
+    dx=state.grid.delta[0]; dy=state.grid.delta[1]
     
     state.F[0,:,:] = (sigint+nrg)*dx*dy 
     state.F[1,:,:] = 10*state.F[0,:,:]
@@ -132,7 +132,7 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
     # Domain
     x_lower=0.25; x_upper=20.25
     y_lower=0.25; y_upper=20.25
-    # Patch cells per layer
+    # cells per layer
     Ng=10
     mx=(x_upper-x_lower)*Ng; my=(y_upper-y_lower)*Ng
     # Initial condition parameters
@@ -180,21 +180,21 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
     if restart_from_frame is not None:
         claw.solution = pyclaw.Solution(restart_from_frame, format='petsc',read_aux=False)
         claw.solution.state.mp = 1
-        patch = claw.solution.patch
-        claw.solution.state.aux = setaux(patch.x.centers,patch.y.centers)
+        grid = claw.solution.domain.grid
+        claw.solution.state.aux = setaux(grid.x.centers,grid.y.centers)
         claw.num_output_times = num_output_times - restart_from_frame
         claw.start_frame = restart_from_frame
     else:
         ####################################
         ####################################
         ####################################
-        #Creation of patch
+        #Creation of Domain
         x = pyclaw.Dimension('x',x_lower,x_upper,mx)
         y = pyclaw.Dimension('y',y_lower,y_upper,my)
-        patch = pyclaw.Patch([x,y])
+        domain = pyclaw.Domain([x,y])
         num_eqn = 3
         num_aux = 4
-        state = pyclaw.State(patch,num_eqn,num_aux)
+        state = pyclaw.State(domain,num_eqn,num_aux)
         state.mF = 3
         state.t=t0
         #Set global parameters
@@ -203,7 +203,8 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
         state.problem_data['t_turnZero'] = t_turnZero
         state.mp = 1
 
-        state.aux = setaux(patch.x.centers,patch.y.centers)
+        grid = state.grid
+        state.aux = setaux(grid.x.centers,grid.y.centers)
         #Initial condition
         qinit(state,A,x0,y0,varx,vary)
 
@@ -212,14 +213,14 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
 
     #claw.p_function = p_function
     claw.compute_F = compute_F
-    patch.add_gauges([[0.25,0.25],[0.75,0.25],[0.25,0.75],[0.75,0.75]])
+    grid.add_gauges([[0.25,0.25],[0.75,0.25],[0.25,0.75],[0.75,0.75]])
     solver.compute_gauge_values = gauge_pfunction
     claw.write_aux_init = False
 
     #Solve
     status = claw.run()
     
-    #strain=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([patch.ng[0],patch.ng[1],num_eqn])[:,:,0]
+    #strain=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([grid.num_cells[0],grid.num_cells[1],num_eqn])[:,:,0]
     #return strain
 
     if iplot:    pyclaw.plot.interactive_plot()
