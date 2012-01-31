@@ -196,6 +196,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     else:
         raise IOError('format type %s not supported' % options['format'])
 
+    patches = []
     for m in xrange(nstates):
         patch_dict = pickle.load(pickle_file)
 
@@ -227,6 +228,8 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
             state.gauxVec.load(aux_viewer)
         
         solution.states.append(state)
+        patches.append(state.patch)
+    solution.domain = petclaw.geometry.Domain(patches)
 
     pickle_file.close()
     viewer.destroy()

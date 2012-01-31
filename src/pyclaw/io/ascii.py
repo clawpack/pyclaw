@@ -196,6 +196,8 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
 
     # Read in values from fort.t file:
     [t,num_eqn,nstates,num_aux,num_dim] = read_ascii_t(frame,path,file_prefix)
+
+    patches = []
     
     # Read in values from fort.q file:
     try:
@@ -229,7 +231,6 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 dimensions.append(
                     pyclaw.geometry.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
             patch = pyclaw.geometry.Patch(dimensions)
-            domain = pyclaw.geometry.Domain(patch)
             state= pyclaw.state.State(patch,num_eqn,num_aux)
             state.t = t
 
@@ -284,7 +285,8 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
 
             # Add new patch to solution
             solution.states.append(state)
-            solution.domain=domain
+            patches.append(state.patch)
+        solution.domain = pyclaw.geometry.Domain(patches)
             
     except(IOError):
         raise
