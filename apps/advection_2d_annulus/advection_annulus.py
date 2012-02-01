@@ -9,7 +9,7 @@ from petsc4py import PETSc
 import petclaw
 
 
-def mapc2p_annulus(patch,mC):
+def mapc2p_annulus(grid,mC):
     """
     Specifies the mapping to curvilinear coordinates.
 
@@ -55,11 +55,11 @@ def qinit(state,mx,my):
     y2    = 0.    # y-coordinate of the centers
 
     
-    # Compute location of all patch cell centers coordinates and store them
-    state.patch.compute_p_centers(recompute=True)
+    # Compute location of all grid cell centers coordinates and store them
+    state.grid.compute_p_centers(recompute=True)
 
-    xp = state.patch.p_centers[0]
-    yp = state.patch.p_centers[1]
+    xp = state.grid.p_centers[0]
+    yp = state.grid.p_centers[1]
     state.q[0,:,:] = A1*np.exp(-beta1*(np.square(xp-x1) + np.square(yp-y1)))\
                    + A2*np.exp(-beta2*(np.square(xp-x2) + np.square(yp-y2)))
 
@@ -67,18 +67,18 @@ def qinit(state,mx,my):
 def setaux(state,mx,my):
     """ 
     Set auxiliary array
-    aux[0,i,j] is edges velocity at "left" boundary of patch point (i,j)
-    aux[1,i,j] is edges velocity at "bottom" boundary of patch point (i,j)
+    aux[0,i,j] is edges velocity at "left" boundary of grid point (i,j)
+    aux[1,i,j] is edges velocity at "bottom" boundary of grid point (i,j)
     aux[2,i,j] = kappa  is ratio of cell area to (dxc * dyc)
     """    
     
-    # Compute location of all patch cell corner coordinates and store them
-    state.patch.compute_p_edges(recompute=True)
+    # Compute location of all grid cell corner coordinates and store them
+    state.grid.compute_p_edges(recompute=True)
 
-    # Get patch spacing
-    dxc = state.patch.d[0]
-    dyc = state.patch.d[1]
-    pcorners = state.patch.p_edges
+    # Get grid spacing
+    dxc = state.grid.delta[0]
+    dyc = state.grid.delta[1]
+    pcorners = state.grid.p_edges
 
     aux = velocities_capa(pcorners[0],pcorners[1],dxc,dyc)
     return aux
@@ -90,15 +90,15 @@ def velocities_upper(state,dim,t,auxbc,num_ghost):
     """
     from mapc2p import mapc2p
 
-    patch=state.patch
-    mx = patch.ng[0]
-    my = patch.ng[1]
-    dxc = patch.d[0]
-    dyc = patch.d[1]
+    grid=state.grid
+    mx = grid.num_cells[0]
+    my = grid.num_cells[1]
+    dxc = grid.delta[0]
+    dyc = grid.delta[1]
 
-    if dim == patch.dimensions[0]:
-        xc1d = patch.lower[0]+dxc*(np.arange(mx+num_ghost,mx+2*num_ghost+1)-num_ghost)
-        yc1d = patch.lower[1]+dyc*(np.arange(my+2*num_ghost+1)-num_ghost)
+    if dim == grid.dimensions[0]:
+        xc1d = grid.lower[0]+dxc*(np.arange(mx+num_ghost,mx+2*num_ghost+1)-num_ghost)
+        yc1d = grid.lower[1]+dyc*(np.arange(my+2*num_ghost+1)-num_ghost)
         yc,xc = np.meshgrid(yc1d,xc1d)
 
         xp,yp = mapc2p(xc,yc)
@@ -115,14 +115,14 @@ def velocities_lower(state,dim,t,auxbc,num_ghost):
     """
     from mapc2p import mapc2p
 
-    patch=state.patch
-    my = patch.ng[1]
-    dxc = patch.d[0]
-    dyc = patch.d[1]
+    grid=state.grid
+    my = grid.num_cells[1]
+    dxc = grid.delta[0]
+    dyc = grid.delta[1]
 
-    if dim == patch.dimensions[0]:
-        xc1d = patch.lower[0]+dxc*(np.arange(num_ghost+1)-num_ghost)
-        yc1d = patch.lower[1]+dyc*(np.arange(my+2*num_ghost+1)-num_ghost)
+    if dim == grid.dimensions[0]:
+        xc1d = grid.lower[0]+dxc*(np.arange(num_ghost+1)-num_ghost)
+        yc1d = grid.lower[1]+dyc*(np.arange(my+2*num_ghost+1)-num_ghost)
         yc,xc = np.meshgrid(yc1d,xc1d)
 
         xp,yp = mapc2p(xc,yc)
@@ -224,10 +224,10 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     solver.limiters = pyclaw.limiters.tvd.vanleer
 
     #===========================================================================
-    # Initialize patch and state, then initialize the solution associated to the 
+    # Initialize domain and state, then initialize the solution associated to the 
     # state and finally initialize aux array
     #===========================================================================
-    # Patch:
+    # Domain:
     xlower = 0.2
     xupper = 1.0
     mx = 40
@@ -238,12 +238,12 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
-    patch = pyclaw.Patch([x,y])
-    patch.mapc2p = mapc2p_annulus # Override default_mapc2p function implemented in patch.py
+    domain = pyclaw.Domain([x,y])
+    domain.grid.mapc2p = mapc2p_annulus # Override default_mapc2p function implemented in geometry.py
 
     # State:
     num_eqn = 1  # Number of equations
-    state = pyclaw.State(patch,num_eqn)
+    state = pyclaw.State(domain,num_eqn)
 
     
     # Set initial solution
@@ -264,7 +264,7 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     claw.output_style = 1
     claw.num_output_times = 10
     claw.tfinal = 1.0
-    claw.solution = pyclaw.Solution(state)
+    claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
 

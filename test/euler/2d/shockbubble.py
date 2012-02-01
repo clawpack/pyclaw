@@ -111,8 +111,6 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     else:
         import pyclaw
 
-    from pyclaw import ClawSolver2D 
-
 
     # Initialize domain
     mx=160; my=40
@@ -132,7 +130,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     auxinit(state)
     initial_solution = pyclaw.Solution(state,domain)
 
-    solver = ClawSolver2D()
+    solver = pyclaw.ClawSolver2D()
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
     solver.num_waves = 5
@@ -162,8 +160,8 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     # Solve
     status = claw.run()
 
-    if htmlplot:  pyclaw.plot.html_plot(format=claw.output_format)
-    if iplot:     pyclaw.plot.interactive_plot(format=claw.output_format)
+    if htmlplot:  pyclaw.plot.html_plot(file_format=claw.output_format)
+    if iplot:     pyclaw.plot.interactive_plot(file_format=claw.output_format)
 
     if use_petsc:
         grid = claw.solution.domain.grid

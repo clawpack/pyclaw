@@ -271,7 +271,7 @@ def test_2D_acoustics_1a_parallel():
         import numpy
         test_x = sol.q[0,:,:]
         verify_x=numpy.loadtxt('test/acoustics2D_solution')
-        return (numpy.linalg.norm(test_x-verify_x)<1.e-14)
+        return (numpy.linalg.norm(test_x-verify_x)<1.e-5)
 
     method_options = {'use_petsc' : True, 'solver_type' : 'classic', 'np':6, 'num_output_times':10}
     yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_classic, method_options)
