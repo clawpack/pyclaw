@@ -73,9 +73,9 @@ class SolverTestCase(unittest.TestCase):
         
         """
         if index is None:
-            index = range(solution.grids[0].q.shape[0])
-        return np.linalg.norm(solution.grids[0].q[index,...] 
-                    - true_solution.grids[0].q[index,...])
+            index = range(solution.patchs[0].q.shape[0])
+        return np.linalg.norm(solution.patchs[0].q[index,...] 
+                    - true_solution.patchs[0].q[index,...])
         
     def plot_solution(self,solution,markers=['k','xb','xg','xr','xc','xm'],
                             output=None,path="./",prefix="test",format="png"):
@@ -84,15 +84,15 @@ class SolverTestCase(unittest.TestCase):
         import matplotlib.pyplot as plt
         
         plt.clf()
-        for m in solution.grids[0].q.shape[0]:
+        for m in solution.patchs[0].q.shape[0]:
             plt.figure(m)
             plt.hold(True)
-            plt.plot(solution.grids[0].dimensions[0].center,
-                     solution.grids[0].q[m,:],'%s%s' % markers[m])
+            plt.plot(solution.patchs[0].dimensions[0].centers,
+                     solution.patchs[0].q[m,:],'%s%s' % markers[m])
         if output == None:
             plt.show()
         else:
-            for m in solution.grids[0].q.shape[0]:
+            for m in solution.patchs[0].q.shape[0]:
                 plt.figure(m)
                 name = '%s%s.%s' % (prefix,str(m).zfill(4),format)
                 plt.savefig(os.path.join(path,name))
@@ -133,22 +133,22 @@ class AdvectionTest(SolverTestCase):
     
             # Create empty solution
             x = pyclaw.solution.Dimension('x',0.0,1.0,100,bc_lower=2,bc_upper=2)
-            grid = pyclaw.solution.Grid(x)
-            grid.empty_q()
-            grid.num_eqn = 1
-            grid.problem_data['u'] = u
-            grid.t = t
+            patch = pyclaw.solution.Patch(x)
+            patch.empty_q()
+            patch.num_eqn = 1
+            patch.problem_data['u'] = u
+            patch.t = t
     
             # Gaussian
-            qg = (np.exp(-beta * ((x.center-u*grid.t)-x0)**2) 
-                            * np.cos(gamma * ((x.center-u*grid.t) - x0)))
+            qg = (np.exp(-beta * ((x.centers-u*patch.t)-x0)**2) 
+                            * np.cos(gamma * ((x.centers-u*patch.t) - x0)))
 
             # Step Function
-            qs = ((x.center-u*grid.t) > x1)*1.0 - ((x.center-u*grid.t) > x2)*1.0
+            qs = ((x.centers-u*patch.t) > x1)*1.0 - ((x.centers-u*patch.t) > x2)*1.0
     
-            grid.q[0,:] = qg + qs
+            patch.q[0,:] = qg + qs
             
-            sol = pyclaw.solution.Solution(grid)
+            sol = pyclaw.solution.Solution(patch)
         else:
             fname = os.path.join(_DATA_PATH,'advection_test')
             sol = pyclaw.solution.Solution(0,path=fname)
@@ -204,31 +204,31 @@ class AcousticsTest(SolverTestCase):
     
     def true_solution(self,t):
 
-        # Initialize Grid
+        # Initialize Patch
         x = pyclaw.solution.Dimension('x',-1.0,1.0,100)
-        grid = pyclaw.solution.Grid([x])
-        grid.num_eqn = 2
-        grid.t = t
-        grid.num_ghost = 2
-        grid.bc_lower = 2
-        grid.bc_upper = 2
+        patch = pyclaw.solution.Patch([x])
+        patch.num_eqn = 2
+        patch.t = t
+        patch.num_ghost = 2
+        patch.bc_lower = 2
+        patch.bc_upper = 2
         
         # Problem parameters
         beta = 100.0
         gamma = 0.0
         x0 = 0.3
-        grid.problem_data['rho'] = 1.0
-        grid.problem_data['K'] =  4.0
-        grid.problem_data['cc'] = np.sqrt(grid.problem_data['K'] 
-            / grid.problem_data['rho'])
-        grid.problem_data['zz'] = grid.problem_data['cc'] * grid.problem_data['rho']
+        patch.problem_data['rho'] = 1.0
+        patch.problem_data['K'] =  4.0
+        patch.problem_data['cc'] = np.sqrt(patch.problem_data['K'] 
+            / patch.problem_data['rho'])
+        patch.problem_data['zz'] = patch.problem_data['cc'] * patch.problem_data['rho']
 
         # Initial Condition
-        grid.zeros_q()
-        grid.q[0,:] = np.exp(-beta * (x.center - x0)**2) \
-            * np.cos(gamma * (x.center - x0)**2)
+        patch.zeros_q()
+        patch.q[0,:] = np.exp(-beta * (x.centers - x0)**2) \
+            * np.cos(gamma * (x.centers - x0)**2)
 
-        return pyclaw.solution.Solution(grid)
+        return pyclaw.solution.Solution(patch)
 
 # This test does not work yet as teh true solution for time other than 0.0        
 class BurgersTest(SolverTestCase):
@@ -256,27 +256,27 @@ class BurgersTest(SolverTestCase):
         x2 = 0.8
         efix = False
     
-        # Create empty grid
+        # Create empty patch
         x = pyclaw.solution.Dimension('x',0.0,1.0,100)
-        grid = pyclaw.solution.Grid(x)
-        grid.t = t
-        grid.problem_data['efix'] = efix
-        grid.empty_q()
+        patch = pyclaw.solution.Patch(x)
+        patch.t = t
+        patch.problem_data['efix'] = efix
+        patch.empty_q()
     
         # Gaussian
-        qg = np.exp(-beta * (x.center-x0)**2) * np.cos(gamma * (x.center - x0))
+        qg = np.exp(-beta * (x.centers-x0)**2) * np.cos(gamma * (x.centers - x0))
 
         # Step Function
-        qs = (x.center > x1) * 1.0 - (x.center > x2) * 1.0
+        qs = (x.centers > x1) * 1.0 - (x.centers > x2) * 1.0
     
         if ic == 1:
-            grid.q[0,:] = qg
+            patch.q[0,:] = qg
         elif ic == 2:
-            grid.q[0,:] = qs
+            patch.q[0,:] = qs
         elif ic == 3:
-            grid.q[0,:] = qg + qs
+            patch.q[0,:] = qg + qs
         
-        return pyclaw.solution.Solution(grid)
+        return pyclaw.solution.Solution(patch)
         
         
 # This test does not work yet as teh true solution for time other than 0.0
@@ -307,23 +307,23 @@ class EulerTest(SolverTestCase):
         gamma1 = gamma - 1.0
         efix = False
     
-        # Create empty grid
+        # Create empty patch
         x = pyclaw.solution.Dimension('x',0.0,1.0,100)
-        grid = pyclaw.solution.Grid([x])
-        grid.num_eqn = 3
-        grid.problem_data['efix'] = efix
-        grid.problem_data['gamma'] = gamma
-        grid.problem_data['gamma1'] = gamma - 1.0
+        patch = pyclaw.solution.Patch([x])
+        patch.num_eqn = 3
+        patch.problem_data['efix'] = efix
+        patch.problem_data['gamma'] = gamma
+        patch.problem_data['gamma1'] = gamma - 1.0
     
         El = pl/gamma1 + 0.5*rhol*ul**2
         Er = pr/gamma1 + 0.5*rhor*ur**2
     
-        grid.empty_q()
-        grid.q[0,:] = (x.center < sloc) * rhol + (x.center >= sloc) * rhor
-        grid.q[1,:] = (x.center < sloc) * rhol*ul + (x.center >= sloc) * rhor*ur
-        grid.q[2,:] = (x.center < sloc) * El + (x.center >= sloc) * Er
+        patch.empty_q()
+        patch.q[0,:] = (x.centers < sloc) * rhol + (x.centers >= sloc) * rhor
+        patch.q[1,:] = (x.centers < sloc) * rhol*ul + (x.centers >= sloc) * rhor*ur
+        patch.q[2,:] = (x.centers < sloc) * El + (x.centers >= sloc) * Er
 
-        return pyclaw.solution.Solution(grid)
+        return pyclaw.solution.Solution(patch)
         
         
 # This test does not work yet as the true solution for time other than 0.0
@@ -351,20 +351,20 @@ class ShallowTest(SolverTestCase):
         ur = 0.0
         efix = False
     
-        # Create empty grid
+        # Create empty patch
         x = pyclaw.solution.Dimension('x',-5.0,5.0,500)
-        grid = pyclaw.solution.Grid(x)
-        grid.problem_data['g'] = g
-        grid.problem_data['efix'] = efix
-        grid.num_eqn = 2
-        grid.t = t
+        patch = pyclaw.solution.Patch(x)
+        patch.problem_data['g'] = g
+        patch.problem_data['efix'] = efix
+        patch.num_eqn = 2
+        patch.t = t
         
         # Initial data
-        grid.empty_q()
-        grid.q[0,:] = hl * (grid.p_center[0] <= sloc) + hr * (grid.p_center[0] > sloc)
-        grid.q[1,:] = hl*ul * (grid.p_center[0] <= sloc) + hr*ur * (grid.p_center[0] > sloc)
+        patch.empty_q()
+        patch.q[0,:] = hl * (patch.p_centers[0] <= sloc) + hr * (patch.p_centers[0] > sloc)
+        patch.q[1,:] = hl*ul * (patch.p_centers[0] <= sloc) + hr*ur * (patch.p_centers[0] > sloc)
 
-        return pyclaw.solution.Solution(grid)
+        return pyclaw.solution.Solution(patch)
         
         
 if __name__ == '__main__':

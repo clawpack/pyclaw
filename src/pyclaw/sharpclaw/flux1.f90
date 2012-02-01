@@ -24,7 +24,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
 !            s(mw,i) = speed of wave in family mw in Riemann problem between
 !                      states i-1 and i.
 !
-!     Note that mx must be the size of the grid for the dimension corresponding
+!     Note that mx must be the size of the patch for the dimension corresponding
 !     to the value of ixy.
 !
 !     t is the time at which we want to evaluate dq/dt, which may not
@@ -61,7 +61,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
     else
         dtdx = dt/dx(ixy)
     endif
-    if (ndim.gt.1) dq1d=0.d0
+    if (num_dim.gt.1) dq1d=0.d0
 
 
     select case(lim_type)
@@ -177,8 +177,8 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
         if (num_aux .gt. 0) then
              do i = 1-num_ghost+1,mx+num_ghost
                 do m = 1, num_aux
-                    auxr(m,i-1) = aux(m,i) !aux is not griddat type
-                    auxl(m,i  ) = aux(m,i) !aux is not griddat type
+                    auxr(m,i-1) = aux(m,i) !aux is not patchdat type
+                    auxl(m,i  ) = aux(m,i) !aux is not patchdat type
                 enddo
             enddo
         endif

@@ -122,22 +122,22 @@ def write_hdf5(solution,frame,path,file_prefix='claw',write_aux=False,
     if use_h5py:
         f = h5py.File(filename,'w')
         
-        # For each grid, write out attributes
-        for grid in solution.grids:
-            # Create group for this grid
-            subgroup = f.create_group('grid%s' % grid.gridno)
+        # For each patch, write out attributes
+        for patch in solution.patchs:
+            # Create group for this patch
+            subgroup = f.create_group('patch%s' % patch.patch_index)
             
-            # General grid properties
-            for attr in ['t','num_eqn','num_ghost','gridno','level']:
-                if hasattr(grid,attr):
-                    if getattr(grid,attr) is not None:
-                        subgroup.attrs[attr] = getattr(grid,attr)
+            # General patch properties
+            for attr in ['t','num_eqn','num_ghost','patch_index','level']:
+                if hasattr(patch,attr):
+                    if getattr(patch,attr) is not None:
+                        subgroup.attrs[attr] = getattr(patch,attr)
                     
             # Add the dimension names as a attribute
-            subgroup.attrs['dimensions'] = grid.get_dim_attribute('name')
+            subgroup.attrs['dimensions'] = patch.get_dim_attribute('name')
                     
             # Dimension properties
-            for dim in grid.dimensions:
+            for dim in patch.dimensions:
                 for attr in ['n','lower','d','upper','bc_lower',
                              'bc_upper','units']:
                     if hasattr(dim,attr):
@@ -146,13 +146,13 @@ def write_hdf5(solution,frame,path,file_prefix='claw',write_aux=False,
                             subgroup.attrs[attr_name] = getattr(dim,attr)
             
             # Write out q
-            subgroup.create_dataset('q',data=grid.q,
+            subgroup.create_dataset('q',data=patch.q,
                                         compression=compression,
                                         compression_opts=compression_opts,
                                         chunks=chunks,shuffle=shuffle,
                                         fletcher32=fletcher32)
-            if write_aux and grid.num_aux > 0:
-                subgroup.create_dataset('aux',data=grid.aux,
+            if write_aux and patch.num_aux > 0:
+                subgroup.create_dataset('aux',data=patch.aux,
                                         compression=compression,
                                         compression_opts=compression_opts,
                                         chunks=chunks,shuffle=shuffle,
@@ -221,23 +221,23 @@ def read_hdf5(solution,frame,path='./',file_prefix='claw',read_aux=True,
                         setattr(dim,attr,subgroup.attrs["%s.%s" % (dim_name,attr)])
                 dimensions.append(dim)
             
-            # Create grid
-            grid = pyclaw.solution.Grid(dimensions)
+            # Create patch
+            patch = pyclaw.solution.Patch(dimensions)
                 
-            # Fetch general grid properties
-            for attr in ['t','num_eqn','gridno','level']:
-                setattr(grid,attr,subgroup.attrs[attr])
+            # Fetch general patch properties
+            for attr in ['t','num_eqn','patch_index','level']:
+                setattr(patch,attr,subgroup.attrs[attr])
             
             # Read in q
             index_str = ','.join( [':' for i in xrange(len(subgroup['q'].shape))] )
-            exec("grid.q = subgroup['q'][%s]" % index_str)
+            exec("patch.q = subgroup['q'][%s]" % index_str)
             
             # Read in aux if applicable
             if read_aux and subgroup.get('aux',None) is not None:
                 index_str = ','.join( [':' for i in xrange(len(subgroup['aux'].shape))] )
-                exec("grid.aux = subgroup['aux'][%s]" % index_str)
+                exec("patch.aux = subgroup['aux'][%s]" % index_str)
                 
-            solution.grids.append(grid)
+            solution.patchs.append(patch)
             
         # Flush and close the file
         f.close()

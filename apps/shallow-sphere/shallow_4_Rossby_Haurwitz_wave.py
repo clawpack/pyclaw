@@ -36,11 +36,11 @@ def fortran_src_wrapper(solver,state,dt):
 
     # Get parameters and variables that have to be passed to the fortran src2
     # routine.
-    mx, my = grid.ng[0], grid.ng[1]
+    mx, my = grid.num_cells[0], grid.num_cells[1]
     num_eqn = state.num_eqn
     num_ghost = solver.num_ghost
-    xlowerg, ylowerg = grid.lowerg[0], grid.lowerg[1]
-    dx, dy = grid.d[0], grid.d[1]
+    xlower, ylower = grid.lower[0], grid.lower[1]
+    dx, dy = grid.delta[0], grid.delta[1]
     q = state.q
     num_aux = state.num_aux
     aux = state.aux
@@ -48,7 +48,7 @@ def fortran_src_wrapper(solver,state,dt):
 
     # Call src2 function
     import problem
-    state.q = problem.src2(mx,my,num_ghost,xlowerg,ylowerg,dx,dy,q,aux,t,dt,Rsphere)
+    state.q = problem.src2(mx,my,num_ghost,xlower,ylower,dx,dy,q,aux,t,dt,Rsphere)
 
 
 def mapc2p_sphere_nonvectorized(grid,mC):
@@ -73,7 +73,7 @@ def mapc2p_sphere_nonvectorized(grid,mC):
     import math
 
     # Get number of cells in both directions
-    mx, my = grid.ng[0], grid.ng[1]
+    mx, my = grid.num_cells[0], grid.num_cells[1]
 
     # Define new list of numpy array, pC = physical coordinates
     pC = []
@@ -115,15 +115,15 @@ def mapc2p_sphere_nonvectorized(grid,mC):
 
             DD = Rsphere*d*(2.0 - d) / np.sqrt(2.0)
             R = Rsphere
-            center = DD - np.sqrt(np.maximum(R**2 - DD**2, 0.0))
+            centers = DD - np.sqrt(np.maximum(R**2 - DD**2, 0.0))
             
             xp = DD/d * xc1
             yp = DD/d * yc1
 
             if (yc1 >= xc1):
-                yp = center + np.sqrt(np.maximum(R**2 - xp**2, 0.0))
+                yp = centers + np.sqrt(np.maximum(R**2 - xp**2, 0.0))
             else:
-                xp = center + np.sqrt(np.maximum(R**2 - yp**2, 0.0))
+                xp = centers + np.sqrt(np.maximum(R**2 - yp**2, 0.0))
 
             # Compute physical coordinates
             zp = np.sqrt(np.maximum(Rsphere**2 - (xp**2 + yp**2), 0.0))
@@ -154,7 +154,7 @@ def mapc2p_sphere_vectorized(grid,mC):
     """
 
     # Get number of cells in both directions
-    mx, my = grid.ng[0], grid.ng[1]
+    mx, my = grid.num_cells[0], grid.num_cells[1]
     
     # 2D array useful for the vectorization of the function
     sgnz = np.ones((mx,my))
@@ -181,14 +181,14 @@ def mapc2p_sphere_vectorized(grid,mC):
     D = Rsphere*d*(2-d) / np.sqrt(2)
     R = Rsphere*np.ones((np.shape(d)))
 
-    center = D - np.sqrt(R**2 - D**2)
+    centers = D - np.sqrt(R**2 - D**2)
     xp = D/d * xc1
     yp = D/d * yc1
 
     ij = np.where(yc1==d)
-    yp[ij] = center[ij] + np.sqrt(R[ij]**2 - xp[ij]**2)
+    yp[ij] = centers[ij] + np.sqrt(R[ij]**2 - xp[ij]**2)
     ij = np.where(xc1==d)
-    xp[ij] = center[ij] + np.sqrt(R[ij]**2 - yp[ij]**2)
+    xp[ij] = centers[ij] + np.sqrt(R[ij]**2 - yp[ij]**2)
     
     # Define new list of numpy array, pC = physical coordinates
     pC = []
@@ -220,14 +220,14 @@ def qinit(state,mx,my):
     h0 = 8.e3         # Minimum fluid height at the poles        
     R = 4.0
 
-    # Compute the the physical coordinates of the cells' centers
-    state.grid.compute_p_center(recompute=True)
+    # Compute the the physical coordinates of the cells' centerss
+    state.grid.compute_p_centers(recompute=True)
  
     for i in range(mx):
         for j in range(my):
-            xp = state.grid.p_center[0][i][j]
-            yp = state.grid.p_center[1][i][j]
-            zp = state.grid.p_center[2][i][j]
+            xp = state.grid.p_centers[0][i][j]
+            yp = state.grid.p_centers[1][i][j]
+            zp = state.grid.p_centers[2][i][j]
 
             rad = np.maximum(np.sqrt(xp**2 + yp**2),1.e-6)
 
@@ -307,7 +307,7 @@ def qbc_upper_y(state,dim,t,qbc,num_ghost):
     Impose periodic boundary condition to q at the top boundary for the sphere.
     This function does not work in parallel.
     """
-    my = state.grid.ng[1]
+    my = state.grid.num_cells[1]
     for j in range(num_ghost):
         qbc1D = np.copy(qbc[:,:,my+num_ghost-1-j])
         qbc[:,:,my+num_ghost+j] = qbc1D[:,::-1]
@@ -324,9 +324,9 @@ def auxbc_lower_y(state,dim,t,auxbc,num_ghost):
 
     # Get parameters and variables that have to be passed to the fortran src2
     # routine.
-    mx, my = grid.ng[0], grid.ng[1]
+    mx, my = grid.num_cells[0], grid.num_cells[1]
     xlower, ylower = grid.lower[0], grid.lower[1]
-    dx, dy = grid.d[0],grid.d[1]
+    dx, dy = grid.delta[0],grid.delta[1]
 
     # Impose BC
     auxtemp = auxbc.copy()
@@ -344,9 +344,9 @@ def auxbc_upper_y(state,dim,t,auxbc,num_ghost):
 
     # Get parameters and variables that have to be passed to the fortran src2
     # routine.
-    mx, my = grid.ng[0], grid.ng[1]
+    mx, my = grid.num_cells[0], grid.num_cells[1]
     xlower, ylower = grid.lower[0], grid.lower[1]
-    dx, dy = grid.d[0],grid.d[1]
+    dx, dy = grid.delta[0],grid.delta[1]
     
     # Impose BC
     auxtemp = auxbc.copy()
@@ -413,10 +413,10 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
 
 
     #===========================================================================
-    # Initialize grid and state, then initialize the solution associated to the 
+    # Initialize domain and state, then initialize the solution associated to the 
     # state and finally initialize aux array
     #===========================================================================
-    # Grid:
+    # Domain:
     # ====
     xlower = -3.0
     xupper = 1.0
@@ -440,9 +440,9 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
-    grid = pyclaw.Grid([x,y])
-    dx = grid.d[0]
-    dy = grid.d[1]
+    domain = pyclaw.Domain([x,y])
+    dx = domain.delta[0]
+    dy = domain.delta[1]
 
     # Define some parameters used in classic2 
     import classic2
@@ -450,27 +450,27 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     classic2.comxyt.dycom = dy
     classic2.sw.g = 11489.57219  
 
-    # Override default mapc2p function
-    # ================================
-    grid.mapc2p = mapc2p_sphere_vectorized
-        
     # Define state object
     # ===================
     num_eqn = 4  # Number of equations
     num_aux = 16 # Number of auxiliary variables
-    state = pyclaw.State(grid,num_eqn,num_aux)
+    state = pyclaw.State(domain,num_eqn,num_aux)
 
+    # Override default mapc2p function
+    # ================================
+    state.grid.mapc2p = mapc2p_sphere_vectorized
+        
 
     # Set auxiliary variables
     # =======================
     import problem
     
     # Get lower left corner coordinates 
-    xlowerg,ylowerg = grid.lowerg[0],grid.lowerg[1]
+    xlower,ylower = state.grid.lower[0],state.grid.lower[1]
 
     num_ghost = 2
     auxtmp = np.ndarray(shape=(num_aux,mx+2*num_ghost,my+2*num_ghost), dtype=float, order='F')
-    auxtmp = problem.setaux(mx,my,num_ghost,mx,my,xlowerg,ylowerg,dx,dy,auxtmp,Rsphere)
+    auxtmp = problem.setaux(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
     state.aux[:,:,:] = auxtmp[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
 
     # Set index for capa
@@ -480,7 +480,7 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     # ====================== 
     # 1) Call fortran function
     qtmp = np.ndarray(shape=(num_eqn,mx+2*num_ghost,my+2*num_ghost), dtype=float, order='F')
-    qtmp = problem.qinit(mx,my,num_ghost,mx,my,xlowerg,ylowerg,dx,dy,qtmp,auxtmp,Rsphere)
+    qtmp = problem.qinit(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
     state.q[:,:,:] = qtmp[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
 
     # 2) call python function define above
@@ -495,7 +495,7 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     claw.output_style = 1
     claw.num_output_times = 10
     claw.tfinal = 10
-    claw.solution = pyclaw.Solution(state)
+    claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
 

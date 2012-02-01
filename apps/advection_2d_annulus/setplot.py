@@ -45,7 +45,7 @@ def setplot(plotdata):
     plotitem.pcolor_cmin = -1.
     plotitem.pcolor_cmax = 1.
     plotitem.add_colorbar = True
-    plotitem.MappedGrid = True
+    plotitem.MappedPatch = True
     plotitem.mapc2p = mapc2p
     plotitem.show = True       # show on plot?
 
@@ -65,8 +65,8 @@ def setplot(plotdata):
     plotitem.plot_var = 0
     plotitem.contour_levels = np.linspace(-0.9, 0.9, 10)
     plotitem.contour_colors = 'k'
-    plotitem.gridedges_show = 1
-    plotitem.MappedGrid = True
+    plotitem.patchedges_show = 1
+    plotitem.MappedPatch = True
     plotitem.mapc2p = mapc2p
     plotitem.show = True       # show on plot?
 

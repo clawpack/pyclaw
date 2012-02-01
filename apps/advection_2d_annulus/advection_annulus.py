@@ -45,21 +45,21 @@ def qinit(state,mx,my):
     # First gaussian pulse
     A1    = 1.    # Amplitude
     beta1 = 40.   # Decay factor
-    x1    = -0.5  # x-coordinate of the center
-    y1    = 0.    # y-coordinate of the center
+    x1    = -0.5  # x-coordinate of the centers
+    y1    = 0.    # y-coordinate of the centers
 
     # Second gaussian pulse
     A2    = -1.   # Amplitude
     beta2 = 40.   # Decay factor
-    x2    = 0.5   # x-coordinate of the center
-    y2    = 0.    # y-coordinate of the center
+    x2    = 0.5   # x-coordinate of the centers
+    y2    = 0.    # y-coordinate of the centers
 
     
-    # Compute location of all grid cell center coordinates and store them
-    state.grid.compute_p_center(recompute=True)
+    # Compute location of all grid cell centers coordinates and store them
+    state.grid.compute_p_centers(recompute=True)
 
-    xp = state.grid.p_center[0]
-    yp = state.grid.p_center[1]
+    xp = state.grid.p_centers[0]
+    yp = state.grid.p_centers[1]
     state.q[0,:,:] = A1*np.exp(-beta1*(np.square(xp-x1) + np.square(yp-y1)))\
                    + A2*np.exp(-beta2*(np.square(xp-x2) + np.square(yp-y2)))
 
@@ -67,18 +67,18 @@ def qinit(state,mx,my):
 def setaux(state,mx,my):
     """ 
     Set auxiliary array
-    aux[0,i,j] is edge velocity at "left" boundary of grid point (i,j)
-    aux[1,i,j] is edge velocity at "bottom" boundary of grid point (i,j)
+    aux[0,i,j] is edges velocity at "left" boundary of grid point (i,j)
+    aux[1,i,j] is edges velocity at "bottom" boundary of grid point (i,j)
     aux[2,i,j] = kappa  is ratio of cell area to (dxc * dyc)
     """    
     
     # Compute location of all grid cell corner coordinates and store them
-    state.grid.compute_p_edge(recompute=True)
+    state.grid.compute_p_edges(recompute=True)
 
     # Get grid spacing
-    dxc = state.grid.d[0]
-    dyc = state.grid.d[1]
-    pcorners = state.grid.p_edge
+    dxc = state.grid.delta[0]
+    dyc = state.grid.delta[1]
+    pcorners = state.grid.p_edges
 
     aux = velocities_capa(pcorners[0],pcorners[1],dxc,dyc)
     return aux
@@ -91,10 +91,10 @@ def velocities_upper(state,dim,t,auxbc,num_ghost):
     from mapc2p import mapc2p
 
     grid=state.grid
-    mx = grid.ng[0]
-    my = grid.ng[1]
-    dxc = grid.d[0]
-    dyc = grid.d[1]
+    mx = grid.num_cells[0]
+    my = grid.num_cells[1]
+    dxc = grid.delta[0]
+    dyc = grid.delta[1]
 
     if dim == grid.dimensions[0]:
         xc1d = grid.lower[0]+dxc*(np.arange(mx+num_ghost,mx+2*num_ghost+1)-num_ghost)
@@ -116,9 +116,9 @@ def velocities_lower(state,dim,t,auxbc,num_ghost):
     from mapc2p import mapc2p
 
     grid=state.grid
-    my = grid.ng[1]
-    dxc = grid.d[0]
-    dyc = grid.d[1]
+    my = grid.num_cells[1]
+    dxc = grid.delta[0]
+    dyc = grid.delta[1]
 
     if dim == grid.dimensions[0]:
         xc1d = grid.lower[0]+dxc*(np.arange(num_ghost+1)-num_ghost)
@@ -224,10 +224,10 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     solver.limiters = pyclaw.limiters.tvd.vanleer
 
     #===========================================================================
-    # Initialize grid and state, then initialize the solution associated to the 
+    # Initialize domain and state, then initialize the solution associated to the 
     # state and finally initialize aux array
     #===========================================================================
-    # Grid:
+    # Domain:
     xlower = 0.2
     xupper = 1.0
     mx = 40
@@ -238,12 +238,12 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
-    grid = pyclaw.Grid([x,y])
-    grid.mapc2p = mapc2p_annulus # Override default_mapc2p function implemented in grid.py
+    domain = pyclaw.Domain([x,y])
+    domain.grid.mapc2p = mapc2p_annulus # Override default_mapc2p function implemented in geometry.py
 
     # State:
     num_eqn = 1  # Number of equations
-    state = pyclaw.State(grid,num_eqn)
+    state = pyclaw.State(domain,num_eqn)
 
     
     # Set initial solution
@@ -264,7 +264,7 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     claw.output_style = 1
     claw.num_output_times = 10
     claw.tfinal = 1.0
-    claw.solution = pyclaw.Solution(state)
+    claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
 

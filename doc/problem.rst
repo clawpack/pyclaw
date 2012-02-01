@@ -50,6 +50,9 @@ of the grid.  Now you must set the initial condition.  For instance::
     >>> state.q[0,:,:] = (np.abs(r-0.5)<=width)*(1.+np.cos(np.pi*(r-0.5)/width))
     >>> state.q[1,:,:] = 0.
 
+Note that in a parallel run we only wish to set the local values of the state
+so the appropriate geometry object to use here is the 
+:class:`~pyclaw.geometry.grid` class.
 
 Setting auxiliary variables
 ----------------------------
@@ -57,7 +60,7 @@ If the problem involves coefficients that vary in space or a mapped grid,
 the required fields are stored in state.aux.  In order to use such fields,
 you must pass the num_aux argument to the State initialization::
 
-    >>> state = pyclaw.State(grid,num_eqn,num_aux)
+    >>> state = pyclaw.State(domain,num_eqn,num_aux)
 
 The number of fields in state.aux (i.e., the length of its first dimension)
 is set equal to num_aux.  The values of state.aux are set in the same way
@@ -65,24 +68,23 @@ as those of state.q.
 
 Setting boundary conditions
 ----------------------------
-The boundary conditions are specified through solver.bc_lower and solver.bc_upper,
-each of which is a list of length solver.ndim.  The ordering of the boundary conditions
-in each list is the same as the ordering of the Dimensions in the Grid; typically :math:`(x,y)`.
-Thus solver.bc_lower[0] specifies the boundary condition at the left boundary and
-solver.bc_upper[0] specifies the condition at the right boundary.  Similarly,
-solver.bc_lower[1] and solver.bc_upper[1] specify the boundary conditions at the
-top and bottom of the domain.
+The boundary conditions are specified through solver.bc_lower and 
+solver.bc_upper, each of which is a list of length ``solver.num_dim``. The 
+ordering of the boundary conditions in each list is the same as the ordering of 
+the Dimensions in the Grid; typically :math:`(x,y)`. Thus 
+``solver.bc_lower[0]`` specifies the boundary condition at the left boundary 
+and ``solver.bc_upper[0]`` specifies the condition at the right boundary. 
+Similarly, ``solver.bc_lower[1]`` and ``solver.bc_upper[1]`` specify the 
+boundary conditions at the top and bottom of the domain.
 
 PyClaw includes the following built-in boundary condition implementations:
 
-    * pyclaw.BC.periodic - periodic
+    * ``pyclaw.BC.periodic`` - periodic
+    * ``pyclaw.BC.extrap`` - zero-order extrapolation
+    * ``pyclaw.BC.wall`` - solid wall conditions, assuming that the 2nd/3rd    
+      component of q is the normal velocity in x/y.
 
-    * pyclaw.BC.extrap - zero-order extrapolation
-
-    * pyclaw.BC.wall - solid wall conditions, assuming that the 2nd/3rd component
-                             of q is the normal velocity in x/y.
-
-Other boundary conditions can be implemented by using pyclaw.BC.custom, and
+Other boundary conditions can be implemented by using ``pyclaw.BC.custom``, and
 providing a custom BC function.  The attribute solver.user_bc_lower/upper must
 be set to the corresponding function handle.  For instance::
 
@@ -93,8 +95,8 @@ be set to the corresponding function handle.  For instance::
     >>> solver.bc_lower[0]=pyclaw.BC.custom
     >>> solver.user_bc_lower=shockbc
 
-If the state.aux array is used, boundary conditions must be set for it
-in a similar way, using solver.aux_bc_lower and solver.aux_bc_upper.
+If the ``state.aux`` array is used, boundary conditions must be set for it
+in a similar way, using ``solver.aux_bc_lower`` and ``solver.aux_bc_upper``.
 Note that although state is passed to the BC routines, they should
 NEVER modify state.  Rather, they should modify qbc/auxbc.
 

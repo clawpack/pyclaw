@@ -14,7 +14,9 @@ F2PY = f2py
 PYTHON = python
 MODULE = assembly
 
-all: classic1.so sharpclaw1.so 
+all: 
+	make classic1.so
+	make sharpclaw1.so
 
 ${MODULE}.so: ${MODULE}.pyx ${MODULE}impl.h ${MODULE}impl.c petscdadef.h
 	CC='${PCC}' CFLAGS='${PCC_FLAGS}' F90='${FC_LINKER}' FFLAGS='${FFLAGS}' LDFLAGS='${FC_LINKER_FLAGS}' ${PYTHON} setup.py -q build_ext --inplace

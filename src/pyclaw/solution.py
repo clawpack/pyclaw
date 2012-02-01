@@ -17,7 +17,7 @@ Module containing all Pyclaw solution objects
 import os
 import logging
 
-from pyclaw.grid import Grid, Dimension
+from pyclaw.geometry import Patch, Dimension, Domain
 from pyclaw.state import State
 import io
 
@@ -26,7 +26,7 @@ import io
 # ============================================================================
 class Solution(object):
     r"""
-    Pyclaw grid container class
+    Pyclaw patch container class
         
     :Input and Output:
     
@@ -38,44 +38,43 @@ class Solution(object):
     
     :Properties:
     
-        If there is only one state and grid belonging to this solution, 
+        If there is only one state and patch belonging to this solution, 
         the solution will appear to have many of the attributes assigned to its
-        one state and grid.  Some parameters that have in the past been
-        parameters for all grids are also reachable although Solution does not
+        one state and patch.  Some parameters that have in the past been
+        parameters for all patchs are also reachable although Solution does not
         check to see if these parameters are truly universal.
 
-        Grid Attributes:
+        Patch Attributes:
             'dimensions'
         State Attributes:
             't','num_eqn','q','aux','capa','problem_data'
             
+            
     :Initialization:
         
-        The initialization of a Solution can happen on of these ways
-            1. args is empty and an empty Solution is created
-            2. args is a single State or list of States
-            2. args is a single Grid or list of Grids
-            3. args is a single Dimension or list of Dimensions
-            4. args is a variable number of arguments that describes the 
-               location of a file to be read in to initialize the object
+        The initialization of a Solution can happen one of these ways
         
-        Input:
-            - if args == () -> Empty Solution object
-            - if args == States -> States are appended to states list
-            - if args == Grids -> States are initialized with these Grids 
-              and appended to states list
-            - if args == Dimensions -> A single Grid with the given
-              Dimensions is created, a state is initalized with this Grid
-              and appended to the states list
-            - if args == frame, format='ascii',path='./',file_prefix='fort'
+            1. `args` is empty and an empty Solution is created
+            2. `args` is a single State or list of States and is followed
+               by the appropriate :ref:`geometry <pyclaw_geometry>` object
+               which can be one of:
+                
+                 - (:class:`~pyclaw.geometry.Domain`)
+                 - (:class:`~pyclaw.geometry.Patch`) - A domain is created
+                   with the patch or list of patches provided.
+                 - (:class:`~pyclaw.geometry.Dimension`) - A domain and 
+                   patch is created with the dimensions or list of 
+                   dimensions provided.
+            3. `args` is a variable number of arguments that describes the 
+               location of a file to be read in to initialize the object
     
     :Examples:
 
         >>> import pyclaw
         >>> x = pyclaw.Dimension('x',0.,1.,100)
-        >>> grid = pyclaw.Grid((x))
-        >>> state = pyclaw.State(grid,3,2)
-        >>> solution = pyclaw.Solution(state)
+        >>> domain = pyclaw.Domain((x))
+        >>> state = pyclaw.State(domain,3,2)
+        >>> solution = pyclaw.Solution(state,domain)
     """
 
     # ========== Attributes ==================================================
@@ -86,9 +85,9 @@ class Solution(object):
         r"""(:class:`State`) - Base state is returned"""
         return self.states[0]
     @property
-    def grid(self):
-        r"""(:class:`Grid`) - Base state's grid is returned"""
-        return self.states[0].grid
+    def patch(self):
+        r"""(:class:`Patch`) - Base state's patch is returned"""
+        return self.domain.patch
 
     @property
     def t(self):
@@ -156,63 +155,7 @@ class Solution(object):
     def num_aux(self):
         r"""(int) - :attr:`State.num_aux` of base state"""
         return self._get_base_state_attribute('num_aux')
-    @property
-    def ndim(self):
-        r"""(int) - :attr:`Grid.ndim` of base state.grid"""
-        return self._get_base_grid_attribute('ndim')
-    @property
-    def dimensions(self):
-        r"""(list) - :attr:`Grid.dimensions` of base state.grid"""
-        return self._get_base_grid_attribute('dimensions')
-    @property
-    def n(self):
-        r"""(list) - :attr:`Grid.n` of base state.grid"""
-        return self._get_base_grid_attribute('n')
-    @property
-    def name(self):
-        r"""(list) - :attr:`Grid.name` of base state.grid"""
-        return self._get_base_grid_attribute('name')
-    @property
-    def lower(self):
-        r"""(list) - :attr:`Grid.lower` of base state.grid"""
-        return self._get_base_grid_attribute('lower')
-    @property
-    def upper(self):
-        r"""(list) - :attr:`Grid.upper` of base state.grid"""
-        return self._get_base_grid_attribute('upper')
-    @property
-    def d(self):
-        r"""(list) - :attr:`Grid.d` of base state.grid"""
-        return self._get_base_grid_attribute('d')
-    @property
-    def units(self):
-        r"""(list) - :attr:`Grid.units` of base state.grid"""
-        return self._get_base_grid_attribute('units')
-    @property
-    def center(self):
-        r"""(list) - :attr:`Grid.center` of base state.grid"""
-        return self._get_base_grid_attribute('center')
-    @property
-    def edge(self):
-        r"""(list) - :attr:`Grid.edge` of base state.grid"""
-        return self._get_base_grid_attribute('edge')
-    @property
-    def p_center(self):
-        r"""(list) - :attr:`Grid.p_center` of base state.grid"""
-        return self._get_base_grid_attribute('p_center')
-    @property
-    def p_edge(self):
-        r"""(list) - :attr:`Grid.p_edge` of base state.grid"""
-        return self._get_base_grid_attribute('p_edge')
-    @property
-    def c_center(self):
-        r"""(list) - :attr:`Grid.c_center` of base state.grid"""
-        return self._get_base_grid_attribute('c_center')
-    @property
-    def c_edge(self):
-        r"""(list) - :attr:`Grid.c_edge` of base state.grid"""
-        return self._get_base_grid_attribute('c_edge')
-        
+       
 
     # ========== Class Methods ===============================================
     def __init__(self,*arg,**kargs):
@@ -221,36 +164,37 @@ class Solution(object):
         See :class:`Solution` for more info.
         """
         self.states = []
-        r"""(list) - List of grids in this solution"""
+        r"""(list) - List of states in this solution"""
+        self.domain = None
         # If arg is non-zero, we are reading in a solution, otherwise, we
         # create an empty Solution
         if len(arg) > 0:
-            # Single State
-            if isinstance(arg[0],State):
-                self.states.append(arg[0])
-            # Single Grid
-            elif isinstance(arg[0],Grid):
-                self.states.append(State(arg[0]))
-            # Single Dimension
-            elif isinstance(arg[0],Dimension):
-                self.states.append(State(Grid(arg[0])))
-            elif isinstance(arg[0],list):
-                # List of States
-                if isinstance(arg[0][0],State):
-                    self.states = arg[0]
-                # List of Grids
-                if isinstance(arg[0][0],Grid):
-                    self.states = Grid(arg[0])
-                # List of Dimensions
-                elif isinstance(arg[0][0],Dimension):
-                    self.state.append(State(Grid(arg[0])))
-                else:
-                    raise Exception("Invalid argument list")
-            elif isinstance(arg[0],int): 
-                import inspect
+            if isinstance(arg[0],int):
                 frame = arg[0]
                 self.read(frame,**kargs)
             else:
+                # Single State
+                if isinstance(arg[0],State):
+                    self.states.append(arg[0])
+                elif isinstance(arg[0],list):
+                    # List of States
+                    if isinstance(arg[0][0],State):
+                        self.states = arg[0]
+                    else:
+                        raise Exception("Invalid argument list")
+                if isinstance(arg[1],Domain):
+                    self.domain = arg[1]
+                else:
+                    if not isinstance(arg[1],list):
+                        arg[1] = list(arg[1])
+                    if isinstance(arg[1][0],Dimension):
+                        self.domain = Domain(Patch(arg[1]))
+                    elif isinstance(arg[1][0],Patch):
+                        self.domain = Domain(arg[1])
+                    else:
+                        raise Exception("Invalid argument list")
+
+            if self.states == [] or self.domain is None:
                 raise Exception("Invalid argument list")
                 
                 
@@ -300,15 +244,6 @@ class Solution(object):
         """
         return getattr(self.states[0],name)
     
-    def _get_base_grid_attribute(self, name):
-        r"""
-        Return base state.grid attribute name
-        
-        :Output:
-         - (id) - Value of attribute from ``states[0].grid``
-        """
-        return getattr(self.states[0].grid,name)
-    
     
     def __copy__(self):
         return self.__class__(self)
@@ -323,6 +258,7 @@ class Solution(object):
         # Populate the states
         for state in self.states:
             result.states.append(copy.deepcopy(state))
+        result.domain = copy.deepcopy(self.domain)
         
         return result
     

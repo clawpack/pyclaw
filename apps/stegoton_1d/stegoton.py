@@ -3,7 +3,7 @@
 import numpy as np
 
 def qinit(state,ic=2,a2=1.0,xupper=600.):
-    x = state.grid.x.center
+    x = state.grid.x.centers
     
     if ic==1: #Zero ic
         state.q[:,:] = 0.
@@ -98,9 +98,9 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
     xlower=0.0; xupper=600.0
     cellsperlayer=6; mx=int(round(xupper-xlower))*cellsperlayer
     x = pyclaw.Dimension('x',xlower,xupper,mx)
-    grid = pyclaw.Grid(x)
+    domain = pyclaw.Domain(x)
     num_eqn = 2
-    state = pyclaw.State(grid,num_eqn)
+    state = pyclaw.State(domain,num_eqn)
 
     #Set global parameters
     alpha = 0.5
@@ -121,7 +121,7 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
     state.problem_data['trdone'] = False
 
     #Initialize q and aux
-    xc=grid.x.center
+    xc=state.grid.x.centers
     state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,solver.aux_bc_lower[0],xupper=xupper)
     qinit(state,ic=2,a2=1.0,xupper=xupper)
 
@@ -143,7 +143,7 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
     claw.output_style = 1
     claw.num_output_times = num_output_times
     claw.tfinal = tfinal
-    claw.solution = pyclaw.Solution(state)
+    claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
 
 
@@ -160,11 +160,11 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
             state.problem_data['rhoB'] = rhoB
             state.problem_data['trdone'] = False
             state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,bc_lower,xupper=xupper)
-            grid.x.bc_lower=2
-            grid.x.bc_upper=2
+            patch.x.bc_lower=2
+            patch.x.bc_upper=2
             state.t = 0.0
             qinit(state,ic=2,a2=a2)
-            init_solution = Solution(state)
+            init_solution = Solution(state,domain)
             claw.solution = init_solution
             claw.solution.t = 0.0
 

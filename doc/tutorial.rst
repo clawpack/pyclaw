@@ -49,14 +49,14 @@ Riemann solver implemented in Python::
 
     >>> solver.kernel_language = 'Python'
 
-Now we import the appropriate solver from the riemann package and set the 
-solver.rp attribute, which is a function handle::
+Now we import the appropriate solver from the `riemann` package and set the 
+``solver.rp`` attribute, which is a function handle::
 
     >>> from riemann import rp_acoustics
     >>> solver.rp = rp_acoustics.rp_acoustics_1d
     >>> solver.num_waves = 2
 
-The `num_waves` property indicates the number of waves used in the Riemann solver.
+The ``num_waves`` property indicates the number of waves used in the Riemann solver.
 
 Finally, we set the boundary conditions.  We'll use a wall (wall)
 condition at the left boundary and a non-wall (zero-order extrapolation)
@@ -65,49 +65,48 @@ condition at the right boundary::
     >>> solver.bc_lower[0] = pyclaw.BC.wall
     >>> solver.bc_upper[0] = pyclaw.BC.extrap
 
-Dimension, Grid, and State
-===========================
+Dimension, Domain, and State
+============================
 Next we need to set up the grid.  A PyClaw grid is built from dimensions;
 a 1D grid requires only 1 dimension::
 
     >>> x = pyclaw.Dimension('x', -1.0, 1.0, 200)
     
-This creates a Dimension object named ``x``  on the interval ``[-1.0, 1.0]`` with 200
-grid points.  Notice that the calling sequence is similar numpy's linspace
+This creates a :class:`~pyclaw.geometry.Dimension` object named ``x``  on the interval ``[-1.0, 1.0]`` with ``200``
+cells.  Notice that the calling sequence is similar to numpy's ``linspace``
 command, except that the first argument is the name of the dimension.
 
 ::
 
-    >>> grid = pyclaw.Grid(x)
+    >>> domain = pyclaw.Domain(x)
 
-This creates a grid object, which holds information about the cell center
+This creates a :class:`~pyclaw.geometry.Domain` object, which holds information about the cell center
 and edge coordinates.  Finally, we set up a :class:`~pyclaw.state.State`
 object, which will hold the solution itself::
 
-    >>> state = pyclaw.State(grid,2)
+    >>> state = pyclaw.State(domain,2)
 
 The second argument indicates the number of equations in the hyperbolic
 system we're solving: in this case, two.
 
 Initial condition
-======================
+=================
 Now we will set the initial value of the solution::
 
-    >>> xc = grid.x.center
+    >>> xc = domain.grid.x.centers
     >>> from numpy import exp
     >>> state.q[0,:] = exp(-100 * (xc-0.75)**2)
     >>> state.q[1,:] = 0.
 
-The pressure (`state.q[0,:]`) is set to a Gaussian centered at :math:`x=0.75`.
-The velocity (`state.q[1,:]`) is set to zero everywhere.
+The pressure (``state.q[0,:]``) is set to a Gaussian centered at :math:`x=0.75`.
+The velocity (``state.q[1,:]``) is set to zero everywhere.
 
 Finally, we put the state into a Solution object::
 
-    >>> solution = pyclaw.Solution(state)
-
+    >>> solution = pyclaw.Solution(state,domain)
 
 Problem-specific parameters
-============================
+===========================
 The acoustics equations above have some coefficients -- namely, the
 bulk modulus :math:`K` and density :math:`\rho` -- that must be defined.
 Furthermore, checking the code for the Riemann solver we've chosen

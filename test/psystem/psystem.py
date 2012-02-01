@@ -19,7 +19,7 @@ sharpness=10
 
 def qinit(state,A,x0,y0,varx,vary):
     r""" Set initial conditions for q."""
-    x =state.grid.x.center; y =state.grid.y.center
+    x =state.grid.x.centers; y =state.grid.y.centers
     # Create meshgrid
     [yy,xx]=np.meshgrid(y,x)
     s=A*np.exp(-(xx-x0)**2/(2*varx)-(yy-y0)**2/(2*vary)) #sigma(@t=0)
@@ -88,8 +88,8 @@ def b4step(solver,solution):
     # To set to 0 1st 1/2 of the domain. Used in rect domains with PBC in x
     if state.problem_data['turnZero_half_2D']==1:
         if state.t>=state.problem_data['t_turnZero'] and state.t<=state.problem_data['t_turnZero']+1:
-            if state.grid.x.nend <= np.floor(state.grid.x.n/2):
-                state.q[:,:,:]=0
+            Y,X = np.meshgrid(state.grid.y,state.grid.x)
+            state.q = state.q * (X<solution.domain.upper[0]/2)
 
 def compute_p(state):
     state.p[0,:,:]=np.exp(state.q[0,:,:]*state.aux[1,:,:])-1
@@ -107,7 +107,7 @@ def compute_F(state):
     sigma = np.exp(E*eps) - 1.
     sigint = (sigma-np.log(sigma+1.))/E
 
-    dx=state.grid.d[0]; dy=state.grid.d[1]
+    dx=state.grid.delta[0]; dy=state.grid.delta[1]
     
     state.F[0,:,:] = (sigint+nrg)*dx*dy 
     state.F[1,:,:] = 10*state.F[0,:,:]
@@ -132,7 +132,7 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
     # Domain
     x_lower=0.25; x_upper=5.25
     y_lower=0.25; y_upper=5.25
-    # Grid cells per layer
+    # Domain cells per layer
     Ng=20
     mx=(x_upper-x_lower)*Ng; my=(y_upper-y_lower)*Ng
     # Initial condition parameters
@@ -181,20 +181,20 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
         claw.solution = pyclaw.Solution(restart_from_frame, format='petsc',read_aux=False)
         claw.solution.state.mp = 1
         grid = claw.solution.grid
-        claw.solution.state.aux = setaux(grid.x.center,grid.y.center)
+        claw.solution.state.aux = setaux(grid.x.centers,grid.y.centers)
         claw.num_output_times = num_output_times - restart_from_frame
         claw.start_frame = restart_from_frame
     else:
         ####################################
         ####################################
         ####################################
-        #Creation of grid
+        #Creation of domain
         x = pyclaw.Dimension('x',x_lower,x_upper,mx)
         y = pyclaw.Dimension('y',y_lower,y_upper,my)
-        grid = pyclaw.Grid([x,y])
+        domain = pyclaw.Domain([x,y])
         num_eqn = 3
         num_aux = 4
-        state = pyclaw.State(grid,num_eqn,num_aux)
+        state = pyclaw.State(domain,num_eqn,num_aux)
         state.mF = 3
         state.t=t0
         #Set global parameters
@@ -203,11 +203,12 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
         state.problem_data['t_turnZero'] = t_turnZero
         state.mp = 1
 
-        state.aux = setaux(grid.x.center,grid.y.center)
+        grid = domain.grid
+        state.aux = setaux(grid.x.centers,grid.y.centers)
         #Initial condition
         qinit(state,A,x0,y0,varx,vary)
 
-        claw.solution = pyclaw.Solution(state)
+        claw.solution = pyclaw.Solution(state,domain)
         claw.num_output_times = num_output_times
 
     #claw.p_function = p_function
@@ -219,7 +220,7 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
     #Solve
     status = claw.run()
     
-    #strain=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([grid.ng[0],grid.ng[1],state.num_eqn])[:,:,0]
+    #strain=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([grid.num_cells[0],grid.num_cells[1],state.num_eqn])[:,:,0]
     #return strain
 
     if iplot:    pyclaw.plot.interactive_plot()
