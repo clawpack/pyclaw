@@ -48,7 +48,7 @@ def contourLineSphere(fileName='fort.q0000',path='./_output'):
     # Read file header
     # ================
     # The information contained in the first two lines are not used.
-    unsed = f.readline()  # grid_number
+    unsed = f.readline()  # patch_number
     unused = f.readline() # AMR_level
 
     # Read mx, my, xlow, ylow, dx and dy
@@ -77,31 +77,31 @@ def contourLineSphere(fileName='fort.q0000',path='./_output'):
     dy = float(sline[0])
 
 
-    # Grid:
+    # Patch:
     # ====
     xupper = xlower + mx * dx
     yupper = ylower + my * dy
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
-    grid = pyclaw.Grid([x,y])
+    patch = pyclaw.Patch([x,y])
 
 
     # Override default mapc2p function
     # ================================
-    grid.mapc2p = rh.mapc2p_sphere_vectorized  
+    patch.mapc2p = rh.mapc2p_sphere_vectorized  
 
 
-    # Compute the physical coordinates of each cell's center
+    # Compute the physical coordinates of each cell's centers
     # ======================================================
-    grid.compute_p_center(recompute=True)
-    xp = grid._p_center[0]
-    yp = grid._p_center[1]
-    zp = grid._p_center[2]
+    patch.compute_p_centers(recompute=True)
+    xp = patch._p_centers[0]
+    yp = patch._p_centers[1]
+    zp = patch._p_centers[2]
 
-    grid.compute_c_center(recompute=True)
-    xc = grid._c_center[0]
-    yc = grid._c_center[1]
+    patch.compute_c_centers(recompute=True)
+    xc = patch._c_centers[0]
+    yc = patch._c_centers[1]
     
     # Define arrays of conserved variables
     h = np.zeros((mx,my))

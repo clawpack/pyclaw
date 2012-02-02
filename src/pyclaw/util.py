@@ -45,7 +45,6 @@ def run_app_from_main(application):
     if 'use_petsc' in app_kwargs and app_kwargs['use_petsc']:
         import petsc4py
         petsc_args = [arg.replace('--','-') for arg in sys.argv[1:] if '=' not in arg]
-        print petsc_args
         petsc4py.init(petsc_args)
 
     output=application(**app_kwargs)
@@ -331,7 +330,6 @@ def convert_fort_double_to_float(number):
 
     """
     a = number.split('d')
-    print float(a[0])*10**float(a[1])
     return float(a[0])*10**float(a[1])
 
 #-----------------------------

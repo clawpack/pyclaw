@@ -4,18 +4,7 @@ r"""
 Routines for reading and writing a petsc-style output file.
 
 These routines preserve petclaw/pyclaw syntax for i/o while taking advantage of PETSc's parallel i/o capabilities to allow for parallel reads and writes of frame data.
-    
-:Authors:
-    Aron J. Ahmadia (2010-10-26) Initial version
 """
-
-# ============================================================================
-#      Copyright (C) 2010 Aron J Ahmadia <aron@ahmadia.net>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
 
 import os
 import logging
@@ -85,11 +74,11 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
         # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
         if write_p:
             pickle.dump({'t':solution.t,'num_eqn':solution.mp,'nstates':len(solution.states),
-                         'num_aux':solution.num_aux,'ndim':solution.ndim,'write_aux':write_aux,
+                         'num_aux':solution.num_aux,'num_dim':solution.num_dim,'write_aux':write_aux,
                          'problem_data' : solution.problem_data}, pickle_file)
         else:
             pickle.dump({'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
-                         'num_aux':solution.num_aux,'ndim':solution.ndim,'write_aux':write_aux,
+                         'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,'write_aux':write_aux,
                          'problem_data' : solution.problem_data}, pickle_file)
 
     # now set up the PETSc viewers
@@ -115,11 +104,11 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
         raise IOError('format type %s not supported' % options['format'])
     
     for state in solution.states:
-        grid = state.grid
+        patch = state.patch
         if rank==0:
-            pickle.dump({'level':grid.level,
-                         'names':grid.name,'lower':grid.lower,
-                         'n':grid.n,'d':grid.d}, pickle_file)
+            pickle.dump({'level':patch.level,
+                         'names':patch.name,'lower':patch.lower,
+                         'num_cells':patch.num_cells,'delta':patch.delta}, pickle_file)
 #       we will reenable this bad boy when we switch over to petsc-dev
 #        state.q_da.view(viewer)
         if write_p:
@@ -176,10 +165,10 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     pickle_file = open(pickle_filename,'rb')
 
     # this dictionary is mostly holding debugging information, only nstates is needed
-    # most of this information is explicitly saved in the individual grids
+    # most of this information is explicitly saved in the individual patches
     value_dict = pickle.load(pickle_file)
     nstates    = value_dict['nstates']                    
-    ndim       = value_dict['ndim']
+    num_dim       = value_dict['num_dim']
     num_aux       = value_dict['num_aux']
     num_eqn       = value_dict['num_eqn']
 
@@ -207,26 +196,27 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     else:
         raise IOError('format type %s not supported' % options['format'])
 
+    patches = []
     for m in xrange(nstates):
-        grid_dict = pickle.load(pickle_file)
+        patch_dict = pickle.load(pickle_file)
 
-        level   = grid_dict['level']
-        names   = grid_dict['names']
-        lower   = grid_dict['lower']
-        n       = grid_dict['n']
-        d       = grid_dict['d']
+        level   = patch_dict['level']
+        names   = patch_dict['names']
+        lower   = patch_dict['lower']
+        n       = patch_dict['num_cells']
+        d       = patch_dict['delta']
 
-        import petclaw ##
+        import petclaw
         dimensions = []
-        for i in xrange(ndim):
+        for i in xrange(num_dim):
             dimensions.append(
                 #pyclaw.solution.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
                 petclaw.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
-        #grid = pyclaw.solution.Grid(dimensions)
-        grid = petclaw.Grid(dimensions)
-        grid.level = level 
-        #state = pyclaw.state.State(grid)
-        state = petclaw.State(grid,num_eqn,num_aux) ##
+        #patch = pyclaw.solution.Patch(dimensions)
+        patch = petclaw.Patch(dimensions)
+        patch.level = level 
+        #state = pyclaw.state.State(patch)
+        state = petclaw.State(patch,num_eqn,num_aux) ##
         state.t = value_dict['t']
         state.problem_data = value_dict['problem_data']
 
@@ -238,6 +228,8 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
             state.gauxVec.load(aux_viewer)
         
         solution.states.append(state)
+        patches.append(state.patch)
+    solution.domain = petclaw.geometry.Domain(patches)
 
     pickle_file.close()
     viewer.destroy()
@@ -257,9 +249,9 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
      - (list) List of output variables
       - *t* - (int) Time of frame
       - *num_eqn* - (int) Number of equations in the frame
-      - *ngrids* - (int) Number of grids
+      - *npatches* - (int) Number of patches
       - *num_aux* - (int) Auxillary value in the frame
-      - *ndim* - (int) Number of dimensions in q and aux
+      - *num_dim* - (int) Number of dimensions in q and aux
     
     """
 
@@ -268,20 +260,20 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
     try:
         f = open(path,'rb')
         logger.debug("Opening %s file." % path)
-        grid_dict = pickle.load(f)
+        patch_dict = pickle.load(f)
 
-        t      = grid_dict['t']
-        num_eqn   = grid_dict['num_eqn']
-        nstates = grid_dict['nstates']                    
-        num_aux   = grid_dict['num_aux']                    
-        ndim   = grid_dict['ndim']
+        t      = patch_dict['t']
+        num_eqn   = patch_dict['num_eqn']
+        nstates = patch_dict['nstates']                    
+        num_aux   = patch_dict['num_aux']                    
+        num_dim   = patch_dict['num_dim']
 
         f.close()
     except(IOError):
         raise
     except:
-        logger.error("File " + path + " should contain t, num_eqn, ngrids, num_aux, ndim")
-        print "File " + path + " should contain t, num_eqn, ngrids, num_aux, ndim"
+        logger.error("File " + path + " should contain t, num_eqn, npatches, num_aux, num_dim")
+        print "File " + path + " should contain t, num_eqn, npatches, num_aux, num_dim"
         raise
         
-    return t,num_eqn,nstates,num_aux,ndim
+    return t,num_eqn,nstates,num_aux,num_dim

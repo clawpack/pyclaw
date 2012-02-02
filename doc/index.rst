@@ -75,6 +75,8 @@ PyClaw Modules reference documentation
    evolve/limiters
    io
    solution
+   state
+   geometry
    util
 
 .. _riemann_reference:

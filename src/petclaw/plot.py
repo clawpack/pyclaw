@@ -26,15 +26,15 @@ def plotPetsc(clawobj,delay=1):
     if isinstance(clawobj,pyclaw.controller.Controller):
         for n in xrange(0,clawobj.num_output_times):
             sol = clawobj.frames[n]
-            viewer = PETSc.Viewer.DRAW(sol.grid.gqVec.comm)
+            viewer = PETSc.Viewer.DRAW(sol.patch.gqVec.comm)
             OptDB = PETSc.Options()
             OptDB['draw_pause'] = delay
-            viewer(sol.grid.gqVec)
+            viewer(sol.patch.gqVec)
 
     elif isinstance(clawobj,pyclaw.solution.Solution):
-        viewer = PETSc.Viewer.DRAW(clawobj.grid.gqVec.comm)
+        viewer = PETSc.Viewer.DRAW(clawobj.patch.gqVec.comm)
         OptDB = PETSc.Options()
         OptDB['draw_pause'] = -1
-        viewer(clawobj.grid.gqVec)
+        viewer(clawobj.patch.gqVec)
 
 

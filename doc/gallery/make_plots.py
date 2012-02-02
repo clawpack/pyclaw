@@ -62,6 +62,8 @@ def make_plots(rootdir):
         files = os.listdir('.')
         pyfiles=[file for file in files if file.split('.')[-1]=='py']
         appfiles=[file for file in pyfiles if file.split('.')[0] not in ('setup','setplot')]
+        #Skip 3d for now because visclaw plotting is not set up for it
+        appfiles=[file for file in appfiles if '3d' not in rootdirpath]
         if appfiles!=[]:
 
             fout.write("\n=============================================\n")

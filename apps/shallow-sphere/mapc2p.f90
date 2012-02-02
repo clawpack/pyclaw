@@ -56,14 +56,14 @@
     DD = r1*d*(2.d0 - d) / dsqrt(2.d0)
     R = r1
 
-    center = DD - dsqrt(dmax1(R**2 - DD**2, 0.d0))
+    centers = DD - dsqrt(dmax1(R**2 - DD**2, 0.d0))
     xp = DD/d * xc1
     yp = DD/d * yc1
 
     if (yc1 > xc1) then
-        yp = center + dsqrt(dmax1(R**2 - xp**2, 0.d0))
+        yp = centers + dsqrt(dmax1(R**2 - xp**2, 0.d0))
     else
-        xp = center + dsqrt(dmax1(R**2 - yp**2, 0.d0))
+        xp = centers + dsqrt(dmax1(R**2 - yp**2, 0.d0))
     endif
 
     zp = dsqrt(dmax1(r1**2 - (xp**2 + yp**2), 0.d0))
