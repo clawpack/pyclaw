@@ -128,8 +128,8 @@ class Controller(object):
         
         # Data objects
         self.plotdata = None
-        r"""(:class:`~pyclaw.plotters.data.ClawPlotData`) - An instance of a 
-        :class:`~pyclaw.plotters.data.ClawPlotData` object defining the 
+        r"""(:class:`~visclaw.data.ClawPlotData`) - An instance of a 
+        :class:`~visclaw.data.ClawPlotData` object defining the 
         objects plot parameters."""
         
         # Derived quantity p
