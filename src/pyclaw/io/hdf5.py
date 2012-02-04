@@ -40,7 +40,7 @@ try:
     use_h5py = True
 except:
     pass
-if use_h5py:
+if not use_h5py:
     try:
         import tables
         use_PyTables = True
