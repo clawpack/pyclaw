@@ -30,26 +30,26 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     solver.kernel_language=kernel_language
     if kernel_language =='Python': 
         solver.set_riemann_solver('shallow_roe')
-        grid.problem_data['g'] = 1.0
-        grid.problem_data['efix'] = False
+        solver.problem_data['g'] = 1.0
+        solver.problem_data['efix'] = False
     solver.bc_lower[0] = pyclaw.BC.extrap
     solver.bc_upper[0] = pyclaw.BC.extrap
 
     #===========================================================================
-    # Initialize grids and then initialize the solution associated to the grid
+    # Initialize domain and then initialize the solution associated to the domain
     #===========================================================================
     xlower = -5.0
     xupper = 5.0
     mx = 500
     x = pyclaw.Dimension('x',xlower,xupper,mx)
-    grid = pyclaw.Grid(x)
+    domain = pyclaw.Domain(x)
     num_eqn = 2
-    state = pyclaw.State(grid,num_eqn)
+    state = pyclaw.State(domain,num_eqn)
 
     # Parameters
     state.problem_data['grav'] = 1.0
 
-    xc = grid.x.center
+    xc = state.grid.x.centers
 
     IC='2-shock'
     x0=0.
@@ -79,7 +79,7 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     claw = pyclaw.Controller()
     claw.keep_copy = True
     claw.tfinal = 2.0
-    claw.solution = pyclaw.Solution(state)
+    claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
 
@@ -92,8 +92,8 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     #===========================================================================
     # Plot results
     #===========================================================================
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,format=claw.output_format)
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,format=claw.output_format)
+    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,file_format=claw.output_format)
+    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,file_format=claw.output_format)
 
 
 if __name__=="__main__":

@@ -17,7 +17,7 @@ def qinit(state):
     x1 = 0.7
     x2 = 0.9
 
-    x =state.grid.x.center
+    x =state.grid.x.centers
     
     # Gaussian
     qg = np.exp(-beta * (x-x0)**2) * np.cos(gamma * (x - x0))
@@ -31,7 +31,7 @@ def qinit(state):
 
 def auxinit(state):
     # Initilize petsc Structures for aux
-    xc=state.grid.x.center
+    xc=state.grid.x.centers
     state.aux[0,:] = np.sin(2.*np.pi*xc)+2
     
 
@@ -60,17 +60,17 @@ def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',
 
     xlower=0.0; xupper=1.0; mx=100
     x    = pyclaw.Dimension('x',xlower,xupper,mx)
-    grid = pyclaw.Grid(x)
+    domain = pyclaw.Domain(x)
     num_aux=1
     num_eqn = 1
-    state = pyclaw.State(grid,num_eqn,num_aux)
+    state = pyclaw.State(domain,num_eqn,num_aux)
 
     qinit(state)
     auxinit(state)
 
     claw = pyclaw.Controller()
     claw.outdir = outdir
-    claw.solution = pyclaw.Solution(state)
+    claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
 
     claw.tfinal = 1.0

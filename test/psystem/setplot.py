@@ -21,13 +21,13 @@ def setplot(plotdata):
     
     """ 
     Specify what is to be plotted at each frame.
-    Input:  plotdata, an instance of pyclaw.plotters.data.ClawPlotData.
+    Input:  plotdata, an instance of visclaw.data.ClawPlotData.
     Output: a modified version of plotdata.
     
     """ 
 
 
-    from pyclaw.plotters import colormaps
+    from visclaw import colormaps
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
     
@@ -67,7 +67,7 @@ def setplot(plotdata):
     plotitem = plotaxes.new_plotitem(plot_type='1d_from_2d_data')
     
     def p_vs_r(current_data):
-        # Return radius of each grid cell and p value in the cell
+        # Return radius of each patch cell and p value in the cell
         from pylab import sqrt
         x = current_data.x
         y = current_data.y
@@ -94,7 +94,7 @@ def setplot(plotdata):
     
 
     # Parameters used only when creating html and/or latex hardcopy
-    # e.g., via pyclaw.plotters.frametools.printframes:
+    # e.g., via visclaw.frametools.printframes:
 
     plotdata.printfigs = True                # print figures
     plotdata.print_format = 'png'            # file format

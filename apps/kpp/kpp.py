@@ -4,8 +4,8 @@
 import numpy as np
 
 def qinit(state,rad=1.0):
-    x = state.grid.x.center
-    y = state.grid.y.center
+    x = state.grid.x.centers
+    y = state.grid.y.centers
     Y,X = np.meshgrid(y,x)
     r = np.sqrt(X**2 + Y**2)
 
@@ -33,13 +33,13 @@ def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_typ
     solver.bc_lower[1]=pyclaw.BC.extrap
     solver.bc_upper[1]=pyclaw.BC.extrap
 
-    # Initialize grid
+    # Initialize domain
     mx=200; my=200
     x = pyclaw.Dimension('x',-2.0,2.0,mx)
     y = pyclaw.Dimension('y',-2.0,2.0,my)
-    grid = pyclaw.Grid([x,y])
+    domain = pyclaw.Domain([x,y])
     num_eqn = 1
-    state = pyclaw.State(grid,num_eqn)
+    state = pyclaw.State(domain,num_eqn)
 
     qinit(state)
 
@@ -51,7 +51,7 @@ def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_typ
 
     claw = pyclaw.Controller()
     claw.tfinal = 1.0
-    claw.solution = pyclaw.Solution(state)
+    claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.num_output_times = 10
 

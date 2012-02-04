@@ -1,26 +1,10 @@
 PYCLAWMAKE = $(PYCLAW)/Makefile.common
 
-# This makefile uses the Fortran compiler and flags from PETSc. This
-# means that PETSc needs to be configured with Fortran support which
-# would otherwise not be necessary. However, using arbitrary environment
-# variables and hoping it all works out is way more fragile than I want
-# any part of.
+RP_SOURCE =  $(RIEMANN)/src/rp1_euler-with-efix.f90
 
-FCOMPILE_SINGLE = ${FC} -c ${FC_FLAGS} ${FFLAGS} ${FCPPFLAGS}
-
-RP_SOURCE =  $(RIEMANN)/src/rp1_euler-with-efix.f
-
-F2PY = f2py
-PYTHON = python
-MODULE = assembly
-
-all: classic1.so sharpclaw1.so 
-
-${MODULE}.so: ${MODULE}.pyx ${MODULE}impl.h ${MODULE}impl.c petscdadef.h
-	CC='${PCC}' CFLAGS='${PCC_FLAGS}' F90='${FC_LINKER}' FFLAGS='${FFLAGS}' LDFLAGS='${FC_LINKER_FLAGS}' ${PYTHON} setup.py -q build_ext --inplace
-	${RM} -r build ${MODULE}_wrap.c
+all: 
+	make classic1.so
+	make sharpclaw1.so
 
 include $(PYCLAWMAKE)
-
-#include ${PETSC_DIR}/conf/variables
 

@@ -27,14 +27,14 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     solver.bc_lower[1]=pyclaw.BC.wall
     solver.bc_upper[1]=pyclaw.BC.extrap
 
-    # Initialize grid
+    # Initialize domain
     mx=100; my=100
     x = pyclaw.Dimension('x',-1.0,1.0,mx)
     y = pyclaw.Dimension('y',-1.0,1.0,my)
-    grid = pyclaw.Grid([x,y])
+    domain = pyclaw.Domain([x,y])
 
     num_eqn = 3
-    state = pyclaw.State(grid,num_eqn)
+    state = pyclaw.State(domain,num_eqn)
 
     rho = 1.0
     bulk = 4.0
@@ -45,7 +45,8 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     state.problem_data['zz']= zz
     state.problem_data['cc']=cc
 
-    Y,X = np.meshgrid(grid.y.center,grid.x.center)
+    grid = state.grid
+    Y,X = np.meshgrid(grid.y.centers,grid.x.centers)
     r = np.sqrt(X**2 + Y**2)
     width=0.2
     state.q[0,:,:] = (np.abs(r-0.5)<=width)*(1.+np.cos(np.pi*(r-0.5)/width))
@@ -54,7 +55,7 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
-    claw.solution = pyclaw.Solution(state)
+    claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir=outdir
 
@@ -62,11 +63,11 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     claw.tfinal = 0.6
     status = claw.run()
 
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,format=claw.output_format)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,format=claw.output_format)
+    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,file_format=claw.output_format)
+    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,file_format=claw.output_format)
 
     if use_petsc:
-        pressure=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([grid.ng[0],grid.ng[1],state.num_eqn])[:,:,0]
+        pressure=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([grid.num_cells[0],grid.num_cells[1],state.num_eqn])[:,:,0]
     else:
         pressure=claw.frames[claw.num_output_times].state.q[:,:,0]
     return pressure

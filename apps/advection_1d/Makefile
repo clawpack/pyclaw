@@ -1,8 +1,10 @@
 PYCLAWMAKE = $(PYCLAW)/Makefile.common
 
-RP_SOURCE = $(RIEMANN)/src/rp1_advection.f
+RP_SOURCE = $(RIEMANN)/src/rp1_advection.f90
 
-all: classic1.so sharpclaw1.so
+all: 
+	make classic1.so
+	make sharpclaw1.so
 
 include $(PYCLAWMAKE)
 

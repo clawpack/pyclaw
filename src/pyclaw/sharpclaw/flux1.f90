@@ -24,7 +24,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
 !            s(mw,i) = speed of wave in family mw in Riemann problem between
 !                      states i-1 and i.
 !
-!     Note that mx must be the size of the grid for the dimension corresponding
+!     Note that mx must be the size of the patch for the dimension corresponding
 !     to the value of ixy.
 !
 !     t is the time at which we want to evaluate dq/dt, which may not
@@ -61,7 +61,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
     else
         dtdx = dt/dx(ixy)
     endif
-    if (ndim.gt.1) dq1d=0.d0
+    if (num_dim.gt.1) dq1d=0.d0
 
 
     select case(lim_type)
@@ -73,7 +73,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
 !            case(1)
 !                ! wave-based unlimited reconstruction
 !                call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
-!                        q1d,q1d,aux,aux,wave,s,amdq,apdq)
+!                        q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
 !                call q2qlqr_poly_wave(q1d,ql,qr,wave,s,mx)
 !        end select
         case(1)
@@ -84,7 +84,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
             case(1)
                 ! wave-based second order reconstruction
                 call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
-                        q1d,q1d,aux,aux,wave,s,amdq,apdq)
+                        q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
                 ! Need to write a tvd2_fwave routine
                 call tvd2_wave(q1d,ql,qr,wave,s,mthlim)
             case(2)
@@ -100,7 +100,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
             case (1)
                 ! wave-based reconstruction
                 call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
-                        q1d,q1d,aux,aux,wave,s,amdq,apdq)
+                        q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
                 if (fwave.eqv. .True.) then
                     call weno5_fwave(q1d,ql,qr,wave,s)
                 else
@@ -127,7 +127,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
     ! solve Riemann problem at each interface 
     ! -----------------------------------------
     call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr,aux,aux, &
-              wave,s,amdq,apdq)
+              wave,s,amdq,apdq,num_aux)
 
     ! compute maximum wave speed:
     cfl = 0.d0
@@ -177,14 +177,14 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
         if (num_aux .gt. 0) then
              do i = 1-num_ghost+1,mx+num_ghost
                 do m = 1, num_aux
-                    auxr(m,i-1) = aux(m,i) !aux is not griddat type
-                    auxl(m,i  ) = aux(m,i) !aux is not griddat type
+                    auxr(m,i-1) = aux(m,i) !aux is not patchdat type
+                    auxl(m,i  ) = aux(m,i) !aux is not patchdat type
                 enddo
             enddo
         endif
         
         call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr, &
-                 auxl,auxr,wave,s,amdq2,apdq2)
+                 auxl,auxr,wave,s,amdq2,apdq2,num_aux)
 
         forall(i=1:mx, m=1:num_eqn)
             dq1d(m,i) = dq1d(m,i)-dtdx(i)*(amdq(m,i+1)+ &

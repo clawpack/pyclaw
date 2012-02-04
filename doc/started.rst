@@ -67,63 +67,76 @@ To test Matplotlib follow the instructions at
 
 Installation
 ==================
-PyClaw requires installation of two Clawpack projects: PyClaw itself;
-Riemann, a collection of Riemann solvers; and Visclaw, a set of visualization tools
-built on top of Matplotlib.  We recommend that you create
-a directory to contain all three packages and set your `CLAW` environment 
-variable to point to that.  This is accomplished by ::
+PyClaw requires the installation of four Clawpack projects:
+
+*PyClaw*
+    The actual package containing the PyClaw source code, tests, and examples
+    
+*Clawutil*
+    A package containing important utilities for working with Clawpack projects
+    
+*Riemann*
+    A package containing a collection of Riemann solvers for PyClaw and 
+    Clawpack.
+    
+*VisClaw*
+    A set of visualization tools built on top of Matplotlib
+    
+The best way to get PyClaw, Clawutil, Riemann and VisClaw right now is to clone
+the Git repositories.  We recommend that you create a directory to contain all three 
+packages.  If you wanted to call this directory ``clawpack`` say this would be 
+accompilished by ::
 
     $ mkdir clawpack
     $ cd clawpack
-    $ export CLAW=`pwd`
 
-in bash.  In csh/tcsh, replace the last command above with ::
+The best way to get PyClaw, Clawutil, Riemann and VisClaw right now is to clone
+the Git repositories into the directory you just created::
 
-    $ setenv CLAW `pwd`
-
-You will probably want to add the command to your `.cshrc` or `.bash_profile`.
-
-The best way to get PyClaw, Riemann, and Visclaw right now is to clone the Git repositories ::
-
-    $ cd $CLAW
-    $ git clone  git@github.com:clawpack/pyclaw.git
-    $ git clone  git@github.com:clawpack/riemann.git
-    $ git clone  git@github.com:clawpack/visclaw.git
+    $ git clone git@github.com:clawpack/clawutil.git
+    $ git clone git@github.com:clawpack/pyclaw.git
+    $ git clone git@github.com:clawpack/riemann.git
+    $ git clone git@github.com:clawpack/visclaw.git
 
 Eventually we will have an official release and there will be a tarball available.
 
 
 Setting up the environment
 ============================
-You will need the following environment variables set:
+Now we need to setup the environment so we can easily refer to the projects that
+we just cloned.  The following variables are used in PyClaw:
 
-  * `PYCLAW` must point to the path where you installed PyClaw (usually `$CLAW/pyclaw`)
-  * `RIEMANN` must point to the path where you installed Riemann (usually `$CLAW/riemann`)
-  * Your `PYTHONPATH` must include PyClaw, Riemann, and VisClaw.
+  * ``CLAW`` must point to the base directory you created and cloned the 
+    repositories into, above we called this ``clawpack``.
+  * ``CLAWUTIL`` must point to the path where you installed Clawutil (usually 
+    ``$CLAW/clawutil``) 
+  * ``PYCLAW`` must point to the path where you installed PyClaw (usually
+    ``$CLAW/pyclaw``) 
+  * ``RIEMANN`` must point to the path where you installed Riemann (usually 
+    ``$CLAW/riemann``) 
+  * Your ``PYTHONPATH`` must include PyClaw, Clawutil, Riemann, and VisClaw.
 
-In bash this is accomplished via ::
+The easiest way to do this is to use a script provided in Clawutil that 
+produces the appropriate environment variables for PyClaw (and the other
+Clawpack projects).  To run the script, go into your base directory you 
+created above and run ::
 
-    $ export RIEMANN=$CLAW/riemann
-    $ export PYCLAW=$CLAW/pyclaw
-    $ export VISCLAW=$CLAW/visclaw
-    $ export PYTHONPATH=$PYCLAW/src:$RIEMANN/src/python:$VISCLAW/src/python
-
-In csh/tcsh, use ::
-
-    $ setenv RIEMANN $CLAW/riemann
-    $ setenv PYCLAW $CLAW/pyclaw
-    $ setenv VISCLAW $CLAW/visclaw
-    $ setenv PYTHONPATH $PYCLAW/src:$RIEMANN/src/python:$VISCLAW/src/python
+    $ python clawutil/src/python/setenv.py
     
-A script to produce the appropriate environmental variables is also included in
-the Clawpack project clawutil.  If you are in the your `$CLAW` directory
-running::
+This script should produce two files that contain the shell script for setting
+the above variables.  By default these files are called ``setenv.bash`` and 
+``setenv.csh``.  These can be used by running ::
 
-    $ $CLAW/clawutil/src/python/setenv.py
-
-should produce the appropriate `setenv.bash` and `setenv.csh` which when
-sourced (`source setenv.bash` or `source setenv.csh`) will set the
-approprite variables
+    $ source setenv.bash
+    
+or ::
+    
+    $ source setenv.csh
+    
+depending on your shell (this can be checked by typing ``printenv SHELL`` at
+your command line).  The shell code in these files can be copied to your
+.bashrc, .cshrc, or .profile file to be run automatically when you open a 
+terminal.
 
 
 Testing your installation
@@ -151,7 +164,7 @@ Running and plotting an example
 ================================
 Next ::
 
-    $ cd $PYCLAW/apps/advection/1d/constant
+    $ cd $PYCLAW/apps/advection_1d
     $ make
     $ python advection.py iplot=1
 

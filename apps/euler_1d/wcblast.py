@@ -27,26 +27,26 @@ def wcblast(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver
     solver.bc_lower[0]=pyclaw.BC.wall
     solver.bc_upper[0]=pyclaw.BC.wall
 
-    # Initialize grid
+    # Initialize domain
     mx=500;
     x = pyclaw.Dimension('x',0.0,1.0,mx)
-    grid = pyclaw.Grid([x])
+    domain = pyclaw.Domain([x])
     num_eqn = 3
-    state = pyclaw.State(grid,num_eqn)
+    state = pyclaw.State(domain,num_eqn)
 
     state.problem_data['gamma']= gamma
     state.problem_data['gamma1']= gamma1
 
     state.q[0,:] = 1.
     state.q[1,:] = 0.
-    x =state.grid.x.center
+    x =state.grid.x.centers
     state.q[2,:] = ( (x<0.1)*1.e3 + (0.1<=x)*(x<0.9)*1.e-2 + (0.9<=x)*1.e2 ) / gamma1
 
     solver.limiters = 4
 
     claw = pyclaw.Controller()
     claw.tfinal = 0.038
-    claw.solution = pyclaw.Solution(state)
+    claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.num_output_times = 10
     claw.outdir = outdir

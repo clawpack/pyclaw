@@ -14,12 +14,12 @@ def setplot(plotdata):
     
     """ 
     Specify what is to be plotted at each frame.
-    Input:  plotdata, an instance of visclaw.plotters.data.ClawPlotData.
+    Input:  plotdata, an instance of visclaw.data.ClawPlotData.
     Output: a modified version of plotdata.
     
     """
 
-    from visclaw.plotters import colormaps
+    from visclaw import colormaps
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
     
@@ -39,12 +39,12 @@ def setplot(plotdata):
     plotitem.plot_var = 0
     plotitem.contour_levels = np.linspace(-1.59729945e-03, 1.59729945e-03, 200)
     plotitem.contour_colors = 'k'
-    plotitem.gridedges_show = 1
+    plotitem.patchedges_show = 1
 
     plotitem.show = True       # show on plot?
 
     # Parameters used only when creating html and/or latex hardcopy
-    # e.g., via pyclaw.plotters.frametools.printframes:
+    # e.g., via visclaw.frametools.printframes:
 
     plotdata.printfigs = True                # print figures
     plotdata.print_format = 'png'            # file format

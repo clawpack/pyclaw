@@ -8,13 +8,15 @@ PYCLAWMAKE = $(PYCLAW)/Makefile.common
 
 FCOMPILE_SINGLE = ${FC} -c ${FC_FLAGS} ${FFLAGS} ${FCPPFLAGS}
 
-RP_SOURCE =  $(RIEMANN)/src/rp1_acoustics.f
+RP_SOURCE =  $(RIEMANN)/src/rp1_acoustics.f90
 
 F2PY = f2py
 PYTHON = python
 MODULE = assembly
 
-all: classic1.so sharpclaw1.so 
+all: 
+	make classic1.so
+	make sharpclaw1.so
 
 ${MODULE}.so: ${MODULE}.pyx ${MODULE}impl.h ${MODULE}impl.c petscdadef.h
 	CC='${PCC}' CFLAGS='${PCC_FLAGS}' F90='${FC_LINKER}' FFLAGS='${FFLAGS}' LDFLAGS='${FC_LINKER_FLAGS}' ${PYTHON} setup.py -q build_ext --inplace

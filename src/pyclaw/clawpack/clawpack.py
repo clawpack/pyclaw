@@ -6,11 +6,6 @@ clawpack solvers inherit from the :class:`ClawSolver` superclass which in turn
 inherits from the :class:`~pyclaw.solver.Solver` superclass.  These
 are both pure virtual classes; the only solver classes that should be instantiated
 are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`.
-
-:Authors:
-    Kyle T. Mandli (2008-09-11) Initial version
-    Amal Alghamdi (2010-2011)   Wrapped Fortran routines
-    David I. Ketcheson (2011)   Various refinements, including removing BCs from grid
 """
 
 from pyclaw.solver import Solver
@@ -191,7 +186,7 @@ class ClawSolver(Solver):
         self._method =np.empty(7, dtype=int,order='F')
         self._method[0] = self.dt_variable
         self._method[1] = self.order
-        if self.ndim==1:
+        if self.num_dim==1:
             self._method[2] = 0  # Not used in 1D
         elif self.dimensional_split:
             self._method[2] = -1  # First-order dimensional splitting
@@ -209,7 +204,7 @@ class ClawSolver(Solver):
         """
         if(self.kernel_language == 'Fortran'):
             # Set name of expected .so file with compile Fortran routines
-            self.so_name = 'classic'+str(self.ndim)
+            self.so_name = 'classic'+str(self.num_dim)
 
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (num_ghost)
@@ -222,7 +217,7 @@ class ClawSolver(Solver):
         if(self.kernel_language == 'Fortran'):
             self.set_fortran_parameters(solution)
             self.allocate_workspace(solution)
-        elif self.ndim>1:
+        elif self.num_dim>1:
             raise Exception('Only Fortran kernels are supported in multi-D.')
 
         self.allocate_bc_arrays(solution.states[0])
@@ -275,7 +270,7 @@ class ClawSolver1D(ClawSolver):
         
         See :class:`ClawSolver1D` for more info.
         """   
-        self.ndim = 1
+        self.num_dim = 1
 
         super(ClawSolver1D,self).__init__()
 
@@ -301,8 +296,8 @@ class ClawSolver1D(ClawSolver):
         if(self.kernel_language == 'Fortran'):
             classic = __import__(self.so_name)
 
-            mx = grid.ng[0]
-            dx,dt = grid.d[0],self.dt
+            mx = grid.num_cells[0]
+            dx,dt = grid.delta[0],self.dt
             dtdx = np.zeros( (mx+2*num_ghost) ) + dt/dx
             
             self.qbc,cfl = classic.step1(num_ghost,mx,self.qbc,self.auxbc,dx,dt,self._method,self._mthlim,self.fwave)
@@ -314,13 +309,13 @@ class ClawSolver1D(ClawSolver):
             # Limiter to use in the pth family
             limiter = np.array(self._mthlim,ndmin=1)  
         
-            dtdx = np.zeros( (2*self.num_ghost+grid.ng[0]) )
+            dtdx = np.zeros( (2*self.num_ghost+grid.num_cells[0]) )
 
             # Find local value for dt/dx
             if state.index_capa>=0:
-                dtdx = self.dt / (grid.d[0] * state.aux[state.index_capa,:])
+                dtdx = self.dt / (grid.delta[0] * state.aux[state.index_capa,:])
             else:
-                dtdx += self.dt/grid.d[0]
+                dtdx += self.dt/grid.delta[0]
         
             # Solve Riemann problem at each interface
             q_l=q[:,:-1]
@@ -342,7 +337,7 @@ class ClawSolver1D(ClawSolver):
             #              |                               |
 
             LL = self.num_ghost - 1
-            UL = self.num_ghost + grid.ng[0] + 1 
+            UL = self.num_ghost + grid.num_cells[0] + 1 
 
             # Update q for Godunov update
             for m in xrange(num_eqn):
@@ -359,7 +354,7 @@ class ClawSolver1D(ClawSolver):
             # If we are doing slope limiting we have more work to do
             if self.order == 2:
                 # Initialize flux corrections
-                f = np.zeros( (num_eqn,grid.ng[0] + 2*self.num_ghost) )
+                f = np.zeros( (num_eqn,grid.num_cells[0] + 2*self.num_ghost) )
             
                 # Apply Limiters to waves
                 if (limiter > 0).any():
@@ -444,7 +439,7 @@ class ClawSolver2D(ClawSolver):
         self.dimensional_split = True
         self.transverse_waves = self.trans_inc
 
-        self.ndim = 2
+        self.num_dim = 2
 
         self.aux1 = None
         self.aux2 = None
@@ -484,7 +479,7 @@ class ClawSolver2D(ClawSolver):
         if(aux == None): num_aux=1
 
         grid  = state.grid
-        maxmx,maxmy = grid.ng[0],grid.ng[1]
+        maxmx,maxmy = grid.num_cells[0],grid.num_cells[1]
         maxm = max(maxmx, maxmy)
 
         # These work arrays really ought to live inside a fortran module
@@ -508,8 +503,8 @@ class ClawSolver2D(ClawSolver):
         if(self.kernel_language == 'Fortran'):
             state = solution.states[0]
             grid = state.grid
-            dx,dy = grid.d
-            mx,my = grid.ng
+            dx,dy = grid.delta
+            mx,my = grid.num_cells
             maxm = max(mx,my)
             
             self.apply_q_bcs(state)
@@ -599,7 +594,7 @@ class ClawSolver3D(ClawSolver):
         self.dimensional_split = True
         self.transverse_waves = self.trans_cor
 
-        self.ndim = 3
+        self.num_dim = 3
 
         self.aux1 = None
         self.aux2 = None
@@ -626,7 +621,7 @@ class ClawSolver3D(ClawSolver):
         if(aux == None): num_aux=1
 
         grid  = state.grid
-        maxmx,maxmy = grid.ng[0],grid.ng[1]
+        maxmx,maxmy = grid.num_cells[0],grid.num_cells[1]
         maxm = max(maxmx, maxmy)
 
         # These work arrays really ought to live inside a fortran module
@@ -650,8 +645,8 @@ class ClawSolver3D(ClawSolver):
         if(self.kernel_language == 'Fortran'):
             state = solution.states[0]
             grid = state.grid
-            dx,dy,dz = grid.d
-            mx,my,mz = grid.ng
+            dx,dy,dz = grid.delta
+            mx,my,mz = grid.num_cells
             maxm = max(mx,my,mz)
             
             self.apply_q_bcs(state)

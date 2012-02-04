@@ -18,8 +18,8 @@ def qinit(state,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
     einf = 0.5*rinf*vinf**2 + pinf/gamma1
     
     # Create an array with fortran native ordering
-    x =grid.x.center
-    y =grid.y.center
+    x =grid.x.centers
+    y =grid.y.centers
     Y,X = np.meshgrid(y,x)
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
 
@@ -31,10 +31,10 @@ def qinit(state,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
 
 def auxinit(state):
     """
-    aux[1,i,j] = y-coordinate of cell center for cylindrical source terms
+    aux[1,i,j] = y-coordinate of cell centers for cylindrical source terms
     """
-    x=state.grid.x.center
-    y=state.grid.y.center
+    x=state.grid.x.centers
+    y=state.grid.y.centers
     for j,ycoord in enumerate(y):
         state.aux[0,:,j] = ycoord
 
@@ -42,7 +42,13 @@ def shockbc(state,dim,t,qbc,num_ghost):
     """
     Incoming shock at left boundary.
     """
-    if dim.nstart == 0:
+    for (i,state_dim) in enumerate(state.patch.dimensions):
+        if state_dim.name == dim.name:
+            dim_index = i
+            break
+      
+    if (state.patch.dimensions[dim_index].lower == 
+                        state.grid.dimensions[dim_index].lower):
 
         pinf=5.
         rinf = (gamma1 + pinf*(gamma+1.))/ ((gamma+1.) + gamma1*pinf)
@@ -64,7 +70,7 @@ def euler_rad_src(solver,state,dt):
     
     dt2 = dt/2.
     press = 0.
-    ndim = 2
+    num_dim = 2
 
     aux=state.aux
     q = state.q
@@ -78,20 +84,20 @@ def euler_rad_src(solver,state,dt):
 
     qstar = np.empty(q.shape)
 
-    qstar[0,:,:] = q[0,:,:] - dt2*(ndim-1)/rad * q[2,:,:]
-    qstar[1,:,:] = q[1,:,:] - dt2*(ndim-1)/rad * rho*u*v
-    qstar[2,:,:] = q[2,:,:] - dt2*(ndim-1)/rad * rho*v*v
-    qstar[3,:,:] = q[3,:,:] - dt2*(ndim-1)/rad * v * (q[3,:,:] + press)
+    qstar[0,:,:] = q[0,:,:] - dt2*(num_dim-1)/rad * q[2,:,:]
+    qstar[1,:,:] = q[1,:,:] - dt2*(num_dim-1)/rad * rho*u*v
+    qstar[2,:,:] = q[2,:,:] - dt2*(num_dim-1)/rad * rho*v*v
+    qstar[3,:,:] = q[3,:,:] - dt2*(num_dim-1)/rad * v * (q[3,:,:] + press)
 
     rho = qstar[0,:,:]
     u   = qstar[1,:,:]/rho
     v   = qstar[2,:,:]/rho
     press  = gamma1 * (qstar[3,:,:] - 0.5*rho*(u**2 + v**2))
 
-    q[0,:,:] = q[0,:,:] - dt*(ndim-1)/rad * qstar[2,:,:]
-    q[1,:,:] = q[1,:,:] - dt*(ndim-1)/rad * rho*u*v
-    q[2,:,:] = q[2,:,:] - dt*(ndim-1)/rad * rho*v*v
-    q[3,:,:] = q[3,:,:] - dt*(ndim-1)/rad * v * (qstar[3,:,:] + press)
+    q[0,:,:] = q[0,:,:] - dt*(num_dim-1)/rad * qstar[2,:,:]
+    q[1,:,:] = q[1,:,:] - dt*(num_dim-1)/rad * rho*u*v
+    q[2,:,:] = q[2,:,:] - dt*(num_dim-1)/rad * rho*v*v
+    q[3,:,:] = q[3,:,:] - dt*(num_dim-1)/rad * v * (qstar[3,:,:] + press)
 
 
 def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
@@ -105,17 +111,15 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     else:
         import pyclaw
 
-    from pyclaw import ClawSolver2D 
 
-
-    # Initialize grid
+    # Initialize domain
     mx=160; my=40
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
-    grid = pyclaw.Grid([x,y])
+    domain = pyclaw.Domain([x,y])
     num_eqn = 5
     num_aux=1
-    state = pyclaw.State(grid,num_eqn,num_aux)
+    state = pyclaw.State(domain,num_eqn,num_aux)
 
     state.problem_data['gamma']= gamma
     state.problem_data['gamma1']= gamma1
@@ -124,9 +128,9 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
 
     qinit(state)
     auxinit(state)
-    initial_solution = pyclaw.Solution(state)
+    initial_solution = pyclaw.Solution(state,domain)
 
-    solver = ClawSolver2D()
+    solver = pyclaw.ClawSolver2D()
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
     solver.num_waves = 5
@@ -156,11 +160,12 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     # Solve
     status = claw.run()
 
-    if htmlplot:  pyclaw.plot.html_plot(format=claw.output_format)
-    if iplot:     pyclaw.plot.interactive_plot(format=claw.output_format)
+    if htmlplot:  pyclaw.plot.html_plot(file_format=claw.output_format)
+    if iplot:     pyclaw.plot.interactive_plot(file_format=claw.output_format)
 
     if use_petsc:
-        density=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([state.num_eqn,grid.n[0],grid.n[1]],order='F')[0,:,:]
+        grid = claw.solution.domain.grid
+        density=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([state.num_eqn,grid.num_cells[0],grid.num_cells[1]],order='F')[0,:,:]
     else:
         density=claw.frames[claw.num_output_times].state.q[0,:,:]
     return density
