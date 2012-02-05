@@ -26,14 +26,14 @@ client on your system to obtain PyClaw itself.
     your Python installation.   Most of the PyClaw developers use a gfortran
     from the 4.6.x series.
 
-  * `numpy <http://numpy.scipy.org/>`_. Numpy is used both for handling
+  * `numpy <http://numpy.scipy.org/>`_ is used both for handling
     arrays in Python and for interfacing between Python and Fortran
     (via f2py).  The minimum recommended version is 1.6.
 
-  * `matplotlib <http://matplotlib.sourceforge.net/>`_.  Matplotlib is
+  * `matplotlib <http://matplotlib.sourceforge.net/>`_ is
     used for plotting results.  The minimum recommended version is 1.0.1.
 
-  * `git <http://git-scm.com/>`_ git is the freely available distributed
+  * `git <http://git-scm.com/>`_ is the freely available distributed
     version control system used by the PyClaw developers to manage
     development.  The minimum recommended version is 1.7
 
@@ -46,7 +46,7 @@ Binary files for gfortran on OS X, Linux and Windows are available from
 Obtaining a git client
 +++++++++++++++++++++++++++++++++++++++++++++++
 
-git clients can be downloaded from the `git homepage<http://git-scm.com/download>`_.
+git clients can be downloaded from the `git homepage <http://git-scm.com/download>`_.
 
 Obtaining Python and its dependencies
 +++++++++++++++++++++++++++++++++++++++++++++++
