@@ -175,7 +175,6 @@ def write_hdf5(solution,frame,path,file_prefix='claw',write_aux=False,
         logging.critical(err_msg)
         raise Exception(err_msg)
 
-
 def read_hdf5(solution,frame,path='./',file_prefix='claw',read_aux=True,
                 options={}):
     r"""
