@@ -29,6 +29,8 @@ in the vector q.  To do so, just add a function `p_function` to
 the controller that accepts the state and sets the derived quantities
 in state.p::
 
+.. doctest::
+
     >>> state.mp = 1
     >>> claw.p_function = stress
     >>> def stress(state):
@@ -44,6 +46,8 @@ integral of some function of $q$.  To enable writing functionals, simply
 set state.mF to the number of functionals and point the controller to a 
 function that computes $f(q)$::
 
+.. doctest::
+
     >>> state.mf = 1
     >>> def compute_f(state):
     >>>     state.F[0,:,:] state.q[0,:,:]*state.q[1,:,:]
@@ -58,11 +62,15 @@ The gauges are managed by the grid object, and a grid at location $(x,y)$
 may be added simply by calling `grid.add_gauges((x,y))`.  Multiple gauges
 can be set at once by providing a list of coordinate tuples::
 
+.. doctest::
+
     >>> grid.add_gauges([(x1,y1),(x2,y2),(x3,y3)])
 
 By default, the solution values are written out at each gauge location.
 To write some other quantity, simply provide a function 
 `f(q,aux)` and point the solver to it::
+
+.. doctest::
 
     >>> def f(q,aux):
     >>>     return q[1,:,:]/q[0,:,:]

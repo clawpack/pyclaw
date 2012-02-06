@@ -44,6 +44,8 @@ Once you have initialize a State object, it contains a member state.q
 whose first dimension is num_eqn and whose remaining dimensions are those
 of the grid.  Now you must set the initial condition.  For instance::
 
+.. doctest::
+
     >>> Y,X = np.meshgrid(grid.y.center,grid.x.center)
     >>> r = np.sqrt(X**2 + Y**2)
     >>> width=0.2
@@ -59,6 +61,8 @@ Setting auxiliary variables
 If the problem involves coefficients that vary in space or a mapped grid,
 the required fields are stored in state.aux.  In order to use such fields,
 you must pass the num_aux argument to the State initialization::
+
+.. doctest::
 
     >>> state = pyclaw.State(domain,num_eqn,num_aux)
 
@@ -87,6 +91,8 @@ PyClaw includes the following built-in boundary condition implementations:
 Other boundary conditions can be implemented by using ``pyclaw.BC.custom``, and
 providing a custom BC function.  The attribute solver.user_bc_lower/upper must
 be set to the corresponding function handle.  For instance::
+
+.. doctest::
 
     >>> def custonum_ghost(state,dim,t,qbc,num_ghost):
     >>>     for i in xrange(num_ghost):

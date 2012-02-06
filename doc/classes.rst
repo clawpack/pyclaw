@@ -43,6 +43,8 @@ follows from the bottom up.
 
 ::
 
+.. doctest::
+
     >>> from pyclaw import Solution, State, Grid, Dimension
     
     >>> x = Dimension('x', -1.0, 1.0, 200)
@@ -64,6 +66,8 @@ contain our :class:`~pyclaw.grid.Dimension` objects.
 
 ::
 
+.. doctest::
+
     >>> grid = Grid([x,y])
     >>> state = State(grid)
     >>> state.num_eqn = 2
@@ -78,6 +82,8 @@ We now need to set the initial condition ``q`` and possibly ``aux`` to the corre
 values.  
 
 ::
+
+.. doctest::
 
     >>> import numpy as np
     >>> sigma = 0.2
@@ -97,6 +103,8 @@ directly as in:
 
 ::
 
+.. doctest::
+
     >>> state.problem_data['c'] = 1.0
     >>> state.problem_data[`Z`] = 0.25
     
@@ -110,6 +118,8 @@ case, since we are not using adaptive mesh refinement or a multi-block
 algorithm, we do not have multiple grids.
 
 ::
+
+.. doctest::
 
     >>> sol = Solution(state)
     
@@ -129,6 +139,8 @@ configuration.
 
 ::
 
+.. doctest::
+
     >>> from pyclaw.clawpack import ClawSolver1D
     >>> solver = ClawSolver1D()
     >>> solver.bc_lower[0] = pyclaw.BC.periodic
@@ -142,6 +154,8 @@ picked one out, we let the solver pick it out for us via:
 
 ::
 
+.. doctest::
+
     >>> solver.set_riemann_solver('acoustics')
 
 In this case we have decided to use the linear acoustics Riemann solver.  You 
@@ -151,11 +165,15 @@ attribute to the particular function.
 
 ::
 
+.. doctest::
+
     >>> import my_rp_module
     >>> solver.rp = my_rp_module.my_acoustics_rp
 
 Last we finish up by specifying solver options, if we want to override the
 defaults.  For instance, we might want to specify a particular limiter::
+
+.. doctest::
 
     >>> solver.limiters = pyclaw.limiters.vanleer
     
@@ -163,6 +181,8 @@ If we wanted to control the simulation we could at this point by issuing the
 following commands:
 
 ::
+
+.. doctest::
 
     >>> solver.evolve_to_time(sol,1.0)
     
@@ -180,6 +200,8 @@ method.
 
 ::
 
+.. doctest::
+
     >>> from pyclaw.controller import Controller
 
     >>> claw = Controller()
@@ -195,6 +217,8 @@ parameters are similar to the ones found in the classic clawpack claw.data
 format.
 
 ::
+
+.. doctest::
 
     >>> claw.output_style = 1
     >>> claw.num_output_times = 10
@@ -214,6 +238,8 @@ Restarting a simulation
 To restart a simulation, simply initialize a Solution object using an output
 frame from a previous run; for example, to restart from frame 3::
 
+.. doctest::
+
     >>> claw.solution = pyclaw.Solution(3,format='petsc')
 
 .. note::
@@ -227,6 +253,8 @@ It is sometimes desirable to output quantities other than those
 in the vector q.  To do so, just add a function `compute_p` to 
 the controller that accepts the state and sets the derived quantities
 in state.p::
+
+.. doctest::
 
     >>> state.mp = 1
     >>> claw.compute_p = stress

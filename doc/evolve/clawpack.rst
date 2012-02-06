@@ -20,6 +20,8 @@ structure is:
     This is a simple example of how to instantiate and evolve a solution to a
     later time ``t_end`` using the linearized 1d acoustics Riemann solver::
     
+.. doctest::
+
         >>> import pyclaw
         >>> solver = pyclaw.ClawSolver1D()           # Instantiate a default, 1d solver
         >>> solver.mthlim = pyclaw.limiters.vanleer  # Use the van Leer limiter

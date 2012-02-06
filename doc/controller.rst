@@ -20,6 +20,8 @@ simulation.
 
 ::
 
+.. doctest::
+
     >>> import pyclaw.controller as controller
     >>> claw = controller.Controller()            # Instantiate a new controller
     >>> claw.solver = my_solver                   # Assign a solver
@@ -32,6 +34,8 @@ if we are going to use ``keep_copy = True``.  After we are all set up we just
 need to call the controller's :meth:`run` method and off we go.
     
 ::    
+
+.. doctest::
 
     >>> claw.run()
 
