@@ -38,6 +38,7 @@ Documentation
 .. toctree::
    :maxdepth: 2
 
+   gallery
    basics
    going_further
    classes
