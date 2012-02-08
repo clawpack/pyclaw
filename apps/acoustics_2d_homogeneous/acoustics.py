@@ -48,6 +48,11 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     state.problem_data['zz']= zz
     state.problem_data['cc']=cc
 
+    solver.rp.cparam.rho = rho
+    solver.rp.cparam.bulk = bulk
+    solver.rp.cparam.zz = zz
+    solver.rp.cparam.cc = cc
+
     grid = state.grid
     Y,X = np.meshgrid(grid.y.centers,grid.x.centers)
     r = np.sqrt(X**2 + Y**2)
