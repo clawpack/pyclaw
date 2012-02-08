@@ -309,8 +309,9 @@ class ClawSolver1D(ClawSolver):
             mx = grid.num_cells[0]
             dx,dt = grid.delta[0],self.dt
             dtdx = np.zeros( (mx+2*num_ghost) ) + dt/dx
+            rp1 = self.rp.rp1._cpointer
             
-            self.qbc,cfl = classic.step1(num_ghost,mx,self.qbc,self.auxbc,dx,dt,self._method,self._mthlim,self.fwave)
+            self.qbc,cfl = classic.step1(num_ghost,mx,self.qbc,self.auxbc,dx,dt,self._method,self._mthlim,self.fwave,rp1)
             
         elif(self.kernel_language == 'Python'):
  
@@ -523,17 +524,20 @@ class ClawSolver2D(ClawSolver):
             
             classic = __import__(self.so_name)
 
+            rpn2 = self.rp.rpn2._cpointer
+            rpt2 = self.rp.rpt2._cpointer
+
             if self.dimensional_split:
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
                 q, cfl_x = classic.step2ds(maxm,self.num_ghost,mx,my, \
                       qold,qnew,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,1,self.fwave)
+                      self.aux1,self.aux2,self.aux3,self.work,1,self.fwave,rpn2,rpt2)
 
                 q, cfl_y = classic.step2ds(maxm,self.num_ghost,mx,my, \
                       q,q,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,2,self.fwave)
+                      self.aux1,self.aux2,self.aux3,self.work,2,self.fwave,rpn2,rpt2)
 
                 cfl = max(cfl_x,cfl_y)
 
@@ -541,7 +545,7 @@ class ClawSolver2D(ClawSolver):
 
                 q, cfl = classic.step2(maxm,self.num_ghost,mx,my, \
                       qold,qnew,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,self.fwave)
+                      self.aux1,self.aux2,self.aux3,self.work,self.fwave,rpn2,rpt2)
 
             self.cfl.update_global_max(cfl)
             state.set_q_from_qbc(self.num_ghost,self.qbc)

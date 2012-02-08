@@ -19,6 +19,9 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     elif solver_type=='sharpclaw':
         solver=pyclaw.SharpClawSolver2D()
 
+    from riemann import rp2_acoustics
+    solver.rp = rp2_acoustics
+
     solver.num_waves = 2
     solver.limiters = pyclaw.limiters.tvd.MC
 

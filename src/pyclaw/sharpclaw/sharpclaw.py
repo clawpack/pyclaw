@@ -405,7 +405,8 @@ class SharpClawSolver1D(SharpClawSolver):
 
         if self.kernel_language=='Fortran':
             from sharpclaw1 import flux1
-            dq,cfl=flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.num_ghost,mx)
+            rp1 = self.rp.rp1._cpointer
+            dq,cfl=flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.num_ghost,mx,rp1)
 
         elif self.kernel_language=='Python':
 
