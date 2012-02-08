@@ -573,8 +573,9 @@ class SharpClawSolver2D(SharpClawSolver):
         maxm = max(mx,my)
 
         if self.kernel_language=='Fortran':
+            rpn2 = self.rp.rpn2._cpointer
             from sharpclaw2 import flux2
-            dq,cfl=flux2(q,self.auxbc,self.dt,state.t,num_ghost,maxm,mx,my)
+            dq,cfl=flux2(q,self.auxbc,self.dt,state.t,num_ghost,maxm,mx,my,rpn2)
 
         else: raise Exception('Only Fortran kernels are supported in 2D.')
 
