@@ -57,8 +57,6 @@ After the compilation has been succesfully completed, the signature of each
 function contained in ``problem.so`` must be verified and the intent of the 
 variables added (if there was nothing stated in the 
 code). One can easily achieve that by using the following commands::
-    
-.. doctest::
 
     $ ipython
     >>> import problem
@@ -68,8 +66,6 @@ The last command queries the content of the module and outputs the functions'
 signature that must be used in the initialization script to correctly call the 
 fortran functions. In the shallow water equations on a sphere example, we get 
 the following output::
-    
-.. doctest::
 
     >>> Type:		module
     >>> Base Class:	<type 'module'>
@@ -86,8 +82,6 @@ the following output::
 
 For instance, the function ``src2``, which computes the contribution of the 
 (non-hyperbolic) source term, has the following intent variables::
-
-.. doctest::
 
     >>> cf2py integer intent(in) maxmx
     >>> cf2py integer intent(in) maxmy

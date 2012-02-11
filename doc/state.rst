@@ -14,7 +14,7 @@ object also handles some of the parallel communication required of the state on 
 given patch such that only the parts of the fields local to the process.  If you
 are interested in the geometry of the local state you can find it through the 
 :class:`~petclaw.geometry.Patch` object's reference to its own 
-:class`~petclaw.geometry.Grid`.
+:class:`~petclaw.geometry.Grid`.
 
 .. _State:
 
