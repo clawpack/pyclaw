@@ -16,19 +16,25 @@ Pyclaw includes routines for creating HTML and LaTex plot pages or plotting inte
 These require a `setplot.py` file that defines the plotting parameters;
 see `this help page <http://kingkong.amath.washington.edu/clawpack/users/setplot.html>`_
 for more information.  Once you have an appropriate `setplot.py` file,
-there are some convenience functions in `$PETCLAW/src/petclaw/plot.py`
+there are some convenience functions in `$PYCLAW/src/petclaw/plot.py`
 for generating these plots.  Assuming you have output files in `./_output`
-(which is the default), you can generate HTML plots from Python via ::
+(which is the default), you can generate HTML plots from Python via
+
+**Comment: Check the plot.py path**
+
+.. doctest::
 
     >>> from pyclaw import plot
-    >>> plot.html_plot()
+    >>> plot.html_plot() # doctest: +SKIP
 
 This will generate HTML pages with plots and print out a message with the
 location of the HTML file.  To launch an interactive plotting session
-from within Python, do ::
+from within Python, do
+
+.. doctest::
 
     >>> from pyclaw import plot
-    >>> plot.plot_interactive()
+    >>> plot.interactive_plot() # doctest: +SKIP
 
 To see a list of commands available in the resulting interactive environment,
 type "?".
@@ -37,10 +43,12 @@ Plotting result from parallel runs
 ========================================
 By default, when running in parallel, PyClaw outputs data in a binary format.
 In order to plot from such files, just replace pyclaw with petclaw in the
-commands above; e.g.::
+commands above; e.g.
+
+.. doctest::
 
     >>> from petclaw import plot
-    >>> plot.plot_interactive()
+    >>> plot.interactive_plot() # doctest: +SKIP
 
 
 More advanced plotting

@@ -18,15 +18,15 @@ instructions in :ref:`parallel`.
 
 PyClaw features:
 
-    * Solves general hyperbolic PDEs in 1D, 2D, and 3D, including mapped grids and surfaces
+    * Solves general hyperbolic PDEs in 1D, 2D, and 3D, including mapped grids and surfaces.
     * Includes the full functionality of `Clawpack <http://www.clawpack.org>`_ and 
-      `SharpClaw <http://numerics.kaust.edu.sa/sharpclaw/>`_
-    * Has a simple and intuitive pythonic interface
+      `SharpClaw <http://numerics.kaust.edu.sa/sharpclaw/>`_.
+    * Has a simple and intuitive pythonic interface.
     * Allows you to run your simulation on the world's biggest supercomputers with 
-      the same simple script that runs it on your laptop
-    * Makes it easy to access the powerful `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_ 
+      the same simple script that runs it on your laptop.
+    * Makes it easy to access the powerful `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_.
       library of solvers for handling stiff source terms or for implicit time stepping 
-      (under construction)
+      (under construction).
 
 PyClaw makes use of the additional Clawpack packages, 
 `Riemann <http://github.com/clawpack/riemann>`_ and

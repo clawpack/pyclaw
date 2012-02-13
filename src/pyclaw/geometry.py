@@ -46,11 +46,11 @@ class Grid(object):
 
     A PyClaw grid is usually constructed from a tuple of PyClaw Dimension objects:
 
-        >>> x = Dimension('x',0.,1.,10)
+	>>> from pyclaw.geometry import Dimension, Grid      
+	>>> x = Dimension('x',0.,1.,10)
         >>> y = Dimension('y',-1.,1.,25)
-        >>> grid = grid((x,y))
+        >>> grid = Grid((x,y))
         >>> print grid
-        grid 1:
         Dimension x:  (num_cells,delta,[lower,upper]) = (10,0.1,[0.0,1.0])
         Dimension y:  (num_cells,delta,[lower,upper]) = (25,0.08,[-1.0,1.0])
         >>> grid.num_dim
@@ -187,6 +187,7 @@ class Grid(object):
     
     
     def __str__(self):
+	output = ''
         output += '\n'.join((str(getattr(self,dim)) for dim in self._dimensions))
         return output
     
@@ -400,34 +401,31 @@ class Dimension(object):
 
     Example:
 
+    >>> from pyclaw.geometry import Dimension
     >>> x = Dimension('x',0.,1.,100)
     >>> print x
-    Dimension x:  (n,d,[lower,upper]) = (100,0.01,[0.0,1.0])
+    Dimension x:  (num_cells,delta,[lower,upper]) = (100,0.01,[0.0,1.0])
     >>> x.name
     'x'
-    >>> x.n
+    >>> x.num_cells
     100
-    >>> x.d
+    >>> x.delta
     0.01
-    >>> x.edge[0]
+    >>> x.edges[0]
     0.0
-    >>> x.edge[1]
+    >>> x.edges[1]
     0.01
-    >>> x.edge[-1]
+    >>> x.edges[-1]
     1.0
-    >>> x.center[-1]
+    >>> x.centers[-1]
     0.995
-    >>> len(x.center)
+    >>> len(x.centers)
     100
-    >>> len(x.edge)
+    >>> len(x.edges)
     101
     """
     
     # ========== Property Definitions ========================================
-    @property
-    def ng(self):
-        r"""(int) - Number of cells in this dimension, on this process"""
-        return self.num_cells
     @property
     def delta(self):
         r"""(float) - Size of an individual, computational cell"""
