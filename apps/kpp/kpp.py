@@ -14,7 +14,7 @@ def qinit(state,rad=1.0):
 
 def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='classic'):
     """
-    Example python script for solving the 2d acoustics equations.
+    Example python script for solving the 2d KPP equations.
     """
 
     if use_petsc:

@@ -52,18 +52,19 @@ def test_1D_acoustics_1a():
 # Regression test: 1D acoustics in homogeneous material
 #@attr(testType ='regression')
 @attr(solver_type='classic')
-@attr(kernel_language='python')
+@attr(kernel_language='fortran')
 @attr(petsc=False)
 @attr(time_stepping_mode='explicit')
 @attr(speed='fast')
 def test_1D_acoustics_1b():
-    path           = './test/acoustics/1d/homogeneous'
+    module_path           = './test/acoustics/1d/homogeneous'
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
-    target_name    = 'classic1.so'
+    build_path           = './src/pyclaw/clawpack'
+    build_target    = 'classic1.so'
     method_options = {'kernel_language' : 'Fortran', 'use_petsc' : False, 'solver_type' : 'classic'}
     verifier       = lambda error: abs(error-0.00104856594174)<1.e-5
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verifier, method_options)
     
 
 # Regression test: 1D acoustics in homogeneous material
@@ -90,13 +91,14 @@ def test_1D_acoustics_1c():
 @attr(time_stepping_mode='explicit')
 @attr(speed='fast')
 def test_1D_acoustics_1d():
-    path           = './test/acoustics/1d/homogeneous'
-    target_name    = 'classic1.so'
+    module_path    = './test/acoustics/1d/homogeneous'
     module_name    = 'acoustics'
-    problem_name    = 'acoustics'
+    problem_name   = 'acoustics'
+    build_path     = './src/pyclaw/clawpack'
+    build_target   = 'classic1.so'
     method_options = {'kernel_language' : 'Fortran', 'use_petsc' : True, 'solver_type' : 'classic'}
     verifier       = lambda error: abs(error-0.00104856594174)<1.e-5
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verifier, method_options)
     
 
 # Regression test: 1D acoustics in homogeneous material
@@ -126,7 +128,6 @@ def test_1D_acoustics_1f():
     path           = './test/acoustics/1d/homogeneous'
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
-    target_name = 'sharpclaw1.so'
     method_options = {'kernel_language' : 'Python', 'use_petsc' : False, 'solver_type' : 'sharpclaw'}
     verifier       = lambda error: abs(error-0.000298935748775)<1.e-5
     yield(util.run_verify, path, module_name, problem_name, verifier, method_options)
@@ -141,13 +142,14 @@ def test_1D_acoustics_1f():
 @attr(time_stepping_method='SSP33')
 @attr(speed='fast')
 def test_1D_acoustics_1g():  
-    path           = './test/acoustics/1d/homogeneous'
-    target_name    = 'sharpclaw1.so'
+    module_path    = './test/acoustics/1d/homogeneous'
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
     method_options = {'kernel_language' : 'Fortran', 'use_petsc' : False, 'solver_type' : 'sharpclaw'}
+    build_target   = 'sharpclaw1.so'
+    build_path     = './src/pyclaw/sharpclaw'
     verifier       = lambda error: abs(error-0.000298935748775)<1.e-5
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verifier, method_options)
 
 
 # Regression test: 1D acoustics in homogeneous material
