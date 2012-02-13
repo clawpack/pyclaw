@@ -18,9 +18,9 @@ Two frequent sources of compilation error are:
       FC should be undefined or set to a Fortran 90 compiler.
       If you have installed gfortran, you could set::
 
-        $ export FC=gfortran
+        $ export FC = gfortran
 
-     in your .bash_profile.
+     in your .bash_profile (in mac) or .bashrc (in linux).
 
     * Conflicts between 32-bit and 64-bit files.  This has been encountered on
       Mac OS X with 32-bit Enthought Python.  We recommend using a 64-bit Python

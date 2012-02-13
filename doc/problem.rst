@@ -15,7 +15,7 @@ is similar.  The main steps are:
 These steps require the implementation of some functions which are usually 
 coded in Python language. However, for some specific 
 applications, the user may prefer to write or reuse a set of Fortran routines 
-that are already available in a Clawpack. The latter approach is easy
+that are already available in Clawpack. The latter approach is easy
 but requires a direct use of the Fortran to Python interface 
 `f2py <http://www.scipy.org/F2py>`_. Please, look at :ref:`port_Example` for 
 more details.
@@ -30,7 +30,7 @@ This script should:
     * Set the Riemann solver if using a Python Riemann solver
     * Set solver.num_waves to the number of waves used in the Riemann solver
     * Set the boundary conditions
-    * Instantiate some :class:`~pyclaw.grid.Dimension` object(s) and a :class:`~pyclaw.grid.Grid`
+    * Instantiate some :class:`~pyclaw.geometry.Dimension` object(s) and a :class:`~pyclaw.geometry.Grid`
     * Set any required global values in problem_data
     * Set grid.num_eqn and grid.num_ghost
     * Set the initial condition (grid.q)
@@ -42,23 +42,43 @@ Setting initial conditions
 ----------------------------
 Once you have initialize a State object, it contains a member state.q
 whose first dimension is num_eqn and whose remaining dimensions are those
-of the grid.  Now you must set the initial condition.  For instance::
+of the grid.  Now you must set the initial condition.  For instance
 
-    >>> Y,X = np.meshgrid(grid.y.center,grid.x.center)
+.. testsetup:: *
+
+    import pyclaw
+    x = pyclaw.Dimension('x',-1.0,1.0,100)
+    y = pyclaw.Dimension('y',-1.0,1.0,100)
+    domain = pyclaw.Domain([x,y])
+    num_eqn = 3
+    state = pyclaw.State(domain,num_eqn)
+    solver = pyclaw.ClawSolver2D()
+
+.. doctest::
+
+    >>> import numpy as np
+    >>> Y,X = np.meshgrid(state.grid.y.centers,state.grid.x.centers)
     >>> r = np.sqrt(X**2 + Y**2)
-    >>> width=0.2
+    >>> width = 0.2
     >>> state.q[0,:,:] = (np.abs(r-0.5)<=width)*(1.+np.cos(np.pi*(r-0.5)/width))
     >>> state.q[1,:,:] = 0.
+    >>> state.q[2,:,:] = 0.
 
 Note that in a parallel run we only wish to set the local values of the state
 so the appropriate geometry object to use here is the 
-:class:`~pyclaw.geometry.grid` class.
+:class:`~pyclaw.geometry.Grid` class.
 
 Setting auxiliary variables
 ----------------------------
 If the problem involves coefficients that vary in space or a mapped grid,
 the required fields are stored in state.aux.  In order to use such fields,
-you must pass the num_aux argument to the State initialization::
+you must pass the num_aux argument to the State initialization
+
+.. testsetup::
+
+    num_aux = 2
+
+.. doctest::
 
     >>> state = pyclaw.State(domain,num_eqn,num_aux)
 
@@ -86,14 +106,17 @@ PyClaw includes the following built-in boundary condition implementations:
 
 Other boundary conditions can be implemented by using ``pyclaw.BC.custom``, and
 providing a custom BC function.  The attribute solver.user_bc_lower/upper must
-be set to the corresponding function handle.  For instance::
+be set to the corresponding function handle.  For instance
 
-    >>> def custonum_ghost(state,dim,t,qbc,num_ghost):
-    >>>     for i in xrange(num_ghost):
-    >>>         qbc[0,i,:] = q0
-    >>>
-    >>> solver.bc_lower[0]=pyclaw.BC.custom
-    >>> solver.user_bc_lower=shockbc
+
+.. doctest::
+
+    >>> def custom_bc(state,dim,t,qbc,num_ghost):
+    ...    for i in xrange(num_ghost):
+    ...       qbc[0,i,:] = q0
+
+    >>> solver.bc_lower[0] = pyclaw.BC.custom
+    >>> solver.user_bc_lower = custom_bc
 
 If the ``state.aux`` array is used, boundary conditions must be set for it
 in a similar way, using ``solver.aux_bc_lower`` and ``solver.aux_bc_upper``.
@@ -128,7 +151,7 @@ in a PyClaw simulation by providing an appropriate function handle to
     * solver.dq_src if using SharpClaw.  In this case, the function should
       return :math:`\Delta t \cdot \psi(q)`.
 
-For an example, see pyclaw/apps/euler/2d/shockbubble/shockbubble.py.
+For an example, see pyclaw/apps/apps/euler_2d/shockbubble.py.
 
 Setting up the Makefile
 ===============================
