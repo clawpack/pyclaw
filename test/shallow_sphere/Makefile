@@ -2,12 +2,9 @@
 # ====================================
 PYCLAWMAKE = $(PYCLAW)/Makefile.common
 
-# Source file used by the Makefile.common
-# =======================================
-RP_SOURCE =   $(RIEMANN)/src/rpn2_shallow_sphere.f90 $(RIEMANN)/src/rpt2_shallow_sphere.f90
-
-all: classic2.so problem.so
-
+all: 
+	make classic2.so
+	make problem.so
 
 # Override step2.f with a new function that contains a call to an additional
 # function, i.e. qcor.f

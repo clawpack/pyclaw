@@ -40,13 +40,13 @@ def test_1D_acoustics_1a():
     r"""This test is skipped for now because we're no longer supporting
     the implicit approach used by Jed Brown in implementing it."""
     raise SkipTest
-    path           = './test/acoustics/1d/homogeneous'
-    target_name    = 'all'
+    module_path           = './test/acoustics/1d/homogeneous'
+    build_target    = 'all'
     module_name    = 'acoustics_implicit'
     problem_name    = 'acoustics'
     method_options = {'sclaw': 1, 'petscts': 1, '-ts_type': 'theta'}
     verifier       = lambda error: abs(error-0.00220809553637)<1.e-5
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verifier, method_options)
    
 
 # Regression test: 1D acoustics in homogeneous material
@@ -125,12 +125,12 @@ def test_1D_acoustics_1e():
 @attr(time_stepping_method='SSP33')
 @attr(speed='fast')
 def test_1D_acoustics_1f():  
-    path           = './test/acoustics/1d/homogeneous'
+    module_path           = './test/acoustics/1d/homogeneous'
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
     method_options = {'kernel_language' : 'Python', 'use_petsc' : False, 'solver_type' : 'sharpclaw'}
     verifier       = lambda error: abs(error-0.000298935748775)<1.e-5
-    yield(util.run_verify, path, module_name, problem_name, verifier, method_options)
+    yield(util.run_verify, module_path, module_name, problem_name, verifier, method_options)
 
 
 # Regression test: 1D acoustics in homogeneous material
@@ -162,13 +162,14 @@ def test_1D_acoustics_1g():
 @attr(time_stepping_method='SSP104')
 @attr(speed='fast')
 def test_1D_acoustics_with_weno17():  
-    path           = './test/acoustics/1d/homogeneous'
-    target_name    = 'sharpclaw1.so'
+    module_path    = './test/acoustics/1d/homogeneous'
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
+    build_target   = 'sharpclaw1.so'
+    build_path     = './src/pyclaw/sharpclaw'
     method_options = {'kernel_language' : 'Fortran', 'use_petsc' : False, 'solver_type' : 'sharpclaw', 'weno_order' : 17}
     verifier       = lambda error: abs(error-0.000163221216565)<1.e-5
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verifier, method_options)
     
 
 # Regression test: 1D acoustics in homogeneous material
@@ -181,13 +182,14 @@ def test_1D_acoustics_with_weno17():
 @attr(time_stepping_method='SSP104')
 @attr(speed='fast')
 def test_1D_acoustics_with_weno17_and_PETSc():  
-    path           = './test/acoustics/1d/homogeneous'
-    target_name    = 'sharpclaw1.so'
+    module_path    = './test/acoustics/1d/homogeneous'
+    build_path     = './src/pyclaw/sharpclaw'
+    build_target   = 'sharpclaw1.so'
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
     method_options = {'kernel_language' : 'Fortran', 'use_petsc' : True, 'solver_type' : 'sharpclaw', 'weno_order' : 17}
     verifier       = lambda error: abs(error-0.000163221216565)<1.e-5
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verifier, method_options)
     
 
 # Regression test: 1D acoustics in homogeneous material
@@ -199,12 +201,12 @@ def test_1D_acoustics_with_weno17_and_PETSc():
 @attr(time_stepping_method='SSP33')
 @attr(speed='fast')
 def test_1D_acoustics_1h():  
-    path           = './test/acoustics/1d/homogeneous'
+    module_path           = './test/acoustics/1d/homogeneous'
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
     method_options = {'kernel_language' : 'Python', 'use_petsc' : True, 'solver_type' : 'sharpclaw'}
     verifier       = lambda error: abs(error-0.000298935748775)<1.e-5
-    yield(util.run_verify, path, module_name, problem_name, verifier, method_options)
+    yield(util.run_verify, module_path, module_name, problem_name, verifier, method_options)
 
 
 # Regression test: 1D acoustics in homogeneous material
@@ -216,15 +218,14 @@ def test_1D_acoustics_1h():
 @attr(time_stepping_method='SSP33')
 @attr(speed='fast')
 def test_1D_acoustics_1i(): 
-    path           = './test/acoustics/1d/homogeneous'
-    target_name    = 'sharpclaw1.so'
+    module_path           = './test/acoustics/1d/homogeneous'
+    build_target   = 'sharpclaw1.so'
+    build_path     = './src/pyclaw/sharpclaw'
     module_name    = 'acoustics'
     problem_name   = 'acoustics'
     method_options = {'kernel_language' : 'Fortran', 'use_petsc' : True, 'solver_type' : 'sharpclaw'}
     verifier       = lambda error: abs(error-0.000298935748775)<1.e-5
-    yield(util.build_run_verify, path, target_name, module_name, module_name, verifier, method_options)    
-
-
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verifier, method_options)
 
 
 
@@ -239,8 +240,9 @@ def test_1D_acoustics_1i():
 @attr(time_stepping_mode='explicit')
 @attr(speed='fast')
 def test_2D_acoustics_1a(): 
-    path           = './test/acoustics/2d/homogeneous'
-    target_name    = 'classic2.so'
+    module_path    = './test/acoustics/2d/homogeneous'
+    build_target   = 'classic2.so'
+    build_path     = './src/pyclaw/clawpack'
     module_name    = 'acoustics'
     problem_name   = 'acoustics2D'
 
@@ -253,7 +255,7 @@ def test_2D_acoustics_1a():
         else: return True
 
     method_options = {'use_petsc' : True, 'solver_type' : 'classic' }
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_classic, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verify_acoustics2D_classic, method_options)
 
 
 # Regression test: Parallel 2D acoustics in homogeneous material
@@ -264,8 +266,9 @@ def test_2D_acoustics_1a():
 @attr(time_stepping_mode='explicit')
 @attr(speed='fast')
 def test_2D_acoustics_1a_parallel():
-    path           = './test/acoustics/2d/homogeneous'
-    target_name    = 'classic2.so'
+    module_path           = './test/acoustics/2d/homogeneous'
+    build_target    = 'classic2.so'
+    build_path           = './src/pyclaw/clawpack'
     module_name    = 'acoustics'
     problem_name   = 'acoustics2D'
 
@@ -276,7 +279,7 @@ def test_2D_acoustics_1a_parallel():
         return (numpy.linalg.norm(test_x-verify_x)<1.e-5)
 
     method_options = {'use_petsc' : True, 'solver_type' : 'classic', 'np':6, 'num_output_times':10}
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_classic, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verify_acoustics2D_classic, method_options)
 
 
 # Regression test: Parallel 2D shock bubble
@@ -288,8 +291,9 @@ def test_2D_acoustics_1a_parallel():
 @attr(speed='fast')
 def test_2D_shockbubble_classic_parallel():
     raise SkipTest
-    path           = './test/euler/2d'
-    target_name    = 'classic2.so'
+    module_path           = './test/euler/2d'
+    build_target    = 'classic2.so'
+    build_path           = './src/pyclaw/clawpack'
     module_name    = 'shockbubble'
     problem_name   = 'shockbubble'
 
@@ -299,7 +303,7 @@ def test_2D_shockbubble_classic_parallel():
         return numpy.max(abs(test_x-verify_x))<1.e-14
 
     method_options = {'use_petsc' : True, 'solver_type' : 'classic', 'np':6, 'num_output_times':10}
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verify_shockbubble, method_options)
 
 
 # Regression test: 2D acoustics in homogeneous material
@@ -310,8 +314,9 @@ def test_2D_shockbubble_classic_parallel():
 @attr(time_stepping_mode='explicit')
 @attr(speed='fast')
 def test_2D_acoustics_1b(): 
-    path           = './test/acoustics/2d/homogeneous'
-    target_name    = 'classic2.so'
+    module_path           = './test/acoustics/2d/homogeneous'
+    build_target    = 'classic2.so'
+    build_path           = './src/pyclaw/clawpack'
     module_name    = 'acoustics'
     problem_name   = 'acoustics2D'
 
@@ -321,7 +326,7 @@ def test_2D_acoustics_1b():
         return (numpy.linalg.norm(test_x-verify_x)<1.e-14)
 
     method_options = {'use_petsc' : False, 'solver_type' : 'classic' }
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D, method_options)   
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verify_acoustics2D, method_options)
 
 
 # Regression test: 2D acoustics in homogeneous material
@@ -333,8 +338,9 @@ def test_2D_acoustics_1b():
 @attr(time_stepping_method='SSP33')
 @attr(speed='fast')
 def test_2D_acoustics_1c(): 
-    path           = './test/acoustics/2d/homogeneous'
-    target_name    = 'sharpclaw2.so'
+    module_path           = './test/acoustics/2d/homogeneous'
+    build_target    = 'sharpclaw2.so'
+    build_path     = './src/pyclaw/sharpclaw'
     module_name    = 'acoustics'
     problem_name   = 'acoustics2D'
 
@@ -348,7 +354,7 @@ def test_2D_acoustics_1c():
         else: return True
 
     method_options = {'use_petsc' : True, 'solver_type' : 'sharpclaw' }
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_sharpclaw, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verify_acoustics2D_sharpclaw, method_options)
 
 
 # Regression test: 2D acoustics in homogeneous material
@@ -360,8 +366,9 @@ def test_2D_acoustics_1c():
 @attr(time_stepping_method='SSP33')
 @attr(speed='fast')
 def test_2D_acoustics_1d(): 
-    path           = './test/acoustics/2d/homogeneous'
-    target_name    = 'sharpclaw2.so'
+    module_path           = './test/acoustics/2d/homogeneous'
+    build_target    = 'sharpclaw2.so'
+    build_path     = './src/pyclaw/sharpclaw'
     module_name    = 'acoustics'
     problem_name   = 'acoustics2D'
 
@@ -375,7 +382,7 @@ def test_2D_acoustics_1d():
         else: return True
 
     method_options = {'use_petsc' : False, 'solver_type' : 'sharpclaw' }
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_acoustics2D_sharpclaw, method_options)    
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verify_acoustics2D_sharpclaw, method_options)
    
 
 # Regression test: 2D Euler shock-bubble interaction
@@ -385,8 +392,9 @@ def test_2D_acoustics_1d():
 @attr(petsc=False)
 @attr(time_stepping_mode='explicit')
 def test_2D_shockbubble_1a(): 
-    path           = './test/euler/2d'
-    target_name    = 'classic2.so'
+    module_path           = './test/euler/2d'
+    build_target    = 'classic2.so'
+    build_path           = './src/pyclaw/clawpack'
     module_name    = 'shockbubble'
     problem_name   = 'shockbubble'
 
@@ -396,7 +404,7 @@ def test_2D_shockbubble_1a():
         return numpy.max(abs(test_x-verify_x))<1.e-12
 
     method_options = {'use_petsc' : False}
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verify_shockbubble, method_options)
 
 
 # Regression test: 2D Euler shock-bubble interaction
@@ -406,8 +414,9 @@ def test_2D_shockbubble_1a():
 @attr(petsc=True)
 @attr(time_stepping_mode='explicit')
 def test_2D_shockbubble_petclaw_classic(): 
-    path           = './test/euler/2d'
-    target_name    = 'classic2.so'
+    module_path           = './test/euler/2d'
+    build_target    = 'classic2.so'
+    build_path           = './src/pyclaw/clawpack'
     module_name    = 'shockbubble'
     problem_name   = 'shockbubble'
 
@@ -417,7 +426,7 @@ def test_2D_shockbubble_petclaw_classic():
         return numpy.max(abs(test_x-verify_x))<1.e-12
 
     method_options = {'use_petsc' : True}
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shockbubble, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verify_shockbubble, method_options)
 
 
 # Regression test: 2D p-system
@@ -431,8 +440,9 @@ def test_2D_shockbubble_petclaw_classic():
 @attr(petsc=True)
 @attr(time_stepping_mode='explicit')
 def test_psystem_petclaw_classic(): 
-    path           = './test/psystem'
-    target_name    = 'classic2.so'
+    module_path           = './test/psystem'
+    build_target    = 'classic2.so'
+    build_path           = './src/pyclaw/clawpack'
     module_name    = 'psystem'
     problem_name   = 'psystem2D'
 
@@ -443,7 +453,7 @@ def test_psystem_petclaw_classic():
         return True
 
     method_options = {'use_petsc' : True}
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_psystem, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verify_psystem, method_options)
 
 
 # Regression test: 2D shallow water equations on a sphere
@@ -456,8 +466,9 @@ def test_psystem_petclaw_classic():
 @attr(speed='slow')
 @attr(which='this')
 def test_2D_shallowwatersphere(): 
-    path           = './test/shallow_sphere'
-    target_name    = 'classic2.so problem.so'
+    module_path           = './test/shallow_sphere'
+    build_target    = 'classic2.so problem.so'
+    build_path           = './test/shallow_sphere'
     module_name    = 'shallow_4_Rossby_Haurwitz_wave'
     problem_name   = 'shallow_4_Rossby_Haurwitz'
 
@@ -471,7 +482,7 @@ def test_2D_shallowwatersphere():
         else: return True
 
     method_options = {}
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_shallowwatersphere, method_options)    
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verify_shallowwatersphere, method_options)
 
 # Regression test: 3D acoustics in homogeneous material
 #@attr(testType ='regression')
@@ -481,13 +492,14 @@ def test_2D_shallowwatersphere():
 @attr(num_dim=3)
 @attr(speed='fast')
 def test_3D_acoustics_homogeneous():  
-    path           = './test/acoustics/3d/'
-    target_name    = 'classic3.so'
+    module_path           = './test/acoustics/3d/'
+    build_target    = 'classic3.so'
+    build_path           = './src/pyclaw/clawpack'
     module_name    = 'acoustics'
     problem_name   = 'acoustics3D'
     method_options = {'use_petsc' : False, 'test' : 'hom'}
     verifier       = lambda error: (abs(error-0.00286)<1.e-4)# and (abs(error[1]-3.2)<1.e-4))
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verifier, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verifier, method_options)
 
 # Regression test: 3D acoustics in heterogeneous material
 #@attr(testType ='regression')
@@ -497,8 +509,9 @@ def test_3D_acoustics_homogeneous():
 @attr(num_dim=3)
 @attr(speed='fast')
 def test_3D_acoustics_heterogeneous():
-    path           = './test/acoustics/3d/'
-    target_name    = 'classic3.so'
+    module_path           = './test/acoustics/3d/'
+    build_target    = 'classic3.so'
+    build_path           = './src/pyclaw/clawpack'
     module_name    = 'acoustics'
     problem_name   = 'acoustics3D'
     method_options = {'use_petsc' : False, 'test' : 'het'}
@@ -513,6 +526,6 @@ def test_3D_acoustics_heterogeneous():
         else: return True
 
 
-    yield(util.build_run_verify, path, target_name, module_name, problem_name, verify_3D_het_acoustics, method_options)
+    yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verify_3D_het_acoustics, method_options)
 
 

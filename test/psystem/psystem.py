@@ -153,6 +153,8 @@ def psystem2D(use_petsc=True,solver_type='classic',iplot=False,htmlplot=False):
     # restart options
     restart_from_frame = None
     solver = pyclaw.ClawSolver2D()
+    import riemann
+    solver.rp = riemann.rp2_psystem
     #solver = pyclaw.SharpClawSolver2D()
     solver.num_waves = 2
     solver.limiters = pyclaw.limiters.tvd.superbee
