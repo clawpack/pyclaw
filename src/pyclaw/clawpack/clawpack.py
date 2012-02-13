@@ -93,6 +93,9 @@ class ClawSolver(Solver):
         self._mthlim = self.limiters
         self._method = None
 
+        so_name = 'pyclaw.clawpack.classic'+str(self.num_dim)
+        self.fmod = __import__(so_name,fromlist=['pyclaw.clawpack'])
+
         # Call general initialization function
         super(ClawSolver,self).__init__(claw_package)
     
@@ -202,10 +205,6 @@ class ClawSolver(Solver):
         Perform essential solver setup.  This routine must be called before
         solver.step() may be called.
         """
-        if(self.kernel_language == 'Fortran'):
-            # Set name of expected .so file with compile Fortran routines
-            self.so_name = 'pyclaw.clawpack.classic'+str(self.num_dim)
-
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (num_ghost)
         solution.state.set_num_ghost(self.num_ghost)
@@ -230,12 +229,11 @@ class ClawSolver(Solver):
         Sets the solver._method array and the cparam common block for the Riemann solver.
         """
         self.set_method(solution.state)
-        classic = __import__(self.so_name,fromlist=['pyclaw.clawpack'])
         # The reload here is necessary because otherwise the common block
         # cparam in the Riemann solver doesn't get flushed between running
         # different tests in a single Python session.
-        reload(classic)
-        solution.state.set_cparam(classic)
+        reload(self.fmod)
+        solution.state.set_cparam(self.fmod)
         solution.state.set_cparam(self.rp)
 
     def teardown(self):
@@ -243,8 +241,7 @@ class ClawSolver(Solver):
         Delete Fortran objects, which otherwise tend to persist in Python sessions.
         """
         if(self.kernel_language == 'Fortran'):
-            classic = __import__(self.so_name,fromlist=['pyclaw.clawpack'])
-            del classic
+            del self.fmod
 
 
 
@@ -295,14 +292,12 @@ class ClawSolver1D(ClawSolver):
         num_eqn,num_ghost = state.num_eqn,self.num_ghost
           
         if(self.kernel_language == 'Fortran'):
-            classic = __import__(self.so_name,fromlist=['pyclaw.clawpack'])
-
             mx = grid.num_cells[0]
             dx,dt = grid.delta[0],self.dt
             dtdx = np.zeros( (mx+2*num_ghost) ) + dt/dx
             rp1 = self.rp.rp1._cpointer
             
-            self.qbc,cfl = classic.step1(num_ghost,mx,self.qbc,self.auxbc,dx,dt,self._method,self._mthlim,self.fwave,rp1)
+            self.qbc,cfl = self.fmod.step1(num_ghost,mx,self.qbc,self.auxbc,dx,dt,self._method,self._mthlim,self.fwave,rp1)
             
         elif(self.kernel_language == 'Python'):
  
@@ -513,8 +508,6 @@ class ClawSolver2D(ClawSolver):
             qnew = self.qbc
             qold = qnew.copy('F')
             
-            classic = __import__(self.so_name,fromlist=['pyclaw.clawpack'])
-
             rpn2 = self.rp.rpn2._cpointer
             rpt2 = self.rp.rpt2._cpointer
 
@@ -522,11 +515,11 @@ class ClawSolver2D(ClawSolver):
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
-                q, cfl_x = classic.step2ds(maxm,self.num_ghost,mx,my, \
+                q, cfl_x = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
                       qold,qnew,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1,self.fwave,rpn2,rpt2)
 
-                q, cfl_y = classic.step2ds(maxm,self.num_ghost,mx,my, \
+                q, cfl_y = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
                       q,q,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2,self.fwave,rpn2,rpt2)
 
@@ -534,7 +527,7 @@ class ClawSolver2D(ClawSolver):
 
             else:
 
-                q, cfl = classic.step2(maxm,self.num_ghost,mx,my, \
+                q, cfl = self.fmod.step2(maxm,self.num_ghost,mx,my, \
                       qold,qnew,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,self.fwave,rpn2,rpt2)
 
@@ -658,8 +651,6 @@ class ClawSolver3D(ClawSolver):
             qnew = self.qbc
             qold = qnew.copy('F')
             
-            classic = __import__(self.so_name,fromlist=['pyclaw.clawpack'])
-
             rpn3  = self.rp.rpn3._cpointer
             rpt3  = self.rp.rpt3._cpointer
             rptt3 = self.rp.rptt3._cpointer
@@ -668,15 +659,15 @@ class ClawSolver3D(ClawSolver):
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
-                q, cfl_x = classic.step3ds(maxm,self.num_ghost,mx,my,mz, \
+                q, cfl_x = self.fmod.step3ds(maxm,self.num_ghost,mx,my,mz, \
                       qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1,rpn3,rpt3,rptt3)
 
-                q, cfl_y = classic.step3ds(maxm,self.num_ghost,mx,my,mz, \
+                q, cfl_y = self.fmod.step3ds(maxm,self.num_ghost,mx,my,mz, \
                       q,q,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2,rpn3,rpt3,rptt3)
 
-                q, cfl_z = classic.step3ds(maxm,self.num_ghost,mx,my,mz, \
+                q, cfl_z = self.fmod.step3ds(maxm,self.num_ghost,mx,my,mz, \
                       q,q,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,3,rpn3,rpt3,rptt3)
 
@@ -684,7 +675,7 @@ class ClawSolver3D(ClawSolver):
 
             else:
 
-                q, cfl = classic.step3(maxm,self.num_ghost,mx,my,mz, \
+                q, cfl = self.fmod.step3(maxm,self.num_ghost,mx,my,mz, \
                       qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,rpn3,rpt3,rptt3)
 

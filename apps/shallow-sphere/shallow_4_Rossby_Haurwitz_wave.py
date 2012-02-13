@@ -365,6 +365,8 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     solver = pyclaw.ClawSolver2D()
     import riemann
     solver.rp = riemann.rp2_shallow_sphere
+    import classic2
+    solver.fmod = classic2
 
     # Set boundary conditions
     # =======================
@@ -446,12 +448,13 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     dx = domain.delta[0]
     dy = domain.delta[1]
 
-    # Define some parameters used in classic2 
-    import classic2
-    classic2.comxyt.dxcom = dx
-    classic2.comxyt.dycom = dy
+    # Define some parameters used in Fortran common blocks 
+    solver.fmod.comxyt.dxcom = dx
+    solver.fmod.comxyt.dycom = dy
+    solver.fmod.sw.g = 11489.57219  
+    solver.rp.comxyt.dxcom = dx
+    solver.rp.comxyt.dycom = dy
     solver.rp.sw.g = 11489.57219  
-    classic2.sw.g = 11489.57219  
 
     # Define state object
     # ===================
