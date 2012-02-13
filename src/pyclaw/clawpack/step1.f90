@@ -2,7 +2,7 @@
 
 ! ===================================================================
     subroutine step1(num_eqn,num_waves,num_ghost,num_aux,mx,q,aux,dx, &
-    dt,method,mthlim,cfl,f,wave,s,amdq,apdq,dtdx,use_fwave)
+    dt,method,mthlim,cfl,f,wave,s,amdq,apdq,dtdx,use_fwave,rp1)
 ! ===================================================================
 
 !     # Take one time step, updating q.
@@ -45,6 +45,7 @@
     integer ::          method(7),mthlim(num_waves)
     logical ::          use_fwave
     logical :: limit
+    external :: rp1
 
 !f2py intent(in,out) q
 !f2py intent(out) cfl

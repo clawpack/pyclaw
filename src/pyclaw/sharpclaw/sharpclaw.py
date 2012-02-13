@@ -344,6 +344,7 @@ class SharpClawSolver1D(SharpClawSolver):
             from sharpclaw1 import clawparams, workspace, reconstruct
             import sharpclaw1
             state.set_cparam(sharpclaw1)
+            state.set_cparam(self.rp)
             self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
 
         self.allocate_bc_arrays(state)
@@ -359,7 +360,6 @@ class SharpClawSolver1D(SharpClawSolver):
             workspace.dealloc_workspace(self.char_decomp)
             reconstruct.dealloc_recon_workspace(clawparams.lim_type,clawparams.char_decomp)
             import sharpclaw1
-            print 'deleting sharpclaw1 object'
             del sharpclaw1, clawparams, workspace, reconstruct
 
 
@@ -516,6 +516,7 @@ class SharpClawSolver2D(SharpClawSolver):
             from sharpclaw2 import clawparams, workspace, reconstruct
             import sharpclaw2
             state.set_cparam(sharpclaw2)
+            state.set_cparam(self.rp)
             self.set_fortran_parameters(state,clawparams,workspace,reconstruct)
 
         self.allocate_bc_arrays(state)

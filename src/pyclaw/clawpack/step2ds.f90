@@ -38,12 +38,16 @@
     double precision :: work(mwork)
     external :: rpn2,rpt2
 
+    common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom
+
 !f2py intent(out) cfl
 !f2py intent(in,out) qnew
 !f2py optional q1d, qadd, fadd, gadd, dtdx1d, dtdy1d
 
-    common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom
-
+! Dummy interfaces just so f2py doesn't complain:
+!f2py real(DP) x
+!f2py x=rpn2(x)
+!f2py x=rpt2(x)
 
 !     # partition work array into pieces needed for local storage in
 !     # flux2 routine.  Find starting index of each piece:

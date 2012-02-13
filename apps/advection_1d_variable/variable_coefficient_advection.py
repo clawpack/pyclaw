@@ -47,11 +47,15 @@ def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',
     else:
         solver = pyclaw.ClawSolver1D()
 
+    import riemann
+    solver.num_waves = riemann.rp_vc_advection.num_waves
+
     solver.kernel_language = kernel_language
-    from riemann import rp_vc_advection
-    solver.num_waves = rp_vc_advection.num_waves
     if solver.kernel_language=='Python': 
-        solver.rp = rp_vc_advection.rp_vc_advection_1d
+        solver.rp = riemann.rp_vc_advection.rp_vc_advection_1d
+    elif solver.kernel_language=='Fortran':
+        raise NotImplementedError('The 1D variable coefficient advection Riemann solver has not yet been ported.')
+
     solver.limiters = pyclaw.limiters.tvd.MC
     solver.bc_lower[0] = 2
     solver.bc_upper[0] = 2

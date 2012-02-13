@@ -22,7 +22,8 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
     if solver.kernel_language=='Python': 
         solver.rp = rp_advection.rp_advection_1d
     else:
-        from riemann import rp1_advection
+        import riemann
+        solver.rp = riemann.rp1_advection
 
     solver.bc_lower[0] = 2
     solver.bc_upper[0] = 2

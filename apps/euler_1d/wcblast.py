@@ -23,6 +23,9 @@ def wcblast(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver
     else:
         solver = pyclaw.ClawSolver1D()
 
+    import riemann
+    solver.rp = riemann.rp1_euler_with_efix
+
     solver.num_waves = 3
     solver.bc_lower[0]=pyclaw.BC.wall
     solver.bc_upper[0]=pyclaw.BC.wall

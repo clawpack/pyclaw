@@ -27,6 +27,9 @@ def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_typ
     else:
         solver = pyclaw.ClawSolver2D()
 
+    import riemann
+    solver.rp = riemann.rp2_kpp
+
     solver.num_waves = 1
     solver.bc_lower[0]=pyclaw.BC.extrap
     solver.bc_upper[0]=pyclaw.BC.extrap

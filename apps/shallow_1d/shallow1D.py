@@ -19,6 +19,7 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
 
     if solver_type == 'classic':
         solver = pyclaw.ClawSolver1D()
+        solver.limiters = pyclaw.limiters.tvd.vanleer
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver1D()
 
@@ -26,12 +27,15 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     # Setup solver and solver parameters
     #===========================================================================
     solver.num_waves = 2
-    solver.limiters = pyclaw.limiters.tvd.vanleer
     solver.kernel_language=kernel_language
     if kernel_language =='Python': 
         solver.set_riemann_solver('shallow_roe')
         solver.problem_data['g'] = 1.0
         solver.problem_data['efix'] = False
+    elif kernel_language == 'Fortran':
+        import riemann
+        solver.rp = riemann.rp1_shallow_roe_with_efix
+
     solver.bc_lower[0] = pyclaw.BC.extrap
     solver.bc_upper[0] = pyclaw.BC.extrap
 

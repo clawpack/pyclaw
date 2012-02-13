@@ -231,13 +231,12 @@ class ClawSolver(Solver):
         """
         self.set_method(solution.state)
         classic = __import__(self.so_name,fromlist=['pyclaw.clawpack'])
-        print self.so_name
-        print classic
         # The reload here is necessary because otherwise the common block
         # cparam in the Riemann solver doesn't get flushed between running
         # different tests in a single Python session.
         reload(classic)
         solution.state.set_cparam(classic)
+        solution.state.set_cparam(self.rp)
 
     def teardown(self):
         r"""
@@ -297,14 +296,6 @@ class ClawSolver1D(ClawSolver):
           
         if(self.kernel_language == 'Fortran'):
             classic = __import__(self.so_name,fromlist=['pyclaw.clawpack'])
-
-            #rpname=self.rp.__name__.split('.')[-1]
-            #import os
-            #import ctypes
-            #rpfname = os.environ['RIEMANN']+'/src/python/riemann/'+rpname+'.so'
-            #rp = ctypes.CDLL(rpfname)
-            #rp1 = ctypes.addressof(rp.rp1_)
-            #print rp1
 
             mx = grid.num_cells[0]
             dx,dt = grid.delta[0],self.dt
@@ -522,7 +513,7 @@ class ClawSolver2D(ClawSolver):
             qnew = self.qbc
             qold = qnew.copy('F')
             
-            classic = __import__(self.so_name)
+            classic = __import__(self.so_name,fromlist=['pyclaw.clawpack'])
 
             rpn2 = self.rp.rpn2._cpointer
             rpt2 = self.rp.rpt2._cpointer
@@ -667,7 +658,11 @@ class ClawSolver3D(ClawSolver):
             qnew = self.qbc
             qold = qnew.copy('F')
             
-            classic = __import__(self.so_name)
+            classic = __import__(self.so_name,fromlist=['pyclaw.clawpack'])
+
+            rpn3  = self.rp.rpn3._cpointer
+            rpt3  = self.rp.rpt3._cpointer
+            rptt3 = self.rp.rptt3._cpointer
 
             if self.dimensional_split:
                 #Right now only Godunov-dimensional-splitting is implemented.
@@ -675,15 +670,15 @@ class ClawSolver3D(ClawSolver):
 
                 q, cfl_x = classic.step3ds(maxm,self.num_ghost,mx,my,mz, \
                       qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,1)
+                      self.aux1,self.aux2,self.aux3,self.work,1,rpn3,rpt3,rptt3)
 
                 q, cfl_y = classic.step3ds(maxm,self.num_ghost,mx,my,mz, \
                       q,q,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,2)
+                      self.aux1,self.aux2,self.aux3,self.work,2,rpn3,rpt3,rptt3)
 
                 q, cfl_z = classic.step3ds(maxm,self.num_ghost,mx,my,mz, \
                       q,q,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,3)
+                      self.aux1,self.aux2,self.aux3,self.work,3,rpn3,rpt3,rptt3)
 
                 cfl = max(cfl_x,cfl_y,cfl_z)
 
@@ -691,7 +686,7 @@ class ClawSolver3D(ClawSolver):
 
                 q, cfl = classic.step3(maxm,self.num_ghost,mx,my,mz, \
                       qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work)
+                      self.aux1,self.aux2,self.aux3,self.work,rpn3,rpt3,rptt3)
 
             self.cfl.update_global_max(cfl)
             state.set_q_from_qbc(self.num_ghost,self.qbc)

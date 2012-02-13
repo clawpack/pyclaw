@@ -42,9 +42,13 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
     #===========================================================================
     if solver_type=='classic':
         solver = pyclaw.ClawSolver2D()
+        solver.dimensional_split = 1
+        solver.limiters = pyclaw.limiters.tvd.vanleer
     elif solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
 
+    import riemann
+    solver.rp = riemann.rp2_advection
 
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
@@ -53,13 +57,8 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
 
     solver.num_waves = 1
 
-    solver.dimensional_split = 0
-
     solver.cfl_max=1.0
     solver.cfl_desired = 0.9
-
-    solver.limiters = pyclaw.limiters.tvd.vanleer
-
 
     #===========================================================================
     # Initialize domain, then initialize the solution associated to the domain and
