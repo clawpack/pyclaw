@@ -14,12 +14,10 @@ with PyClaw and are a great place to learn how to use PyClaw.  To run one of the
 simply do the following at the command prompt::
 
     $ cd $PYCLAW/apps/acoustics_1d_homogeneous
-    $ make
     $ python acoustics.py iplot=1
 
-You can run any of the apps similarly by going to the appropriate directory,
-running `make` to compile the necessary Fortran code, and executing the Python
-script.
+You can run any of the apps similarly by going to the appropriate directory and
+executing the Python script.
 
 Command-line options
 ========================================

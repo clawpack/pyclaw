@@ -1,5 +1,18 @@
 .. _pyclaw:
 
+.. note::
+
+    A major change to PyClaw has just been implemented.  If you update from the development
+    repository, you will need to::
+
+    $ cd $PYCLAW/src/pyclaw/clawpack
+    $ make
+    $ cd $PYCLAW/src/pyclaw/sharpclaw
+    $ make
+    $ cd $RIEMANN/src/python/riemann
+    $ make
+
+
 ********
 Overview
 ********

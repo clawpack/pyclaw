@@ -1,5 +1,5 @@
 ! ===================================================================
-subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
+subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx,rp1)
 ! ===================================================================
 !
 !     # Evaluate (delta t) * dq(t)/dt
@@ -43,6 +43,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
 
     implicit double precision (a-h,o-z)
 
+    external :: rp1
     integer :: num_aux,num_eqn,num_ghost,maxnx,mx
     double precision :: q1d(num_eqn,1-num_ghost:mx+num_ghost)
     double precision :: dq1d(num_eqn,1-num_ghost:maxnx+num_ghost)

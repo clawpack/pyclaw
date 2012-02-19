@@ -29,8 +29,10 @@ We'll assume that you've already followed the :ref:`installation` instructions.
 .. note::
    The following instructions show how to set up a problem step-by-step in an
    interactive shell.  If you don't want to type all these commands, you can
-   instead go into pyclaw/apps/acoustics_1d_homogeneous, run make, and then
-   execute acoustics.py.
+   instead::
+   
+    $ cd $PYCLAW/apps/acoustics/1d/homogeneous 
+    $ python acoustics.py iplot=1
 
 Now launch an iPython session and import pyclaw
 

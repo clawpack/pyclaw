@@ -165,6 +165,8 @@
     logical :: limit
     common/comxyt/dtcom,dxcom,dycom,dzcom,tcom,icom,jcom,kcom
 
+!f2py external rpn3, rpt3, rptt3
+!f2py intent(callback) rpn3,rpt3, rptt3
 
     limit = .false.
     do 5 mw=1,num_waves
