@@ -123,6 +123,15 @@ your command line).  The shell code in these files can be copied to your
 .bashrc, .cshrc, or .profile file to be run automatically when you open a 
 terminal.
 
+Finally, compile the Fortran code for the solvers and Riemann solvers::
+
+    $ cd $PYCLAW/src/pyclaw/clawpack
+    $ make
+    $ cd $PYCLAW/src/pyclaw/sharpclaw
+    $ make
+    $ cd $RIEMANN/src/python/riemann
+    $ make
+
 
 Testing your installation with nose
 -----------------------------------------------------------
@@ -147,7 +156,6 @@ Running and plotting an example
 Next ::
 
     $ cd $PYCLAW/apps/advection_1d
-    $ make
     $ python advection.py iplot=1
 
 This will run the code and then place you in an interactive plotting shell.

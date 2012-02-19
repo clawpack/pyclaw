@@ -3,7 +3,7 @@
     subroutine step3(maxm,num_eqn,num_waves,num_ghost,mx,my, &
     mz,qold,qnew,aux,dx,dy,dz,dt,method,mthlim,cfl, &
     qadd,fadd,gadd,hadd,q1d,dtdx1d,dtdy1d,dtdz1d, &
-    aux1,aux2,aux3,num_aux,work,mwork)
+    aux1,aux2,aux3,num_aux,work,mwork,rpn3,rpt3,rptt3)
 !     ==================================================================
 
 !     # Take one time step, updating q.
@@ -42,6 +42,12 @@
 !f2py intent(out) cfl
 !f2py intent(in,out) qnew
 !f2py optional q1d, qadd, fadd, gadd, hadd, dtdx1d, dtdy1d, dtdz1d
+
+! Dummy interfaces just so f2py doesn't complain:
+!f2py real(DP) x
+!f2py x=rpn3(x)
+!f2py x=rpt3(x)
+!f2py x=rptt3(x)
 
     common /comxyzt/ dtcom,dxcom,dycom,dzcom,tcom,icom,jcom,kcom
 

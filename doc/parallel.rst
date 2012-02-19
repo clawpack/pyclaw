@@ -129,7 +129,6 @@ Running and plotting an example
 Next ::
 
     $ cd $PYCLAW/apps/advection/1d/constant
-    $ make
     $ python advection.py use_PETSc=True iplot=1
 
 This will run the code and then place you in an interactive plotting shell.

@@ -1,5 +1,5 @@
 ! ===================================================================
-subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
+subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx,rpn2)
 ! ===================================================================
 !
 !     # Evaluate (delta t) * dq(t)/dt
@@ -51,6 +51,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx)
     double precision, intent(out) :: cfl
     integer, intent(in) :: ixy
     integer t
+    external rpn2
 
 !f2py intent(in,out) dq1d  
 !f2py intent(out) cfl  

@@ -41,17 +41,19 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     #===========================================================================
     if solver_type == 'classic':
         solver = pyclaw.ClawSolver2D()
+        solver.limiters = pyclaw.limiters.tvd.MC
+        solver.dimensional_split=1
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
 
+    import riemann
+    solver.rp = riemann.rp2_shallow_roe_with_efix
     solver.num_waves = 3
-    solver.limiters = pyclaw.limiters.tvd.MC
 
     solver.bc_lower[0] = pyclaw.BC.extrap
     solver.bc_upper[0] = pyclaw.BC.wall
     solver.bc_lower[1] = pyclaw.BC.extrap
     solver.bc_upper[1] = pyclaw.BC.wall
-    solver.dimensional_split=1
 
     #===========================================================================
     # Initialize domain and state, then initialize the solution associated to the 
