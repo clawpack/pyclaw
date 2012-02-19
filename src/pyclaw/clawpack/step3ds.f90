@@ -5,7 +5,7 @@
     subroutine step3ds(maxm,num_eqn,num_waves,num_ghost,mx,my, &
     mz,qold,qnew,aux,dx,dy,dz,dt,method,mthlim,cfl, &
     qadd,fadd,gadd,hadd,q1d,dtdx1d,dtdy1d,dtdz1d, &
-    aux1,aux2,aux3,num_aux,work,mwork,idir)
+    aux1,aux2,aux3,num_aux,work,mwork,idir,rpn3,rpt3,rptt3)
 !     ==================================================================
 
 !     # Take one time step, updating q, to be used with
@@ -54,11 +54,17 @@
     dimension method(7),mthlim(num_waves)
     dimension work(mwork)
 
+    common /comxyzt/ dtcom,dxcom,dycom,dzcom,tcom,icom,jcom,kcom
+
 !f2py intent(out) cfl
 !f2py intent(in,out) qnew
 !f2py optional q1d, qadd, fadd, gadd, hadd, dtdx1d, dtdy1d, dtdz1d
 
-    common /comxyzt/ dtcom,dxcom,dycom,dzcom,tcom,icom,jcom,kcom
+! Dummy interfaces just so f2py doesn't complain:
+!f2py real(DP) x
+!f2py x=rpn3(x)
+!f2py x=rpt3(x)
+!f2py x=rptt3(x)
 
 !     # partition work array into pieces needed for local storage in
 !     # flux2 routine.  Find starting index of each piece:

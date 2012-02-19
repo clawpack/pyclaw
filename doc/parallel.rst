@@ -83,7 +83,7 @@ Obtain petsc4py-dev with mercurial: ::
     
     $ cd path/to/the/dir/where/you/want/download/petsc4py
     $ hg clone https://petsc4py.googlecode.com/hg/petsc4py -r latest-changeset
-
+ 
 The prefered method for the petsc4py iinstallation is `pip <http://pypi.python.org/pypi/pip>`_ ::
     
     $ cd petsc4py-dev
@@ -129,7 +129,6 @@ Running and plotting an example
 Next ::
 
     $ cd $PYCLAW/apps/advection/1d/constant
-    $ make
     $ python advection.py use_PETSc=True iplot=1
 
 This will run the code and then place you in an interactive plotting shell.
@@ -157,21 +156,26 @@ part of the grid belonging to the current process.  Typically you should use
 `grid.lowerg`.
 
 Additionally, be aware that when a Grid object is instantiated in a parallel run,
-it is not instantiated as a parallel object.  A typical code excerpt looks like::
+it is not instantiated as a parallel object.  A typical code excerpt looks like
 
-    import petclaw as pyclaw
-    mx=320; my=80
-    x = pyclaw.Dimension('x',0.0,2.0,mx)
-    y = pyclaw.Dimension('y',0.0,0.5,my)
-    grid = pyclaw.Grid([x,y])
+.. doctest::
+
+    >>> import petclaw as pyclaw # doctest: +SKIP
+    >>> import pyclaw
+    >>> mx = 320; my = 80
+    >>> x = pyclaw.Dimension('x',0.0,2.0,mx)
+    >>> y = pyclaw.Dimension('y',0.0,0.5,my)
+    >>> grid = pyclaw.Domain([x,y])
 
 At this point, `grid.ng` is identically equal to `grid.n`, rather than containing
 the size of the grid partition on the current process.  Before using it, you
-should instantiate a State object::
+should instantiate a State object
 
-    num_eqn = 5
-    num_aux=1
-    state = pyclaw.State(grid,num_eqn,num_aux)
+.. doctest::
+
+    >>> num_eqn = 5
+    >>> num_aux=1
+    >>> state = pyclaw.State(grid,num_eqn,num_aux)
 
 Now `state.grid.ng` contains appropriate information.
 

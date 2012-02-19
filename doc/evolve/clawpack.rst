@@ -14,19 +14,24 @@ Clawpack solvers.  Please refer to each of the inherited classes for more info
 about the methods and attributes they provide each class.  The inheritance
 structure is:
 
-.. inheritance-diagram:: pyclaw.clawpack.ClawSolver1D pyclaw.clawpack.ClawSolver2D
+.. inheritance-diagram:: pyclaw.clawpack.clawpack.ClawSolver1D pyclaw.clawpack.clawpack.ClawSolver2D
 
 :Example:
+
     This is a simple example of how to instantiate and evolve a solution to a
-    later time ``t_end`` using the linearized 1d acoustics Riemann solver::
+    later time :math:`\text{t_end}` using the linearized 1d acoustics Riemann solver
     
-        >>> import pyclaw
-        >>> solver = pyclaw.ClawSolver1D()           # Instantiate a default, 1d solver
-        >>> solver.mthlim = pyclaw.limiters.vanleer  # Use the van Leer limiter
-        >>> solver.dt = 0.0001                       # Set the initial time step
-        >>> solver.max_steps = 500                   # Set the maximum number of time steps
-        
-        >>> solver.evolve_to_time(solution,t_end)  # Evolve the solution to t_end
+.. doctest::
+
+    >>> import pyclaw
+    >>> solver = pyclaw.ClawSolver1D()                   # Instantiate a default, 1d solver
+    >>> solver.set_mthlim = pyclaw.limiters.tvd.vanleer  # Use the van Leer limiter
+    >>> solver.dt = 0.0001                               # Set the initial time step
+    >>> solver.max_steps = 500                           # Set the maximum number of time steps
+
+.. doctest::
+
+    >>> solver.evolve_to_time(solution,t_end)  # Evolve the solution to t_end  # doctest: +SKIP
 
 
 :mod:`pyclaw.clawpack`

@@ -18,22 +18,22 @@ details on what those are).  Then simply call
 :meth:`~pyclaw.controller.Controller.run` in order to run the desired 
 simulation.  
 
-::
+.. doctest::
 
     >>> import pyclaw.controller as controller
     >>> claw = controller.Controller()            # Instantiate a new controller
-    >>> claw.solver = my_solver                   # Assign a solver
-    >>> claw.solutions['n'] = my_initial_solution # Assign an initial condition
+    >>> claw.solver = my_solver                   # Assign a solver 		 # doctest:+SKIP
+    >>> claw.solution = my_initial_solution       # Assign an initial condition	 # doctest:+SKIP
 
 Here we would set a variety of run parameters such as ``tfinal``, 
 ``keep_copy`` if we wanted to plot the solutions immediately, or 
 ``output_format`` to specify a format other than ``ascii`` or no output files 
 if we are going to use ``keep_copy = True``.  After we are all set up we just
-need to call the controller's :meth:`run` method and off we go.
+need to call the controller's :meth:`run` method and off we go.    
     
-::    
+.. doctest::
 
-    >>> claw.run()
+    >>> claw.run() # doctest:+SKIP
 
 Please see the :ref:`pyclaw_tutorial` for a detailed example of how this would 
 work in its entirety.

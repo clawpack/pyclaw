@@ -1,24 +1,24 @@
 import sys
 
-def build_run_verify(path, target_name, module_name, method_name, verifier, options):
-    sys.path.append(path)
+def build_run_verify(build_path, build_target, module_path, module_name, method_name, verifier, options):
+    sys.path.append(module_path)
     try:    
-        build_command = "make -B -C %s %s" % (path, target_name)
-        build_info = "[path: %s, name: %s]" % (path, target_name)
+        build_command = "make -B -C %s %s" % (build_path, build_target)
+        build_info = "[path: %s, name: %s]" % (build_path, build_target)
         build_it(build_info, build_command)
         module = __import__(module_name)
         run_method = getattr(module,method_name)
         
         # need a better way to branch
         if options.has_key('np') and options['np'] >1:
-            verify_it_parallel(run_method, method_name, module_name, verifier, options, path)
+            verify_it_parallel(run_method, method_name, module_name, verifier, options, module_path)
         else:
             if options.has_key('np'): options.pop('np')
-            verify_it(run_method, method_name, module_name, verifier, options, path)
+            verify_it(run_method, method_name, module_name, verifier, options, module_path)
     
     finally:
-        sys.path.remove(path)
-        target_module_name = target_name.replace('.so','')
+        sys.path.remove(module_path)
+        target_module_name = build_target.replace('.so','')
         if target_module_name in sys.modules:
             del(sys.modules[target_module_name])
         if module_name in sys.modules:

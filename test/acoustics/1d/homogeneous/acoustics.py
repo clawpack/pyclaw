@@ -20,6 +20,9 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
         solver.weno_order = weno_order
     else: raise Exception('Unrecognized value of solver_type.')
 
+    import riemann
+    solver.rp = riemann.rp1_acoustics
+
     # Initialize patches and solution
     x = pyclaw.Dimension('x',0.0,1.0,100)
     domain = pyclaw.Domain(x)

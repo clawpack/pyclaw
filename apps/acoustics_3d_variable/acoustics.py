@@ -18,6 +18,9 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     else:
         raise Exception('Unrecognized solver_type.')
 
+    import riemann
+    solver.rp = riemann.rp3_vc_acoustics
+
     solver.dimensional_split=False
     solver.num_waves = 2
     solver.limiters = pyclaw.limiters.tvd.MC

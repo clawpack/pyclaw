@@ -1,73 +1,64 @@
 .. _installation:
 
 ===============
-Getting started 
-===============
-This page describes how to set up PyClaw, the serial code.  For the parallel
-code, see :ref:`parallel`.
-
-Dependencies
-==================
-PyClaw and several of its dependencies depend on the availability of a Fortran 95
-compiler.  PyClaw is known to work with gfortran on OS X and Linux and the IBM
-XLF compiler on the cross-compiled Blue Gene environment. The binaries files for
-gfortran on OS X, Linux and Windows can be found at 
-`GCC Wiki GFortranBinaries <http://gcc.gnu.org/wiki/GFortranBinaries>`_. 
-We hope to support other Fortran compilers such as Intel, please email the list
-if you are interested in helping to port PyClaw to your favorite compiler!
-
-PyClaw relies on the usual Python libraries for scientific computing:
-
-  * `numpy <http://numpy.scipy.org/>`_. Numpy is used both for handling
-    arrays in Python and for interfacing between Python and Fortran
-    (via f2py).  The current recommended version is 1.6.0.
-
-  * `matplotlib <http://matplotlib.sourceforge.net/>`_.  Matplotlib is
-    used for plotting results.  The current recommended version is 1.0.1.
-
-**Obtaining numpy and matplotlib:**
-
-Some Python distributions come already with numpy 1.5.x or 1.6.x and Matplotlib 
-1.0.1 (see for instance `EPDChangelog <http://www.enthought.com/EPDChangelog.html>`_). 
-However, in case you need to install it, you can use two different approaches:
-
-    * Use `pip <http://pypi.python.org/pypi/pip>`_: ::
-
-        $ pip install numpy==RELEASE-NUMBER
-        $ pip install matplotlib==RELEASE-NUMBER
-    
-
-    * Use `easy_install <http://packages.python.org/distribute/easy_install.html>`_ ::
-        
-        $ easy_install "numpy==RELEASE-NUMBER"
-        $ easy_install "matplotlib==RELEASE-NUMBER"
-
-Both methods install numpy in the system. If you prefer to install numpy 
-locally, i.e. only for your user account, append the option ``--user`` after 
-"RELEASE-NUMBER".
- 
-
-To test the numpy functionality open a terminal and run python, i.e. ::
-   
-    $ python
-
-Then type ::
-
-    >>> import numpy
-    >>> numpy.test()
-
-You should get something like
-
-    * Ran 2983 tests in 10.194s
-    * OK (KNOWNFAIL=4, SKIP=1) <nose.result.TextTestResult run=2983 errors=0 failures=0>
-
-To test Matplotlib follow the instructions at 
-`<http://matplotlib.sourceforge.net/devel/coding_guide.html#testing>`_
-
-
 Installation
-==================
-PyClaw requires the installation of four Clawpack projects:
+===============
+This page describes how to set install a serial version of PyClaw.  There are
+some additional dependencies for installing a parallel-enabled code in
+:ref:`parallel`.  If you encounter any difficulties in the installation
+process, please send an email to claw-dev@googlegroups.com.
+
+Dependencies: Python, gfortran, numpy, and matplotlib
+--------------------------------------------------------
+
+PyClaw depends on Python 2.5 or greater and a modern Fortran 95
+compiler.  PyClaw is known to work with GNU gfortran 4.2 and higher and the IBM
+XLF compiler.  In principle, PyClaw should work with other modern Fortran
+compilers as well.   PyClaw heavily relies on numpy throughout the code.
+matplotlib is used for visualization of results.  You will also need a git
+client on your system to obtain PyClaw itself.
+
+  * `Python <http://python.org>`_. PyClaw is written in Python!  The minimum
+    recommended version is 2.5.
+
+  * Fortran 95 compiler.  The computational kernels used by PyClaw are written
+    in Fortran 95.  You will need to use a Fortran compiler compatible with
+    your Python installation.   Most of the PyClaw developers use a gfortran
+    from the 4.6.x series.
+
+  * `numpy <http://numpy.scipy.org/>`_ is used both for handling
+    arrays in Python and for interfacing between Python and Fortran
+    (via f2py).  The minimum recommended version is 1.6.
+
+  * `matplotlib <http://matplotlib.sourceforge.net/>`_ is
+    used for plotting results.  The minimum recommended version is 1.0.1.
+
+  * `git <http://git-scm.com/>`_ is the freely available distributed
+    version control system used by the PyClaw developers to manage
+    development.  The minimum recommended version is 1.7
+
+Obtaining a freely available Fortran compiler
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Binary files for gfortran on OS X, Linux and Windows are available from
+`GCC Wiki GFortranBinaries <http://gcc.gnu.org/wiki/GFortranBinaries>`_.  
+
+Obtaining a git client
++++++++++++++++++++++++++++++++++++++++++++++++
+
+git clients can be downloaded from the `git homepage <http://git-scm.com/download>`_.
+
+Obtaining Python and its dependencies
++++++++++++++++++++++++++++++++++++++++++++++++
+
+The PyClaw developers recommend the `Enthought Python Distribution <http://enthought.com/products/epd.php>`_ to
+obtain a modern Python with several important scientific computing libraries
+installed "out-of-the-box".   The Enthought Python Distribution is freely
+available for academic use.
+
+Installing PyClaw
+-----------------------------------------------------------
+PyClaw currently relies on the manual installation of four Clawpack projects:
 
 *PyClaw*
     The actual package containing the PyClaw source code, tests, and examples
@@ -82,29 +73,23 @@ PyClaw requires the installation of four Clawpack projects:
 *VisClaw*
     A set of visualization tools built on top of Matplotlib
     
-The best way to get PyClaw, Clawutil, Riemann and VisClaw right now is to clone
-the Git repositories.  We recommend that you create a directory to contain all three 
-packages.  If you wanted to call this directory ``clawpack`` say this would be 
-accompilished by ::
+We recommend that you create a directory to contain all four 
+packages.  If you wanted to call this directory ``clawpack``::
 
     $ mkdir clawpack
     $ cd clawpack
 
-The best way to get PyClaw, Clawutil, Riemann and VisClaw right now is to clone
-the Git repositories into the directory you just created::
+The current method for installing PyClaw, Clawutil, Riemann and VisClaw is to create
+a local copy of their github-hosted repositories::
 
     $ git clone git@github.com:clawpack/clawutil.git
     $ git clone git@github.com:clawpack/pyclaw.git
     $ git clone git@github.com:clawpack/riemann.git
     $ git clone git@github.com:clawpack/visclaw.git
 
-Eventually we will have an official release and there will be a tarball available.
-
-
-Setting up the environment
-============================
-Now we need to setup the environment so we can easily refer to the projects that
-we just cloned.  The following variables are used in PyClaw:
+Environment variables
+-----------------------------------------------------------
+PyClaw currently installs 'in-place'.  That is, .  The following variables are used in PyClaw:
 
   * ``CLAW`` must point to the base directory you created and cloned the 
     repositories into, above we called this ``clawpack``.
@@ -138,14 +123,20 @@ your command line).  The shell code in these files can be copied to your
 .bashrc, .cshrc, or .profile file to be run automatically when you open a 
 terminal.
 
+Finally, compile the Fortran code for the solvers and Riemann solvers::
 
-Testing your installation
-============================
-If you don't have it already, we recommend that you install nose ::
+    $ cd $PYCLAW/src/pyclaw/clawpack
+    $ make
+    $ cd $PYCLAW/src/pyclaw/sharpclaw
+    $ make
+    $ cd $RIEMANN/src/python/riemann
+    $ make
 
-    $ easy_install nose
 
-Now simply execute ::
+Testing your installation with nose
+-----------------------------------------------------------
+
+If you have nose, you can test a serial installation with ::
 
     $ cd $PYCLAW
     $ nosetests -a petsc=False
@@ -161,11 +152,10 @@ tests *must* be run from the main PyClaw directory.
     flag.
 
 Running and plotting an example
-================================
+-----------------------------------------------------------
 Next ::
 
     $ cd $PYCLAW/apps/advection_1d
-    $ make
     $ python advection.py iplot=1
 
 This will run the code and then place you in an interactive plotting shell.
@@ -174,5 +164,5 @@ repeatedly.  To exit the shell, type 'q'.  For help, type '?' or see
 this `Clawpack interactive python plotting help page <http://depts.washington.edu/clawpack/users/plotting.html>`_.
 
 Next steps
-================================
+-----------------------------------------------------------
 Now you're ready to set up your own PyClaw simulation.  Try the :ref:`pyclaw_tutorial`!

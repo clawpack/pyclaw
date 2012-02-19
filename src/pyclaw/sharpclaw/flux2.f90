@@ -1,5 +1,5 @@
 ! ==========================================================
-subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my)
+subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn2)
 ! ==========================================================
 
     ! Evaluate (delta t) *dq/dt
@@ -24,10 +24,15 @@ subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
     integer :: i,j,m
     double precision :: cfl1d
     double precision, pointer :: auxp(:,:),q1dp(:,:)
+    external :: rpn2
     
 !f2py intent(in,out) dq  
 !f2py intent(out) cfl  
 !f2py optional dq, q1d, dq1d
+
+! Dummy interface just so f2py doesn't complain:
+!f2py real(DP) x
+!f2py x=rpn2(x)
 
     cfl = 0.d0
 
@@ -45,7 +50,7 @@ subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
 
 
         ! compute modification dq1d along this slice:
-        call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,1,num_aux,num_eqn,mx,num_ghost,maxnx)
+        call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,1,num_aux,num_eqn,mx,num_ghost,maxnx,rpn2)
         cfl = dmax1(cfl,cfl1d)
 
 
@@ -78,7 +83,7 @@ subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
             auxp => aux(:,i,:)
         endif
 
-        call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,2,num_aux,num_eqn,my,num_ghost,maxnx)
+        call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,2,num_aux,num_eqn,my,num_ghost,maxnx,rpn2)
         cfl = dmax1(cfl,cfl1d)
 
         if (index_capa.eq.0) then

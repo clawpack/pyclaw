@@ -46,11 +46,11 @@ class Grid(object):
 
     A PyClaw grid is usually constructed from a tuple of PyClaw Dimension objects:
 
-        >>> x = Dimension('x',0.,1.,10)
+	>>> from pyclaw.geometry import Dimension, Grid      
+	>>> x = Dimension('x',0.,1.,10)
         >>> y = Dimension('y',-1.,1.,25)
-        >>> grid = grid((x,y))
+        >>> grid = Grid((x,y))
         >>> print grid
-        grid 1:
         Dimension x:  (num_cells,delta,[lower,upper]) = (10,0.1,[0.0,1.0])
         Dimension y:  (num_cells,delta,[lower,upper]) = (25,0.08,[-1.0,1.0])
         >>> grid.num_dim
@@ -187,6 +187,7 @@ class Grid(object):
     
     
     def __str__(self):
+	output = ''
         output += '\n'.join((str(getattr(self,dim)) for dim in self._dimensions))
         return output
     
@@ -400,34 +401,31 @@ class Dimension(object):
 
     Example:
 
+    >>> from pyclaw.geometry import Dimension
     >>> x = Dimension('x',0.,1.,100)
     >>> print x
-    Dimension x:  (n,d,[lower,upper]) = (100,0.01,[0.0,1.0])
+    Dimension x:  (num_cells,delta,[lower,upper]) = (100,0.01,[0.0,1.0])
     >>> x.name
     'x'
-    >>> x.n
+    >>> x.num_cells
     100
-    >>> x.d
+    >>> x.delta
     0.01
-    >>> x.edge[0]
+    >>> x.edges[0]
     0.0
-    >>> x.edge[1]
+    >>> x.edges[1]
     0.01
-    >>> x.edge[-1]
+    >>> x.edges[-1]
     1.0
-    >>> x.center[-1]
+    >>> x.centers[-1]
     0.995
-    >>> len(x.center)
+    >>> len(x.centers)
     100
-    >>> len(x.edge)
+    >>> len(x.edges)
     101
     """
     
     # ========== Property Definitions ========================================
-    @property
-    def ng(self):
-        r"""(int) - Number of cells in this dimension, on this process"""
-        return self.num_cells
     @property
     def delta(self):
         r"""(float) - Size of an individual, computational cell"""
@@ -587,32 +585,32 @@ class Domain(object):
         r"""(list) - :attr:`Patch.units` of base patch"""
         return self._get_base_patch_attribute('units')
     @property
-    def center(self):
-        r"""(list) - :attr:`Patch.center` of base patch"""
-        return self._get_base_patch_attribute('center')
+    def centers(self):
+        r"""(list) - :attr:`Patch.centers` of base patch"""
+        return self._get_base_patch_attribute('centers')
     @property
-    def edge(self):
-        r"""(list) - :attr:`Patch.edge` of base patch"""
-        return self._get_base_patch_attribute('edge')
+    def edges(self):
+        r"""(list) - :attr:`Patch.edges` of base patch"""
+        return self._get_base_patch_attribute('edges')
     @property
-    def p_center(self):
-        r"""(list) - :attr:`Patch.p_center` of base patch"""
-        return self._get_base_patch_attribute('p_center')
+    def p_centers(self):
+        r"""(list) - :attr:`Patch.p_centers` of base patch"""
+        return self._get_base_patch_attribute('p_centers')
     @property
-    def p_edge(self):
-        r"""(list) - :attr:`Patch.p_edge` of base patch"""
-        return self._get_base_patch_attribute('p_edge')
+    def p_edges(self):
+        r"""(list) - :attr:`Patch.p_edges` of base patch"""
+        return self._get_base_patch_attribute('p_edges')
     @property
-    def c_center(self):
-        r"""(list) - :attr:`Patch.c_center` of base patch"""
-        return self._get_base_patch_attribute('c_center')
+    def c_centers(self):
+        r"""(list) - :attr:`Patch.c_centers` of base patch"""
+        return self._get_base_patch_attribute('c_centers')
     @property
-    def c_edge(self):
-        r"""(list) - :attr:`Patch.c_edge` of base patch"""
-        return self._get_base_patch_attribute('c_edge')
+    def c_edges(self):
+        r"""(list) - :attr:`Patch.c_edges` of base patch"""
+        return self._get_base_patch_attribute('c_edges')
  
     def __init__(self,geom):
-        if not isinstance(geom,list):
+        if not isinstance(geom,list) and not isinstance(geom,tuple):
             geom = [geom]
         if isinstance(geom[0],Patch):
             self.patches = geom

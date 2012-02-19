@@ -131,6 +131,8 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False):
     initial_solution = pyclaw.Solution(state,domain)
 
     solver = pyclaw.ClawSolver2D()
+    import riemann
+    solver.rp = riemann.rp2_euler_5wave
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
     solver.num_waves = 5
