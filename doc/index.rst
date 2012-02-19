@@ -56,24 +56,23 @@ PyClaw
 ******
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    started
    tutorial
    apps
    plotting
    problem
+   clawpack_and_pyclaw
    parallel
-   output
    classes
-   troubleshooting
-   differences
+   output
    develop
    devel/gitwash/index
    rulesProposal
+   troubleshooting
    about
    future
-   portExample
 
 
 .. _pyclaw_reference:
