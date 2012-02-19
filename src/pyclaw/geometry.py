@@ -585,32 +585,32 @@ class Domain(object):
         r"""(list) - :attr:`Patch.units` of base patch"""
         return self._get_base_patch_attribute('units')
     @property
-    def center(self):
-        r"""(list) - :attr:`Patch.center` of base patch"""
-        return self._get_base_patch_attribute('center')
+    def centers(self):
+        r"""(list) - :attr:`Patch.centers` of base patch"""
+        return self._get_base_patch_attribute('centers')
     @property
-    def edge(self):
-        r"""(list) - :attr:`Patch.edge` of base patch"""
-        return self._get_base_patch_attribute('edge')
+    def edges(self):
+        r"""(list) - :attr:`Patch.edges` of base patch"""
+        return self._get_base_patch_attribute('edges')
     @property
-    def p_center(self):
-        r"""(list) - :attr:`Patch.p_center` of base patch"""
-        return self._get_base_patch_attribute('p_center')
+    def p_centers(self):
+        r"""(list) - :attr:`Patch.p_centers` of base patch"""
+        return self._get_base_patch_attribute('p_centers')
     @property
-    def p_edge(self):
-        r"""(list) - :attr:`Patch.p_edge` of base patch"""
-        return self._get_base_patch_attribute('p_edge')
+    def p_edges(self):
+        r"""(list) - :attr:`Patch.p_edges` of base patch"""
+        return self._get_base_patch_attribute('p_edges')
     @property
-    def c_center(self):
-        r"""(list) - :attr:`Patch.c_center` of base patch"""
-        return self._get_base_patch_attribute('c_center')
+    def c_centers(self):
+        r"""(list) - :attr:`Patch.c_centers` of base patch"""
+        return self._get_base_patch_attribute('c_centers')
     @property
-    def c_edge(self):
-        r"""(list) - :attr:`Patch.c_edge` of base patch"""
-        return self._get_base_patch_attribute('c_edge')
+    def c_edges(self):
+        r"""(list) - :attr:`Patch.c_edges` of base patch"""
+        return self._get_base_patch_attribute('c_edges')
  
     def __init__(self,geom):
-        if not isinstance(geom,list):
+        if not isinstance(geom,list) and not isinstance(geom,tuple):
             geom = [geom]
         if isinstance(geom[0],Patch):
             self.patches = geom
