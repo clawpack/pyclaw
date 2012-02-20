@@ -1,16 +1,24 @@
 ======================================
-Programming and documenting in PyClaw
+Developing and documenting PyClaw
 ======================================
-In order to improve and maintain PetClaw and allow more developers or simply users to acces and use it all Python/Fortran code should follow some conventions. As stressed in many books, reports, notes, etc. (see for instance `Wikipedia <http://en.wikipedia.org/wiki/Coding_conventions>`_) code conventions are important to programmers for a number of reasons:
+In order to improve and maintain PyClaw and allow more developers or simply
+users to acces and use it all Python/Fortran code should follow some
+conventions. As stressed in many books, reports, notes, etc. (see for instance
+`Wikipedia <http://en.wikipedia.org/wiki/Coding_conventions>`_) code
+conventions are important to programmers for a number of reasons:
     * A big part of the lifetime cost of a piece of software goes to maintenance
-    * Rarely any software is maintained for its whole life by the original authors
+    * Rarely is software maintained for its whole life by the original authors
     * Code conventions improve the readability of the software, allowing new developers and users to understand new code more quickly and thoroughly (efficiency increases!)
     * Standards makes the source code look consistent, well-organized, and professional
     * etc.
 
-This page gives some hints for setting up some coding conventions in the PetClaw. Probably it is not our intention to re-invent completely new standards. Therefore, most of the ideas/proposed rules listed here are adapted from some conventions already used by most of the Python, Fortran90/95, C, C++ communities. Since PetClaw is an hybrid code (because the high-level code is written in Python whereas the low-level kernels are written in Fortran) we should decide whether we want to use one or two sets of conventions. However, for both languages some common rules can be defined a priori, though there are some technical differences between python and fortran.
+This page provides some suggested coding conventions for PyClaw developers.
+Most of the ideas/proposed rules listed here are adapted
+from some conventions already used by most of the Python, Fortran90/95, C, C++
+communities. 
 
-Most of the proposed rules listed here has been extracted from the documentation uploaded at following links:
+Most of the proposed rules listed here have been extracted from the
+documentation available at following links:
     * `pep-0008 <http://www.python.org/dev/peps/pep-0008/>`_
     * `pep-0257 <http://www.python.org/dev/peps/pep-0257/>`_
     * `numpy <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_
@@ -21,31 +29,25 @@ Code layout
 ===========
 Indentation:
     * Use 4 spaces per indentation level
-    * The use of 4 spaces per indentation level is most popular in the open source community because it is easier for the human eyes. Where possible, comments should 
-      be indented with the code within a block.
-    * Never mix tabs and spaces
-    * The most popular way of indenting Python is with spaces only.  The
-      second-most popular way is with tabs only.  Code indented with a mixture
-      of tabs and spaces should be converted to using spaces exclusively.
-    * Use genuine spaces but avoid using tabs, as the tab character is not in the Fortran character set
+    * Don't use tabs
     * Confine your line width to 80 characters, so that your code can be displayed on screen for side-by-side comparison and printed easily on A4 paper.
     * For flowing long blocks of text (docstrings or comments), limiting the length to 72 characters is recommended.
     * Separate top-level function and class definitions with two blank lines.
     * Method definitions inside a class are separated by a single blank line.
 
-**NOTE:** When you are testing a new piece of python code, you could use the -t option to check illegally mixes tabs and spaces. This option will issue warnings. When using -tt 
-these warnings become errors.
 
-
-**NOTE:** For Python 3.0 and beyond, the following policy is prescribed for the standard library (see PEP 3131): All identifiers in the Python standard library MUST use ASCII-only identifiers, and SHOULD use English words wherever feasible (in many cases, abbreviations and technical terms are used which aren't English). In addition, string literals and comments must also be in ASCII. The only exceptions are (a) test cases testing the non-ASCII features, and (b) names of authors. Authors whose names are not based on the latin alphabet MUST provide a latin transliteration of their names. **Open source projects with a global audience are encouraged to adopt a similar policy.**
+**NOTE:** For Python 3.0 and beyond, the following policy is prescribed for the
+standard library (see PEP 3131): All identifiers in the Python standard library
+MUST use ASCII-only identifiers, and SHOULD use English words wherever feasible
+(in many cases, abbreviations and technical terms are used which aren't
+English). In addition, string literals and comments must also be in ASCII. The
+only exceptions are (a) test cases testing the non-ASCII features, and (b)
+names of authors. Authors whose names are not based on the latin alphabet MUST
+provide a latin transliteration of their names. **Open source projects with a
+global audience are encouraged to adopt a similar policy.**
 
 Docstring conventions
 =====================
-I think that docstrings is a python feature. For C++ I know `Doxygen <http://www.stack.nl/~dimitri/doxygen/docblocks.html>`_, which can be used also for Fortran.
-
-
-In python, if you violate the docstring conventions, the worst you'll get is some dirty looks. But some software (such as the `Docutils <http://docutils.sourceforge.net/>`_ docstring processing system) will be aware of the conventions, so following them will get you the best results.
-
 A docstring is a string literal that occurs as the first statement in a module, function, class, or method definition. Such a docstring becomes the ``__doc__ special`` attribute of that object.
 
 All modules should normally have docstrings, and all functions and classes exported by a module should also have docstrings. Public methods (including the __init__ constructor) should also have docstrings. A package may be documented in the module docstring of the ``__init__.py`` file in the package directory.
@@ -170,7 +172,9 @@ Thus, I would use "self-explaining names for variables, procedures etc."
 
 Order of the test cases instruction
 ===================================
-Probably it would be useful to follow also some rules when preparing the python script of a new test case. Listing  phases and instructions in a logical order could improve the readability of the set-up. One idea could be:
+It would be useful to follow also some rules when preparing the Python script
+of a new test case. Listing  phases and instructions in a logical order could
+improve the readability of the set-up. One idea could be:
     * Import libraries needed by all the functions
     * Define the functions use by the main program, e.g. qinit, setaux, etc.
       Here the conventions introduce previously for the docstrings should be used
@@ -195,13 +199,15 @@ Add documentation when new code is added
 
 Write Comments as You Code
 ==========================
-You won't every go back later and document your code. You just won't. So when you do something document it right then and there. When you create a class- document it. When you create a method- document it. And so on. That way when you finish coding you will also be finished documenting.
-Won't this break the flow? No, I think it improves flow because it keeps you mindful of what you are doing, why you are doing, and how it fits in the big picture.
+You won't ever go back later and document your code. You just won't. So when
+you do something document it right then and there. When you create a class-
+document it. When you create a method- document it. And so on. That way when
+you finish coding you will also be finished documenting.
+Won't this break the flow? No, I think it improves flow because it keeps you
+mindful of what you are doing, why you are doing, and how it fits in the big
+picture.
 
-Some fortran tips (??)
+Some fortran tips
 ======================
-    * Use always **IMPLICIT NONE**
-    * Allocate and deallocate always memory
-    * A text file explaining how to compile, link, install and use the program (and/or a Makefile).
-
-
+    * Always use **IMPLICIT NONE**
+    * Always allocate and deallocate memory
