@@ -13,6 +13,12 @@ class State(clawpack.pyclaw.State):
         else: return self.q_da.dof
 
     @property
+    def num_aux(self):
+        r"""(int) - Number of auxiliary fields"""
+        if self.aux_da is None: return 0
+        else: return self.aux_da.dof
+
+    @property
     def mp(self):
         r"""(int) - Number of derived quantities (components of p)"""
         if self._p_da is None:
@@ -41,28 +47,15 @@ class State(clawpack.pyclaw.State):
             self.gFVec = self._F_da.createGlobalVector()
 
     @property
-    def num_aux(self):
-        r"""(int) - Number of auxiliary fields"""
-        if self.aux_da is None: return 0
-        else: return self.aux_da.dof
-
-    @property
     def q(self):
         r"""
-        Array to store solution (q) values.
-
-        Settting state.num_eqn automatically allocates space for q, as does
-        setting q itself.
+        Array of solution values.
         """
-        if self.q_da is None: return 0
         shape = self.grid.num_cells
         shape.insert(0,self.num_eqn)
-        q=self.gqVec.getArray().reshape(shape, order = 'F')
-        return q
+        return self.gqVec.getArray().reshape(shape, order = 'F')
     @q.setter
     def q(self,val):
-        num_eqn = val.shape[0]
-        if self.gqVec is None: self._init_q_da(num_eqn)
         self.gqVec.setArray(val.reshape([-1], order = 'F'))
 
     @property
@@ -139,7 +132,7 @@ class State(clawpack.pyclaw.State):
             self.patch = geom.patches[0]
         else:
             raise Exception("""A PetClaw State object must be initialized with
-                             a PyClaw Patch or Domain object.""")
+                             a PetClaw Patch or Domain object.""")
 
         self.aux_da = None
         self.q_da = None
@@ -174,21 +167,21 @@ class State(clawpack.pyclaw.State):
         Initializes PETSc DA and global & local Vectors for handling the
         auxiliary array, aux. 
         
-        Initializes aux_da, gauxVec and lauxVec.
+        Initializes aux_da, gauxVec and _aux_local_vector.
         """
         self.aux_da = self._create_DA(num_aux,num_ghost)
         self.gauxVec = self.aux_da.createGlobalVector()
-        self.lauxVec = self.aux_da.createLocalVector()
+        self._aux_local_vector = self.aux_da.createLocalVector()
  
     def _init_q_da(self,num_eqn,num_ghost=0):
         r"""
         Initializes PETSc DA and Vecs for handling the solution, q. 
         
-        Initializes q_da, gqVec and lqVec.
+        Initializes q_da, gqVec and _q_local_vector.
         """
         self.q_da = self._create_DA(num_eqn,num_ghost)
         self.gqVec = self.q_da.createGlobalVector()
-        self.lqVec = self.q_da.createLocalVector()
+        self._q_local_vector = self.q_da.createLocalVector()
 
     def _create_DA(self,dof,num_ghost=0):
         r"""Returns a PETSc DA and associated global Vec.
@@ -226,7 +219,6 @@ class State(clawpack.pyclaw.State):
                                           comm=PETSc.COMM_WORLD)
 
         return DA
-
 
     def get_qbc_from_q(self,num_ghost,qbc):
         """
