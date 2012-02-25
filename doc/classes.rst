@@ -103,9 +103,7 @@ directly as in:
     
 If you're using a Fortran Riemann solver, these values will automatically get
 copied to the corresponding variables in the cparam common block of the
-Riemann solver.  This is done in solver.setup(), which calls grid.set_cparam().
-
-**Comment: grid.set_cparam() is not supported any more. Changed to state.grid.add_gauges()?**
+Riemann solver.  This is done in solver.setup(), which calls state.set_cparam().
 
 Last we have to put our :class:`~pyclaw.state.State` object into a 
 :class:`~pyclaw.solution.Solution` object to complete the process.  In this
@@ -142,8 +140,6 @@ Next we need to tell the solver which Riemann solver to use from the
 check what Riemann solvers are available to use via the :mod:`~pyclaw.riemann` 
 module. Once we have picked one out, we pass it to the solver via:
 
-**Comment: Fix the path to the Riemann solver package and pyclaw.riemann module**
-
 .. doctest::
 
     >>> from pyclaw import riemann 
@@ -158,8 +154,6 @@ setting it directly to the `rp` attribute of the particular object in the class
 
     >>> import my_rp_module # doctest: +SKIP
     >>> solver.rp = my_rp_module.my_acoustics_rp # doctest: +SKIP
-
-**Comment: Check the above is compatible with current pyclaw version**
 
 Last we finish up by specifying solver options, if we want to override the
 defaults.  For instance, we might want to specify a particular limiter
@@ -176,8 +170,6 @@ following commands:
 
     >>> solver.evolve_to_time(sol,1.0) # doctest: +SKIP
 
-**Comment: I think the solve.evolve_to_time function requires a Fortran kernel and classic1.so.**
-    
 This would evolve our solution ``sol`` to ``t = 1.0`` but we are then
 responsible for all output and other setup considerations.
 
