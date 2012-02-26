@@ -93,9 +93,6 @@ class ClawSolver(Solver):
         self._mthlim = self.limiters
         self._method = None
 
-        so_name = 'pyclaw.clawpack.classic'+str(self.num_dim)
-        self.fmod = __import__(so_name,fromlist=['pyclaw.clawpack'])
-
         # Call general initialization function
         super(ClawSolver,self).__init__(claw_package)
     
@@ -214,6 +211,9 @@ class ClawSolver(Solver):
 
         self.set_mthlim()
         if(self.kernel_language == 'Fortran'):
+            if self.fmod is None:
+                so_name = 'pyclaw.clawpack.classic'+str(self.num_dim)
+                self.fmod = __import__(so_name,fromlist=['pyclaw.clawpack'])
             self.set_fortran_parameters(solution)
             self.allocate_workspace(solution)
         elif self.num_dim>1:
