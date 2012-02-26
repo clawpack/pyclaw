@@ -142,10 +142,10 @@ class Solver(object):
         self.max_steps = 1000
         self.dt_variable = True
         self.num_waves = None #Must be set later to agree with Riemann solver
-        self.so_name = None #Can remove this after merging fwaves commit
         self.qbc = None
         self.auxbc = None
         self.rp = None
+        self.fmod = None
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
