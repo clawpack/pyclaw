@@ -505,8 +505,7 @@ class ClawSolver2D(ClawSolver):
             maxm = max(mx,my)
             
             self.apply_q_bcs(state)
-            qnew = self.qbc
-            qold = qnew.copy('F')
+            qold = self.qbc.copy('F')
             
             rpn2 = self.rp.rpn2._cpointer
             rpt2 = self.rp.rpt2._cpointer
@@ -515,20 +514,20 @@ class ClawSolver2D(ClawSolver):
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
-                q, cfl_x = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
+                self.qbc, cfl_x = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
+                      qold,self.qbc,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1,self.fwave,rpn2,rpt2)
 
-                q, cfl_y = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
-                      q,q,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
+                self.qbc, cfl_y = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
+                      self.qbc,self.qbc,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2,self.fwave,rpn2,rpt2)
 
                 cfl = max(cfl_x,cfl_y)
 
             else:
 
-                q, cfl = self.fmod.step2(maxm,self.num_ghost,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
+                self.qbc, cfl = self.fmod.step2(maxm,self.num_ghost,mx,my, \
+                      qold,self.qbc,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,self.fwave,rpn2,rpt2)
 
             self.cfl.update_global_max(cfl)
