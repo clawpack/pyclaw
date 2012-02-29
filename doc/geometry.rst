@@ -10,14 +10,14 @@ for all other geometry is the :class:`~pyclaw.geometry.Domain` object.  It
 contains a list of :class:`~pyclaw.geometry.Patch` objects that reside inside
 of the :class:`~pyclaw.geometry.Domain`.  
 
-.. image:: images/geometry/domain_structure_1.pdf
+.. image:: images/geometry/domain_structure_1.*
 
 :class:`~pyclaw.geometry.Patch` 
 represents a piece of the domain that could be a different resolution than
 the others, have a different coordinate mapping, or be used to construct
 complex domain shapes.  
 
-.. image:: images/geometry/domain_structure_2.pdf
+.. image:: images/geometry/domain_structure_2.*
 
 It contains :class:`~pyclaw.geometry.Dimension`
 objects that define the extent of the :class:`~pyclaw.geometry.Patch` and the
@@ -34,12 +34,12 @@ In the case where only one :class:`~pyclaw.geometry.Patch` object exists in
 a :class:`~pyclaw.geometry.Domain` but it is run with four processes in
 parallel, the :class:`~pyclaw.geometry.Domain` hierarchy could look like:
 
-.. image:: images/geometry/domain_structure_3.pdf
+.. image:: images/geometry/domain_structure_3.*
 
 In the most complex case with multiple patches and a parallel run we may
 have the following:
 
-.. image:: images/geometry/domain_structure_5.pdf
+.. image:: images/geometry/domain_structure_5.*
 
 .. _pyclaw_serial_geometry:
 

@@ -1,5 +1,18 @@
 .. _pyclaw:
 
+.. note::
+
+    A major change to PyClaw has just been implemented.  If you update from the development
+    repository, you will need to::
+
+    $ cd $PYCLAW/src/pyclaw/clawpack
+    $ make
+    $ cd $PYCLAW/src/pyclaw/sharpclaw
+    $ make
+    $ cd $RIEMANN/src/python/riemann
+    $ make
+
+
 ********
 Overview
 ********
@@ -18,15 +31,15 @@ instructions in :ref:`parallel`.
 
 PyClaw features:
 
-    * Solves general hyperbolic PDEs in 1D, 2D, and 3D, including mapped grids and surfaces
+    * Solves general hyperbolic PDEs in 1D, 2D, and 3D, including mapped grids and surfaces.
     * Includes the full functionality of `Clawpack <http://www.clawpack.org>`_ and 
-      `SharpClaw <http://numerics.kaust.edu.sa/sharpclaw/>`_
-    * Has a simple and intuitive pythonic interface
+      `SharpClaw <http://numerics.kaust.edu.sa/sharpclaw/>`_.
+    * Has a simple and intuitive pythonic interface.
     * Allows you to run your simulation on the world's biggest supercomputers with 
-      the same simple script that runs it on your laptop
-    * Makes it easy to access the powerful `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_ 
+      the same simple script that runs it on your laptop.
+    * Makes it easy to access the powerful `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_.
       library of solvers for handling stiff source terms or for implicit time stepping 
-      (under construction)
+      (under construction).
 
 PyClaw makes use of the additional Clawpack packages, 
 `Riemann <http://github.com/clawpack/riemann>`_ and
@@ -43,24 +56,23 @@ PyClaw
 ******
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    started
    tutorial
    apps
    plotting
    problem
+   clawpack_and_pyclaw
    parallel
-   output
    classes
-   troubleshooting
-   differences
+   output
    develop
    devel/gitwash/index
    rulesProposal
+   troubleshooting
    about
    future
-   portExample
 
 
 .. _pyclaw_reference:

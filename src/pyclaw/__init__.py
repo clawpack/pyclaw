@@ -19,6 +19,7 @@ from pyclaw.solution import Solution
 from pyclaw.geometry import Dimension, Patch, Domain
 from pyclaw.state import State
 from pyclaw.cfl import CFL
+
 import riemann
 import plot
 

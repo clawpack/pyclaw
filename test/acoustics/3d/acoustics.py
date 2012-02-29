@@ -18,6 +18,9 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     else:
         raise Exception('Unrecognized solver_type.')
 
+    import riemann
+    solver.rp = riemann.rp3_vc_acoustics
+
     solver.bc_lower[0]=pyclaw.BC.periodic
     solver.bc_upper[0]=pyclaw.BC.periodic
     solver.bc_lower[1]=pyclaw.BC.periodic

@@ -182,6 +182,8 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
         solver.limiters = [4,4,4,4,2]
         solver.step_source=step_Euler_radial
 
+    import riemann
+    solver.rp = riemann.rp2_euler_5wave
     solver.num_waves = 5
     solver.bc_lower[0]=pyclaw.BC.custom
     solver.bc_upper[0]=pyclaw.BC.extrap

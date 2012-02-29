@@ -20,11 +20,16 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
         solver = pyclaw.SharpClawSolver1D()
     else:
         solver = pyclaw.ClawSolver1D()
+        solver.limiters = pyclaw.limiters.tvd.vanleer
 
     solver.kernel_language = kernel_language
-    if kernel_language=='Python': solver.set_riemann_solver('burgers')
+    if kernel_language=='Python': 
+        solver.set_riemann_solver('burgers')
+    elif kernel_language=='Fortran':
+        import riemann
+        solver.rp = riemann.rp1_burgers
+        
     solver.num_waves = 1
-    solver.limiters = pyclaw.limiters.tvd.vanleer
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
 
@@ -59,5 +64,4 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
 if __name__=="__main__":
     from pyclaw.util import run_app_from_main
     output = run_app_from_main(burgers)
-    print 'Error: ',output
 

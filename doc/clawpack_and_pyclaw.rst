@@ -1,8 +1,17 @@
-.. _port_Example:
+.. _clawpack_and_pyclaw:
 
 ======================================================
-Porting a problem from Clawpack to PyClaw through f2py
+Clawpack and PyClaw
 ======================================================
+
+.. _port_Example:
+
+Porting a problem from Clawpack to PyClaw 
+======================================================
+The script `pyclaw/development/clawdata2pyclaw` is intended to aid
+in converting a Clawpack 4.6 problem setup to PyClaw.  However,
+some manual conversion is necessary, especially if the problem
+includes custom fortran routines.
 
 In PyClaw, the high-level portions of the Fortran routines are reorganized in 
 an object-oriented Python framework, while the low-level ones are bound through
@@ -57,7 +66,7 @@ After the compilation has been succesfully completed, the signature of each
 function contained in ``problem.so`` must be verified and the intent of the 
 variables added (if there was nothing stated in the 
 code). One can easily achieve that by using the following commands::
-    
+
     $ ipython
     >>> import problem
     >>> problem?
@@ -66,7 +75,7 @@ The last command queries the content of the module and outputs the functions'
 signature that must be used in the initialization script to correctly call the 
 fortran functions. In the shallow water equations on a sphere example, we get 
 the following output::
-    
+
     >>> Type:		module
     >>> Base Class:	<type 'module'>
     >>> String Form:	<module 'problem' from 'problem.so'>
@@ -144,14 +153,22 @@ rules to create the targets required by the new Fortran routine.
 Similar changes to the problem-specific Makefile can be used to replace other 
 low-level Fortran routines.
 
-  
 
+.. _diffs:
 
+Important differences between PyClaw and Clawpack
+==================================================
+PyClaw incorporates some important changes relative to Clawpack.  
+Most of these are planned for inclusion in Clawpack 5.0.
 
-    
+Interleaved arrays
+===================
+PyClaw uses a different array indexing than Clawpack.  In PetClaw,
+the value of the :math:`m`-th conserved quantity at :math:`(x_i,y_j)` is ::
 
+    q[m,i,j]
 
-
-
-
+That is, the index :math:`m` comes first, whereas in Clawpack it comes last.
+This "interleaved" array layout is potentially more cache-efficient.
+The next version of Clawpack (5.0) will also use interleaved arrays.
 

@@ -28,10 +28,10 @@ class Controller(object):
 
         >>> import pyclaw
         >>> x = pyclaw.Dimension('x',0.,1.,100)
-        >>> patch = pyclaw.Patch((x))
-        >>> state = pyclaw.State(patch,3,2)
+        >>> domain = pyclaw.Domain((x))
+        >>> state = pyclaw.State(domain,3,2)
         >>> claw = pyclaw.Controller()
-        >>> claw.solution = pyclaw.Solution(state)
+        >>> claw.solution = pyclaw.Solution(state,domain)
         >>> claw.solver = pyclaw.ClawSolver1D()
     """
     #  ======================================================================

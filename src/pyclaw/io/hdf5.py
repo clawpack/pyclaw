@@ -40,7 +40,7 @@ try:
     use_h5py = True
 except:
     pass
-if use_h5py:
+if not use_h5py:
     try:
         import tables
         use_PyTables = True
@@ -54,7 +54,7 @@ if not use_h5py and not use_PyTables:
     logging.critical("Could not import h5py or PyTables!")
 
 def write_hdf5(solution,frame,path,file_prefix='claw',write_aux=False,
-                options={}):
+                options={},write_p=False):
     r"""
     Write out a Solution to a HDF5 file.
     
@@ -123,7 +123,8 @@ def write_hdf5(solution,frame,path,file_prefix='claw',write_aux=False,
         f = h5py.File(filename,'w')
         
         # For each patch, write out attributes
-        for patch in solution.patchs:
+        for state in solution.states:
+            patch = state.patch
             # Create group for this patch
             subgroup = f.create_group('patch%s' % patch.patch_index)
             
@@ -135,18 +136,21 @@ def write_hdf5(solution,frame,path,file_prefix='claw',write_aux=False,
                     
             # Add the dimension names as a attribute
             subgroup.attrs['dimensions'] = patch.get_dim_attribute('name')
-                    
             # Dimension properties
             for dim in patch.dimensions:
                 for attr in ['n','lower','d','upper','bc_lower',
-                             'bc_upper','units']:
+                             'bc_upper','units','num_cells']:
                     if hasattr(dim,attr):
                         if getattr(dim,attr) is not None:
                             attr_name = '%s.%s' % (dim.name,attr)
                             subgroup.attrs[attr_name] = getattr(dim,attr)
             
             # Write out q
-            subgroup.create_dataset('q',data=patch.q,
+            if write_p:
+                q = state.p
+            else:
+                q = state.q
+            subgroup.create_dataset('q',data=q,
                                         compression=compression,
                                         compression_opts=compression_opts,
                                         chunks=chunks,shuffle=shuffle,
@@ -170,7 +174,6 @@ def write_hdf5(solution,frame,path,file_prefix='claw',write_aux=False,
         err_msg = "No hdf5 python modules available."
         logging.critical(err_msg)
         raise Exception(err_msg)
-
 
 def read_hdf5(solution,frame,path='./',file_prefix='claw',read_aux=True,
                 options={}):

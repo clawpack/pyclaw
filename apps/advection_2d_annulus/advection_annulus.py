@@ -195,9 +195,15 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     #===========================================================================
     if solver_type == 'classic':
         solver = pyclaw.ClawSolver2D()
+        solver.dimensional_split = 0
+        solver.transverse_waves = 2
+        solver.order = 2
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
 
+    import riemann
+    solver.rp = riemann.rp2_vc_advection
+    solver.num_waves = 1
 
     solver.bc_lower[0] = pyclaw.BC.extrap
     solver.bc_upper[0] = pyclaw.BC.extrap
@@ -210,12 +216,6 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     solver.user_aux_bc_upper = velocities_upper
     solver.aux_bc_lower[1] = pyclaw.BC.periodic
     solver.aux_bc_upper[1] = pyclaw.BC.periodic
-
-    solver.num_waves = 1
-
-    solver.dimensional_split = 0
-    solver.transverse_waves = 2
-    solver.order = 2
 
     solver.dt_initial = 0.1
     solver.cfl_max = 0.5

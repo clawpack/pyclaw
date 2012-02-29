@@ -15,7 +15,7 @@ solution may look something like the :ref:`figure <pyclaw_solution_structure>`.
 
 .. _pyclaw_solution_structure:
 
-.. figure:: images/pyclaw_solution_structure.pdf
+.. figure:: images/pyclaw_solution_structure.png
    :align: center
    
    Pyclaw solution structure including a :class:`~pyclaw.geometry.Domain`,
