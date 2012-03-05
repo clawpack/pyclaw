@@ -92,13 +92,13 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
             dims = patch.dimensions
             if patch.num_dim == 1:
                 for k in xrange(dims[0].num_cells):
-                    for m in xrange(solution.num_eqn):
+                    for m in xrange(state.num_eqn):
                         q_file.write("%18.8e" % q[m,k])
                     q_file.write('\n')
             elif patch.num_dim == 2:
                 for j in xrange(dims[1].num_cells):
                     for k in xrange(dims[0].num_cells):
-                        for m in xrange(solution.num_eqn):
+                        for m in xrange(state.num_eqn):
                             q_file.write("%18.8e" % q[m,k,j])
                         q_file.write('\n')
                     q_file.write('\n')
@@ -106,7 +106,7 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
                 for l in xrange(dims[2].num_cells):
                     for j in xrange(dims[1].num_cells):
                         for k in xrange(dims[0].num_cells):
-                            for m in range(solution.num_eqn):
+                            for m in range(state.num_eqn):
                                 q_file.write("%18.8e" % q[m,k,j,l])
                             q_file.write('\n')
                     q_file.write('\n')
@@ -121,30 +121,31 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
                 aux_file.write("%5i                  AMR_level\n" % patch.level)
                 
                 for dim in patch.dimensions:
-                    aux_file.write("%5i                  m%s\n" % (dim.n,dim.name))
+                    aux_file.write("%5i                  m%s\n" % (dim.num_cells,dim.name))
                 for dim in patch.dimensions:
                     aux_file.write("%18.8e     %slow\n" % (dim.lower,dim.name))
                 for dim in patch.dimensions:
                     aux_file.write("%18.8e     d%s\n" % (dim.delta,dim.name))
 
                 aux_file.write("\n")
+                dims = patch.dimensions
                 if patch.num_dim == 1:
-                    for k in xrange(patch.dimensions[0]):
+                    for k in xrange(dims[0].num_cells):
                         for m in xrange(state.num_aux):
                             aux_file.write("%18.8e" % aux[m,k])
                         aux_file.write('\n')
                 elif patch.num_dim == 2:
-                    for j in xrange(patch.dimensions[1].num_cells):
-                        for k in xrange(patch.dimension[0].num_cells):
+                    for j in xrange(dims[1].num_cells):
+                        for k in xrange(dims[0].num_cells):
                             for m in xrange(state.num_aux):
                                 aux_file.write("%18.8e" % aux[m,k,j])
                             aux_file.write('\n')    
                         aux_file.write('\n')
                 elif patch.num_dim == 3:
-                    for l in xrange(patch.dimensions[2].num_cells):
-                        for j in xrange(patch.dimensions[1].num_cells):
-                            for k in xrange(patch.dimensions[0].num_cells):
-                                for m in xrange(patch.num_aux):
+                    for l in xrange(dims[2].num_cells):
+                        for j in xrange(dims[1].num_cells):
+                            for k in xrange(dims[0].num_cells):
+                                for m in xrange(state.num_aux):
                                     aux_file.write("%18.8e" % aux[m,k,j,l])
                                 aux_file.write('\n')
                             aux_file.write('\n')    
@@ -321,7 +322,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 if not (patch.level == read_data_line(f,type='int')):
                     raise IOError("Patch level in aux file header did not match patch no %s." % patch.patch_index)
                 for dim in patch.dimensions:
-                    if not (dim.n == read_data_line(f,type='int')):
+                    if not (dim.num_cells == read_data_line(f,type='int')):
                         raise IOError("Dimension %s's n in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
                 for dim in patch.dimensions:
                     if not (dim.lower == read_data_line(f,type='float')):
@@ -334,33 +335,33 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
         
                 # Read in auxillary array
                 if patch.num_dim == 1:
-                    for i in xrange(patch.dimensions[0].n):
+                    for i in xrange(patch.dimensions[0].num_cells):
                         l = []
                         while len(l)<state.num_aux:
                             line = f.readline()
                             l = l + line.split()
                         for m in xrange(state.num_aux):
-                            state.aux[i,m] = float(l[m])
+                            state.aux[m,i] = float(l[m])
                 elif patch.num_dim == 2:
-                    for j in xrange(patch.dimensions[1].n):
-                        for i in xrange(patch.dimensions[0].n):
+                    for j in xrange(patch.dimensions[1].num_cells):
+                        for i in xrange(patch.dimensions[0].num_cells):
                             l = []
                             while len(l)<state.num_aux:
                                 line = f.readline()
                                 l = l + line.split()
                             for m in xrange(state.num_aux):
-                                state.aux[i,j,m] = float(l[m])
+                                state.aux[m,i,j] = float(l[m])
                         blank = f.readline()
                 elif patch.num_dim == 3:
-                    for k in xrange(patch.dimensions[2].n):
-                        for j in xrange(patch.dimensions[1].n):
-                            for i in xrange(patch.dimensions[0].n):
+                    for k in xrange(patch.dimensions[2].num_cells):
+                        for j in xrange(patch.dimensions[1].num_cells):
+                            for i in xrange(patch.dimensions[0].num_cells):
                                 l = []
                                 while len(l)<state.num_aux:
                                     line = f.readline()
                                     l = l + line.split()
                                 for m in xrange(state.num_aux):
-                                    state.aux[i,j,k,m] = float(l[m])
+                                    state.aux[m,i,j,k] = float(l[m])
                             blank = f.readline()
                         blank = f.readline()
                 else:
