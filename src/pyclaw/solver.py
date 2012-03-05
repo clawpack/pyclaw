@@ -602,7 +602,7 @@ class Solver(object):
                     raise Exception('dt does not divide (tend-tstart) and dt is fixed!')
         if self.dt_variable == 1 and self.cfl_desired > self.cfl_max:
             raise Exception('Variable time-stepping and desired CFL > maximum CFL')
-        if tend <= tstart:
+        if tend <= tstart and not take_one_step:
             self.logger.info("Already at or beyond end time: no evolution required.")
             self.max_steps = 0
                 
