@@ -184,8 +184,8 @@ class Solver(object):
         self.user_aux_bc_lower = None
         self.user_aux_bc_upper = None
 
-        self.compute_gauge_values = None
-        r"""(function) - Function that computes quantities to be recorded at gaugues"""
+        self.compute_gauge_values = default_compute_gauge_values
+        r"""(function) - Function that computes quantities to be recorded at gauges"""
 
         self.qbc          = None
         r""" Array to hold ghost cell values.  This is the one that gets passed
@@ -689,13 +689,18 @@ class Solver(object):
         r"""Write solution (or derived quantity) values at each gauge coordinate
             to file.
         """
-        for i,gauge in enumerate(solution.state.patch.gauges):
-            x=gauge[0]; y=gauge[1]
-            aux=solution.state.aux[:,x,y]
-            q=solution.state.q[:,x,y]
+        for i,gauge in enumerate(solution.state.grid.gauges):
+            if self.num_dim == 1:
+                ix=gauge[0];
+                aux=solution.state.aux[:,ix]
+                q=solution.state.q[:,ix]
+            elif self.num_dim == 2:
+                ix=gauge[0]; iy=gauge[1]
+                aux=solution.state.aux[:,ix,iy]
+                q=solution.state.q[:,ix,iy]
             p=self.compute_gauge_values(q,aux)
             t=solution.t
-            solution.state.patch.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
+            solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
 
 
 if __name__ == "__main__":
