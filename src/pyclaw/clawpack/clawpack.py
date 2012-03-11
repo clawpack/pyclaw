@@ -221,6 +221,8 @@ class ClawSolver(Solver):
 
         self.allocate_bc_arrays(solution.states[0])
 
+        self._is_set_up = True
+
 
     def set_fortran_parameters(self,solution):
         r"""
