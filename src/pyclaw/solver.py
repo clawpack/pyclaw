@@ -146,6 +146,7 @@ class Solver(object):
         self.auxbc = None
         self.rp = None
         self.fmod = None
+        self._is_set_up = False
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
@@ -577,6 +578,9 @@ class Solver(object):
         :Output:
          - (dict) - Returns the status dictionary of the solver
         """
+
+        if not self._is_set_up:
+            self.setup(solution)
         
         if tend == None:
             take_one_step = True
