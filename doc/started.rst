@@ -106,7 +106,7 @@ produces the appropriate environment variables for PyClaw (and the other
 Clawpack projects).  To run the script, go into your base directory you 
 created above and run ::
 
-    $ python clawutil/src/python/setenv.py
+    $ python clawutil/src/python/clawutil/setenv.py
     
 This script should produce two files that contain the shell script for setting
 the above variables.  By default these files are called ``setenv.bash`` and 
