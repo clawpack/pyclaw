@@ -107,7 +107,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
         patch = state.patch
         if rank==0:
             pickle.dump({'level':patch.level,
-                         'names':patch.name,'lower':patch.lower,
+                         'names':patch.name,'lower':patch.lower_global,
                          'num_cells':patch.num_cells_global,'delta':patch.delta}, pickle_file)
 #       we will reenable this bad boy when we switch over to petsc-dev
 #        state.q_da.view(viewer)

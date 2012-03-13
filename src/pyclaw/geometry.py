@@ -93,14 +93,6 @@ class Grid(object):
         r"""(list) - List of the number of cells in each dimension"""
         return self.get_dim_attribute('num_cells')
     @property
-    def nend(self):
-        r"""(list) - List of the number of cells in each dimension"""
-        return self.get_dim_attribute('nend')
-    @property
-    def name(self):
-        r"""(list) - List of names of each dimension"""
-        return self._dimensions
-    @property
     def lower(self):
         r"""(list) - Lower coordinate extents of each dimension"""
         return self.get_dim_attribute('lower')
@@ -499,7 +491,7 @@ class Dimension(object):
 # ============================================================================
 #  Pyclaw Patch object definition
 # ============================================================================
-class Patch(Grid):
+class Patch(object):
     """
     :Global Patch information:
     
@@ -518,83 +510,64 @@ class Patch(Grid):
     def upper_global(self):
         r"""(list) - Upper coordinate extends of each dimension"""
         return self.get_dim_attribute('upper')
-
-    # Local properties
-    #@property
-    #def dimensions(self):
-    #    r"""(list) - :attr:`Patch.dimensions` of base patch"""
-    #    return self._get_grid_attribute('dimensions')
     @property
-    def num_cells(self):
-        r"""(list) - :attr:`Patch.num_cells` of base domain.patch"""
-        return self._get_grid_attribute('num_cells')
+    def num_dim(self):
+        r"""(int) - Number of dimensions"""
+        return len(self._dimensions)
     @property
-    def lower(self):
-        r"""(list) - :attr:`Patch.lower` of base patch"""
-        return self._get_grid_attribute('lower')
-    @property
-    def upper(self):
-        r"""(list) - :attr:`Patch.upper` of base patch"""
-        return self._get_grid_attribute('upper')
+    def dimensions(self):
+        r"""(list) - List of :class:`Dimension` objects defining the 
+                grid's extent and resolution"""
+        return [getattr(self,name) for name in self._dimensions]
     @property
     def delta(self):
-        r"""(list) - :attr:`Patch.delta` of base patch"""
-        return self._get_grid_attribute('delta')
+        r"""(list) - List of computational cell widths"""
+        return self.get_dim_attribute('delta')
     @property
-    def centers(self):
-        r"""(list) - :attr:`Patch.centers` of base patch"""
-        return self._get_grid_attribute('centers')
-    @property
-    def edges(self):
-        r"""(list) - :attr:`Patch.edges` of base patch"""
-        return self._get_grid_attribute('edges')
-    @property
-    def p_centers(self):
-        r"""(list) - :attr:`Patch.p_centers` of base patch"""
-        return self._get_grid_attribute('p_centers')
-    @property
-    def p_edges(self):
-        r"""(list) - :attr:`Patch.p_edges` of base patch"""
-        return self._get_grid_attribute('p_edges')
-    @property
-    def c_centers(self):
-        r"""(list) - :attr:`Patch.c_centers` of base patch"""
-        return self._get_grid_attribute('c_centers')
-    @property
-    def c_edges(self):
-        r"""(list) - :attr:`Patch.c_edges` of base patch"""
-        return self._get_grid_attribute('c_edges')
+    def name(self):
+        r"""(list) - List of names of each dimension"""
+        return self._dimensions
 
- 
     def __init__(self,dimensions):
         self.level = 1
         r"""(int) - AMR level this patch belongs to, ``default = 1``"""
         self.patch_index = 1
         r"""(int) - Patch number of current patch, ``default = 0``"""
 
+        if isinstance(dimensions,Dimension):
+            dimensions = [dimensions]
+        self._dimensions = []
+        for dim in dimensions:
+            self.add_dimension(dim)
+
         self.grid = Grid(dimensions)
 
-        super(Patch,self).__init__(dimensions)
+        super(Patch,self).__init__()
 
-    def _get_grid_attribute(self, name):
+    def add_dimension(self,dimension):
         r"""
-        Return grid attribute name
+        Add the specified dimension to this patch
         
-        :Output:
-         - (id) - Value of attribute from ``self.grid``
+        :Input:
+         - *dimension* - (:class:`Dimension`) Dimension to be added
         """
-        return getattr(self.grid,name)
- 
+
+        # Add dimension to name list and as an attribute
+        self._dimensions.append(dimension.name)
+        setattr(self,dimension.name,dimension)
+  
+    def get_dim_attribute(self,attr):
+        r"""
+        Returns a tuple of all dimensions' attribute attr
+        """
+        return [getattr(getattr(self,name),attr) for name in self._dimensions]
     def __deepcopy__(self,memo={}):
         import copy
         result = self.__class__(copy.deepcopy(self.dimensions))
         result.__init__(copy.deepcopy(self.dimensions))
         
-        for attr in ('level','patch_index','_p_centers','_p_edges',
-                        '_c_centers','_c_edges'):
+        for attr in ('level','patch_index'):
             setattr(result,attr,copy.deepcopy(getattr(self,attr)))
-        
-        result.mapc2p = self.mapc2p
         
         return result
         
@@ -613,21 +586,9 @@ class Domain(object):
     Need to add functionality to accept a list of patches as input.
     """
     @property
-    def dimensions(self):
-        r"""(list) - :attr:`Patch.dimensions` of base patch"""
-        return self._get_base_patch_attribute('dimensions')
-    @property
-    def name(self):
-        r"""(list) - :attr:`Patch.name` of base patch"""
-        return self._get_base_patch_attribute('name')
-    @property
     def num_dim(self):
         r"""(int) - :attr:`Patch.num_dim` of base patch"""
         return self._get_base_patch_attribute('num_dim')
-    @property
-    def num_cells(self):
-        r"""(list) - :attr:`Patch.num_cells` of base domain.patch"""
-        return self._get_base_patch_attribute('num_cells')
     @property
     def patch(self):
         r"""(:class:`Patch`) - First patch is returned"""
@@ -636,46 +597,6 @@ class Domain(object):
     def grid(self):
         r"""(list) - :attr:`Patch.grid` of base patch"""
         return self._get_base_patch_attribute('grid')
-    @property
-    def lower(self):
-        r"""(list) - :attr:`Patch.lower` of base patch"""
-        return self._get_base_patch_attribute('lower')
-    @property
-    def upper(self):
-        r"""(list) - :attr:`Patch.upper` of base patch"""
-        return self._get_base_patch_attribute('upper')
-    @property
-    def delta(self):
-        r"""(list) - :attr:`Patch.delta` of base patch"""
-        return self._get_base_patch_attribute('delta')
-    @property
-    def units(self):
-        r"""(list) - :attr:`Patch.units` of base patch"""
-        return self._get_base_patch_attribute('units')
-    @property
-    def centers(self):
-        r"""(list) - :attr:`Patch.centers` of base patch"""
-        return self._get_base_patch_attribute('centers')
-    @property
-    def edges(self):
-        r"""(list) - :attr:`Patch.edges` of base patch"""
-        return self._get_base_patch_attribute('edges')
-    @property
-    def p_centers(self):
-        r"""(list) - :attr:`Patch.p_centers` of base patch"""
-        return self._get_base_patch_attribute('p_centers')
-    @property
-    def p_edges(self):
-        r"""(list) - :attr:`Patch.p_edges` of base patch"""
-        return self._get_base_patch_attribute('p_edges')
-    @property
-    def c_centers(self):
-        r"""(list) - :attr:`Patch.c_centers` of base patch"""
-        return self._get_base_patch_attribute('c_centers')
-    @property
-    def c_edges(self):
-        r"""(list) - :attr:`Patch.c_edges` of base patch"""
-        return self._get_base_patch_attribute('c_edges')
  
     def __init__(self,geom):
         if not isinstance(geom,list) and not isinstance(geom,tuple):

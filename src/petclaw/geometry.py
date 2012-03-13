@@ -15,14 +15,13 @@ class Patch(pyclaw.geometry.Patch):
         ranges = self._da.getRanges()
         grid_dimensions = []
         for i,nrange in enumerate(ranges):
-            lower = self.lower[i] + nrange[0]*self.delta[i]
-            upper = self.lower[i] + nrange[1]*self.delta[i]
+            lower = self.lower_global[i] + nrange[0]*self.delta[i]
+            upper = self.lower_global[i] + nrange[1]*self.delta[i]
             num_cells   = nrange[1]-nrange[0]
             grid_dimensions.append(pyclaw.geometry.Dimension(lower,upper,
                                         num_cells,name=dimensions[i].name))
 
         self.grid = pyclaw.geometry.Grid(grid_dimensions)
-        #print self.grid.upper
 
 
     def _create_DA(self):
