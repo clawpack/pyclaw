@@ -81,7 +81,7 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
     else:
         q0=claw.frames[0].state.q.reshape([-1])
         qfinal=claw.frames[claw.num_output_times].state.q.reshape([-1])
-    dx=claw.solution.domain.delta[0]
+    dx=claw.solution.domain.grid.delta[0]
 
     return dx*np.sum(np.abs(qfinal-q0))
 
