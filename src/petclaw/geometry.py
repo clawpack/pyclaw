@@ -22,6 +22,7 @@ class Patch(pyclaw.geometry.Patch):
                                         num_cells,name=dimensions[i].name))
 
         self.grid = pyclaw.geometry.Grid(grid_dimensions)
+        #print self.grid.upper
 
 
     def _create_DA(self):
@@ -42,14 +43,14 @@ class Patch(pyclaw.geometry.Patch):
 
             DA = PETSc.DA().create(dim=self.num_dim,
                                           dof=1,
-                                          sizes=self.num_cells,
+                                          sizes=self.num_cells_global,
                                           periodic_type = periodic_type,
                                           stencil_width=0,
                                           comm=PETSc.COMM_WORLD)
         else:
             DA = PETSc.DA().create(dim=self.num_dim,
                                           dof=1,
-                                          sizes=self.num_cells,
+                                          sizes=self.num_cells_global,
                                           boundary_type = PETSc.DA.BoundaryType.PERIODIC,
                                           stencil_width=0,
                                           comm=PETSc.COMM_WORLD)

@@ -505,7 +505,67 @@ class Patch(Grid):
     
         Each patch has a value for :attr:`level` and :attr:`patch_index`.
     """
+    # Global properties
+    @property
+    def num_cells_global(self): 
+        r"""(list) - List of the number of cells in each dimension"""
+        return self.get_dim_attribute('num_cells')
+    @property
+    def lower_global(self):
+        r"""(list) - Lower coordinate extents of each dimension"""
+        return self.get_dim_attribute('lower')
+    @property
+    def upper_global(self):
+        r"""(list) - Upper coordinate extends of each dimension"""
+        return self.get_dim_attribute('upper')
 
+    # Local properties
+    #@property
+    #def dimensions(self):
+    #    r"""(list) - :attr:`Patch.dimensions` of base patch"""
+    #    return self._get_grid_attribute('dimensions')
+    @property
+    def num_cells(self):
+        r"""(list) - :attr:`Patch.num_cells` of base domain.patch"""
+        return self._get_grid_attribute('num_cells')
+    @property
+    def lower(self):
+        r"""(list) - :attr:`Patch.lower` of base patch"""
+        return self._get_grid_attribute('lower')
+    @property
+    def upper(self):
+        r"""(list) - :attr:`Patch.upper` of base patch"""
+        return self._get_grid_attribute('upper')
+    @property
+    def delta(self):
+        r"""(list) - :attr:`Patch.delta` of base patch"""
+        return self._get_grid_attribute('delta')
+    @property
+    def centers(self):
+        r"""(list) - :attr:`Patch.centers` of base patch"""
+        return self._get_grid_attribute('centers')
+    @property
+    def edges(self):
+        r"""(list) - :attr:`Patch.edges` of base patch"""
+        return self._get_grid_attribute('edges')
+    @property
+    def p_centers(self):
+        r"""(list) - :attr:`Patch.p_centers` of base patch"""
+        return self._get_grid_attribute('p_centers')
+    @property
+    def p_edges(self):
+        r"""(list) - :attr:`Patch.p_edges` of base patch"""
+        return self._get_grid_attribute('p_edges')
+    @property
+    def c_centers(self):
+        r"""(list) - :attr:`Patch.c_centers` of base patch"""
+        return self._get_grid_attribute('c_centers')
+    @property
+    def c_edges(self):
+        r"""(list) - :attr:`Patch.c_edges` of base patch"""
+        return self._get_grid_attribute('c_edges')
+
+ 
     def __init__(self,dimensions):
         self.level = 1
         r"""(int) - AMR level this patch belongs to, ``default = 1``"""
@@ -516,7 +576,15 @@ class Patch(Grid):
 
         super(Patch,self).__init__(dimensions)
 
-
+    def _get_grid_attribute(self, name):
+        r"""
+        Return grid attribute name
+        
+        :Output:
+         - (id) - Value of attribute from ``self.grid``
+        """
+        return getattr(self.grid,name)
+ 
     def __deepcopy__(self,memo={}):
         import copy
         result = self.__class__(copy.deepcopy(self.dimensions))
