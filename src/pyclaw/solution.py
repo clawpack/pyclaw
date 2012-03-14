@@ -186,7 +186,6 @@ class Solution(object):
         if len(arg) == 1:
             # Load frame
             frame = arg[0]
-            print kargs
             self.read(frame,**kargs)
         elif len(arg) == 2:
             #Set domain
