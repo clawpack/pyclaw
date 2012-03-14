@@ -445,8 +445,8 @@ def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
     domain = pyclaw.Domain([x,y])
-    dx = domain.delta[0]
-    dy = domain.delta[1]
+    dx = domain.grid.delta[0]
+    dy = domain.grid.delta[1]
 
     # Define some parameters used in Fortran common blocks 
     solver.fmod.comxyt.dxcom = dx

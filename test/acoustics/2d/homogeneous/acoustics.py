@@ -66,7 +66,7 @@ def acoustics2D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=F
     qinit(state)
     initial_solution = pyclaw.Solution(state,domain)
 
-    solver.dt_initial=np.min(domain.delta)/state.problem_data['cc']*solver.cfl_desired
+    solver.dt_initial=np.min(domain.grid.delta)/state.problem_data['cc']*solver.cfl_desired
 
     claw = pyclaw.Controller()
     claw.keep_copy = True

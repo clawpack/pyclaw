@@ -203,14 +203,14 @@ class State(pyclaw.state.State):
 
             DA = PETSc.DA().create(dim=self.num_dim,
                                           dof=dof,
-                                          sizes=self.patch.num_cells,
+                                          sizes=self.patch.num_cells_global,
                                           periodic_type = periodic_type,
                                           stencil_width=num_ghost,
                                           comm=PETSc.COMM_WORLD)
         else:
             DA = PETSc.DA().create(dim=self.num_dim,
                                           dof=dof,
-                                          sizes=self.patch.num_cells,
+                                          sizes=self.patch.num_cells_global,
                                           boundary_type = PETSc.DA.BoundaryType.PERIODIC,
                                           stencil_width=num_ghost,
                                           comm=PETSc.COMM_WORLD)
