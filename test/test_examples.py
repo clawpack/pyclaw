@@ -250,7 +250,7 @@ def test_2D_acoustics_1a():
         import numpy
         verify_x=numpy.loadtxt('test/acoustics2D_solution')
         diff = numpy.linalg.norm(test_x-verify_x)
-        if diff>1.e-14:
+        if diff>1.e-12:
             raise Exception('Difference between expected and computed solutions: %s' % diff)
         else: return True
 
@@ -323,7 +323,7 @@ def test_2D_acoustics_1b():
     def verify_acoustics2D(test_x):
         import numpy
         verify_x=numpy.loadtxt('test/acoustics2D_solution')
-        return (numpy.linalg.norm(test_x-verify_x)<1.e-14)
+        return (numpy.linalg.norm(test_x-verify_x)<1.e-12)
 
     method_options = {'use_petsc' : False, 'solver_type' : 'classic' }
     yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verify_acoustics2D, method_options)

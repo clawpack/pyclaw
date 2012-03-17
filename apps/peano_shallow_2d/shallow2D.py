@@ -14,8 +14,8 @@ from petclaw import plot
 
 
 def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
-    x0=0.
-    y0=0.
+    x0=0.5
+    y0=0.5
     xCenter = state.grid.x.centers
     yCenter = state.grid.y.centers
     Y,X = np.meshgrid(yCenter,xCenter)
@@ -40,22 +40,26 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     #===========================================================================
     # Setup solver and solver parameters
     #===========================================================================
-    subdivisionFactor = 4.
+    subdivisionFactor = 8
     if solver_type == 'classic':
         solver = pyclaw.ClawSolver2D()
+        solver.limiters = pyclaw.limiters.tvd.MC
+        solver.dimensional_split=1
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
-    peanoSolver = PeanoSolver(solver, (1./3.)/subdivisionFactor)
+    peanoSolver = PeanoSolver(solver, (1./9.)/subdivisionFactor)
+    
+    solver.dt_initial = 0.01
 
+    import riemann
+    solver.rp = riemann.rp2_shallow_roe_with_efix
     solver.num_waves = 3
-    solver.limiters = pyclaw.limiters.tvd.MC
 
     solver.bc_lower[0] = pyclaw.BC.wall
     solver.bc_upper[0] = pyclaw.BC.wall
     solver.bc_lower[1] = pyclaw.BC.wall
     solver.bc_upper[1] = pyclaw.BC.wall
-    solver.dimensional_split=1
-
+    
     #===========================================================================
     # Initialize domain and state, then initialize the solution associated to the 
     # state and finally initialize aux array
@@ -81,7 +85,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     # Initial solution
     # ================
     # Riemann states of the dam break problem
-    damRadius = 0.5
+    damRadius = 0.2
     hl = 2.
     ul = 0.
     vl = 0.
@@ -95,11 +99,11 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     # Set up controller and controller parameters
     #===========================================================================
     claw = pyclaw.Controller()
-    claw.tfinal = 2.5
+    claw.tfinal = 0.5
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = peanoSolver
     claw.outdir = outdir
-    claw.num_output_times = 100
+    claw.num_output_times = 1
 
     #===========================================================================
     # Solve the problem
