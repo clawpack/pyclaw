@@ -85,7 +85,8 @@ class Gallery(object):
         gfile.write(".. _gallery:\n\n")
         gfile.write("==========================\n")
         gfile.write("Application gallery\n")
-        gfile.write("==========================\n\n")
+        gfile.write("==========================\n")
+        gfile.write(".. contents::\n\n")
 
         gfile.write("%s\n" % self.title)
         gfile.write("="*len(self.title)+"\n\n")
@@ -101,12 +102,12 @@ class Gallery(object):
                 code = os.path.join(claw_html_root, gitem.appdir)
                 plotindex = os.path.join(claw_html_root, gitem.appdir, \
                                gitem.plotdir, '_PlotIndex.html')
-                gfile.write('$PYCLAW/%s ... \n`README <%sREADME.rst>`__ ... \n`Plots <%s>`__\n' \
-                      % (gitem.appdir,code,plotindex))
+                gfile.write('$PYCLAW/%s ... \n`README <%s/README.html>`__ ... \n`Plots <%s>`__\n' \
+                      % (gitem.appdir,gitem.appdir,plotindex))
 
                 if not os.path.exists('./'+gitem.appdir):
                     os.makedirs ('./'+gitem.appdir)
-                os.system('cp %sREADME.rst %s' % ('$PYCLAW/'+gitem.appdir, './'+gitem.appdir))
+                os.system('cp %s/README.rst %s' % ('$PYCLAW/'+gitem.appdir, './'+gitem.appdir))
                 gfile.write('\n\n')
 
                 for image in gitem.images:
