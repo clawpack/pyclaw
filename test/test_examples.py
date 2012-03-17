@@ -528,4 +528,6 @@ def test_3D_acoustics_heterogeneous():
 
     yield(util.build_run_verify, build_path, build_target, module_path, module_name, problem_name, verify_3D_het_acoustics, method_options)
 
-
+@attr(petsc=False)
+def test_2D_peanoclaw():
+    
