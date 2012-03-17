@@ -164,6 +164,23 @@ class Solution(object):
         
         See :class:`Solution` for more info.
         """
+        import sys
+        if 'claw_package' in kargs.keys():
+            claw_package = kargs['claw_package']
+        else:
+            claw_package = None
+
+        if claw_package is not None and claw_package in sys.modules:
+            self.claw_package = sys.modules[claw_package]
+        else:
+            claw_package_name = self.__module__[0:self.__module__.find('.')]
+            if claw_package_name in sys.modules:
+                self.claw_package = sys.modules[claw_package_name]
+            else:
+                raise NotImplementedError("Unable to determine solver package, please provide one")
+
+        State = self.claw_package.State
+
         self.states = []
         self.domain = None
         if len(arg) == 1:

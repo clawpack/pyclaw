@@ -93,9 +93,6 @@ class ClawSolver(Solver):
         self._mthlim = self.limiters
         self._method = None
 
-        so_name = 'pyclaw.clawpack.classic'+str(self.num_dim)
-        self.fmod = __import__(so_name,fromlist=['pyclaw.clawpack'])
-
         # Call general initialization function
         super(ClawSolver,self).__init__(claw_package)
     
@@ -214,12 +211,17 @@ class ClawSolver(Solver):
 
         self.set_mthlim()
         if(self.kernel_language == 'Fortran'):
+            if self.fmod is None:
+                so_name = 'pyclaw.clawpack.classic'+str(self.num_dim)
+                self.fmod = __import__(so_name,fromlist=['pyclaw.clawpack'])
             self.set_fortran_parameters(solution)
             self.allocate_workspace(solution)
         elif self.num_dim>1:
             raise Exception('Only Fortran kernels are supported in multi-D.')
 
         self.allocate_bc_arrays(solution.states[0])
+
+        self._is_set_up = True
 
 
     def set_fortran_parameters(self,solution):
@@ -505,8 +507,7 @@ class ClawSolver2D(ClawSolver):
             maxm = max(mx,my)
             
             self.apply_q_bcs(state)
-            qnew = self.qbc
-            qold = qnew.copy('F')
+            qold = self.qbc.copy('F')
             
             rpn2 = self.rp.rpn2._cpointer
             rpt2 = self.rp.rpt2._cpointer
@@ -515,20 +516,20 @@ class ClawSolver2D(ClawSolver):
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
-                q, cfl_x = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
+                self.qbc, cfl_x = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
+                      qold,self.qbc,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1,self.fwave,rpn2,rpt2)
 
-                q, cfl_y = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
-                      q,q,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
+                self.qbc, cfl_y = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
+                      self.qbc,self.qbc,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,2,self.fwave,rpn2,rpt2)
 
                 cfl = max(cfl_x,cfl_y)
 
             else:
 
-                q, cfl = self.fmod.step2(maxm,self.num_ghost,mx,my, \
-                      qold,qnew,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
+                self.qbc, cfl = self.fmod.step2(maxm,self.num_ghost,mx,my, \
+                      qold,self.qbc,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,self.fwave,rpn2,rpt2)
 
             self.cfl.update_global_max(cfl)

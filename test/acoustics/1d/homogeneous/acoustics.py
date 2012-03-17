@@ -20,9 +20,6 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
         solver.weno_order = weno_order
     else: raise Exception('Unrecognized value of solver_type.')
 
-    import riemann
-    solver.rp = riemann.rp1_acoustics
-
     # Initialize patches and solution
     x = pyclaw.Dimension('x',0.0,1.0,100)
     domain = pyclaw.Domain(x)
@@ -51,6 +48,10 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
     if kernel_language=='Python': 
         from riemann import rp_acoustics
         solver.rp = rp_acoustics.rp_acoustics_1d
+    elif kernel_language=='Fortran':
+        import riemann
+        solver.rp = riemann.rp1_acoustics
+
 
     solver.limiters = [4]*solver.num_waves
     solver.dt_initial=grid.delta[0]/state.problem_data['cc']*0.1
@@ -80,7 +81,7 @@ def acoustics(use_petsc=True,kernel_language='Fortran',solver_type='classic',ipl
     else:
         q0=claw.frames[0].state.q.reshape([-1])
         qfinal=claw.frames[claw.num_output_times].state.q.reshape([-1])
-    dx=claw.solution.domain.delta[0]
+    dx=claw.solution.domain.grid.delta[0]
 
     return dx*np.sum(np.abs(qfinal-q0))
 

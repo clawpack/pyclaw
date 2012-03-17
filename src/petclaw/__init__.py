@@ -17,7 +17,7 @@ __all__.extend(['Controller','Dimension','Patch','Domain','Solution','State','CF
 from petclaw.controller import Controller
 from petclaw.geometry import Patch, Domain 
 from pyclaw.geometry import Dimension
-from pyclaw.solution import Solution
+from petclaw.solution import Solution
 from petclaw.state import State
 from petclaw.cfl import CFL
 

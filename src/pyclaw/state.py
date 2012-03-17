@@ -119,7 +119,7 @@ class State(object):
 
     def __str__(self):
         output = "PyClaw State object\n"
-        output += "Patch dimensions: %s\n" % str(self.patch.num_cells)
+        output += "Patch dimensions: %s\n" % str(self.patch.num_cells_global)
         output += "Time  t=%s\n" % (self.t)
         output += "Number of conserved quantities: %s\n" % str(self.q.shape[0])
         if self.aux is not None:
@@ -244,7 +244,7 @@ class State(object):
     def new_array(self,dof):
         if dof==0: return None
         shape = [dof]
-        shape.extend(self.patch.num_cells)
+        shape.extend(self.grid.num_cells)
         return np.empty(shape,order='F')
 
 
