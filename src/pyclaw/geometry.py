@@ -187,7 +187,7 @@ class Grid(object):
     
     
     def __str__(self):
-	output = ''
+        output = ''
         output += '\n'.join((str(getattr(self,dim)) for dim in self._dimensions))
         return output
     
