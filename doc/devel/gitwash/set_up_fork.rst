@@ -64,5 +64,12 @@ Just for your own satisfaction, show yourself that you now have a new
    origin	git@github.com:your-user-name/pyclaw.git (fetch)
    origin	git@github.com:your-user-name/pyclaw.git (push)
 
-.. include:: links.inc
 
+Set up a local tracking branch
+------------------------------
+You can easily set up a local tracking of an upstream repo branch by doing::
+    
+    git checkout -t origin/name-of-the-branch-to-track
+
+
+.. include:: links.inc
