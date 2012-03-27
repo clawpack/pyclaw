@@ -1,11 +1,12 @@
 ======================================
 Developing and documenting PyClaw
 ======================================
-In order to improve and maintain PyClaw and allow more developers or simply
-users to acces and use it all Python/Fortran code should follow some
+In order to improve and maintain PyClaw and allow more developers or simply 
+users to acces and use it all Python/Fortran code should follow some 
 conventions. As stressed in many books, reports, notes, etc. (see for instance
-`Wikipedia <http://en.wikipedia.org/wiki/Coding_conventions>`_) code
-conventions are important to programmers for a number of reasons:
+`Wikipedia <http://en.wikipedia.org/wiki/Coding_conventions>`_) code conventions
+are important to programmers for a number of reasons:
+
     * A big part of the lifetime cost of a piece of software goes to maintenance
     * Rarely is software maintained for its whole life by the original authors
     * Code conventions improve the readability of the software, allowing new developers and users to understand new code more quickly and thoroughly (efficiency increases!)
@@ -19,6 +20,7 @@ communities.
 
 Most of the proposed rules listed here have been extracted from the
 documentation available at following links:
+    
     * `pep-0008 <http://www.python.org/dev/peps/pep-0008/>`_
     * `pep-0257 <http://www.python.org/dev/peps/pep-0257/>`_
     * `numpy <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_
@@ -175,6 +177,7 @@ Order of the test cases instruction
 It would be useful to follow also some rules when preparing the Python script
 of a new test case. Listing  phases and instructions in a logical order could
 improve the readability of the set-up. One idea could be:
+
     * Import libraries needed by all the functions
     * Define the functions use by the main program, e.g. qinit, setaux, etc.
       Here the conventions introduce previously for the docstrings should be used
