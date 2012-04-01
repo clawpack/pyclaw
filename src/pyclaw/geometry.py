@@ -583,7 +583,16 @@ class Domain(object):
     r"""
     A Domain is a list of Patches.
     
-    Need to add functionality to accept a list of patches as input.
+    A Domain may be initialized in the following ways:
+
+        1. Using 3 arguments, which are in order
+            - A list of the lower boundaries in each dimension
+            - A list of the upper boundaries in each dimension
+            - A list of the number of cells to be used in each dimension
+
+        2. Using a single argument, which is
+            - A list of dimensions; or
+            - A list of patches.
     """
     @property
     def num_dim(self):
@@ -598,13 +607,23 @@ class Domain(object):
         r"""(list) - :attr:`Patch.grid` of base patch"""
         return self._get_base_patch_attribute('grid')
  
-    def __init__(self,geom):
-        if not isinstance(geom,list) and not isinstance(geom,tuple):
-            geom = [geom]
-        if isinstance(geom[0],Patch):
-            self.patches = geom
-        elif isinstance(geom[0],Dimension):
-            self.patches = [Patch(geom)]
+    def __init__(self,*arg):
+        if len(arg)>1:
+            lower = arg[0]
+            upper = arg[1]
+            n     = arg[2]
+            dims = []
+            for low,up,nn in zip(lower,upper,n):
+                dims.append(Dimension(low,up,nn))
+            self.patches = [Patch(dims)]
+        else:
+            geom = arg[0]
+            if not isinstance(geom,list) and not isinstance(geom,tuple):
+                geom = [geom]
+            if isinstance(geom[0],Patch):
+                self.patches = geom
+            elif isinstance(geom[0],Dimension):
+                self.patches = [Patch(geom)]
 
     def _get_base_patch_attribute(self, name):
         r"""

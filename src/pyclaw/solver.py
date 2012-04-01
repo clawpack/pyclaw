@@ -125,6 +125,16 @@ class Solver(object):
             raise TypeError("%s has no attribute %s" % (self.__class__,key))
         object.__setattr__(self,key,value)
 
+    @property
+    def all_bcs(self):
+        return self.bc_lower, self.bc_upper
+    @all_bcs.setter
+    def all_bcs(self,all_bcs):
+        for i in range(self.num_dim):
+            self.bc_lower[i] = all_bcs
+            self.bc_upper[i] = all_bcs
+
+
     #  ======================================================================
     #   Initialization routines
     #  ======================================================================
