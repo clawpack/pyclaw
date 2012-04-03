@@ -125,10 +125,20 @@ class Solver(object):
             raise TypeError("%s has no attribute %s" % (self.__class__,key))
         object.__setattr__(self,key,value)
 
+    @property
+    def all_bcs(self):
+        return self.bc_lower, self.bc_upper
+    @all_bcs.setter
+    def all_bcs(self,all_bcs):
+        for i in range(self.num_dim):
+            self.bc_lower[i] = all_bcs
+            self.bc_upper[i] = all_bcs
+
+
     #  ======================================================================
     #   Initialization routines
     #  ======================================================================
-    def __init__(self,claw_package=None):
+    def __init__(self,riemann_solver=None,claw_package=None):
         r"""
         Initialize a Solver object
         
@@ -191,6 +201,13 @@ class Solver(object):
         self.qbc          = None
         r""" Array to hold ghost cell values.  This is the one that gets passed
         to the Fortran code.  """
+
+        if riemann_solver is not None:
+            self.rp = riemann_solver
+            rp_name = riemann_solver.__name__.split('.')[-1]
+            import riemann
+            self.num_eqn = riemann.static.num_eqn[rp_name]
+            self.num_waves = riemann.static.num_waves[rp_name]
 
         self._isinitialized = True
 

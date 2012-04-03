@@ -75,7 +75,7 @@ class ClawSolver(Solver):
      - (:class:`ClawSolver`) - Initialized clawpack solver
     """
     # ========== Generic Init Routine ========================================
-    def __init__(self,claw_package=None):
+    def __init__(self,riemann_solver=None,claw_package=None):
         r"""
         See :class:`ClawSolver` for full documentation.
         """
@@ -94,7 +94,7 @@ class ClawSolver(Solver):
         self._method = None
 
         # Call general initialization function
-        super(ClawSolver,self).__init__(claw_package)
+        super(ClawSolver,self).__init__(riemann_solver,claw_package)
     
     # ========== Time stepping routines ======================================
     def step(self,solution):
@@ -264,7 +264,7 @@ class ClawSolver1D(ClawSolver):
      - (:class:`ClawSolver1D`) - Initialized 1d clawpack solver
     """
 
-    def __init__(self):
+    def __init__(self,riemann_solver=None):
         r"""
         Create 1d Clawpack solver
         
@@ -272,7 +272,7 @@ class ClawSolver1D(ClawSolver):
         """   
         self.num_dim = 1
 
-        super(ClawSolver1D,self).__init__()
+        super(ClawSolver1D,self).__init__(riemann_solver)
 
 
     # ========== Homogeneous Step =====================================
@@ -429,7 +429,7 @@ class ClawSolver2D(ClawSolver):
     trans_inc = 1
     trans_cor = 2
 
-    def __init__(self):
+    def __init__(self,riemann_solver=None):
         r"""
         Create 2d Clawpack solver
         
@@ -445,7 +445,7 @@ class ClawSolver2D(ClawSolver):
         self.aux3 = None
         self.work = None
 
-        super(ClawSolver2D,self).__init__()
+        super(ClawSolver2D,self).__init__(riemann_solver)
 
     def check_cfl_settings(self):
         if (not self.dimensional_split) and (self.transverse_waves==0):
@@ -583,7 +583,7 @@ class ClawSolver3D(ClawSolver):
     trans_inc = 11
     trans_cor = 22
 
-    def __init__(self):
+    def __init__(self,riemann_solver=None):
         r"""
         Create 3d Clawpack solver
         
@@ -600,7 +600,7 @@ class ClawSolver3D(ClawSolver):
         self.aux3 = None
         self.work = None
 
-        super(ClawSolver3D,self).__init__()
+        super(ClawSolver3D,self).__init__(riemann_solver)
 
     # ========== Setup routine =============================   
     def allocate_workspace(self,solution):
