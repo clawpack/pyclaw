@@ -162,6 +162,7 @@ def setup_package():
             license = 'BSD',
             classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
             platforms = ["Linux", "Solaris", "Mac OS-X", "Unix"],
+            package_dir={'':'src'},
             configuration=configuration )
     finally:
         del sys.path[0]
