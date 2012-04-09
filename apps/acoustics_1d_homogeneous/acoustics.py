@@ -38,6 +38,7 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
         solver.rp = rp1_acoustics
 
     solver.limiters = pyclaw.limiters.tvd.MC
+
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
 
@@ -68,7 +69,9 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     beta=100; gamma=0; x0=0.75
     state.q[0,:] = exp(-beta * (xc-x0)**2) * cos(gamma * (xc - x0))
     state.q[1,:] = 0.
-    
+
+    solver.dt_initial=domain.grid.delta[0]/state.problem_data['cc']*0.1
+
     #========================================================================
     # Set up the controller object
     #========================================================================
@@ -76,6 +79,9 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
+    claw.keep_copy = True
+    claw.num_output_times = 5
+
     claw.tfinal = 1.0
 
     # Solve
@@ -85,6 +91,33 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
+    return claw
+
 if __name__=="__main__":
     from pyclaw.util import run_app_from_main
     output = run_app_from_main(acoustics)
+
+def test_1d_acoustics():
+
+    from pyclaw.util import test_app_variants
+    from pyclaw.util import check_diff
+    import numpy as np
+
+    def verify_classic(claw):
+        q0=claw.frames[0].state.q.reshape([-1])
+        qfinal=claw.frames[claw.num_output_times].state.q.reshape([-1])
+        dx=claw.solution.domain.grid.delta[0]
+        test = dx*np.sum(np.abs(qfinal-q0))
+        expected = 0.00104856594174
+        return check_diff(test, expected, abstol=1e-5)
+
+    def verify_sharpclaw(claw):
+        q0=claw.frames[0].state.q.reshape([-1])
+        qfinal=claw.frames[claw.num_output_times].state.q.reshape([-1])
+        dx=claw.solution.domain.grid.delta[0]
+        test = dx*np.sum(np.abs(qfinal-q0))
+        expected = 0.000298879563857
+        return check_diff(test, expected, abstol=1e-5)
+
+    test_app_variants(acoustics, verify_classic, python_kernel=True, solver_type='classic')
+    test_app_variants(acoustics, verify_sharpclaw, python_kernel=True, solver_type='sharpclaw')

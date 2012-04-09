@@ -50,6 +50,57 @@ def run_app_from_main(application):
     output=application(**app_kwargs)
     return output
 
+class VerifyError(Exception):
+    pass
+
+def test_app_variants(application, verifier, python_kernel, **kwargs):
+    import itertools
+    use_petsc_opts=(True,False)
+    kernel_opts = ('Python','Fortran') if python_kernel else ('Fortran')
+    opt_names = 'use_petsc','solver_type','kernel_language'
+    opt_product = itertools.product(use_petsc_opts,kernel_opts)
+    arg_dicts = [dict(zip(opt_names,argset)) for argset in opt_product]
+
+    for args in arg_dicts:
+        args.update(kwargs)
+        test_app(application, verifier, **args)
+    return
+
+def test_app(application, verifier, **kwargs):
+    output = application(**kwargs)
+
+    check_values = verifier(output)
+    if check_values is not None:
+        import inspect
+        err = \
+        """%s
+********************************************************************************
+verification function
+%s
+args    : %s
+expected: %s
+test    : %s
+%s
+********************************************************************************
+""" % \
+        (inspect.getsourcefile(application),
+         inspect.getsource(verifier),
+         kwargs,
+         check_values[0],
+         check_values[1],
+         check_values[2])
+        raise VerifyError(err)
+    return
+
+def check_diff(expected, test, **kwargs):
+
+    if 'abstol' in kwargs:
+        if abs(expected - test) < kwargs['abstol']: return None
+        else: return (expected, test, 'abstol: %s' % kwargs['abstol'])
+    if 'reltol' in kwargs:
+        if abs((expected - test)/expected) < kwargs['reltol']: return None
+        else: return (expected, test, 'reltol: %s' % kwargs['reltol'])
+        
 # ============================================================================
 #  F2PY Utility Functions
 # ============================================================================
