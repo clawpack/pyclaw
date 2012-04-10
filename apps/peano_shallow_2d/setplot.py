@@ -29,8 +29,8 @@ def setplot(plotdata):
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
-    plotaxes.xlimits = [-2.5, 2.5]
-    plotaxes.ylimits = [-2.5, 2.5]
+    plotaxes.xlimits = 'auto'
+    plotaxes.ylimits = 'auto'
     plotaxes.title = 'Water height'
     plotaxes.scaled = True
 
