@@ -7,6 +7,7 @@ from pyclaw.solver import Solver
 import signal
 import logging
 from ctypes import CDLL
+from ctypes import c_bool
 from ctypes import c_double
 from ctypes import c_int
 from ctypes import c_void_p
@@ -14,17 +15,35 @@ from ctypes import CFUNCTYPE
 from ctypes import py_object
 from ctypes import POINTER
 
-import pyclaw
-
 class Solver(Solver):
+    r"""
+        This solver class wraps the AMR functionality of Peano. It holds a normal PyClaw-solver
+        to advance separate subgrids in time. Therefore it provides the callbacks callback_solver(...)
+        and callback_boundary_conditions(...) as an interface for Peano to use the PyClaw-solver.
+        
+        A Solver is typically instantiated as follows::
+
+        >>> import pyclaw
+        >>> solver = pyclaw.ClawSolver2D()
+        >>> import peanoclaw
+        >>> peanoclaw_solver = peanoclaw.Solver(solver, 1.0/18.0)
+    """
     
     #Callback definitions
     CALLBACK_SOLVER = CFUNCTYPE(None, POINTER(c_double), py_object, py_object, c_int, c_int, c_double, c_double, c_double, c_double, c_double, c_double)
     CALLBACK_BOUNDARY_CONDITIONS = CFUNCTYPE(None, py_object, py_object, c_int, c_int)
     
-    def __init__(self, solver, initialMinimalMeshWidth):
+    def __init__(self, solver, initial_minimal_mesh_width):
+        r"""
+        Initializes the Peano-solver. This keeps the Peano-spacetree internally and wraps the given PyClaw-solver.
+        
+        :Input:
+         -  *solver* - (:class:`pyclaw.Solver`) The PyClaw-solver used internally.
+         -  *initial_minimal_mesh_width* - The initial mesh width for the Peano mesh. I.e. Peano refines the mesh regularly
+                                             until it is at least as fine as stated in this parameter.
+        """
         self.solver = solver
-        self.initialMinimalMeshWidth = initialMinimalMeshWidth
+        self.initial_minimal_mesh_width = initial_minimal_mesh_width
         self.dt_initial = solver.dt_initial
         self.num_ghost = solver.num_ghost
         self.rp = solver.rp
@@ -38,35 +57,12 @@ class Solver(Solver):
         """
         def callback_solver(return_dt_and_estimated_next_dt, q, qbc, subdivision_factor, unknowns_per_subcell, size, position_x, position_y, current_time, maximum_timestep_size, estimated_next_dt):
             # Set up grid information for current patch
-            global dim_x
-            dim_x = pyclaw.Dimension('x',position_x,position_x + size,subdivision_factor)
-            global dim_y
-            dim_y = pyclaw.Dimension('y',position_y,position_y + size,subdivision_factor)
-            domain = pyclaw.Domain([dim_x,dim_y])
-            state = pyclaw.State(domain, unknowns_per_subcell)
-            state.problem_data = self.solution.state.problem_data
-            state.q = q
-            solution = pyclaw.Solution(state, domain)
+            import peanoclaw
+            subgridsolver = peanoclaw.SubgridSolver(self.solver, self.solution.state, q, qbc, (position_x, position_y), (size, size), subdivision_factor, unknowns_per_subcell)
             
-            self.solver.bc_lower[0] = pyclaw.BC.custom
-            self.solver.bc_upper[0] = pyclaw.BC.custom
-            self.solver.bc_lower[1] = pyclaw.BC.custom
-            self.solver.bc_upper[1] = pyclaw.BC.custom
-            
-            global ghostlayerArray 
-            ghostlayerArray = qbc
-            self.solver.user_bc_lower = self.user_bc_lower
-            self.solver.user_bc_upper = self.user_bc_upper
-            
-            self.solver.dt = min(maximum_timestep_size, estimated_next_dt)
-            
-            self.solver.setup(solution)
-            # Set qbc and timestep for the current patch
-            self.solver.qbc = qbc
-            self.solver.dt_max = maximum_timestep_size
-            self.solver.evolve_to_time(solution)
+            new_q = subgridsolver.step(maximum_timestep_size, estimated_next_dt)
             # Copy back the array with new values
-            q[:]= state.q[:]
+            q[:]= new_q[:]
             
             return_dt_and_estimated_next_dt[0] = self.solver.dt
             if self.solver.cfl.get_cached_max() > 0:
@@ -87,36 +83,12 @@ class Solver(Solver):
                 self.qbc_lower(self.solution.state, self.solution.state.grid.dimensions[dimension], self.solution.state.t, numpy.rollaxis(qbc,dimension+1,1), dimension)
         return self.CALLBACK_BOUNDARY_CONDITIONS(callback_boundary_conditions)
     
-    def user_bc_lower(self, grid,dim,t,qbc,mbc):
-#        print "Setting lower bc with mbc=" + str(mbc)
-        if dim == dim_x:
-#            print "Setting lower bc for x"
-            for i in range(mbc):
-    #            print "Setting " + str(boundaryArray[:,:,i])
-                qbc[:,:,i] = ghostlayerArray[:,:,i]
-        else:
-#            print "Setting lower bc for y"
-            for i in range(mbc):
-    #            print "Setting " + str(boundaryArray[:,i,:])
-                qbc[:,i,:] = ghostlayerArray[:,i,:]
-    #    print "set qbc=" 
-    #    print str(qbc)
-        
-    def user_bc_upper(self, grid,dim,t,qbc,mbc):
-        if dim == dim_x:
-#            print "Setting upper bc for x" + str(qbc.shape) + " " + str(ghostlayerArray.shape) + " mbc=" + str(mbc) + " dim=" + str(dim)
-            for i in range(mbc):
-    #            print "Setting (" +str(dim.n+mbc+i) + ") " + str(boundaryArray[:,:,dim.n+mbc+i])
-                qbc[:,:,dim.num_cells+mbc+i] = ghostlayerArray[:,:,dim.num_cells+mbc+i]
-        else:
-#            print "Setting upper bc for y"
-            for i in range(mbc):
-    #            print "Setting (" +str(dim.n+mbc+i) + ") " + str(boundaryArray[:,dim.n+mbc+i,:])
-                qbc[:,dim.num_cells+mbc+i,:] = ghostlayerArray[:,dim.num_cells+mbc+i,:]
-    #    print "set qbc="
-    #    print str(qbc)
-    
     def setup(self, solution):
+        r"""
+        Initialize a Solver object. This method loads the library of Peano and prepares the initial mesh.
+        
+        See :class:`Solver` for full documentation
+        """ 
         logging.getLogger('peanoclaw').info("Loading Peano-library...")
         self.libpeano = CDLL('libpeano-claw-2d.dylib')
         logging.getLogger('peanoclaw').info("Peano loaded successfully.")
@@ -131,15 +103,17 @@ class Solver(Solver):
         dimensions = solution.state.grid.dimensions
         subdivisionFactor = solution.state.grid.dimensions[0].num_cells
         
-        self.libpeano.pyclaw_peano_new.argtypes = [c_double, c_double, c_double, c_int, c_double, c_void_p, c_void_p]
-        self.peano = self.libpeano.pyclaw_peano_new(c_double(self.initialMinimalMeshWidth), \
+        self.libpeano.pyclaw_peano_new.argtypes = [c_double, c_double, c_double, c_int, c_double, c_bool, c_void_p, c_void_p]
+        self.peano = self.libpeano.pyclaw_peano_new(c_double(self.initial_minimal_mesh_width), \
                                                     c_double(dimensions[0].upper - dimensions[0].lower), \
                                                     c_double(dimensions[1].upper - dimensions[1].lower), \
                                                     subdivisionFactor,
                                                     self.solver.dt_initial,
+                                                    True,
                                                     self.boundary_condition_callback,
                                                     self.solver_callback)
         self.solver.setup(solution)
+        self.solution = solution
         
         # Set PeanoSolution
         import peanoclaw
@@ -151,14 +125,19 @@ class Solver(Solver):
         
         #Causes Ctrl+C to quit Peano
         signal.signal(signal.SIGINT, signal.SIG_DFL)
-        
-        self.libpeano.pyclaw_peano_runTests()
-        
+                
     def teardown(self):
+        r"""
+        See :class:`Solver` for full documentation
+        """ 
         self.libpeano.pyclaw_peano_destroy(self.peano)
     
     def evolve_to_time(self,solution,tend=None):
+        r"""
+        Performs one global timestep until all patches in the mesh reach the given end time.
         
+        See :class:`Solver` for full documentation
+        """ 
         if(tend == None) :
             raise Exception("Not yet implemented.")
         
@@ -166,5 +145,7 @@ class Solver(Solver):
         self.libpeano.pyclaw_peano_evolveToTime(tend, self.peano, self.boundary_condition_callback, self.solver_callback)
                 
     def solve_one_timestep(self, q, qbc):
+        r"""
+        """ 
         self.solver.step(self.solution)
         

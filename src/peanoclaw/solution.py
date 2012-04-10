@@ -11,6 +11,20 @@ from ctypes import c_double
 from ctypes import c_void_p
 
 class Solution(pyclaw.solution.Solution):
+    r"""
+    This Solution class is just an extension of the normal pyclaw.Solution. It offers functionality for writing solutions
+    when running PyClaw together with Peano for adaptive mesh refinement.
+    
+    This class is instantiated like the normal Solution, just from the peanoclaw package:
+    
+        >>> import pyclaw
+        >>> x = pyclaw.Dimension('x',0.,1.,100)
+        >>> y = pyclaw.Dimension('y',0.,1.,100)
+        >>> domain = pyclaw.Domain((x, y))
+        >>> state = pyclaw.State(domain,3,2)
+        >>> import peanoclaw
+        >>> solution = peanoclaw.Solution(state,domain)
+    """
     
     CALLBACK_ADD_PATCH_TO_SOLUTION = CFUNCTYPE(None, py_object, py_object, c_int, c_double, c_double, c_double, c_double)
     
@@ -39,8 +53,7 @@ class Solution(pyclaw.solution.Solution):
             patch = pyclaw.geometry.Patch((dim_x, dim_y))
             state = pyclaw.State(patch, unknowns_per_subcell)
             state.set_q_from_qbc(ghostlayer_width, qbc)
-            
-            print(patch)
+            state.t = currentTime
             
             self.gathered_patches.append(patch)
             self.gathered_states.append(state)
@@ -62,7 +75,7 @@ class Solution(pyclaw.solution.Solution):
 
         #Assemble solution and write file
         domain = pyclaw.Domain(self.gathered_patches)
-        solution = pyclaw.Solution(self.gathered_states[1], domain)
+        solution = pyclaw.Solution(self.gathered_states, domain)
         solution.write(frame, path, file_format,file_prefix,write_aux,options,write_p)
             
             
