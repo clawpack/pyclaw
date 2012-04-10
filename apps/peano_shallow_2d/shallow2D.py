@@ -30,7 +30,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     # Import libraries
     #===========================================================================
     import numpy as np
-    from pyclaw.peano import PeanoSolver
+    import peanoclaw
 
     if use_petsc:
         import petclaw as pyclaw
@@ -40,16 +40,16 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     #===========================================================================
     # Setup solver and solver parameters
     #===========================================================================
-    subdivisionFactor = 8
+    subdivisionFactor = 6
     if solver_type == 'classic':
         solver = pyclaw.ClawSolver2D()
         solver.limiters = pyclaw.limiters.tvd.MC
         solver.dimensional_split=1
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
-    peanoSolver = PeanoSolver(solver, (1./9.)/subdivisionFactor)
+    peanoSolver = peanoclaw.Solver(solver, (1./9.)/subdivisionFactor)
     
-    solver.dt_initial = 0.01
+    solver.dt_initial = 1.0
 
     import riemann
     solver.rp = riemann.rp2_shallow_roe_with_efix
@@ -99,11 +99,11 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     # Set up controller and controller parameters
     #===========================================================================
     claw = pyclaw.Controller()
-    claw.tfinal = 0.5
-    claw.solution = pyclaw.Solution(state,domain)
+    claw.tfinal = 0.1
+    claw.solution = peanoclaw.solution.Solution(state,domain)
     claw.solver = peanoSolver
     claw.outdir = outdir
-    claw.num_output_times = 1
+    claw.num_output_times = 5
 
     #===========================================================================
     # Solve the problem
