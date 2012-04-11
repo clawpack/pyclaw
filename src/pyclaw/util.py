@@ -53,7 +53,16 @@ def run_app_from_main(application):
 class VerifyError(Exception):
     pass
 
-def test_app_variants(application, verifier, python_kernel, **kwargs):
+def gen_variants(application, verifier, python_kernel, **kwargs):
+
+    arg_dicts = build_variant_arg_dicts(python_kernel)
+    
+    for test_kwargs in arg_dicts:
+        test_kwargs.update(kwargs)
+        yield (test_app, application, verifier, test_kwargs)
+    return
+
+def build_variant_arg_dicts(python_kernel):
     import itertools
 
     # only test petsc4py if it is available
@@ -68,12 +77,18 @@ def test_app_variants(application, verifier, python_kernel, **kwargs):
     opt_product = itertools.product(use_petsc_opts,kernel_opts)
     arg_dicts = [dict(zip(opt_names,argset)) for argset in opt_product]
 
-    for args in arg_dicts:
-        args.update(kwargs)
-        test_app(application, verifier, **args)
+    return arg_dicts
+
+def test_app_variants(application, verifier, python_kernel, **kwargs):
+
+    arg_dicts = build_variant_arg_dicts(python_kernel)
+
+    for test_kwargs in arg_dicts:
+        test_kwargs.update(kwargs)
+        test_app(application, verifier, test_kwargs)
     return
 
-def test_app(application, verifier, **kwargs):
+def test_app(application, verifier, kwargs):
     print kwargs
     output = application(**kwargs)
     check_values = verifier(output)
@@ -103,10 +118,10 @@ def check_diff(expected, test, **kwargs):
 
     if 'abstol' in kwargs:
         if abs(expected - test) < kwargs['abstol']: return None
-        else: return (expected, test, 'abstol: %s' % kwargs['abstol'])
+        else: return (expected, test, 'abstol  : %s' % kwargs['abstol'])
     if 'reltol' in kwargs:
         if abs((expected - test)/expected) < kwargs['reltol']: return None
-        else: return (expected, test, 'reltol: %s' % kwargs['reltol'])
+        else: return (expected, test, 'reltol  : %s' % kwargs['reltol'])
         
 # ============================================================================
 #  F2PY Utility Functions

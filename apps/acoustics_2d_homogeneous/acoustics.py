@@ -75,13 +75,7 @@ def acoustics2D(iplot=False,kernel_language='Fortran',htmlplot=False,use_petsc=F
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,file_format=claw.output_format)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,file_format=claw.output_format)
 
-    if use_petsc:
-        grid = state.grid
-        pressure=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([state.num_eqn,grid.num_cells[0],grid.num_cells[1]],order='F')[0,:,:]
-       #pressure=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([grid.num_cells[0],grid.num_cells[1],state.num_eqn])[:,:,0]
-    else:
-        pressure=claw.frames[claw.num_output_times].state.q[0,:,:]
-       #pressure=claw.frames[claw.num_output_times].state.q[:,:,0]
+    pressure=claw.frames[claw.num_output_times].state.q[0,:,:]
     return pressure
 
 def qinit(state,width=0.2):
@@ -104,10 +98,9 @@ if __name__=="__main__":
 def test_2d_acoustics():
     """ tests against known classic results """
 
-    from pyclaw.util import test_app_variants
 
-    def acoustics_verify_data(data_filename):
-        def acoustics_verify(test_pressure):
+    def verify_data(data_filename):
+        def verify(test_pressure):
             import os
             from pyclaw.util import check_diff
             """ verifies 2d homogeneous acoustics from a previously verified run """
@@ -116,10 +109,16 @@ def test_2d_acoustics():
             test_err = np.linalg.norm(expected_pressure-test_pressure)
             expected_err = 0
             return check_diff(expected_err, test_err, abstol=1e-4)
-        return acoustics_verify
+        return verify
 
-    test_app_variants(acoustics2D, acoustics_verify_data('verify_classic.txt'),
-                      python_kernel=False, solver_type='classic')
+    from pyclaw.util import gen_variants
 
-    test_app_variants(acoustics2D, acoustics_verify_data('verify_sharpclaw.txt'),
-                      python_kernel=False, solver_type='sharpclaw')
+    classic_tests = gen_variants(acoustics2D, verify_data('verify_classic.txt'),
+                                 python_kernel=False, solver_type='classic')
+
+    sharp_tests   = gen_variants(acoustics2D, verify_data('verify_sharpclaw.txt'),
+                                 python_kernel=False, solver_type='sharpclaw')
+
+    from itertools import chain
+    for test in chain(classic_tests, sharp_tests):
+        yield test
