@@ -98,26 +98,25 @@ if __name__=="__main__":
     output = run_app_from_main(acoustics)
 
 def test_1d_acoustics():
+    """ tests against known sharpclaw and classic results """
 
     from pyclaw.util import test_app_variants
     from pyclaw.util import check_diff
     import numpy as np
 
-    def verify_classic(claw):
-        q0=claw.frames[0].state.q.reshape([-1])
-        qfinal=claw.frames[claw.num_output_times].state.q.reshape([-1])
-        dx=claw.solution.domain.grid.delta[0]
-        test = dx*np.sum(np.abs(qfinal-q0))
-        expected = 0.00104856594174
-        return check_diff(test, expected, abstol=1e-5)
+    def verify_expected(expected):
+        """ binds the expected value to the acoustics_verify methods """
+        def acoustics_verify(claw):
+            q0=claw.frames[0].state.q.reshape([-1])
+            qfinal=claw.frames[claw.num_output_times].state.q.reshape([-1])
+            dx=claw.solution.domain.grid.delta[0]
+            test = dx*np.sum(np.abs(qfinal-q0))
+            return check_diff(expected, test, abstol=1e-5)
+        return acoustics_verify
 
-    def verify_sharpclaw(claw):
-        q0=claw.frames[0].state.q.reshape([-1])
-        qfinal=claw.frames[claw.num_output_times].state.q.reshape([-1])
-        dx=claw.solution.domain.grid.delta[0]
-        test = dx*np.sum(np.abs(qfinal-q0))
-        expected = 0.000298879563857
-        return check_diff(test, expected, abstol=1e-5)
-
-    test_app_variants(acoustics, verify_classic, python_kernel=True, solver_type='classic')
-    test_app_variants(acoustics, verify_sharpclaw, python_kernel=True, solver_type='sharpclaw')
+    test_app_variants(acoustics, verify_expected(0.00104856594174),
+                      python_kernel=True, solver_type='classic')
+    test_app_variants(acoustics, verify_expected(0.000298879563857),
+                      python_kernel=True, solver_type='sharpclaw')
+    test_app_variants(acoustics, verify_expected(0.000163221216565),
+                      python_kernel=False, solver_type='sharpclaw', weno_order=17)

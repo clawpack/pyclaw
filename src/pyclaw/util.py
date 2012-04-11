@@ -55,9 +55,16 @@ class VerifyError(Exception):
 
 def test_app_variants(application, verifier, python_kernel, **kwargs):
     import itertools
-    use_petsc_opts=(True,False)
-    kernel_opts = ('Python','Fortran') if python_kernel else ('Fortran')
-    opt_names = 'use_petsc','solver_type','kernel_language'
+
+    # only test petsc4py if it is available
+    try:
+        import petsc4py
+        use_petsc_opts=(True,False)
+    except Exception as err:
+        use_petsc_opts = (False,)
+
+    kernel_opts = ('Python','Fortran') if python_kernel else ('Fortran',)
+    opt_names = 'use_petsc','kernel_language'
     opt_product = itertools.product(use_petsc_opts,kernel_opts)
     arg_dicts = [dict(zip(opt_names,argset)) for argset in opt_product]
 
@@ -67,8 +74,8 @@ def test_app_variants(application, verifier, python_kernel, **kwargs):
     return
 
 def test_app(application, verifier, **kwargs):
+    print kwargs
     output = application(**kwargs)
-
     check_values = verifier(output)
     if check_values is not None:
         import inspect
