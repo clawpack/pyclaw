@@ -8,9 +8,9 @@ are both pure virtual classes; the only solver classes that should be instantiat
 are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`.
 """
 
-from pyclaw.solver import Solver
+from ..solver import Solver
 
-import pyclaw.limiters.tvd as tvd
+from ..limiters import tvd
 
 # ============================================================================
 #  Generic Clawpack solver class
@@ -212,8 +212,8 @@ class ClawSolver(Solver):
         self.set_mthlim()
         if(self.kernel_language == 'Fortran'):
             if self.fmod is None:
-                so_name = 'pyclaw.clawpack.classic'+str(self.num_dim)
-                self.fmod = __import__(so_name,fromlist=['pyclaw.clawpack'])
+                so_name = '.classic.classic'+str(self.num_dim)
+                self.fmod = __import__(so_name,fromlist=['.clawpack'])
             self.set_fortran_parameters(solution)
             self.allocate_workspace(solution)
         elif self.num_dim>1:

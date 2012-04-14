@@ -1,6 +1,6 @@
-import pyclaw.state
+import clawpack.pyclaw
 
-class State(pyclaw.state.State):
+class State(clawpack.pyclaw.State):
     r"""  See the corresponding PyClaw class documentation."""
 
     @property

@@ -17,8 +17,8 @@ Module containing all Pyclaw solution objects
 import os
 import logging
 
-from pyclaw.geometry import Patch, Dimension, Domain
-from pyclaw.state import State
+from .geometry import Patch, Dimension, Domain
+from .state import State
 import io
 
 # ============================================================================
@@ -71,7 +71,7 @@ class Solution(object):
     
     :Examples:
 
-        >>> import pyclaw
+        >>> import clawpack.pyclaw as pyclaw
         >>> x = pyclaw.Dimension('x',0.,1.,100)
         >>> domain = pyclaw.Domain((x))
         >>> state = pyclaw.State(domain,3,2)

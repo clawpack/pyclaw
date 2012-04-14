@@ -14,24 +14,24 @@ __all__ = []
 
 # Module imports
 __all__.extend(['Controller','Dimension','Patch','Domain','Solution','State','CFL','riemann','plot'])
-from pyclaw.controller import Controller
-from pyclaw.solution import Solution
-from pyclaw.geometry import Dimension, Patch, Domain
-from pyclaw.state import State
-from pyclaw.cfl import CFL
+from .controller import Controller
+from .solution import Solution
+from .geometry import Dimension, Patch, Domain
+from .state import State
+from .cfl import CFL
 
-import riemann
+import clawpack.riemann as riemann
 import plot
 
 __all__.extend(['ClawSolver1D','ClawSolver2D','ClawSolver3D','SharpClawSolver1D','SharpClawSolver2D'])
-from pyclaw.clawpack.clawpack import ClawSolver1D, ClawSolver2D, ClawSolver3D
-from pyclaw.sharpclaw.sharpclaw import SharpClawSolver1D, SharpClawSolver2D
+from .classic.clawpack import ClawSolver1D, ClawSolver2D, ClawSolver3D
+from .sharpclaw.sharpclaw import SharpClawSolver1D, SharpClawSolver2D
 
 
 # Sub-packages
 import limiters
-from pyclaw.limiters import *
+from .limiters import *
 __all__.extend(limiters.__all__)
 
 __all__.append('BC')
-from pyclaw.solver import BC
+from .solver import BC
