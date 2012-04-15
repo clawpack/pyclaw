@@ -91,10 +91,10 @@ class State(object):
 
     # ========== Class Methods ===============================================
     def __init__(self,geom,num_eqn,num_aux=0):
-        import pyclaw.geometry
-        if isinstance(geom,pyclaw.geometry.Patch):
+        from clawpack.pyclaw import geometry
+        if isinstance(geom,geometry.Patch):
             self.patch = geom
-        elif isinstance(geom,pyclaw.geometry.Domain):
+        elif isinstance(geom,geometry.Domain):
             self.patch = geom.patches[0]
         else:
             raise Exception("""A PyClaw State object must be initialized with

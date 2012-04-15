@@ -6,7 +6,8 @@ __module__ property, used by pyclaw.solver.Solver.__init__ to
 determine the containing claw_package to use.
 """
 
-from ...pyclaw.classic import clawpack
+from __future__ import absolute_import
+from clawpack.pyclaw.classic import clawpack
 
 class ClawSolver1D(clawpack.ClawSolver1D):
     r"""

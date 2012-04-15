@@ -7,15 +7,14 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     medium.
     """
     from numpy import sqrt, exp, cos
-    from riemann import rp1_acoustics
 
     #=================================================================
     # Import the appropriate classes, depending on the options passed
     #=================================================================
     if use_petsc:
-        import petclaw as pyclaw
+        import clawpack.petclaw as pyclaw
     else:
-        import pyclaw
+        from clawpack import pyclaw
 
     if solver_type=='classic':
         solver = pyclaw.ClawSolver1D()
@@ -28,13 +27,13 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     # Instantiate the solver and define the system of equations to be solved
     #========================================================================
     solver.kernel_language=kernel_language
-    from riemann import rp_acoustics
+    from clawpack.riemann import rp_acoustics
     solver.num_waves=rp_acoustics.num_waves
 
     if kernel_language=='Python': 
         solver.rp = rp_acoustics.rp_acoustics_1d
     else:
-        from riemann import rp1_acoustics
+        from clawpack.riemann import rp1_acoustics
         solver.rp = rp1_acoustics
 
     solver.limiters = pyclaw.limiters.tvd.MC
@@ -94,7 +93,7 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     return claw
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(acoustics)
 
 def test_1d_acoustics():
@@ -103,7 +102,7 @@ def test_1d_acoustics():
     def verify_expected(expected):
         """ binds the expected value to the acoustics_verify methods """
         def acoustics_verify(claw):
-            from pyclaw.util import check_diff
+            from clawpack.pyclaw.util import check_diff
             import numpy as np
             q0=claw.frames[0].state.q.reshape([-1])
             qfinal=claw.frames[claw.num_output_times].state.q.reshape([-1])
@@ -112,7 +111,7 @@ def test_1d_acoustics():
             return check_diff(expected, test, abstol=1e-5)
         return acoustics_verify
 
-    from pyclaw.util import gen_variants
+    from clawpack.pyclaw.util import gen_variants
 
     classic_tests = gen_variants(acoustics, verify_expected(0.00104856594174),
                                  python_kernel=True, solver_type='classic')
