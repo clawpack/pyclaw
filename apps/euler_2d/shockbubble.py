@@ -213,19 +213,3 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
 if __name__=="__main__":
     from pyclaw.util import run_app_from_main
     output = run_app_from_main(shockbubble)
-
-
-def test_2d_euler_shockbubble():
-    def verify_classic_shockbubble(test_density):
-        import os
-        from clawpack.pyclaw.util import check_diff
-        """ verifies 2d euler shockbubble from a previously verified classic run """
-        thisdir = os.path.dirname(__file__)
-        expected_density = np.loadtxt(os.path.join(thisdir,'verify_shockbubble_classic.txt'))
-        test_err = np.linalg.norm(expected_density-test_density)
-        expected_err = 0
-        return check_diff(expected_err, test_err, abstol=1e-12)
-
-    from clawpack.pyclaw.util import gen_variants
-    for test in gen_variants(shockbubble, verify_classic_shockbubble, python_kernel=False, solver_type='classic'):
-        yield test
