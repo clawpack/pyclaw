@@ -98,11 +98,10 @@ if __name__=="__main__":
 def test_2d_acoustics():
     """ tests against known classic results """
 
-
     def verify_data(data_filename):
         def verify(test_pressure):
             import os
-            from pyclaw.util import check_diff
+            from clawpack.pyclaw.util import check_diff
             """ verifies 2d homogeneous acoustics from a previously verified run """
             thisdir = os.path.dirname(__file__)
             expected_pressure = np.loadtxt(os.path.join(thisdir,data_filename))
