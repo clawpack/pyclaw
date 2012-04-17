@@ -9,9 +9,9 @@ def acoustics2D(iplot=False,kernel_language='Fortran',htmlplot=False,use_petsc=F
     """
 
     if use_petsc:
-        import petclaw as pyclaw
+        from clawpack import petclaw as pyclaw
     else:
-        import pyclaw
+        from clawpack import pyclaw
 
     if solver_type=='classic':
         solver=pyclaw.ClawSolver2D()
@@ -22,7 +22,7 @@ def acoustics2D(iplot=False,kernel_language='Fortran',htmlplot=False,use_petsc=F
     if kernel_language != 'Fortran':
         raise Exception('Unrecognized value of kernel_language for 2D acoustics')
 
-    from riemann import rp2_acoustics
+    from clawpack.riemann import rp2_acoustics
     solver.rp = rp2_acoustics
 
     solver.cfl_max = 0.5
@@ -92,7 +92,7 @@ def qinit(state,width=0.2):
 
 if __name__=="__main__":
     import sys
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(acoustics2D)
 
 def test_2d_acoustics():
@@ -111,7 +111,7 @@ def test_2d_acoustics():
             return check_diff(expected_err, test_err, abstol=1e-4)
         return verify
 
-    from pyclaw.util import gen_variants
+    from clawpack.pyclaw.util import gen_variants
 
     classic_tests = gen_variants(acoustics2D, verify_data('verify_classic.txt'),
                                  python_kernel=False, solver_type='classic')
