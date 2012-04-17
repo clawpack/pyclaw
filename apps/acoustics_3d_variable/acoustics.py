@@ -37,47 +37,35 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     solver.aux_bc_lower[2]=pyclaw.BC.periodic
     solver.aux_bc_upper[2]=pyclaw.BC.periodic
 
+    app = None
     if 'test' in kwargs:
         test = kwargs['test']
         if test == 'homogeneous':
             app = 'test_homogeneous'
-            solver.dimensional_split=True
-            mx=256; my=4; mz=4
-            zr = 1.0  # Impedance in right half
-            cr = 1.0  # Sound speed in right half
         elif test == 'heterogeneous':
             app = 'test_heterogeneous'
-            solver.dimensional_split=False
-            solver.bc_lower[0]    =pyclaw.BC.wall
-            solver.bc_lower[1]    =pyclaw.BC.wall
-            solver.bc_lower[2]    =pyclaw.BC.wall
-            solver.aux_bc_lower[0]=pyclaw.BC.wall
-            solver.aux_bc_lower[1]=pyclaw.BC.wall
-            solver.aux_bc_lower[2]=pyclaw.BC.wall
-            mx=30; my=30; mz=30
-            zr = 2.0  # Impedance in right half
-            cr = 2.0  # Sound speed in right half
-
         else: raise Exception('Unrecognized test')
-    else:
-        app = 'example'
+
+    if app == 'test_homogeneous':
+        solver.dimensional_split=True
+        mx=256; my=4; mz=4
+        zr = 1.0  # Impedance in right half
+        cr = 1.0  # Sound speed in right half
+
+    if app == 'test_heterogeneous' or app == None:
         solver.dimensional_split=False
-        solver.limiters = pyclaw.limiters.tvd.MC
-
-        solver.bc_lower[0]=pyclaw.BC.wall
-        solver.bc_upper[0]=pyclaw.BC.periodic
-        solver.bc_lower[1]=pyclaw.BC.wall
-        solver.bc_upper[1]=pyclaw.BC.periodic
-        solver.bc_lower[2]=pyclaw.BC.wall
-        solver.bc_upper[2]=pyclaw.BC.periodic
-
+        solver.dimensional_split=False
+        solver.bc_lower[0]    =pyclaw.BC.wall
+        solver.bc_lower[1]    =pyclaw.BC.wall
+        solver.bc_lower[2]    =pyclaw.BC.wall
         solver.aux_bc_lower[0]=pyclaw.BC.wall
-        solver.aux_bc_upper[0]=pyclaw.BC.periodic
         solver.aux_bc_lower[1]=pyclaw.BC.wall
-        solver.aux_bc_upper[1]=pyclaw.BC.periodic
         solver.aux_bc_lower[2]=pyclaw.BC.wall
-        solver.aux_bc_upper[2]=pyclaw.BC.periodic
         mx=30; my=30; mz=30
+        zr = 2.0  # Impedance in right half
+        cr = 2.0  # Sound speed in right half
+
+    solver.limiters = pyclaw.limiters.tvd.MC
 
     # Initialize domain
     x = pyclaw.Dimension('x',-1.0,1.0,mx)
@@ -91,8 +79,6 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
 
     zl = 1.0  # Impedance in left half
     cl = 1.0  # Sound speed in left half
-    zr = 2.0  # Impedance in right half
-    cr = 2.0  # Sound speed in right half
 
     grid = state.grid
     grid.compute_c_centers()
@@ -107,7 +93,7 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
         width=0.2
         state.q[0,:,:,:] = (np.abs(r)<=width)*(1.+np.cos(np.pi*(r)/width))
 
-    elif app == 'test_heterogeneous' or app == 'example':
+    elif app == 'test_heterogeneous' or app == None:
         r = np.sqrt((X-x0)**2 + (Y-y0)**2 + (Z-z0)**2)
         width=0.1
         state.q[0,:,:,:] = (np.abs(r-0.3)<=width)*(1.+np.cos(np.pi*(r-0.3)/width))
@@ -145,7 +131,7 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     final_difference =np.prod(grid.delta)*np.linalg.norm(pfinal-pinitial,ord=1)
     middle_difference=np.prod(grid.delta)*np.linalg.norm(pmiddle-pinitial,ord=1)
 
-    if app == 'example':
+    if app == None:
         print 'Final error: ', final_difference
         print 'Middle error: ', middle_difference
 
@@ -159,12 +145,11 @@ if __name__=="__main__":
 def test_3d_acoustics():
     """ tests against known classic results """
 
-
     def acoustics_verify_homogeneous(return_tuple):
         from clawpack.pyclaw.util import check_diff
 
         test_final_difference = return_tuple[1]
-        return check_diff(0, test_final_difference, abstol=1e-4)
+        return check_diff(0.00286, test_final_difference, abstol=1e-4)
 
     def acoustics_verify_heterogeneous(return_tuple):
         import os
@@ -183,7 +168,7 @@ def test_3d_acoustics():
                                        python_kernel=False, solver_type='classic', test='homogeneous')
 
     heterogeneous_tests = gen_variants(acoustics3D, acoustics_verify_heterogeneous,
-                                       python_kernel=False, solver_type='classic', test = 'heterogeneous')
+                                       python_kernel=False, solver_type='classic', test='heterogeneous')
     
     from itertools import chain
     for test in chain(homogeneous_tests, heterogeneous_tests):
