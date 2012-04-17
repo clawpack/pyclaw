@@ -47,7 +47,12 @@ def fortran_src_wrapper(solver,state,dt):
     t = state.t
 
     # Call src2 function
-    import problem
+    try:
+        import problem
+    except:
+        import sys
+        print >> sys.stderr, "Unable to import problem module, do you need to run make?")
+        raise
     state.q = problem.src2(mx,my,num_ghost,xlower,ylower,dx,dy,q,aux,t,dt,Rsphere)
 
 
@@ -354,16 +359,22 @@ def auxbc_upper_y(state,dim,t,auxbc,num_ghost):
     auxbc[:,:,-num_ghost:] = auxtemp[:,:,-num_ghost:]
 
 
-def shallow_4_Rossby_Haurwitz(iplot=0,htmlplot=False,outdir='./_output'):
+def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',iplot=0,htmlplot=False,outdir='./_output'):
 
     # Import pyclaw module
-    import pyclaw
+    if use_petsc:
+        raise Exception("petclaw does not currently support mapped grids (go bug Lisandro who promised to implement them)")
+
+    if solver_type != 'classic':
+        raise Exception("Only Classic-style solvers (solver_type='classic') are supported")
+
+    from clawpack import pyclaw
 
     #===========================================================================
     # Set up solver and solver parameters
     #===========================================================================
     solver = pyclaw.ClawSolver2D()
-    import riemann
+    from clawpack import riemann
     solver.rp = riemann.rp2_shallow_sphere
     import classic2
     solver.fmod = classic2
