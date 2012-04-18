@@ -1,5 +1,5 @@
 def test_3d_acoustics():
-    """ tests against known classic results """
+    """ test_3d_acoustics """
 
     def acoustics_verify_homogeneous(return_tuple):
         from clawpack.pyclaw.util import check_diff

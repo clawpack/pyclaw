@@ -1,5 +1,5 @@
 def test_2d_acoustics():
-    """ tests against known classic results """
+    """test_2d_acoustics"""
 
     def verify_data(data_filename):
         def verify(test_pressure):

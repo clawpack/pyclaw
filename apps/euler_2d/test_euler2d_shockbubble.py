@@ -1,4 +1,5 @@
 def test_2d_euler_shockbubble():
+    """test_2d_euler_shockbubble"""
     def verify_classic_shockbubble(test_density):
         import os
         from clawpack.pyclaw.util import check_diff
