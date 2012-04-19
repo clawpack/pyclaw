@@ -4,7 +4,7 @@ import os
 
 def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
-    config = Configuration('clawpack', parent_package, top_path)
+    config = Configuration('classic', parent_package, top_path)
 
     config.add_extension('classic1',
                          ['limiter.f90','philim.f90','step1.f90'])

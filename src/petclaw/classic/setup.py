@@ -2,7 +2,7 @@
 
 def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
-    config = Configuration('clawpack', parent_package, top_path)
+    config = Configuration('classic', parent_package, top_path)
     return config
 
 if __name__ == '__main__':
