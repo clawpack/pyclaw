@@ -4,9 +4,9 @@ r"""
 Module containing petclaw.geometry.
 """
 
-import pyclaw.geometry
+from clawpack.pyclaw import geometry as pyclaw_geometry
 
-class Patch(pyclaw.geometry.Patch):
+class Patch(pyclaw_geometry.Patch):
     def __init__(self,dimensions):
         
         super(Patch,self).__init__(dimensions)
@@ -18,10 +18,10 @@ class Patch(pyclaw.geometry.Patch):
             lower = self.lower_global[i] + nrange[0]*self.delta[i]
             upper = self.lower_global[i] + nrange[1]*self.delta[i]
             num_cells   = nrange[1]-nrange[0]
-            grid_dimensions.append(pyclaw.geometry.Dimension(lower,upper,
+            grid_dimensions.append(pyclaw_geometry.Dimension(lower,upper,
                                         num_cells,name=dimensions[i].name))
 
-        self.grid = pyclaw.geometry.Grid(grid_dimensions)
+        self.grid = pyclaw_geometry.Grid(grid_dimensions)
 
 
     def _create_DA(self):
@@ -59,7 +59,7 @@ class Patch(pyclaw.geometry.Patch):
 # ============================================================================
 #  PetClaw Domain object definition
 # ============================================================================
-class Domain(pyclaw.geometry.Domain):
+class Domain(pyclaw_geometry.Domain):
     r"""
     A Domain is a list of Patches.
     
@@ -70,7 +70,7 @@ class Domain(pyclaw.geometry.Domain):
             geom = [geom]
         if isinstance(geom[0],Patch):
             self.patches = geom
-        elif isinstance(geom[0],pyclaw.geometry.Dimension):
+        elif isinstance(geom[0],pyclaw_geometry.Dimension):
             self.patches = [Patch(geom)]
 
 

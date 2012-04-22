@@ -328,7 +328,7 @@ class Solution(object):
         elif isinstance(file_format,list):
             format_list = file_format
         if 'petsc' in format_list:
-            from petclaw import io
+            from clawpack.petclaw import io
         # Loop over list of formats requested
         for form in format_list:
             write_func = eval('io.write_%s' % form)
