@@ -15,3 +15,10 @@ class Controller(pyclawController):
         from petsc4py import PETSc
         rank = PETSc.Comm.getRank(PETSc.COMM_WORLD)
         return rank == 0
+
+    def log_info(self, str):
+        import logging
+        if self.is_proc_0():
+            logging.info(str)
+        else:
+            pass
