@@ -90,8 +90,20 @@ def test_app_variants(application, verifier, python_kernel, **kwargs):
 
 def test_app(application, verifier, kwargs):
     print kwargs
+
+    if 'use_petsc' in kwargs and not kwargs['use_petsc']:
+        try:
+            # don't duplicate serial test runs
+            from petsc4py import PETSc
+            rank = PETSc.COMM_WORLD.getRank()
+            if rank != 0:
+                return
+        except ImportError, e:
+            pass
+    
     output = application(**kwargs)
     check_values = verifier(output)
+    
     if check_values is not None:
         import inspect
         err = \

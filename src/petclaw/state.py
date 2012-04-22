@@ -276,3 +276,23 @@ class State(clawpack.pyclaw.State):
 
     def sum_F(self,i):
         return self.gFVec.strideNorm(i,0)
+
+    def get_q_global(self):
+        r"""
+        Returns a copy of the global q array on process 0, otherwise returns None
+        """
+        from petsc4py import PETSc
+        scatter, q0Vec = PETSc.Scatter.toZero(self.gqVec)
+        scatter.scatter(self.gqVec, q0Vec, False, PETSc.Scatter.Mode.FORWARD)
+        rank = PETSc.COMM_WORLD.getRank()
+        if rank == 0:
+            shape = self.patch.num_cells_global
+            shape.insert(0,self.num_eqn)
+            q0=q0Vec.getArray().reshape(shape, order = 'F').copy()
+        else:
+            q0=None
+        
+        scatter.destroy()
+        q0Vec.destroy()
+
+        return q0

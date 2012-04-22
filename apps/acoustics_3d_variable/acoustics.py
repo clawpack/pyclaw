@@ -117,25 +117,32 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,file_format=claw.output_format)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,file_format=claw.output_format)
 
+    pinitial=claw.frames[0].state.get_q_global()
+    pmiddle  =claw.frames[3].state.get_q_global()
+    pfinal  =claw.frames[claw.num_output_times].state.get_q_global()
 
-    pinitial=claw.frames[0].state.q[0,:,:,:].reshape(-1)
-    pmiddle  =claw.frames[3].state.q[0,:,:,:].reshape(-1)
-    pfinal  =claw.frames[claw.num_output_times].state.q[0,:,:,:].reshape(-1)
+    if pinitial != None and pmiddle != None and pfinal != None:
+        pinitial =pinitial[0,:,:,:].reshape(-1)
+        pmiddle  =pmiddle[0,:,:,:].reshape(-1)
+        pfinal   =pfinal[0,:,:,:].reshape(-1)
+        final_difference =np.prod(grid.delta)*np.linalg.norm(pfinal-pinitial,ord=1)
+        middle_difference=np.prod(grid.delta)*np.linalg.norm(pmiddle-pinitial,ord=1)
 
-    #import matplotlib.pyplot as plt
-    #for i in range(claw.num_output_times):
-    #    plt.pcolor(claw.frames[i].state.q[0,:,:,mz/2])
-    #    plt.figure()
-    #plt.show()
+        if app == None:
+            print 'Final error: ', final_difference
+            print 'Middle error: ', middle_difference
 
-    final_difference =np.prod(grid.delta)*np.linalg.norm(pfinal-pinitial,ord=1)
-    middle_difference=np.prod(grid.delta)*np.linalg.norm(pmiddle-pinitial,ord=1)
+        #import matplotlib.pyplot as plt
+        #for i in range(claw.num_output_times):
+        #    plt.pcolor(claw.frames[i].state.q[0,:,:,mz/2])
+        #    plt.figure()
+        #plt.show()
 
-    if app == None:
-        print 'Final error: ', final_difference
-        print 'Middle error: ', middle_difference
+        return pfinal, final_difference
 
-    return pfinal, final_difference
+    else:
+        
+        return
 
 if __name__=="__main__":
     import sys

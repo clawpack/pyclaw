@@ -10,11 +10,20 @@ def test_1d_acoustics():
         def acoustics_verify(claw):
             from clawpack.pyclaw.util import check_diff
             import numpy as np
-            q0=claw.frames[0].state.q.reshape([-1])
-            qfinal=claw.frames[claw.num_output_times].state.q.reshape([-1])
-            dx=claw.solution.domain.grid.delta[0]
-            test = dx*np.sum(np.abs(qfinal-q0))
-            return check_diff(expected, test, abstol=1e-5)
+
+            # tests are done across the entire domain of q normally
+            q0=claw.frames[0].state.get_q_global()
+            qfinal=claw.frames[claw.num_output_times].state.get_q_global()
+
+            # and q_global is only returned on process 0
+            if q0 != None and qfinal != None:
+                q0 = q0.reshape([-1])
+                qfinal = qfinal.reshape([-1])
+                dx=claw.solution.domain.grid.delta[0]
+                test = dx*np.sum(np.abs(qfinal-q0))
+                return check_diff(expected, test, abstol=1e-5)
+            else:
+                return
         return acoustics_verify
 
     from clawpack.pyclaw.util import gen_variants

@@ -247,6 +247,11 @@ class State(object):
         shape.extend(self.grid.num_cells)
         return np.empty(shape,order='F')
 
+    def get_q_global(self):
+        r"""
+        Returns a copy of the global q array
+        """
+        return self.q.copy()
 
 if __name__ == "__main__":
     import doctest

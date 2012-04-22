@@ -205,10 +205,7 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
     if htmlplot:  pyclaw.plot.html_plot(file_format=claw.output_format)
     if iplot:     pyclaw.plot.interactive_plot(file_format=claw.output_format)
 
-    density=claw.frames[claw.num_output_times].state.q[0,:,:]
-    return density
-
-
+    return claw.frames[claw.num_output_times].state
 
 if __name__=="__main__":
     from pyclaw.util import run_app_from_main
