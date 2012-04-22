@@ -14,8 +14,8 @@ import sys
 import os
 import copy
 
-from pyclaw.solver import Solver
-from pyclaw.util import FrameCounter
+from .solver import Solver
+from .util import FrameCounter
 
 class Controller(object):
     r"""Controller for pyclaw simulation runs and plotting
@@ -26,7 +26,7 @@ class Controller(object):
     
     :Examples:
 
-        >>> import pyclaw
+        >>> import clawpack.pyclaw as pyclaw
         >>> x = pyclaw.Dimension('x',0.,1.,100)
         >>> domain = pyclaw.Domain((x))
         >>> state = pyclaw.State(domain,3,2)

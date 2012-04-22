@@ -1,6 +1,6 @@
-import pyclaw.state
+import clawpack.pyclaw
 
-class State(pyclaw.state.State):
+class State(clawpack.pyclaw.State):
     r"""  See the corresponding PyClaw class documentation."""
 
     @property
@@ -129,14 +129,15 @@ class State(pyclaw.state.State):
         :attributes:
         patch - The patch this state lives on
         """
-        import petclaw.geometry
-        if isinstance(geom,petclaw.geometry.Patch):
+
+        from clawpack.pyclaw import geometry
+        if isinstance(geom,geometry.Patch):
             self.patch = geom
-        elif isinstance(geom,petclaw.geometry.Domain):
+        elif isinstance(geom,geometry.Domain):
             self.patch = geom.patches[0]
         else:
             raise Exception("""A PetClaw State object must be initialized with
-                             a PetClaw Patch object.""")
+                             a PyClaw Patch or Domain object.""")
 
         self.aux_da = None
         self.q_da = None

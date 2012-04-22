@@ -17,8 +17,8 @@ Module containing all Pyclaw solution objects
 import os
 import logging
 
-from pyclaw.geometry import Patch, Dimension, Domain
-from pyclaw.state import State
+from .geometry import Patch, Dimension, Domain
+from .state import State
 import io
 
 # ============================================================================
@@ -71,7 +71,7 @@ class Solution(object):
     
     :Examples:
 
-        >>> import pyclaw
+        >>> import clawpack.pyclaw as pyclaw
         >>> x = pyclaw.Dimension('x',0.,1.,100)
         >>> domain = pyclaw.Domain((x))
         >>> state = pyclaw.State(domain,3,2)
@@ -164,6 +164,12 @@ class Solution(object):
         
         See :class:`Solution` for more info.
         """
+
+        # select package to build solver objects from, by default this will be
+        # the package that contains the module implementing the derived class
+        # for example, if Solution is implemented in 'clawpack.petclaw.solution', then 
+        # the computed claw_package will be 'clawpack.petclaw'
+
         import sys
         if 'claw_package' in kargs.keys():
             claw_package = kargs['claw_package']
@@ -173,7 +179,8 @@ class Solution(object):
         if claw_package is not None and claw_package in sys.modules:
             self.claw_package = sys.modules[claw_package]
         else:
-            claw_package_name = self.__module__[0:self.__module__.find('.')]
+            def get_clawpack_dot_xxx(modname): return modname.rpartition('.')[0]
+            claw_package_name = get_clawpack_dot_xxx(self.__module__)
             if claw_package_name in sys.modules:
                 self.claw_package = sys.modules[claw_package_name]
             else:

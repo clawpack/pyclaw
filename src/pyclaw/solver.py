@@ -160,14 +160,15 @@ class Solver(object):
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
-        # for example, if ClawSolver1D is implemented in 'petclaw.solver', then
-        # the computed claw_package will be 'petclaw'
+        # for example, if ClawSolver1D is implemented in 'clawpack.petclaw.solver', then 
+        # the computed claw_package will be 'clawpack.petclaw'
         
         import sys
         if claw_package is not None and claw_package in sys.modules:
             self.claw_package = sys.modules[claw_package]
         else:
-            claw_package_name = self.__module__[0:self.__module__.find('.')]
+            def get_clawpack_dot_xxx(modname): return modname.rpartition('.')[0].rpartition('.')[0]
+            claw_package_name = get_clawpack_dot_xxx(self.__module__)
             if claw_package_name in sys.modules:
                 self.claw_package = sys.modules[claw_package_name]
             else:

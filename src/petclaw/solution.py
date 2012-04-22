@@ -1,4 +1,4 @@
-import pyclaw.solution
+from clawpack.pyclaw.solution import Solution
 
-class Solution(pyclaw.solution.Solution):
+class Solution(Solution):
     "Dummy class"
