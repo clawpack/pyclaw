@@ -257,7 +257,7 @@ class Controller(object):
 
         self.write_F('w')
 
-        logging.info("Solution %s computed for time t=%f" % 
+        self.log_info("Solution %s computed for time t=%f" % 
                         (frame,self.solution.t) )
 
         for t in output_times[1:]:                
@@ -288,7 +288,7 @@ class Controller(object):
                                             self.output_options)
             self.write_F()
 
-            logging.info("Solution %s computed for time t=%f"
+            self.log_info("Solution %s computed for time t=%f"
                 % (frame,self.solution.t))
             for gfile in self.solution.state.grid.gauge_files: 
                 gfile.flush()
@@ -315,6 +315,10 @@ class Controller(object):
     
     def is_proc_0(self):
         return True
+
+    def log_info(self, str):
+        import logging
+        logging.info(str)
 
 if __name__ == "__main__":
     import doctest
