@@ -41,8 +41,7 @@ def plot(setplot_path=None,outdir="./_output",plotdir=None,htmlplot=False,iplot=
         if iplot:
             from visclaw import Iplotclaw
         
-            ip = Iplotclaw.Iplotclaw(setplot=setplot)
-            ip.plotdata.outdir = outdir
+            ip = Iplotclaw.Iplotclaw(setplot=setplot,outdir=outdir)
             ip.plotdata.format = file_format
         
             ip.plotloop()
