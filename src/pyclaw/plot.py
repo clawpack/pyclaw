@@ -4,7 +4,7 @@ import os
 import sys
 import types
 
-def plot(setplot_path=None,outdir="./_output",plotdir=None,htmlplot=False,iplot=False,
+def plot(setplot_path=None,outdir="./_output",plotdir=None,htmlplot=False,iplot=True,
          file_format='ascii',**plot_kargs):
     r""""""
     
