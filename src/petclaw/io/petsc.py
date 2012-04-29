@@ -206,7 +206,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         n       = patch_dict['num_cells']
         d       = patch_dict['delta']
 
-        import petclaw
+        from clawpack import petclaw
         dimensions = []
         for i in xrange(num_dim):
             dimensions.append(

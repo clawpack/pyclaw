@@ -75,7 +75,7 @@ def acoustics2D(iplot=False,kernel_language='Fortran',htmlplot=False,use_petsc=F
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,file_format=claw.output_format)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,file_format=claw.output_format)
 
-    return claw.frames[claw.num_output_times].state
+    return claw.frames[-1].state
 
 def qinit(state,width=0.2):
     

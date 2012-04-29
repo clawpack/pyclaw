@@ -375,7 +375,7 @@ class Solution(object):
         """
         
         if file_format=='petsc':
-            from petclaw import io
+            from clawpack.petclaw import io
         path = os.path.expandvars(os.path.expanduser(path))
         read_func = eval('io.read_%s' % file_format)
         if file_prefix is None:

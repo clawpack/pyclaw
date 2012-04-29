@@ -4,7 +4,7 @@ def interactive_plot(outdir='./_output',file_format='ascii'):
     """
     Convenience function for launching an interactive plotting session.
     """
-    from visclaw import Iplotclaw
+    from clawpack.visclaw import Iplotclaw
     ip=Iplotclaw.Iplotclaw()
     ip.plotdata.outdir=outdir
     ip.plotdata.format=file_format
@@ -14,5 +14,5 @@ def html_plot(outdir='./_output',file_format='ascii'):
     """
     Convenience function for creating html page with plots.
     """
-    from visclaw import plotclaw
+    from clawpack.visclaw import plotclaw
     plotclaw.plotclaw(outdir,format=file_format)
