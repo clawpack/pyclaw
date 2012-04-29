@@ -27,7 +27,7 @@ class State(object):
  
     To instantiate a State, we first need a patch:
 
-        >>> import pyclaw
+        >>> from clawpack import pyclaw
         >>> x = pyclaw.Dimension('x',0.,1.,100)
         >>> patch = pyclaw.Patch((x))
 

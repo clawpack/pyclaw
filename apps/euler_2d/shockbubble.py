@@ -208,5 +208,5 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
     return claw.frames[claw.num_output_times].state
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(shockbubble)

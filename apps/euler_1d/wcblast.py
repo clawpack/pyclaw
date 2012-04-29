@@ -14,16 +14,16 @@ def wcblast(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver
     """
 
     if use_petsc:
-        import petclaw as pyclaw
+        import clawpack.petclaw as pyclaw
     else:
-        import pyclaw
+        from clawpack import pyclaw
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D()
     else:
         solver = pyclaw.ClawSolver1D()
 
-    import riemann
+    from clawpack import riemann
     solver.rp = riemann.rp1_euler_with_efix
 
     solver.num_waves = 3
@@ -63,5 +63,5 @@ def wcblast(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver
     return claw.solution.q
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(wcblast)

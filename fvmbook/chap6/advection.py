@@ -19,7 +19,7 @@ def fig_61_62_63(kernel_language='Python',iplot=False,htmlplot=False,solver_type
     For Figure 6.3, set IC='wavepacket' and other options as appropriate.
     """
     import numpy as np
-    import pyclaw
+    from clawpack import pyclaw
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D()
@@ -27,7 +27,7 @@ def fig_61_62_63(kernel_language='Python',iplot=False,htmlplot=False,solver_type
         solver = pyclaw.ClawSolver1D()
 
     solver.kernel_language = kernel_language
-    from riemann import rp_advection
+    from clawpack.riemann import rp_advection
     solver.num_waves = rp_advection.num_waves
     if solver.kernel_language=='Python': 
         solver.rp = rp_advection.rp_advection_1d
@@ -64,5 +64,5 @@ def fig_61_62_63(kernel_language='Python',iplot=False,htmlplot=False,solver_type
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(fig_61_62_63)

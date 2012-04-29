@@ -14,7 +14,7 @@ written by pyclaw.
 """
 
 # Import some libraries
-import pyclaw
+from clawpack import pyclaw
 import shallow_4_Rossby_Haurwitz_wave as rh
 import numpy as np
 
@@ -133,6 +133,6 @@ def contourLineSphere(fileName='fort.q0000',path='./_output'):
 
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(contourLineSphere)
     print 'Error: ',output

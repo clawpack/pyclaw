@@ -182,7 +182,7 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
         solver.limiters = [4,4,4,4,2]
         solver.step_source=step_Euler_radial
 
-    import riemann
+    from clawpack import riemann
     solver.rp = riemann.rp2_euler_5wave
     solver.num_waves = 5
     solver.bc_lower[0]=pyclaw.BC.custom
@@ -229,5 +229,5 @@ def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',so
     return claw.solution.q
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(shockbubble)

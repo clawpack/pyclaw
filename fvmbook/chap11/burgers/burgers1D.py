@@ -8,7 +8,7 @@ def burgers(iplot=1,htmlplot=0,outdir='./_output'):
     """
     import numpy as np
 
-    import pyclaw
+    from clawpack import pyclaw
 
     solver = pyclaw.ClawSolver1D()
 
@@ -47,5 +47,5 @@ def burgers(iplot=1,htmlplot=0,outdir='./_output'):
 
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(burgers)

@@ -32,7 +32,7 @@ class Solver(object):
 
     A Solver is typically instantiated as follows::
 
-        >>> import pyclaw
+        >>> from clawpack import pyclaw
         >>> solver = pyclaw.ClawSolver2D()
 
     After which solver options may be set.  It is always necessary to set
@@ -206,7 +206,7 @@ class Solver(object):
         if riemann_solver is not None:
             self.rp = riemann_solver
             rp_name = riemann_solver.__name__.split('.')[-1]
-            import riemann
+            from clawpack import riemann
             self.num_eqn = riemann.static.num_eqn[rp_name]
             self.num_waves = riemann.static.num_waves[rp_name]
 

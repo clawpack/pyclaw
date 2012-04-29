@@ -9,9 +9,6 @@
 #===========================================================================
 
 import numpy as np
-from petclaw import plot
-#import pdb  # Debugger
-
 
 def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
     x0=0.
@@ -32,9 +29,9 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     import numpy as np
 
     if use_petsc:
-        import petclaw as pyclaw
+        import clawpack.petclaw as pyclaw
     else:
-        import pyclaw
+        from clawpack import pyclaw
 
     #===========================================================================
     # Setup solver and solver parameters
@@ -108,12 +105,12 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     #===========================================================================
     # Plot results
     #===========================================================================
-    if iplot:     plot.interactive_plot(outdir=outdir,format=claw.output_format)
-    if htmlplot:  plot.html_plot(outdir=outdir,format=claw.output_format)
+    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,format=claw.output_format)
+    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,format=claw.output_format)
 
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(shallow2D)
     print 'Error: ', output
 

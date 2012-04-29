@@ -529,5 +529,5 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',iplot=0,html
 
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(shallow_4_Rossby_Haurwitz)
