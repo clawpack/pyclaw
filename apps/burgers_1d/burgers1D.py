@@ -7,6 +7,7 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
     """
 
     import numpy as np
+    from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -24,9 +25,8 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
 
     solver.kernel_language = kernel_language
     if kernel_language=='Python': 
-        solver.set_riemann_solver('burgers')
+        solver.rp = riemann.rp_burgers_1d
     elif kernel_language=='Fortran':
-        from clawpack import riemann
         solver.rp = riemann.rp1_burgers
         
     solver.num_waves = 1
