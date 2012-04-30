@@ -239,7 +239,7 @@ class Solver(object):
                 self.logger.debug('Lower custom BC function has not been set.')
                 valid = False
         if any([bcmeth == BC.custom for bcmeth in self.bc_upper]):
-            if self.user_bc_lower is None:
+            if self.user_bc_upper is None:
                 self.logger.debug('Upper custom BC function has not been set.')
                 valid = False
         return valid
