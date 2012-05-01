@@ -397,6 +397,8 @@ class SharpClawSolver1D(SharpClawSolver):
         import numpy as np
 
         self.apply_q_bcs(state)
+        if state.num_aux > 0:
+            self.apply_aux_bcs(state)
         q = self.qbc 
 
         grid = state.grid
@@ -470,7 +472,8 @@ class SharpClawSolver1D(SharpClawSolver):
                 dq[m,LL:UL] = -dtdx[LL:UL]*(amdq[m,LL:UL] + apdq[m,LL-1:UL-1] \
                                 + apdq2[m,LL:UL] + amdq2[m,LL:UL])
 
-        else: raise Exception('Unrecognized value of solver.kernel_language.')
+        else: 
+            raise Exception('Unrecognized value of solver.kernel_language.')
 
         self.cfl.update_global_max(cfl)
         return dq[:,self.num_ghost:-self.num_ghost]
@@ -536,6 +539,8 @@ class SharpClawSolver2D(SharpClawSolver):
 
         """
         self.apply_q_bcs(state)
+        if state.num_aux > 0:    
+            self.apply_aux_bcs(state)
         q = self.qbc 
 
         grid = state.grid

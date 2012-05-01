@@ -238,7 +238,7 @@ class Solver(object):
                 self.logger.debug('Lower custom BC function has not been set.')
                 valid = False
         if any([bcmeth == BC.custom for bcmeth in self.bc_upper]):
-            if self.user_bc_lower is None:
+            if self.user_bc_upper is None:
                 self.logger.debug('Upper custom BC function has not been set.')
                 valid = False
         return valid
@@ -330,8 +330,8 @@ class Solver(object):
         """
         
         import numpy as np
-
-        self.qbc = state.get_qbc_from_q(self.num_ghost,'q',self.qbc)
+        
+        self.qbc = state.get_qbc_from_q(self.num_ghost,self.qbc)
         grid = state.grid
        
         for idim,dim in enumerate(grid.dimensions):
@@ -470,7 +470,7 @@ class Solver(object):
         
         import numpy as np
 
-        self.auxbc = state.get_qbc_from_q(self.num_ghost,'aux',self.auxbc)
+        self.auxbc = state.get_auxbc_from_aux(self.num_ghost,self.auxbc)
 
         patch = state.patch
        
