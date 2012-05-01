@@ -290,6 +290,8 @@ class ClawSolver1D(ClawSolver):
         grid = state.grid
 
         self.apply_q_bcs(state)
+        if state.num_aux > 0:
+            self.apply_aux_bcs(state)
             
         num_eqn,num_ghost = state.num_eqn,self.num_ghost
           
@@ -383,6 +385,8 @@ class ClawSolver1D(ClawSolver):
 
         self.cfl.update_global_max(cfl)
         state.set_q_from_qbc(num_ghost,self.qbc)
+        if state.num_aux > 0:
+            state.set_aux_from_auxbc(num_ghost,self.auxbc)
    
 
 # ============================================================================
@@ -507,6 +511,8 @@ class ClawSolver2D(ClawSolver):
             maxm = max(mx,my)
             
             self.apply_q_bcs(state)
+            if state.num_aux > 0:
+                self.apply_aux_bcs(state)
             qold = self.qbc.copy('F')
             
             rpn2 = self.rp.rpn2._cpointer
@@ -534,6 +540,8 @@ class ClawSolver2D(ClawSolver):
 
             self.cfl.update_global_max(cfl)
             state.set_q_from_qbc(self.num_ghost,self.qbc)
+            if state.num_aux > 0:
+                state.set_aux_from_auxbc(self.num_ghost,self.auxbc)
 
         else:
             raise NotImplementedError("No python implementation for step_hyperbolic in 2D.")
@@ -649,6 +657,8 @@ class ClawSolver3D(ClawSolver):
             maxm = max(mx,my,mz)
             
             self.apply_q_bcs(state)
+            if state.num_aux > 0:
+                self.apply_aux_bcs(state)
             qnew = self.qbc
             qold = qnew.copy('F')
             
@@ -682,6 +692,8 @@ class ClawSolver3D(ClawSolver):
 
             self.cfl.update_global_max(cfl)
             state.set_q_from_qbc(self.num_ghost,self.qbc)
+            if state.num_aux > 0:
+                state.set_aux_from_auxbc(self.num_ghost,self.auxbc)
 
         else:
             raise NotImplementedError("No python implementation for step_hyperbolic in 3D.")

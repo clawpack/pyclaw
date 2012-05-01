@@ -331,8 +331,8 @@ class Solver(object):
         """
         
         import numpy as np
-
-        self.qbc = state.get_qbc_from_q(self.num_ghost,'q',self.qbc)
+        
+        self.qbc = state.get_qbc_from_q(self.num_ghost,self.qbc)
         grid = state.grid
        
         for idim,dim in enumerate(grid.dimensions):
@@ -471,7 +471,7 @@ class Solver(object):
         
         import numpy as np
 
-        self.auxbc = state.get_qbc_from_q(self.num_ghost,'aux',self.auxbc)
+        self.auxbc = state.get_auxbc_from_aux(self.num_ghost,self.auxbc)
 
         patch = state.patch
        
