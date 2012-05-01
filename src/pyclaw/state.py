@@ -196,26 +196,59 @@ class State(object):
             self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost]
         else:
             raise Exception("Assumption (1 <= num_dim <= 3) violated.")
+            
+    def set_aux_from_auxbc(self,num_ghost,auxbc):
+        """
+        Set the value of aux using the array auxbc. for PetSolver, this
+        involves setting auxbc as the local vector array then perform
+        a local to global communication. 
+        """
+        
+        patch = self.patch
+        if patch.num_dim == 1:
+            self.aux = auxbc[:,num_ghost:-num_ghost]
+        elif patch.num_dim == 2:
+            self.aux = auxbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
+        elif patch.num_dim == 3:
+            self.aux = auxbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost]
+        else:
+            raise Exception("Assumption (1 <= num_dim <= 3) violated.")
 
-    def get_qbc_from_q(self,num_ghost,whichvec,qbc):
+
+    def get_qbc_from_q(self,num_ghost,qbc):
         """
         Fills in the interior of qbc (local vector) by copying q (global vector) to it.
         """
         num_dim = self.patch.num_dim
         
-        if whichvec == 'q':
-            q    = self.q
-        elif whichvec == 'aux':
-            q    = self.aux
-
         if num_dim == 1:
-            qbc[:,num_ghost:-num_ghost] = q
+            qbc[:,num_ghost:-num_ghost] = self.q
         elif num_dim == 2:
-            qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost] = q
+            qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost] = self.q
         elif num_dim == 3:
-            qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost] = q
+            qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost] = self.q
+        else:
+            raise Exception("Assumption (1 <= num_dim <= 3) violated.")
 
         return qbc
+        
+    def get_auxbc_from_aux(self,num_ghost,auxbc):
+        """
+        Fills in the interior of auxbc (local vector) by copying aux (global vector) to it.
+        """
+        num_dim = self.patch.num_dim
+        
+        if num_dim == 1:
+            auxbc[:,num_ghost:-num_ghost] = self.aux
+        elif num_dim == 2:
+            auxbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost] = self.aux
+        elif num_dim == 3:
+            auxbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost] = self.aux
+        else:
+            raise Exception("Assumption (1 <= num_dim <= 3) violated.")
+
+        return auxbc
+        
 
     # ========== Copy functionality ==========================================
     def __copy__(self):
