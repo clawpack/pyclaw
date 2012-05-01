@@ -633,10 +633,11 @@ class Solver(object):
             state = solution.state
             
             # Adjust dt so that we hit tend exactly if we are near tend
-            if solution.t + self.dt > tend and tstart < tend and not take_one_step:
-                self.dt = tend - solution.t 
-            if tend - solution.t - self.dt < 1.e-14:
-                self.dt = tend - solution.t
+            if not take_one_step:
+                if solution.t + self.dt > tend and tstart < tend:
+                    self.dt = tend - solution.t
+                if tend - solution.t - self.dt < 1.e-14:
+                    self.dt = tend - solution.t
 
             # Keep a backup in case we need to retake a time step
             if self.dt_variable:
