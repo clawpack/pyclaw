@@ -282,8 +282,10 @@ class State(clawpack.pyclaw.State):
         Returns a copy of the global q array on process 0, otherwise returns None
         """
         from petsc4py import PETSc
-        scatter, q0Vec = PETSc.Scatter.toZero(self.gqVec)
-        scatter.scatter(self.gqVec, q0Vec, False, PETSc.Scatter.Mode.FORWARD)
+        q_natural = self.q_da.createNaturalVec()
+        self.q_da.globalToNatural(self.gqVec, q_natural)
+        scatter, q0Vec = PETSc.Scatter.toZero(q_natural)
+        scatter.scatter(q_natural, q0Vec, False, PETSc.Scatter.Mode.FORWARD)
         rank = PETSc.COMM_WORLD.getRank()
         if rank == 0:
             shape = self.patch.num_cells_global
