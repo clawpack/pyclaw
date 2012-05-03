@@ -22,8 +22,8 @@ from petclaw.state import State
 from petclaw.cfl import CFL
 
 __all__.extend(['ClawSolver1D','ClawSolver2D','ClawSolver3D','SharpClawSolver1D','SharpClawSolver2D'])
-from petclaw.clawpack.clawpack import ClawSolver1D,ClawSolver2D,ClawSolver3D
-from petclaw.sharpclaw.sharpclaw import SharpClawSolver1D,SharpClawSolver2D
+from petclaw.clawpack.solver import ClawSolver1D,ClawSolver2D,ClawSolver3D
+from petclaw.sharpclaw.solver import SharpClawSolver1D,SharpClawSolver2D
 
 __all__.append('BC')
 from pyclaw.solver import BC
