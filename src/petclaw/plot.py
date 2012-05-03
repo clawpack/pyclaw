@@ -2,7 +2,7 @@ def interactive_plot(outdir='./_output',format='petsc'):
     """
     Convenience function for launching an interactive plotting session.
     """
-    from visclaw import Iplotclaw
+    import clawpack.visclaw.Iplotclaw as Iplotclaw
     ip=Iplotclaw.Iplotclaw()
     ip.plotdata.outdir=outdir
     ip.plotdata.format=format
@@ -12,7 +12,7 @@ def html_plot(outdir='./_output',format='petsc'):
     """
     Convenience function for creating html page with plots.
     """
-    from visclaw import plotclaw
+    import clawpack.visclaw.plotclaw as plotclaw
     plotclaw.plotclaw(outdir,format=format)
 
 def plotPetsc(clawobj,delay=1):
@@ -21,9 +21,9 @@ def plotPetsc(clawobj,delay=1):
     using PETSc.Viewer.
     """
     from petsc4py import PETSc
-    import pyclaw.controller, pyclaw.solution
+    from clawpack.pyclaw import controller, solution
 
-    if isinstance(clawobj,pyclaw.controller.Controller):
+    if isinstance(clawobj,controller.Controller):
         for n in xrange(0,clawobj.num_output_times):
             sol = clawobj.frames[n]
             viewer = PETSc.Viewer.DRAW(sol.patch.gqVec.comm)
@@ -31,7 +31,7 @@ def plotPetsc(clawobj,delay=1):
             OptDB['draw_pause'] = delay
             viewer(sol.patch.gqVec)
 
-    elif isinstance(clawobj,pyclaw.solution.Solution):
+    elif isinstance(clawobj,solution.Solution):
         viewer = PETSc.Viewer.DRAW(clawobj.patch.gqVec.comm)
         OptDB = PETSc.Options()
         OptDB['draw_pause'] = -1

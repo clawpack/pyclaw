@@ -32,7 +32,7 @@ class Solver(object):
 
     A Solver is typically instantiated as follows::
 
-        >>> import pyclaw
+        >>> from clawpack import pyclaw
         >>> solver = pyclaw.ClawSolver2D()
 
     After which solver options may be set.  It is always necessary to set
@@ -160,14 +160,15 @@ class Solver(object):
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
-        # for example, if ClawSolver1D is implemented in 'petclaw.solver', then
-        # the computed claw_package will be 'petclaw'
+        # for example, if ClawSolver1D is implemented in 'clawpack.petclaw.solver', then 
+        # the computed claw_package will be 'clawpack.petclaw'
         
         import sys
         if claw_package is not None and claw_package in sys.modules:
             self.claw_package = sys.modules[claw_package]
         else:
-            claw_package_name = self.__module__[0:self.__module__.find('.')]
+            def get_clawpack_dot_xxx(modname): return modname.rpartition('.')[0].rpartition('.')[0]
+            claw_package_name = get_clawpack_dot_xxx(self.__module__)
             if claw_package_name in sys.modules:
                 self.claw_package = sys.modules[claw_package_name]
             else:
@@ -205,7 +206,7 @@ class Solver(object):
         if riemann_solver is not None:
             self.rp = riemann_solver
             rp_name = riemann_solver.__name__.split('.')[-1]
-            import riemann
+            from clawpack import riemann
             self.num_eqn = riemann.static.num_eqn[rp_name]
             self.num_waves = riemann.static.num_waves[rp_name]
 

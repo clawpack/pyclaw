@@ -18,7 +18,7 @@ def setplot(plotdata):
     """ 
 
 
-    from visclaw import colormaps
+    from clawpack.visclaw import colormaps
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
     

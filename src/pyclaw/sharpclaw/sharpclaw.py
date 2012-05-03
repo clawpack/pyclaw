@@ -6,15 +6,15 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 #  Author:      David Ketcheson
 """
 # Solver superclass
-from pyclaw.solver import Solver, CFLError
+from ..solver import Solver, CFLError
 
 # Reconstructor
 try:
     # load c-based WENO reconstructor (PyWENO)
-    from pyclaw.limiters import reconstruct as recon
+    from ..limiters import reconstruct as recon
 except ImportError:
     # load old WENO5 reconstructor
-    from pyclaw.limiters import recon
+    from ..limiters import recon
 
 
 def before_step(solver,solution):

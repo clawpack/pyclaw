@@ -122,9 +122,9 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
     Solve the p-system in 2D with variable coefficients
     """
     if use_petsc:
-        import petclaw as pyclaw
+        import clawpack.petclaw as pyclaw
     else:
-        import pyclaw
+        from clawpack import pyclaw
 
     ####################################
     ######### MAIN PARAMETERS ##########
@@ -154,7 +154,7 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
     restart_from_frame = None
     solver = pyclaw.ClawSolver2D()
     #solver = pyclaw.SharpClawSolver2D()
-    import riemann
+    from clawpack import riemann
 
     solver.rp = riemann.rp2_psystem
 
@@ -231,5 +231,5 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
     if htmlplot: pyclaw.plot.html_plot()
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(psystem2D)

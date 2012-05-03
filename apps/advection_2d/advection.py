@@ -33,9 +33,9 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
     # Import libraries
     #===========================================================================
     if use_petsc:
-        import petclaw as pyclaw
+        import clawpack.petclaw as pyclaw
     else:
-        import pyclaw
+        from clawpack import pyclaw
 
     #===========================================================================
     # Setup solver and solver parameters
@@ -47,7 +47,7 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
     elif solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
 
-    import riemann
+    from clawpack import riemann
     solver.rp = riemann.rp2_advection
 
     solver.bc_lower[0] = pyclaw.BC.periodic
@@ -104,5 +104,5 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
 
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(advection2D)

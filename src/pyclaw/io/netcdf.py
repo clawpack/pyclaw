@@ -31,7 +31,7 @@ To install the netCDF 4 library, please see:
 import os,sys
 import logging
 
-import pyclaw.solution
+import clawpack.pyclaw.solution
 
 logger = logging.getLogger('io')
 
