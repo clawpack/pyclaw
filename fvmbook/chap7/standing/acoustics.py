@@ -12,9 +12,9 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     # Import the appropriate classes, depending on the options passed
     #=================================================================
     if use_petsc:
-        import petclaw as pyclaw
+        import clawpack.petclaw as pyclaw
     else:
-        import pyclaw
+        from clawpack import pyclaw
 
     if solver_type=='classic':
         solver = pyclaw.ClawSolver1D()
@@ -27,7 +27,7 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     # Instantiate the solver and define the system of equations to be solved
     #========================================================================
     solver.kernel_language=kernel_language
-    from riemann import rp_acoustics
+    from clawpack.riemann import rp_acoustics
     solver.num_waves=rp_acoustics.num_waves
     if kernel_language=='Python': 
         solver.rp = rp_acoustics.rp_acoustics_1d
@@ -82,5 +82,5 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(acoustics)

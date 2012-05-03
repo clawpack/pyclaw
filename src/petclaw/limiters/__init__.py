@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-__init__.py
+limiters
 
-Created by Kyle Mandli on 2008-08-21.
-Copyright (c) 2008 University of Washington. All rights reserved.
+The PetClaw limiters all inherit from PyClaw limiters.
 """
 
 # This __init__ script only imports common utilities, most of the import 
 # should be done depending on the solver needed
 
-from riemann import *
+from clawpack.riemann import *
 
 __all__ = ['tvd']
-from pyclaw.limiters import tvd
+from clawpack.pyclaw.limiters import tvd
 

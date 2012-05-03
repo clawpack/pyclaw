@@ -11,9 +11,9 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     """
 
     if use_petsc:
-        import petclaw as pyclaw
+        import clawpack.petclaw as pyclaw
     else:
-        import pyclaw
+        from clawpack import pyclaw
 
     if solver_type=='classic':
         solver=pyclaw.ClawSolver2D()
@@ -22,7 +22,7 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
     elif solver_type=='sharpclaw':
         solver=pyclaw.SharpClawSolver2D()
 
-    import riemann
+    from clawpack import riemann
     solver.rp = riemann.rp2_vc_acoustics
 
     solver.num_waves = 2
@@ -91,5 +91,5 @@ def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
 
 if __name__=="__main__":
     import sys
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(acoustics2D)

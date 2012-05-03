@@ -38,16 +38,16 @@ def auxinit(state):
 def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',iplot=False,htmlplot=False,outdir='./_output'):
 
     if use_petsc:
-        import petclaw as pyclaw
+        import clawpack.petclaw as pyclaw
     else:
-        import pyclaw
+        from clawpack import pyclaw
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D()
     else:
         solver = pyclaw.ClawSolver1D()
 
-    import riemann
+    from clawpack import riemann
     solver.num_waves = riemann.rp_vc_advection.num_waves
 
     solver.kernel_language = kernel_language
@@ -84,5 +84,5 @@ def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(vc_advection)

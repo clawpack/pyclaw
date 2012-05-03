@@ -5,9 +5,6 @@
 # Import libraries
 #===========================================================================
 import numpy as np
-from petsc4py import PETSc
-import petclaw
-
 
 def mapc2p_annulus(grid,mC):
     """
@@ -186,9 +183,9 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     # Import libraries
     #===========================================================================
     if use_petsc:
-        import petclaw as pyclaw
+        import clawpack.petclaw as pyclaw
     else:
-        import pyclaw
+        from clawpack import pyclaw
 
     #===========================================================================
     # Setup solver and solver parameters
@@ -201,7 +198,7 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
 
-    import riemann
+    from clawpack import riemann
     solver.rp = riemann.rp2_vc_advection
     solver.num_waves = 1
 
@@ -282,7 +279,7 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
 
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(advection_annulus)
     print 'Error: ',output
 

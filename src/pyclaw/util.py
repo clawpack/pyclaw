@@ -50,6 +50,91 @@ def run_app_from_main(application):
     output=application(**app_kwargs)
     return output
 
+class VerifyError(Exception):
+    pass
+
+def gen_variants(application, verifier, python_kernel, **kwargs):
+
+    arg_dicts = build_variant_arg_dicts(python_kernel)
+    
+    for test_kwargs in arg_dicts:
+        test_kwargs.update(kwargs)
+        yield (test_app, application, verifier, test_kwargs)
+    return
+
+def build_variant_arg_dicts(python_kernel):
+    import itertools
+
+    # only test petsc4py if it is available
+    try:
+        import petsc4py
+        use_petsc_opts=(True,False)
+    except Exception as err:
+        use_petsc_opts = (False,)
+
+    kernel_opts = ('Python','Fortran') if python_kernel else ('Fortran',)
+    opt_names = 'use_petsc','kernel_language'
+    opt_product = itertools.product(use_petsc_opts,kernel_opts)
+    arg_dicts = [dict(zip(opt_names,argset)) for argset in opt_product]
+
+    return arg_dicts
+
+def test_app_variants(application, verifier, python_kernel, **kwargs):
+
+    arg_dicts = build_variant_arg_dicts(python_kernel)
+
+    for test_kwargs in arg_dicts:
+        test_kwargs.update(kwargs)
+        test_app(application, verifier, test_kwargs)
+    return
+
+def test_app(application, verifier, kwargs):
+    print kwargs
+
+    if 'use_petsc' in kwargs and not kwargs['use_petsc']:
+        try:
+            # don't duplicate serial test runs
+            from petsc4py import PETSc
+            rank = PETSc.COMM_WORLD.getRank()
+            if rank != 0:
+                return
+        except ImportError, e:
+            pass
+    
+    output = application(**kwargs)
+    check_values = verifier(output)
+    
+    if check_values is not None:
+        import inspect
+        err = \
+        """%s
+********************************************************************************
+verification function
+%s
+args    : %s
+expected: %s
+test    : %s
+%s
+********************************************************************************
+""" % \
+        (inspect.getsourcefile(application),
+         inspect.getsource(verifier),
+         kwargs,
+         check_values[0],
+         check_values[1],
+         check_values[2])
+        raise VerifyError(err)
+    return
+
+def check_diff(expected, test, **kwargs):
+
+    if 'abstol' in kwargs:
+        if abs(expected - test) < kwargs['abstol']: return None
+        else: return (expected, test, 'abstol  : %s' % kwargs['abstol'])
+    if 'reltol' in kwargs:
+        if abs((expected - test)/expected) < kwargs['reltol']: return None
+        else: return (expected, test, 'reltol  : %s' % kwargs['reltol'])
+        
 # ============================================================================
 #  F2PY Utility Functions
 # ============================================================================

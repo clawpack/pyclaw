@@ -13,9 +13,9 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     import numpy as np
 
     if use_petsc:
-        import petclaw as pyclaw
+        import clawpack.petclaw as pyclaw
     else:
-        import pyclaw
+        from clawpack import pyclaw
 
     if solver_type == 'classic':
         solver = pyclaw.ClawSolver1D()
@@ -33,7 +33,7 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
         solver.problem_data['g'] = 1.0
         solver.problem_data['efix'] = False
     elif kernel_language == 'Fortran':
-        import riemann
+        from clawpack import riemann
         solver.rp = riemann.rp1_shallow_roe_with_efix
 
     solver.bc_lower[0] = pyclaw.BC.extrap
@@ -101,7 +101,7 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
 
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(shallow1D)
     
 

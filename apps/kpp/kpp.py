@@ -18,16 +18,16 @@ def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_typ
     """
 
     if use_petsc:
-        import petclaw as pyclaw
+        import clawpack.petclaw as pyclaw
     else:
-        import pyclaw
+        from clawpack import pyclaw
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
     else:
         solver = pyclaw.ClawSolver2D()
 
-    import riemann
+    from clawpack import riemann
     solver.rp = riemann.rp2_kpp
 
     solver.num_waves = 1
@@ -66,5 +66,5 @@ def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_typ
 
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(kpp)

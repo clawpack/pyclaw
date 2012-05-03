@@ -28,7 +28,7 @@ To install either, you must also install the hdf5 library from the website:
 import os
 import logging
 
-import pyclaw.solution
+import clawpack.pyclaw.solution
 
 logger = logging.getLogger('io')
 

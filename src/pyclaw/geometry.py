@@ -46,7 +46,7 @@ class Grid(object):
 
     A PyClaw grid is usually constructed from a tuple of PyClaw Dimension objects:
 
-	>>> from pyclaw.geometry import Dimension, Grid      
+	>>> from clawpack.pyclaw.geometry import Dimension, Grid      
 	>>> x = Dimension('x',0.,1.,10)
         >>> y = Dimension('y',-1.,1.,25)
         >>> grid = Grid((x,y))
@@ -393,7 +393,7 @@ class Dimension(object):
 
     Example:
 
-    >>> from pyclaw.geometry import Dimension
+    >>> from clawpack.pyclaw.geometry import Dimension
     >>> x = Dimension('x',0.,1.,100)
     >>> print x
     Dimension x:  (num_cells,delta,[lower,upper]) = (100,0.01,[0.0,1.0])
