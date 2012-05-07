@@ -56,10 +56,7 @@ Installing pip
 +++++++++++++++++++++++++++++++++++++++++++++++
 
 There are instructions for installing pip at `the pip homepage
-<http://www.pip-installer.org/en/latest/installing.html>`_.  See `this question
-on StackOverflow about properly installing virtualenv and pip without
-administrative
-privileges`<http://stackoverflow.com/questions/4324558/whats-the-proper-way-to-install-pip-virtualenv-and-distribute-for-python>`_if you would liketo keep your software environment "sandboxed".
+<http://www.pip-installer.org/en/latest/installing.html>`_.  See `this question on StackOverflow about properly installing virtualenv and pip without administrative privileges <http://stackoverflow.com/questions/4324558/whats-the-proper-way-to-install-pip-virtualenv-and-distribute-for-python>`_ if you would liketo keep your software environment "sandboxed".
 
 Obtaining Python and its dependencies
 +++++++++++++++++++++++++++++++++++++++++++++++

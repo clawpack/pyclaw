@@ -8,11 +8,11 @@ PETSc library.
 Running your PyClaw script in parallel is usually very easy; it mainly consists of
 replacing::
 
-    import pyclaw
+    from clawpack import pyclaw
 
 with::
     
-    import petclaw as pyclaw
+    import clawpack.petclaw as pyclaw
 
 
 Also, most of the provided scripts in `pyclaw/apps` are set up to run in parallel
@@ -160,8 +160,8 @@ it is not instantiated as a parallel object.  A typical code excerpt looks like
 
 .. doctest::
 
-    >>> import petclaw as pyclaw # doctest: +SKIP
-    >>> import pyclaw
+    >>> import clawpack.petclaw as pyclaw # doctest: +SKIP
+    >>> from clawpack import pyclaw
     >>> mx = 320; my = 80
     >>> x = pyclaw.Dimension('x',0.0,2.0,mx)
     >>> y = pyclaw.Dimension('y',0.0,0.5,my)

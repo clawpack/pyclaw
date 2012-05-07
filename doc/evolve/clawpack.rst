@@ -14,7 +14,7 @@ Clawpack solvers.  Please refer to each of the inherited classes for more info
 about the methods and attributes they provide each class.  The inheritance
 structure is:
 
-.. inheritance-diagram:: pyclaw.clawpack.clawpack.ClawSolver1D pyclaw.clawpack.clawpack.ClawSolver2D
+.. inheritance-diagram:: clawpack.pyclaw.classic.clawpack.ClawSolver1D clawpack.pyclaw.classic.clawpack.ClawSolver2D
 
 :Example:
 
@@ -23,7 +23,7 @@ structure is:
     
 .. doctest::
 
-    >>> import pyclaw
+    >>> from clawpack import pyclaw
     >>> solver = pyclaw.ClawSolver1D()                   # Instantiate a default, 1d solver
     >>> solver.set_mthlim = pyclaw.limiters.tvd.vanleer  # Use the van Leer limiter
     >>> solver.dt = 0.0001                               # Set the initial time step
@@ -37,6 +37,6 @@ structure is:
 :mod:`pyclaw.clawpack`
 =============================
 
-.. automodule:: pyclaw.clawpack
+.. automodule:: clawpack.pyclaw.classic
    :members:
    :show-inheritance:

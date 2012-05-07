@@ -76,7 +76,7 @@ List of available Riemann solvers:
 :mod:`Acoustics <riemann.rp_acoustics>`
 ================================================
 
-.. automodule:: riemann.rp_acoustics
+.. automodule:: clawpack.riemann.rp_acoustics
    :members:
    
 .. _Advection:
@@ -84,7 +84,7 @@ List of available Riemann solvers:
 :mod:`Advection <riemann.rp_advection>`
 ================================================
 
-.. automodule:: riemann.rp_advection
+.. automodule:: clawpack.riemann.rp_advection
    :members:
    
 .. _`Burgers Equation`:
@@ -92,7 +92,7 @@ List of available Riemann solvers:
 :mod:`Burgers Equation <riemann.rp_burgers>`
 =====================================================
 
-.. automodule:: riemann.rp_burgers
+.. automodule:: clawpack.riemann.rp_burgers
    :members:
    
 .. _`Euler Equations`:
@@ -100,7 +100,7 @@ List of available Riemann solvers:
 :mod:`Euler Equations <riemann.rp_euler>`
 ==================================================
 
-.. automodule:: riemann.rp_euler
+.. automodule:: clawpack.riemann.rp_euler
    :members:
    
 .. _`Shallow Water Equations`:
@@ -108,7 +108,7 @@ List of available Riemann solvers:
 :mod:`Shallow Water Equations <riemann.rp_shallow>`
 ============================================================
 
-.. automodule:: riemann.rp_shallow
+.. automodule:: clawpack.riemann.rp_shallow
     :member-order: groupwise
     :members:
    
