@@ -7,9 +7,9 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
     import numpy as np
 
     if use_petsc:
-        import petclaw as pyclaw
+        import clawpack.petclaw as pyclaw
     else:
-        import pyclaw
+        from clawpack import pyclaw
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D()
@@ -17,12 +17,12 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
         solver = pyclaw.ClawSolver1D()
 
     solver.kernel_language = kernel_language
-    from riemann import rp_advection
+    from clawpack.riemann import rp_advection
     solver.num_waves = rp_advection.num_waves
     if solver.kernel_language=='Python': 
         solver.rp = rp_advection.rp_advection_1d
     else:
-        import riemann
+        from clawpack import riemann
         solver.rp = riemann.rp1_advection
 
     solver.bc_lower[0] = 2
@@ -51,5 +51,5 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(advection)

@@ -6,15 +6,15 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 #  Author:      David Ketcheson
 """
 # Solver superclass
-from pyclaw.solver import Solver, CFLError
+from ..solver import Solver, CFLError
 
 # Reconstructor
 try:
     # load c-based WENO reconstructor (PyWENO)
-    from pyclaw.limiters import reconstruct as recon
+    from ..limiters import reconstruct as recon
 except ImportError:
     # load old WENO5 reconstructor
-    from pyclaw.limiters import recon
+    from ..limiters import recon
 
 
 def before_step(solver,solution):
@@ -118,7 +118,7 @@ class SharpClawSolver(Solver):
     # ========================================================================
     #   Initialization routines
     # ========================================================================
-    def __init__(self):
+    def __init__(self,riemann_solver=None,claw_package=None):
         r"""
         Set default options for SharpClawSolvers and call the super's __init__().
         """
@@ -141,7 +141,7 @@ class SharpClawSolver(Solver):
         self._rk_stages = None
 
         # Call general initialization function
-        super(SharpClawSolver,self).__init__()
+        super(SharpClawSolver,self).__init__(riemann_solver,claw_package)
         
     def setup(self,solution):
         """
@@ -342,12 +342,12 @@ class SharpClawSolver1D(SharpClawSolver):
     Used to solve 1D hyperbolic systems using the SharpClaw algorithms,
     which are based on WENO reconstruction and Runge-Kutta time stepping.
     """
-    def __init__(self):
+    def __init__(self,riemann_solver=None,claw_package=None):
         r"""
         See :class:`SharpClawSolver1D` for more info.
         """   
         self.num_dim = 1
-        super(SharpClawSolver1D,self).__init__()
+        super(SharpClawSolver1D,self).__init__(riemann_solver,claw_package)
 
 
     def teardown(self):
@@ -482,7 +482,7 @@ class SharpClawSolver2D(SharpClawSolver):
     This class represents the 2D SharpClaw solver.  Note that there are 
     routines here for interfacing with the fortran time stepping routines only.
     """
-    def __init__(self):
+    def __init__(self,riemann_solver=None,claw_package=None):
         r"""
         Create 2D SharpClaw solver
         
@@ -490,7 +490,7 @@ class SharpClawSolver2D(SharpClawSolver):
         """   
         self.num_dim = 2
 
-        super(SharpClawSolver2D,self).__init__()
+        super(SharpClawSolver2D,self).__init__(riemann_solver,claw_package)
 
 
     def teardown(self):

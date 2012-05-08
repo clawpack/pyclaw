@@ -4,7 +4,7 @@
 def fig_31_38(kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False,outdir='./_output'):
     r"""Produces the output shown in Figures 3.1 and 3.8 of the FVM book.
     These involve simple waves in the acoustics system."""
-    import pyclaw
+    from clawpack import pyclaw
     import numpy as np
 
     #=================================================================
@@ -20,7 +20,7 @@ def fig_31_38(kernel_language='Fortran',solver_type='classic',iplot=False,htmlpl
     # Instantiate the solver and define the system of equations to be solved
     #========================================================================
     solver.kernel_language=kernel_language
-    from riemann import rp_acoustics
+    from clawpack.riemann import rp_acoustics
     solver.num_waves=rp_acoustics.num_waves
     if kernel_language=='Python': 
         solver.rp = rp_acoustics.rp_acoustics_1d
@@ -73,5 +73,5 @@ def fig_31_38(kernel_language='Fortran',solver_type='classic',iplot=False,htmlpl
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(fig_31_38)

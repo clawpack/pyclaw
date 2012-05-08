@@ -17,8 +17,7 @@ Routines for reading and writing an ascii output file
 import os,sys
 import logging
 
-from pyclaw.util import read_data_line
-import pyclaw.solution
+from ..util import read_data_line
 
 logger = logging.getLogger('io')
 
@@ -227,6 +226,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
             # the assumed dimensions x,y,z
             names = ['x','y','z']
             dimensions = []
+            import clawpack.pyclaw as pyclaw
             for i in xrange(num_dim):
                 dimensions.append(
                     pyclaw.geometry.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))

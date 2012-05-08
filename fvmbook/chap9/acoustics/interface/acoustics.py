@@ -8,7 +8,7 @@ def acoustics(solver_type='classic',iplot=True,htmlplot=False,outdir='./_output'
     """
     from numpy import sqrt, abs
 
-    import pyclaw
+    from clawpack import pyclaw
 
     if solver_type=='classic':
         solver = pyclaw.ClawSolver1D()
@@ -64,5 +64,5 @@ def acoustics(solver_type='classic',iplot=True,htmlplot=False,outdir='./_output'
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(acoustics)

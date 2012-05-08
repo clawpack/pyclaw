@@ -19,7 +19,7 @@ def setplot(plotdata):
     """ 
 
 
-    from visclaw import colormaps
+    from clawpack.visclaw import colormaps
     from matplotlib import cm
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
@@ -61,7 +61,7 @@ def setplot(plotdata):
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
     plotitem.pcolor_cmin = 0.
     plotitem.pcolor_cmax=1.0
-    plotitem.plot_var = 4
+    plotitem.plot_var = 3
     plotitem.pcolor_cmap = colormaps.yellow_red_blue
     plotitem.add_colorbar = False
     plotitem.show = True       # show on plot?

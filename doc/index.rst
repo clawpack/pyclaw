@@ -2,16 +2,8 @@
 
 .. note::
 
-    A major change to PyClaw has just been implemented.  If you update from the development
-    repository, you will need to::
-
-    $ cd $PYCLAW/src/pyclaw/clawpack
-    $ make
-    $ cd $PYCLAW/src/pyclaw/sharpclaw
-    $ make
-    $ cd $RIEMANN/src/python/riemann
-    $ make
-
+    The Clawpack developers have switched to an integrated installation procedure that includes PyClaw based on
+    ``setup.py``.  Please go to :ref:`installation` for more details.
 
 ********
 Overview

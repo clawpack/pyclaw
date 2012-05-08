@@ -1,6 +1,6 @@
-import pyclaw.state
+import clawpack.pyclaw
 
-class State(pyclaw.state.State):
+class State(clawpack.pyclaw.State):
     r"""  See the corresponding PyClaw class documentation."""
 
     @property
@@ -129,14 +129,15 @@ class State(pyclaw.state.State):
         :attributes:
         patch - The patch this state lives on
         """
-        import petclaw.geometry
-        if isinstance(geom,petclaw.geometry.Patch):
+
+        from clawpack.pyclaw import geometry
+        if isinstance(geom,geometry.Patch):
             self.patch = geom
-        elif isinstance(geom,petclaw.geometry.Domain):
+        elif isinstance(geom,geometry.Domain):
             self.patch = geom.patches[0]
         else:
             raise Exception("""A PetClaw State object must be initialized with
-                             a PetClaw Patch object.""")
+                             a PyClaw Patch or Domain object.""")
 
         self.aux_da = None
         self.q_da = None
@@ -275,3 +276,25 @@ class State(pyclaw.state.State):
 
     def sum_F(self,i):
         return self.gFVec.strideNorm(i,0)
+
+    def get_q_global(self):
+        r"""
+        Returns a copy of the global q array on process 0, otherwise returns None
+        """
+        from petsc4py import PETSc
+        q_natural = self.q_da.createNaturalVec()
+        self.q_da.globalToNatural(self.gqVec, q_natural)
+        scatter, q0Vec = PETSc.Scatter.toZero(q_natural)
+        scatter.scatter(q_natural, q0Vec, False, PETSc.Scatter.Mode.FORWARD)
+        rank = PETSc.COMM_WORLD.getRank()
+        if rank == 0:
+            shape = self.patch.num_cells_global
+            shape.insert(0,self.num_eqn)
+            q0=q0Vec.getArray().reshape(shape, order = 'F').copy()
+        else:
+            q0=None
+        
+        scatter.destroy()
+        q0Vec.destroy()
+
+        return q0

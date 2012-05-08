@@ -27,7 +27,7 @@ class State(object):
  
     To instantiate a State, we first need a patch:
 
-        >>> import pyclaw
+        >>> from clawpack import pyclaw
         >>> x = pyclaw.Dimension('x',0.,1.,100)
         >>> patch = pyclaw.Patch((x))
 
@@ -91,10 +91,10 @@ class State(object):
 
     # ========== Class Methods ===============================================
     def __init__(self,geom,num_eqn,num_aux=0):
-        import pyclaw.geometry
-        if isinstance(geom,pyclaw.geometry.Patch):
+        from clawpack.pyclaw import geometry
+        if isinstance(geom,geometry.Patch):
             self.patch = geom
-        elif isinstance(geom,pyclaw.geometry.Domain):
+        elif isinstance(geom,geometry.Domain):
             self.patch = geom.patches[0]
         else:
             raise Exception("""A PyClaw State object must be initialized with
@@ -247,6 +247,11 @@ class State(object):
         shape.extend(self.grid.num_cells)
         return np.empty(shape,order='F')
 
+    def get_q_global(self):
+        r"""
+        Returns a copy of the global q array
+        """
+        return self.q.copy()
 
 if __name__ == "__main__":
     import doctest

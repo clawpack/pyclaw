@@ -74,7 +74,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
         # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
         if write_p:
             pickle.dump({'t':solution.t,'num_eqn':solution.mp,'nstates':len(solution.states),
-                         'num_aux':solution.num_aux,'num_dim':solution.num_dim,'write_aux':write_aux,
+                         'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,'write_aux':write_aux,
                          'problem_data' : solution.problem_data}, pickle_file)
         else:
             pickle.dump({'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
@@ -206,7 +206,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         n       = patch_dict['num_cells']
         d       = patch_dict['delta']
 
-        import petclaw
+        from clawpack import petclaw
         dimensions = []
         for i in xrange(num_dim):
             dimensions.append(

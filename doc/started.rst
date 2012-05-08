@@ -37,6 +37,10 @@ client on your system to obtain PyClaw itself.
     version control system used by the PyClaw developers to manage
     development.  The minimum recommended version is 1.7
 
+  * `pip <http://www.pip-installer.org/en/latest/installing.html>`_ is a tool
+    for installing and managing Python packages.  We strongly recommend using
+    pip to install PyClaw and its dependencies.
+
 Obtaining a freely available Fortran compiler
 +++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -48,17 +52,30 @@ Obtaining a git client
 
 git clients can be downloaded from the `git homepage <http://git-scm.com/download>`_.
 
+Installing pip
++++++++++++++++++++++++++++++++++++++++++++++++
+
+There are instructions for installing pip at `the pip homepage
+<http://www.pip-installer.org/en/latest/installing.html>`_.  See `this question on StackOverflow about properly installing virtualenv and pip without administrative privileges <http://stackoverflow.com/questions/4324558/whats-the-proper-way-to-install-pip-virtualenv-and-distribute-for-python>`_ if you would liketo keep your software environment "sandboxed".
+
 Obtaining Python and its dependencies
 +++++++++++++++++++++++++++++++++++++++++++++++
 
 The PyClaw developers recommend the `Enthought Python Distribution <http://enthought.com/products/epd.php>`_ to
 obtain a modern Python with several important scientific computing libraries
 installed "out-of-the-box".   The Enthought Python Distribution is freely
-available for academic use.
+available for academic use.  PyClaw will also try to install the other
+dependencies for you, but you will need to install numpy first with:
+
+    pip install numpy
+
+Similarly, you can install nose with:
+
+   pip install nose
 
 Installing PyClaw
 -----------------------------------------------------------
-PyClaw currently relies on the manual installation of four Clawpack projects:
+PyClaw currently resides within the Clawpack meta-project, which contains:
 
 *PyClaw*
     The actual package containing the PyClaw source code, tests, and examples
@@ -71,92 +88,52 @@ PyClaw currently relies on the manual installation of four Clawpack projects:
     Clawpack.
     
 *VisClaw*
-    A set of visualization tools built on top of Matplotlib
-    
-We recommend that you create a directory to contain all four 
-packages.  If you wanted to call this directory ``clawpack``::
+    A set of visualization tools built on top of Matplotlib    
 
-    $ mkdir clawpack
-    $ cd clawpack
+You can install of the packages with:
 
-The current method for installing PyClaw, Clawutil, Riemann and VisClaw is to create
-a local copy of their github-hosted repositories::
+    pip install clawpack
 
-    $ git clone git@github.com:clawpack/clawutil.git
-    $ git clone git@github.com:clawpack/pyclaw.git
-    $ git clone git@github.com:clawpack/riemann.git
-    $ git clone git@github.com:clawpack/visclaw.git
+We recommend installing "in-place" with pip directly from the github repository:
 
-Environment variables
------------------------------------------------------------
-PyClaw currently installs 'in-place'.  That is, .  The following variables are used in PyClaw:
+    pip install -e git+git://github.com/clawpack/clawpack.git#egg=clawpack-dev
 
-  * ``CLAW`` must point to the base directory you created and cloned the 
-    repositories into, above we called this ``clawpack``.
-  * ``CLAWUTIL`` must point to the path where you installed Clawutil (usually 
-    ``$CLAW/clawutil``) 
-  * ``PYCLAW`` must point to the path where you installed PyClaw (usually
-    ``$CLAW/pyclaw``) 
-  * ``RIEMANN`` must point to the path where you installed Riemann (usually 
-    ``$CLAW/riemann``) 
-  * Your ``PYTHONPATH`` must include PyClaw, Clawutil, Riemann, and VisClaw.
+This will place the install either in a sub-directory named src or your
+virtualenv/src directory, depending on if you are using a virtual environment.
 
-The easiest way to do this is to use a script provided in Clawutil that 
-produces the appropriate environment variables for PyClaw (and the other
-Clawpack projects).  To run the script, go into your base directory you 
-created above and run ::
+You can also perform the install from an existing git clone:
 
-    $ python clawutil/src/python/setenv.py
-    
-This script should produce two files that contain the shell script for setting
-the above variables.  By default these files are called ``setenv.bash`` and 
-``setenv.csh``.  These can be used by running ::
-
-    $ source setenv.bash
-    
-or ::
-    
-    $ source setenv.csh
-    
-depending on your shell (this can be checked by typing ``printenv SHELL`` at
-your command line).  The shell code in these files can be copied to your
-.bashrc, .cshrc, or .profile file to be run automatically when you open a 
-terminal.
-
-Finally, compile the Fortran code for the solvers and Riemann solvers::
-
-    $ cd $PYCLAW/src/pyclaw/clawpack
-    $ make
-    $ cd $PYCLAW/src/pyclaw/sharpclaw
-    $ make
-    $ cd $RIEMANN/src/python/riemann
-    $ make
-
+    git clone git://github.com/clawpack/clawpack.git
+    cd clawpack
+    pip install -e .
 
 Testing your installation with nose
 -----------------------------------------------------------
 
-If you have nose, you can test a serial installation with ::
+If you have nose, you can test your installation with ::
 
-    $ cd $PYCLAW
-    $ nosetests -a petsc=False
+    cd clawpack/pyclaw
+    nosetests 
 
 If everything is set up correctly, this will compile the Fortran source,
 run several tests, and inform you that the tests passed.  Note that the
 tests *must* be run from the main PyClaw directory.
 
+You can also run the tests in parallel (if you have petsc4py properly installed)
+::
+
+    mpirun -n 4 nosetests
+
 .. note::
 
-    The flag `-a petsc=False` tells nose not to run the tests that require PETSc.
-    If you have installed PETSc and petsc4py, you can run all tests by omitting this
-    flag.
+    PyClaw automatically enables PETSc tests if it detects a proper petsc4py installation.
 
 Running and plotting an example
 -----------------------------------------------------------
 Next ::
 
-    $ cd $PYCLAW/apps/advection_1d
-    $ python advection.py iplot=1
+    cd clawpack/pyclaw/apps/advection_1d
+    python advection.py iplot=1
 
 This will run the code and then place you in an interactive plotting shell.
 To view the simulation output frames in sequence, simply press 'enter'
