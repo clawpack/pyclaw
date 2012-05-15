@@ -156,6 +156,7 @@ class Solver(object):
         self.auxbc = None
         self.rp = None
         self.fmod = None
+        self._is_set_up = False
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
@@ -195,8 +196,8 @@ class Solver(object):
         self.user_aux_bc_lower = None
         self.user_aux_bc_upper = None
 
-        self.compute_gauge_values = None
-        r"""(function) - Function that computes quantities to be recorded at gaugues"""
+        self.compute_gauge_values = default_compute_gauge_values
+        r"""(function) - Function that computes quantities to be recorded at gauges"""
 
         self.qbc          = None
         r""" Array to hold ghost cell values.  This is the one that gets passed
@@ -337,13 +338,13 @@ class Solver(object):
         for idim,dim in enumerate(grid.dimensions):
             # First check if we are actually on the boundary
             # (in case of a parallel run)
-            if state.grid.lower[idim] == state.patch.lower[idim]:
+            if state.grid.lower[idim] == state.patch.lower_global[idim]:
                 # If a user defined boundary condition is being used, send it on,
                 # otherwise roll the axis to front position and operate on it
                 if self.bc_lower[idim] == BC.custom:
                     self.qbc_lower(state,dim,state.t,self.qbc,idim)
                 elif self.bc_lower[idim] == BC.periodic:
-                    if state.grid.upper[idim] == state.patch.upper[idim]:
+                    if state.grid.upper[idim] == state.patch.upper_global[idim]:
                         # This process owns the whole domain
                         self.qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
                     else:
@@ -351,11 +352,11 @@ class Solver(object):
                 else:
                     self.qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
 
-            if state.grid.upper[idim] == state.patch.upper[idim]:
+            if state.grid.upper[idim] == state.patch.upper_global[idim]:
                 if self.bc_upper[idim] == BC.custom:
                     self.qbc_upper(state,dim,state.t,self.qbc,idim)
                 elif self.bc_upper[idim] == BC.periodic:
-                    if state.grid.lower[idim] == state.patch.lower[idim]:
+                    if state.grid.lower[idim] == state.patch.lower_global[idim]:
                         # This process owns the whole domain
                         self.qbc_upper(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
                     else:
@@ -477,13 +478,13 @@ class Solver(object):
         for idim,dim in enumerate(patch.dimensions):
             # First check if we are actually on the boundary
             # (in case of a parallel run)
-            if state.grid.lower[idim] == state.patch.lower[idim]:
+            if state.grid.lower[idim] == state.patch.lower_global[idim]:
                 # If a user defined boundary condition is being used, send it on,
                 # otherwise roll the axis to front position and operate on it
                 if self.aux_bc_lower[idim] == BC.custom:
                     self.auxbc_lower(state,dim,state.t,self.auxbc,idim)
                 elif self.aux_bc_lower[idim] == BC.periodic:
-                    if state.grid.upper[idim] == state.patch.upper[idim]:
+                    if state.grid.upper[idim] == state.patch.upper_global[idim]:
                         # This process owns the whole patch
                         self.auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
                     else:
@@ -491,11 +492,11 @@ class Solver(object):
                 else:
                     self.auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
 
-            if state.grid.upper[idim] == state.patch.upper[idim]:
+            if state.grid.upper[idim] == state.patch.upper_global[idim]:
                 if self.aux_bc_upper[idim] == BC.custom:
                     self.auxbc_upper(state,dim,state.t,self.auxbc,idim)
                 elif self.aux_bc_upper[idim] == BC.periodic:
-                    if state.grid.lower[idim] == state.patch.lower[idim]:
+                    if state.grid.lower[idim] == state.patch.lower_global[idim]:
                         # This process owns the whole patch
                         self.auxbc_upper(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
                     else:
@@ -595,6 +596,9 @@ class Solver(object):
         :Output:
          - (dict) - Returns the status dictionary of the solver
         """
+
+        if not self._is_set_up:
+            self.setup(solution)
         
         if tend == None:
             take_one_step = True
@@ -620,7 +624,7 @@ class Solver(object):
                     raise Exception('dt does not divide (tend-tstart) and dt is fixed!')
         if self.dt_variable == 1 and self.cfl_desired > self.cfl_max:
             raise Exception('Variable time-stepping and desired CFL > maximum CFL')
-        if not tend == None and tend <= tstart:
+        if tend <= tstart and not take_one_step:
             self.logger.info("Already at or beyond end time: no evolution required.")
             self.max_steps = 0
                 
@@ -632,6 +636,8 @@ class Solver(object):
             # Adjust dt so that we hit tend exactly if we are near tend
             if solution.t + self.dt > tend and tstart < tend and not take_one_step:
                 self.dt = tend - solution.t 
+            if tend - solution.t - self.dt < 1.e-14:
+                self.dt = tend - solution.t
 
             # Keep a backup in case we need to retake a time step
             if self.dt_variable:
@@ -707,13 +713,18 @@ class Solver(object):
         r"""Write solution (or derived quantity) values at each gauge coordinate
             to file.
         """
-        for i,gauge in enumerate(solution.state.patch.gauges):
-            x=gauge[0]; y=gauge[1]
-            aux=solution.state.aux[:,x,y]
-            q=solution.state.q[:,x,y]
+        for i,gauge in enumerate(solution.state.grid.gauges):
+            if self.num_dim == 1:
+                ix=gauge[0];
+                aux=solution.state.aux[:,ix]
+                q=solution.state.q[:,ix]
+            elif self.num_dim == 2:
+                ix=gauge[0]; iy=gauge[1]
+                aux=solution.state.aux[:,ix,iy]
+                q=solution.state.q[:,ix,iy]
             p=self.compute_gauge_values(q,aux)
             t=solution.t
-            solution.state.patch.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
+            solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
 
 
 if __name__ == "__main__":
