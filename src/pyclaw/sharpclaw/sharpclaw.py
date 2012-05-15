@@ -170,6 +170,8 @@ class SharpClawSolver(Solver):
 
         self.allocate_bc_arrays(state)
 
+        self._is_set_up = True
+
     # ========== Time stepping routines ======================================
     def step(self,solution):
         """Evolve q over one time step.

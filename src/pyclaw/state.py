@@ -119,7 +119,7 @@ class State(object):
 
     def __str__(self):
         output = "PyClaw State object\n"
-        output += "Patch: %s\n" % str(self.patch)
+        output += "Patch dimensions: %s\n" % str(self.patch.num_cells_global)
         output += "Time  t=%s\n" % (self.t)
         output += "Number of conserved quantities: %s\n" % str(self.q.shape[0])
         if self.aux is not None:
