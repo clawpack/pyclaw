@@ -78,6 +78,8 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     #===========================================================================
 
     # Domain:
+    from clawpack.pyclaw import geometry
+    print(geometry.__file__)
     xlower = 0.0
     xupper = 1.0
     mx = subdivisionFactor
@@ -86,7 +88,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     my = subdivisionFactor
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
-    domain = pyclaw.Domain([x,y])
+    domain = geometry.Domain([x,y])
 
     num_eqn = 3  # Number of equations
     state = pyclaw.State(domain,num_eqn)
