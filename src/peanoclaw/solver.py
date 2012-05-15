@@ -11,6 +11,7 @@ from ctypes import c_bool
 from ctypes import c_double
 from ctypes import c_int
 from ctypes import c_void_p
+from ctypes import c_char_p
 from ctypes import CFUNCTYPE
 from ctypes import py_object
 from ctypes import POINTER
@@ -30,10 +31,11 @@ class Solver(Solver):
     """
     
     #Callback definitions
+    CALLBACK_INITIALIZATION = CFUNCTYPE(None, py_object, py_object, c_int, c_int, c_double, c_double, c_double)
     CALLBACK_SOLVER = CFUNCTYPE(None, POINTER(c_double), py_object, py_object, c_int, c_int, c_double, c_double, c_double, c_double, c_double, c_double)
     CALLBACK_BOUNDARY_CONDITIONS = CFUNCTYPE(None, py_object, py_object, c_int, c_int)
     
-    def __init__(self, solver, initial_minimal_mesh_width):
+    def __init__(self, solver, initial_minimal_mesh_width, initialization):
         r"""
         Initializes the Peano-solver. This keeps the Peano-spacetree internally and wraps the given PyClaw-solver.
         
@@ -44,12 +46,29 @@ class Solver(Solver):
         """
         self.solver = solver
         self.initial_minimal_mesh_width = initial_minimal_mesh_width
+        self.initialization = initialization
         self.dt_initial = solver.dt_initial
         self.num_ghost = solver.num_ghost
         self.rp = solver.rp
-        
+
+        self.initialization_callback = self.get_initialization_callback()        
         self.solver_callback = self.get_solver_callback()
         self.boundary_condition_callback = self.get_boundary_condition_callback()
+        
+    def get_initialization_callback(self):
+        r"""
+        Creates a closure for initializing the grid
+        """
+        def callback_initialization(q, qbc, subdivision_factor, unknowns_per_subcell, size, position_x, position_y):
+            import pyclaw
+            self.dim_x = pyclaw.Dimension('x',position_x,position_x + size,subdivision_factor)
+            self.dim_y = pyclaw.Dimension('y',position_y,position_y + size,subdivision_factor)
+            domain = pyclaw.Domain([self.dim_x,self.dim_y])
+            subgrid_state = pyclaw.State(domain, unknowns_per_subcell)
+            subgrid_state.q = q
+            subgrid_state.problem_data = self.solution.state.problem_data
+            self.initialization(subgrid_state)
+        return self.CALLBACK_INITIALIZATION(callback_initialization)
         
     def get_solver_callback(self):
         r"""
@@ -88,9 +107,9 @@ class Solver(Solver):
         Initialize a Solver object. This method loads the library of Peano and prepares the initial mesh.
         
         See :class:`Solver` for full documentation
-        """ 
+        """
         logging.getLogger('peanoclaw').info("Loading Peano-library...")
-        self.libpeano = CDLL('libpeano-claw-2d.dylib')
+        self.libpeano = CDLL(self.get_lib_path())
         logging.getLogger('peanoclaw').info("Peano loaded successfully.")
         self.libpeano.pyclaw_peano_new.restype = c_void_p
         self.libpeano.pyclaw_peano_destroy.argtypes = [c_void_p]
@@ -98,22 +117,33 @@ class Solver(Solver):
         
         self.bc_lower = self.solver.bc_lower[:]
         self.bc_upper = self.solver.bc_upper[:]
+        self.user_bc_lower = self.solver.user_bc_lower
+        self.user_bc_upper = self.solver.user_bc_upper
         
         # Get parameters for Peano
         dimensions = solution.state.grid.dimensions
-        subdivisionFactor = solution.state.grid.dimensions[0].num_cells
+        subdivision_factor = solution.state.grid.dimensions[0].num_cells
+        number_of_unknowns = solution.state.num_eqn 
+        ghostlayer_width = self.num_ghost
+        import os, sys
+        configuration_file = os.path.join(sys.path[0], 'peanoclaw-config.xml')
         
-        self.libpeano.pyclaw_peano_new.argtypes = [c_double, c_double, c_double, c_int, c_double, c_bool, c_void_p, c_void_p]
+        self.solver.setup(solution)
+        self.solution = solution
+        
+        self.libpeano.pyclaw_peano_new.argtypes = [c_double, c_double, c_double, c_int, c_int, c_int, c_double, c_char_p, c_bool, c_void_p, c_void_p]
         self.peano = self.libpeano.pyclaw_peano_new(c_double(self.initial_minimal_mesh_width), \
                                                     c_double(dimensions[0].upper - dimensions[0].lower), \
                                                     c_double(dimensions[1].upper - dimensions[1].lower), \
-                                                    subdivisionFactor,
+                                                    subdivision_factor,
+                                                    number_of_unknowns,
+                                                    ghostlayer_width,
                                                     self.solver.dt_initial,
+                                                    c_char_p(configuration_file),
                                                     True,
+                                                    self.initialization_callback,
                                                     self.boundary_condition_callback,
                                                     self.solver_callback)
-        self.solver.setup(solution)
-        self.solution = solution
         
         # Set PeanoSolution
         import peanoclaw
@@ -148,4 +178,23 @@ class Solver(Solver):
         r"""
         """ 
         self.solver.step(self.solution)
+        
+    def get_lib_path(self):
+        r"""
+        Returns the path in which the shared library of Peano is located in.
+        """
+        import os
+        import platform
+        import peanoclaw
+        if platform.system() == 'Linux':
+            shared_library_extension = 'so'
+        elif platform.system() == 'Darwin':
+            shared_library_extension = 'dylib'
+        else:
+            raise("Unsupported operating system")    
+        
+        print(os.path.join(os.path.dirname(peanoclaw.__file__), 'libpeano-claw-2d.' + shared_library_extension))
+        return os.path.join(os.path.dirname(peanoclaw.__file__), 'libpeano-claw-2d.' + shared_library_extension)
+        
+        
         
