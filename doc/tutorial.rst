@@ -38,7 +38,7 @@ Now launch an iPython session and import pyclaw
 
 .. doctest::
 
-    >>> import pyclaw
+    >>> from clawpack import pyclaw
 
 The Solver
 ===========
@@ -61,7 +61,7 @@ Now we import the appropriate solver from the `riemann` package and set the
 
 .. doctest::
 
-    >>> from riemann import rp_acoustics
+    >>> from clawpack.riemann import rp_acoustics
     >>> solver.rp = rp_acoustics.rp_acoustics_1d
     >>> solver.num_waves = 2
 
@@ -167,7 +167,7 @@ This should print out a few lines indicating the output times. It also prints th
 
 .. doctest::
 
-    >>> from pyclaw import plot
+    >>> from clawpack.pyclaw import plot
     >>> plot.interactive_plot() # doctest: +SKIP
     
 
