@@ -65,11 +65,11 @@ The PyClaw developers recommend the `Enthought Python Distribution <http://entho
 obtain a modern Python with several important scientific computing libraries
 installed "out-of-the-box".   The Enthought Python Distribution is freely
 available for academic use.  PyClaw will also try to install the other
-dependencies for you, but you will need to install numpy first with:
+dependencies for you, but you will need to install numpy first with: ::
 
     pip install numpy
 
-Similarly, you can install nose with:
+Similarly, you can install nose with: ::
 
    pip install nose
 
@@ -90,18 +90,18 @@ PyClaw currently resides within the Clawpack meta-project, which contains:
 *VisClaw*
     A set of visualization tools built on top of Matplotlib    
 
-You can install of the packages with:
+You can install of the packages with: ::
 
     pip install clawpack
 
-We recommend installing "in-place" with pip directly from the github repository:
+We recommend installing "in-place" with pip directly from the github repository: ::
 
     pip install -e git+git://github.com/clawpack/clawpack.git#egg=clawpack-dev
 
 This will place the install either in a sub-directory named src or your
 virtualenv/src directory, depending on if you are using a virtual environment.
 
-You can also perform the install from an existing git clone:
+You can also perform the install from an existing git clone: ::
 
     git clone git://github.com/clawpack/clawpack.git
     cd clawpack
