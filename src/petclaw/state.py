@@ -236,22 +236,46 @@ class State(clawpack.pyclaw.State):
             raise NotImplementedError("The case of 3D is not handled in "\
             +"this function yet")
 
-    def get_qbc_from_q(self,num_ghost,whichvec,qbc):
+    def set_aux_from_auxbc(self,num_ghost,auxbc):
+        """
+        Set the value of aux using the array auxbc. for PetSolver, this
+        involves setting auxbc as the local vector array then perform
+        a local to global communication. 
+        """
+        
+        patch = self.patch
+        if patch.num_dim == 1:
+            self.aux = auxbc[:,num_ghost:-num_ghost]
+        elif patch.num_dim == 2:
+            self.aux = auxbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
+        elif patch.num_dim == 3:
+            self.aux = auxbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost]
+        else:
+            raise NotImplementedError("The case of 3D is not handled in "\
+            +"this function yet")
+
+
+    def get_qbc_from_q(self,num_ghost,qbc):
         """
         Returns q with ghost cells attached.  For PetSolver,
         this means returning the local vector.  
         """
         shape = [n + 2*num_ghost for n in self.grid.num_cells]
         
-        if whichvec == 'q':
-            self.q_da.globalToLocal(self.gqVec, self.lqVec)
-            shape.insert(0,self.num_eqn)
-            return self.lqVec.getArray().reshape(shape, order = 'F')
+        self.q_da.globalToLocal(self.gqVec, self.lqVec)
+        shape.insert(0,self.num_eqn)
+        return self.lqVec.getArray().reshape(shape, order = 'F')
             
-        elif whichvec == 'aux':
-            self.aux_da.globalToLocal(self.gauxVec, self.lauxVec)
-            shape.insert(0,self.num_aux)
-            return self.lauxVec.getArray().reshape(shape, order = 'F')
+    def set_auxbc_from_aux(self,num_ghost,auxbc):
+        """
+        Returns aux with ghost cells attached.  For PetSolver,
+        this means returning the local vector.  
+        """
+        shape = [n + 2*num_ghost for n in self.grid.num_cells]
+        
+        self.aux_da.globalToLocal(self.gauxVec, self.lauxVec)
+        shape.insert(0,self.num_aux)
+        return self.lauxVec.getArray().reshape(shape, order = 'F')
 
     def set_num_ghost(self,num_ghost):
         r"""
