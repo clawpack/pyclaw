@@ -18,6 +18,15 @@ import numpy as np
 
 from numpy import *
 
+try:
+    import problem
+    import classic2
+except ImportError:
+    import sys
+    print >> sys.stderr, "***\nUnable to import problem module, try running (in this directory):\n python setup.py build_ext -i\n***"
+    raise
+
+
 
 # Parameters used by the following routines
 # =========================================
@@ -47,12 +56,6 @@ def fortran_src_wrapper(solver,state,dt):
     t = state.t
 
     # Call src2 function
-    try:
-        import problem
-    except:
-        import sys
-        print >> sys.stderr, "Unable to import problem module, do you need to run make?")
-        raise
     state.q = problem.src2(mx,my,num_ghost,xlower,ylower,dx,dy,q,aux,t,dt,Rsphere)
 
 
@@ -324,7 +327,6 @@ def auxbc_lower_y(state,dim,t,auxbc,num_ghost):
     sphere.
     """
     # Import shared object (.so)
-    import problem
     grid=state.grid
 
     # Get parameters and variables that have to be passed to the fortran src2
@@ -344,7 +346,6 @@ def auxbc_upper_y(state,dim,t,auxbc,num_ghost):
     sphere. 
     """
     # Import shared object (.so)
-    import problem
     grid=state.grid
 
     # Get parameters and variables that have to be passed to the fortran src2
@@ -376,7 +377,6 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',iplot=0,html
     solver = pyclaw.ClawSolver2D()
     from clawpack import riemann
     solver.rp = riemann.rp2_shallow_sphere
-    import classic2
     solver.fmod = classic2
 
     # Set boundary conditions
@@ -480,7 +480,6 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',iplot=0,html
 
     # Set auxiliary variables
     # =======================
-    import problem
     
     # Get lower left corner coordinates 
     xlower,ylower = state.grid.lower[0],state.grid.lower[1]
