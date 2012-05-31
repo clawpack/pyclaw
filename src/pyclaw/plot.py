@@ -25,7 +25,7 @@ def plot(setplot_path=None,outdir="./_output",plotdir=None,htmlplot=False,iplot=
 
         # If setplot_path is still None then we import the default setplot
         if setplot_path is None:
-            import visclaw.setplot_default as setplot_module
+            import clawpack.visclaw.setplot_default as setplot_module
         else:
             path = os.path.abspath(os.path.expandvars(os.path.expanduser(setplot_path)))
             setplot_module_dir = os.path.dirname(path)
@@ -39,7 +39,7 @@ def plot(setplot_path=None,outdir="./_output",plotdir=None,htmlplot=False,iplot=
             raise ImportError("Failed to import %s.setplot" % setplot_module_name)
         
         if iplot:
-            from visclaw import Iplotclaw
+            from clawpack.visclaw import Iplotclaw
         
             ip = Iplotclaw.Iplotclaw(setplot=setplot,outdir=outdir)
             ip.plotdata.format = file_format
@@ -47,7 +47,7 @@ def plot(setplot_path=None,outdir="./_output",plotdir=None,htmlplot=False,iplot=
             ip.plotloop()
             
         if htmlplot:
-            from visclaw import plotclaw            
+            from clawpack.visclaw import plotclaw
             plotclaw.plotclaw(outdir,plotdir,format=file_format,setplot=setplot)
         
 
@@ -56,10 +56,10 @@ def interactive_plot(outdir='./_output',file_format='ascii'):
     """
     Convenience function for launching an interactive plotting session.
     """
-    plot(outdir=outdir,file_format=file_format,iplot=True)
+    plot(outdir=outdir,file_format=file_format,iplot=True,htmlplot=False)
 
 def html_plot(outdir='./_output',file_format='ascii'):
     """
     Convenience function for creating html page with plots.
     """
-    plot(outdir=outdir,file_format=file_format,htmlplot=True)
+    plot(outdir=outdir,file_format=file_format,htmlplot=True,iplot=False)
