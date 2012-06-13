@@ -136,6 +136,8 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
     This example involves a bubble of dense gas that is impacted by a shock.
     """
 
+    from clawpack import riemann
+
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
@@ -144,7 +146,6 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
     if kernel_language != 'Fortran':
         raise Exception('Unrecognized value of kernel_language for Euler Shockbubble')
 
-    
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
         solver.dq_src=dq_Euler_radial
@@ -154,18 +155,37 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
         solver = pyclaw.ClawSolver2D()
         solver.limiters = [4,4,4,4,2]
         solver.step_source=step_Euler_radial
+        solver.source_split = 1
+
+    solver.rp          = riemann.rp2_euler_5wave
+    solver.cfl_max     = 0.5
+    solver.cfl_desired = 0.45
+    solver.num_waves   = 5
+    solver.dt_initial  = 0.005
+
+    solver.user_bc_lower = shockbc
+    solver.bc_lower[0] = pyclaw.BC.custom
+    solver.bc_upper[0] = pyclaw.BC.extrap
+    solver.bc_lower[1] = pyclaw.BC.wall
+    solver.bc_upper[1] = pyclaw.BC.extrap
+
+    # Aux variable in ghost cells doesn't matter
+    solver.aux_bc_lower[0] = pyclaw.BC.extrap
+    solver.aux_bc_upper[0] = pyclaw.BC.extrap
+    solver.aux_bc_lower[1] = pyclaw.BC.extrap
+    solver.aux_bc_upper[1] = pyclaw.BC.extrap
 
     # Initialize domain
-    mx=160; my=40
-    x = pyclaw.Dimension('x',0.0,2.0,mx)
-    y = pyclaw.Dimension('y',0.0,0.5,my)
-    domain = pyclaw.Domain([x,y])
+    mx, my = 160, 40
+    x = pyclaw.Dimension('x', 0.0, 2.0, mx)
+    y = pyclaw.Dimension('y', 0.0, 0.5, my)
     num_eqn = 5
-    num_aux=1
-    state = pyclaw.State(domain,num_eqn,num_aux)
+    num_aux = 1
+    domain  = pyclaw.Domain([x, y])
+    state   = pyclaw.State(domain, num_eqn, num_aux)
 
-    state.problem_data['gamma']= gamma
-    state.problem_data['gamma1']= gamma1
+    state.problem_data['gamma']  = gamma
+    state.problem_data['gamma1'] = gamma1
 
     tfinal = 0.2
 
@@ -173,30 +193,12 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
     auxinit(state)
     initial_solution = pyclaw.Solution(state,domain)
 
-    from clawpack import riemann
-    solver.rp = riemann.rp2_euler_5wave
-    solver.cfl_max = 0.5
-    solver.cfl_desired = 0.45
-    solver.num_waves = 5
-    solver.dt_initial=0.005
-    solver.user_bc_lower=shockbc
-    solver.source_split = 1
-    solver.bc_lower[0]=pyclaw.BC.custom
-    solver.bc_upper[0]=pyclaw.BC.extrap
-    solver.bc_lower[1]=pyclaw.BC.wall
-    solver.bc_upper[1]=pyclaw.BC.extrap
-    #Aux variable in ghost cells doesn't matter
-    solver.aux_bc_lower[0]=pyclaw.BC.extrap
-    solver.aux_bc_upper[0]=pyclaw.BC.extrap
-    solver.aux_bc_lower[1]=pyclaw.BC.extrap
-    solver.aux_bc_upper[1]=pyclaw.BC.extrap
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
-    # The output format MUST be set to petsc!
-    claw.tfinal = tfinal
-    claw.solution = initial_solution
-    claw.solver = solver
+    claw.tfinal    = tfinal
+    claw.solution  = initial_solution
+    claw.solver    = solver
     claw.num_output_times = 1
 
     # Solve
