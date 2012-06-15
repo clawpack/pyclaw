@@ -17,6 +17,21 @@ Reference: Logically Rectangular Grids and Finite Volume Methods for PDEs in
 import numpy as np
 
 from numpy import *
+import os
+
+if ~os.path.exists('problem.so') or ~os.path.exists('classic2.so'):
+    import warnings
+    warnings.warn("missing extension modules, running python setup.py build_ext -i")
+    import subprocess
+    subprocess.check_call('python setup.py build_ext -i', shell=True)
+    warnings.warn("missing extension modules built by running python setup.py build_ext -i")
+    try:
+        import problem
+        import classic2
+    except ImportError:
+        import sys
+        print >> sys.stderr, "***\nUnable to import problem module or automatically build, try running (in this directory):\n python setup.py build_ext -i\n***"
+        raise
 
 
 # Parameters used by the following routines
@@ -47,12 +62,6 @@ def fortran_src_wrapper(solver,state,dt):
     t = state.t
 
     # Call src2 function
-    try:
-        import problem
-    except:
-        import sys
-        print >> sys.stderr, "Unable to import problem module, do you need to run make?")
-        raise
     state.q = problem.src2(mx,my,num_ghost,xlower,ylower,dx,dy,q,aux,t,dt,Rsphere)
 
 
@@ -323,8 +332,6 @@ def auxbc_lower_y(state,dim,t,auxbc,num_ghost):
     Impose periodic boundary condition to aux at the bottom boundary for the 
     sphere.
     """
-    # Import shared object (.so)
-    import problem
     grid=state.grid
 
     # Get parameters and variables that have to be passed to the fortran src2
@@ -343,8 +350,6 @@ def auxbc_upper_y(state,dim,t,auxbc,num_ghost):
     Impose periodic boundary condition to aux at the top boundary for the 
     sphere. 
     """
-    # Import shared object (.so)
-    import problem
     grid=state.grid
 
     # Get parameters and variables that have to be passed to the fortran src2
@@ -376,7 +381,6 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',iplot=0,html
     solver = pyclaw.ClawSolver2D()
     from clawpack import riemann
     solver.rp = riemann.rp2_shallow_sphere
-    import classic2
     solver.fmod = classic2
 
     # Set boundary conditions
@@ -435,11 +439,11 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',iplot=0,html
     # ====
     xlower = -3.0
     xupper = 1.0
-    mx = 100
+    mx = 40
 
     ylower = -1.0
     yupper = 1.0
-    my = 50
+    my = 20
 
     # Check whether or not the even number of cells are used in in both 
     # directions. If odd numbers are used a message is print at screen and the 
@@ -480,7 +484,6 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',iplot=0,html
 
     # Set auxiliary variables
     # =======================
-    import problem
     
     # Get lower left corner coordinates 
     xlower,ylower = state.grid.lower[0],state.grid.lower[1]
@@ -508,7 +511,7 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',iplot=0,html
     # Set up controller and controller parameters
     #===========================================================================
     claw = pyclaw.Controller()
-    claw.keep_copy = False
+    claw.keep_copy = True
     claw.output_style = 1
     claw.num_output_times = 10
     claw.tfinal = 10
@@ -527,7 +530,9 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',iplot=0,html
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
+    return claw
 
+        
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(shallow_4_Rossby_Haurwitz)
