@@ -42,12 +42,12 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     # Import libraries
     #===========================================================================
     import numpy as np
-    import peanoclaw
+    import clawpack.peanoclaw as peanoclaw
 
     if use_petsc:
-        import petclaw as pyclaw
+        import clawpack.petclaw as pyclaw
     else:
-        import pyclaw
+        import clawpack.pyclaw as pyclaw
 
     #===========================================================================
     # Setup solver and solver parameters
@@ -63,7 +63,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     
     solver.dt_initial = 1.0
 
-    import riemann
+    import clawpack.riemann as riemann
     solver.rp = riemann.rp2_shallow_roe_with_efix
     solver.num_waves = 3
 
@@ -119,7 +119,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
 
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(shallow2D)
     print 'Error: ', output
 
