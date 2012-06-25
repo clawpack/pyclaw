@@ -3,7 +3,7 @@ Created on Mar 17, 2012
 
 @author: kristof
 '''
-import pyclaw
+import clawpack.pyclaw as pyclaw
 from ctypes import CFUNCTYPE
 from ctypes import py_object
 from ctypes import c_int
