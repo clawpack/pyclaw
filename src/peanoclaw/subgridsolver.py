@@ -3,7 +3,7 @@ Created on Mar 18, 2012
 
 @author: kristof
 '''
-import pyclaw
+import clawpack.pyclaw as pyclaw
 
 class SubgridSolver(object):
     r"""

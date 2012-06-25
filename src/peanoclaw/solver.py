@@ -3,7 +3,7 @@ Created on Feb 7, 2012
 
 @author: Kristof
 '''
-from pyclaw.solver import Solver
+from clawpack.pyclaw.solver import Solver
 import signal
 import logging
 from ctypes import CDLL
@@ -60,7 +60,7 @@ class Solver(Solver):
         Creates a closure for initializing the grid
         """
         def callback_initialization(q, qbc, subdivision_factor, unknowns_per_subcell, size, position_x, position_y):
-            import pyclaw
+            import clawpack.pyclaw as pyclaw
             self.dim_x = pyclaw.Dimension('x',position_x,position_x + size,subdivision_factor)
             self.dim_y = pyclaw.Dimension('y',position_y,position_y + size,subdivision_factor)
             domain = pyclaw.Domain([self.dim_x,self.dim_y])
@@ -76,7 +76,7 @@ class Solver(Solver):
         """
         def callback_solver(return_dt_and_estimated_next_dt, q, qbc, subdivision_factor, unknowns_per_subcell, size, position_x, position_y, current_time, maximum_timestep_size, estimated_next_dt):
             # Set up grid information for current patch
-            import peanoclaw
+            import clawpack.peanoclaw as peanoclaw
             subgridsolver = peanoclaw.SubgridSolver(self.solver, self.solution.state, q, qbc, (position_x, position_y), (size, size), subdivision_factor, unknowns_per_subcell)
             
             new_q = subgridsolver.step(maximum_timestep_size, estimated_next_dt)
@@ -141,12 +141,13 @@ class Solver(Solver):
                                                     self.solver.dt_initial,
                                                     c_char_p(configuration_file),
                                                     True,
+                                                    #False,
                                                     self.initialization_callback,
                                                     self.boundary_condition_callback,
                                                     self.solver_callback)
         
         # Set PeanoSolution
-        import peanoclaw
+        import clawpack.peanoclaw as peanoclaw
         if(isinstance(solution, peanoclaw.Solution)):
             solution.peano = self.peano
             solution.libpeano = self.libpeano
@@ -185,7 +186,7 @@ class Solver(Solver):
         """
         import os
         import platform
-        import peanoclaw
+        import clawpack.peanoclaw as peanoclaw
         if platform.system() == 'Linux':
             shared_library_extension = 'so'
         elif platform.system() == 'Darwin':
@@ -195,6 +196,4 @@ class Solver(Solver):
         
         print(os.path.join(os.path.dirname(peanoclaw.__file__), 'libpeano-claw-2d.' + shared_library_extension))
         return os.path.join(os.path.dirname(peanoclaw.__file__), 'libpeano-claw-2d.' + shared_library_extension)
-        
-        
         
