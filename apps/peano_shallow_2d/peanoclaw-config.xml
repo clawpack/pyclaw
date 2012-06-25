@@ -1,1 +1,21 @@
-/work_fast/unterweg/p2/peano/applications/peanoclaw/run-PeanoClaw-on-spacetree-grid.xml
+<?xml version="1.0"?>
+
+<peano-configuration>
+  <run-peanoclaw-on-spacetree-grid
+  	plot-substeps="yes"
+  	additional-levels-for-predefined-refinement="0"
+  >
+  
+    <log-filter target="" component=""       switch="off" />
+    <log-filter target="info" component=""   switch="on" />
+    <log-filter target="debug" component="::pyclawBindings"   switch="off" />
+    <log-filter target="debug" component="peano::applications::peanoclaw::interpolate"   switch="off" />
+    <log-filter target="debug" component="peano::applications::peanoclaw::mappings::SpacetreeGrid2Remesh::destroyHangingVertex"   switch="off" />
+    <log-filter target="debug" component="peano::kernel::heap::Heap::getData"   switch="off" />
+    
+    
+    <log-output log-output-file="" column-separator=" " log-time-stamp="no" log-time-stamp-human-readable="yes" log-machine-name="no" log-message-type="yes" log-trace="yes" />
+  
+  
+  </run-peanoclaw-on-spacetree-grid>
+</peano-configuration>
