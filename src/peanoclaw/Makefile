@@ -16,7 +16,7 @@ ifeq ($(UNAME), Linux)
 LIB_EXTENSION := so
 endif
 ifeq ($(UNAME), Darwin)
-LIB_EXTENSION := lib
+LIB_EXTENSION := dylib
 endif
 
 # Use Scons
