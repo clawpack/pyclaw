@@ -112,8 +112,8 @@ def configuration(parent_package='clawpack',top_path=None):
     config = Configuration('peanoclaw', parent_package, top_path)
 
     # ensure that peano library has been built
-#    import subprocess
-#    subprocess.check_call("make")
+    import subprocess
+    subprocess.check_call("make")
 
     # Python doesn't build the Peano library, so we treat it as a data file
 
