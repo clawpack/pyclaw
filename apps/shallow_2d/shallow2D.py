@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+from __future__ import division
+
 """
 2D shallow water equations.
 """
@@ -22,7 +24,7 @@ def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
     state.q[2,:,:] = hl*vl*(r<=radDam) + hr*vr*(r>radDam)
 
     
-def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
+def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic',amr_type=None):
     #===========================================================================
     # Import libraries
     #===========================================================================
@@ -43,13 +45,13 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
 
-    import riemann
+    from clawpack import riemann
     solver.rp = riemann.rp2_shallow_roe_with_efix
     solver.num_waves = 3
 
-    solver.bc_lower[0] = pyclaw.BC.extrap
+    solver.bc_lower[0] = pyclaw.BC.wall
     solver.bc_upper[0] = pyclaw.BC.wall
-    solver.bc_lower[1] = pyclaw.BC.extrap
+    solver.bc_lower[1] = pyclaw.BC.wall
     solver.bc_upper[1] = pyclaw.BC.wall
 
     #===========================================================================
@@ -57,13 +59,29 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     # state and finally initialize aux array
     #===========================================================================
 
+    # resolution of each grid
+    mgrid = 50
+
+    # number of initial AMR grids in each dimension
+    msubgrid = 3
+
+    if amr_type is not None:
+        m = mgrid
+    else:
+        # number of Domain grid cells expressed as the product of
+        # grid resolution and the number of AMR sub-grids for
+        # easy comparison between the two methods
+        m = mgrid*msubgrid
+    
+    mx = m
+    my = m
+
     # Domain:
-    xlower = -2.5
-    xupper = 2.5
-    mx = 150
-    ylower = -2.5
-    yupper = 2.5
-    my = 150
+    xlower = 0
+    xupper = 1
+    ylower = 0
+    yupper = 1
+
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
     domain = pyclaw.Domain([x,y])
@@ -84,16 +102,32 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     hr = 1.
     ur = 0.
     vr = 0.
-    
+
     qinit(state,hl,ul,vl,hr,ur,vl,damRadius) # This function is defined above
+
+    # this closure is used by AMR-style codes
+    def qinit_callback(state):
+        qinit(state,hl,ul,vl.hr,ur,vl,damRadius)
 
     #===========================================================================
     # Set up controller and controller parameters
     #===========================================================================
     claw = pyclaw.Controller()
     claw.tfinal = 2.5
-    claw.solution = pyclaw.Solution(state,domain)
-    claw.solver = solver
+
+    if amr_type is not None:        
+        if amr_type == 'peano':
+            import clawpack.peanoclaw as amrclaw
+            claw.solver = amrclaw.Solver(solver,
+                                        1/(mgrid*msubgrid),
+                                        qinit_callback)
+            claw.solution = amrclaw.Solution(state, domain)
+        else:
+            raise Exception('unsupported amr_type %s' % amr_type)
+    else:
+        claw.solver = solver
+        claw.solution = pyclaw.Solution(state,domain)
+
     claw.outdir = outdir
     claw.num_output_times = 10
 
@@ -112,7 +146,6 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(shallow2D)
-    print 'Error: ', output
 
 
 
