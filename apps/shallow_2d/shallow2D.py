@@ -13,10 +13,11 @@ from __future__ import division
 import numpy as np
 
 def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
-    x0=0.
-    y0=0.
+    x0=0.5
+    y0=0.5
     xCenter = state.grid.x.centers
     yCenter = state.grid.y.centers
+    
     Y,X = np.meshgrid(yCenter,xCenter)
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
     state.q[0,:,:] = hl*(r<=radDam) + hr*(r>radDam)
@@ -60,7 +61,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     #===========================================================================
 
     # resolution of each grid
-    mgrid = 50
+    mgrid = 40
 
     # number of initial AMR grids in each dimension
     msubgrid = 3
@@ -107,7 +108,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
 
     # this closure is used by AMR-style codes
     def qinit_callback(state):
-        qinit(state,hl,ul,vl.hr,ur,vl,damRadius)
+        qinit(state,hl,ul,vl,hr,ur,vl,damRadius)
 
     #===========================================================================
     # Set up controller and controller parameters
@@ -127,7 +128,8 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     else:
         claw.solver = solver
         claw.solution = pyclaw.Solution(state,domain)
-
+        
+    claw.keep_copy = True
     claw.outdir = outdir
     claw.num_output_times = 10
 
@@ -139,9 +141,10 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     #===========================================================================
     # Plot results
     #===========================================================================
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,format=claw.output_format)
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,format=claw.output_format)
+    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
+    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
+    return claw
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
