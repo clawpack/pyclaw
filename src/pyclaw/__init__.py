@@ -24,8 +24,8 @@ import clawpack.riemann as riemann
 import plot
 
 __all__.extend(['ClawSolver1D','ClawSolver2D','ClawSolver3D','SharpClawSolver1D','SharpClawSolver2D'])
-from .classic.clawpack import ClawSolver1D, ClawSolver2D, ClawSolver3D
-from .sharpclaw.sharpclaw import SharpClawSolver1D, SharpClawSolver2D
+from .classic.solver import ClawSolver1D, ClawSolver2D, ClawSolver3D
+from .sharpclaw.solver import SharpClawSolver1D, SharpClawSolver2D
 
 
 # Sub-packages

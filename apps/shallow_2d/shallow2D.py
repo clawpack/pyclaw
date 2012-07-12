@@ -26,8 +26,6 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     #===========================================================================
     # Import libraries
     #===========================================================================
-    import numpy as np
-
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
@@ -43,7 +41,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
 
-    import riemann
+    from clawpack import riemann
     solver.rp = riemann.rp2_shallow_roe_with_efix
     solver.num_waves = 3
 
@@ -85,7 +83,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     ur = 0.
     vr = 0.
     
-    qinit(state,hl,ul,vl,hr,ur,vl,damRadius) # This function is defined above
+    qinit(state,hl,ul,vl,hr,ur,vr,damRadius) # This function is defined above
 
     #===========================================================================
     # Set up controller and controller parameters
@@ -105,8 +103,8 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     #===========================================================================
     # Plot results
     #===========================================================================
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,format=claw.output_format)
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,format=claw.output_format)
+    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,file_format=claw.output_format)
+    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,file_format=claw.output_format)
 
 
 if __name__=="__main__":

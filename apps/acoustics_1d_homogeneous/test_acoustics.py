@@ -34,10 +34,10 @@ def test_1d_acoustics():
     sharp_tests   = gen_variants(acoustics, verify_expected(0.000298879563857),
                                  python_kernel=True, solver_type='sharpclaw')
 
-    weno_tests    = gen_variants(acoustics, verify_expected(0.000163221216565),
+    weno_tests    = gen_variants(acoustics, verify_expected(0.000153070447918),
                                  python_kernel=False, solver_type='sharpclaw',
                                  weno_order=17)
-    
+
     from itertools import chain
     for test in chain(classic_tests, sharp_tests, weno_tests):
         yield test
