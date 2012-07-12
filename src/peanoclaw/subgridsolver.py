@@ -14,7 +14,7 @@ class SubgridSolver(object):
      
     """
     
-    def __init__(self, solver, global_state, q, qbc, position, size, subdivision_factor, unknowns_per_cell):
+    def __init__(self, solver, global_state, q, qbc, aux, position, size, subdivision_factor_x0, subdivision_factor_x1, subdivision_factor_x2, unknowns_per_cell, aux_fields_per_cell):
         r"""
         Initializes this subgrid solver. It get's all information to prepare a domain and state for a
         single subgrid. 
@@ -37,11 +37,12 @@ class SubgridSolver(object):
         
         """
         self.solver = solver
-        self.dim_x = pyclaw.Dimension('x',position[0],position[0] + size[0],subdivision_factor)
-        self.dim_y = pyclaw.Dimension('y',position[1],position[1] + size[1],subdivision_factor)
+        self.dim_x = pyclaw.Dimension('x',position[0],position[0] + size[0],subdivision_factor_x0)
+        self.dim_y = pyclaw.Dimension('y',position[1],position[1] + size[1],subdivision_factor_x1)
         domain = pyclaw.Domain([self.dim_x,self.dim_y])
-        subgrid_state = pyclaw.State(domain, unknowns_per_cell)
+        subgrid_state = pyclaw.State(domain, unknowns_per_cell, aux_fields_per_cell)
         subgrid_state.q = q
+        subgrid_state.aux = aux
         subgrid_state.problem_data = global_state.problem_data
         self.solution = pyclaw.Solution(subgrid_state, domain)
 
@@ -71,7 +72,6 @@ class SubgridSolver(object):
                                  last timestep performed on this grid.
         """
         self.solver.dt = min(maximum_timestep_size, estimated_next_dt)
-            
         self.solver.setup(self.solution)
         # Set qbc and timestep for the current patch
         self.solver.qbc = self.qbc
@@ -82,31 +82,20 @@ class SubgridSolver(object):
         
         
     def user_bc_lower(self, grid,dim,t,qbc,mbc):
-#        print "Setting lower bc with mbc=" + str(mbc)
+        #Todo Rewrite for arbitrary dimensions
         if dim == self.dim_x:
-#            print "Setting lower bc for x"
             for i in range(mbc):
-    #            print "Setting " + str(boundaryArray[:,:,i])
                 qbc[:,:,i] = self.qbc[:,:,i]
         else:
-#            print "Setting lower bc for y"
             for i in range(mbc):
-    #            print "Setting " + str(boundaryArray[:,i,:])
                 qbc[:,i,:] = self.qbc[:,i,:]
-    #    print "set qbc=" 
-    #    print str(qbc)
         
     def user_bc_upper(self, grid,dim,t,qbc,mbc):
+        #Todo Rewrite for arbitrary dimensions
         if dim == self.dim_x:
-#            print "Setting upper bc for x" + str(qbc.shape) + " " + str(ghostlayerArray.shape) + " mbc=" + str(mbc) + " dim=" + str(dim)
             for i in range(mbc):
-    #            print "Setting (" +str(dim.n+mbc+i) + ") " + str(boundaryArray[:,:,dim.n+mbc+i])
-                qbc[:,:,dim.num_cells+mbc+i] = self.qbc[:,:,dim.num_cells+mbc+i]
+                qbc[:,:,self.dim_y.num_cells+mbc+i] = self.qbc[:,:,self.dim_y.num_cells+mbc+i]
         else:
-#            print "Setting upper bc for y"
             for i in range(mbc):
-    #            print "Setting (" +str(dim.n+mbc+i) + ") " + str(boundaryArray[:,dim.n+mbc+i,:])
-                qbc[:,dim.num_cells+mbc+i,:] = self.qbc[:,dim.num_cells+mbc+i,:]
-    #    print "set qbc="
-    #    print str(qbc)
+                qbc[:,self.dim_x.num_cells+mbc+i,:] = self.qbc[:,self.dim_x.num_cells+mbc+i,:]
         
