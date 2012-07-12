@@ -3,7 +3,7 @@ Created on Mar 17, 2012
 
 @author: kristof
 '''
-import pyclaw
+import clawpack.pyclaw as pyclaw
 from ctypes import CFUNCTYPE
 from ctypes import py_object
 from ctypes import c_int
@@ -26,7 +26,13 @@ class Solution(pyclaw.solution.Solution):
         >>> solution = peanoclaw.Solution(state,domain)
     """
     
-    CALLBACK_ADD_PATCH_TO_SOLUTION = CFUNCTYPE(None, py_object, py_object, c_int, c_double, c_double, c_double, c_double)
+    CALLBACK_ADD_PATCH_TO_SOLUTION = CFUNCTYPE(None, 
+                                                py_object, #q
+                                                py_object, #qbc
+                                                c_int,     #ghostlayer width
+                                                c_double, c_double, c_double, #size
+                                                c_double, c_double, c_double, #position
+                                                c_double)  #current time
     
     def __init__(self,*arg,**kargs):
         pyclaw.Solution.__init__(self,*arg,**kargs)
@@ -37,13 +43,13 @@ class Solution(pyclaw.solution.Solution):
         r"""
         Creates a closure for the callback method to add a grid to the solution.
         """
-        def callback_add_to_solution(q, qbc, ghostlayer_width, size, position_X, position_Y, currentTime):
-#            import pyclaw
+        def callback_add_to_solution(q, qbc, ghostlayer_width, size_x, size_y, size_z, position_x, position_y, position_z, currentTime):
+            #TODO adjust for 3D
             # Set up grid information for current patch
             subdivision_factor = q.shape[1]
             unknowns_per_subcell = q.shape[0]
-            dim_x = pyclaw.Dimension('x', position_X, position_X + size, subdivision_factor)
-            dim_y = pyclaw.Dimension('y', position_Y, position_Y + size, subdivision_factor)
+            dim_x = pyclaw.Dimension('x', position_x, position_x + size_x, subdivision_factor)
+            dim_y = pyclaw.Dimension('y', position_y, position_y + size_y, subdivision_factor)
 #            domain = pyclaw.Domain([dim_x,dim_y])
 #            state = pyclaw.State(domain, unknownsPerSubcell)
 #            state.problem_data = self.solution.state.problem_data
