@@ -42,12 +42,12 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     # Import libraries
     #===========================================================================
     import numpy as np
-    import peanoclaw
+    import clawpack.peanoclaw as peanoclaw
 
     if use_petsc:
-        import petclaw as pyclaw
+        import clawpack.petclaw as pyclaw
     else:
-        import pyclaw
+        import clawpack.pyclaw as pyclaw
 
     #===========================================================================
     # Setup solver and solver parameters
@@ -59,11 +59,11 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
         solver.dimensional_split=1
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
-    peanoSolver = peanoclaw.Solver(solver, (1./3.)/subdivisionFactor, init)
+    peanoSolver = peanoclaw.Solver(solver, (1./9.)/subdivisionFactor, init)
     
     solver.dt_initial = 1.0
 
-    import riemann
+    import clawpack.riemann as riemann
     solver.rp = riemann.rp2_shallow_roe_with_efix
     solver.num_waves = 3
 
@@ -100,11 +100,11 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     # Set up controller and controller parameters
     #===========================================================================
     claw = pyclaw.Controller()
-    claw.tfinal = 0.1
+    claw.tfinal = 0.0001#0.25
     claw.solution = peanoclaw.solution.Solution(state,domain)
     claw.solver = peanoSolver
     claw.outdir = outdir
-    claw.num_output_times = 5
+    claw.num_output_times = 1#100
 
     #===========================================================================
     # Solve the problem
@@ -114,12 +114,13 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     #===========================================================================
     # Plot results
     #===========================================================================
-    if iplot:     plot.interactive_plot(outdir=outdir,format=claw.output_format)
-    if htmlplot:  plot.html_plot(outdir=outdir,format=claw.output_format)
+    import clawpack.pyclaw.plot
+    if iplot:     clawpack.pyclaw.plot.interactive_plot(outdir=outdir)
+    if htmlplot:  clawpack.pyclaw.plot.html_plot(outdir=outdir)
 
 
 if __name__=="__main__":
-    from pyclaw.util import run_app_from_main
+    from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(shallow2D)
     print 'Error: ', output
 
