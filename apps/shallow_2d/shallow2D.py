@@ -139,13 +139,8 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     #===========================================================================
     # Plot results
     #===========================================================================
-<<<<<<< HEAD
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,file_format=claw.output_format)
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,file_format=claw.output_format)
-=======
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
->>>>>>> aron/peanoclaw
 
     return claw
 
