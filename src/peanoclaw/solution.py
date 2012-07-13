@@ -46,19 +46,15 @@ class Solution(pyclaw.solution.Solution):
         def callback_add_to_solution(q, qbc, ghostlayer_width, size_x, size_y, size_z, position_x, position_y, position_z, currentTime):
             #TODO adjust for 3D
             # Set up grid information for current patch
-            subdivision_factor = q.shape[1]
+            subdivision_factor_x = q.shape[1]
+            subdivision_factor_y = q.shape[2]
             unknowns_per_subcell = q.shape[0]
-            dim_x = pyclaw.Dimension('x', position_x, position_x + size_x, subdivision_factor)
-            dim_y = pyclaw.Dimension('y', position_y, position_y + size_y, subdivision_factor)
-#            domain = pyclaw.Domain([dim_x,dim_y])
-#            state = pyclaw.State(domain, unknownsPerSubcell)
-#            state.problem_data = self.solution.state.problem_data
-#            state.q = q
-#            solution = pyclaw.Solution(state, domain)
+            dim_x = pyclaw.Dimension('x', position_x, position_x + size_x, subdivision_factor_x)
+            dim_y = pyclaw.Dimension('y', position_y, position_y + size_y, subdivision_factor_y)
 
             patch = pyclaw.geometry.Patch((dim_x, dim_y))
             state = pyclaw.State(patch, unknowns_per_subcell)
-            state.set_q_from_qbc(ghostlayer_width, qbc)
+            state.q[:] = q[:]
             state.t = currentTime
             
             self.gathered_patches.append(patch)
@@ -69,6 +65,9 @@ class Solution(pyclaw.solution.Solution):
     
     def write(self,frame,path='./',file_format='ascii',file_prefix=None,
               write_aux=False,options={},write_p=False):
+        r"""
+        Writes gathered solution to file.
+        """
         if(self.peano == None or self.libpeano == None):
             raise Exception("self.peano and self.libpeano have to be initialized with the reference to the Peano grid by peanoclaw.Solver.setup(...)")
 
@@ -78,7 +77,7 @@ class Solution(pyclaw.solution.Solution):
         
         self.libpeano.pyclaw_peano_gatherSolution.argtypes = [c_void_p, c_void_p]
         self.libpeano.pyclaw_peano_gatherSolution(self.peano, self.get_add_to_solution_callback())
-
+        
         #Assemble solution and write file
         domain = pyclaw.Domain(self.gathered_patches)
         solution = pyclaw.Solution(self.gathered_states, domain)
