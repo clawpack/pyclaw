@@ -88,7 +88,7 @@ class Solver(Solver):
             import clawpack.pyclaw as pyclaw
             self.dim_x = pyclaw.Dimension('x',position_x,position_x + size_x,subdivision_factor_x0)
             self.dim_y = pyclaw.Dimension('y',position_y,position_y + size_y,subdivision_factor_x1)
-            #TODO use size_z and position_z
+            #TODO 3D: use size_z and position_z
             domain = pyclaw.Domain([self.dim_x,self.dim_y])
             subgrid_state = pyclaw.State(domain, unknowns_per_subcell, aux_fields_per_subcell)
             subgrid_state.q = q
@@ -111,7 +111,7 @@ class Solver(Solver):
             if(aux_fields_per_cell == 0):
               aux = None
               
-            #TODO adjust to 3D
+            #TODO 3D: Adjust position and size to 3D
             # Set up grid information for current patch
             import clawpack.peanoclaw as peanoclaw            
             subgridsolver = peanoclaw.SubgridSolver(self.solver, self.solution.state, q, qbc, aux, (position_x, position_y), (size_x, size_y), subdivision_factor_x0, subdivision_factor_x1, subdivision_factor_x2, unknowns_per_cell, aux_fields_per_cell)

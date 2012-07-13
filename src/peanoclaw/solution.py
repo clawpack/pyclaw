@@ -44,7 +44,7 @@ class Solution(pyclaw.solution.Solution):
         Creates a closure for the callback method to add a grid to the solution.
         """
         def callback_add_to_solution(q, qbc, ghostlayer_width, size_x, size_y, size_z, position_x, position_y, position_z, currentTime):
-            #TODO adjust for 3D
+            #TODO 3D: Adjust subdivision_factor to 3D
             # Set up grid information for current patch
             subdivision_factor_x = q.shape[1]
             subdivision_factor_y = q.shape[2]

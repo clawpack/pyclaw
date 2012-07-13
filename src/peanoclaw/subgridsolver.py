@@ -82,7 +82,7 @@ class SubgridSolver(object):
         
         
     def user_bc_lower(self, grid,dim,t,qbc,mbc):
-        #Todo Rewrite for arbitrary dimensions
+        #Todo 3D: Rewrite for arbitrary dimensions
         if dim == self.dim_x:
             for i in range(mbc):
                 qbc[:,:,i] = self.qbc[:,:,i]
@@ -91,7 +91,7 @@ class SubgridSolver(object):
                 qbc[:,i,:] = self.qbc[:,i,:]
         
     def user_bc_upper(self, grid,dim,t,qbc,mbc):
-        #Todo Rewrite for arbitrary dimensions
+        #Todo 3D: Rewrite for arbitrary dimensions
         if dim == self.dim_x:
             for i in range(mbc):
                 qbc[:,:,self.dim_y.num_cells+mbc+i] = self.qbc[:,:,self.dim_y.num_cells+mbc+i]
