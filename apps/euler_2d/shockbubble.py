@@ -130,12 +130,14 @@ def dq_Euler_radial(solver,state,dt):
 
     return dq
 
-def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False):
+def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False,amr_type=None):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a bubble of dense gas that is impacted by a shock.
     """
-
+    #===========================================================================
+    # Import libraries
+    #===========================================================================
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
@@ -143,6 +145,8 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
 
     if kernel_language != 'Fortran':
         raise Exception('Unrecognized value of kernel_language for Euler Shockbubble')
+        
+        
 
     
     if solver_type=='sharpclaw':
@@ -155,19 +159,31 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
         solver.limiters = [4,4,4,4,2]
         solver.step_source=step_Euler_radial
 
+    #===========================================================================
     # Initialize domain
-    mx=160; my=40
+    #===========================================================================
+
+    # resolution of each grid
+    mx=24; my=6
+
+    # number of initial AMR grids in each dimension
+    msubgrid = 3
+    
+    if amr_type is None:
+        # number of Domain grid cells expressed as the product of
+        # grid resolution and the number of AMR sub-grids for
+        # easy comparison between the two methods
+        mx = mx*msubgrid
+        my = my*msubgrid
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
     domain = pyclaw.Domain([x,y])
     num_eqn = 5
-    num_aux=1
+    num_aux = 1
     state = pyclaw.State(domain,num_eqn,num_aux)
 
     state.problem_data['gamma']= gamma
     state.problem_data['gamma1']= gamma1
-
-    tfinal = 0.2
 
     qinit(state)
     auxinit(state)
@@ -191,13 +207,27 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
     solver.aux_bc_lower[1]=pyclaw.BC.extrap
     solver.aux_bc_upper[1]=pyclaw.BC.extrap
 
+    #===========================================================================
+    # Set up controller and controller parameters
+    #===========================================================================
     claw = pyclaw.Controller()
     claw.keep_copy = True
-    # The output format MUST be set to petsc!
-    claw.tfinal = tfinal
+    claw.tfinal = 0.2
     claw.solution = initial_solution
-    claw.solver = solver
-    claw.num_output_times = 1
+    claw.num_output_times = 5
+
+    if amr_type is not None:        
+        if amr_type == 'peano':
+            import clawpack.peanoclaw as amrclaw
+            claw.solver = amrclaw.Solver(solver,
+                                        (x.upper-x.lower)/(mx*msubgrid),
+                                        qinit, auxinit)
+            claw.solution = amrclaw.Solution(state, domain)
+        else:
+            raise Exception('unsupported amr_type %s' % amr_type)
+    else:
+        claw.solver = solver
+        claw.solution = pyclaw.Solution(state,domain)
 
     # Solve
     status = claw.run()
