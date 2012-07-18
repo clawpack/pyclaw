@@ -72,7 +72,6 @@ class SubgridSolver(object):
                                  last timestep performed on this grid.
         """
         self.solver.dt = min(maximum_timestep_size, estimated_next_dt)
-        self.solver.setup(self.solution)
         # Set qbc and timestep for the current patch
         self.solver.qbc = self.qbc
         self.solver.dt_max = maximum_timestep_size
