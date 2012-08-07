@@ -19,7 +19,10 @@ import numpy as np
 from numpy import *
 import os
 
-if ~os.path.exists('problem.so') or ~os.path.exists('classic2.so'):
+try:
+    import problem
+    import classic2
+except ImportError:
     import warnings
     warnings.warn("missing extension modules, running python setup.py build_ext -i")
     import subprocess
@@ -30,7 +33,7 @@ if ~os.path.exists('problem.so') or ~os.path.exists('classic2.so'):
         import classic2
     except ImportError:
         import sys
-        print >> sys.stderr, "***\nUnable to import problem module or automatically build, try running (in this directory):\n python setup.py build_ext -i\n***"
+        print >> sys.stderr, "***\nUnable to import problem module or automatically build, try running (in the directory of this file):\n python setup.py build_ext -i\n***"
         raise
 
 
