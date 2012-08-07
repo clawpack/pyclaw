@@ -52,12 +52,10 @@ def fortran_src_wrapper(solver,state,dt):
     # Get parameters and variables that have to be passed to the fortran src2
     # routine.
     mx, my = grid.num_cells[0], grid.num_cells[1]
-    num_eqn = state.num_eqn
     num_ghost = solver.num_ghost
     xlower, ylower = grid.lower[0], grid.lower[1]
     dx, dy = grid.delta[0], grid.delta[1]
     q = state.q
-    num_aux = state.num_aux
     aux = state.aux
     t = state.t
 
