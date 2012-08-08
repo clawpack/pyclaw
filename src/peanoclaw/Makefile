@@ -2,7 +2,7 @@ UNAME := $(shell uname)
 
 # Default settings
 #------------------
-ifndef DIMENSIONS
+ifndef DIMENSION
 DIMENSION := 2
 endif
 ifndef BUILD_MODE
