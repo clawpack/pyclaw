@@ -42,7 +42,7 @@ class Solver(Solver):
                                         c_int,     #aux fields per cell
                                         c_double, c_double, c_double, #size
                                         c_double, c_double, c_double) #position
-    CALLBACK_SOLVER = CFUNCTYPE(None, 
+    CALLBACK_SOLVER = CFUNCTYPE(c_double, 
                                 POINTER(c_double), #Return array
                                 py_object, #q
                                 py_object, #qbc
@@ -59,7 +59,7 @@ class Solver(Solver):
                                 c_double) #estimated next timestep size
     CALLBACK_BOUNDARY_CONDITIONS = CFUNCTYPE(None, py_object, py_object, c_int, c_int)
     
-    def __init__(self, solver, initial_minimal_mesh_width, q_initialization, aux_initialization=None):
+    def __init__(self, solver, initial_minimal_mesh_width, q_initialization, aux_initialization=None, refinement_criterion=None):
         r"""
         Initializes the Peano-solver. This keeps the Peano-spacetree internally and wraps the given PyClaw-solver.
         
@@ -72,6 +72,7 @@ class Solver(Solver):
         self.initial_minimal_mesh_width = initial_minimal_mesh_width
         self.q_initialization = q_initialization
         self.aux_initialization = aux_initialization
+        self.refinement_criterion = refinement_criterion
         self.dt_initial = solver.dt_initial
         self.num_ghost = solver.num_ghost
         self.rp = solver.rp
@@ -122,9 +123,16 @@ class Solver(Solver):
             
             return_dt_and_estimated_next_dt[0] = self.solver.dt
             if self.solver.cfl.get_cached_max() > 0:
-                return_dt_and_estimated_next_dt[1] = self.solver.dt * self.solver.cfl_desired / self.solver.cfl.get_cached_max()
+              return_dt_and_estimated_next_dt[1] = self.solver.dt * self.solver.cfl_desired / self.solver.cfl.get_cached_max()
             else:
-                return_dt_and_estimated_next_dt[1] = self.solver.dt_max
+              return_dt_and_estimated_next_dt[1] = self.solver.dt_max
+                
+            #Steer refinement
+            if not self.refinement_criterion == None:
+            	return self.Trrefinement_criterion(subgridsolver.solution.state)
+            else:
+            	return self.initial_minimal_mesh_width
+                
         return self.CALLBACK_SOLVER(callback_solver)
         
     def get_boundary_condition_callback(self):
@@ -205,8 +213,8 @@ class Solver(Solver):
                                                     ghostlayer_width,
                                                     self.solver.dt_initial,
                                                     c_char_p(configuration_file),
-                                                    True,
-                                                    #False,
+                                                    #True,
+                                                    False,
                                                     self.initialization_callback,
                                                     self.boundary_condition_callback,
                                                     self.solver_callback)
