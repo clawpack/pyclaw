@@ -23,6 +23,12 @@ def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
     state.q[0,:,:] = hl*(r<=radDam) + hr*(r>radDam)
     state.q[1,:,:] = hl*ul*(r<=radDam) + hr*ur*(r>radDam)
     state.q[2,:,:] = hl*vl*(r<=radDam) + hr*vr*(r>radDam)
+    
+def refinement_criterion(state):
+    if((state.q[0,:,:].max() - state.q[0,:,:].min()) > 0.2):
+    	return 1.0/36.0
+    else:
+    	return 1.0/18.0
 
     
 def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic',amr_type=None):
@@ -117,9 +123,11 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     if amr_type is not None:        
         if amr_type == 'peano':
             import clawpack.peanoclaw as amrclaw
-            claw.solver = amrclaw.Solver(solver,
-                                        1/(mgrid*msubgrid),
-                                        qinit_callback)
+            claw.solver = amrclaw.Solver(solver
+                                        ,1/(mgrid*msubgrid)
+                                        ,qinit_callback
+                                        #,refinement_criterion=refinement_criterion
+                                        )
             claw.solution = amrclaw.Solution(state, domain)
         else:
             raise Exception('unsupported amr_type %s' % amr_type)
