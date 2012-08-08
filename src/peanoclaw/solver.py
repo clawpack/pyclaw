@@ -176,7 +176,7 @@ class Solver(Solver):
         import os, sys
         configuration_file = os.path.join(sys.path[0], 'peanoclaw-config.xml')
         
-        self.solver.setup(solution)
+        #self.solver.setup(solution)
         self.solution = solution
         
         self.libpeano.pyclaw_peano_new.argtypes = [ c_double, #Initial mesh width
@@ -235,6 +235,7 @@ class Solver(Solver):
         See :class:`Solver` for full documentation
         """ 
         self.libpeano.pyclaw_peano_destroy(self.peano)
+        self.solver.teardown()
     
     def evolve_to_time(self,solution,tend=None):
         r"""
