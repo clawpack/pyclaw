@@ -139,6 +139,9 @@ class SharpClawSolver(Solver):
         self._mthlim = self.limiters
         self._method = None
         self._rk_stages = None
+        self.a = None
+        self.b = None
+        self.c = None
 
         # Call general initialization function
         super(SharpClawSolver,self).__init__(riemann_solver,claw_package)
@@ -233,13 +236,14 @@ class SharpClawSolver(Solver):
                 # self._rk_stages[i].q actually stores f(y_i)
                 num_stages = len(self.b)
                 for i in range(num_stages):
-                    self._rk_stages[i].q = state.q
+                    self._rk_stages[i].q = state.q.copy()
                     for j in range(i):
-                        self._rk_stages[i].q += self.dt*self.a[i,j]*self._rk_stages[j].q
+                        self._rk_stages[i].q += self.a[i,j]*self._rk_stages[j].q
+                    self._rk_stages[i].t = state.t + self.dt * self.c[i]
                     self._rk_stages[i].q = self.dq(self._rk_stages[i])
 
                 for j in range(num_stages):
-                    state.q += self.dt*self.b[j]*self._rk_stages[j].q
+                    state.q += self.b[j]*self._rk_stages[j].q
             else:
                 raise Exception('Unrecognized time integrator')
         except CFLError:
@@ -331,6 +335,8 @@ class SharpClawSolver(Solver):
         if self.time_integrator   == 'Euler':  nregisters=1
         elif self.time_integrator == 'SSP33':  nregisters=2
         elif self.time_integrator == 'SSP104': nregisters=3
+        elif self.time_integrator == 'RK': 
+            nregisters=len(self.b)+2
  
         state = solution.states[0]
         # use the same class constructor as the solution for the Runge Kutta stages
