@@ -227,6 +227,19 @@ class SharpClawSolver(Solver):
 
                 deltaq = self.dq(s1)
                 state.q = s2.q + 0.6 * s1.q + 0.1 * deltaq
+                
+            elif self.time_integrator=='RK':
+                # General RK with specified coefficients
+                # self._rk_stages[i].q actually stores f(y_i)
+                num_stages = len(self.b)
+                for i in range(num_stages):
+                    self._rk_stages[i].q = state.q
+                    for j in range(i):
+                        self._rk_stages[i].q += self.dt*self.a[i,j]*self._rk_stages[j].q
+                    self._rk_stages[i].q = self.dq(self._rk_stages[i])
+
+                for j in range(num_stages):
+                    state.q += self.dt*self.b[j]*self._rk_stages[j].q
             else:
                 raise Exception('Unrecognized time integrator')
         except CFLError:
