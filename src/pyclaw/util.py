@@ -2,22 +2,7 @@
 # encoding: utf-8
 r"""
 Pyclaw utility methods
-
-:Authors:
-    Kyle T. Mandli (2008-08-07) Initial version
-    
-    Randall J. LeVeque (2009-01-01) Added svn revision
-    
-    Kyle T. Mandli (2009-03-01) Added topo file utilities
 """
-# ============================================================================
-#      Copyright (C) 2008 Kyle T. Mandli <mandli@amath.washington.edu>
-#      Copyright (C) 2009 Randall J. LeVeque <rjl@amath.washington.edu>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
 
 import time
 import os,sys
