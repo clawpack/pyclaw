@@ -129,9 +129,9 @@ class Solver(Solver):
                 
             #Steer refinement
             if not self.refinement_criterion == None:
-            	return self.Trrefinement_criterion(subgridsolver.solution.state)
+              return self.refinement_criterion(subgridsolver.solution.state)
             else:
-            	return self.initial_minimal_mesh_width
+              return self.initial_minimal_mesh_width
                 
         return self.CALLBACK_SOLVER(callback_solver)
         
@@ -175,6 +175,7 @@ class Solver(Solver):
         ghostlayer_width = self.num_ghost
         import os, sys
         configuration_file = os.path.join(sys.path[0], 'peanoclaw-config.xml')
+        use_dimensional_splitting = self.solver.dimensional_split
         
         #self.solver.setup(solution)
         self.solution = solution
@@ -194,6 +195,7 @@ class Solver(Solver):
                                                     c_int,    #Ghostlayer width
                                                     c_double, #Initial timestep size
                                                     c_char_p, #Config file
+                                                    c_bool,   #Use dimensional splitting
                                                     c_bool,   #Run tests
                                                     c_void_p, #q Initialization callback
                                                     c_void_p, #Boundary condition callback
@@ -213,8 +215,9 @@ class Solver(Solver):
                                                     ghostlayer_width,
                                                     self.solver.dt_initial,
                                                     c_char_p(configuration_file),
-                                                    #True,
-                                                    False,
+                                                    use_dimensional_splitting,
+                                                    True,
+                                                    #False,
                                                     self.initialization_callback,
                                                     self.boundary_condition_callback,
                                                     self.solver_callback)
