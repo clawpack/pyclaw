@@ -162,8 +162,8 @@ class SharpClawSolver(Solver):
  
         if self.kernel_language=='Fortran':
             if self.fmod is None:
-                so_name = 'pyclaw.sharpclaw.sharpclaw'+str(self.num_dim)
-                self.fmod = __import__(so_name,fromlist=['pyclaw.sharpclaw'])
+                so_name = 'clawpack.pyclaw.sharpclaw.sharpclaw'+str(self.num_dim)
+                self.fmod = __import__(so_name,fromlist=['clawpack.pyclaw.sharpclaw'])
             state.set_cparam(self.fmod)
             state.set_cparam(self.rp)
             self.set_fortran_parameters(state,self.fmod.clawparams,self.fmod.workspace,self.fmod.reconstruct)
