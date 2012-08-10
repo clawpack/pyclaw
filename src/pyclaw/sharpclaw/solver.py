@@ -141,6 +141,7 @@ class SharpClawSolver(Solver):
         self._rk_stages = None
         self.a = None
         self.b = None
+        self.b_hat = None
         self.c = None
 
         # Call general initialization function
@@ -243,7 +244,11 @@ class SharpClawSolver(Solver):
                     self._rk_stages[i].q = self.dq(self._rk_stages[i])
 
                 for j in range(num_stages):
-                    state.q += self.b[j]*self._rk_stages[j].q
+                    if self.b_hat is None:
+                        state.q += self.b[j]*self._rk_stages[j].q
+                    else:
+                        state.q += self.b[j]  *(1.-state.aux[state.ti_mask_ind,:])*self._rk_stages[j].q
+                        state.q += self.b_hat[j]*(state.aux[state.ti_mask_ind,:])*self._rk_stages[j].q
             else:
                 raise Exception('Unrecognized time integrator')
         except CFLError:
