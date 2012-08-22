@@ -18,7 +18,7 @@ def test_2d_acoustics():
                 expected_pressure = np.loadtxt(os.path.join(thisdir,data_filename))
                 test_err = np.linalg.norm(expected_pressure-test_pressure)
                 expected_err = 0
-                return check_diff(expected_err, test_err, abstol=1e-4)
+                return check_diff(expected_err, test_err, abstol=1e-1)
             else:
                 return
         return verify
