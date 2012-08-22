@@ -664,9 +664,6 @@ class Solver(object):
                 self.write_gauge_values(solution)
                 # Increment number of time steps completed
                 self.status['numsteps'] += 1
-                # See if we are finished yet
-                if solution.t >= tend or take_one_step:
-                    break
             else:
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
@@ -689,6 +686,9 @@ class Solver(object):
                 else:
                     self.dt = self.dt_max
 
+            # See if we are finished yet
+            if solution.t >= tend or take_one_step:
+                break
       
         # End of main time-stepping loop -------------------------------------
 
