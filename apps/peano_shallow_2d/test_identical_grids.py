@@ -114,7 +114,7 @@ def test_3x3_grid():
     #===========================================================================
     peanoclaw_controller = pyclaw.Controller()
     peanoclaw_controller.tfinal = tfinal
-    peanoclaw_controller.solution = pyclaw.Solution(peanoclaw_state,domain)
+    peanoclaw_controller.solution = peanoclaw.Solution(peanoclaw_state,domain)
     peanoclaw_controller.solver = peano_solver
     peanoclaw_controller.num_output_times = num_output_times
     
