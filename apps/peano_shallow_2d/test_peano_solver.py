@@ -4,14 +4,16 @@ if __name__=="__main__":
     import nose
     nose.main()
     
+def qinit(state):
+    pass
     
 def test_initialization():
-    from pyclaw.clawpack.clawpack import ClawSolver2D
+    from clawpack.pyclaw.classic.clawpack import ClawSolver2D
     
     solver = ClawSolver2D()
     
-    import peanoclaw
-    peano_solver = peanoclaw.Solver(solver, 1.0)
+    from clawpack import peanoclaw
+    peano_solver = peanoclaw.Solver(solver, 1.0, qinit)
     
     import inspect
     for member in inspect.getmembers(peano_solver):
