@@ -5,26 +5,33 @@ if __name__=="__main__":
     nose.main()
     
     
-def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
+def qinit(state):
     import numpy as np
+    damRadius = 0.2
+    hl = 2.
+    ul = 0.
+    vl = 0.
+    hr = 1.
+    ur = 0.
+    vr = 0.
     x0=0.5
     y0=0.5
     xCenter = state.grid.x.centers
     yCenter = state.grid.y.centers
     Y,X = np.meshgrid(yCenter,xCenter)
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
-    state.q[0,:,:] = hl*(r<=radDam) + hr*(r>radDam)
-    state.q[1,:,:] = hl*ul*(r<=radDam) + hr*ur*(r>radDam)
-    state.q[2,:,:] = hl*vl*(r<=radDam) + hr*vr*(r>radDam)
+    state.q[0,:,:] = hl*(r<=damRadius) + hr*(r>damRadius)
+    state.q[1,:,:] = hl*ul*(r<=damRadius) + hr*ur*(r>damRadius)
+    state.q[2,:,:] = hl*vl*(r<=damRadius) + hr*vr*(r>damRadius)
     
 def setup_solver():
-    import pyclaw
-    import peanoclaw
+    from clawpack import pyclaw
+    from clawpack import peanoclaw
     solver = pyclaw.ClawSolver2D()
     solver.limiters = pyclaw.limiters.tvd.MC
     solver.dimensional_split=1
 
-    import riemann
+    from clawpack import riemann
     solver.rp = riemann.rp2_shallow_roe_with_efix
     solver.num_waves = 3
 
@@ -45,8 +52,8 @@ def test_3x3_grid():
     # Import libraries
     #===========================================================================
     import numpy as np
-    import pyclaw
-    import peanoclaw
+    from clawpack import pyclaw
+    from clawpack import peanoclaw
 
     #===========================================================================
     # Setup solver and solver parameters for PyClaw run
@@ -57,7 +64,7 @@ def test_3x3_grid():
     # Setup solver and solver parameters for PeanoClaw run
     #===========================================================================
     peanoclaw_solver = setup_solver()
-    peano_solver = peanoclaw.Solver(peanoclaw_solver, 1.0)
+    peano_solver = peanoclaw.Solver(peanoclaw_solver, 1.0, qinit)
 
     #===========================================================================
     # Initialize domain and state, then initialize the solution associated to the 
@@ -86,18 +93,11 @@ def test_3x3_grid():
     # Initial solution
     # ================
     # Riemann states of the dam break problem
-    damRadius = 0.2
-    hl = 2.
-    ul = 0.
-    vl = 0.
-    hr = 1.
-    ur = 0.
-    vr = 0.
-    
-    qinit(pyclaw_state,hl,ul,vl,hr,ur,vl,damRadius) # This function is defined above
-    qinit(peanoclaw_state,hl,ul,vl,hr,ur,vl,damRadius) # This function is defined above
+    qinit(pyclaw_state) # This function is defined above
+    qinit(peanoclaw_state) # This function is defined above
 
     tfinal = 1.0
+    num_output_times = 2
     #===========================================================================
     # Set up controller and controller parameters for PyClaw run
     #===========================================================================
@@ -105,7 +105,7 @@ def test_3x3_grid():
     pyclaw_controller.tfinal = tfinal
     pyclaw_controller.solution = pyclaw.Solution(pyclaw_state,domain)
     pyclaw_controller.solver = pyclaw_solver
-    pyclaw_controller.num_output_times = 1
+    pyclaw_controller.num_output_times = num_output_times
     
     pyclaw_controller.run()
     
@@ -116,10 +116,11 @@ def test_3x3_grid():
     peanoclaw_controller.tfinal = tfinal
     peanoclaw_controller.solution = pyclaw.Solution(peanoclaw_state,domain)
     peanoclaw_controller.solver = peano_solver
-    peanoclaw_controller.num_output_times = 1
+    peanoclaw_controller.num_output_times = num_output_times
     
     peanoclaw_controller.run()
     
+    print(np.max(np.abs(pyclaw_solver.qbc - peanoclaw_solver.qbc)))
     assert(np.max(np.abs(pyclaw_solver.qbc - peanoclaw_solver.qbc)) < 1e-9)
     
     
