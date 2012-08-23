@@ -19,7 +19,10 @@ import numpy as np
 from numpy import *
 import os
 
-if ~os.path.exists('problem.so') or ~os.path.exists('classic2.so'):
+try:
+    import problem
+    import classic2
+except ImportError:
     import warnings
     warnings.warn("missing extension modules, running python setup.py build_ext -i")
     import subprocess
@@ -30,7 +33,7 @@ if ~os.path.exists('problem.so') or ~os.path.exists('classic2.so'):
         import classic2
     except ImportError:
         import sys
-        print >> sys.stderr, "***\nUnable to import problem module or automatically build, try running (in this directory):\n python setup.py build_ext -i\n***"
+        print >> sys.stderr, "***\nUnable to import problem module or automatically build, try running (in the directory of this file):\n python setup.py build_ext -i\n***"
         raise
 
 
@@ -52,12 +55,10 @@ def fortran_src_wrapper(solver,state,dt):
     # Get parameters and variables that have to be passed to the fortran src2
     # routine.
     mx, my = grid.num_cells[0], grid.num_cells[1]
-    num_eqn = state.num_eqn
     num_ghost = solver.num_ghost
     xlower, ylower = grid.lower[0], grid.lower[1]
     dx, dy = grid.delta[0], grid.delta[1]
     q = state.q
-    num_aux = state.num_aux
     aux = state.aux
     t = state.t
 

@@ -21,7 +21,7 @@ def test_1d_acoustics():
                 qfinal = qfinal.reshape([-1])
                 dx=claw.solution.domain.grid.delta[0]
                 test = dx*np.sum(np.abs(qfinal-q0))
-                return check_diff(expected, test, abstol=1e-5)
+                return check_diff(expected, test, abstol=1e-4)
             else:
                 return
         return acoustics_verify

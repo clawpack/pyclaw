@@ -19,7 +19,7 @@ def test_3d_acoustics():
             thisdir = os.path.dirname(__file__)
             verify_pfinal = np.loadtxt(os.path.join(thisdir,'verify_classic_heterogeneous.txt'))
             norm_err = np.linalg.norm(test_pfinal-verify_pfinal)
-            return check_diff(0, norm_err, abstol=1e-4)
+            return check_diff(0, norm_err, abstol=2e-1)
         return
 
     from clawpack.pyclaw.util import gen_variants

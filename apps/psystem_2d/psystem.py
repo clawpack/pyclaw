@@ -140,22 +140,24 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
     x0=0.25 # Center of initial perturbation
     y0=0.25 # Center of initial perturbation
     varx=0.5; vary=0.5 # Width of initial perturbation
+
     # Boundary conditions
     bc_x_lower=pyclaw.BC.wall; bc_x_upper=pyclaw.BC.extrap
     bc_y_lower=pyclaw.BC.wall; bc_y_upper=pyclaw.BC.extrap
+
     # Turning off 1st half of the domain. Useful in rect domains
     turnZero_half_2D=0 #flag
     t_turnZero=50
-    # Regarding time
-    tfinal=20.0
     num_output_times=10
-    t0=0.0
     # restart options
     restart_from_frame = None
-    solver = pyclaw.ClawSolver2D()
-    #solver = pyclaw.SharpClawSolver2D()
-    from clawpack import riemann
 
+    if solver_type=='classic':
+        solver = pyclaw.ClawSolver2D()
+    elif solver_type=='sharpclaw':
+        solver = pyclaw.SharpClawSolver2D()
+
+    from clawpack import riemann
     solver.rp = riemann.rp2_psystem
 
     solver.num_waves = 2
@@ -178,7 +180,7 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
 
     #controller
     claw = pyclaw.Controller()
-    claw.tfinal = tfinal
+    claw.tfinal = 40.0
     claw.solver = solver
 
     if restart_from_frame is not None:
@@ -200,7 +202,6 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
         num_aux = 4
         state = pyclaw.State(domain,num_eqn,num_aux)
         state.mF = 3
-        state.t=t0
         #Set global parameters
         state.problem_data = {}
         state.problem_data['turnZero_half_2D'] = turnZero_half_2D
