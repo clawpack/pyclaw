@@ -14,7 +14,7 @@ class SubgridSolver(object):
      
     """
     
-    def __init__(self, solver, global_state, q, qbc, aux, position, size, subdivision_factor_x0, subdivision_factor_x1, subdivision_factor_x2, unknowns_per_cell, aux_fields_per_cell):
+    def __init__(self, solver, global_state, q, qbc, aux, position, size, subdivision_factor_x0, subdivision_factor_x1, subdivision_factor_x2, unknowns_per_cell, aux_fields_per_cell, current_time):
         r"""
         Initializes this subgrid solver. It get's all information to prepare a domain and state for a
         single subgrid. 
@@ -45,7 +45,7 @@ class SubgridSolver(object):
         subgrid_state.aux = aux
         subgrid_state.problem_data = global_state.problem_data
         self.solution = pyclaw.Solution(subgrid_state, domain)
-
+        self.solution.t = current_time
         
         self.solver.bc_lower[0] = pyclaw.BC.custom
         self.solver.bc_upper[0] = pyclaw.BC.custom

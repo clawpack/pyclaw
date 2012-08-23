@@ -15,6 +15,7 @@ from ctypes import c_char_p
 from ctypes import CFUNCTYPE
 from ctypes import py_object
 from ctypes import POINTER
+from clawpack.pyclaw.util import current_time
 
 class Solver(Solver):
     r"""
@@ -31,7 +32,7 @@ class Solver(Solver):
     """
     
     #Callback definitions
-    CALLBACK_INITIALIZATION = CFUNCTYPE(None, 
+    CALLBACK_INITIALIZATION = CFUNCTYPE(c_double, 
                                         py_object, #q
                                         py_object, #qbc
                                         py_object, #aux
@@ -99,6 +100,12 @@ class Solver(Solver):
             self.q_initialization(subgrid_state)
             if(self.aux_initialization != None and aux_fields_per_subcell > 0):
               self.aux_initialization(subgrid_state)
+              
+            #Steer refinement
+            if not self.refinement_criterion == None:
+              return self.refinement_criterion(subgrid_state)
+            else:
+              return self.initial_minimal_mesh_width
             
         return self.CALLBACK_INITIALIZATION(callback_initialization)
         
@@ -107,7 +114,6 @@ class Solver(Solver):
         Creates a closure for the solver callback method.
         """
         def callback_solver(return_dt_and_estimated_next_dt, q, qbc, aux, subdivision_factor_x0, subdivision_factor_x1, subdivision_factor_x2, unknowns_per_cell, aux_fields_per_cell, size_x, size_y, size_z, position_x, position_y, position_z, current_time, maximum_timestep_size, estimated_next_dt):
-        
             # Fix aux array
             if(aux_fields_per_cell == 0):
               aux = None
@@ -115,18 +121,20 @@ class Solver(Solver):
             #TODO 3D: Adjust position and size to 3D
             # Set up grid information for current patch
             import clawpack.peanoclaw as peanoclaw            
-            subgridsolver = peanoclaw.SubgridSolver(self.solver, self.solution.state, q, qbc, aux, (position_x, position_y), (size_x, size_y), subdivision_factor_x0, subdivision_factor_x1, subdivision_factor_x2, unknowns_per_cell, aux_fields_per_cell)
+            subgridsolver = peanoclaw.SubgridSolver(self.solver, self.solution.state, q, qbc, aux, (position_x, position_y), (size_x, size_y), subdivision_factor_x0, subdivision_factor_x1, subdivision_factor_x2, unknowns_per_cell, aux_fields_per_cell, current_time)
             
             new_q = subgridsolver.step(maximum_timestep_size, estimated_next_dt)
             # Copy back the array with new values
             q[:]= new_q[:]
+            self.solution.t = subgridsolver.solution.t
             
-            return_dt_and_estimated_next_dt[0] = self.solver.dt
-            if self.solver.cfl.get_cached_max() > 0:
-              return_dt_and_estimated_next_dt[1] = self.solver.dt * self.solver.cfl_desired / self.solver.cfl.get_cached_max()
+            return_dt_and_estimated_next_dt[0] = self.solution.t - current_time
+            cfl = self.solver.cfl.get_cached_max()
+            if(cfl == 0.0):
+              return_dt_and_estimated_next_dt[1] = maximum_timestep_size - return_dt_and_estimated_next_dt[0]
             else:
-              return_dt_and_estimated_next_dt[1] = self.solver.dt_max
-                
+              return_dt_and_estimated_next_dt[1] = return_dt_and_estimated_next_dt[0] * self.solver.cfl_desired / cfl
+              
             #Steer refinement
             if not self.refinement_criterion == None:
               return self.refinement_criterion(subgridsolver.solution.state)
@@ -216,8 +224,8 @@ class Solver(Solver):
                                                     self.solver.dt_initial,
                                                     c_char_p(configuration_file),
                                                     use_dimensional_splitting,
-                                                    True,
-                                                    #False,
+                                                    #True,
+                                                    False,
                                                     self.initialization_callback,
                                                     self.boundary_condition_callback,
                                                     self.solver_callback)
@@ -254,7 +262,7 @@ class Solver(Solver):
                 
     def solve_one_timestep(self, q, qbc):
         r"""
-        """ 
+        """         
         self.solver.step(self.solution)
         
     def get_lib_path(self):
