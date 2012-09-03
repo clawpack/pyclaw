@@ -5,7 +5,7 @@ Variable-coefficient acoustics example.
 """
 import numpy as np
 
-def acoustics2D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',solver_type='classic'):
+def acoustics2D(kernel_language='Fortran',iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',solver_type='classic'):
     """
     Example python script for solving the 2d acoustics equations.
     """
