@@ -164,10 +164,10 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
     #===========================================================================
 
     # resolution of each grid
-    mx=24; my=6
+    mx=160; my=40
 
     # number of initial AMR grids in each dimension
-    msubgrid = 3
+    msubgrid = 1
     
     if amr_type is None:
         # number of Domain grid cells expressed as the product of
@@ -214,7 +214,7 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
     claw.keep_copy = True
     claw.tfinal = 0.2
     claw.solution = initial_solution
-    claw.num_output_times = 5
+    claw.num_output_times = 1
 
     if amr_type is not None:        
         if amr_type == 'peano':
