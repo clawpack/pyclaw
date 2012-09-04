@@ -91,17 +91,17 @@ def test_app(application, verifier, kwargs):
     r"""
     Test the output of a given application against its verifier method.
 
-    This function performs the following two function calls:
+    This function performs the following two function calls::
  
         output = application(**kwargs)
         check_values = verifier(output)
 
     The verifier method should return None if the output is correct, otherwise
-    it should return an indexed sequence of three items"
+    it should return an indexed sequence of three items::
 
-    0 - expected value
-    1 - test value
-    2 - string describing the tolerance type (abs/rel) and value.
+      0 - expected value
+      1 - test value
+      2 - string describing the tolerance type (abs/rel) and value.
 
     This information is used to present descriptive help if an error is detected.
     For an example verifier method, see util.check_diff
@@ -145,14 +145,23 @@ test    : %s
     return
 
 def check_diff(expected, test, **kwargs):
+    r"""
+    Checks the difference between expected and test values, return None if ok
 
+    This function expects either the keyword argument 'abstol' or 'reltol'.
+    """
+    
     if 'abstol' in kwargs:
         if abs(expected - test) < kwargs['abstol']: return None
         else: return (expected, test, 'abstol  : %s' % kwargs['abstol'])
-    if 'reltol' in kwargs:
+    elif 'reltol' in kwargs:
         if abs((expected - test)/expected) < kwargs['reltol']: return None
         else: return (expected, test, 'reltol  : %s' % kwargs['reltol'])
-        
+    else:
+        raise Exception('Incorrect use of check_diff verifier, specify tol!')
+
+
+
 # ============================================================================
 #  F2PY Utility Functions
 # ============================================================================
