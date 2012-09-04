@@ -3,22 +3,33 @@ def test_acoustics_2d_variable():
 
     from acoustics import acoustics2D
 
-    def verify_classic_acoustics(test_state):
+    def verify_classic_acoustics(controller):
         import os
         from clawpack.pyclaw.util import check_diff
         import numpy as np
         """ Verifies 2d variable-coefficient acoustics from a previously verified classic run """
 
-        test_q=test_state.get_q_global()
+        state = controller.frames[controller.num_output_times].state
+        dx, dy = controller.solution.domain.grid.delta
+        test_q=state.get_q_global()
 
         if test_q != None:
             thisdir = os.path.dirname(__file__)
             expected_pressure = np.loadtxt(os.path.join(thisdir,'pressure_classic.txt'))
             test_pressure = test_q[0,:,:]
-            test_err = np.linalg.norm(expected_pressure-test_pressure)
-            expected_err = 0
-            return check_diff(expected_err, test_err, abstol=1e-12)
+            #test_err = dx*dy*np.linalg.norm(expected_pressure-test_pressure)
+            test_err = np.max(np.abs(expected_pressure[:]-test_pressure[:]))
+            return check_diff(0, test_err, abstol=1e-1)
+
 
     from clawpack.pyclaw.util import gen_variants
-    for test in gen_variants(acoustics2D, verify_classic_acoustics, python_kernel=False, solver_type='classic'):
+
+    classic_tests = gen_variants(acoustics2D, verify_classic_acoustics,
+                                 python_kernel=False, solver_type='classic')
+
+    sharp_tests   = gen_variants(acoustics2D, verify_classic_acoustics,
+                                 python_kernel=False, solver_type='sharpclaw')
+
+    from itertools import chain
+    for test in chain(classic_tests, sharp_tests):
         yield test

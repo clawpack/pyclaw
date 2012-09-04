@@ -82,7 +82,7 @@ def acoustics2D(kernel_language='Fortran',iplot=False,htmlplot=False,use_petsc=F
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,file_format=claw.output_format)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,file_format=claw.output_format)
 
-    return claw.frames[claw.num_output_times].state
+    return claw
 
 if __name__=="__main__":
     import sys
