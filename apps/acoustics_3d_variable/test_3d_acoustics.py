@@ -26,10 +26,12 @@ def test_3d_acoustics():
     from acoustics import acoustics3D
 
     homogeneous_tests   = gen_variants(acoustics3D, acoustics_verify_homogeneous,
-                                       python_kernel=False, solver_type='classic', test='homogeneous')
+                                       kernel_languages=('Fortran',), 
+                                       solver_type='classic', test='homogeneous')
 
     heterogeneous_tests = gen_variants(acoustics3D, acoustics_verify_heterogeneous,
-                                       python_kernel=False, solver_type='classic', test='heterogeneous')
+                                       kernel_languages=('Fortran',), 
+                                       solver_type='classic', test='heterogeneous')
     
     from itertools import chain
     for test in chain(homogeneous_tests, heterogeneous_tests):
