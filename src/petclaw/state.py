@@ -266,7 +266,7 @@ class State(clawpack.pyclaw.State):
         shape.insert(0,self.num_eqn)
         return self.lqVec.getArray().reshape(shape, order = 'F')
             
-    def set_auxbc_from_aux(self,num_ghost,auxbc):
+    def get_auxbc_from_aux(self,num_ghost,auxbc):
         """
         Returns aux with ghost cells attached.  For PetSolver,
         this means returning the local vector.  
