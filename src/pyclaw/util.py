@@ -38,16 +38,31 @@ def run_app_from_main(application):
 class VerifyError(Exception):
     pass
 
-def gen_variants(application, verifier, python_kernel, **kwargs):
+def gen_variants(application, verifier, kernel_languages=('Fortran',), **kwargs):
+    r"""
+    Generator of runnable variants of a test application given a verifier
 
-    arg_dicts = build_variant_arg_dicts(python_kernel)
+    Given an application, a script for verifying its output, and a 
+    list of kernel languages to try, generates all possible variants of the
+    application to try by taking a product of the available kernel_languages and 
+    (petclaw/pyclaw).  For many applications, this will generate 4 variants: 
+    the product of the two main kernel languages ('Fortran' and 'Python'), against
+    the the two parallel modes (petclaw and pyclaw).  
+
+    For more information on how the verifier function should be implemented, 
+    see util.test_app for a description, and util.check_diff for an example.
+
+    All unrecognized keyword arguments are passed through to the application.
+    """
+
+    arg_dicts = build_variant_arg_dicts(kernel_languages)
     
     for test_kwargs in arg_dicts:
         test_kwargs.update(kwargs)
         yield (test_app, application, verifier, test_kwargs)
     return
 
-def build_variant_arg_dicts(python_kernel):
+def build_variant_arg_dicts(kernel_languages=('Fortran',)):
     import itertools
 
     # only test petsc4py if it is available
@@ -57,16 +72,15 @@ def build_variant_arg_dicts(python_kernel):
     except Exception as err:
         use_petsc_opts = (False,)
 
-    kernel_opts = ('Python','Fortran') if python_kernel else ('Fortran',)
     opt_names = 'use_petsc','kernel_language'
-    opt_product = itertools.product(use_petsc_opts,kernel_opts)
+    opt_product = itertools.product(use_petsc_opts,kernel_languages)
     arg_dicts = [dict(zip(opt_names,argset)) for argset in opt_product]
 
     return arg_dicts
 
-def test_app_variants(application, verifier, python_kernel, **kwargs):
+def test_app_variants(application, verifier, kernel_languages, **kwargs):
 
-    arg_dicts = build_variant_arg_dicts(python_kernel)
+    arg_dicts = build_variant_arg_dicts(kernel_languages)
 
     for test_kwargs in arg_dicts:
         test_kwargs.update(kwargs)
@@ -74,6 +88,25 @@ def test_app_variants(application, verifier, python_kernel, **kwargs):
     return
 
 def test_app(application, verifier, kwargs):
+    r"""
+    Test the output of a given application against its verifier method.
+
+    This function performs the following two function calls::
+ 
+        output = application(**kwargs)
+        check_values = verifier(output)
+
+    The verifier method should return None if the output is correct, otherwise
+    it should return an indexed sequence of three items::
+
+      0 - expected value
+      1 - test value
+      2 - string describing the tolerance type (abs/rel) and value.
+
+    This information is used to present descriptive help if an error is detected.
+    For an example verifier method, see util.check_diff
+
+    """
     print kwargs
 
     if 'use_petsc' in kwargs and not kwargs['use_petsc']:
@@ -112,14 +145,23 @@ test    : %s
     return
 
 def check_diff(expected, test, **kwargs):
+    r"""
+    Checks the difference between expected and test values, return None if ok
 
+    This function expects either the keyword argument 'abstol' or 'reltol'.
+    """
+    
     if 'abstol' in kwargs:
         if abs(expected - test) < kwargs['abstol']: return None
         else: return (expected, test, 'abstol  : %s' % kwargs['abstol'])
-    if 'reltol' in kwargs:
+    elif 'reltol' in kwargs:
         if abs((expected - test)/expected) < kwargs['reltol']: return None
         else: return (expected, test, 'reltol  : %s' % kwargs['reltol'])
-        
+    else:
+        raise Exception('Incorrect use of check_diff verifier, specify tol!')
+
+
+
 # ============================================================================
 #  F2PY Utility Functions
 # ============================================================================

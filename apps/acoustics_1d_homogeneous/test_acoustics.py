@@ -29,13 +29,13 @@ def test_1d_acoustics():
     from clawpack.pyclaw.util import gen_variants
 
     classic_tests = gen_variants(acoustics, verify_expected(0.00104856594174),
-                                 python_kernel=True, solver_type='classic')
+                                 kernel_languages=('Python','Fortran'), solver_type='classic')
 
     sharp_tests   = gen_variants(acoustics, verify_expected(0.000298879563857),
-                                 python_kernel=True, solver_type='sharpclaw')
+                                 kernel_languages=('Python','Fortran'), solver_type='sharpclaw')
 
     weno_tests    = gen_variants(acoustics, verify_expected(0.000153070447918),
-                                 python_kernel=False, solver_type='sharpclaw',
+                                 kernel_languages=('Fortran',), solver_type='sharpclaw',
                                  weno_order=17)
 
     from itertools import chain
