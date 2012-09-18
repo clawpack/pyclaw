@@ -6,7 +6,8 @@ ifndef DIMENSION
 DIMENSION := 2
 endif
 ifndef BUILD_MODE
-# Options: debug, release
+# Options: debug, asserts, release
+#BUILD_MODE := asserts
 BUILD_MODE := release
 endif
 
