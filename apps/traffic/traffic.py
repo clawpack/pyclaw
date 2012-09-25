@@ -41,8 +41,7 @@ def traffic(use_petsc=0,iplot=0,htmlplot=0,outdir='./_output',solver_type='class
     grid = state.grid
     xc=grid.x.centers
 
-    #state.q[0,:] = 1.*(xc<0) + 0.*(xc>0.) 
-    state.q[0,:] = 0.5 + 0.01*np.exp(-((xc+0.2)*10)**2)
+    state.q[0,:] = 0.75*(xc<0) + 0.1*(xc>0.) 
 
     state.problem_data['efix']=True
     state.problem_data['umax']=1.
