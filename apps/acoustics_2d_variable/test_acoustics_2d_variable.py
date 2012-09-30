@@ -25,10 +25,10 @@ def test_acoustics_2d_variable():
     from clawpack.pyclaw.util import gen_variants
 
     classic_tests = gen_variants(acoustics2D, verify_classic_acoustics,
-                                 python_kernel=False, solver_type='classic')
+                                 solver_type='classic')
 
     sharp_tests   = gen_variants(acoustics2D, verify_classic_acoustics,
-                                 python_kernel=False, solver_type='sharpclaw')
+                                 solver_type='sharpclaw')
 
     from itertools import chain
     for test in chain(classic_tests, sharp_tests):
