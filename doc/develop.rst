@@ -27,7 +27,7 @@ When preparing contributions, please follow the guidelines in
       and/or apps).
 
     * If your changes are not backward-compatible, your pull request should 
-    include instructions for users to update their own application codes.
+      include instructions for users to update their own application codes.
 
 Bugs
 ===============
