@@ -204,7 +204,6 @@ class Solver(Solver):
                                                     c_double, #Initial timestep size
                                                     c_char_p, #Config file
                                                     c_bool,   #Use dimensional splitting
-                                                    c_bool,   #Run tests
                                                     c_void_p, #q Initialization callback
                                                     c_void_p, #Boundary condition callback
                                                     c_void_p] #Solver callback
@@ -224,8 +223,6 @@ class Solver(Solver):
                                                     self.solver.dt_initial,
                                                     c_char_p(configuration_file),
                                                     use_dimensional_splitting,
-                                                    #True,
-                                                    False,
                                                     self.initialization_callback,
                                                     self.boundary_condition_callback,
                                                     self.solver_callback)
