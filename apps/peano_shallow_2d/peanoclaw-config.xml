@@ -3,7 +3,7 @@
 <peano-configuration>
   <run-peanoclaw-on-spacetree-grid
   	plot-substeps="yes"
-  	additional-levels-for-predefined-refinement="0"
+  	additional-levels-for-predefined-refinement="1"
   >
   
     <log-filter target="" component=""       switch="off" />

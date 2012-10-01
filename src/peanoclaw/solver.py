@@ -279,4 +279,3 @@ class Solver(Solver):
         print(os.path.join(os.path.dirname(peanoclaw.__file__), 'libpeano-claw-2d.' + shared_library_extension))
         return os.path.join(os.path.dirname(peanoclaw.__file__), 'libpeano-claw-2d.' + shared_library_extension)
         
-
