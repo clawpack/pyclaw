@@ -37,9 +37,9 @@ class SubgridSolver(object):
         
         """
         self.solver = solver
-        self.dim_x = pyclaw.Dimension('x',position[0],position[0] + size[0],subdivision_factor_x0)
-        self.dim_y = pyclaw.Dimension('y',position[1],position[1] + size[1],subdivision_factor_x1)
-        domain = pyclaw.Domain([self.dim_x,self.dim_y])
+        self.dim_x = pyclaw.Dimension('x', position[0], position[0] + size[0], subdivision_factor_x0)
+        self.dim_y = pyclaw.Dimension('y', position[1], position[1] + size[1], subdivision_factor_x1)
+        domain = pyclaw.Domain([self.dim_x, self.dim_y])
         subgrid_state = pyclaw.State(domain, unknowns_per_cell, aux_fields_per_cell)
         subgrid_state.q = q
         subgrid_state.aux = aux
@@ -80,21 +80,34 @@ class SubgridSolver(object):
         return self.solution.state.q
         
         
-    def user_bc_lower(self, grid,dim,t,qbc,mbc):
-        #Todo 3D: Rewrite for arbitrary dimensions
-        if dim == self.dim_x:
-            for i in range(mbc):
-                qbc[:,:,i] = self.qbc[:,:,i]
-        else:
-            for i in range(mbc):
-                qbc[:,i,:] = self.qbc[:,i,:]
+    def user_bc_lower(self, grid, dim, t, qbc, mbc):
+      r"""
+      This method is needed to recover the ghostlayer 
+      after a rollback of a timestep has taken place.
+      Otherwise the ghostlayer might have been changed
+      during the invalid timestep, leading to wrong
+      results during the next one.
+      """
+      #Todo 3D: Rewrite for arbitrary dimensions
+      if dim == self.dim_x:
+          for i in range(mbc):
+              qbc[:, :, i] = self.qbc[:, :, i]
+      else:
+          for i in range(mbc):
+              qbc[:, i, :] = self.qbc[:, i, :]
         
-    def user_bc_upper(self, grid,dim,t,qbc,mbc):
-        #Todo 3D: Rewrite for arbitrary dimensions
-        if dim == self.dim_x:
-            for i in range(mbc):
-                qbc[:,:,self.dim_y.num_cells+mbc+i] = self.qbc[:,:,self.dim_y.num_cells+mbc+i]
-        else:
-            for i in range(mbc):
-                qbc[:,self.dim_x.num_cells+mbc+i,:] = self.qbc[:,self.dim_x.num_cells+mbc+i,:]
-        
+    def user_bc_upper(self, grid, dim, t, qbc, mbc):
+      r"""
+      This method is needed to recover the ghostlayer 
+      after a rollback of a timestep has taken place.
+      Otherwise the ghostlayer might have been changed
+      during the invalid timestep, leading to wrong
+      results during the next one.
+      """
+      #Todo 3D: Rewrite for arbitrary dimensions
+      if dim == self.dim_x:
+          for i in range(mbc):
+              qbc[:, :, self.dim_y.num_cells + mbc + i] = self.qbc[:, :, self.dim_y.num_cells + mbc + i]
+      else:
+          for i in range(mbc):
+              qbc[:, self.dim_x.num_cells + mbc + i, :] = self.qbc[:, self.dim_x.num_cells + mbc + i, :]
