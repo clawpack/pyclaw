@@ -183,10 +183,7 @@ class Solver(Solver):
         ghostlayer_width = self.num_ghost
         import os, sys
         configuration_file = os.path.join(sys.path[0], 'peanoclaw-config.xml')
-        if(hasattr(self, 'transverse_waves')):
-          use_dimensional_splitting_optimization = not self.solver.dimensional_split and not self.transverse_waves
-        else:
-          use_dimensional_splitting_optimization = False
+        use_dimensional_splitting_optimization = self.solver.dimensional_split
           
         #self.solver.setup(solution)
         self.solution = solution
