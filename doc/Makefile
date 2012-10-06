@@ -40,9 +40,9 @@ clean:
 deploy: html
 	@echo
 	@echo "Deploying generated HTML to http://numerics.kaust.edu.sa/pyclaw"
-	@rsync -avz _build/html/* numerics.kaust.edu.sa:/var/www/html/pyclaw
+	@-rsync -rltvzO _build/html/* numerics.kaust.edu.sa:/var/www/html/pyclaw
 	@echo "Fixing up remote permissions"
-	@ssh numerics.kaust.edu.sa "chmod -R g+w /var/www/html/pyclaw"
+	@-ssh numerics.kaust.edu.sa "chmod -Rf g+w /var/www/html/pyclaw"
 	@echo "Deployed! check results at: http://numerics.kaust.edu.sa/pyclaw"
 
 html:
