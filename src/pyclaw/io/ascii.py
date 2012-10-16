@@ -2,17 +2,7 @@
 # encoding: utf-8
 r"""
 Routines for reading and writing an ascii output file
-
-:Authors:
-    Kyle T. Mandli (2008-02-07) Initial version
 """
-# ============================================================================
-#      Copyright (C) 2008 Kyle T. Mandli <mandli@amath.washington.edu>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
 
 import os,sys
 import logging
