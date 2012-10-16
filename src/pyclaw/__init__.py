@@ -13,14 +13,13 @@ logging.config.fileConfig(_DEFAULT_LOG_CONFIG_PATH)
 __all__ = []
 
 # Module imports
-__all__.extend(['Controller','Dimension','Patch','Domain','Solution','State','CFL','riemann','plot'])
+__all__.extend(['Controller','Dimension','Patch','Domain','Solution','State','CFL','plot'])
 from .controller import Controller
 from .solution import Solution
 from .geometry import Dimension, Patch, Domain
 from .state import State
 from .cfl import CFL
 
-import clawpack.riemann as riemann
 import plot
 
 __all__.extend(['ClawSolver1D','ClawSolver2D','ClawSolver3D','SharpClawSolver1D','SharpClawSolver2D'])
