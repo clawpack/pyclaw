@@ -2,23 +2,12 @@
 # encoding: utf-8
 r"""
 Module containing all Pyclaw solution objects
-
-:Authors:
-    Kyle T. Mandli (2008-08-07) Initial version
 """
-# ============================================================================
-#      Copyright (C) 2008 Kyle T. Mandli <mandli@amath.washington.edu>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
 
 import os
 import logging
 
 from .geometry import Patch, Dimension, Domain
-from .state import State
 import io
 
 # ============================================================================
