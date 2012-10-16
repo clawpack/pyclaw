@@ -234,6 +234,19 @@ frame from a previous run; for example, to restart from frame 3
     
     It is necessary to specify the output format ('petsc' or 'ascii').
 
+If your simulation includes aux variables, you will need to either recompute them or
+output the aux values at every step, following the instructions below.
+
+
+Outputting aux values
+===============================
+To write aux values to disk at the initial time::
+
+    >>> claw.write_aux_init = True
+
+To write aux values at every step::
+
+    >>> claw.write_aux_always = True
 
 Outputting derived quantities
 ===============================
