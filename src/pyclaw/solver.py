@@ -74,7 +74,7 @@ class Solver(object):
     .. attribute:: max_steps
     
         The maximum number of time steps allowd to reach the end time 
-        requested, ``default = 1000``.  If exceeded, an exception is
+        requested, ``default = 10000``.  If exceeded, an exception is
         raised.
     
     .. attribute:: logger
@@ -149,7 +149,7 @@ class Solver(object):
 
         self.dt_initial = 0.1
         self.dt_max = 1e99
-        self.max_steps = 1000
+        self.max_steps = 10000
         self.dt_variable = True
         self.num_waves = None #Must be set later to agree with Riemann solver
         self.qbc = None
