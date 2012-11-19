@@ -25,14 +25,13 @@ def setaux(x,rhoB=4,KB=4,rhoA=1,KA=1,alpha=0.5,xlower=0.,xupper=600.,bc=2):
     return aux
 
     
-def b4step(solver,solution):
+def b4step(solver,state):
     #Reverse velocity at trtime
     #Note that trtime should be an output point
-    state = solution.states[0]
     if state.t>=state.problem_data['trtime']-1.e-10 and not state.problem_data['trdone']:
         #print 'Time reversing'
         state.q[1,:]=-state.q[1,:]
-        solution.state.q=state.q
+        state.q=state.q
         state.problem_data['trdone']=True
         if state.t>state.problem_data['trtime']:
             print 'WARNING: trtime is '+str(state.problem_data['trtime'])+\
