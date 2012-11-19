@@ -185,7 +185,7 @@ class SharpClawSolver(Solver):
         """
         state = solution.states[0]
 
-        self.before_step(self,solution)
+        self.before_step(self,state)
 
         try:
             if self.time_integrator=='Euler':
@@ -196,11 +196,16 @@ class SharpClawSolver(Solver):
                 deltaq=self.dq(state)
                 self._rk_stages[0].q=state.q+deltaq
                 self._rk_stages[0].t =state.t+self.dt
+
+                self.before_step(self,self._rk_stages[0])
                 deltaq=self.dq(self._rk_stages[0])
                 self._rk_stages[0].q= 0.75*state.q + 0.25*(self._rk_stages[0].q+deltaq)
                 self._rk_stages[0].t = state.t+0.5*self.dt
+
+                self.before_step(self,self._rk_stages[0])
                 deltaq=self.dq(self._rk_stages[0])
                 state.q = 1./3.*state.q + 2./3.*(self._rk_stages[0].q+deltaq)
+
 
             elif self.time_integrator=='SSP104':
                 s1=self._rk_stages[0]
@@ -212,6 +217,7 @@ class SharpClawSolver(Solver):
                 s1.t = state.t + self.dt/6.
 
                 for i in xrange(4):
+                    self.before_step(self,s1)
                     deltaq=self.dq(s1)
                     s1.q=s1.q + deltaq/6.
                     s1.t =s1.t + self.dt/6.
@@ -221,10 +227,12 @@ class SharpClawSolver(Solver):
                 s1.t = state.t + self.dt/3.
 
                 for i in xrange(4):
+                    self.before_step(self,s1)
                     deltaq=self.dq(s1)
                     s1.q=s1.q + deltaq/6.
                     s1.t =s1.t + self.dt/6.
 
+                self.before_step(self,s1)
                 deltaq = self.dq(s1)
                 state.q = s2.q + 0.6 * s1.q + 0.1 * deltaq
             else:

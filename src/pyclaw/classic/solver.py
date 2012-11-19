@@ -126,7 +126,7 @@ class ClawSolver(Solver):
         """
 
         if self.before_step is not None:
-            self.before_step(self,solution)
+            self.before_step(self,solution.states[0])
 
         if self.source_split == 2 and self.step_source is not None:
             self.step_source(self,solution.states[0],self.dt/2.0)
