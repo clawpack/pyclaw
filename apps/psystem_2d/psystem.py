@@ -80,16 +80,15 @@ def setaux(x,y):
         aux[2,:,:]=linearity_mat1
     return aux
 
-def b4step(solver,solution):
+def b4step(solver,state):
     r"""put in aux[3,:,:] the value of q[0,:,:] (eps). This is required in rptpv.f"""
-    state = solution.states[0]   
     state.aux[3,:,:] = state.q[0,:,:]
 
     # To set to 0 1st 1/2 of the domain. Used in rect domains with PBC in x
     if state.problem_data['turnZero_half_2D']==1:
         if state.t>=state.problem_data['t_turnZero'] and state.t<=state.problem_data['t_turnZero']+1:
             Y,X = np.meshgrid(state.grid.y,state.grid.x)
-            state.q = state.q * (X<solution.domain.grid.upper[0]/2)
+            state.q = state.q * (X<state.grid.upper[0]/2)
 
 def compute_p(state):
     state.p[0,:,:]=np.exp(state.q[0,:,:]*state.aux[1,:,:])-1
