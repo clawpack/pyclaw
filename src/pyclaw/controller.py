@@ -320,6 +320,28 @@ class Controller(object):
         import logging
         logging.info(str)
 
+    def plot(self,n,setplot=None):
+        r"""
+        Plot the solution.  This should really go in Solution, but 
+        Solution doesn't have access to outdir.
+        """
+        from clawpack.visclaw import data, frametools
+
+        plotdata = data.ClawPlotData()
+        plotdata.outdir = self.outdir
+        if setplot is None:
+            from setplot import setplot
+        plotdata.setplot = setplot
+        plotdata = frametools.call_setplot(setplot,plotdata)
+        
+        if self.keep_copy:
+            # Plot from memory
+            raise NotImplementedError
+        else:
+            # Plot from file
+            frametools.plotframe(n,plotdata)
+
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
