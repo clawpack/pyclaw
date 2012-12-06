@@ -374,14 +374,24 @@ class Solution(object):
                                     read_aux=read_aux,options=options)
         logging.getLogger('io').info("Read in solution for time t=%s" % self.t)
         
-        
-    def plot(self):
+    def plot(self,n,setplot=None,outdir='./_output'):
         r"""
-        Plot the solution
+        Plot the solution.  This should really plot from memory,
+        but is not implemented that way yet.
+
+        To do: implement plotting from memory.
         """
-        raise NotImplementedError("Direct solution plotting has not been " +
-            "implemented as of yet, please refer to the plotting module for" +
-            " how to plot solutions.")
+        from clawpack.visclaw import data, frametools
+
+        plotdata = data.ClawPlotData()
+        plotdata.outdir = outdir
+        if setplot is None:
+            from setplot import setplot
+        plotdata.setplot = setplot
+        plotdata = frametools.call_setplot(setplot,plotdata)
+        
+        frametools.plotframe(n,plotdata)
+
 
 if __name__ == "__main__":
     import doctest
