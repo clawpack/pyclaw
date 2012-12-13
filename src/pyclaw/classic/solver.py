@@ -525,9 +525,9 @@ class ClawSolver2D(ClawSolver):
                 self.qbc, cfl_x = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
                       qold,self.qbc,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
                       self.aux1,self.aux2,self.aux3,self.work,1,self.fwave,rpn2,rpt2)
-
-                self.qbc[:, :, my + self.num_ghost:my + 2*self.num_ghost] = qold[:, :, my + self.num_ghost:my + 2*self.num_ghost]
-                self.qbc[:, :, 1:self.num_ghost] = qold[:, :, 1:self.num_ghost]
+                
+                #self.qbc[:, :, my + self.num_ghost:my + 2*self.num_ghost] = qold[:, :, my + self.num_ghost:my + 2*self.num_ghost]
+                #self.qbc[:, :, 1:self.num_ghost] = qold[:, :, 1:self.num_ghost]
                 
                 self.qbc, cfl_y = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
                       self.qbc,self.qbc,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\

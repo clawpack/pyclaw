@@ -6,7 +6,7 @@ Created on Feb 7, 2012
 from clawpack.pyclaw.solver import Solver
 import signal
 import logging
-from ctypes import CDLL
+from ctypes import CDLL, c_bool
 from ctypes import c_bool
 from ctypes import c_double
 from ctypes import c_int
@@ -57,7 +57,8 @@ class Solver(Solver):
                                 c_double, c_double, c_double, #position
                                 c_double, #current time
                                 c_double, #maximum timestep size
-                                c_double) #estimated next timestep size
+                                c_double, #estimated next timestep size
+                                c_bool)   #use dimensional splitting
     CALLBACK_BOUNDARY_CONDITIONS = CFUNCTYPE(None, py_object, py_object, c_int, c_int)
     
     def __init__(self, solver, initial_minimal_mesh_width, q_initialization, aux_initialization=None, refinement_criterion=None):
@@ -113,10 +114,14 @@ class Solver(Solver):
         r"""
         Creates a closure for the solver callback method.
         """
-        def callback_solver(return_dt_and_estimated_next_dt, q, qbc, aux, subdivision_factor_x0, subdivision_factor_x1, subdivision_factor_x2, unknowns_per_cell, aux_fields_per_cell, size_x, size_y, size_z, position_x, position_y, position_z, current_time, maximum_timestep_size, estimated_next_dt):
+        def callback_solver(return_dt_and_estimated_next_dt, q, qbc, aux, subdivision_factor_x0, subdivision_factor_x1, subdivision_factor_x2, unknowns_per_cell, aux_fields_per_cell, size_x, size_y, size_z, position_x, position_y, position_z, current_time, maximum_timestep_size, estimated_next_dt, use_dimensional_splitting):
             # Fix aux array
             if(aux_fields_per_cell == 0):
               aux = None
+              
+            #Fix for switching dimensional splitting optimization on/off
+            global useDimensionalSplitting
+            useDimensionalSplitting=use_dimensional_splitting
               
             #TODO 3D: Adjust position and size to 3D
             # Set up grid information for current patch
