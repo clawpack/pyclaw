@@ -8,7 +8,7 @@ def qinit(state):
     pass
     
 def test_initialization():
-    from clawpack.pyclaw.classic.clawpack import ClawSolver2D
+    from clawpack.pyclaw import ClawSolver2D
     
     solver = ClawSolver2D()
     
