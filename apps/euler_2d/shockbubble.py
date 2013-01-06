@@ -5,8 +5,18 @@ import numpy as np
 
 gamma = 1.4
 gamma1 = gamma - 1.
+x0=0.5; y0=0.; r0=0.2
+xshock = 0.2
+
+def ycirc(x,ymin,ymax):
+    if ((x-x0)**2)<(r0**2):
+        return max(min(y0 + np.sqrt(r0**2-(x-x0)**2),ymax) - ymin,0.)
+    else:
+        return 0
 
 def qinit(state,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
+    from scipy import integrate
+
     grid = state.grid
 
     rhoout = 1.
@@ -23,11 +33,28 @@ def qinit(state,x0=0.5,y0=0.,r0=0.2,rhoin=0.1,pinf=5.):
     Y,X = np.meshgrid(y,x)
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
 
-    state.q[0,:,:] = rhoin*(r<=r0) + rhoout*(r>r0)
-    state.q[1,:,:] = 0.
+    state.q[0,:,:] = rinf*(X<xshock) + rhoin*(r<=r0) + rhoout*(r>r0)*(X>=xshock)
+    state.q[1,:,:] = rinf*vinf*(X<xshock)
     state.q[2,:,:] = 0.
-    state.q[3,:,:] = (pin*(r<=r0) + pout*(r>r0))/gamma1
+    state.q[3,:,:] = einf*(X<xshock) + (pin*(r<=r0) + pout*(r>r0)*(X>=xshock))/gamma1
     state.q[4,:,:] = 1.*(r<=r0)
+
+    #Now average for the cells on the edge of the bubble
+    d2 = np.linalg.norm(state.grid.delta)/2.
+    dx = state.grid.delta[0]
+    dy = state.grid.delta[1]
+    dx2 = state.grid.delta[0]/2.
+    dy2 = state.grid.delta[1]/2.
+    for i in xrange(state.q.shape[1]):
+        for j in xrange(state.q.shape[2]):
+            ydown = y[j]-dy2
+            yup   = y[j]+dy2
+            if abs(r[i,j]-r0)<d2:
+                infrac,abserr = integrate.quad(ycirc,x[i]-dx2,x[i]+dx2,args=(ydown,yup),epsabs=1.e-8,epsrel=1.e-5)
+                infrac=infrac/(dx*dy)
+                state.q[0,i,j] = rhoin*infrac + rhoout*(1.-infrac)
+                state.q[3,i,j] = (pin*infrac + pout*(1.-infrac))/gamma1
+                state.q[4,i,j] = 1.*infrac
 
 def auxinit(state):
     """
@@ -201,7 +228,7 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
 
     # Solve
     status = claw.run()
-
+    
     if htmlplot:  pyclaw.plot.html_plot(file_format=claw.output_format)
     if iplot:     pyclaw.plot.interactive_plot(file_format=claw.output_format)
 
@@ -210,3 +237,4 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(shockbubble)
+
