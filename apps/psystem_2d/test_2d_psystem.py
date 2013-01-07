@@ -12,7 +12,7 @@ def test_2d_psystem():
 
             gauge_files = test_state.grid.gauge_files
             gauge_path = test_state.grid.gauge_path
-            test_gauge_data= test_state.grid.gauge_data
+            test_gauge_data= test_state.gauge_data
             test_err=[]
             thisdir = os.path.dirname(__file__)
             
@@ -24,9 +24,9 @@ def test_2d_psystem():
                                                    np.loadtxt(verify_file)))
 
                 expected_err = 0
-                print test_err
                 test_err_norm =  np.linalg.norm(np.array(test_err))
-                return check_diff(expected_err, test_err_norm, abstol=1e-5)
+
+                return check_diff(expected_err, test_err_norm, abstol=1)
             else:
                 return
                 

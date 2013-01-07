@@ -168,13 +168,6 @@ class Grid(object):
         r"""(list) - List of files to write gauge values to"""
         self.gauge_path = './_output/_gauges/'
         r"""(string) - Full path to output directory for gauges"""
-        self.keep_gauges = False
-        r"""(bool) - Keep gauge values in memory for every time step, 
-        ``default = False``"""
-        self.gauge_data =[]
-        r"""(list) - List of numpy.ndarray objects. Each element of the list
-        stores the values of the corresponding gauge if ``keep_gauges`` is set
-        to ``True``"""
         # Dimension parsing
         if isinstance(dimensions,Dimension):
             dimensions = [dimensions]

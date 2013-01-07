@@ -726,13 +726,13 @@ class Solver(object):
                 q=solution.state.q[:,ix,iy]
             p=self.compute_gauge_values(q,aux)
             t=solution.t
-            if solution.state.grid.keep_gauges:
-                gauge_data = solution.state.grid.gauge_data
+            if solution.state.keep_gauges:
+                gauge_data = solution.state.gauge_data
                 try:
                     gauge_data[i]=np.vstack((gauge_data[i],np.append(t,p)))
                 except:
                     gauge_data.append(np.append(t,p))
-
+            
             solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
 
 
