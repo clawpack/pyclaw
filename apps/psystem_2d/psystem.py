@@ -223,7 +223,7 @@ def psystem2D(iplot=False,kernel_language='Fortran',htmlplot=False,
 
     #claw.p_function = p_function
     claw.compute_F = compute_F
-    grid.keep_gauges = True
+    state.keep_gauges = True
     grid.add_gauges([[0.25,0.25],[17.85,1.25],[3.25,18.75],[11.75,11.75]])
     solver.compute_gauge_values = gauge_pfunction
     claw.write_aux_init = False
