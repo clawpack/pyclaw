@@ -168,6 +168,13 @@ class Grid(object):
         r"""(list) - List of files to write gauge values to"""
         self.gauge_path = './_output/_gauges/'
         r"""(string) - Full path to output directory for gauges"""
+        self.keep_gauges = False
+        r"""(bool) - Keep gauge values in memory for every time step, 
+        ``default = False``"""
+        self.gauge_data =[]
+        r"""(list) - List of numpy.ndarray objects. Each element of the list
+        stores the values of the corresponding gauge if ``keep_gauges`` is set
+        to ``True``"""
         # Dimension parsing
         if isinstance(dimensions,Dimension):
             dimensions = [dimensions]
@@ -361,7 +368,7 @@ class Grid(object):
             # Determine gauge locations in units of mesh spacing
             if all(self.lower[n]<=gauge[n]<self.upper[n] for n in range(self.num_dim)):
                 # Set indices relative to this grid
-                gauge_index = [int(floor(gauge[n]/self.delta[n]) - floor(self.lower[n]/self.delta[n]))
+                gauge_index = [int(floor((gauge[n]-self.lower[n])/self.delta[n])) 
                                for n in xrange(self.num_dim)]
                 gauge_path = self.gauge_path+'gauge'+'_'.join(str(coord) for coord in gauge)+'.txt'
 
@@ -371,8 +378,6 @@ class Grid(object):
                 self.gauge_files.append(open(gauge_path,'a'))
 
    
-
-
 # ============================================================================
 #  Dimension Object
 # ============================================================================

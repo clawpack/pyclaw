@@ -26,12 +26,12 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     #===========================================================================
     # Setup solver and solver parameters
     #===========================================================================
-    solver.num_waves = 2
     solver.kernel_language=kernel_language
-    if kernel_language =='Python': 
-        solver.set_riemann_solver('shallow_roe')
-        solver.problem_data['g'] = 1.0
-        solver.problem_data['efix'] = False
+    from clawpack.riemann import rp_shallow
+    solver.num_waves = rp_shallow.num_waves
+    if kernel_language =='Python':
+        solver.rp = rp_shallow.rp_shallow_roe_1d
+        state.problem_data['efix'] = True
     elif kernel_language == 'Fortran':
         from clawpack import riemann
         solver.rp = riemann.rp1_shallow_roe_with_efix
@@ -52,7 +52,7 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
 
     # Parameters
     state.problem_data['grav'] = 1.0
-
+    
     xc = state.grid.x.centers
 
     IC='2-shock'
