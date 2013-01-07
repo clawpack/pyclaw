@@ -116,7 +116,9 @@ def gauge_pfunction(q,aux):
     p = np.exp(q[0]*aux[1])-1
     return [p,10*p]
 
-def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
+def psystem2D(iplot=False,kernel_language='Fortran',htmlplot=False,
+              use_petsc=False,outdir='./_output',solver_type='classic'):
+
     """
     Solve the p-system in 2D with variable coefficients
     """
@@ -156,6 +158,9 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
     elif solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D()
 
+    if kernel_language != 'Fortran':
+        raise Exception('Unrecognized value of kernel_language for 2D psystem')
+
     from clawpack import riemann
     solver.rp = riemann.rp2_psystem
 
@@ -181,7 +186,8 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
     claw = pyclaw.Controller()
     claw.tfinal = 40.0
     claw.solver = solver
-
+    claw.outdir = outdir
+    
     if restart_from_frame is not None:
         claw.solution = pyclaw.Solution(restart_from_frame, format='petsc',read_aux=False)
         claw.solution.state.mp = 1
@@ -217,18 +223,22 @@ def psystem2D(use_petsc=False,solver_type='classic',iplot=False,htmlplot=False):
 
     #claw.p_function = p_function
     claw.compute_F = compute_F
-    grid.add_gauges([[0.25,0.25],[0.75,0.25],[0.25,0.75],[0.75,0.75]])
+    grid.keep_gauges = True
+    grid.add_gauges([[0.25,0.25],[17.85,1.25],[3.25,18.75],[11.75,11.75]])
     solver.compute_gauge_values = gauge_pfunction
     claw.write_aux_init = False
 
     #Solve
     status = claw.run()
-    
-    #strain=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([grid.num_cells[0],grid.num_cells[1],num_eqn])[:,:,0]
-    #return strain
 
+    #strain=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([grid.num_cells[0],grid.num_cells[1],num_eqn])[:,:,0]
+    #return strain 
+        
     if iplot:    pyclaw.plot.interactive_plot()
     if htmlplot: pyclaw.plot.html_plot()
+
+    return claw.solution.state
+
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
