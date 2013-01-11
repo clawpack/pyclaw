@@ -5,9 +5,6 @@
 # Import libraries
 #===========================================================================
 import numpy as np
-from petsc4py import PETSc
-
-
 
 def qinit(state):
 
@@ -102,6 +99,7 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
+    return claw
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
