@@ -13,20 +13,29 @@ def test_2d_psystem():
             gauge_files = test_state.grid.gauge_files
             gauge_path = test_state.grid.gauge_path
             test_gauge_data= test_state.gauge_data
-            test_err=[]
+            expected_gauges=[]
             thisdir = os.path.dirname(__file__)
             
+            expected_list=[]
+            error_list=[]
+            test_passed = True
             if test_gauge_data is not None:
-                for i, gauge in enumerate(test_gauge_data):
+                for i, gauge in enumerate(gauge_files):
                     verify_file = os.path.join(thisdir,'verify_' +
-                                            gauge_files[i].name.split('/')[-1])
-                    test_err.append(np.linalg.norm(gauge - 
-                                                   np.loadtxt(verify_file)))
+                                            gauge.name.split('/')[-1])
+                    expected_gauges.append(np.loadtxt(verify_file))
+                    return_value = check_diff(expected_gauges[i], test_gauge_data[i], reltol=1e-2)
+                    
+                    if return_value is not None:
+                        expected_list.append(return_value[0])
+                        error_list.append(return_value[1])
+                        test_passed = False
 
-                expected_err = 0
-                test_err_norm =  np.linalg.norm(np.array(test_err))
 
-                return check_diff(expected_err, test_err_norm, abstol=1)
+                if test_passed:
+                    return None
+                else:
+                    return(expected_list, error_list,return_value[2] )
             else:
                 return
                 

@@ -231,9 +231,6 @@ def psystem2D(iplot=False,kernel_language='Fortran',htmlplot=False,
     #Solve
     status = claw.run()
 
-    #strain=claw.frames[claw.num_output_times].state.gqVec.getArray().reshape([grid.num_cells[0],grid.num_cells[1],num_eqn])[:,:,0]
-    #return strain 
-        
     if iplot:    pyclaw.plot.interactive_plot()
     if htmlplot: pyclaw.plot.html_plot()
 
