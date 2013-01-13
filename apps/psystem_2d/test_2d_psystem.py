@@ -24,7 +24,8 @@ def test_2d_psystem():
                     verify_file = os.path.join(thisdir,'verify_' +
                                             gauge.name.split('/')[-1])
                     expected_gauges.append(np.loadtxt(verify_file))
-                    return_value = check_diff(expected_gauges[i], test_gauge_data[i], reltol=1e-2)
+                    return_value = check_diff(expected_gauges[i], 
+                    test_gauge_data[i], reltol=1e-2)
                     
                     if return_value is not None:
                         expected_list.append(return_value[0])
