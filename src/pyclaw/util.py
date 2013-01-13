@@ -129,9 +129,9 @@ def test_app(application, verifier, kwargs):
 ********************************************************************************
 verification function
 %s
-args    : %s
-expected: %s
-test    : %s
+args                 : %s
+norm of expected data: %s
+test error           : %s
 %s
 ********************************************************************************
 """ % \
