@@ -86,9 +86,8 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
         solver = pyclaw.ClawSolver1D()
 
     solver.kernel_language = kernel_language
-    from clawpack.riemann import rp_nonlinear_elasticity
-    if kernel_language=='Python':
-        solver.rp = rp_nonlinear_elasticity.rp_nonlinear_elasticity_1d
+    if kernel_language=='Python': 
+        solver.set_riemann_solver('nonlinear_elasticity')
     elif kernel_language=='Fortran':
         from clawpack import riemann
         solver.rp = riemann.rp1_nonlinear_elasticity_fwave
