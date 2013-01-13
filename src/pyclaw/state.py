@@ -113,6 +113,14 @@ class State(object):
         r"""(float) - Current time represented on this patch, 
             ``default = 0.0``"""
         self.index_capa = -1
+        self.keep_gauges = False
+        r"""(bool) - Keep gauge values in memory for every time step, 
+        ``default = False``"""
+        self.gauge_data = []
+        r"""(list) - List of numpy.ndarray objects. Each element of the list
+        stores the values of the corresponding gauge if ``keep_gauges`` is set
+        to ``True``"""
+        
 
         self.q   = self.new_array(num_eqn)
         self.aux = self.new_array(num_aux)
