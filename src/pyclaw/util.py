@@ -129,9 +129,9 @@ def test_app(application, verifier, kwargs):
 ********************************************************************************
 verification function
 %s
-args    : %s
-expected: %s
-test    : %s
+args                 : %s
+norm of expected data: %s
+test error           : %s
 %s
 ********************************************************************************
 """ % \
@@ -150,13 +150,14 @@ def check_diff(expected, test, **kwargs):
 
     This function expects either the keyword argument 'abstol' or 'reltol'.
     """
-    
+    err_norm = np.linalg.norm(expected - test)
+    expected_norm = np.linalg.norm(expected)
     if 'abstol' in kwargs:
-        if abs(expected - test) < kwargs['abstol']: return None
-        else: return (expected, test, 'abstol  : %s' % kwargs['abstol'])
+        if err_norm < kwargs['abstol']: return None
+        else: return (expected_norm, err_norm, 'abstol  : %s' % kwargs['abstol'])
     elif 'reltol' in kwargs:
-        if abs((expected - test)/expected) < kwargs['reltol']: return None
-        else: return (expected, test, 'reltol  : %s' % kwargs['reltol'])
+        if err_norm/expected_norm < kwargs['reltol']: return None
+        else: return (expected_norm, err_norm, 'reltol  : %s' % kwargs['reltol'])
     else:
         raise Exception('Incorrect use of check_diff verifier, specify tol!')
 
