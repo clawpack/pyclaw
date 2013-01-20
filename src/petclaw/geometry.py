@@ -20,6 +20,9 @@ class Patch(pyclaw_geometry.Patch):
             num_cells   = nrange[1]-nrange[0]
             grid_dimensions.append(pyclaw_geometry.Dimension(lower,upper,
                                         num_cells,name=dimensions[i].name))
+            grid_dimensions[-1].lower_index = nrange[0]
+            grid_dimensions[-1].upper_index = nrange[1]
+
 
         self.grid = pyclaw_geometry.Grid(grid_dimensions)
 
