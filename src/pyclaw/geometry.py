@@ -101,6 +101,16 @@ class Grid(object):
         r"""(list) - Upper coordinate extends of each dimension"""
         return self.get_dim_attribute('upper')
     @property
+    def lower_indices(self):
+        r"""(list) - Lower grid indices of each dimension relative
+                  to the Patch object containing the grid."""
+        return self.get_dim_attribute('lower_index')
+    @property
+    def upper_indices(self):
+        r"""(list) - Upper grid indices of each dimension relative
+                  to the Patch object containing the grid."""
+        return self.get_dim_attribute('upper_index')
+    @property
     def delta(self):
         r"""(list) - List of computational cell widths"""
         return self.get_dim_attribute('delta')
@@ -458,6 +468,12 @@ class Dimension(object):
         r"""(float) - Lower computational dimension extent"""
         self.upper = 1.0
         r"""(float) - Upper computational dimension extent"""
+        self.lower_index = 0
+        r"""(int) - Lower index of the dimension of the containing
+                  Patch or Grid object"""
+        self.upper_index = None
+        r"""(int) - Upper index of the dimension of the containing
+                  Patch or Grid object"""
         self.units = None
         r"""(string) Corresponding physical units of this dimension (e.g. 
         'm/s'), ``default = None``"""
@@ -474,6 +490,8 @@ class Dimension(object):
             self.num_cells = int(args[3])
         else:
             raise Exception("Invalid initializer for Dimension.")
+        
+        self.upper_index = self.num_cells
         
         for (k,v) in kargs.iteritems():
             setattr(self,k,v)
@@ -509,6 +527,14 @@ class Patch(object):
     def upper_global(self):
         r"""(list) - Upper coordinate extends of each dimension"""
         return self.get_dim_attribute('upper')
+    @property
+    def lower_global_indices(self):
+        r"""(list) - Lower patch indices of each dimension"""
+        return self.get_dim_attribute('lower_index')
+    @property
+    def upper_global_indices(self):
+        r"""(list) - Upper patch indices of each dimension"""
+        return self.get_dim_attribute('upper_index')
     @property
     def num_dim(self):
         r"""(int) - Number of dimensions"""
