@@ -113,6 +113,12 @@ class SharpClawSolver(Solver):
         Whether a source term is present. If it is present the function that 
         computes its contribution must be provided.
         ``Default = None``
+
+    .. attribute:: call_before_step_each_stage
+
+        Whether to call the method `self.before_step` before each RK stage.
+        ``Default = False``
+
     """
     
     # ========================================================================
@@ -136,9 +142,11 @@ class SharpClawSolver(Solver):
         self.cfl_desired = 2.45
         self.cfl_max = 2.5
         self.dq_src = None
+        self.call_before_step_each_stage = False
         self._mthlim = self.limiters
         self._method = None
         self._rk_stages = None
+        
 
         # Call general initialization function
         super(SharpClawSolver,self).__init__(riemann_solver,claw_package)
@@ -197,12 +205,14 @@ class SharpClawSolver(Solver):
                 self._rk_stages[0].q=state.q+deltaq
                 self._rk_stages[0].t =state.t+self.dt
 
-                self.before_step(self,self._rk_stages[0])
+                if self.call_before_step_each_stage:
+                    self.before_step(self,self._rk_stages[0])
                 deltaq=self.dq(self._rk_stages[0])
                 self._rk_stages[0].q= 0.75*state.q + 0.25*(self._rk_stages[0].q+deltaq)
                 self._rk_stages[0].t = state.t+0.5*self.dt
 
-                self.before_step(self,self._rk_stages[0])
+                if self.call_before_step_each_stage:
+                    self.before_step(self,self._rk_stages[0])
                 deltaq=self.dq(self._rk_stages[0])
                 state.q = 1./3.*state.q + 2./3.*(self._rk_stages[0].q+deltaq)
 
@@ -217,7 +227,8 @@ class SharpClawSolver(Solver):
                 s1.t = state.t + self.dt/6.
 
                 for i in xrange(4):
-                    self.before_step(self,s1)
+                    if self.call_before_step_each_stage:
+                        self.before_step(self,s1)
                     deltaq=self.dq(s1)
                     s1.q=s1.q + deltaq/6.
                     s1.t =s1.t + self.dt/6.
@@ -227,12 +238,14 @@ class SharpClawSolver(Solver):
                 s1.t = state.t + self.dt/3.
 
                 for i in xrange(4):
-                    self.before_step(self,s1)
+                    if self.call_before_step_each_stage:
+                        self.before_step(self,s1)
                     deltaq=self.dq(s1)
                     s1.q=s1.q + deltaq/6.
                     s1.t =s1.t + self.dt/6.
-
-                self.before_step(self,s1)
+                
+                if self.call_before_step_each_stage:
+                    self.before_step(self,s1)
                 deltaq = self.dq(s1)
                 state.q = s2.q + 0.6 * s1.q + 0.1 * deltaq
             else:
