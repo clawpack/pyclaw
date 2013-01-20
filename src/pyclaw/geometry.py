@@ -158,6 +158,11 @@ class Grid(object):
         self.compute_c_edges(self)
         return self._c_edges
     _c_edges = None
+    #@property
+    #def on_lower_boundary(self)
+    #    r"""(list) - List of flags, one for each dimension, showing whether
+    #              the dimension is crossing a lower boundary."""
+        #self.get_dim_attribute('lower')
 
        
     
