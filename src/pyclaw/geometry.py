@@ -158,11 +158,17 @@ class Grid(object):
         self.compute_c_edges(self)
         return self._c_edges
     _c_edges = None
-    #@property
-    #def on_lower_boundary(self)
-    #    r"""(list) - List of flags, one for each dimension, showing whether
-    #              the dimension is crossing a lower boundary."""
-        #self.get_dim_attribute('lower')
+    @property
+    def on_lower_boundaries(self):
+        r"""(list) - List of flags, one for each dimension, showing whether
+                  the dimension is crossing a lower boundary."""
+        self.get_dim_attribute('on_lower_boundary')
+    @property
+    def on_upper_boundaries(self):
+        r"""(list) - List of flags, one for each dimension, showing whether
+                  the dimension is crossing an upper boundary."""
+        self.get_dim_attribute('on_upper_boundary')
+
 
        
     
@@ -479,6 +485,10 @@ class Dimension(object):
         self.upper_index = None
         r"""(int) - Upper index of the dimension of the containing
                   Patch or Grid object"""
+        self.on_lower_boundary = None
+        r"""(bool) - Whether the dimention is crossing a lower boundary."""
+        self.on_upper_boundary = None
+        r"""(bool) - Whether the dimention is crossing an upper boundary."""
         self.units = None
         r"""(string) Corresponding physical units of this dimension (e.g. 
         'm/s'), ``default = None``"""
@@ -568,9 +578,12 @@ class Patch(object):
             dimensions = [dimensions]
         self._dimensions = []
         for dim in dimensions:
+            dim.on_lower_boundary = True
+            dim.on_upper_boundary = True
             self.add_dimension(dim)
 
         self.grid = Grid(dimensions)
+
 
         super(Patch,self).__init__()
 
