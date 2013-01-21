@@ -486,9 +486,9 @@ class Dimension(object):
         r"""(int) - Upper index of the dimension of the containing
                   Patch or Grid object"""
         self.on_lower_boundary = None
-        r"""(bool) - Whether the dimention is crossing a lower boundary."""
+        r"""(bool) - Whether the dimension is crossing a lower boundary."""
         self.on_upper_boundary = None
-        r"""(bool) - Whether the dimention is crossing an upper boundary."""
+        r"""(bool) - Whether the dimension is crossing an upper boundary."""
         self.units = None
         r"""(string) Corresponding physical units of this dimension (e.g. 
         'm/s'), ``default = None``"""
