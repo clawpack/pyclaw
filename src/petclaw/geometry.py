@@ -26,12 +26,12 @@ class Patch(pyclaw_geometry.Patch):
             grid_dimensions[-1].upper_index = nrange[1]
 
 
-            if nrange[0] == self.lower_global_index[i]:
+            if nrange[0] == self.lower_global_indices[i]:
                 grid_dimensions[-1].on_lower_boundary = True
             else:
                 grid_dimensions[-1].on_lower_boundary = False
 
-            if nrange[1] == self.upper_global_index[i]:
+            if nrange[1] == self.upper_global_indices[i]:
                 grid_dimensions[-1].on_upper_boundary = True
             else:
                 grid_dimensions[-1].on_upper_boundary = False  

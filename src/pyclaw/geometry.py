@@ -162,12 +162,12 @@ class Grid(object):
     def on_lower_boundaries(self):
         r"""(list) - List of flags, one for each dimension, showing whether
                   the dimension is crossing a lower boundary."""
-        self.get_dim_attribute('on_lower_boundary')
+        return self.get_dim_attribute('on_lower_boundary')
     @property
     def on_upper_boundaries(self):
         r"""(list) - List of flags, one for each dimension, showing whether
                   the dimension is crossing an upper boundary."""
-        self.get_dim_attribute('on_upper_boundary')
+        return self.get_dim_attribute('on_upper_boundary')
 
 
        
