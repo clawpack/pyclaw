@@ -101,6 +101,16 @@ class Grid(object):
         r"""(list) - Upper coordinate extends of each dimension"""
         return self.get_dim_attribute('upper')
     @property
+    def lower_indices(self):
+        r"""(list) - Lower grid indices of each dimension relative
+                  to the Patch object containing the grid."""
+        return self.get_dim_attribute('lower_index')
+    @property
+    def upper_indices(self):
+        r"""(list) - Upper grid indices of each dimension relative
+                  to the Patch object containing the grid."""
+        return self.get_dim_attribute('upper_index')
+    @property
     def delta(self):
         r"""(list) - List of computational cell widths"""
         return self.get_dim_attribute('delta')
@@ -148,6 +158,17 @@ class Grid(object):
         self.compute_c_edges(self)
         return self._c_edges
     _c_edges = None
+    @property
+    def on_lower_boundaries(self):
+        r"""(list) - List of flags, one for each dimension, showing whether
+                  the dimension is crossing a lower boundary."""
+        return self.get_dim_attribute('on_lower_boundary')
+    @property
+    def on_upper_boundaries(self):
+        r"""(list) - List of flags, one for each dimension, showing whether
+                  the dimension is crossing an upper boundary."""
+        return self.get_dim_attribute('on_upper_boundary')
+
 
        
     
@@ -458,6 +479,16 @@ class Dimension(object):
         r"""(float) - Lower computational dimension extent"""
         self.upper = 1.0
         r"""(float) - Upper computational dimension extent"""
+        self.lower_index = 0
+        r"""(int) - Lower index of the dimension of the containing
+                  Patch or Grid object"""
+        self.upper_index = None
+        r"""(int) - Upper index of the dimension of the containing
+                  Patch or Grid object"""
+        self.on_lower_boundary = None
+        r"""(bool) - Whether the dimension is crossing a lower boundary."""
+        self.on_upper_boundary = None
+        r"""(bool) - Whether the dimension is crossing an upper boundary."""
         self.units = None
         r"""(string) Corresponding physical units of this dimension (e.g. 
         'm/s'), ``default = None``"""
@@ -474,6 +505,8 @@ class Dimension(object):
             self.num_cells = int(args[3])
         else:
             raise Exception("Invalid initializer for Dimension.")
+        
+        self.upper_index = self.num_cells
         
         for (k,v) in kargs.iteritems():
             setattr(self,k,v)
@@ -510,6 +543,14 @@ class Patch(object):
         r"""(list) - Upper coordinate extends of each dimension"""
         return self.get_dim_attribute('upper')
     @property
+    def lower_global_indices(self):
+        r"""(list) - Lower patch indices of each dimension"""
+        return self.get_dim_attribute('lower_index')
+    @property
+    def upper_global_indices(self):
+        r"""(list) - Upper patch indices of each dimension"""
+        return self.get_dim_attribute('upper_index')
+    @property
     def num_dim(self):
         r"""(int) - Number of dimensions"""
         return len(self._dimensions)
@@ -537,9 +578,12 @@ class Patch(object):
             dimensions = [dimensions]
         self._dimensions = []
         for dim in dimensions:
+            dim.on_lower_boundary = True
+            dim.on_upper_boundary = True
             self.add_dimension(dim)
 
         self.grid = Grid(dimensions)
+
 
         super(Patch,self).__init__()
 
