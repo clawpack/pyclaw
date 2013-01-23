@@ -22,16 +22,13 @@ class Patch(pyclaw_geometry.Patch):
             grid_dimensions.append(pyclaw_geometry.Dimension(lower,upper,
                                         num_cells,name=dimensions[i].name))
 
-            grid_dimensions[-1].lower_index = nrange[0]
-            grid_dimensions[-1].upper_index = nrange[1]
 
-
-            if nrange[0] == self.lower_global_indices[i]:
+            if nrange[0] == 0:
                 grid_dimensions[-1].on_lower_boundary = True
             else:
                 grid_dimensions[-1].on_lower_boundary = False
 
-            if nrange[1] == self.upper_global_indices[i]:
+            if nrange[1] == self.num_cells_global[i]:
                 grid_dimensions[-1].on_upper_boundary = True
             else:
                 grid_dimensions[-1].on_upper_boundary = False  

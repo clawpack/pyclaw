@@ -74,20 +74,17 @@ def shockbc(state,dim,t,qbc,num_ghost):
             dim_index = i
             break
       
-    if (state.patch.dimensions[dim_index].lower == 
-                        state.grid.dimensions[dim_index].lower):
+    pinf=5.
+    rinf = (gamma1 + pinf*(gamma+1.))/ ((gamma+1.) + gamma1*pinf)
+    vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
+    einf = 0.5*rinf*vinf**2 + pinf/gamma1
 
-        pinf=5.
-        rinf = (gamma1 + pinf*(gamma+1.))/ ((gamma+1.) + gamma1*pinf)
-        vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
-        einf = 0.5*rinf*vinf**2 + pinf/gamma1
-
-        for i in xrange(num_ghost):
-            qbc[0,i,...] = rinf
-            qbc[1,i,...] = rinf*vinf
-            qbc[2,i,...] = 0.
-            qbc[3,i,...] = einf
-            qbc[4,i,...] = 0.
+    for i in xrange(num_ghost):
+        qbc[0,i,...] = rinf
+        qbc[1,i,...] = rinf*vinf
+        qbc[2,i,...] = 0.
+        qbc[3,i,...] = einf
+        qbc[4,i,...] = 0.
 
 def step_Euler_radial(solver,state,dt):
     """
