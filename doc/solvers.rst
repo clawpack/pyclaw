@@ -1,6 +1,6 @@
-.. _solvers:
-
 .. contents::
+
+.. _solvers:
 
 **********************************************
 Using PyClaw's solvers: Classic and SharpClaw
