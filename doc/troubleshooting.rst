@@ -27,3 +27,12 @@ Two frequent sources of compilation error are:
       install, such as that available from Enthought (free for academics).
       The 32-bit EPD has also been known to cause a plotting issue with PyClaw
       in which plotting becomes extremely slow.
+
+Use Fortran-ordered arrays
+***************************
+By default, Numpy arrays use C-ordering.  But the arrays that store the solution
+and coefficients in PyClaw (i.e., q and aux) must be initialized using Fortran
+ordering, for compatibility with the Fortran routines and PETSc.  Ordinarily,
+this is handled automatically when you create a State or Solution object.
+If you are manually creating arrays, be sure to pass the flag 'F' to specify
+Fortran ordering.

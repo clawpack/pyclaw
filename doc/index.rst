@@ -50,18 +50,10 @@ PyClaw
 .. toctree::
    :maxdepth: 2
 
-   started
-   tutorial
-   apps
-   plotting
-   problem
-   clawpack_and_pyclaw
-   parallel
+   basics
+   going_further
    classes
-   output
-   develop
-   devel/gitwash/index
-   rulesProposal
+   for_developers
    troubleshooting
    about
    future
@@ -75,7 +67,7 @@ PyClaw Modules reference documentation
    :maxdepth: 1
    
    controller
-   evolve/solvers
+   solvers
    evolve/limiters
    io
    solution
