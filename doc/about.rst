@@ -16,9 +16,9 @@ the library (in alphabetical order)
 
     * Aron Ahmadia: PETSc integration; I/O; programmatic testing framework; general design.
 
-    * Amal Alghamdi: Initial development of PetClaw.
+    * Amal Alghamdi: Initial development of PetClaw, many bug-fixes and enhancements.
 
-    * Jed Brown: Implicit time stepping.
+    * Jed Brown: Implicit time stepping (still experimental).
 
     * Lisandro Dalcin: Fortran wrapping; PETSc integration; general efficiency.
 

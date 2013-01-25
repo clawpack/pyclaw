@@ -1,7 +1,7 @@
 .. _pyclaw_classes:
   
 *****************************************
-Pyclaw Classes
+Understanding Pyclaw Classes
 *****************************************
 .. contents::
 
@@ -123,7 +123,7 @@ Creation of a Pyclaw :class:`~pyclaw.solver.Solver`
 
 A Pyclaw :class:`~pyclaw.solver.Solver` can represent many different
 types of solvers; here we will use a 1D, classic Clawpack type of
-solver.  This solver is defined in the :mod:`~pyclaw.clawpack` module.
+solver.  This solver is defined in the :mod:`~pyclaw.classic.solver` module.
 
 First we import the particular solver we want and create it with the default 
 configuration.
@@ -136,7 +136,7 @@ configuration.
     >>> solver.bc_upper[0] = BC.periodic
 
 Next we need to tell the solver which Riemann solver to use from the
-:doc:`Riemann solver package <./_build/html/rp.html>`. We can always 
+:ref:`pyclaw_rp`. We can always 
 check what Riemann solvers are available to use via the :mod:`~pyclaw.riemann` 
 module. Once we have picked one out, we pass it to the solver via:
 
@@ -148,7 +148,7 @@ module. Once we have picked one out, we pass it to the solver via:
 In this case we have decided to use the 1D linear acoustics Riemann solver.  You 
 can also set your own solver by importing the module that contains it and 
 setting it directly to the `rp` attribute of the particular object in the class 
-:class:`~pyclaw.clawpack.clawpack.ClawSolver1D`.
+:class:`~pyclaw.classic.solver.ClawSolver1D`.
 
 .. doctest::
 
