@@ -1,7 +1,7 @@
 .. _pyclaw_classes:
   
 *****************************************
-Pyclaw Classes
+Understanding Pyclaw Classes
 *****************************************
 .. contents::
 
