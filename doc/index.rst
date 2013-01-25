@@ -67,7 +67,7 @@ PyClaw Modules reference documentation
    :maxdepth: 1
    
    controller
-   evolve/solvers
+   solvers
    evolve/limiters
    io
    solution

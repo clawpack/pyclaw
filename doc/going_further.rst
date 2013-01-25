@@ -11,5 +11,6 @@ Going Further
 
    problem
    clawpack_and_pyclaw
+   solvers
    parallel
    output
