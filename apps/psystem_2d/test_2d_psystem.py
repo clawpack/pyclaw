@@ -43,11 +43,26 @@ def test_2d_psystem():
 
     from clawpack.pyclaw.util import gen_variants
     from psystem import psystem2D
-
+    import tempfile
+    import shutil
+    #tempdir = tempfile.mkdtemp(suffix='', prefix='tmp', dir='./')
+    tempdir = './temp_output'
     classic_tests = gen_variants(psystem2D, verify_data(),
                                  kernel_languages=('Fortran',), 
-                                 solver_type='classic')
-
+                                 solver_type='classic', 
+                                 disable_output=True,
+                                 outdir=tempdir)
     from itertools import chain
-    for test in chain(classic_tests):
-        yield test
+    try:
+        for test in chain(classic_tests):
+            yield test
+
+    finally:
+        ERROR_STR= """Error removing %(path)s, %(error)s """
+        try:
+            shutil.rmtree(tempdir )
+        except OSError as (errno, strerror):
+            print ERROR_STR % {'path' : tempdir, 'error': strerror }
+            
+        
+

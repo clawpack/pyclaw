@@ -30,7 +30,8 @@ def test_shallow_sphere():
         return check_diff(expected_err, test_err, abstol=1e-4)
 
     from clawpack.pyclaw.util import test_app
-    kwargs = {}    
+    kwargs = {}   
+    kwargs['disable_output']= True
     return test_app(shallow_4_Rossby_Haurwitz,
                     verify_shallow_sphere,
                     kwargs)
