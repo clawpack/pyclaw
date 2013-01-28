@@ -715,6 +715,7 @@ class Solver(object):
             to file.
         """
         import numpy as np
+        import os
         for i,gauge in enumerate(solution.state.grid.gauges):
             if self.num_dim == 1:
                 ix=gauge[0];
@@ -733,8 +734,14 @@ class Solver(object):
                 else:
                     gauge_data.append(np.append(t,p))
             
-            solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
-
+            try:
+                solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) 
+                                                         for j in p)+'\n')  
+            except:
+                raise Exception("Gauge files are not set up correctly. You should call \
+                       \nthe method `setup_gauge_files` of the Grid class object \
+                       \nbefore any call for `write_gauge_values` from the Solver class.")
+                
 
 if __name__ == "__main__":
     import doctest
