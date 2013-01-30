@@ -500,7 +500,7 @@ def _method_info_from_argv(argv=None):
             args.append(value)
     return method_name, args, kwargs
 
-def _info_from_argv(argv=None):
+def _info_from_argv(argv=None,index=1):
     """Command-line -> method call arg processing.
     
     - positional args:
@@ -521,23 +521,39 @@ def _info_from_argv(argv=None):
     if argv is None:
         argv = sys.argv
 
-    arg_strs = argv[1:]
+    arg_strs = argv[index:]
     args = []
     kwargs = {}
     for s in arg_strs:
         if s.count('=') == 1:
             key, value = s.split('=', 1)
+        elif os.path.isfile(os.path.join(os.getcwd(),s)):
+            file_name = os.path.join(os.getcwd(),s)
+            farg_strs = json.load(open(file_name))
+            #fargs, fkwargs =_info_from_argv(farg_strs,0)
+            for key, value in farg_strs.iteritems():
+                if value is not None:
+                    try:
+                        value = json.loads(value)
+                    except ValueError:
+                        pass
+                if value=='True': value=True
+                if value=='False': value=False
+                kwargs[key] = value
+                
+            key, value = None, None
         else:
             key, value = None, s
-        try:
-            value = json.loads(value) 
-        except ValueError:
-            pass
+        if value is not None:
+            try:
+                value = json.loads(value)
+            except ValueError:
+                pass
         if value=='True': value=True
         if value=='False': value=False
         if key:
             kwargs[key] = value
-        else:
+        elif value is not None:
             args.append(value)
     return args, kwargs
 
