@@ -127,7 +127,7 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
 
     #Initialize q and aux
     xc=state.grid.x.centers
-    state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,solver.aux_bc_lower[0],xupper=xupper)
+    state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,xlower=xlower,xupper=xupper)
     qinit(state,ic=2,a2=1.0,xupper=xupper)
 
     tfinal=500.; num_output_times = 10;
