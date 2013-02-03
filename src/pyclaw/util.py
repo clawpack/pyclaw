@@ -118,15 +118,9 @@ def test_app(application, verifier, kwargs):
                 return
         except ImportError, e:
             pass
-
-    import tempfile
-    import shutil
-    tempdir = tempfile.mkdtemp(suffix='', prefix='tmp', dir='./')
-    kwargs['outdir'] = tempdir
+    
     output = application(**kwargs)
     check_values = verifier(output)
-    shutil.rmtree(tempdir)
-
     
     if check_values is not None:
         import inspect
