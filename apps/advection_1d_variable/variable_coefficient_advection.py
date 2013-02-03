@@ -76,7 +76,6 @@ def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',
     claw.outdir = outdir
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
-    claw.output_format = None
 
     claw.tfinal = 1.0
     status = claw.run()
