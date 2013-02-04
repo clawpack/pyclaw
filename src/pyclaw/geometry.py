@@ -158,6 +158,11 @@ class Grid(object):
         r"""(list) - List of flags, one for each dimension, showing whether
                   the dimension is crossing an upper boundary."""
         return self.get_dim_attribute('on_upper_boundary')
+    @property
+    def gauges_added(self):
+        r"""(bool) - Whether the user have called the method add_gauges."""
+        return self._gauges_added
+    _gauges_added = False
 
 
        
@@ -366,6 +371,7 @@ class Grid(object):
         corresponding to this grid.
 
         """
+        self._gauges_added = True
         from numpy import floor
         
         for gauge in gauge_coords: 

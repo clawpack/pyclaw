@@ -329,25 +329,3 @@ class State(clawpack.pyclaw.State):
         q0Vec.destroy()
 
         return q0
-
-    def get_aux_global(self):
-        r"""
-        Returns a copy of the global aux array on process 0, otherwise returns None
-        """
-        from petsc4py import PETSc
-        aux_natural = self.aux_da.createNaturalVec()
-        self.aux_da.globalToNatural(self.gauxVec, aux_natural)
-        scatter, aux0Vec = PETSc.Scatter.toZero(aux_natural)
-        scatter.scatter(aux_natural, aux0Vec, False, PETSc.Scatter.Mode.FORWARD)
-        rank = PETSc.COMM_WORLD.getRank()
-        if rank == 0:
-            shape = self.patch.num_cells_global
-            shape.insert(0,self.num_aux)
-            aux0=aux0Vec.getArray().reshape(shape, order = 'F').copy()
-        else:
-            aux0=None
-        
-        scatter.destroy()
-        aux0Vec.destroy()
-
-        return aux0

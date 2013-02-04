@@ -43,10 +43,8 @@ def test_2d_psystem():
 
     from clawpack.pyclaw.util import gen_variants
     from psystem import psystem2D
-    import tempfile
     import shutil
-    #tempdir = tempfile.mkdtemp(suffix='', prefix='tmp', dir='./')
-    tempdir = './temp_output'
+    tempdir = './_for_temp_pyclaw_test'
     classic_tests = gen_variants(psystem2D, verify_data(),
                                  kernel_languages=('Fortran',), 
                                  solver_type='classic', 

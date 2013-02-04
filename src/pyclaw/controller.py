@@ -217,7 +217,8 @@ class Controller(object):
         """
         
         import numpy as np
-        self.solution.patch.grid.setup_gauge_files(self.outdir)
+        if self.solution.patch.grid.gauges_added:
+            self.solution.patch.grid.setup_gauge_files(self.outdir)
         frame = FrameCounter()
         frame.set_counter(self.start_frame)
         if self.keep_copy:
