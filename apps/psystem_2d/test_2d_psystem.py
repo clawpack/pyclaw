@@ -11,7 +11,6 @@ def test_2d_psystem():
             from clawpack.pyclaw.util import check_diff
 
             gauge_files = test_state.grid.gauge_files
-            gauge_path = test_state.grid.gauge_path
             test_gauge_data= test_state.gauge_data
             expected_gauges=[]
             thisdir = os.path.dirname(__file__)
