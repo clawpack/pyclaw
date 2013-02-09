@@ -289,7 +289,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
     if solution.states[0].num_aux > 0 and read_aux:
         # Check for aux file
         fname1 = os.path.join(base_path,'%s.a' % file_prefix)+str(frame).zfill(4)
-        fname2 = os.path.join(base_path,'%s.a' % file_prefix)
+        fname2 = os.path.join(base_path,'%s.a' % file_prefix)+str(0).zfill(4)
         if os.path.exists(fname1):
             fname = fname1
         elif os.path.exists(fname2):

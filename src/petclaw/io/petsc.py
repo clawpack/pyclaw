@@ -57,7 +57,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
 
     if solution.num_aux > 0 and write_aux:
         write_aux = True
-        aux_filename = os.path.join(path, '%s_aux.ptc' % file_prefix)
+        aux_filename = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
     else:
         write_aux = False
         
@@ -157,7 +157,14 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
-    aux_viewer_filename = os.path.join(path, '%s_aux.ptc' % file_prefix)
+    aux_viewer_filename1 = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
+    aux_viewer_filename2 = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(0).zfill(4)
+    if os.path.exists(aux_viewer_filename1):
+         aux_viewer_filename = aux_viewer_filename1
+    elif os.path.exists(aux_viewer_filename2):
+         aux_viewer_filename = aux_viewer_filename2
+
+
     if frame < 0:
         # Don't construct file names with negative frameno values.
         raise IOError("Frame " + str(frame) + " does not exist ***")
