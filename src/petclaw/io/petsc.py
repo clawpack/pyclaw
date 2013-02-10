@@ -161,7 +161,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     aux_viewer_filename2 = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(0).zfill(4)
     if os.path.exists(aux_viewer_filename1):
          aux_viewer_filename = aux_viewer_filename1
-    elif os.path.exists(aux_viewer_filename2):
+    else:
          aux_viewer_filename = aux_viewer_filename2
 
 
