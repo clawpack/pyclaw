@@ -715,7 +715,6 @@ class Solver(object):
             to file.
         """
         import numpy as np
-        import os
         for i,gauge in enumerate(solution.state.grid.gauges):
             if self.num_dim == 1:
                 ix=gauge[0];
