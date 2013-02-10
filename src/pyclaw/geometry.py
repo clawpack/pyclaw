@@ -452,6 +452,12 @@ class Dimension(object):
                 self._centers[i] = self.lower + (i+0.5)*self.delta
         return self._centers
     _centers = None
+
+    def centers_with_ghost(self,nghost):
+        centers = self.centers
+        pre  = np.linspace(self.lower-(nghost-0.5)*self.delta,self.lower-0.5*self.delta,nghost)
+        post = np.linspace(self.upper+0.5*self.delta, self.upper+(nghost-0.5)*self.delta,nghost)
+        return np.hstack((pre,centers,post))
     
     def __init__(self, *args, **kargs):
         r"""
