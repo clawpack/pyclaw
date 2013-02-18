@@ -11,31 +11,35 @@ def test_2d_psystem():
             from clawpack.pyclaw.util import check_diff
 
             gauge_files = test_state.grid.gauge_files
-            test_gauge_data= test_state.gauge_data
+            test_gauge_data_mem = test_state.gauge_data
             expected_gauges=[]
             thisdir = os.path.dirname(__file__)
             
             expected_list=[]
             error_list=[]
             test_passed = True
-            if test_gauge_data is not None:
+            if test_gauge_data_mem is not None:
                 for i, gauge in enumerate(gauge_files):
+                    test_gauge_data_io = np.loadtxt(gauge.name)
                     verify_file = os.path.join(thisdir,'verify_' +
                                             gauge.name.split('/')[-1])
                     expected_gauges.append(np.loadtxt(verify_file))
-                    return_value = check_diff(expected_gauges[i], 
-                    test_gauge_data[i], reltol=1e-2)
+                    return_value_mem = check_diff(expected_gauges[i], 
+                    test_gauge_data_mem[i], reltol=1e-2)
+                    return_value_io = check_diff(expected_gauges[i], 
+                    test_gauge_data_io, reltol=1e-2)
                     
-                    if return_value is not None:
-                        expected_list.append(return_value[0])
-                        error_list.append(return_value[1])
+                    if (return_value_mem is not None or
+                        return_value_io is not None):
+                        expected_list.append(return_value_mem[0])
+                        error_list.append([return_value_mem[1],return_value_io[1]])
                         test_passed = False
 
 
                 if test_passed:
                     return None
                 else:
-                    return(expected_list, error_list,return_value[2] )
+                    return(expected_list, error_list,return_value_io[2] )
             else:
                 return
                 
