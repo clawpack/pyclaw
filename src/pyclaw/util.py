@@ -532,11 +532,6 @@ def _info_from_argv(argv=None,index=1):
             farg_strs = json.load(open(file_name))
             #fargs, fkwargs =_info_from_argv(farg_strs,0)
             for key, value in farg_strs.iteritems():
-                if value is not None:
-                    try:
-                        value = json.loads(value)
-                    except ValueError:
-                        pass
                 if value=='True': value=True
                 if value=='False': value=False
                 kwargs[key] = value
