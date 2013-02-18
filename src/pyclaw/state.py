@@ -294,6 +294,12 @@ class State(object):
         """
         return self.q.copy()
 
+    def get_aux_global(self):
+        r"""
+        Returns a copy of the global aux array
+        """
+        return self.aux.copy()
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()

@@ -733,8 +733,14 @@ class Solver(object):
                 else:
                     gauge_data.append(np.append(t,p))
             
-            solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) for j in p)+'\n')  
-
+            try:
+                solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) 
+                                                         for j in p)+'\n')  
+            except:
+                raise Exception("Gauge files are not set up correctly. You should call \
+                       \nthe method `setup_gauge_files` of the Grid class object \
+                       \nbefore any call for `write_gauge_values` from the Solver class.")
+                
 
 if __name__ == "__main__":
     import doctest

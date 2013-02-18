@@ -25,10 +25,10 @@ def test_2d_acoustics():
     from acoustics import acoustics2D
 
     classic_tests = gen_variants(acoustics2D, verify_data('verify_classic.txt'),
-                                 kernel_languages=('Fortran',), solver_type='classic')
+                                 kernel_languages=('Fortran',), solver_type='classic', disable_output=True)
 
     sharp_tests   = gen_variants(acoustics2D, verify_data('verify_sharpclaw.txt'),
-                                 kernel_languages=('Fortran',), solver_type='sharpclaw')
+                                 kernel_languages=('Fortran',), solver_type='sharpclaw', disable_output=True)
 
     from itertools import chain
     for test in chain(classic_tests, sharp_tests):
