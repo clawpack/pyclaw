@@ -11,7 +11,6 @@ def test_2d_psystem():
             from clawpack.pyclaw.util import check_diff
 
             gauge_files = test_state.grid.gauge_files
-            gauge_path = test_state.grid.gauge_path
             test_gauge_data= test_state.gauge_data
             expected_gauges=[]
             thisdir = os.path.dirname(__file__)
@@ -44,11 +43,24 @@ def test_2d_psystem():
 
     from clawpack.pyclaw.util import gen_variants
     from psystem import psystem2D
-
+    import shutil
+    tempdir = './_for_temp_pyclaw_test'
     classic_tests = gen_variants(psystem2D, verify_data(),
                                  kernel_languages=('Fortran',), 
-                                 solver_type='classic')
-
+                                 solver_type='classic', 
+                                 disable_output=True,
+                                 outdir=tempdir)
     from itertools import chain
-    for test in chain(classic_tests):
-        yield test
+    try:
+        for test in chain(classic_tests):
+            yield test
+
+    finally:
+        ERROR_STR= """Error removing %(path)s, %(error)s """
+        try:
+            shutil.rmtree(tempdir )
+        except OSError as (errno, strerror):
+            print ERROR_STR % {'path' : tempdir, 'error': strerror }
+            
+        
+

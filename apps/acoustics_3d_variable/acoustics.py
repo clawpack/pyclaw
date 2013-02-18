@@ -3,7 +3,7 @@
 
 import numpy as np
 
-def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',solver_type='classic',**kwargs):
+def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',solver_type='classic',disable_output=False,**kwargs):
     """
     Example python script for solving the 3d acoustics equations.
     """
@@ -106,6 +106,8 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
+    if disable_output:
+       claw.output_format = None
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir=outdir

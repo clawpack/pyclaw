@@ -37,7 +37,7 @@ def init(state):
 
 
     
-def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
+def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic', disable_output=False):
     #===========================================================================
     # Import libraries
     #===========================================================================
@@ -104,6 +104,8 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     claw.solution = peanoclaw.solution.Solution(state,domain)
     claw.solver = peanoSolver
     claw.outdir = outdir
+    if disable_output:
+        claw.output_format = None
     claw.num_output_times = 5
 
     #===========================================================================

@@ -117,7 +117,8 @@ def gauge_pfunction(q,aux):
     return [p,10*p]
 
 def psystem2D(iplot=False,kernel_language='Fortran',htmlplot=False,
-              use_petsc=False,outdir='./_output',solver_type='classic'):
+              use_petsc=False,outdir='./_output',solver_type='classic',
+              disable_output=False):
 
     """
     Solve the p-system in 2D with variable coefficients
@@ -222,6 +223,8 @@ def psystem2D(iplot=False,kernel_language='Fortran',htmlplot=False,
         claw.num_output_times = num_output_times
 
     #claw.p_function = p_function
+    if disable_output:
+        claw.output_format = None
     claw.compute_F = compute_F
     state.keep_gauges = True
     grid.add_gauges([[0.25,0.25],[17.85,1.25],[3.25,18.75],[11.75,11.75]])
