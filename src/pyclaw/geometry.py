@@ -159,7 +159,6 @@ class Grid(object):
                   the dimension is crossing an upper boundary."""
         return self.get_dim_attribute('on_upper_boundary')
 
-
        
     
     # ========== Class Methods ===============================================
@@ -174,11 +173,18 @@ class Grid(object):
         self.mapc2p = default_mapc2p
         r"""(func) - Coordinate mapping function"""
         self.gauges = []
-        r"""(list) - List of gauges"""
-        self.gauge_files     = []
-        r"""(list) - List of files to write gauge values to"""
-        self.gauge_path = './_output/_gauges/'
-        r"""(string) - Full path to output directory for gauges"""
+        r"""(list) - List of gauges' indices to be filled by add_gauges
+        method.
+        """
+        self.gauge_file_names  = []
+        r"""(list) - List of file names to write gauge values to"""
+        self.gauge_files = []
+        r"""(list) - List of file objects to write gauge values to"""
+        self.gauge_dir_name = '_gauges'
+        r"""(string) - Name of the output directory for gauges. If the
+        `Controller` class is used to run the application, this directory by
+        default will be created under the `Controller` `outdir` directory.
+        """
         # Dimension parsing
         if isinstance(dimensions,Dimension):
             dimensions = [dimensions]
@@ -358,15 +364,8 @@ class Grid(object):
         For PetClaw, first check whether each gauge is in the part of the grid
         corresponding to this grid.
 
-        THIS SHOULD BE MOVED TO GRID
         """
-        import os
         from numpy import floor
-        if not os.path.exists(self.gauge_path):
-            try:
-                os.makedirs(self.gauge_path)
-            except OSError:
-                print "gauge directory already exists, ignoring"
         
         for gauge in gauge_coords: 
             # Determine gauge locations in units of mesh spacing
@@ -374,12 +373,29 @@ class Grid(object):
                 # Set indices relative to this grid
                 gauge_index = [int(floor((gauge[n]-self.lower[n])/self.delta[n])) 
                                for n in xrange(self.num_dim)]
-                gauge_path = self.gauge_path+'gauge'+'_'.join(str(coord) for coord in gauge)+'.txt'
-
-                if os.path.isfile(gauge_path): 
-                    os.remove(gauge_path)
+                gauge_file_name = 'gauge'+'_'.join(str(coord) for coord in gauge)+'.txt'
+                self.gauge_file_names.append(gauge_file_name)
                 self.gauges.append(gauge_index)
-                self.gauge_files.append(open(gauge_path,'a'))
+
+    def setup_gauge_files(self,outdir):
+        r"""
+        Creates and opens file objects for gauges
+
+        """
+        import os
+        gauge_path = os.path.join(outdir,self.gauge_dir_name)
+        if not os.path.exists(gauge_path):
+            try:
+                os.makedirs(gauge_path)
+            except OSError:
+                print "gauge directory already exists, ignoring"
+        
+        for gauge in self.gauge_file_names: 
+            gauge_file = os.path.join(gauge_path,gauge)
+            if os.path.isfile(gauge_file): 
+                 os.remove(gauge_file)
+            self.gauge_files.append(open(gauge_file,'a'))
+
 
    
 # ============================================================================
