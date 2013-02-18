@@ -76,6 +76,7 @@ def acoustics2D(kernel_language='Fortran',iplot=False,htmlplot=False,use_petsc=F
     claw.solver = solver
     claw.outdir=outdir
     claw.num_output_times = 20
+    claw.write_aux_init = True
 
     # Solve
     claw.tfinal = 0.6

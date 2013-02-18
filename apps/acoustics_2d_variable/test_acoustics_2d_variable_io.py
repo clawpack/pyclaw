@@ -4,7 +4,7 @@ def test_acoustics_2d_variable_io():
     from acoustics import acoustics2D
 
     def verify_acoustics_io(controller):
-    """ Verifies I/O on 2d variable-coefficient acoustics application"""
+        """ Verifies I/O on 2d variable-coefficient acoustics application"""
         import os
         from clawpack.pyclaw.util import check_diff
         import numpy as np
