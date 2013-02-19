@@ -500,7 +500,7 @@ def _method_info_from_argv(argv=None):
             args.append(value)
     return method_name, args, kwargs
 
-def _info_from_argv(argv=None,index=1):
+def _info_from_argv(argv=None):
     """Command-line -> method call arg processing.
     
     - positional args:
@@ -521,7 +521,7 @@ def _info_from_argv(argv=None,index=1):
     if argv is None:
         argv = sys.argv
 
-    arg_strs = argv[index:]
+    arg_strs = argv[1:]
     args = []
     kwargs = {}
     for s in arg_strs:
@@ -530,7 +530,6 @@ def _info_from_argv(argv=None,index=1):
         elif os.path.isfile(os.path.join(os.getcwd(),s)):
             file_name = os.path.join(os.getcwd(),s)
             farg_strs = json.load(open(file_name))
-            #fargs, fkwargs =_info_from_argv(farg_strs,0)
             for key, value in farg_strs.iteritems():
                 if value=='True': value=True
                 if value=='False': value=False
