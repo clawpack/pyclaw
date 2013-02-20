@@ -21,6 +21,7 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
     fort.txxxx contains info about frame
     fort.qxxxx still contains headers for each grid patch
     fort.bxxxx is binary dump of data from all patches.
+    fort.axxxx is binary dump of aux arrays from all patches.
 
     Note that the fort prefix can be changed.
     
@@ -175,6 +176,10 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
         logger.error("File %s was not able to be read." % q_fname)
         raise
 
+    #-------------
+    # aux file:
+    #-------------
+
     # Read auxillary file if available and requested
     if solution.states[0].num_aux > 0 and read_aux:
         # Check for aux file
@@ -190,67 +195,71 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
             
         # Found a valid path, try to open and read it
         try:
-            f = open(fname,'r')
-            
-            # Read in aux file
-            for n in xrange(len(solution.states)):
-                # Fetch correct patch
-                patch_index = read_data_line(f,type='int')
-                patch = solution.states[patch_index-1].patch
-        
-                # These should match this patch already, raise exception otherwise
-                if not (patch.level == read_data_line(f,type='int')):
-                    raise IOError("Patch level in aux file header did not match patch no %s." % patch.patch_index)
-                for dim in patch.dimensions:
-                    if not (dim.num_cells == read_data_line(f,type='int')):
-                        raise IOError("Dimension %s's n in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
-                for dim in patch.dimensions:
-                    if not (dim.lower == read_data_line(f,type='float')):
-                        raise IOError("Dimension %s's lower in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
-                for dim in patch.dimensions:
-                    if not (dim.delta == read_data_line(f,type='float')):
-                        raise IOError("Dimension %s's d in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
+            b_file = open(fname,'rb')
+            auxdata = np.fromfile(file=b_file, dtype=np.float64)
+        except:
+            raise IOError("Could not read binary file %s" % fname)
 
-                f.readline()
-        
-                # Read in auxillary array
+        try:
+            for patch in patches:
+                i_start_patch = 0  # index into auxdata for start of next patch
+    
+                # Fill in aux values
                 if patch.num_dim == 1:
+                    ##  NOT YET TESTED ##
+                    mx = patch.dimensions[0].num_cells
+                    maux = state.num_aux
+                    mbc = num_ghost
+                    i_end_patch = i_start_patch + maux*(mx+2*mbc)
                     for i in xrange(patch.dimensions[0].num_cells):
-                        l = []
-                        while len(l)<state.num_aux:
-                            line = f.readline()
-                            l = l + line.split()
-                        for m in xrange(state.num_aux):
-                            state.aux[m,i] = float(l[m])
+                        auxpatch = auxdata[i_start_patch:i_end_patch]
+                        auxpatch = np.reshape(auxpatch, (maux,mx+2*mbc), \
+                                    order='F')
+                        state.aux = auxpatch[:,mbc:-mbc]
+                    i_start_patch = i_end_patch  # prepare for next patch
+    
                 elif patch.num_dim == 2:
+                    ## FIXED FOR BINARY ##
+                    mx = patch.dimensions[0].num_cells
+                    my = patch.dimensions[1].num_cells
+                    maux = state.num_aux
+                    mbc = num_ghost
+                    i_end_patch = i_start_patch + maux*(mx+2*mbc)*(my+2*mbc)
                     for j in xrange(patch.dimensions[1].num_cells):
                         for i in xrange(patch.dimensions[0].num_cells):
-                            l = []
-                            while len(l)<state.num_aux:
-                                line = f.readline()
-                                l = l + line.split()
-                            for m in xrange(state.num_aux):
-                                state.aux[m,i,j] = float(l[m])
-                        blank = f.readline()
+                            auxpatch = auxdata[i_start_patch:i_end_patch]
+                            auxpatch = np.reshape(auxpatch, (maux,mx+2*mbc,my+2*mbc), \
+                                        order='F')
+                            state.aux = auxpatch[:,mbc:-mbc,mbc:-mbc]
+                    i_start_patch = i_end_patch  # prepare for next patch
+    
                 elif patch.num_dim == 3:
+                    ##  NOT YET TESTED ##
+                    mx = patch.dimensions[0].num_cells
+                    my = patch.dimensions[1].num_cells
+                    mz = patch.dimensions[2].num_cells
+                    maux = state.num_aux
+                    mbc = num_ghost
+                    i_end_patch = i_start_patch + \
+                                maux*(mx+2*mbc)*(my+2*mbc)*(mz+2*mbc)
                     for k in xrange(patch.dimensions[2].num_cells):
                         for j in xrange(patch.dimensions[1].num_cells):
                             for i in xrange(patch.dimensions[0].num_cells):
-                                l = []
-                                while len(l)<state.num_aux:
-                                    line = f.readline()
-                                    l = l + line.split()
-                                for m in xrange(state.num_aux):
-                                    state.aux[m,i,j,k] = float(l[m])
-                            blank = f.readline()
-                        blank = f.readline()
+                                auxpatch = auxdata[i_start_patch:i_end_patch]
+                                auxpatch = np.reshape(auxpatch, \
+                                            (maux,mx+2*mbc,my+2*mbc,mz+2*mbc), \
+                                            order='F')
+                                state.aux = auxpatch[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
+                    i_start_patch = i_end_patch  # prepare for next patch
+    
                 else:
                     logger.critical("Read aux only up to 3d is supported.")
                     raise Exception("Read aux only up to 3d is supported.")
+    
         except(IOError):
             raise
         except:
-            logger.error("File %s was not able to be read." % q_fname)
+            logger.error("File %s was not able to be read." % fname)
             raise
             
             
