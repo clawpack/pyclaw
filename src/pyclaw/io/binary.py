@@ -39,6 +39,7 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
     """
     
     import numpy as np
+    import clawpack.pyclaw as pyclaw
 
     if frame < 0:
         # Don't construct file names with negative frameno values.
@@ -91,7 +92,6 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
             # the assumed dimensions x,y,z
             names = ['x','y','z']
             dimensions = []
-            import clawpack.pyclaw as pyclaw
             for i in xrange(num_dim):
                 dimensions.append(
                     pyclaw.geometry.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
@@ -115,11 +115,10 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 meqn = state.num_eqn
                 mbc = num_ghost
                 i_end_patch = i_start_patch + meqn*(mx+2*mbc)
-                for i in xrange(patch.dimensions[0].num_cells):
-                    qpatch = qdata[i_start_patch:i_end_patch]
-                    qpatch = np.reshape(qpatch, (meqn,mx+2*mbc), \
-                                order='F')
-                    state.q = qpatch[:,mbc:-mbc]
+                qpatch = qdata[i_start_patch:i_end_patch]
+                qpatch = np.reshape(qpatch, (meqn,mx+2*mbc), \
+                            order='F')
+                state.q = qpatch[:,mbc:-mbc]
                 i_start_patch = i_end_patch  # prepare for next patch
 
             elif patch.num_dim == 2:
@@ -129,12 +128,10 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 meqn = state.num_eqn
                 mbc = num_ghost
                 i_end_patch = i_start_patch + meqn*(mx+2*mbc)*(my+2*mbc)
-                for j in xrange(patch.dimensions[1].num_cells):
-                    for i in xrange(patch.dimensions[0].num_cells):
-                        qpatch = qdata[i_start_patch:i_end_patch]
-                        qpatch = np.reshape(qpatch, (meqn,mx+2*mbc,my+2*mbc), \
-                                    order='F')
-                        state.q = qpatch[:,mbc:-mbc,mbc:-mbc]
+                qpatch = qdata[i_start_patch:i_end_patch]
+                qpatch = np.reshape(qpatch, (meqn,mx+2*mbc,my+2*mbc), \
+                            order='F')
+                state.q = qpatch[:,mbc:-mbc,mbc:-mbc]
                 i_start_patch = i_end_patch  # prepare for next patch
 
             elif patch.num_dim == 3:
@@ -146,14 +143,11 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 mbc = num_ghost
                 i_end_patch = i_start_patch + \
                             meqn*(mx+2*mbc)*(my+2*mbc)*(mz+2*mbc)
-                for k in xrange(patch.dimensions[2].num_cells):
-                    for j in xrange(patch.dimensions[1].num_cells):
-                        for i in xrange(patch.dimensions[0].num_cells):
-                            qpatch = qdata[i_start_patch:i_end_patch]
-                            qpatch = np.reshape(qpatch, \
-                                        (meqn,mx+2*mbc,my+2*mbc,mz+2*mbc), \
-                                        order='F')
-                            state.q = qpatch[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
+                qpatch = qdata[i_start_patch:i_end_patch]
+                qpatch = np.reshape(qpatch, \
+                            (meqn,mx+2*mbc,my+2*mbc,mz+2*mbc), \
+                            order='F')
+                state.q = qpatch[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
                 i_start_patch = i_end_patch  # prepare for next patch
 
             else:
@@ -201,7 +195,8 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
             raise IOError("Could not read binary file %s" % fname)
 
         try:
-            for patch in patches:
+            for state in solution.states:
+                patch = state.patch
                 i_start_patch = 0  # index into auxdata for start of next patch
     
                 # Fill in aux values
@@ -211,11 +206,10 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
                     maux = state.num_aux
                     mbc = num_ghost
                     i_end_patch = i_start_patch + maux*(mx+2*mbc)
-                    for i in xrange(patch.dimensions[0].num_cells):
-                        auxpatch = auxdata[i_start_patch:i_end_patch]
-                        auxpatch = np.reshape(auxpatch, (maux,mx+2*mbc), \
-                                    order='F')
-                        state.aux = auxpatch[:,mbc:-mbc]
+                    auxpatch = auxdata[i_start_patch:i_end_patch]
+                    auxpatch = np.reshape(auxpatch, (maux,mx+2*mbc), \
+                                order='F')
+                    state.aux = auxpatch[:,mbc:-mbc]
                     i_start_patch = i_end_patch  # prepare for next patch
     
                 elif patch.num_dim == 2:
@@ -225,12 +219,10 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
                     maux = state.num_aux
                     mbc = num_ghost
                     i_end_patch = i_start_patch + maux*(mx+2*mbc)*(my+2*mbc)
-                    for j in xrange(patch.dimensions[1].num_cells):
-                        for i in xrange(patch.dimensions[0].num_cells):
-                            auxpatch = auxdata[i_start_patch:i_end_patch]
-                            auxpatch = np.reshape(auxpatch, (maux,mx+2*mbc,my+2*mbc), \
-                                        order='F')
-                            state.aux = auxpatch[:,mbc:-mbc,mbc:-mbc]
+                    auxpatch = auxdata[i_start_patch:i_end_patch]
+                    auxpatch = np.reshape(auxpatch, (maux,mx+2*mbc,my+2*mbc), \
+                                order='F')
+                    state.aux = auxpatch[:,mbc:-mbc,mbc:-mbc]
                     i_start_patch = i_end_patch  # prepare for next patch
     
                 elif patch.num_dim == 3:
@@ -242,14 +234,11 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
                     mbc = num_ghost
                     i_end_patch = i_start_patch + \
                                 maux*(mx+2*mbc)*(my+2*mbc)*(mz+2*mbc)
-                    for k in xrange(patch.dimensions[2].num_cells):
-                        for j in xrange(patch.dimensions[1].num_cells):
-                            for i in xrange(patch.dimensions[0].num_cells):
-                                auxpatch = auxdata[i_start_patch:i_end_patch]
-                                auxpatch = np.reshape(auxpatch, \
-                                            (maux,mx+2*mbc,my+2*mbc,mz+2*mbc), \
-                                            order='F')
-                                state.aux = auxpatch[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
+                    auxpatch = auxdata[i_start_patch:i_end_patch]
+                    auxpatch = np.reshape(auxpatch, \
+                                (maux,mx+2*mbc,my+2*mbc,mz+2*mbc), \
+                                order='F')
+                    state.aux = auxpatch[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
                     i_start_patch = i_end_patch  # prepare for next patch
     
                 else:
@@ -305,3 +294,4 @@ def read_binary_t(frame,path='./',file_prefix='fort'):
         raise
         
     return t,num_eqn,nstates,num_aux,num_dim,num_ghost
+
