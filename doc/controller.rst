@@ -44,4 +44,4 @@ work in its entirety.
 .. autoclass:: pyclaw.controller.Controller
    :members:
    :member-order: groupwise
-
+   
