@@ -1,13 +1,45 @@
+.. _index2:
+
+==============================
+Installing and configuring git
+==============================
+
+In this page, we provide brief instructions for installing git_ and making
+useful configurations. For general resources for learning git_, see :ref:`git-resources`
+
+
+Installing git
+==============
+
+The following table briefly summarizes installation methods for
+git in various platforms:
+
+================ =============
+Debian / Ubuntu  ``sudo apt-get install git-core``
+Fedora           ``sudo yum install git-core``
+Windows          Download and install msysGit_
+OS X             Use the git-osx-installer_
+================ =============
+
+For installation details, see `git`_ homepage for the most recent information.
+
+Have a look at the github install help pages available from `github help`_
+
+There are good instructions here: http://book.git-scm.com/2_installing_git.html
+
+
+
+
 .. _configure-git:
 
-===============
- Configure git
+
+Configuring git
 ===============
 
 .. _git-config-basic:
 
 Overview
-========
+--------
 
 Your personal git configurations are saved in the ``.gitconfig`` file in
 your home directory.
@@ -50,10 +82,9 @@ To set up on another computer, you can copy your ``~/.gitconfig`` file,
 or run the commands above.
 
 In detail
-=========
+---------
 
-user.name and user.email
-------------------------
+**user.name and user.email:**
 
 It is good practice to tell git_ who you are, for labeling any changes
 you make to the code.  The simplest way to do this is from the command
@@ -72,8 +103,7 @@ should now contain a user section with your name and email::
 Of course you'll need to replace ``Your Name`` and ``you@yourdomain.example.com``
 with your actual name and email address.
 
-Aliases
--------
+**Aliases:**
 
 You might well benefit from some aliases to common commands.
 
@@ -101,15 +131,15 @@ like this::
           br = branch
           wdiff = diff --color-words
 
-Editor
-------
+**Editor:**
+
 
 You may also want to make sure that your editor of choice is used ::
 
   git config --global core.editor vim
 
-Merging
--------
+**Merging:**
+
 
 To enforce summaries when doing merges (``~/.gitconfig`` file again)::
 
@@ -122,8 +152,7 @@ Or from the command line::
 
 .. _fancy-log:
 
-Fancy log output
-----------------
+**Fancy log output:**
 
 This is a very nice alias to get a fancy log output; it should go in the
 ``alias`` section of your ``.gitconfig`` file::
@@ -155,4 +184,8 @@ and it gives graph / text output something like this (but with color!)::
 
 Thanks to Yury V. Zaytsev for posting it.
 
+
 .. include:: links.inc
+
+
+
