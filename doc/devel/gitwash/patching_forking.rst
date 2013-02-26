@@ -1,3 +1,5 @@
+.. _contribution:
+
 ==========================================
 Contributing to *PyClaw* code development 
 ==========================================

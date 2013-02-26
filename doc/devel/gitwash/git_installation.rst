@@ -1,4 +1,4 @@
-.. _index2:
+.. _install-config:
 
 ==============================
 Installing and configuring git
@@ -31,6 +31,8 @@ There are good instructions here: http://book.git-scm.com/2_installing_git.html
 
 
 .. _configure-git:
+
+.. _fancy-log:
 
 
 Configuring git
@@ -80,6 +82,7 @@ command::
 
 To set up on another computer, you can copy your ``~/.gitconfig`` file,
 or run the commands above.
+
 
 In detail
 ---------
@@ -150,7 +153,6 @@ Or from the command line::
 
   git config --global merge.log true
 
-.. _fancy-log:
 
 **Fancy log output:**
 
