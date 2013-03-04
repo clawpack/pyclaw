@@ -5,7 +5,8 @@ Installing and configuring git
 ==============================
 
 In this page, we provide brief instructions for installing git_ and making
-useful configurations. For general resources for learning git_, see :ref:`git-resources`
+useful configurations. For general resources for learning git_, see
+:ref:`git-resources`
 
 
 Installing git
@@ -21,11 +22,13 @@ Windows          Download and install msysGit_
 OS X             Use the git-osx-installer_
 ================ =============
 
-For installation details, see `git`_ homepage for the most recent information.
+For installation details, see `git`_ homepage for the most recent
+information.
 
 Have a look at the github install help pages available from `github help`_
 
-There are good instructions here: http://book.git-scm.com/2_installing_git.html
+There are good instructions here:
+http://book.git-scm.com/2_installing_git.html
 
 
 
@@ -103,8 +106,8 @@ should now contain a user section with your name and email::
         name = Your Name
         email = you@yourdomain.example.com
 
-Of course you'll need to replace ``Your Name`` and ``you@yourdomain.example.com``
-with your actual name and email address.
+Of course you'll need to replace ``Your Name`` 
+and ``you@yourdomain.example.com`` with your actual name and email address.
 
 **Aliases:**
 

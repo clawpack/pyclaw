@@ -5,19 +5,26 @@ Contributing to *PyClaw* code development
 ==========================================
 
 If you are interested in contributing to *PyClaw* development, you
-can add your contribution through making patches; see :ref:`making-patches`. However, for substantial contributions, you may want to consider forking `PyClaw github`_ repository, see :ref:`forking`, and making pull requests for your changes. Here we introduce those two methods for contributing to PyClaw_ source code. For more information about the forking model, please see :ref:`development-workflow`.
+can add your contribution through making patches; see :ref:`making-patches`.
+However, for substantial contributions, you may want to consider forking
+`PyClaw github`_ repository, see :ref:`forking`, and making pull requests
+for your changes. Here we introduce those two methods for contributing 
+to PyClaw_ source code. For more information about the forking model,
+please see :ref:`development-workflow`.
 
 
 .. _following-latest:
 
-Getting *PyClaw* form the development repository
+Getting *PyClaw* from the development repository
 ================================================
 
-After installing git, you can get the latest *PyClaw* source from `PyClaw github`_ repository using the following command: ::
+After installing git, you can get the latest *PyClaw* source from the
+`PyClaw github`_ repository using the following command: ::
 
    $ git clone git://github.com/clawpack/pyclaw.git
 
-You now have a copy of the code tree in the new ``pyclaw`` directory. From time to time you may want to pull down the latest code.  Do this with::
+You now have a copy of the code tree in the new ``pyclaw`` directory. 
+From time to time you may want to pull down the latest code.  Do this with::
 
    cd pyclaw
    git pull
@@ -146,7 +153,8 @@ Set your local clone of PyClaw_ to point to your fork and to the main repository
 
 If you already have a local clone of the main PyClaw_ repository, you can
 set the clone origin to be your fork while keeping the main repository
-as an additional remote that you can pull from. The following are the required steps: ::
+as an additional remote that you can pull from. 
+The following are the required steps: ::
    
    # checkout and refresh master branch from main repo
    git checkout master
@@ -162,8 +170,8 @@ Then you can, if you want, follow the
 :ref:`development-workflow`.
 
 
-You also can directly clone your fork and set it to additionally point to the main
-repository. Here are the required steps:
+You also can directly clone your fork and set it to additionally 
+point to the main repository. Here are the required steps:
 
 #. Clone your fork to your local machine with :: 
 
@@ -191,7 +199,8 @@ repository. Here are the required steps:
 
   
 #.  Now you want to connect to the upstream `PyClaw github`_ repository, so
-    you can merge in changes from trunk. To point your clone to the main PyClaw repository, do: ::
+    you can merge in changes from trunk. 
+    To point your clone to the main PyClaw repository, do: ::
 
        $ git remote add upstream git://github.com/clawpack/pyclaw.git
 
@@ -200,8 +209,8 @@ repository. Here are the required steps:
 
    Note that we've used ``git://`` for the URL rather than ``git@``.  The
    ``git://`` URL is read only.  This means that we can't accidentally
-   (or deliberately) write to the upstream repository, and we are only going to
-   use it to merge into our own code.
+   (or deliberately) write to the upstream repository, and we are 
+   only going to use it to merge into our own code.
 
 #. Just for your own satisfaction, show yourself that you now have a new
    'remote', with ``git remote -v show``, giving you something like::
