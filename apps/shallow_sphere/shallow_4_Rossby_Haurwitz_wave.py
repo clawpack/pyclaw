@@ -365,7 +365,7 @@ def auxbc_upper_y(state,dim,t,auxbc,num_ghost):
     auxbc[:,:,-num_ghost:] = auxtemp[:,:,-num_ghost:]
 
 
-def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',iplot=0,htmlplot=False,outdir='./_output'):
+def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',iplot=0,htmlplot=False,outdir='./_output', disable_output=False):
 
     # Import pyclaw module
     if use_petsc:
@@ -513,6 +513,8 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',iplot=0,html
     #===========================================================================
     claw = pyclaw.Controller()
     claw.keep_copy = True
+    if disable_output:
+        claw.output_format = None
     claw.output_style = 1
     claw.num_output_times = 10
     claw.tfinal = 10

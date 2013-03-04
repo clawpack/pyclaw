@@ -5,7 +5,7 @@ Variable-coefficient acoustics example.
 """
 import numpy as np
 
-def acoustics2D(kernel_language='Fortran',iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',solver_type='classic'):
+def acoustics2D(kernel_language='Fortran',iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',solver_type='classic', disable_output=False):
     """
     Example python script for solving the 2d acoustics equations.
     """
@@ -70,10 +70,13 @@ def acoustics2D(kernel_language='Fortran',iplot=False,htmlplot=False,use_petsc=F
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
+    if disable_output:
+        claw.output_format = None
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir=outdir
     claw.num_output_times = 20
+    claw.write_aux_init = True
 
     # Solve
     claw.tfinal = 0.6

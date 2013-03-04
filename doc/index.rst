@@ -11,7 +11,7 @@ Overview
 
 Pyclaw is a `Python <http://www.python.org>`_-based solver for hyperbolic PDEs that includes the algorithms
 of `Clawpack <http://www.clawpack.org>`_ and 
-`SharpClaw <http://numerics.kaust.edu.sa/sharpclaw/>`_.
+SharpClaw .
 It has been designed with easy extensibility, performance, and exploration in mind.
 The high-level code is written in Python using numpy and based on the 
 PyClaw package.
@@ -25,7 +25,7 @@ PyClaw features:
 
     * Solves general hyperbolic PDEs in 1D, 2D, and 3D, including mapped grids and surfaces.
     * Includes the full functionality of `Clawpack <http://www.clawpack.org>`_ and 
-      `SharpClaw <http://numerics.kaust.edu.sa/sharpclaw/>`_.
+      SharpClaw (see :ref:`solvers`)
     * Has a simple and intuitive pythonic interface.
     * Allows you to run your simulation on the world's biggest supercomputers with 
       the same simple script that runs it on your laptop.
@@ -50,18 +50,10 @@ PyClaw
 .. toctree::
    :maxdepth: 2
 
-   started
-   tutorial
-   apps
-   plotting
-   problem
-   clawpack_and_pyclaw
-   parallel
+   basics
+   going_further
    classes
-   output
-   develop
-   devel/gitwash/index
-   rulesProposal
+   for_developers
    troubleshooting
    about
    future
@@ -75,7 +67,7 @@ PyClaw Modules reference documentation
    :maxdepth: 1
    
    controller
-   evolve/solvers
+   solvers
    evolve/limiters
    io
    solution

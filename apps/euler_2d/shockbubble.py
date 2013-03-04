@@ -74,20 +74,17 @@ def shockbc(state,dim,t,qbc,num_ghost):
             dim_index = i
             break
       
-    if (state.patch.dimensions[dim_index].lower == 
-                        state.grid.dimensions[dim_index].lower):
+    pinf=5.
+    rinf = (gamma1 + pinf*(gamma+1.))/ ((gamma+1.) + gamma1*pinf)
+    vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
+    einf = 0.5*rinf*vinf**2 + pinf/gamma1
 
-        pinf=5.
-        rinf = (gamma1 + pinf*(gamma+1.))/ ((gamma+1.) + gamma1*pinf)
-        vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
-        einf = 0.5*rinf*vinf**2 + pinf/gamma1
-
-        for i in xrange(num_ghost):
-            qbc[0,i,...] = rinf
-            qbc[1,i,...] = rinf*vinf
-            qbc[2,i,...] = 0.
-            qbc[3,i,...] = einf
-            qbc[4,i,...] = 0.
+    for i in xrange(num_ghost):
+        qbc[0,i,...] = rinf
+        qbc[1,i,...] = rinf*vinf
+        qbc[2,i,...] = 0.
+        qbc[3,i,...] = einf
+        qbc[4,i,...] = 0.
 
 def step_Euler_radial(solver,state,dt):
     """
@@ -157,7 +154,7 @@ def dq_Euler_radial(solver,state,dt):
 
     return dq
 
-def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False):
+def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False, outdir='_output', disable_output=False):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a bubble of dense gas that is impacted by a shock.
@@ -220,11 +217,14 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
+    if disable_output:
+        claw.output_format = None
     # The output format MUST be set to petsc!
     claw.tfinal = tfinal
     claw.solution = initial_solution
     claw.solver = solver
     claw.num_output_times = 1
+    claw.outdir = outdir
 
     # Solve
     status = claw.run()

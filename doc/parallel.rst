@@ -99,6 +99,27 @@ To check petsc4py-dev installation do: ::
 
 All the tests cases should pass, i.e. OK should be printed at the screen.
 
+**NOTE:** To run a python code that uses petsc4py in parallel you will need to use mpiexec or mpirun commands. It is important to remember to use the mpiexec or mpirun executables that come with the MPI installation that was used for configuring PETSc installation. If you have used the option --download-mpich=1 while installing PETSc, then the correct mpiexec to use is the one in ${PETSC_DIR}/${PETSC_ARCH}/bin. You can set this mpiexec to be your default by adding this line to your sh, bash, or zsh shell start-up file: ::
+
+    $ export PATH="${PETSC_DIR}/${PETSC_ARCH}/bin:${PATH}"
+
+or this line in case you are using csh or tcsh shells: ::
+
+    $ setenv PATH "${PETSC_DIR}/${PETSC_ARCH}/bin:${PATH}"
+
+You can test that you are using the right mpiexec by running a demonstration script that can be found in $PYCLAW/demo as follows: ::
+    
+    $ cd $PYCLAW
+    $ mpiexec -n 4 python demo/petsc_hello_world.py 
+
+and you should get an output that looks like follows: ::
+    
+    Hello World! From process 3 out of 4 process(es).
+    Hello World! From process 1 out of 4 process(es).
+    Hello World! From process 0 out of 4 process(es).
+    Hello World! From process 2 out of 4 process(es).
+    
+
 **NOTE:** An alternative way to install petsc4py is simply using the python 
 script setup.py inside petsc4py, i.e. ::
     
