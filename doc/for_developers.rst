@@ -10,5 +10,9 @@ Information for developers
    :maxdepth: 2
 
    develop
-   devel/gitwash/index
+   devel/gitwash/git_installation
+   devel/gitwash/patching_forking
+   devel/gitwash/development_workflow
+   devel/gitwash/maintainer_workflow
    rulesProposal
+   devel/gitwash/git_resources
