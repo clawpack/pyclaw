@@ -228,11 +228,20 @@ frame from a previous run; for example, to restart from frame 3
 
 .. doctest::
 
-    >>> claw.solution = Solution(3,format='petsc')
+    >>> claw.solution = Solution(3, file_format='petsc')
+
+By default, the :class:`~pyclaw.controller.Controller` will number your
+output frames starting from the frame number used for initializing
+the :class:`~pyclaw.solution.Solution` object.
+If you want to change the default behaviour and start counting frames
+from zero, you will need to pass the keyword argument
+``count_from_zero=True`` to the solution initializer.
+
 
 .. note::
     
     It is necessary to specify the output format ('petsc' or 'ascii').
+    
 
 If your simulation includes aux variables, you will need to either recompute them or
 output the aux values at every step, following the instructions below.

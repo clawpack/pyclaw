@@ -131,7 +131,8 @@ class Controller(object):
         self.num_output_times = 10                  # Outstyle 1 defaults
         r"""(int) - Number of output times, only used with ``output_style = 1``,
         ``default = 10``"""
-        self.out_times = np.linspace(0.0,self.tfinal,self.num_output_times) # Outstyle 2
+        self.out_times = np.linspace(0.0,self.tfinal,self.num_output_times
+                                     -self.start_frame) # Outstyle 2
         r"""(int) - Output time list, only used with ``output_style = 2``,
         ``default = numpy.linspace(0.0,tfinal,num_output_times)``"""
         
@@ -238,11 +239,13 @@ class Controller(object):
         # Output styles
         if self.output_style == 1:
             output_times = np.linspace(self.solution.t,
-                    self.tfinal,self.num_output_times+1)
+                    self.tfinal,self.num_output_times+1
+                    -self.start_frame)
         elif self.output_style == 2:
             output_times = self.out_times
         elif self.output_style == 3:
-            output_times = np.ones((self.num_output_times+1))
+            output_times = np.ones((self.num_output_times+1
+                                    -self.start_frame))
         else:
             raise Exception("Invalid output style %s" % self.output_style)  
          
