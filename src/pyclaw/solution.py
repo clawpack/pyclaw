@@ -145,6 +145,13 @@ class Solution(object):
     def num_aux(self):
         r"""(int) - :attr:`State.num_aux` of base state"""
         return self._get_base_state_attribute('num_aux')
+
+    @property
+    def start_frame(self):
+        r"""(int) - : Solution start frame number in case the `Solution`
+        object is initialized by loading frame from file"""
+        return self._start_frame
+    _start_frame = 0
        
 
     # ========== Class Methods ===============================================
@@ -182,6 +189,17 @@ class Solution(object):
         if len(arg) == 1:
             # Load frame
             frame = arg[0]
+            if 'count_from_zero' in kargs.keys() and\
+              kargs['count_from_zero'] == True:
+                self._start_frame = 0
+            else:
+                self._start_frame = frame
+
+            try:
+                kargs.pop('count_from_zero')
+            except KeyError:
+                pass
+
             self.read(frame,**kargs)
         elif len(arg) == 2:
             #Set domain
