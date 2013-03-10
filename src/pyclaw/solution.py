@@ -197,7 +197,7 @@ class Solution(object):
 
             try:
                 kargs.pop('count_from_zero')
-            except:
+            except KeyError:
                 pass
 
             self.read(frame,**kargs)
