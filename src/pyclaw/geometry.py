@@ -212,8 +212,10 @@ class Grid(object):
 
         # Add dimension to name list and as an attribute
         if dimension.name in self._dimensions:
-            raise Exception('Dimension name should be distinct. A dimension'+\
-             ' with name: {name}, already exists.'.format(name=dimension.name))
+            raise Exception('Unable to add dimension. A dimension'\
+             +' of the same name: {name}, already exists.'\
+             .format(name=dimension.name))
+
         self._dimensions.append(dimension.name)
         setattr(self,dimension.name,dimension)
         
@@ -596,8 +598,10 @@ class Patch(object):
 
         # Add dimension to name list and as an attribute
         if dimension.name in self._dimensions:
-            raise Exception('Dimension name should be distinct. A dimension'+\
-             ' with name: {name}, already exists.'.format(name=dimension.name))
+            raise Exception('Unable to add dimension. A dimension'\
+             +' of the same name: {name}, already exists.'\
+             .format(name=dimension.name))
+
         self._dimensions.append(dimension.name)
         setattr(self,dimension.name,dimension)
   
