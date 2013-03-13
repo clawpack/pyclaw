@@ -527,17 +527,40 @@ def _info_from_argv(argv=None):
     for s in arg_strs:
         if s.count('=') == 1:
             key, value = s.split('=', 1)
+        elif os.path.isfile(os.path.join(os.getcwd(),s)):
+            file_name = os.path.join(os.getcwd(),s)
+            try:
+                farg_strs = json.load(open(file_name))
+            except ValueError as ve:
+                msg= ('ERROR: Unable to parse the file {file_name} '
+                'by `json.load` method. Review json'
+                ' documentation for the correct input format ' 
+                '(http://docs.python.org/2/library/json.html)'
+                )
+                print msg.format(file_name=file_name)
+                raise ve
+
+            for key, value in farg_strs.iteritems():
+                if value=='True': value=True # confusion, json.load already
+                                             # accept false and true without
+                                             # quotes and parses them as 
+                                             # boolean
+                if value=='False': value=False
+                kwargs[key] = value
+                
+            key, value = None, None
         else:
             key, value = None, s
-        try:
-            value = json.loads(value) 
-        except ValueError:
-            pass
+        if value is not None:
+            try:
+                value = json.loads(value)
+            except ValueError:
+                pass
         if value=='True': value=True
         if value=='False': value=False
         if key:
             kwargs[key] = value
-        else:
+        elif value is not None:
             args.append(value)
     return args, kwargs
 
