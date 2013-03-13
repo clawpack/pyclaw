@@ -182,7 +182,7 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
     # Initialize domain
     mx=160; my=40
     x = pyclaw.Dimension('x',0.0,2.0,mx)
-    y = pyclaw.Dimension('x',0.0,0.5,my)
+    y = pyclaw.Dimension('y',0.0,0.5,my)
     domain = pyclaw.Domain([x,y])
     num_eqn = 5
     num_aux=1
