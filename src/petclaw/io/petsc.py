@@ -123,6 +123,9 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
     viewer.destroy()
     if rank==0:
         pickle_file.close()
+    if write_aux:
+        aux_viewer.flush()
+        aux_viewer.destroy()
 
 def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
     r"""
