@@ -126,12 +126,33 @@ NEVER modify state.  Rather, they should modify qbc/auxbc.
 Setting solver options
 ----------------------------
 
-Writing a Riemann solver
+Using your own Riemann solver
 =============================
 The Riemann package has solvers for many hyperbolic systems.  If your problem
-involves a new system, you will need to write your own Riemann solver.  Please
-then contribute your solver to the package by sending a pull request on Github
-or e-mailing one of the developers.
+involves a new system, you will need to write your own Riemann solver.  
+A nice example of how to compile and import your own Riemann solver can be seen
+`here https://github.com/damiansra/empyclaw/tree/master/maxwell_1d_homogeneous`_.
+You will need to:
+
+    * Put the Riemann solver in the same directory as your Python script
+    * Write a short makefile calling f2py
+    * import the Riemann solver module in your Python script
+
+Here are some tips if you are converting an old Clawpack 4.5 or earlier Riemann solver:
+
+    * Rename the file from .f to .f90 and switch to free-format Fortran
+    * Move the spatial index (i) to the last place in all array indexing
+
+Please do contribute your solver to the package by sending a pull request on Github
+or e-mailing one of the developers.  To add your Riemann solver to the Clawpack
+Riemann package, you will need to:
+
+    * Place the .f90 file(s) in clawpack/riemann/src.
+    * Add the solver to the list in clawpack/riemann/setup.py
+    * Add the solver to the list in clawpack/riemann/src/python/riemann/setup.py 
+    * Add the solver to the list in clawpack/riemann/src/python/riemann/Makefile
+    * Add the solver to the list in clawpack/riemann/src/python/riemann/__init__.py
+
 
 For very simple problems in one dimension, it may be worthwhile to write the
 Riemann solver in Python, especially if you are more comfortable with Python
