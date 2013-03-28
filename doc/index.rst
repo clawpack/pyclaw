@@ -1,10 +1,5 @@
 .. _pyclaw:
 
-.. note::
-
-    The Clawpack developers have switched to an integrated installation procedure that includes PyClaw based on
-    ``setup.py``.  Please go to :ref:`installation` for more details.
-
 ********
 Overview
 ********
