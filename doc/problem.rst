@@ -132,6 +132,16 @@ The Riemann package has solvers for many hyperbolic systems.  If your problem
 involves a new system, you will need to write your own Riemann solver.  
 A nice example of how to compile and import your own Riemann solver can be seen
 `here https://github.com/damiansra/empyclaw/tree/master/maxwell_1d_homogeneous`_.
+You will need to:
+
+    * Put the Riemann solver in the same directory as your Python script
+    * Write a short makefile calling f2py
+    * import the Riemann solver module in your Python script
+
+Here are some tips if you are converting an old Clawpack 4.5 or earlier Riemann solver:
+
+    * Rename the file from .f to .f90 and switch to free-format Fortran
+    * Move the spatial index (i) to the last place in all array indexing
 
 Please do contribute your solver to the package by sending a pull request on Github
 or e-mailing one of the developers.  To add your Riemann solver to the Clawpack
