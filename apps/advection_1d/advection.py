@@ -19,7 +19,7 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
     solver.kernel_language = kernel_language
     from clawpack.riemann import rp_advection
     solver.num_waves = rp_advection.num_waves
-    if solver.kernel_language=='Python': 
+    if solver.kernel_language=='Python':
         solver.rp = rp_advection.rp_advection_1d
     else:
         from clawpack import riemann
@@ -49,6 +49,8 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
 
     if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
     if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
+
+    return claw
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
