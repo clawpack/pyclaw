@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
-def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=False,solver_type='classic',outdir='./_output'):
+def advection(kernel_language='Python',iplot=False,htmlplot=False,
+              use_petsc=False,solver_type='classic', weno_order=5,
+              outdir='./_output'):
     """
     Example python script for solving the 1d advection equation.
     """
@@ -13,6 +15,7 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D()
+        solver.weno_order=weno_order
     else:
         solver = pyclaw.ClawSolver1D()
 
@@ -40,9 +43,14 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,use_petsc=Fals
     state.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
 
     claw = pyclaw.Controller()
+    claw.keep_copy = True
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
-    claw.outdir = outdir
+
+    if outdir is not None:
+        claw.outdir = outdir
+    else:
+        claw.output_format = None
 
     claw.tfinal =1.0
     status = claw.run()
