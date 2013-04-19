@@ -1,8 +1,8 @@
 r"""
 Module containing the classic Clawpack solvers.
 
-This module contains the pure and wrapped classic clawpack solvers.  All 
-clawpack solvers inherit from the :class:`ClawSolver` superclass which in turn 
+This module contains the pure and wrapped classic clawpack solvers.  All
+clawpack solvers inherit from the :class:`ClawSolver` superclass which in turn
 inherits from the :class:`~pyclaw.solver.Solver` superclass.  These
 are both pure virtual classes; the only solver classes that should be instantiated
 are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`.
@@ -18,54 +18,54 @@ from ..limiters import tvd
 class ClawSolver(Solver):
     r"""
     Generic classic Clawpack solver
-    
+
     All Clawpack solvers inherit from this base class.
-    
-    .. attribute:: mthlim 
-    
+
+    .. attribute:: mthlim
+
         Limiter(s) to be used.  Specified either as one value or a list.
         If one value, the specified limiter is used for all wave families.
         If a list, the specified values indicate which limiter to apply to
         each wave family.  Take a look at pyclaw.limiters.tvd for an enumeration.
         ``Default = limiters.tvd.minmod``
-    
+
     .. attribute:: order
-    
+
         Order of the solver, either 1 for first order (i.e., Godunov's method)
         or 2 for second order (Lax-Wendroff-LeVeque).
         ``Default = 2``
-    
+
     .. attribute:: source_split
-    
-        Which source splitting method to use: 1 for first 
+
+        Which source splitting method to use: 1 for first
         order Godunov splitting and 2 for second order Strang splitting.
         ``Default = 1``
-        
+
     .. attribute:: fwave
-    
-        Whether to split the flux jump (rather than the jump in Q) into waves; 
-        requires that the Riemann solver performs the splitting.  
+
+        Whether to split the flux jump (rather than the jump in Q) into waves;
+        requires that the Riemann solver performs the splitting.
         ``Default = False``
-        
+
     .. attribute:: step_source
-    
-        Handle for function that evaluates the source term.  
+
+        Handle for function that evaluates the source term.
         The required signature for this function is:
 
         def step_source(solver,state,dt)
-    
+
     .. attribute:: before_step
-    
+
         Function called before each time step is taken.
         The required signature for this function is:
-        
+
         def before_step(solver,solution)
 
     .. attribute:: kernel_language
 
         Specifies whether to use wrapped Fortran routines ('Fortran')
         or pure Python ('Python').  ``Default = 'Fortran'``.
-    
+
     .. attribute:: verbosity
 
         The level of detail of logged messages from the Fortran solver.
@@ -95,24 +95,24 @@ class ClawSolver(Solver):
 
         # Call general initialization function
         super(ClawSolver,self).__init__(riemann_solver,claw_package)
-    
+
     # ========== Time stepping routines ======================================
     def step(self,solution):
         r"""
         Evolve solution one time step
 
         The elements of the algorithm for taking one step are:
-        
+
         1. The :meth:`before_step` function is called
-        
-        2. A half step on the source term :func:`step_source` if Strang splitting is 
+
+        2. A half step on the source term :func:`step_source` if Strang splitting is
            being used (:attr:`source_split` = 2)
-        
+
         3. A step on the homogeneous problem :math:`q_t + f(q)_x = 0` is taken
-        
+
         4. A second half step or a full step is taken on the source term
-           :func:`step_source` depending on whether Strang splitting was used 
-           (:attr:`source_split` = 2) or Godunov splitting 
+           :func:`step_source` depending on whether Strang splitting was used
+           (:attr:`source_split` = 2) or Godunov splitting
            (:attr:`source_split` = 1)
 
         This routine is called from the method evolve_to_time defined in the
@@ -120,8 +120,8 @@ class ClawSolver(Solver):
 
         :Input:
          - *solution* - (:class:`~pyclaw.solution.Solution`) solution to be evolved
-         
-        :Output: 
+
+        :Output:
          - (bool) - True if full step succeeded, False otherwise
         """
 
@@ -130,10 +130,10 @@ class ClawSolver(Solver):
 
         if self.source_split == 2 and self.step_source is not None:
             self.step_source(self,solution.states[0],self.dt/2.0)
-    
+
         self.step_hyperbolic(solution)
 
-        # Check here if the CFL condition is satisfied. 
+        # Check here if the CFL condition is satisfied.
         # If not, return # immediately to evolve_to_time and let it deal with
         # picking a new step size (dt).
         if self.cfl.get_cached_max() >= self.cfl_max:
@@ -147,9 +147,9 @@ class ClawSolver(Solver):
             # Godunov Splitting
             if self.source_split == 1:
                 self.step_source(self,solution.states[0],self.dt)
-                
+
         return True
-            
+
     def check_cfl_settings(self):
         pass
 
@@ -159,14 +159,14 @@ class ClawSolver(Solver):
     def step_hyperbolic(self,solution):
         r"""
         Take one homogeneous step on the solution.
-        
+
         This is a dummy routine and must be overridden.
         """
         raise Exception("Dummy routine, please override!")
 
     def set_mthlim(self):
         r"""
-        Convenience routine to convert users limiter specification to 
+        Convenience routine to convert users limiter specification to
         the format understood by the Fortran code (i.e., a list of length num_waves).
         """
         self._mthlim = self.limiters
@@ -174,7 +174,7 @@ class ClawSolver(Solver):
         if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_waves
         if len(self._mthlim)!=self.num_waves:
             raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_waves')
- 
+
     def set_method(self,state):
         r"""
         Set values of the solver._method array required by the Fortran code.
@@ -253,26 +253,26 @@ class ClawSolver(Solver):
 class ClawSolver1D(ClawSolver):
     r"""
     Clawpack evolution routine in 1D
-    
-    This class represents the 1d clawpack solver on a single grid.  Note that 
-    there are routines here for interfacing with the fortran time stepping 
-    routines and the Python time stepping routines.  The ones used are 
-    dependent on the argument given to the initialization of the solver 
+
+    This class represents the 1d clawpack solver on a single grid.  Note that
+    there are routines here for interfacing with the fortran time stepping
+    routines and the Python time stepping routines.  The ones used are
+    dependent on the argument given to the initialization of the solver
     (defaults to python).
-    
+
     Output:
      - (:class:`ClawSolver1D`) - Initialized 1d clawpack solver
     """
 
-    def __init__(self,riemann_solver=None):
+    def __init__(self,riemann_solver=None,claw_package=None):
         r"""
         Create 1d Clawpack solver
-        
+
         See :class:`ClawSolver1D` for more info.
-        """   
+        """
         self.num_dim = 1
 
-        super(ClawSolver1D,self).__init__(riemann_solver)
+        super(ClawSolver1D,self).__init__(riemann_solver,claw_package)
 
 
     # ========== Homogeneous Step =====================================
@@ -281,7 +281,7 @@ class ClawSolver1D(ClawSolver):
         Take one time step on the homogeneous hyperbolic system.
 
         :Input:
-         - *solution* - (:class:`~pyclaw.solution.Solution`) Solution that 
+         - *solution* - (:class:`~pyclaw.solution.Solution`) Solution that
            will be evolved
         """
         import numpy as np
@@ -292,24 +292,24 @@ class ClawSolver1D(ClawSolver):
         self.apply_q_bcs(state)
         if state.num_aux > 0:
             self.apply_aux_bcs(state)
-            
+
         num_eqn,num_ghost = state.num_eqn,self.num_ghost
-          
+
         if(self.kernel_language == 'Fortran'):
             mx = grid.num_cells[0]
             dx,dt = grid.delta[0],self.dt
             dtdx = np.zeros( (mx+2*num_ghost) ) + dt/dx
             rp1 = self.rp.rp1._cpointer
-            
+
             self.qbc,cfl = self.fmod.step1(num_ghost,mx,self.qbc,self.auxbc,dx,dt,self._method,self._mthlim,self.fwave,rp1)
-            
+
         elif(self.kernel_language == 'Python'):
- 
+
             q   = self.qbc
             aux = self.auxbc
             # Limiter to use in the pth family
-            limiter = np.array(self._mthlim,ndmin=1)  
-        
+            limiter = np.array(self._mthlim,ndmin=1)
+
             dtdx = np.zeros( (2*self.num_ghost+grid.num_cells[0]) )
 
             # Find local value for dt/dx
@@ -317,7 +317,7 @@ class ClawSolver1D(ClawSolver):
                 dtdx = self.dt / (grid.delta[0] * state.aux[state.index_capa,:])
             else:
                 dtdx += self.dt/grid.delta[0]
-        
+
             # Solve Riemann problem at each interface
             q_l=q[:,:-1]
             q_r=q[:,1:]
@@ -328,7 +328,7 @@ class ClawSolver1D(ClawSolver):
                 aux_l = None
                 aux_r = None
             wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.problem_data)
-            
+
             # Update loop limits, these are the limits for the Riemann solver
             # locations, which then update a grid cell value
             # We include the Riemann problem just outside of the grid so we can
@@ -338,13 +338,13 @@ class ClawSolver1D(ClawSolver):
             #              |                               |
 
             LL = self.num_ghost - 1
-            UL = self.num_ghost + grid.num_cells[0] + 1 
+            UL = self.num_ghost + grid.num_cells[0] + 1
 
             # Update q for Godunov update
             for m in xrange(num_eqn):
                 q[m,LL:UL] -= dtdx[LL:UL]*apdq[m,LL-1:UL-1]
                 q[m,LL-1:UL-1] -= dtdx[LL-1:UL-1]*amdq[m,LL-1:UL-1]
-        
+
             # Compute maximum wave speed
             cfl = 0.0
             for mw in xrange(wave.shape[1]):
@@ -356,7 +356,7 @@ class ClawSolver1D(ClawSolver):
             if self.order == 2:
                 # Initialize flux corrections
                 f = np.zeros( (num_eqn,grid.num_cells[0] + 2*self.num_ghost) )
-            
+
                 # Apply Limiters to waves
                 if (limiter > 0).any():
                     wave = tvd.limit(state.num_eqn,wave,s,limiter,dtdx)
@@ -379,7 +379,7 @@ class ClawSolver1D(ClawSolver):
 
                 # Update q by differencing correction fluxes
                 for m in xrange(num_eqn):
-                    q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1]) 
+                    q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1])
 
         else: raise Exception("Unrecognized kernel_language; choose 'Fortran' or 'Python'")
 
@@ -387,7 +387,7 @@ class ClawSolver1D(ClawSolver):
         state.set_q_from_qbc(num_ghost,self.qbc)
         if state.num_aux > 0:
             state.set_aux_from_auxbc(num_ghost,self.auxbc)
-   
+
 
 # ============================================================================
 #  ClawPack 2d Solver Class
@@ -402,9 +402,9 @@ class ClawSolver2D(ClawSolver):
     See also the documentation for ClawSolver1D.
     In addition to the attributes of ClawSolver1D, ClawSolver2D
     also has the following options:
-    
+
     .. attribute:: dimensional_split
-    
+
         If True, use dimensional splitting (Godunov splitting).
         Dimensional splitting with Strang splitting is not supported
         at present but could easily be enabled if necessary.
@@ -412,14 +412,14 @@ class ClawSolver2D(ClawSolver):
         transverse Riemann solves.
 
     .. attribute:: transverse_waves
-    
+
         If dimensional_split is True, this option has no effect.  If
         dim_plit is False, then transverse_waves should be one of
         the following values:
 
         ClawSolver2D.no_trans: Transverse Riemann solver
         not used.  The stable CFL for this algorithm is 0.5.  Not recommended.
-        
+
         ClawSolver2D.trans_inc: Transverse increment waves are computed
         and propagated.
 
@@ -436,9 +436,9 @@ class ClawSolver2D(ClawSolver):
     def __init__(self,riemann_solver=None):
         r"""
         Create 2d Clawpack solver
-        
+
         See :class:`ClawSolver2D` for more info.
-        """   
+        """
         self.dimensional_split = True
         self.transverse_waves = self.trans_inc
 
@@ -509,12 +509,12 @@ class ClawSolver2D(ClawSolver):
             dx,dy = grid.delta
             mx,my = grid.num_cells
             maxm = max(mx,my)
-            
+
             self.apply_q_bcs(state)
             if state.num_aux > 0:
                 self.apply_aux_bcs(state)
             qold = self.qbc.copy('F')
-            
+
             rpn2 = self.rp.rpn2._cpointer
             rpt2 = self.rp.rpt2._cpointer
 
@@ -559,9 +559,9 @@ class ClawSolver3D(ClawSolver):
     See also the documentation for ClawSolver1D.
     In addition to the attributes of ClawSolver1D, ClawSolver3D
     also has the following options:
-    
+
     .. attribute:: dimensional_split
-    
+
         If True, use dimensional splitting (Godunov splitting).
         Dimensional splitting with Strang splitting is not supported
         at present but could easily be enabled if necessary.
@@ -569,14 +569,14 @@ class ClawSolver3D(ClawSolver):
         transverse Riemann solves.
 
     .. attribute:: transverse_waves
-    
+
         If dimensional_split is True, this option has no effect.  If
         dim_plit is False, then transverse_waves should be one of
         the following values:
 
         ClawSolver3D.no_trans: Transverse Riemann solver
         not used.  The stable CFL for this algorithm is 0.5.  Not recommended.
-        
+
         ClawSolver3D.trans_inc: Transverse increment waves are computed
         and propagated.
 
@@ -594,9 +594,9 @@ class ClawSolver3D(ClawSolver):
     def __init__(self,riemann_solver=None):
         r"""
         Create 3d Clawpack solver
-        
+
         See :class:`ClawSolver3D` for more info.
-        """   
+        """
         # Add the functions as required attributes
         self.dimensional_split = True
         self.transverse_waves = self.trans_cor
@@ -610,7 +610,7 @@ class ClawSolver3D(ClawSolver):
 
         super(ClawSolver3D,self).__init__(riemann_solver)
 
-    # ========== Setup routine =============================   
+    # ========== Setup routine =============================
     def allocate_workspace(self,solution):
         r"""
         Allocate auxN and work arrays for use in Fortran subroutines.
@@ -655,13 +655,13 @@ class ClawSolver3D(ClawSolver):
             dx,dy,dz = grid.delta
             mx,my,mz = grid.num_cells
             maxm = max(mx,my,mz)
-            
+
             self.apply_q_bcs(state)
             if state.num_aux > 0:
                 self.apply_aux_bcs(state)
             qnew = self.qbc
             qold = qnew.copy('F')
-            
+
             rpn3  = self.rp.rpn3._cpointer
             rpt3  = self.rp.rpt3._cpointer
             rptt3 = self.rp.rptt3._cpointer

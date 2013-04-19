@@ -8,35 +8,44 @@ from clawpack.riemann import rp1_advection
 import logging
 from timeit import timeit
 
-new_solvers = {}
-try:
-    import next.advection_module
-    import next.classic1_module
-    new_solvers['module'] = ('Fortran',
-                             next.advection_module,
-                             next.classic1_module)
-except ImportError as err:
-    print "Unable to import Module variant", err
-    print "This module has not been implemented yet"
-#    print "You may need to run python setup.py build_ext"
 
-try:
-    import next.advection_iso_c
-    import next.classic1_iso_c
-    new_solvers['iso_c'] = ('Fortran',
-                            next.advection_iso_c,
-                            next.classic1_iso_c)
-except ImportError as err:
-#    print "Unable to import ISO C variant", err
-    print "This module has not been implemented yet"
-    print "You may need to run python setup.py build_ext"
+fsolver = pyclaw.ClawSolver1D()
+fsolver.kernel_language = 'Fortran'
+fsolver.rp = rp1_advection
+
+pysolver = pyclaw.ClawSolver1D()
+pysolver.kernel_language = 'Python'
+pysolver.rp = rp_advection.rp_advection_1d
 
 solvers = {
-    'current_fortran' : ('Fortran', rp1_advection),
-    'current_python'  : ('Python', rp_advection.rp_advection_1d)
+    'current_fortran' : fsolver,
+    'current_python'  : pysolver
 }
 
+new_solvers = {}
+
+try:
+    import next
+
+    # u is initialized here
+
+    iso_c_solver = next.ISO_C_ClawSolver1D(None, 'clawpack.pyclaw')
+
+    iso_c_solver.kernel_language = 'Fortran'
+    iso_c_solver.rp = next.iso_c_rp1_advection(1.0)
+
+    new_solvers['iso_c'] = iso_c_solver
+
+except ImportError as err:
+    print "Unable to import ISO C variant", err
+    raise err
+
 solvers.update(new_solvers)
+
+def debug_loggers():
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG)
+    root_logger.propagate = True
 
 def disable_loggers():
     root_logger = logging.getLogger()
@@ -92,9 +101,7 @@ def compare(nx=1000):
 
     times, tests = {}, {}
 
-    for name, solver_tuple in solvers.iteritems():
-        solver = pyclaw.ClawSolver1D()
-        solver.kernel_language, solver.rp = solver_tuple[0:2]
+    for name, solver in solvers.iteritems():
         solver.num_waves = rp_advection.num_waves
         solver.bc_lower[0] = 2
         solver.bc_upper[0] = 2
@@ -118,8 +125,14 @@ def compare(nx=1000):
 if __name__=="__main__":
     import riemann_compare
     disable_loggers()
+#    debug_loggers()
 
-    nx = 500
+    import sys
+
+    if len(sys.argv) > 1:
+        nx = int(sys.argv[1])
+    else:
+        nx = 500
 
     times, tests = compare(nx=nx)
     solvers = riemann_compare.solvers
