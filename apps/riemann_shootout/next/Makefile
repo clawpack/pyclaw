@@ -1,7 +1,7 @@
 all: _iso_c_advection.so iso_c_classic1.so
 
-FCFLAGS=-fPIC -fno-second-underscore -Wall -O3 -funroll-loops
-LDFLAGS=-Wall -undefined dynamic_lookup -bundle -Wl,-install_name,$@
+FCFLAGS:=$(shell python -c "import numpy.distutils.fcompiler as fc; fc.log.set_verbosity(-1); f = fc.new_fcompiler(); f.customize(); print ' '.join(f.get_flags_f90())")
+LDFLAGS:=$(shell python -c "import numpy.distutils.fcompiler as fc; fc.log.set_verbosity(-1); f = fc.new_fcompiler(); f.customize(); print ' '.join(f.get_flags_linker_so())")
 
 build/f90:
 	mkdir -p build/f90
@@ -18,3 +18,7 @@ iso_c_classic1.so: iso_c/philim.f90 iso_c/limiter.f90 iso_c/step1.f90
 clean:
 	rm _iso_c_advection.so
 	rm iso_c_classic1.so
+
+show_flags:
+	@echo LDFLAGS=$(LDFLAGS)
+	@echo FCFLAGS=$(FCFLAGS)
