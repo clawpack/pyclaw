@@ -12,7 +12,7 @@ before_install:
   - git submodule update clawutil visclaw riemann
   # not sure why this directory exists here, rm-ing it
   - rm -rf pyclaw
-  - ln -s ../pyclaw .
+  - mv ../pyclaw .
 install:
   # no need for pip installer here if numpy is present
   - python setup.py install
