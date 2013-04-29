@@ -10,6 +10,8 @@ before_install:
   - cd clawpack
   - git submodule init
   - git submodule update clawutil visclaw riemann
+  # not sure why this directory exists here, rm-ing it
+  - rm -rf pyclaw
   - ln -s ../pyclaw .
 install:
   # no need for pip installer here if numpy is present
