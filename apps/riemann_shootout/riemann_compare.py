@@ -63,9 +63,8 @@ try:
 
     new_solvers_1D['iso_c'] = iso_c_solver
 
-except ImportError as err:
+except (ImportError, OSError) as err:
     print "Unable to import ISO C variant", err
-    raise err
 
 solvers_1D.update(new_solvers_1D)
 
