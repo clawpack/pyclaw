@@ -64,7 +64,7 @@ class State(object):
     @property
     def mp(self):
         r"""(int) - Number of derived quantities"""
-        if self.aux is not None: return self.aux.shape[0]
+        if self.p is not None: return self.p.shape[0]
         else: return 0
     @mp.setter
     def mp(self,mp):

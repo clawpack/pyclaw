@@ -7,11 +7,11 @@ CLASSIC = $(PYCLAW)/src/pyclaw/clawpack
 
 SHARPCLAW = $(PYCLAW)/src/pyclaw/sharpclaw
 
-ONE_D_CLASSIC_SOURCES = $(CLASSIC)/step1.f90 $(CLASSIC)/limiter.f90 $(CLASSIC)/philim.f90
+ONE_D_CLASSIC_SOURCES = $(CLASSIC)/step1.f90 $(CLASSIC)/inlinelimiter.f90
 
-TWO_D_CLASSIC_SOURCES = $(CLASSIC)/flux2.f90 $(CLASSIC)/step2.f90 $(CLASSIC)/step2ds.f90 $(CLASSIC)/limiter.f90 $(CLASSIC)/philim.f90
+TWO_D_CLASSIC_SOURCES = $(CLASSIC)/flux2.f90 $(CLASSIC)/step2.f90 $(CLASSIC)/step2ds.f90 $(CLASSIC)/inlinelimiter.f90
 
-THREE_D_CLASSIC_SOURCES = $(CLASSIC)/step3.f90 $(CLASSIC)/step3ds.f90 $(CLASSIC)/flux3.f90 $(CLASSIC)/limiter.f90 $(CLASSIC)/philim.f90
+THREE_D_CLASSIC_SOURCES = $(CLASSIC)/step3.f90 $(CLASSIC)/step3ds.f90 $(CLASSIC)/flux3.f90 $(CLASSIC)/inlinelimiter.f90
 
 ONE_D_SHARPCLAW_SOURCES = $(SHARPCLAW)/ClawParams.f90 $(SHARPCLAW)/flux1.f90 $(SHARPCLAW)/weno.f90 $(SHARPCLAW)/reconstruct.f90 $(SHARPCLAW)/workspace.f90 $(SHARPCLAW)/tfluct.f90 $(SHARPCLAW)/evec.f90
 

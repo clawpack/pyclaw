@@ -4,6 +4,11 @@
 Development workflow
 ####################
 
+This is not a comprehensive git reference, it's just a workflow for our
+own project.  It's tailored to the github hosting service. You may well
+find better or quicker ways of getting stuff done with git, but these
+should get you started.
+
 You already have your own forked copy of the PyClaw_ repository, by
 following :ref:`forking`. You have :ref:`set-up-fork`. You have configured
 git by following :ref:`configure-git`.  Now you are ready for some real work.
@@ -230,7 +235,7 @@ To see a linear list of commits for this branch::
 You can also look at the `network graph visualizer`_ for your github
 repo.
 
-Finally the :ref:`fancy-log` ``lg`` alias will give you a reasonable text-based
+Finally the ``lg`` alias, fancy log, in :ref:`fancy-log` will give you a reasonable text-based
 graph of the repository.
 
 .. _rebase-on-trunk:

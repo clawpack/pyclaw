@@ -1,6 +1,6 @@
-======================================
-Developing and documenting PyClaw
-======================================
+=============================================
+Conventions for coding and documenting PyClaw
+=============================================
 In order to improve and maintain PyClaw and allow more developers or simply 
 users to acces and use it all Python/Fortran code should follow some 
 conventions. As stressed in many books, reports, notes, etc. (see for instance

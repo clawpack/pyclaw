@@ -27,41 +27,40 @@ For PyClaw installation instructions, see :ref:`installation`.
 To run in parallel you'll need: 
 
     * `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_  a toolkit for
-      parallel scientific computing. The current recommended version is 3.2. 
+      parallel scientific computing. The current recommended version is 3.3 with latest patch. 
 
     * `petsc4py <http://code.google.com/p/petsc4py/>`_: Python bindings for PETSc.
-      The current recommended version is the latest petsc4py-dev.
+      The current recommended version is 3.3.
 
 **Obtaining PETSc:**
 
-PETSc 3.2 can be obtained using three approaches. Here we use `Mercurial <http://mercurial.selenic.com/>`_ to get it. Look at `<http://www.mcs.anl.gov/petsc/petsc-as/download/index.html>`_ for more information. 
+PETSc 3.3 can be obtained using three approaches. Here we use `Mercurial <http://mercurial.selenic.com/>`_ to get it. Look at `<http://www.mcs.anl.gov/petsc/petsc-as/download/index.html>`_ for more information. 
 
 Do: ::
 
-    $ cd path/to/the/dir/where/you/want/download/Petsc-dev
-    $ hg clone http://petsc.cs.iit.edu/petsc/petsc-dev
-    $ cd petsc-dev/config
-    $ hg clone http://petsc.cs.iit.edu/petsc/BuildSystem BuildSystem
+    $ cd path/to/the/dir/where/you/want/download/Petsc-3.3
+    $ hg clone https://bitbucket.org/petsc/petsc-3.3 petsc-3.3
+    $ hg clone https://bitbucket.org/petsc/buildsystem-3.3 petsc-3.3/config/BuildSystem
 
 For sh, bash, or zsh shells add the following lines to your shell start-up file: ::
     
-    $ export PETSC_DIR=path/to/the/dir/where/you/downloaded/Petsc-dev/petsc-dev
+    $ export PETSC_DIR=path/to/the/dir/where/you/downloaded/Petsc-3.3/petsc-3.3
     $ export PETSC_ARCH=your/architecture
 
 whereas for csh/tcsh shells add the following lines to your shell start-up file: ::
 
-    $ setenv PETSC_DIR path/to/the/dir/where/you/downloaded/Petsc-dev/petsc-dev
+    $ setenv PETSC_DIR path/to/the/dir/where/you/downloaded/Petsc-3.3/petsc-3.3
     $ setenv PETSC_ARCH your/architecture
 
 For more information about PETSC_DIR and PETSC_ARCH, i.e. the variables that 
 control the configuration and build process of PETSc, please look at 
 `<http://www.mcs.anl.gov/petsc/petsc-as/documentation/installation.html>`_.
 
-Then, if you want PETSc-dev configure for 32-bit use the following command: ::
+Then, if you want PETSc-3.3 configure for 32-bit use the following command: ::
 
     $ ./config/configure.py --with-cc=gcc --with-cxx=g++ --with-python=1 --download-mpich=1 --with-shared-libraries=1
 
-whereas, if you want PETSc-dev 64-bit do: ::
+whereas, if you want PETSc-3.3 64-bit do: ::
 
     $ ./config/configure.py --with-cc=gcc --with-cxx=g++ --with-python=1 --download-mpich=1 --with-shared-libraries=1 --with-64-bit-indices=1
 
@@ -69,35 +68,56 @@ Note that one of the option is --download-mpich=1. This means that mpich is down
 
 Once the configuration phase is completed, build PETSc libraries with ::
 
-    $ make PETSC_DIR=path/to/the/dir/where/you/have/Petsc-dev PETSC_ARCH=your/architecture all
+    $ make PETSC_DIR=path/to/the/dir/where/you/have/Petsc-3.3/petsc-3.3 PETSC_ARCH=your/architecture all
 
 Check if the libraries are working by running ::
 
-    $ make PETSC_DIR=path/to/the/dir/where/you/have/Petsc-dev PETSC_ARCH=your/architecture test
+    $ make PETSC_DIR=path/to/the/dir/where/you/have/Petsc-3.3/petsc-3.3 PETSC_ARCH=your/architecture test
 
 **Obtaining petsc4py:**
 
-petsc4py is a python binding for PETSc. Since in the previous step PETSc-dev has been installed, we also need to install petsc4py-dev. To install this binding correctly make sure that the PETSC_DIR and PETSC_ARCH are part of your shell start-up file.
+petsc4py is a python binding for PETSc. We recommend installing petsc4py 3.3 because it is compatible with PETSc 3.3 and 3.2. To install this binding correctly make sure that the PETSC_DIR and PETSC_ARCH are part of your shell start-up file.
 
-Obtain petsc4py-dev with mercurial: ::
+Obtain petsc4py-3.3 with mercurial: ::
     
     $ cd path/to/the/dir/where/you/want/download/petsc4py
-    $ hg clone https://petsc4py.googlecode.com/hg/petsc4py -r latest-changeset
+    $ hg clone https://petsc4py.googlecode.com/hg/petsc4py-3.3 -r 3.3
  
 The prefered method for the petsc4py iinstallation is `pip <http://pypi.python.org/pypi/pip>`_ ::
     
-    $ cd petsc4py-dev
+    $ cd petsc4py-3.3
     $ pip install . --user
 
 Indeed, pip removes the old petsc4py installation, downloads the new version of 
 `cython <http://cython.org/>`_ (if needed) and installs petsc4py.
 
-To check petsc4py-dev installation do: ::
+To check petsc4py-3.3 installation do: ::
     
-    $ cd petsc4py/test
+    $ cd petsc4py-3.3/test
     $ python runtests.py
 
 All the tests cases should pass, i.e. OK should be printed at the screen.
+
+**NOTE:** To run a python code that uses petsc4py in parallel you will need to use mpiexec or mpirun commands. It is important to remember to use the mpiexec or mpirun executables that come with the MPI installation that was used for configuring PETSc installation. If you have used the option --download-mpich=1 while installing PETSc, then the correct mpiexec to use is the one in ${PETSC_DIR}/${PETSC_ARCH}/bin. You can set this mpiexec to be your default by adding this line to your sh, bash, or zsh shell start-up file: ::
+
+    $ export PATH="${PETSC_DIR}/${PETSC_ARCH}/bin:${PATH}"
+
+or this line in case you are using csh or tcsh shells: ::
+
+    $ setenv PATH "${PETSC_DIR}/${PETSC_ARCH}/bin:${PATH}"
+
+You can test that you are using the right mpiexec by running a demonstration script that can be found in $PYCLAW/demo as follows: ::
+    
+    $ cd $PYCLAW
+    $ mpiexec -n 4 python demo/petsc_hello_world.py 
+
+and you should get an output that looks like follows: ::
+    
+    Hello World! From process 3 out of 4 process(es).
+    Hello World! From process 1 out of 4 process(es).
+    Hello World! From process 0 out of 4 process(es).
+    Hello World! From process 2 out of 4 process(es).
+    
 
 **NOTE:** An alternative way to install petsc4py is simply using the python 
 script setup.py inside petsc4py, i.e. ::
