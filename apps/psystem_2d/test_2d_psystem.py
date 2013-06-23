@@ -25,9 +25,9 @@ def test_2d_psystem():
                                             gauge.name.split('/')[-1])
                     expected_gauges.append(np.loadtxt(verify_file))
                     return_value_mem = check_diff(expected_gauges[i], 
-                    test_gauge_data_mem[i], reltol=1e-2)
+                    test_gauge_data_mem[i], reltol=1e-4)
                     return_value_io = check_diff(expected_gauges[i], 
-                    test_gauge_data_io, reltol=1e-2)
+                    test_gauge_data_io, reltol=1e-4)
                     
                     if (return_value_mem is not None or
                         return_value_io is not None):
@@ -39,7 +39,7 @@ def test_2d_psystem():
                 if test_passed:
                     return None
                 else:
-                    return(expected_list, error_list,return_value_io[2] )
+                    return(expected_list, error_list,return_value_io[2] ,'')
             else:
                 return
                 
@@ -55,13 +55,23 @@ def test_2d_psystem():
                                  disable_output=True,
                                  outdir=tempdir)
     from itertools import chain
+
     try:
         for test in chain(classic_tests):
             yield test
 
     finally:
-        ERROR_STR= """Error removing %(path)s, %(error)s """
+        
         try:
+            from petsc4py import PETSc
+            PETSc.COMM_WORLD.Barrier()
+        except ImportError as (errno, strerror):
+            print "Error importing petsc4py, %(error)s" \
+                  % {'error': strerror }
+        
+        
+        ERROR_STR= """Error removing %(path)s, %(error)s """
+        try:         
             shutil.rmtree(tempdir )
         except OSError as (errno, strerror):
             print ERROR_STR % {'path' : tempdir, 'error': strerror }

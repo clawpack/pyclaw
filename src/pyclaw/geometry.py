@@ -376,7 +376,7 @@ class Grid(object):
             # Determine gauge locations in units of mesh spacing
             if all(self.lower[n]<=gauge[n]<self.upper[n] for n in range(self.num_dim)):
                 # Set indices relative to this grid
-                gauge_index = [int(floor((gauge[n]-self.lower[n])/self.delta[n])) 
+                gauge_index = [int(round((gauge[n]-self.lower[n])/self.delta[n])) 
                                for n in xrange(self.num_dim)]
                 gauge_file_name = 'gauge'+'_'.join(str(coord) for coord in gauge)+'.txt'
                 self.gauge_file_names.append(gauge_file_name)
