@@ -66,8 +66,9 @@ class SharpClawSolver(Solver):
 
         Type of WENO reconstruction.
         0: conservative variables WENO reconstruction (standard).
-        1: characteristic-wise WENO reconstruction.
-        2: transmission-based WENO reconstruction.
+        1: Wave-slope reconstruction.
+        2: characteristic-wise WENO reconstruction.
+        3: transmission-based WENO reconstruction.
         ``Default = 0``
 
     .. attribute:: tfluct_solver
