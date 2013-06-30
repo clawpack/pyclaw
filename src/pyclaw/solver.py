@@ -637,7 +637,7 @@ class Solver(object):
             if not take_one_step:
                 if solution.t + self.dt > tend and tstart < tend:
                     self.dt = tend - solution.t
-                if tend - solution.t - self.dt < 1.e-14:
+                if tend - solution.t - self.dt < 1.e-14*solution.t:
                     self.dt = tend - solution.t
 
             # Keep a backup in case we need to retake a time step
