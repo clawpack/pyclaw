@@ -65,9 +65,10 @@ def test_2d_psystem():
         try:
             from petsc4py import PETSc
             PETSc.COMM_WORLD.Barrier()
-        except ImportError as (errno, strerror):
-            print "Error importing petsc4py, %(error)s" \
-                  % {'error': strerror }
+        except ImportError:
+            print """Unable to import petsc4py.
+                   This should not be a problem unless you
+                   are trying to run in parallel."""
         
         
         ERROR_STR= """Error removing %(path)s, %(error)s """
