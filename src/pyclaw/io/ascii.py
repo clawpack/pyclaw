@@ -325,10 +325,10 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                     if not (dim.num_cells == read_data_line(f,type='int')):
                         raise IOError("Dimension %s's n in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
                 for dim in patch.dimensions:
-                    if not (dim.lower == read_data_line(f,type='float')):
+                    if np.abs(dim.lower - read_data_line(f,type='float'))>1.e-15:
                         raise IOError("Dimension %s's lower in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
                 for dim in patch.dimensions:
-                    if not (dim.delta == read_data_line(f,type='float')):
+                    if np.abs(dim.delta - read_data_line(f,type='float'))>1.e-15:
                         raise IOError("Dimension %s's d in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
 
                 f.readline()
