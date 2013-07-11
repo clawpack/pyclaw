@@ -291,9 +291,14 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
         fname1 = os.path.join(base_path,'%s.a' % file_prefix)+str(frame).zfill(4)
         fname2 = os.path.join(base_path,'%s.a' % file_prefix)+str(0).zfill(4)
         if os.path.exists(fname1):
+            # aux file specific to this frame:
             fname = fname1
         elif os.path.exists(fname2):
+            # Assume that aux data from initial time is valid for all frames:
             fname = fname2
+            # Note that this is generally not true when AMR is used.
+            # Should give a better warning message in line below where
+            # IOError exception is raised.
         else:
             logger.info("Unable to open auxillary file %s or %s" % (fname1,fname2))
             return
