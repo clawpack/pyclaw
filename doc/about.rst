@@ -39,31 +39,6 @@ used PyClaw for research, chances are that others would find your
 code useful.  See :ref:`develop` for more details.
 
 
-Citing
-=======================
-If you use PyClaw in work that is published, please cite the software::
-
-    @misc{pyclaw,
-    title={PyClaw software}, 
-    url={http://numerics.kaust.edu.sa/pyclaw}, 
-    author={Mandli, Kyle T and Ketcheson, David I. and others}, 
-    note={Version x.y}
-    year={2011}}
-
-Please fill in the version number that you used.
-As appropriate, please also cite any of the 
-`publications based on PyClaw <http://www.mendeley.com/groups/1526933/pyclaw-publications/>`_.
-
-If your work relies particularly on parallel capability, please cite::
-
-    @inbook{petclaw2011,
-    title={PetClaw: A Scalable Parallel Nonlinear Wave Propagation Solver for Python},
-    booktitle={Proceedings of SpringSim 11}, 
-    publisher={ACM},
-    author={Alghamdi, Amal and Ahmadia, Aron and Ketcheson, David I. and Knepley, Matthew G. and Mandli, Kyle T and Dalcin, Lisandro}, 
-    year={2011}}
-
-
 License
 =======================
 PyClaw is distributed under a Berkeley Software Distribution
