@@ -1,46 +1,47 @@
 .. _pyclaw:
 
-********
-Overview
-********
+**********
+Quickstart
+**********
 
-Pyclaw is a `Python <http://www.python.org>`_-based solver for hyperbolic PDEs that includes the algorithms
-of `Clawpack <http://www.clawpack.org>`_ and 
-SharpClaw .
-It has been designed with easy extensibility, performance, and exploration in mind.
-The high-level code is written in Python using numpy and based on the 
-PyClaw package.
-The low-level kernels used are the Clawpack and SharpClaw routines, which are written in Fortran.
-The PyClaw package also includes a scalable parallel implementation of Clawpack and SharpClaw,
-using PETSc.  If you are interested in running in parallel, we recommend that you
-verify that you have a working PyClaw installation before following the specific
-instructions in :ref:`parallel`.
+Install and model a shockwave right away::
 
-PyClaw features:
+    git clone git@github.com:clawpack/pyclaw.git
+    cd clawpack
+    pip install -e .
+    cd clawpack/pyclaw/apps/euler_2d
+    python shockbubble.py iplot=1
 
-    * Solves general hyperbolic PDEs in 1D, 2D, and 3D, including mapped grids and surfaces.
-    * Includes the full functionality of `Clawpack <http://www.clawpack.org>`_ and 
-      SharpClaw (see :ref:`solvers`)
-    * Has a simple and intuitive pythonic interface.
-    * Allows you to run your simulation on the world's biggest supercomputers with 
-      the same simple script that runs it on your laptop.
-    * Makes it easy to access the powerful `PETSc <http://www.mcs.anl.gov/petsc/petsc-as/>`_.
-      library of solvers for handling stiff source terms or for implicit time stepping 
-      (under construction).
+**********
+PyClaw is:
+**********
+
+
+
+
+
+    * A **hyperbolic PDE solver** in 1D, 2D, and 3D, including mapped grids and surfaces, built on Clawpack;
+    * **Massively parallel** -- the same simple script that runs on your laptop will
+      scale efficiently on the world's biggest supercomputers (see :ref:`parallel`);
+    * **High order accurate**, with WENO reconstruction and Runge-Kutta time integration
+      (see :ref:`solvers`);
+    * Simple and intuitive thanks to its Python interface.
 
 PyClaw makes use of the additional Clawpack packages, 
 `Riemann <http://github.com/clawpack/riemann>`_ and
 `VisClaw <http://github.com/clawpack/visclaw>`_ for Riemann solvers and visualization, 
 respectively.
 
-You can get the latest development version of PyClaw from http://github.com/clawpack/pyclaw.
+You can get the latest development version of PyClaw via::
+
+    git clone git@github.com:clawpack/pyclaw.git
 
 If you have any issues or need help using PyClaw and PetClaw, `send e-mail <claw-users@googlegroups.com>`_
 to the `discussion group <http://groups.google.com/group/claw-users>`_.
 
-******
-PyClaw
-******
+*************
+Documentation
+*************
 
 .. toctree::
    :maxdepth: 2
@@ -89,4 +90,52 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
+Citing
+=======================
+If you use PyClaw in work that will be published, please cite the software::
+
+    @misc{pyclaw,
+    title={PyClaw software}, 
+    url={http://numerics.kaust.edu.sa/pyclaw}, 
+    author={Mandli, Kyle T and Ketcheson, David I. and others}, 
+    note={Version x.y}
+    year={2011}}
+
+and the paper::
+
+    @article{pyclaw-sisc,
+            Author = {Ketcheson, David I. and Mandli, Kyle T. and Ahmadia, Aron J. and Alghamdi, Amal and {Quezada de Luna}, Manuel and Parsani, Matteo and Knepley, Matthew G. and Emmett, Matthew},
+            Journal = {SIAM Journal on Scientific Computing},
+            Month = nov,
+            Number = {4},
+            Pages = {C210--C231},
+            Title = {{PyClaw: Accessible, Extensible, Scalable Tools for Wave Propagation Problems}},
+            Volume = {34},
+            Year = {2012}}
+
+Please fill in the version number that you used.
+
+If you use the Classic (2nd-order) solver, you may also wish to cite::
+
+    @article{leveque1997,
+            Author = {LeVeque, Randall J.},
+            Journal = {Journal of Computational Physics},
+            Pages = {327--353},
+            Title = {{Wave Propagation Algorithms for Multidimensional Hyperbolic Systems}},
+            Volume = {131},
+            Year = {1997}}
+
+If you use the SharpClaw (high order WENO) solver, you may also wish to cite::
+
+    @article{Ketcheson2011,
+            Author = {Ketcheson, D I and Parsani, Matteo and LeVeque, R J},
+            Journal = {SIAM Journal on Scientific Computing},
+            Number = {1},
+            Pages = {A351--A377},
+            Title = {{High-order Wave Propagation Algorithms for Hyperbolic Systems}},
+            Volume = {35},
+            Year = {2013}}
+
 
