@@ -6,10 +6,6 @@ Routines for reading and writing a petsc-style output file.
 These routines preserve petclaw/pyclaw syntax for i/o while taking advantage of PETSc's parallel i/o capabilities to allow for parallel reads and writes of frame data.
 """
 
-import os
-import logging
-logger = logging.getLogger('io')
-
 from petsc4py import PETSc
 import pickle
     
@@ -38,6 +34,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
     format   : one of 'ascii' or 'binary'
     clobber  : if True (Default), files will be overwritten
     """    
+    import os
     # Option parsing
     option_defaults = {'format':'binary','clobber':True}
 
@@ -148,6 +145,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     format   : one of 'ascii' or 'binary'
      
     """
+    import os
 
     # Option parsing
     option_defaults = {'format':'binary'}
@@ -264,26 +262,24 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
       - *num_dim* - (int) Number of dimensions in q and aux
     
     """
+    import logging
+    logger = logging.getLogger('io')
 
     base_path = os.path.join(path,)
     path = os.path.join(base_path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     try:
         f = open(path,'rb')
-        logger.debug("Opening %s file." % path)
-        patch_dict = pickle.load(f)
-
-        t      = patch_dict['t']
-        num_eqn   = patch_dict['num_eqn']
-        nstates = patch_dict['nstates']                    
-        num_aux   = patch_dict['num_aux']                    
-        num_dim   = patch_dict['num_dim']
-
-        f.close()
     except(IOError):
         raise
-    except:
-        logger.error("File " + path + " should contain t, num_eqn, npatches, num_aux, num_dim")
-        print "File " + path + " should contain t, num_eqn, npatches, num_aux, num_dim"
-        raise
+    logger.debug("Opening %s file." % path)
+    patch_dict = pickle.load(f)
+
+    t      = patch_dict['t']
+    num_eqn   = patch_dict['num_eqn']
+    nstates = patch_dict['nstates']                    
+    num_aux   = patch_dict['num_aux']                    
+    num_dim   = patch_dict['num_dim']
+
+    f.close()
         
     return t,num_eqn,nstates,num_aux,num_dim

@@ -192,98 +192,96 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
     # Read in values from fort.q file:
     try:
         f = open(q_fname,'r')
+    except IOError:
+        print "Error: file " + q_fname + " does not exist or is unreadable."
+        raise
     
-        # Loop through every patch setting the appropriate information
-        # for ng in range(len(solution.patchs)):
-        for m in xrange(nstates):
-        
-            # Read in base header for this patch
-            patch_index = read_data_line(f,type='int')
-            level = read_data_line(f,type='int')
-            n = np.zeros((num_dim))
-            lower = np.zeros((num_dim))
-            d = np.zeros((num_dim))
-            for i in xrange(num_dim):
-                n[i] = read_data_line(f,type='int')
-            for i in xrange(num_dim):
-                lower[i] = read_data_line(f)
-            for i in xrange(num_dim):
-                d[i] = read_data_line(f)
-        
-            blank = f.readline()
-        
-            # Construct the patch
-            # Since we do not have names here, we will construct the patch with
-            # the assumed dimensions x,y,z
-            names = ['x','y','z']
-            dimensions = []
-            import clawpack.pyclaw as pyclaw
-            for i in xrange(num_dim):
-                dimensions.append(
-                    pyclaw.geometry.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
-            patch = pyclaw.geometry.Patch(dimensions)
-            state= pyclaw.state.State(patch,num_eqn,num_aux)
-            state.t = t
+    # Loop through every patch setting the appropriate information
+    # for ng in range(len(solution.patchs)):
+    for m in xrange(nstates):
+    
+        # Read in base header for this patch
+        patch_index = read_data_line(f,type='int')
+        level = read_data_line(f,type='int')
+        n = np.zeros((num_dim))
+        lower = np.zeros((num_dim))
+        d = np.zeros((num_dim))
+        for i in xrange(num_dim):
+            n[i] = read_data_line(f,type='int')
+        for i in xrange(num_dim):
+            lower[i] = read_data_line(f)
+        for i in xrange(num_dim):
+            d[i] = read_data_line(f)
+    
+        blank = f.readline()
+    
+        # Construct the patch
+        # Since we do not have names here, we will construct the patch with
+        # the assumed dimensions x,y,z
+        names = ['x','y','z']
+        dimensions = []
+        import clawpack.pyclaw as pyclaw
+        for i in xrange(num_dim):
+            dimensions.append(
+                pyclaw.geometry.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
+        patch = pyclaw.geometry.Patch(dimensions)
+        state= pyclaw.state.State(patch,num_eqn,num_aux)
+        state.t = t
 
 
-            # RJL 1/8/10:  Changed empty_aux to zeros_aux below so aux won't
-            # be filled with random values if aux arrays not read in.  Would
-            # like to delete this and initialize patch.aux only if it will be
-            # read in below, but for some reason that doesn't work.
+        # RJL 1/8/10:  Changed empty_aux to zeros_aux below so aux won't
+        # be filled with random values if aux arrays not read in.  Would
+        # like to delete this and initialize patch.aux only if it will be
+        # read in below, but for some reason that doesn't work.
 
-            if num_aux > 0:   
-                state.aux[:]=0.
-            
-            # Fill in q values
-            if patch.num_dim == 1:
+        if num_aux > 0:   
+            state.aux[:]=0.
+        
+        # Fill in q values
+        if patch.num_dim == 1:
+            for i in xrange(patch.dimensions[0].num_cells):
+                l = []
+                while len(l)<state.num_eqn:
+                    line = f.readline()
+                    l = l + line.split()
+                for m in xrange(state.num_eqn):
+                    state.q[m,i] = float(l[m])
+        elif patch.num_dim == 2:
+            for j in xrange(patch.dimensions[1].num_cells):
                 for i in xrange(patch.dimensions[0].num_cells):
                     l = []
                     while len(l)<state.num_eqn:
                         line = f.readline()
                         l = l + line.split()
                     for m in xrange(state.num_eqn):
-                        state.q[m,i] = float(l[m])
-            elif patch.num_dim == 2:
+                        state.q[m,i,j] = float(l[m])
+                blank = f.readline()
+        elif patch.num_dim == 3:
+            for k in xrange(patch.dimensions[2].num_cells):
                 for j in xrange(patch.dimensions[1].num_cells):
                     for i in xrange(patch.dimensions[0].num_cells):
-                        l = []
-                        while len(l)<state.num_eqn:
+                        l=[]
+                        while len(l) < state.num_eqn:
                             line = f.readline()
                             l = l + line.split()
                         for m in xrange(state.num_eqn):
-                            state.q[m,i,j] = float(l[m])
+                            state.q[m,i,j,k] = float(l[m])
                     blank = f.readline()
-            elif patch.num_dim == 3:
-                for k in xrange(patch.dimensions[2].num_cells):
-                    for j in xrange(patch.dimensions[1].num_cells):
-                        for i in xrange(patch.dimensions[0].num_cells):
-                            l=[]
-                            while len(l) < state.num_eqn:
-                                line = f.readline()
-                                l = l + line.split()
-                            for m in xrange(state.num_eqn):
-                                state.q[m,i,j,k] = float(l[m])
-                        blank = f.readline()
-                    blank = f.readline()
-            else:
-                msg = "Read only supported up to 3d."
-                logger.critical(msg)
-                raise Exception(msg)
-        
-            # Add AMR attributes:
-            patch.patch_index = patch_index
-            patch.level = level
+                blank = f.readline()
+        else:
+            msg = "Read only supported up to 3d."
+            logger.critical(msg)
+            raise Exception(msg)
+    
+        # Add AMR attributes:
+        patch.patch_index = patch_index
+        patch.level = level
 
-            # Add new patch to solution
-            solution.states.append(state)
-            patches.append(state.patch)
-        solution.domain = pyclaw.geometry.Domain(patches)
-            
-    except(IOError):
-        raise
-    except:
-        logger.error("File %s was not able to be read." % q_fname)
-        raise
+        # Add new patch to solution
+        solution.states.append(state)
+        patches.append(state.patch)
+    solution.domain = pyclaw.geometry.Domain(patches)
+        
 
     # Read auxillary file if available and requested
     if solution.states[0].num_aux > 0 and read_aux:
@@ -306,7 +304,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
         # Found a valid path, try to open and read it
         try:
             f = open(fname,'r')
-        except:
+        except IOError:
             logger.error("File %s was not able to be read." % fname)
             raise
             
@@ -397,22 +395,19 @@ def read_ascii_t(frame,path='./',file_prefix='fort'):
 
     base_path = os.path.join(path,)
     path = os.path.join(base_path, '%s.t' % file_prefix) + str(frame).zfill(4)
+    logger.debug("Opening %s file." % path)
     try:
-        logger.debug("Opening %s file." % path)
         f = open(path,'r')
-        
-        t = read_data_line(f)
-        num_eqn = read_data_line(f,type='int')
-        nstates = read_data_line(f,type='int')
-        num_aux = read_data_line(f,type='int')
-        num_dim = read_data_line(f,type='int')
-        
-        f.close()
     except(IOError):
+        print "Error: file " + path + " does not exist or is unreadable."
         raise
-    except:
-        logger.error("File " + path + " should contain t, num_eqn, nstates, num_aux, num_dim")
-        print "File " + path + " should contain t, num_eqn, nstates, num_aux, num_dim"
-        raise
+        
+    t = read_data_line(f)
+    num_eqn = read_data_line(f,type='int')
+    nstates = read_data_line(f,type='int')
+    num_aux = read_data_line(f,type='int')
+    num_dim = read_data_line(f,type='int')
+    
+    f.close()
         
     return t,num_eqn,nstates,num_aux,num_dim
