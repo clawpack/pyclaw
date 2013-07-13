@@ -13,6 +13,9 @@ import logging
 from .ascii import read_ascii,write_ascii
 __all__ = ['read_ascii','write_ascii']
 
+from .binary import read_binary
+__all__ += ['read_binary']
+
 # Check for HDF 5 support
 try:
     import h5py
