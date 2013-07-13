@@ -66,6 +66,18 @@ class Solution(object):
         >>> state = pyclaw.State(domain,3,2)
         >>> solution = pyclaw.Solution(state,domain)
     """
+    def __getattr__(self, key):
+        if key in ('t','num_eqn','mp','mF','q','p','F','aux','capa',
+                    'problem_data','num_aux'):
+            return self._get_base_state_attribute(key)
+        else:
+            raise AttributeError
+
+    def __setattr__(self, key, value):
+        if key in ('t','mp','mF'):
+            self.set_all_states(key,value)
+        else:
+            self.__dict__[key] = value
 
     # ========== Attributes ==================================================
     
@@ -78,73 +90,6 @@ class Solution(object):
     def patch(self):
         r"""(:class:`Patch`) - Base state's patch is returned"""
         return self.domain.patch
-
-    @property
-    def t(self):
-        r"""(float) - :attr:`State.t` of base state"""
-        return self._get_base_state_attribute('t')
-    @t.setter
-    def t(self,value):
-        self.set_all_states('t',value)
-
-    @property
-    def num_eqn(self):
-        r"""(int) - :attr:`State.num_eqn` of base state"""
-        return self._get_base_state_attribute('num_eqn')
-    @property
-    def mp(self):
-        r"""(int) - :attr:`State.mp` of base state"""
-        return self._get_base_state_attribute('mp')
-    @property
-    def mF(self):
-        r"""(int) - :attr:`State.mF` of base state"""
-        return self._get_base_state_attribute('mF')
-    @property
-    def q(self):
-        r"""(ndarray(...,:attr:`State.num_eqn`)) - :attr:`State.q` of base state"""
-        return self._get_base_state_attribute('q')
-    @property
-    def p(self):
-        r"""(ndarray(...,:attr:`State.mp`)) - :attr:`State.p` of base state"""
-        return self._get_base_state_attribute('p')
-    @property
-    def F(self):
-        r"""(ndarray(...,:attr:`State.mF`)) - :attr:`State.F` of base 
-                  state"""
-        return self._get_base_state_attribute('F')
-
-    @property
-    def aux(self):
-        r"""(ndarray(...,:attr:`State.num_aux`)) - :attr:`State.aux` of base 
-                  state"""
-        return self._get_base_state_attribute('aux')
-    @aux.setter
-    def aux(self, value): 
-        if len(self.states) == 1: 
-            setattr(self.states[0],'aux',value)
-
-    @property
-    def capa(self):
-        r"""(ndarray(...)) - :attr:`State.capa` of base state"""
-        return self._get_base_state_attribute('capa')
-    @capa.setter
-    def capa(self, value):
-        if len(self.states) == 1: 
-            setattr(self.states[0],'capa',value)
-
-    @property
-    def problem_data(self):
-        r"""(dict) - :attr:`State.problem_data` of base state"""
-        return self._get_base_state_attribute('problem_data')
-    @problem_data.setter
-    def problem_data(self, value):
-        if len(self.states) == 1: 
-            setattr(self.states[0],'problem_data',value)
-
-    @property
-    def num_aux(self):
-        r"""(int) - :attr:`State.num_aux` of base state"""
-        return self._get_base_state_attribute('num_aux')
 
     @property
     def start_frame(self):

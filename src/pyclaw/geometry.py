@@ -78,6 +78,13 @@ class Grid(object):
         -2.0
     """
 
+    def __getattr__(self,key):
+        if key in ['num_cells','lower','upper','delta','units','centers','edges',
+                    'on_lower_boundary','on_upper_boundary']:
+            return self.get_dim_attribute(key)
+        else:
+            raise Exception
+
     # ========== Property Definitions ========================================
     @property
     def num_dim(self):
@@ -88,34 +95,6 @@ class Grid(object):
         r"""(list) - List of :class:`Dimension` objects defining the 
                 grid's extent and resolution"""
         return [getattr(self,name) for name in self._dimensions]
-    @property
-    def num_cells(self): 
-        r"""(list) - List of the number of cells in each dimension"""
-        return self.get_dim_attribute('num_cells')
-    @property
-    def lower(self):
-        r"""(list) - Lower coordinate extents of each dimension"""
-        return self.get_dim_attribute('lower')
-    @property
-    def upper(self):
-        r"""(list) - Upper coordinate extends of each dimension"""
-        return self.get_dim_attribute('upper')
-    @property
-    def delta(self):
-        r"""(list) - List of computational cell widths"""
-        return self.get_dim_attribute('delta')
-    @property
-    def units(self):
-        r"""(list) - List of dimension units"""
-        return self.get_dim_attribute('units')
-    @property
-    def centers(self):
-        r"""(list) - List of center coordinate arrays"""
-        return self.get_dim_attribute('centers')
-    @property
-    def edges(self):
-        "List of edge coordinate arrays"
-        return self.get_dim_attribute('edges')
     @property
     def p_centers(self):
         r"""(list of ndarray(...)) - List containing the arrays locating
@@ -148,16 +127,6 @@ class Grid(object):
         self.compute_c_edges(self)
         return self._c_edges
     _c_edges = None
-    @property
-    def on_lower_boundaries(self):
-        r"""(list) - List of flags, one for each dimension, showing whether
-                  the dimension is crossing a lower boundary."""
-        return self.get_dim_attribute('on_lower_boundary')
-    @property
-    def on_upper_boundaries(self):
-        r"""(list) - List of flags, one for each dimension, showing whether
-                  the dimension is crossing an upper boundary."""
-        return self.get_dim_attribute('on_upper_boundary')
 
        
     
@@ -224,7 +193,7 @@ class Grid(object):
         r"""
         Returns a tuple of all dimensions' attribute attr
         """
-        return [getattr(getattr(self,name),attr) for name in self._dimensions]
+        return [getattr(dim,attr) for dim in self.dimensions]
     
     
     # ========== Copy functionality ==========================================
