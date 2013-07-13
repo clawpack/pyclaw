@@ -3,6 +3,7 @@
 ***************************************
 Tutorial: Solve the acoustics equations
 ***************************************
+.. contents::
 
 PyClaw is designed to solve general systems of hyperbolic PDEs of the form
 
@@ -95,7 +96,8 @@ command, except that the first argument is the name of the dimension.
 
 This creates a :class:`~pyclaw.geometry.Domain` object, which holds information about the cell center
 and edge coordinates.  Finally, we set up a :class:`~pyclaw.state.State`
-object, which will hold the solution itself
+=======
+object, which will hold the solution values::
 
 .. doctest::
 
@@ -109,16 +111,16 @@ Initial condition
 Now we will set the initial value of the solution
 
 .. doctest::
+=======
+Now we will set the initial condition::
+>>>>>>> Doc updates.
 
-    >>> xc = domain.grid.x.centers
+    >>> xc = domain.grid.x.centers              # Array containing the cell center coordinates
     >>> from numpy import exp
-    >>> state.q[0,:] = exp(-100 * (xc-0.75)**2)
-    >>> state.q[1,:] = 0.
+    >>> state.q[0,:] = exp(-100 * (xc-0.75)**2) # Pressure: Gaussian centered at x=0.75.
+    >>> state.q[1,:] = 0.                       # Velocity: zero.
 
-The pressure (``state.q[0,:]``) is set to a Gaussian centered at :math:`x=0.75`.
-The velocity (``state.q[1,:]``) is set to zero everywhere.
-
-Finally, we put the state into a Solution object
+Finally, we put the state into a :class:`~pyclaw.solution.Solution` object::
 
 .. doctest::
 

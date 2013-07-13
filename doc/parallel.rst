@@ -16,7 +16,8 @@ with::
 
 
 Also, most of the provided scripts in `pyclaw/apps` are set up to run in parallel
-simply by passing the command-line option `use_petsc=True`.
+simply by passing the command-line option `use_petsc=True` (of course, you will need
+to launch them with `mpirun`.
 
 
 Installing PETSc
