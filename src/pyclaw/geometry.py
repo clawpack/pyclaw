@@ -79,11 +79,14 @@ class Grid(object):
     """
 
     def __getattr__(self,key):
+        # Provide dimension attribute lists when requested from Grid object.
+        # Note that this only gets called when one requests an attribute
+        # that the grid doesn't possess.
         if key in ['num_cells','lower','upper','delta','units','centers','edges',
                     'on_lower_boundary','on_upper_boundary']:
             return self.get_dim_attribute(key)
         else:
-            raise Exception
+            raise AttributeError("'Grid' object has no attribute '"+key+"'")
 
     # ========== Property Definitions ========================================
     @property

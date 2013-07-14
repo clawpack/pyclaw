@@ -71,7 +71,7 @@ class Solution(object):
                     'problem_data','num_aux'):
             return self._get_base_state_attribute(key)
         else:
-            raise AttributeError
+            raise AttributeError("'Solution' object has no attribute '"+key+"'")
 
     def __setattr__(self, key, value):
         if key in ('t','mp','mF'):
