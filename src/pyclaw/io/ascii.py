@@ -181,7 +181,6 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
 
     # Construct path names
     base_path = os.path.join(path,)
-    # t_fname = os.path.join(base_path, '%s.t' % file_prefix) + str(frame).zfill(4)
     q_fname = os.path.join(base_path, '%s.q' % file_prefix) + str(frame).zfill(4)
 
     # Read in values from fort.t file:
@@ -217,22 +216,15 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
     
         # Construct the patch
         # Since we do not have names here, we will construct the patch with
-        # the assumed dimensions x,y,z
+        # dimension names x,y,z
         names = ['x','y','z']
-        dimensions = []
         import clawpack.pyclaw as pyclaw
-        for i in xrange(num_dim):
-            dimensions.append(
-                pyclaw.geometry.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
+        Dim = pyclaw.Dimension
+        dimensions = [Dim(names[i],lower[i],lower[i] + n[i]*d[i],n[i]) for i in xrange(num_dim)]
         patch = pyclaw.geometry.Patch(dimensions)
         state= pyclaw.state.State(patch,num_eqn,num_aux)
         state.t = t
 
-
-        # RJL 1/8/10:  Changed empty_aux to zeros_aux below so aux won't
-        # be filled with random values if aux arrays not read in.  Would
-        # like to delete this and initialize patch.aux only if it will be
-        # read in below, but for some reason that doesn't work.
 
         if num_aux > 0:   
             state.aux[:]=0.
@@ -308,41 +300,50 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
             logger.error("File %s was not able to be read." % fname)
             raise
             
-        try:
-            
-            # Read in aux file
-            #for n in xrange(len(solution.states)):
-            for state in solution.states:
-                patch = state.patch
-                # Fetch correct patch
-                patch_index = read_data_line(f,type='int')
-        
-                # These should match this patch already, raise exception otherwise
-                if not (patch.level == read_data_line(f,type='int')):
-                    raise IOError("Patch level in aux file header did not match patch no %s." % patch.patch_index)
-                for dim in patch.dimensions:
-                    if not (dim.num_cells == read_data_line(f,type='int')):
-                        raise IOError("Dimension %s's n in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
-                for dim in patch.dimensions:
-                    if not (dim.lower == read_data_line(f,type='float')):
-                        pass  # might be float error
+        # Read in aux file
+        for state in solution.states:
+            patch = state.patch
+            # Fetch correct patch
+            patch_index = read_data_line(f,type='int')
+    
+            # These should match this patch already, raise exception otherwise
+            if not (patch.level == read_data_line(f,type='int')):
+                raise IOError("Patch level in aux file header did not match patch no %s." % patch.patch_index)
+            for dim in patch.dimensions:
+                num_cells = read_data_line(f,type='int')
+                if not dim.num_cells == num_cells:
+                    raise Exception("Dimension %s's num_cells in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
+            for dim in patch.dimensions:
+                lower = read_data_line(f,type='float')
+                if np.abs(lower - dim.lower)>1.e-15:
+                    raise Exception('Value of lower in aux file does not match.')
+            for dim in patch.dimensions:
+                delta = read_data_line(f,type='float')
+                if np.abs(delta - dim.delta)>1.e-15:
+                    raise Exception('Value of delta in aux file does not match.')
 
-                for dim in patch.dimensions:
-                    if not (dim.delta == read_data_line(f,type='float')):
-                        pass  # might be float error
-
-                f.readline()
-        
-                # Read in auxillary array
-                if patch.num_dim == 1:
+            f.readline()
+    
+            if patch.num_dim == 1:
+                for i in xrange(patch.dimensions[0].num_cells):
+                    l = []
+                    while len(l)<state.num_aux:
+                        line = f.readline()
+                        l = l + line.split()
+                    for m in xrange(state.num_aux):
+                        state.aux[m,i] = float(l[m])
+            elif patch.num_dim == 2:
+                for j in xrange(patch.dimensions[1].num_cells):
                     for i in xrange(patch.dimensions[0].num_cells):
                         l = []
                         while len(l)<state.num_aux:
                             line = f.readline()
                             l = l + line.split()
                         for m in xrange(state.num_aux):
-                            state.aux[m,i] = float(l[m])
-                elif patch.num_dim == 2:
+                            state.aux[m,i,j] = float(l[m])
+                    blank = f.readline()
+            elif patch.num_dim == 3:
+                for k in xrange(patch.dimensions[2].num_cells):
                     for j in xrange(patch.dimensions[1].num_cells):
                         for i in xrange(patch.dimensions[0].num_cells):
                             l = []
@@ -350,29 +351,10 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                                 line = f.readline()
                                 l = l + line.split()
                             for m in xrange(state.num_aux):
-                                state.aux[m,i,j] = float(l[m])
+                                state.aux[m,i,j,k] = float(l[m])
                         blank = f.readline()
-                elif patch.num_dim == 3:
-                    for k in xrange(patch.dimensions[2].num_cells):
-                        for j in xrange(patch.dimensions[1].num_cells):
-                            for i in xrange(patch.dimensions[0].num_cells):
-                                l = []
-                                while len(l)<state.num_aux:
-                                    line = f.readline()
-                                    l = l + line.split()
-                                for m in xrange(state.num_aux):
-                                    state.aux[m,i,j,k] = float(l[m])
-                            blank = f.readline()
-                        blank = f.readline()
-                else:
-                    logger.critical("Read aux only up to 3d is supported.")
-                    raise Exception("Read aux only up to 3d is supported.")
-        except(IOError):
-            raise
-        except:
-            logger.error("File %s was not able to be read." % fname)
-            raise
-            
+                    blank = f.readline()
+        
             
 def read_ascii_t(frame,path='./',file_prefix='fort'):
     r"""Read only the fort.t file and return the data
