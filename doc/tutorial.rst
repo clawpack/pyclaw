@@ -111,9 +111,6 @@ Initial condition
 Now we will set the initial value of the solution
 
 .. doctest::
-=======
-Now we will set the initial condition::
->>>>>>> Doc updates.
 
     >>> xc = domain.grid.x.centers              # Array containing the cell center coordinates
     >>> from numpy import exp
