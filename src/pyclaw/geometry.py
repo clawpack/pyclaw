@@ -662,8 +662,10 @@ class Domain(object):
             upper = arg[1]
             n     = arg[2]
             dims = []
-            for low,up,nn in zip(lower,upper,n):
-                dims.append(Dimension(low,up,nn))
+            names = ['x','y','z']
+            names = names[:len(n)+1]
+            for low,up,nn,name in zip(lower,upper,n,names):
+                dims.append(Dimension(low,up,nn,name=name))
             self.patches = [Patch(dims)]
         else:
             geom = arg[0]
