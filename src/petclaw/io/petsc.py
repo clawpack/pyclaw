@@ -262,6 +262,7 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
       - *num_dim* - (int) Number of dimensions in q and aux
     
     """
+    import os
     import logging
     logger = logging.getLogger('io')
 
