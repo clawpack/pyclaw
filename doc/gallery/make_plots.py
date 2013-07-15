@@ -70,7 +70,6 @@ def make_plots(apps_dir = None):
     if apps_dir is None:
         from clawpack import pyclaw
         apps_dir = '/'.join(pyclaw.__path__[0].split('/')[:-2])+'/pyclaw/apps/'
-        print pyclaw.__path__
 
     print apps_dir
     apps_dir = os.path.abspath(apps_dir)
@@ -108,10 +107,11 @@ def make_plots(apps_dir = None):
         ferr.write(directory)
         ferr.write("\n=============================================\n")
 
+        # flush I/O buffers:
+        fout.flush()
+        ferr.flush()
+    
         os.chdir(directory)
-        if not os.access(appname, os.X_OK): 
-            ferr.write("Error: File is not executable")
-            continue
         job = subprocess.Popen(['python','./'+appname,'htmlplot=True'], stdout = fout, stderr = ferr)
         return_code = job.wait()
         if return_code == 0:
@@ -121,10 +121,6 @@ def make_plots(apps_dir = None):
             print "   *** Run errors encountered: see ", fname_errors
             badlist_run.append(directory)
 
-        # flush I/O buffers:
-        fout.flush()
-        ferr.flush()
-    
     print ' '
     print 'Ran PyClaw and created output and plots in directories:'
     for d in goodlist_run:

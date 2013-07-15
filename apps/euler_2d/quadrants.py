@@ -10,7 +10,7 @@ from clawpack import riemann
 solver = pyclaw.ClawSolver2D(riemann.rp2_euler_4wave)
 solver.all_bcs = pyclaw.BC.extrap
 
-domain = pyclaw.Domain([0.,0.],[1.,1.],[512,512])
+domain = pyclaw.Domain([0.,0.],[1.,1.],[100,100])
 solution = pyclaw.Solution(solver.num_eqn,domain)
 gamma = 1.4
 solution.problem_data['gamma']  = gamma
@@ -36,4 +36,4 @@ claw.solver = solver
 
 status = claw.run()
 
-pyclaw.plot.interactive_plot()
+#pyclaw.plot.interactive_plot()

@@ -38,7 +38,6 @@ Documentation
 .. toctree::
    :maxdepth: 2
 
-   gallery
    basics
    going_further
    classes
@@ -46,6 +45,7 @@ Documentation
    troubleshooting
    about
    future
+   gallery/gallery_all
 
 
 .. _pyclaw_reference:

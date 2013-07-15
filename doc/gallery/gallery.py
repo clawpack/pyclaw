@@ -15,16 +15,14 @@ import os
 #claw_html_root='http://localhost:50005'     
 claw_html_root='http://numerics.kaust.edu.sa/pyclaw'
 
-
-# Determine Clawpack directory:
-clawdir_default = os.environ.get('PYCLAW',None)
-if clawdir_default is None:
-    print "*** Error: set environment variable PYCLAW"
+# Determine PyClaw directory:
+from clawpack import pyclaw
+clawdir_default = os.path.join('/'.join(pyclaw.__path__[0].split('/')[:-2])+'/pyclaw')
 
 # Location for gallery files:
 gallery_dir_default = os.path.join(clawdir_default,'doc/gallery')  
 
-remake = False   # True ==> remake all thumbnails even if they exist.
+remake = True   # True ==> remake all thumbnails even if they exist.
 
 class GalleryItem(object):
     
@@ -189,7 +187,7 @@ def make_1d():
     description = """
          Acoustics equations with wall boundary at left and extrap at
          right."""
-    images = ('frame0000fig1', 'frame0005fig1', 'frame0010fig1')
+    images = ('frame0000fig1', 'frame0002fig1', 'frame0005fig1')
     gsec.new_item(appdir, plotdir, description, images)
     #----------------------------------------------
     gsec = gallery.new_section("1-dimensional Burgers' equation")
@@ -283,7 +281,7 @@ def make_2d():
     #----------------------------------------------
     gsec = gallery.new_section('2-dimensional shallow water on the sphere')
     #----------------------------------------------
-    appdir = 'apps/shallow-sphere/'
+    appdir = 'apps/shallow_sphere/'
     description = """Wavenumber 4 Rossby-Haurwitz wave on a rotating sphere."""
     images = ('frame0000fig0', 'frame0004fig0', 'frame0010fig0')
     gsec.new_item(appdir, plotdir, description, images)
