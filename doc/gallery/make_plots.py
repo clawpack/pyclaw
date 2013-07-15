@@ -68,7 +68,6 @@ def make_plots(apps_dir = None):
     import os,sys
 
     if apps_dir is None:
-        print 'hello'
         from clawpack import pyclaw
         apps_dir = '/'.join(pyclaw.__path__[0].split('/')[:-2])+'/pyclaw/apps/'
         print pyclaw.__path__
