@@ -15,11 +15,9 @@ import os
 #claw_html_root='http://localhost:50005'     
 claw_html_root='http://numerics.kaust.edu.sa/pyclaw'
 
-
-# Determine Clawpack directory:
-clawdir_default = os.environ.get('PYCLAW',None)
-if clawdir_default is None:
-    print "*** Error: set environment variable PYCLAW"
+# Determine PyClaw directory:
+from clawpack import pyclaw
+clawdir_default = os.path.join('/'.join(pyclaw.__path__[0].split('/')[:-2])+'/pyclaw')
 
 # Location for gallery files:
 gallery_dir_default = os.path.join(clawdir_default,'doc/gallery')  
@@ -82,24 +80,34 @@ class Gallery(object):
             raise
 
         gfile = open(fname, 'w')
-        gfile.write("""<html>
-              <BODY BGCOLOR="#FFFFE8" LINK="#7F0000" VLINK="#7F0000">
-              <font FACE="TREBUCHET MS,HELVETICA,ARIAL">
-              """ )
+        gfile.write(".. _gallery:\n\n")
+        gfile.write("==========================\n")
+        gfile.write("Application gallery\n")
+        gfile.write("==========================\n")
+        gfile.write(".. contents::\n\n")
 
-        gfile.write("<h1>%s</h1>" % self.title)
+        gfile.write("%s\n" % self.title)
+        gfile.write("="*len(self.title)+"\n\n")
         for gsec in self.sections:
-            gfile.write("<p><h2>%s</h2>\n %s\n<p>\n" \
-                  % (gsec.title, gsec.description))
+            gfile.write("%s\n" % gsec.title)
+            gfile.write("="*len(gsec.title)+"\n")
+            gfile.write("%s\n" % gsec.description)
 
             for gitem in gsec.items:
-                gfile.write('<p>')
+                gfile.write('\n')
+                desc = gitem.description.lstrip().replace('\n',' ')
+                gfile.write('%s\n\n' % desc)
                 code = os.path.join(claw_html_root, gitem.appdir)
                 plotindex = os.path.join(claw_html_root, gitem.appdir, \
                                gitem.plotdir, '_PlotIndex.html')
-                gfile.write('<p><b>$PYCLAW/%s</b> ... <a href="%s">Code</a> ... <a href="%s">Plot Index</a><p>' \
-                      % (gitem.appdir,code,plotindex))
-                gfile.write('<p>\n%s\n<p>\n' % gitem.description)
+                gfile.write('$PYCLAW/%s ... \n`README <%s/README.html>`__ ... \n`Plots <%s>`__\n' \
+                      % (gitem.appdir,gitem.appdir,plotindex))
+
+                if not os.path.exists('./'+gitem.appdir):
+                    os.makedirs ('./'+gitem.appdir)
+                os.system('cp %s/README.rst %s' % ('$PYCLAW/'+gitem.appdir, './'+gitem.appdir))
+                gfile.write('\n\n')
+
                 for image in gitem.images:
 
                     src_name = os.path.join(gitem.appdir, gitem.plotdir, image)
@@ -116,11 +124,10 @@ class Gallery(object):
                     else:
                         scale = 0.3
                         make_thumb(src_png ,thumb_file, scale)
-                    gfile.write('&nbsp;&nbsp;<a href="%s"><img src="%s"></a>' \
-                        % (src_html, thumb_file))
-                gfile.write('<p><hr><p>')
+                    gfile.write('.. image:: %s\n   :width: 5cm\n' % thumb_file)
+                    gfile.write('   :target: %s\n' % src_html)
+                gfile.write('\n\n')
 
-        gfile.write("\n</html>\n")
         print "Created ",fname, " in directory ", os.getcwd()
         os.chdir(start_dir)
                     
@@ -151,7 +158,7 @@ def test():
     images = ('frame0000fig1', 'frame0004fig1')
     gsec.new_item(appdir, plotdir, description, images)
        
-    gallery.create('test.html')
+    gallery.create('test.rst')
 
 
 
@@ -180,7 +187,7 @@ def make_1d():
     description = """
          Acoustics equations with wall boundary at left and extrap at
          right."""
-    images = ('frame0000fig1', 'frame0005fig1', 'frame0010fig1')
+    images = ('frame0000fig1', 'frame0002fig1', 'frame0005fig1')
     gsec.new_item(appdir, plotdir, description, images)
     #----------------------------------------------
     gsec = gallery.new_section("1-dimensional Burgers' equation")
@@ -214,7 +221,7 @@ def make_1d():
     gsec.new_item(appdir, plotdir, description, images)
     #----------------------------------------------
        
-    gallery.create('gallery_1d.html')
+    gallery.create('gallery_1d.rst')
     return gallery
 
 
@@ -274,7 +281,7 @@ def make_2d():
     #----------------------------------------------
     gsec = gallery.new_section('2-dimensional shallow water on the sphere')
     #----------------------------------------------
-    appdir = 'apps/shallow-sphere/'
+    appdir = 'apps/shallow_sphere/'
     description = """Wavenumber 4 Rossby-Haurwitz wave on a rotating sphere."""
     images = ('frame0000fig0', 'frame0004fig0', 'frame0010fig0')
     gsec.new_item(appdir, plotdir, description, images)
@@ -310,7 +317,7 @@ def make_2d():
     gsec.new_item(appdir, plotdir, description, images)
     #----------------------------------------------
         
-    gallery.create('gallery_2d.html')
+    gallery.create('gallery_2d.rst')
     return gallery
 
 def make_all():
@@ -320,7 +327,7 @@ def make_all():
     # make gallery of everything:
     gallery_all = Gallery(title="Gallery of all PyClaw applications")
     gallery_all.sections = gallery_1d.sections + gallery_2d.sections 
-    gallery_all.create('gallery_all.html')
+    gallery_all.create('gallery_all.rst')
 
 if __name__ == "__main__":
     make_all()

@@ -67,7 +67,6 @@ def setplot(plotdata):
 
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
     plotitem.plot_var = 1
-    plotitem.color = 'b'
     plotitem.pcolor_cmap = colormaps.yellow_red_blue
     plotitem.add_colorbar = True
     plotitem.show = True       # show on plot?
