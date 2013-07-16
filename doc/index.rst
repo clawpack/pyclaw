@@ -45,6 +45,7 @@ Documentation
    troubleshooting
    about
    future
+   gallery/gallery_all
 
 
 .. _pyclaw_reference:

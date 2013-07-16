@@ -31,4 +31,4 @@ claw.solver = solver
 
 status = claw.run()
 
-pyclaw.plot.interactive_plot()
+#pyclaw.plot.interactive_plot()

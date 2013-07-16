@@ -7,27 +7,76 @@ First try 'make all', which might do other things as well.
 Sends output and errors to separate files to simplify looking for errors.
 """
 
-import os,sys,glob
-try:
+
+def list_apps(apps_dir=None):
+    """
+    Searches all subdirectories of apps_dir for apps and prints out a list.
+    """
+    import os
+
+    if apps_dir is None:
+        from clawpack import pyclaw
+        apps_dir = '/'.join(pyclaw.__path__[0].split('/')[:-2])+'/pyclaw/apps/'
+
+    apps_dir = os.path.abspath(apps_dir)
+    current_dir = os.getcwd()
+    os.chdir(apps_dir)
+    
+    dirlist = []
+    applist = []
+
+    # Traverse directories depth-first (topdown=False) to insure e.g. that code in
+    # book/chap21/radialdam/1drad is run before code in book/chap21/radialdam
+    for (dirpath, subdirs, files) in os.walk('.',topdown=False):
+        #By convention we assume that all python scripts are applications
+        #unless they are named 'setup.py' or 'setplot.py' or have 'test' in their name.
+        files = os.listdir(os.path.abspath(dirpath))
+        pyfiles=[f for f in files if f.split('.')[-1]=='py']
+        appfiles=[f for f in pyfiles if f.split('.')[0] not in ('setup','setplot','__init__')]
+        appfiles=[f for f in appfiles if 'test' not in f]
+        #Skip 3d for now because visclaw plotting is not set up for it
+        appfiles=[file for file in appfiles if '3d' not in os.path.abspath(dirpath)]
+
+        for filename in appfiles:
+            dirlist.append(os.path.abspath(dirpath))
+            applist.append(filename)
+
+    os.chdir(current_dir)
+
+    return applist, dirlist
+        
+def run_apps(apps_dir = None):
+    """
+    Runs all apps in subdirectories of apps_dir.
+    """
+    import os
     import subprocess
-except:
-    print '*** Error: require subprocess module from Python 2.4 or greater'
-    raise ImportError()
+
+    current_dir = os.getcwd()
+
+    app_list, dir_list = list_apps(apps_dir)
+    for app, directory in zip(app_list,dir_list):
+        print directory, app
+        os.chdir(directory)
+        process = subprocess.Popen(['python',app])#, stdout = subprocess.PIPE)
+        stdout, stderr = process.communicate()
+
+    os.chdir(current_dir)
 
 
-def make_plots(rootdir):
+def make_plots(apps_dir = None):
+    import os,sys
 
-    if rootdir==[]:   
-        # if called from command line with no argument
-        clawdir = os.path.expandvars('$PYCLAW/apps')
-        rootdir = clawdir
-    else:
-        # called with an argument, try to use this for rootdir:
-        rootdir = rootdir[0]
-        rootdir = os.path.abspath(rootdir)
+    if apps_dir is None:
+        from clawpack import pyclaw
+        apps_dir = '/'.join(pyclaw.__path__[0].split('/')[:-2])+'/pyclaw/apps/'
 
+    print apps_dir
+    apps_dir = os.path.abspath(apps_dir)
+    current_dir = os.getcwd()
+ 
     print "Will run code and make plots in every subdirectory of "
-    print "    ", rootdir
+    print "    ", apps_dir
     ans = raw_input("Ok? ")
     if ans.lower() not in ['y','yes']:
         print "Aborting."
@@ -41,81 +90,36 @@ def make_plots(rootdir):
     ferr = open(fname_errors, 'w')
     ferr.write("ALL ERRORS FROM RUNNING EXAMPLES\n\n")
 
-    os.chdir(rootdir)
-    goodlist_build = []
-    badlist_build = []
+    os.chdir(apps_dir)
 
     goodlist_run = []
     badlist_run = []
     
-    # Traverse directories depth-first (topdown=False) to insure e.g. that code in
-    # book/chap21/radialdam/1drad is run before code in book/chap21/radialdam
+    app_list, dir_list = list_apps(apps_dir)
+    import subprocess
+    for appname, directory in zip(app_list,dir_list):
+        print 'Running ', directory, appname
+
+        fout.write("\n=============================================\n")
+        fout.write(directory)
+        fout.write("\n=============================================\n")
+        ferr.write("\n=============================================\n")
+        ferr.write(directory)
+        ferr.write("\n=============================================\n")
+
+        # flush I/O buffers:
+        fout.flush()
+        ferr.flush()
     
-    for (dirpath, subdirs, files) in os.walk('.',topdown=False):
-        currentdir = os.path.abspath(os.getcwd())
-        os.chdir(os.path.abspath(dirpath))
-        rootdirpath = os.path.join(os.path.split(rootdir)[1],dirpath)
-        
-
-        #By convention we assume that all python scripts are applications
-        #unless they are named 'setup.py' or 'setplot.py'.
-        files = os.listdir('.')
-        pyfiles=[file for file in files if file.split('.')[-1]=='py']
-        appfiles=[file for file in pyfiles if file.split('.')[0] not in ('setup','setplot')]
-        #Skip 3d for now because visclaw plotting is not set up for it
-        appfiles=[file for file in appfiles if '3d' not in rootdirpath]
-        if appfiles!=[]:
-
-            fout.write("\n=============================================\n")
-            fout.write(rootdirpath)
-            fout.write("\n=============================================\n")
-            ferr.write("\n=============================================\n")
-            ferr.write(rootdirpath)
-            ferr.write("\n=============================================\n")
-
-            # flush I/O buffers:
-            fout.flush()
-            ferr.flush()
-
-            print "Running 'make all' in ",rootdirpath
-            job = subprocess.Popen(['make','all'], stdout=fout, stderr=ferr)
-            return_code = job.wait()
-            if return_code == 0:
-                print "   Successful build"
-                goodlist_build.append(dirpath)
-            else:
-                print "   *** Build errors encountered: see ", fname_errors
-                badlist_build.append(dirpath)
-
-            for appname in appfiles:
-                if not os.access(appname, os.X_OK): 
-                    ferr.write("Error: File is not executable")
-                    continue
-                appname_short=appname.split('.')[0]
-                print appname_short
-                job = subprocess.Popen(['./'+appname,'htmlplot=True'],stdout=fout,stderr=ferr)
-                return_code = job.wait()
-                if return_code == 0:
-                    print "   Successful run"
-                    goodlist_run.append(dirpath)
-                else:
-                    print "   *** Run errors encountered: see ", fname_errors
-                    badlist_run.append(dirpath)
-
-           
-        os.chdir(currentdir)
-        
-    
-    print ' '
-    print 'Built successfully in directories:'
-    for d in goodlist_build:
-        print '   ',d
-    print ' '
-    
-    print 'Build errors encountered in the following directories:'
-    for d in badlist_build:
-        print '   ',d
-    print ' '
+        os.chdir(directory)
+        job = subprocess.Popen(['python','./'+appname,'htmlplot=True'], stdout = fout, stderr = ferr)
+        return_code = job.wait()
+        if return_code == 0:
+            print "   Successful run"
+            goodlist_run.append(directory)
+        else:
+            print "   *** Run errors encountered: see ", fname_errors
+            badlist_run.append(directory)
 
     print ' '
     print 'Ran PyClaw and created output and plots in directories:'
@@ -133,5 +137,7 @@ def make_plots(rootdir):
     print 'For all output see ', fname_output
     print 'For all errors see ', fname_errors
 
+    os.chdir(current_dir)
+
 if __name__=='__main__':
-    make_plots(sys.argv[1:])
+    make_plots()
