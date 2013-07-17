@@ -170,7 +170,11 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
         # Don't construct file names with negative frameno values.
         raise IOError("Frame " + str(frame) + " does not exist ***")
 
-    pickle_file = open(pickle_filename,'rb')
+    try:
+        pickle_file = open(pickle_filename,'rb')
+    except IOError:
+        print "Error: file " + pickle_filename + " does not exist or is unreadable."
+        raise
 
     # this dictionary is mostly holding debugging information, only nstates is needed
     # most of this information is explicitly saved in the individual patches
@@ -270,7 +274,8 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
     path = os.path.join(base_path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     try:
         f = open(path,'rb')
-    except(IOError):
+    except IOError:
+        print "Error: file " + path + " does not exist or is unreadable."
         raise
     logger.debug("Opening %s file." % path)
     patch_dict = pickle.load(f)
