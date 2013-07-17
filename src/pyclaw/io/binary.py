@@ -59,117 +59,111 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
     # Read in values from fort.q file:
     try:
         b_file = open(b_fname,'rb')
-        qdata = np.fromfile(file=b_file, dtype=np.float64)
-    except:
+    except IOError:
+        print "Error: file " + b_fname + " does not exist or is unreadable."
         raise IOError("Could not read binary file %s" % b_fname)
+
+    qdata = np.fromfile(file=b_file, dtype=np.float64)
 
     i_start_patch = 0  # index into qdata for start of next patch
 
     try:
         f = open(q_fname,'r')
-    
-        # Loop through every patch setting the appropriate information
-        # for ng in range(len(solution.patchs)):
-        for m in xrange(nstates):
-        
-            # Read in base header for this patch
-            patch_index = read_data_line(f,type='int')
-            level = read_data_line(f,type='int')
-            n = np.zeros((num_dim))
-            lower = np.zeros((num_dim))
-            d = np.zeros((num_dim))
-            for i in xrange(num_dim):
-                n[i] = read_data_line(f,type='int')
-            for i in xrange(num_dim):
-                lower[i] = read_data_line(f)
-            for i in xrange(num_dim):
-                d[i] = read_data_line(f)
-        
-            blank = f.readline()
-        
-            # Construct the patch
-            # Since we do not have names here, we will construct the patch with
-            # the assumed dimensions x,y,z
-            names = ['x','y','z']
-            dimensions = []
-            for i in xrange(num_dim):
-                dimensions.append(
-                    pyclaw.geometry.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
-            patch = pyclaw.geometry.Patch(dimensions)
-            state= pyclaw.state.State(patch,num_eqn,num_aux)
-            state.t = t
-
-
-            # RJL 1/8/10:  Changed empty_aux to zeros_aux below so aux won't
-            # be filled with random values if aux arrays not read in.  Would
-            # like to delete this and initialize patch.aux only if it will be
-            # read in below, but for some reason that doesn't work.
-
-            if num_aux > 0:   
-                state.aux[:]=0.
-            
-            # Fill in q values
-            if patch.num_dim == 1:
-                ##  NOT YET TESTED ##
-                mx = patch.dimensions[0].num_cells
-                meqn = state.num_eqn
-                mbc = num_ghost
-                i_end_patch = i_start_patch + meqn*(mx+2*mbc)
-                qpatch = qdata[i_start_patch:i_end_patch]
-                qpatch = np.reshape(qpatch, (meqn,mx+2*mbc), \
-                            order='F')
-                state.q = qpatch[:,mbc:-mbc]
-                i_start_patch = i_end_patch  # prepare for next patch
-
-            elif patch.num_dim == 2:
-                ## FIXED FOR BINARY ##
-                mx = patch.dimensions[0].num_cells
-                my = patch.dimensions[1].num_cells
-                meqn = state.num_eqn
-                mbc = num_ghost
-                i_end_patch = i_start_patch + meqn*(mx+2*mbc)*(my+2*mbc)
-                qpatch = qdata[i_start_patch:i_end_patch]
-                qpatch = np.reshape(qpatch, (meqn,mx+2*mbc,my+2*mbc), \
-                            order='F')
-                state.q = qpatch[:,mbc:-mbc,mbc:-mbc]
-                i_start_patch = i_end_patch  # prepare for next patch
-
-            elif patch.num_dim == 3:
-                ##  NOT YET TESTED ##
-                mx = patch.dimensions[0].num_cells
-                my = patch.dimensions[1].num_cells
-                mz = patch.dimensions[2].num_cells
-                meqn = state.num_eqn
-                mbc = num_ghost
-                i_end_patch = i_start_patch + \
-                            meqn*(mx+2*mbc)*(my+2*mbc)*(mz+2*mbc)
-                qpatch = qdata[i_start_patch:i_end_patch]
-                qpatch = np.reshape(qpatch, \
-                            (meqn,mx+2*mbc,my+2*mbc,mz+2*mbc), \
-                            order='F')
-                state.q = qpatch[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
-                i_start_patch = i_end_patch  # prepare for next patch
-
-            else:
-                msg = "Read only supported up to 3d."
-                logger.critical(msg)
-                raise Exception(msg)
-        
-            # Add AMR attributes:
-            patch.patch_index = patch_index
-            patch.level = level
-
-            # Add new patch to solution
-            solution.states.append(state)
-            patches.append(state.patch)
-        solution.domain = pyclaw.geometry.Domain(patches)
-            
     except(IOError):
-        raise
-    except:
-        logger.error("File %s was not able to be read." % q_fname)
+        print "Error: file " + q_fname + " does not exist or is unreadable."
         raise
 
+   
+    # Loop through every patch setting the appropriate information
+    # for ng in range(len(solution.patchs)):
+    for m in xrange(nstates):
+    
+        # Read in base header for this patch
+        patch_index = read_data_line(f,type='int')
+        level = read_data_line(f,type='int')
+        n = np.zeros((num_dim))
+        lower = np.zeros((num_dim))
+        d = np.zeros((num_dim))
+        for i in xrange(num_dim):
+            n[i] = read_data_line(f,type='int')
+        for i in xrange(num_dim):
+            lower[i] = read_data_line(f)
+        for i in xrange(num_dim):
+            d[i] = read_data_line(f)
+    
+        blank = f.readline()
+    
+        # Construct the patch
+        # Since we do not have names here, we will construct the patch with
+        # the assumed dimensions x,y,z
+        names = ['x','y','z']
+        dimensions = []
+        for i in xrange(num_dim):
+            dimensions.append(
+                pyclaw.geometry.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
+        patch = pyclaw.geometry.Patch(dimensions)
+        state= pyclaw.state.State(patch,num_eqn,num_aux)
+        state.t = t
+
+        if num_aux > 0:   
+            state.aux[:]=0.
+        
+        # Fill in q values
+        if patch.num_dim == 1:
+            ##  NOT YET TESTED ##
+            mx = patch.dimensions[0].num_cells
+            meqn = state.num_eqn
+            mbc = num_ghost
+            i_end_patch = i_start_patch + meqn*(mx+2*mbc)
+            qpatch = qdata[i_start_patch:i_end_patch]
+            qpatch = np.reshape(qpatch, (meqn,mx+2*mbc), \
+                        order='F')
+            state.q = qpatch[:,mbc:-mbc]
+            i_start_patch = i_end_patch  # prepare for next patch
+
+        elif patch.num_dim == 2:
+            ## FIXED FOR BINARY ##
+            mx = patch.dimensions[0].num_cells
+            my = patch.dimensions[1].num_cells
+            meqn = state.num_eqn
+            mbc = num_ghost
+            i_end_patch = i_start_patch + meqn*(mx+2*mbc)*(my+2*mbc)
+            qpatch = qdata[i_start_patch:i_end_patch]
+            qpatch = np.reshape(qpatch, (meqn,mx+2*mbc,my+2*mbc), \
+                        order='F')
+            state.q = qpatch[:,mbc:-mbc,mbc:-mbc]
+            i_start_patch = i_end_patch  # prepare for next patch
+
+        elif patch.num_dim == 3:
+            ##  NOT YET TESTED ##
+            mx = patch.dimensions[0].num_cells
+            my = patch.dimensions[1].num_cells
+            mz = patch.dimensions[2].num_cells
+            meqn = state.num_eqn
+            mbc = num_ghost
+            i_end_patch = i_start_patch + \
+                        meqn*(mx+2*mbc)*(my+2*mbc)*(mz+2*mbc)
+            qpatch = qdata[i_start_patch:i_end_patch]
+            qpatch = np.reshape(qpatch, \
+                        (meqn,mx+2*mbc,my+2*mbc,mz+2*mbc), \
+                        order='F')
+            state.q = qpatch[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
+            i_start_patch = i_end_patch  # prepare for next patch
+
+        else:
+            msg = "Read only supported up to 3d."
+            logger.critical(msg)
+            raise Exception(msg)
+    
+        # Add AMR attributes:
+        patch.patch_index = patch_index
+        patch.level = level
+
+        # Add new patch to solution
+        solution.states.append(state)
+        patches.append(state.patch)
+    solution.domain = pyclaw.geometry.Domain(patches)
+        
     #-------------
     # aux file:
     #-------------
@@ -191,66 +185,60 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
         try:
             b_file = open(fname,'rb')
             auxdata = np.fromfile(file=b_file, dtype=np.float64)
-        except:
+        except IOError:
+            print "Error: file " + fname + " does not exist or is unreadable."
             raise IOError("Could not read binary file %s" % fname)
 
-        try:
-            for state in solution.states:
-                patch = state.patch
-                i_start_patch = 0  # index into auxdata for start of next patch
-    
-                # Fill in aux values
-                if patch.num_dim == 1:
-                    ##  NOT YET TESTED ##
-                    mx = patch.dimensions[0].num_cells
-                    maux = state.num_aux
-                    mbc = num_ghost
-                    i_end_patch = i_start_patch + maux*(mx+2*mbc)
-                    auxpatch = auxdata[i_start_patch:i_end_patch]
-                    auxpatch = np.reshape(auxpatch, (maux,mx+2*mbc), \
-                                order='F')
-                    state.aux = auxpatch[:,mbc:-mbc]
-                    i_start_patch = i_end_patch  # prepare for next patch
-    
-                elif patch.num_dim == 2:
-                    ## FIXED FOR BINARY ##
-                    mx = patch.dimensions[0].num_cells
-                    my = patch.dimensions[1].num_cells
-                    maux = state.num_aux
-                    mbc = num_ghost
-                    i_end_patch = i_start_patch + maux*(mx+2*mbc)*(my+2*mbc)
-                    auxpatch = auxdata[i_start_patch:i_end_patch]
-                    auxpatch = np.reshape(auxpatch, (maux,mx+2*mbc,my+2*mbc), \
-                                order='F')
-                    state.aux = auxpatch[:,mbc:-mbc,mbc:-mbc]
-                    i_start_patch = i_end_patch  # prepare for next patch
-    
-                elif patch.num_dim == 3:
-                    ##  NOT YET TESTED ##
-                    mx = patch.dimensions[0].num_cells
-                    my = patch.dimensions[1].num_cells
-                    mz = patch.dimensions[2].num_cells
-                    maux = state.num_aux
-                    mbc = num_ghost
-                    i_end_patch = i_start_patch + \
-                                maux*(mx+2*mbc)*(my+2*mbc)*(mz+2*mbc)
-                    auxpatch = auxdata[i_start_patch:i_end_patch]
-                    auxpatch = np.reshape(auxpatch, \
-                                (maux,mx+2*mbc,my+2*mbc,mz+2*mbc), \
-                                order='F')
-                    state.aux = auxpatch[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
-                    i_start_patch = i_end_patch  # prepare for next patch
-    
-                else:
-                    logger.critical("Read aux only up to 3d is supported.")
-                    raise Exception("Read aux only up to 3d is supported.")
-    
-        except(IOError):
-            raise
-        except:
-            logger.error("File %s was not able to be read." % fname)
-            raise
-            
+        for state in solution.states:
+            patch = state.patch
+            i_start_patch = 0  # index into auxdata for start of next patch
+
+            # Fill in aux values
+            if patch.num_dim == 1:
+                ##  NOT YET TESTED ##
+                mx = patch.dimensions[0].num_cells
+                maux = state.num_aux
+                mbc = num_ghost
+                i_end_patch = i_start_patch + maux*(mx+2*mbc)
+                auxpatch = auxdata[i_start_patch:i_end_patch]
+                auxpatch = np.reshape(auxpatch, (maux,mx+2*mbc), \
+                            order='F')
+                state.aux = auxpatch[:,mbc:-mbc]
+                i_start_patch = i_end_patch  # prepare for next patch
+
+            elif patch.num_dim == 2:
+                ## FIXED FOR BINARY ##
+                mx = patch.dimensions[0].num_cells
+                my = patch.dimensions[1].num_cells
+                maux = state.num_aux
+                mbc = num_ghost
+                i_end_patch = i_start_patch + maux*(mx+2*mbc)*(my+2*mbc)
+                auxpatch = auxdata[i_start_patch:i_end_patch]
+                auxpatch = np.reshape(auxpatch, (maux,mx+2*mbc,my+2*mbc), \
+                            order='F')
+                state.aux = auxpatch[:,mbc:-mbc,mbc:-mbc]
+                i_start_patch = i_end_patch  # prepare for next patch
+
+            elif patch.num_dim == 3:
+                ##  NOT YET TESTED ##
+                mx = patch.dimensions[0].num_cells
+                my = patch.dimensions[1].num_cells
+                mz = patch.dimensions[2].num_cells
+                maux = state.num_aux
+                mbc = num_ghost
+                i_end_patch = i_start_patch + \
+                            maux*(mx+2*mbc)*(my+2*mbc)*(mz+2*mbc)
+                auxpatch = auxdata[i_start_patch:i_end_patch]
+                auxpatch = np.reshape(auxpatch, \
+                            (maux,mx+2*mbc,my+2*mbc,mz+2*mbc), \
+                            order='F')
+                state.aux = auxpatch[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
+                i_start_patch = i_end_patch  # prepare for next patch
+
+            else:
+                logger.critical("Read aux only up to 3d is supported.")
+                raise Exception("Read aux only up to 3d is supported.")
+
             
 def read_binary_t(frame,path='./',file_prefix='fort'):
     r"""Read only the fort.t file and return the data
