@@ -6,7 +6,7 @@ Quickstart
 
 Install and model a shockwave right away::
 
-    git clone git@github.com:clawpack/pyclaw.git
+    git clone git@github.com:clawpack/clawpack.git
     cd clawpack
     pip install -e .
     cd clawpack/pyclaw/apps/euler_2d
@@ -15,10 +15,6 @@ Install and model a shockwave right away::
 **********
 PyClaw is:
 **********
-
-
-
-
 
     * A **hyperbolic PDE solver** in 1D, 2D, and 3D, including mapped grids and surfaces, built on Clawpack;
     * **Massively parallel** -- the same simple script that runs on your laptop will
@@ -31,10 +27,6 @@ PyClaw makes use of the additional Clawpack packages,
 `Riemann <http://github.com/clawpack/riemann>`_ and
 `VisClaw <http://github.com/clawpack/visclaw>`_ for Riemann solvers and visualization, 
 respectively.
-
-You can get the latest development version of PyClaw via::
-
-    git clone git@github.com:clawpack/pyclaw.git
 
 If you have any issues or need help using PyClaw and PetClaw, `send e-mail <claw-users@googlegroups.com>`_
 to the `discussion group <http://groups.google.com/group/claw-users>`_.
@@ -53,6 +45,7 @@ Documentation
    troubleshooting
    about
    future
+   gallery/gallery_all
 
 
 .. _pyclaw_reference:

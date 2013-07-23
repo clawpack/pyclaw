@@ -1,49 +1,66 @@
-"""
-Searches all subdirectories for apps and prints out a list.
-"""
-
-import os,sys,glob
-try:
-    import subprocess
-except:
-    print '*** Error: require subprocess module from Python 2.4 or greater'
-    raise ImportError()
 
 
-def list_apps(rootdir):
+def list_apps(apps_dir=None):
+    """
+    Searches all subdirectories of apps_dir for apps and prints out a list.
+    """
+    import os
 
-    if rootdir==[]:   
-        # if called from command line with no argument
-        clawdir = os.path.expandvars('$PYCLAW/apps')
-        rootdir = clawdir
-    else:
-        # called with an argument, try to use this for rootdir:
-        rootdir = rootdir[0]
-        rootdir = os.path.abspath(rootdir)
+    if apps_dir is None:
+        from clawpack import pyclaw
+        apps_dir = '/'.join(pyclaw.__path__[0].split('/')[:-2])+'/pyclaw/apps/'
 
-    os.chdir(rootdir)
-    applist = []
+    apps_dir = os.path.abspath(apps_dir)
+    print apps_dir
+
+    current_dir = os.getcwd()
+
+    os.chdir(apps_dir)
     
     # Traverse directories depth-first (topdown=False) to insure e.g. that code in
     # book/chap21/radialdam/1drad is run before code in book/chap21/radialdam
     
-    for (dirpath, subdirs, files) in os.walk('.',topdown=False):
-        currentdir = os.path.abspath(os.getcwd())
-        os.chdir(os.path.abspath(dirpath))
-        rootdirpath = os.path.join(os.path.split(rootdir)[1],dirpath[2:])
-        
+    dirlist = []
+    applist = []
 
+    for (dirpath, subdirs, files) in os.walk('.',topdown=False):
         #By convention we assume that all python scripts are applications
         #unless they are named 'setup.py' or 'setplot.py'.
-        files = os.listdir('.')
-        pyfiles=[file for file in files if file.split('.')[-1]=='py']
-        appfiles=[file for file in pyfiles if file.split('.')[0] not in ('setup','setplot')]
+        files = os.listdir(os.path.abspath(dirpath))
+        pyfiles=[f for f in files if f.split('.')[-1]=='py']
+        appfiles=[f for f in pyfiles if f.split('.')[0] not in ('setup','setplot','__init__')]
+        appfiles=[f for f in appfiles if 'test' not in f]
 
-        if appfiles!=[]:
-            print rootdirpath
-            for appname in appfiles: print '     ',appname
+        for filename in appfiles:
+            dirlist.append(os.path.abspath(dirpath))
+            applist.append(filename)
+
+        #if appfiles!=[]:
+        #    print os.path.abspath(dirpath)
+        #    for appname in appfiles: print '     ',appname
            
-        os.chdir(currentdir)
+    os.chdir(current_dir)
+
+    return applist, dirlist
         
+def run_apps(apps_dir = None):
+    """
+    Runs all apps in subdirectories of apps_dir.
+    """
+    import os
+    import subprocess
+
+    current_dir = os.getcwd()
+
+    app_list, dir_list = list_apps(apps_dir)
+    for app, directory in zip(app_list,dir_list):
+        print directory, app
+        os.chdir(directory)
+        process = subprocess.Popen(['python',app])#, stdout = subprocess.PIPE)
+        stdout, stderr = process.communicate()
+
+    os.chdir(current_dir)
+
 if __name__=='__main__':
+    import sys
     list_apps(sys.argv[1:])

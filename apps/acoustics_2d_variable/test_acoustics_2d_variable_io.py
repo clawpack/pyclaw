@@ -42,21 +42,16 @@ def test_acoustics_2d_variable_io():
         if test_q is not None:
             q_err = check_diff(expected_q, test_q, reltol=1e-4)
             if q_err is not None:
-                test_passed = False
+                return q_err
         else:
             return
 
         if test_aux is not None:
             aux_err = check_diff(expected_aux, test_aux, reltol=1e-4)
             if aux_err is not None:
-                test_passed = False
+                return aux_err
         else:
             return
-
-        if test_passed:
-            return None
-        else:
-            return ([q_err[0], aux_err[0]], [q_err[1], aux_err[1]]  ,q_err[2] )
 
 
     from clawpack.pyclaw.util import gen_variants
@@ -67,13 +62,6 @@ def test_acoustics_2d_variable_io():
 
     import shutil
     from itertools import chain
-    try:
-        for test in chain(classic_tests):
-            yield test
-    finally:
-        ERROR_STR= """Error removing %(path)s, %(error)s """
-        try:
-            shutil.rmtree(tempdir )
-        except OSError as (errno, strerror):
-            print ERROR_STR % {'path' : tempdir, 'error': strerror }
-
+    for test in chain(classic_tests):
+        yield test
+        shutil.rmtree(tempdir )
