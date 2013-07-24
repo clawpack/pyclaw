@@ -1,5 +1,6 @@
 r"""
-Module for the cfl object, responsible for computing and enforcing the Courant-Friedrichs-Lewy condition
+Module for the CFL object, which is responsible for computing and enforcing the
+Courant-Friedrichs-Lewy condition.
 """
 
 class CFL(object):
