@@ -26,6 +26,8 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     #===========================================================================
     # Import libraries
     #===========================================================================
+    from clawpack import riemann
+
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
@@ -35,15 +37,11 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     # Setup solver and solver parameters
     #===========================================================================
     if solver_type == 'classic':
-        solver = pyclaw.ClawSolver2D()
+        solver = pyclaw.ClawSolver2D(riemann.shallow_roe_with_efix_2D)
         solver.limiters = pyclaw.limiters.tvd.MC
         solver.dimensional_split=1
     elif solver_type == 'sharpclaw':
-        solver = pyclaw.SharpClawSolver2D()
-
-    from clawpack import riemann
-    solver.rp = riemann.rp2_shallow_roe_with_efix
-    solver.num_waves = 3
+        solver = pyclaw.SharpClawSolver2D(riemann.shallow_roe_with_efix_2D)
 
     solver.bc_lower[0] = pyclaw.BC.extrap
     solver.bc_upper[0] = pyclaw.BC.wall
@@ -66,8 +64,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     y = pyclaw.Dimension('y',ylower,yupper,my)
     domain = pyclaw.Domain([x,y])
 
-    num_eqn = 3  # Number of equations
-    state = pyclaw.State(domain,num_eqn)
+    state = pyclaw.State(domain,solver.num_eqn)
 
     grav = 1.0 # Parameter (global auxiliary variable)
     state.problem_data['grav'] = grav

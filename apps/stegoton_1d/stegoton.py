@@ -73,23 +73,24 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
 
     vary_Z=False
 
+    from clawpack import riemann
+
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
         from clawpack import pyclaw
 
+    if kernel_language=='Python':
+        rs = riemann.nonlinear_elasticity_1D_py.nonlinear_elasticity_1D
+    elif kernel_language=='Fortran':
+        rs = riemann.nonlinear_elasticity_fwave_1D
+
     if solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver1D()
+        solver = pyclaw.SharpClawSolver1D(rs)
     else:
-        solver = pyclaw.ClawSolver1D()
+        solver = pyclaw.ClawSolver1D(rs)
 
     solver.kernel_language = kernel_language
-    from clawpack.riemann import rp_nonlinear_elasticity
-    if kernel_language=='Python':
-        solver.rp = rp_nonlinear_elasticity.rp_nonlinear_elasticity_1d
-    elif kernel_language=='Fortran':
-        from clawpack import riemann
-        solver.rp = riemann.rp1_nonlinear_elasticity_fwave
 
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
@@ -102,8 +103,7 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
     cellsperlayer=6; mx=int(round(xupper-xlower))*cellsperlayer
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     domain = pyclaw.Domain(x)
-    num_eqn = 2
-    state = pyclaw.State(domain,num_eqn)
+    state = pyclaw.State(domain,solver.num_eqn)
 
     #Set global parameters
     alpha = 0.5
@@ -135,7 +135,6 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
     solver.before_step = b4step 
     solver.user_bc_lower=moving_wall_bc
     solver.user_bc_upper=zero_bc
-    solver.num_waves=2
 
     if solver_type=='sharpclaw':
         solver.lim_type = 2

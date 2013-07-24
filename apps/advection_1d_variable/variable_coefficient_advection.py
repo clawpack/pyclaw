@@ -36,25 +36,27 @@ def auxinit(state):
     
 
 def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',iplot=False,htmlplot=False,outdir='./_output'):
+    from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
         from clawpack import pyclaw
 
-    if solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver1D()
-    else:
-        solver = pyclaw.ClawSolver1D()
-
-    from clawpack import riemann
-    solver.num_waves = riemann.rp_vc_advection.num_waves
+    if solver_type=='classic':
+        if kernel_language == 'Fortran':
+            solver = pyclaw.ClawSolver1D(riemann.vc_advection_1D)
+        elif kernel_language=='Python': 
+            solver = pyclaw.ClawSolver1D(riemann.vc_advection_1D_py.vc_advection_1D)
+    elif solver_type=='sharpclaw':
+        if kernel_language == 'Fortran':
+            solver = pyclaw.SharpClawSolver1D(riemann.vc_advection_1D)
+        elif kernel_language=='Python': 
+            solver = pyclaw.SharpClawSolver1D(riemann.vc_advection_1D_py.vc_advection_1D)
+        solver.weno_order=weno_order
+    else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language
-    if solver.kernel_language=='Python': 
-        solver.rp = riemann.rp_vc_advection.rp_vc_advection_1d
-    elif solver.kernel_language=='Fortran':
-        raise NotImplementedError('The 1D variable coefficient advection Riemann solver has not yet been ported.')
 
     solver.limiters = pyclaw.limiters.tvd.MC
     solver.bc_lower[0] = 2
