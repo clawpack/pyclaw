@@ -28,7 +28,7 @@ def test_3d_acoustics():
         grid = claw.solution.state.grid
         final_difference =np.prod(grid.delta)*np.linalg.norm(pfinal-pinitial,ord=1)
 
-        thisdir = os.getcwd()
+        thisdir = os.path.dirname(__file__)
         verify_pfinal = np.loadtxt(os.path.join(thisdir,'verify_classic_heterogeneous.txt'))
         norm_err = np.linalg.norm(pfinal-verify_pfinal)
         return check_diff(0, norm_err, abstol=2e-1)
