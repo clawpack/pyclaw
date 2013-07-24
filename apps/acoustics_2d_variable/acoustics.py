@@ -9,6 +9,7 @@ def acoustics2D(kernel_language='Fortran',iplot=False,htmlplot=False,use_petsc=F
     """
     Example python script for solving the 2d acoustics equations.
     """
+    from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -16,16 +17,11 @@ def acoustics2D(kernel_language='Fortran',iplot=False,htmlplot=False,use_petsc=F
         from clawpack import pyclaw
 
     if solver_type=='classic':
-        solver=pyclaw.ClawSolver2D()
+        solver=pyclaw.ClawSolver2D(riemann.vc_acoustics_2D)
         solver.dimensional_split=False
         solver.limiters = pyclaw.limiters.tvd.MC
     elif solver_type=='sharpclaw':
-        solver=pyclaw.SharpClawSolver2D()
-
-    from clawpack import riemann
-    solver.rp = riemann.rp2_vc_acoustics
-
-    solver.num_waves = 2
+        solver=pyclaw.SharpClawSolver2D(riemann.vc_acoustics_2D)
 
     solver.bc_lower[0]=pyclaw.BC.wall
     solver.bc_upper[0]=pyclaw.BC.extrap

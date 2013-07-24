@@ -123,6 +123,8 @@ def psystem2D(iplot=False,kernel_language='Fortran',htmlplot=False,
     """
     Solve the p-system in 2D with variable coefficients
     """
+    from clawpack import riemann
+
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
@@ -155,17 +157,13 @@ def psystem2D(iplot=False,kernel_language='Fortran',htmlplot=False,
     restart_from_frame = None
 
     if solver_type=='classic':
-        solver = pyclaw.ClawSolver2D()
+        solver = pyclaw.ClawSolver2D(riemann.psystem_2D)
     elif solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver2D()
+        solver = pyclaw.SharpClawSolver2D(riemann.psystem_2D)
 
     if kernel_language != 'Fortran':
         raise Exception('Unrecognized value of kernel_language for 2D psystem')
 
-    from clawpack import riemann
-    solver.rp = riemann.rp2_psystem
-
-    solver.num_waves = 2
     solver.limiters = pyclaw.limiters.tvd.superbee
 
     solver.bc_lower[0]=bc_x_lower

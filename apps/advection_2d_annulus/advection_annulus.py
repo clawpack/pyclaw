@@ -179,28 +179,20 @@ def stream(xp,yp):
 
 
 def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
-    #===========================================================================
-    # Import libraries
-    #===========================================================================
+    from clawpack import riemann
+
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
         from clawpack import pyclaw
 
-    #===========================================================================
-    # Setup solver and solver parameters
-    #===========================================================================
     if solver_type == 'classic':
-        solver = pyclaw.ClawSolver2D()
+        solver = pyclaw.ClawSolver2D(riemann.vc_advection_2D)
         solver.dimensional_split = 0
         solver.transverse_waves = 2
         solver.order = 2
     elif solver_type == 'sharpclaw':
-        solver = pyclaw.SharpClawSolver2D()
-
-    from clawpack import riemann
-    solver.rp = riemann.rp2_vc_advection
-    solver.num_waves = 1
+        solver = pyclaw.SharpClawSolver2D(riemann.vc_advection_2D)
 
     solver.bc_lower[0] = pyclaw.BC.extrap
     solver.bc_upper[0] = pyclaw.BC.extrap

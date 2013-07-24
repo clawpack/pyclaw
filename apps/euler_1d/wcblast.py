@@ -12,6 +12,7 @@ def wcblast(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver
     This example involves a pair of interacting shock waves.
     The conserved quantities are density, momentum density, and total energy density.
     """
+    from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -19,14 +20,10 @@ def wcblast(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver
         from clawpack import pyclaw
 
     if solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver1D()
+        solver = pyclaw.SharpClawSolver1D(riemann.euler_with_efix_1D)
     else:
-        solver = pyclaw.ClawSolver1D()
+        solver = pyclaw.ClawSolver1D(riemann.euler_with_efix_1D)
 
-    from clawpack import riemann
-    solver.rp = riemann.rp1_euler_with_efix
-
-    solver.num_waves = 3
     solver.bc_lower[0]=pyclaw.BC.wall
     solver.bc_upper[0]=pyclaw.BC.wall
 

@@ -18,18 +18,19 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
     # Setup solver and solver parameters
     #===========================================================================
     if solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver1D()
+        if kernel_language=='Python': 
+            solver = pyclaw.SharpClawSolver1D(riemann.burgers_1D_py.burgers_1D)
+        elif kernel_language=='Fortran':
+            solver = pyclaw.SharpClawSolver1D(riemann.burgers_1D)
     else:
-        solver = pyclaw.ClawSolver1D()
+        if kernel_language=='Python': 
+            solver = pyclaw.ClawSolver1D(riemann.burgers_1D_py.burgers_1D)
+        elif kernel_language=='Fortran':
+            solver = pyclaw.ClawSolver1D(riemann.burgers_1D)
         solver.limiters = pyclaw.limiters.tvd.vanleer
 
     solver.kernel_language = kernel_language
-    if kernel_language=='Python': 
-        solver.rp = riemann.rp_burgers_1d
-    elif kernel_language=='Fortran':
-        solver.rp = riemann.rp1_burgers
         
-    solver.num_waves = 1
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
 

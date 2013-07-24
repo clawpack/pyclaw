@@ -20,13 +20,10 @@ def traffic(use_petsc=0,iplot=0,htmlplot=0,outdir='./_output',solver_type='class
     # Setup solver and solver parameters
     #===========================================================================
     if solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver1D()
+        solver = pyclaw.SharpClawSolver1D(riemann.traffic_1D)
     else:
-        solver = pyclaw.ClawSolver1D()
+        solver = pyclaw.ClawSolver1D(riemann.traffic_1D)
 
-    solver.rp = riemann.rp1_traffic
-        
-    solver.num_waves = 1
     solver.bc_lower[0] = pyclaw.BC.extrap
     solver.bc_upper[0] = pyclaw.BC.extrap
 
