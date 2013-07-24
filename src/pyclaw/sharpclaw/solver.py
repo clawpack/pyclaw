@@ -164,8 +164,8 @@ class SharpClawSolver(Solver):
         state.set_num_ghost(self.num_ghost)
         # End hack
 
-        self.allocate_rk_stages(solution)
-        self.set_mthlim()
+        self._allocate_rk_stages(solution)
+        self._set_mthlim()
 
         state = solution.states[0]
  
@@ -175,9 +175,9 @@ class SharpClawSolver(Solver):
                 self.fmod = __import__(so_name,fromlist=['clawpack.pyclaw.sharpclaw'])
             state.set_cparam(self.fmod)
             state.set_cparam(self.rp)
-            self.set_fortran_parameters(state,self.fmod.clawparams,self.fmod.workspace,self.fmod.reconstruct)
+            self._set_fortran_parameters(state,self.fmod.clawparams,self.fmod.workspace,self.fmod.reconstruct)
 
-        self.allocate_bc_arrays(state)
+        self._allocate_bc_arrays(state)
 
         self._is_set_up = True
 
@@ -255,7 +255,7 @@ class SharpClawSolver(Solver):
             return False
 
 
-    def set_mthlim(self):
+    def _set_mthlim(self):
         self._mthlim = self.limiters
         if not isinstance(self.limiters,list): self._mthlim=[self._mthlim]
         if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_waves
@@ -299,7 +299,7 @@ class SharpClawSolver(Solver):
         return deltaq.flatten('f')
 
 
-    def set_fortran_parameters(self,state,clawparams,workspace,reconstruct):
+    def _set_fortran_parameters(self,state,clawparams,workspace,reconstruct):
         """
         Set parameters for Fortran modules used by SharpClaw.
         The modules should be imported and passed as arguments to this function.
@@ -327,7 +327,7 @@ class SharpClawSolver(Solver):
         reconstruct.alloc_recon_workspace(maxnx,self.num_ghost,state.num_eqn,self.num_waves,
                                             clawparams.lim_type,clawparams.char_decomp)
 
-    def allocate_rk_stages(self,solution):
+    def _allocate_rk_stages(self,solution):
         r"""
         Instantiate State objects for Runge--Kutta stages.
 
@@ -418,9 +418,9 @@ class SharpClawSolver1D(SharpClawSolver):
     
         import numpy as np
 
-        self.apply_q_bcs(state)
+        self._apply_q_bcs(state)
         if state.num_aux > 0:
-            self.apply_aux_bcs(state)
+            self._apply_aux_bcs(state)
         q = self.qbc 
 
         grid = state.grid
@@ -560,9 +560,9 @@ class SharpClawSolver2D(SharpClawSolver):
         values are in the cell.
 
         """
-        self.apply_q_bcs(state)
+        self._apply_q_bcs(state)
         if state.num_aux > 0:    
-            self.apply_aux_bcs(state)
+            self._apply_aux_bcs(state)
         q = self.qbc 
 
         grid = state.grid
