@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-def advection(kernel_language='Python',iplot=False,htmlplot=False,
+def advection(kernel_language='Python',
               use_petsc=False,solver_type='classic', weno_order=5,
               outdir='./_output'):
     """
@@ -53,10 +53,6 @@ def advection(kernel_language='Python',iplot=False,htmlplot=False,
         claw.output_format = None
 
     claw.tfinal =1.0
-    status = claw.run()
-
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
     return claw
 

@@ -22,7 +22,7 @@ def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
     state.q[2,:,:] = hl*vl*(r<=radDam) + hr*vr*(r>radDam)
 
     
-def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
+def shallow2D(use_petsc=False,outdir='./_output',solver_type='classic'):
     #===========================================================================
     # Import libraries
     #===========================================================================
@@ -95,24 +95,9 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
     claw.outdir = outdir
     claw.num_output_times = 10
 
-    #===========================================================================
-    # Solve the problem
-    #===========================================================================
-    status = claw.run()
-
-    #===========================================================================
-    # Plot results
-    #===========================================================================
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,file_format=claw.output_format)
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,file_format=claw.output_format)
+    return claw
 
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(shallow2D)
-    print 'Error: ', output
-
-
-
-
-

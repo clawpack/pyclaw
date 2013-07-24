@@ -3,7 +3,7 @@
 
 import numpy as np
 
-def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',solver_type='classic',disable_output=False,**kwargs):
+def acoustics3D(use_petsc=False,outdir='./_output',solver_type='classic',disable_output=False,**kwargs):
     """
     Example python script for solving the 3d acoustics equations.
     """
@@ -114,37 +114,8 @@ def acoustics3D(iplot=False,htmlplot=False,use_petsc=False,outdir='./_output',so
 
     # Solve
     claw.tfinal = 2.0
-    status = claw.run()
+    return claw
 
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,file_format=claw.output_format)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,file_format=claw.output_format)
-
-    pinitial=claw.frames[0].state.get_q_global()
-    pmiddle  =claw.frames[3].state.get_q_global()
-    pfinal  =claw.frames[claw.num_output_times].state.get_q_global()
-
-    if pinitial != None and pmiddle != None and pfinal != None:
-        pinitial =pinitial[0,:,:,:].reshape(-1)
-        pmiddle  =pmiddle[0,:,:,:].reshape(-1)
-        pfinal   =pfinal[0,:,:,:].reshape(-1)
-        final_difference =np.prod(grid.delta)*np.linalg.norm(pfinal-pinitial,ord=1)
-        middle_difference=np.prod(grid.delta)*np.linalg.norm(pmiddle-pinitial,ord=1)
-
-        if app == None:
-            print 'Final error: ', final_difference
-            print 'Middle error: ', middle_difference
-
-        #import matplotlib.pyplot as plt
-        #for i in range(claw.num_output_times):
-        #    plt.pcolor(claw.frames[i].state.q[0,:,:,mz/2])
-        #    plt.figure()
-        #plt.show()
-
-        return pfinal, final_difference
-
-    else:
-        
-        return
 
 if __name__=="__main__":
     import sys

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-def traffic(use_petsc=0,iplot=0,htmlplot=0,outdir='./_output',solver_type='classic'):
+def traffic(use_petsc=0,outdir='./_output',solver_type='classic'):
     """
     Example python script for solving 1d traffic model:
 
@@ -55,10 +55,7 @@ def traffic(use_petsc=0,iplot=0,htmlplot=0,outdir='./_output',solver_type='class
     claw.solver = solver
     claw.outdir = outdir
 
-    status = claw.run()
-
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
+    return claw
 
 
 if __name__=="__main__":

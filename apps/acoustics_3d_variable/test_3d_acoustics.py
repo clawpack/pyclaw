@@ -1,26 +1,39 @@
 def test_3d_acoustics():
     """ test_3d_acoustics """
 
-    def acoustics_verify_homogeneous(return_tuple):
+    def acoustics_verify_homogeneous(claw):
         from clawpack.pyclaw.util import check_diff
+        import numpy as np
 
-        if return_tuple != None:
-            test_final_difference = return_tuple[1]
-            return check_diff(0.00286, test_final_difference, abstol=1e-4)
-        return
+        pinitial = claw.frames[0].state.get_q_global()
+        pfinal   = claw.frames[claw.num_output_times].state.get_q_global()
 
-    def acoustics_verify_heterogeneous(return_tuple):
+        pinitial = pinitial[0,:,:,:].reshape(-1)
+        pfinal   = pfinal[0,:,:,:].reshape(-1)
+        grid = claw.solution.state.grid
+        final_difference =np.prod(grid.delta)*np.linalg.norm(pfinal-pinitial,ord=1)
+
+        return check_diff(0.00286, final_difference, abstol=1e-4)
+
+    def acoustics_verify_heterogeneous(claw):
         import os
         import numpy as np
         from clawpack.pyclaw.util import check_diff
 
-        if return_tuple != None:
-            test_pfinal = return_tuple[0]
-            thisdir = os.path.dirname(__file__)
-            verify_pfinal = np.loadtxt(os.path.join(thisdir,'verify_classic_heterogeneous.txt'))
-            norm_err = np.linalg.norm(test_pfinal-verify_pfinal)
-            return check_diff(0, norm_err, abstol=2e-1)
-        return
+        pinitial = claw.frames[0].state.get_q_global()
+        pfinal   = claw.frames[claw.num_output_times].state.get_q_global()
+
+        pinitial = pinitial[0,:,:,:].reshape(-1)
+        pfinal   = pfinal[0,:,:,:].reshape(-1)
+        grid = claw.solution.state.grid
+        final_difference =np.prod(grid.delta)*np.linalg.norm(pfinal-pinitial,ord=1)
+
+        thisdir = os.getcwd()
+        verify_pfinal = np.loadtxt(os.path.join(thisdir,'verify_classic_heterogeneous.txt'))
+        norm_err = np.linalg.norm(pfinal-verify_pfinal)
+        return check_diff(0, norm_err, abstol=2e-1)
+
+
 
     from clawpack.pyclaw.util import gen_variants
     from acoustics import acoustics3D

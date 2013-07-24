@@ -178,7 +178,7 @@ def stream(xp,yp):
     return streamValue
 
 
-def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic'):
+def advection_annulus(use_petsc=False,outdir='./_output',solver_type='classic'):
     #===========================================================================
     # Import libraries
     #===========================================================================
@@ -265,25 +265,9 @@ def advection_annulus(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',
     claw.solver = solver
     claw.outdir = outdir
 
-    #===========================================================================
-    # Solve the problem
-    #===========================================================================
-    status = claw.run()
-
-    #===========================================================================
-    # Plot results
-    #===========================================================================
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
-
+    return claw
 
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(advection_annulus)
-    print 'Error: ',output
-
-
-
-
-

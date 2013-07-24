@@ -159,7 +159,7 @@ def step_Euler_radial(solver,state,dt):
     q[3,:,:] = q[3,:,:] - dt*(ndim-1)/rad * v * (qstar[3,:,:] + press)
 
 
-def shockbubble(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='classic'):
+def shockbubble(use_petsc=False,outdir='./_output',solver_type='classic'):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a bubble of dense gas that is impacted by a shock.

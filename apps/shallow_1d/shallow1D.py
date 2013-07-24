@@ -6,7 +6,7 @@
 """
 
     
-def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=False,outdir='./_output',solver_type='classic'):
+def shallow1D(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_type='classic'):
     #===========================================================================
     # Import libraries
     #===========================================================================
@@ -87,23 +87,9 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',iplot=False,htmlplot=Fal
     claw.solver = solver
     claw.outdir = outdir
 
-
-    #===========================================================================
-    # Solve the problem
-    #===========================================================================
-    status = claw.run()
-
-    #===========================================================================
-    # Plot results
-    #===========================================================================
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir,file_format=claw.output_format)
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir,file_format=claw.output_format)
+    return claw
 
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(shallow1D)
-    
-
-   
-

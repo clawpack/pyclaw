@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
-def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False,outdir='./_output',weno_order=5, disable_output=False):
+def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5, disable_output=False):
     """
     This example solves the 1-dimensional acoustics equations in a homogeneous
     medium.
@@ -83,13 +83,6 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ip
     if disable_output:
         claw.output_format = None
     claw.tfinal = 1.0
-
-    # Solve
-    status = claw.run()
-
-    # Plot results
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
     return claw
 
