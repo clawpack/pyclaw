@@ -85,7 +85,7 @@ def velocity(current_data):
 def stress(current_data):
     """Compute stress from strain and momentum"""
     from stegoton import setaux
-    from clawpack.riemann.rp_nonlinear_elasticity import sigma 
+    from clawpack.riemann.nonlinear_elasticity_1D import sigma 
     aux=setaux(current_data.x)
     epsilon = current_data.q[0,:]
     stress = sigma(epsilon,aux[1,:])
