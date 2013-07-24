@@ -26,33 +26,24 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
     """
     Example python script for solving the 2d advection equation.
     """
-    #===========================================================================
-    # Import libraries
-    #===========================================================================
+    from clawpack import riemann
+
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
         from clawpack import pyclaw
 
-    #===========================================================================
-    # Setup solver and solver parameters
-    #===========================================================================
     if solver_type=='classic':
-        solver = pyclaw.ClawSolver2D()
+        solver = pyclaw.ClawSolver2D(riemann.advection_2D)
         solver.dimensional_split = 1
         solver.limiters = pyclaw.limiters.tvd.vanleer
     elif solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver2D()
-
-    from clawpack import riemann
-    solver.rp = riemann.rp2_advection
+        solver = pyclaw.SharpClawSolver2D(riemann.advection_2D)
 
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
     solver.bc_lower[1] = pyclaw.BC.periodic
     solver.bc_upper[1] = pyclaw.BC.periodic
-
-    solver.num_waves = 1
 
     solver.cfl_max=1.0
     solver.cfl_desired = 0.9
