@@ -7,7 +7,7 @@ Solve the Euler equations of compressible fluid dynamics.
 from clawpack import pyclaw
 from clawpack import riemann
 
-solver = pyclaw.ClawSolver2D(riemann.rp2_euler_4wave)
+solver = pyclaw.ClawSolver2D(riemann.euler_4wave_2D)
 solver.all_bcs = pyclaw.BC.extrap
 
 domain = pyclaw.Domain([0.,0.],[1.,1.],[100,100])
