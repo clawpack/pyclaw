@@ -7,26 +7,27 @@ def advection(kernel_language='Python',
     Example python script for solving the 1d advection equation.
     """
     import numpy as np
+    from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
         from clawpack import pyclaw
 
-    if solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver1D()
+    if solver_type=='classic':
+        if kernel_language == 'Fortran':
+            solver = pyclaw.ClawSolver1D(riemann.advection_1D)
+        elif kernel_language=='Python': 
+            solver = pyclaw.ClawSolver1D(riemann.advection_1D_py.advection_1D)
+    elif solver_type=='sharpclaw':
+        if kernel_language == 'Fortran':
+            solver = pyclaw.SharpClawSolver1D(riemann.advection_1D)
+        elif kernel_language=='Python': 
+            solver = pyclaw.SharpClawSolver1D(riemann.advection_1D_py.advection_1D)
         solver.weno_order=weno_order
-    else:
-        solver = pyclaw.ClawSolver1D()
+    else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language
-    from clawpack.riemann import rp_advection
-    solver.num_waves = rp_advection.num_waves
-    if solver.kernel_language=='Python':
-        solver.rp = rp_advection.rp_advection_1d
-    else:
-        from clawpack import riemann
-        solver.rp = riemann.rp1_advection
 
     solver.bc_lower[0] = 2
     solver.bc_upper[0] = 2

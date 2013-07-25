@@ -16,6 +16,7 @@ def kpp(use_petsc=False,outdir='./_output',solver_type='classic'):
     """
     Example python script for solving the 2d KPP equations.
     """
+    from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -23,14 +24,10 @@ def kpp(use_petsc=False,outdir='./_output',solver_type='classic'):
         from clawpack import pyclaw
 
     if solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver2D()
+        solver = pyclaw.SharpClawSolver2D(riemann.kpp_2D)
     else:
-        solver = pyclaw.ClawSolver2D()
+        solver = pyclaw.ClawSolver2D(riemann.kpp_2D)
 
-    from clawpack import riemann
-    solver.rp = riemann.rp2_kpp
-
-    solver.num_waves = 1
     solver.bc_lower[0]=pyclaw.BC.extrap
     solver.bc_upper[0]=pyclaw.BC.extrap
     solver.bc_lower[1]=pyclaw.BC.extrap
@@ -41,15 +38,13 @@ def kpp(use_petsc=False,outdir='./_output',solver_type='classic'):
     x = pyclaw.Dimension('x',-2.0,2.0,mx)
     y = pyclaw.Dimension('y',-2.0,2.0,my)
     domain = pyclaw.Domain([x,y])
-    num_eqn = 1
-    state = pyclaw.State(domain,num_eqn)
+    state = pyclaw.State(domain,solver.num_eqn)
 
     qinit(state)
 
     solver.dimensional_split = 1
     solver.cfl_max = 1.0
     solver.cfl_desired = 0.9
-    solver.num_waves = 2
     solver.limiters = pyclaw.limiters.tvd.minmod
 
     claw = pyclaw.Controller()

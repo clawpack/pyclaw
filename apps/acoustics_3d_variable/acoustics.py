@@ -7,6 +7,7 @@ def acoustics3D(use_petsc=False,outdir='./_output',solver_type='classic',disable
     """
     Example python script for solving the 3d acoustics equations.
     """
+    from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -14,13 +15,10 @@ def acoustics3D(use_petsc=False,outdir='./_output',solver_type='classic',disable
         from clawpack import pyclaw
 
     if solver_type=='classic':
-        solver=pyclaw.ClawSolver3D()
+        solver=pyclaw.ClawSolver3D(riemann.vc_acoustics_3D)
     else:
         raise Exception('Unrecognized solver_type.')
 
-    from clawpack import riemann
-    solver.rp = riemann.rp3_vc_acoustics
-    solver.num_waves = 2
     solver.limiters = pyclaw.limiters.tvd.MC
 
     solver.bc_lower[0]=pyclaw.BC.periodic

@@ -375,13 +375,13 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',outdir='./_o
         raise Exception("Only Classic-style solvers (solver_type='classic') are supported")
 
     from clawpack import pyclaw
+    from clawpack import riemann
 
     #===========================================================================
     # Set up solver and solver parameters
     #===========================================================================
-    solver = pyclaw.ClawSolver2D()
-    from clawpack import riemann
-    solver.rp = riemann.rp2_shallow_sphere
+    solver = pyclaw.ClawSolver2D(riemann.shallow_sphere_2D)
+    
     solver.fmod = classic2
 
     # Set boundary conditions
@@ -415,10 +415,6 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',outdir='./_o
     # =======================================================================
     solver.transverse_waves = 2
     
-    # Number of waves in each Riemann solution
-    # ========================================
-    solver.num_waves = 3
-
     # Use source splitting method
     # ===========================
     solver.source_split = 2
@@ -474,9 +470,8 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',outdir='./_o
 
     # Define state object
     # ===================
-    num_eqn = 4  # Number of equations
     num_aux = 16 # Number of auxiliary variables
-    state = pyclaw.State(domain,num_eqn,num_aux)
+    state = pyclaw.State(domain,solver.num_eqn,num_aux)
 
     # Override default mapc2p function
     # ================================
@@ -500,7 +495,7 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',outdir='./_o
     # Set initial conditions
     # ====================== 
     # 1) Call fortran function
-    qtmp = np.ndarray(shape=(num_eqn,mx+2*num_ghost,my+2*num_ghost), dtype=float, order='F')
+    qtmp = np.ndarray(shape=(solver.num_eqn,mx+2*num_ghost,my+2*num_ghost), dtype=float, order='F')
     qtmp = problem.qinit(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
     state.q[:,:,:] = qtmp[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
 

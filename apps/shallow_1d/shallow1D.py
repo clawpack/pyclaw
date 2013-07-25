@@ -11,30 +11,28 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',outdir='./_output',solve
     # Import libraries
     #===========================================================================
     import numpy as np
+    from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
         from clawpack import pyclaw
 
+    if kernel_language =='Python':
+        rs = riemann.shallow_1D_py.shallow_1D
+    elif kernel_language =='Fortran':
+        rs = riemann.shallow_roe_with_efix_1D
+ 
     if solver_type == 'classic':
-        solver = pyclaw.ClawSolver1D()
+        solver = pyclaw.ClawSolver1D(rs)
         solver.limiters = pyclaw.limiters.tvd.vanleer
     elif solver_type == 'sharpclaw':
-        solver = pyclaw.SharpClawSolver1D()
+        solver = pyclaw.SharpClawSolver1D(rs)
 
     #===========================================================================
     # Setup solver and solver parameters
     #===========================================================================
     solver.kernel_language=kernel_language
-    from clawpack.riemann import rp_shallow
-    solver.num_waves = rp_shallow.num_waves
-    if kernel_language =='Python':
-        solver.rp = rp_shallow.rp_shallow_roe_1d
-        state.problem_data['efix'] = True
-    elif kernel_language == 'Fortran':
-        from clawpack import riemann
-        solver.rp = riemann.rp1_shallow_roe_with_efix
 
     solver.bc_lower[0] = pyclaw.BC.extrap
     solver.bc_upper[0] = pyclaw.BC.extrap

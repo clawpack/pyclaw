@@ -7,6 +7,7 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ou
     medium.
     """
     from numpy import sqrt, exp, cos
+    from clawpack import riemann
 
     #=================================================================
     # Import the appropriate classes, depending on the options passed
@@ -17,9 +18,15 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ou
         from clawpack import pyclaw
 
     if solver_type=='classic':
-        solver = pyclaw.ClawSolver1D()
+        if kernel_language == 'Fortran':
+            solver = pyclaw.ClawSolver1D(riemann.acoustics_1D)
+        elif kernel_language=='Python': 
+            solver = pyclaw.ClawSolver1D(riemann.acoustics_1D_py.acoustics_1D)
     elif solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver1D()
+        if kernel_language == 'Fortran':
+            solver = pyclaw.SharpClawSolver1D(riemann.acoustics_1D)
+        elif kernel_language=='Python': 
+            solver = pyclaw.SharpClawSolver1D(riemann.acoustics_1D_py.acoustics_1D)
         solver.weno_order=weno_order
     else: raise Exception('Unrecognized value of solver_type.')
 
@@ -27,14 +34,6 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ou
     # Instantiate the solver and define the system of equations to be solved
     #========================================================================
     solver.kernel_language=kernel_language
-    from clawpack.riemann import rp_acoustics
-    solver.num_waves=rp_acoustics.num_waves
-
-    if kernel_language=='Python': 
-        solver.rp = rp_acoustics.rp_acoustics_1d
-    else:
-        from clawpack.riemann import rp1_acoustics
-        solver.rp = rp1_acoustics
 
     solver.limiters = pyclaw.limiters.tvd.MC
 

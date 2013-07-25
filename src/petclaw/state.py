@@ -228,8 +228,7 @@ class State(clawpack.pyclaw.State):
 
     def get_qbc_from_q(self,num_ghost,qbc):
         """
-        Returns q with ghost cells attached.  For PetSolver,
-        this means returning the local vector.  
+        Returns q with ghost cells attached, by accessing the local vector.
         """
         shape = [n + 2*num_ghost for n in self.grid.num_cells]
         
@@ -239,8 +238,7 @@ class State(clawpack.pyclaw.State):
             
     def get_auxbc_from_aux(self,num_ghost,auxbc):
         """
-        Returns aux with ghost cells attached.  For PetSolver,
-        this means returning the local vector.  
+        Returns aux with ghost cells attached, by accessing the local vector.
         """
         shape = [n + 2*num_ghost for n in self.grid.num_cells]
         

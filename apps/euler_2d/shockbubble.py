@@ -159,6 +159,7 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a bubble of dense gas that is impacted by a shock.
     """
+    from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -170,12 +171,12 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
 
     
     if solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver2D()
+        solver = pyclaw.SharpClawSolver2D(riemann.euler_5wave_2D)
         solver.dq_src=dq_Euler_radial
         solver.weno_order=5
         solver.lim_type=2
     else:
-        solver = pyclaw.ClawSolver2D()
+        solver = pyclaw.ClawSolver2D(riemann.euler_5wave_2D)
         solver.limiters = [4,4,4,4,2]
         solver.step_source=step_Euler_radial
 
@@ -184,9 +185,8 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
     domain = pyclaw.Domain([x,y])
-    num_eqn = 5
     num_aux=1
-    state = pyclaw.State(domain,num_eqn,num_aux)
+    state = pyclaw.State(domain,solver.num_eqn,num_aux)
 
     state.problem_data['gamma']= gamma
     state.problem_data['gamma1']= gamma1
@@ -197,11 +197,8 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
     auxinit(state)
     initial_solution = pyclaw.Solution(state,domain)
 
-    from clawpack import riemann
-    solver.rp = riemann.rp2_euler_5wave
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
-    solver.num_waves = 5
     solver.dt_initial=0.005
     solver.user_bc_lower=shockbc
     solver.source_split = 1

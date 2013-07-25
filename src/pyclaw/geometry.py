@@ -59,7 +59,7 @@ class Grid(object):
         [10, 25]
         >>> grid.lower
         [0.0, -1.0]
-        >>> grid.delta
+        >>> grid.delta # Returns [dx, dy]
         [0.1, 0.08]
 
     A grid can be extended to higher dimensions using the add_dimension() method:
@@ -337,15 +337,11 @@ class Grid(object):
         r"""
         Determine the cell indices of each gauge and make a list of all gauges
         with their cell indices.  
-        
-        For PetClaw, first check whether each gauge is in the part of the grid
-        corresponding to this grid.
-
         """
         from numpy import floor
         
         for gauge in gauge_coords: 
-            # Determine gauge locations in units of mesh spacing
+            # Check if gauge belongs to this grid:
             if all(self.lower[n]<=gauge[n]<self.upper[n] for n in range(self.num_dim)):
                 # Set indices relative to this grid
                 gauge_index = [int(round((gauge[n]-self.lower[n])/self.delta[n])) 
@@ -356,8 +352,7 @@ class Grid(object):
 
     def setup_gauge_files(self,outdir):
         r"""
-        Creates and opens file objects for gauges
-
+        Creates and opens file objects for gauges.
         """
         import os
         gauge_path = os.path.join(outdir,self.gauge_dir_name)
@@ -447,6 +442,8 @@ class Dimension(object):
     _centers = None
 
     def centers_with_ghost(self,nghost):
+        r"""(ndarrary(:)) - Location of all cell center coordinates
+        for this dimension, including centers of ghost cells."""
         centers = self.centers
         pre  = np.linspace(self.lower-(nghost-0.5)*self.delta,self.lower-0.5*self.delta,nghost)
         post = np.linspace(self.upper+0.5*self.delta, self.upper+(nghost-0.5)*self.delta,nghost)
@@ -614,6 +611,15 @@ class Domain(object):
         2. Using a single argument, which is
             - A list of dimensions; or
             - A list of patches.
+
+    :Examples:
+
+        >>> from clawpack import pyclaw
+        >>> domain = pyclaw.Domain( (0.,0.), (1.,1.), (100,100))
+        >>> print domain.num_dim
+        2
+        >>> print domain.grid.num_cells
+        [100, 100]
     """
     @property
     def num_dim(self):

@@ -10,8 +10,8 @@ class CFLError(Exception):
         super(CFLError,self).__init__(msg)
 
 class BC():
-    """Enumeration of boundary condition names.
-       This could instead just be a static dictionary."""
+    """Enumeration of boundary condition names."""
+    # This could instead just be implemented as a static dictionary.
     custom     = 0
     extrap    = 1
     periodic   = 2
@@ -30,15 +30,19 @@ class Solver(object):
     The pyclaw.Solver.solver class is an abstract class that should
     not be instantiated; rather, all Solver classes should inherit from it.
 
-    A Solver is typically instantiated as follows::
+    Solver initialization takes one argument -- a Riemann solver:
 
-        >>> from clawpack import pyclaw
-        >>> solver = pyclaw.ClawSolver2D()
+        >>> from clawpack import pyclaw, riemann
+        >>> solver = pyclaw.ClawSolver2D(riemann.rp2_euler_4wave)
 
-    After which solver options may be set.  It is always necessary to set
-    solver.num_waves to the number of waves used in the Riemann solver.
-    Typically it is also necessary to set the boundary conditions (for q, and
-    for aux if an aux array is used).  Many other options may be set
+    After which solver options may be set.
+    It is necessary to set the boundary conditions (for q, and
+    for aux if an aux array is used):
+
+        >>> solver.bc_lower[0] = pyclaw.BC.extrap
+        >>> solver.bc_upper[0] = pyclaw.BC.wall
+    
+    Many other options may be set
     for specific solvers; for instance the limiter to be used, whether to
     use a dimensionally-split algorithm, and so forth.
 
@@ -278,7 +282,7 @@ class Solver(object):
     # ========================================================================
     #  Boundary Conditions
     # ========================================================================    
-    def allocate_bc_arrays(self,state):
+    def _allocate_bc_arrays(self,state):
         r"""
         Create numpy arrays for q and aux with ghost cells attached.
         These arrays are referred to throughout the code as qbc and auxbc.
@@ -294,9 +298,9 @@ class Solver(object):
         auxbc_dim.insert(0,state.num_aux)
         self.auxbc = np.empty(auxbc_dim,order='F')
         if state.num_aux>0:
-            self.apply_aux_bcs(state)
+            self._apply_aux_bcs(state)
 
-    def apply_q_bcs(self,state):
+    def _apply_q_bcs(self,state):
         r"""
         Fills in solver.qbc (the local vector), including ghost cell values.
     
@@ -342,30 +346,30 @@ class Solver(object):
                 # If a user defined boundary condition is being used, send it on,
                 # otherwise roll the axis to front position and operate on it
                 if self.bc_lower[idim] == BC.custom:
-                    self.qbc_lower(state,dim,state.t,self.qbc,idim)
+                    self._qbc_lower(state,dim,state.t,self.qbc,idim)
                 elif self.bc_lower[idim] == BC.periodic:
                     if state.grid.on_upper_boundary[idim]:
                         # This process owns the whole domain
-                        self.qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
+                        self._qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
                 else:
-                    self.qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
+                    self._qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
 
             if state.grid.on_upper_boundary[idim]:
                 if self.bc_upper[idim] == BC.custom:
-                    self.qbc_upper(state,dim,state.t,self.qbc,idim)
+                    self._qbc_upper(state,dim,state.t,self.qbc,idim)
                 elif self.bc_upper[idim] == BC.periodic:
                     if state.grid.on_lower_boundary[idim]: 
                         # This process owns the whole domain
-                        self.qbc_upper(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
+                        self._qbc_upper(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
                 else:
-                    self.qbc_upper(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
+                    self._qbc_upper(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
 
 
-    def qbc_lower(self,state,dim,t,qbc,idim):
+    def _qbc_lower(self,state,dim,t,qbc,idim):
         r"""
         Apply lower boundary conditions to qbc
         
@@ -399,7 +403,7 @@ class Solver(object):
             raise NotImplementedError("Boundary condition %s not implemented" % self.bc_lower)
 
 
-    def qbc_upper(self,state,dim,t,qbc,idim):
+    def _qbc_upper(self,state,dim,t,qbc,idim):
         r"""
         Apply upper boundary conditions to qbc
         
@@ -435,7 +439,7 @@ class Solver(object):
 
 
 
-    def apply_aux_bcs(self,state):
+    def _apply_aux_bcs(self,state):
         r"""
         Appends boundary cells to aux and fills them with appropriate values.
     
@@ -482,30 +486,30 @@ class Solver(object):
                 # If a user defined boundary condition is being used, send it on,
                 # otherwise roll the axis to front position and operate on it
                 if self.aux_bc_lower[idim] == BC.custom:
-                    self.auxbc_lower(state,dim,state.t,self.auxbc,idim)
+                    self._auxbc_lower(state,dim,state.t,self.auxbc,idim)
                 elif self.aux_bc_lower[idim] == BC.periodic:
                     if state.grid.on_upper_boundary[idim]:
                         # This process owns the whole patch
-                        self.auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
+                        self._auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
                 else:
-                    self.auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
+                    self._auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
 
             if state.grid.on_upper_boundary[idim]:
                 if self.aux_bc_upper[idim] == BC.custom:
-                    self.auxbc_upper(state,dim,state.t,self.auxbc,idim)
+                    self._auxbc_upper(state,dim,state.t,self.auxbc,idim)
                 elif self.aux_bc_upper[idim] == BC.periodic:
                     if state.grid.on_lower_boundary[idim]:
                         # This process owns the whole patch
-                        self.auxbc_upper(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
+                        self._auxbc_upper(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
                     else:
                         pass #Handled automatically by PETSc
                 else:
-                    self.auxbc_upper(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
+                    self._auxbc_upper(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
 
 
-    def auxbc_lower(self,state,dim,t,auxbc,idim):
+    def _auxbc_lower(self,state,dim,t,auxbc,idim):
         r"""
         Apply lower boundary conditions to auxbc
         
@@ -540,7 +544,7 @@ class Solver(object):
             raise NotImplementedError("Boundary condition %s not implemented" % self.aux_bc_lower)
 
 
-    def auxbc_upper(self,state,dim,t,auxbc,idim):
+    def _auxbc_upper(self,state,dim,t,auxbc,idim):
         r"""
         Apply upper boundary conditions to auxbc
         

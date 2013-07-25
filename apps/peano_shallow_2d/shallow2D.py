@@ -43,6 +43,7 @@ def shallow2D(use_petsc=False,outdir='./_output',solver_type='classic', disable_
     #===========================================================================
     import numpy as np
     import clawpack.peanoclaw as peanoclaw
+    import clawpack.riemann as riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -54,18 +55,14 @@ def shallow2D(use_petsc=False,outdir='./_output',solver_type='classic', disable_
     #===========================================================================
     subdivisionFactor = 6
     if solver_type == 'classic':
-        solver = pyclaw.ClawSolver2D()
+        solver = pyclaw.ClawSolver2D(riemann.shallow_roe_with_efix_2D)
         solver.limiters = pyclaw.limiters.tvd.MC
         solver.dimensional_split=1
     elif solver_type == 'sharpclaw':
-        solver = pyclaw.SharpClawSolver2D()
+        solver = pyclaw.SharpClawSolver2D(riemann.shallow_roe_with_efix_2D)
     peanoSolver = peanoclaw.Solver(solver, (1./3.)/subdivisionFactor, init)
     
     solver.dt_initial = 1.0
-
-    import clawpack.riemann as riemann
-    solver.rp = riemann.rp2_shallow_roe_with_efix
-    solver.num_waves = 3
 
     solver.bc_lower[0] = pyclaw.BC.wall
     solver.bc_upper[0] = pyclaw.BC.wall
