@@ -22,7 +22,7 @@ def qinit(state):
             else:
                 state.q[:,i,j] = 0.1
                 
-def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',solver_type='classic'):
+def advection2D(use_petsc=False,outdir='./_output',solver_type='classic'):
     """
     Example python script for solving the 2d advection equation.
     """
@@ -79,18 +79,8 @@ def advection2D(iplot=False,use_petsc=False,htmlplot=False,outdir='./_output',so
     claw.solver = solver
     claw.outdir = outdir
 
-    #===========================================================================
-    # Solve the problem
-    #===========================================================================
-    status = claw.run()
-
-    #===========================================================================
-    # Plot results
-    #===========================================================================
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
-
     return claw
+
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main

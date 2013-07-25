@@ -1,13 +1,13 @@
 def test_2d_euler_shockbubble():
     """test_2d_euler_shockbubble"""
-    def verify_classic_shockbubble(test_state):
+    def verify_classic_shockbubble(controller):
         """ verifies 2d euler shockbubble from a previously verified classic run """
 
         import os
         from clawpack.pyclaw.util import check_diff
         import numpy as np
 
-        test_q=test_state.get_q_global()
+        test_q=controller.solution.state.get_q_global()
 
 
         if test_q != None:
