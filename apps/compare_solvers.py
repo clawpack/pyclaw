@@ -3,11 +3,7 @@
 
 from clawpack import pyclaw
 import numpy as np
-from clawpack.riemann import advection_1D_py
-from clawpack.riemann import advection_1D
-from clawpack.riemann import shallow_roe_with_efix_2D
 import logging
-from timeit import timeit
 
 def debug_loggers():
     """
@@ -27,12 +23,15 @@ def disable_loggers():
     root_logger = logging.getLogger()
     root_logger.disabled = True
 
+from clawpack.riemann import advection_1D
 fsolver_1D = pyclaw.ClawSolver1D(advection_1D)
 fsolver_1D.kernel_language = 'Fortran'
 
+from clawpack.riemann import advection_1D_py
 pysolver_1D = pyclaw.ClawSolver1D(advection_1D_py.advection_1D)
 pysolver_1D.kernel_language = 'Python'
 
+from clawpack.riemann import shallow_roe_with_efix_2D
 fsolver_2D = pyclaw.ClawSolver2D(shallow_roe_with_efix_2D)
 fsolver_2D.kernel_language = 'Fortran'
 
@@ -51,12 +50,12 @@ new_solvers_1D = {}
 # If we can't bring in the solver, complain and move on...
 
 try:
-    import next
+    from clawpack.pyclaw.apps import iso_c_advection
 
-    iso_c_solver = next.ISO_C_ClawSolver1D(None, 'clawpack.pyclaw')
+    iso_c_solver = iso_c_advection.ISO_C_ClawSolver1D(None, 'clawpack.pyclaw')
 
     iso_c_solver.kernel_language = 'Fortran'
-    iso_c_solver.rp = next.iso_c_rp1_advection(1.0)
+    iso_c_solver.rp = iso_c_advection.iso_c_rp1_advection(1.0)
     iso_c_solver.num_waves = 1
 
     new_solvers_1D['iso_c'] = iso_c_solver
