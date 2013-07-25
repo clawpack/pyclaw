@@ -61,7 +61,7 @@ def moving_wall_bc(state,dim,t,qbc,num_ghost):
 
 
 
-def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0,htmlplot=0,outdir='./_output'):
+def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./_output'):
     """
     Stegoton problem.
     Nonlinear elasticity in periodic medium.
@@ -174,12 +174,7 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',iplot=0
             claw.outdir = './_output_Z'+str(Z)+'_'+str(cellsperlayer)
             status = claw.run()
 
-    else:
-        # Solve
-        status = claw.run()
-
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
+    return claw
 
 
 if __name__=="__main__":

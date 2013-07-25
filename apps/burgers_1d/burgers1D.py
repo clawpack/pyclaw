@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_output',solver_type='classic'):
+def burgers(use_petsc=0,kernel_language='Fortran',outdir='./_output',solver_type='classic'):
     """
     Example python script for solving the 1d Burgers equation.
     """
@@ -56,10 +56,7 @@ def burgers(use_petsc=0,kernel_language='Fortran',iplot=0,htmlplot=0,outdir='./_
     claw.solver = solver
     claw.outdir = outdir
 
-    status = claw.run()
-
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
+    return claw
 
 
 if __name__=="__main__":

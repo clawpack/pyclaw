@@ -12,7 +12,7 @@ def qinit(state,rad=1.0):
     state.q[0,:,:] = 0.25*np.pi + 3.25*np.pi*(r<=rad)
 
 
-def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='classic'):
+def kpp(use_petsc=False,outdir='./_output',solver_type='classic'):
     """
     Example python script for solving the 2d KPP equations.
     """
@@ -53,11 +53,7 @@ def kpp(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_typ
     claw.solver = solver
     claw.num_output_times = 10
 
-    # Solve
-    status = claw.run()
-
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
+    return claw
 
 
 if __name__=="__main__":

@@ -116,7 +116,7 @@ def gauge_pfunction(q,aux):
     p = np.exp(q[0]*aux[1])-1
     return [p,10*p]
 
-def psystem2D(iplot=False,kernel_language='Fortran',htmlplot=False,
+def psystem2D(kernel_language='Fortran',
               use_petsc=False,outdir='./_output',solver_type='classic',
               disable_output=False):
 
@@ -229,13 +229,7 @@ def psystem2D(iplot=False,kernel_language='Fortran',htmlplot=False,
     solver.compute_gauge_values = gauge_pfunction
     claw.write_aux_init = False
 
-    #Solve
-    status = claw.run()
-
-    if iplot:    pyclaw.plot.interactive_plot()
-    if htmlplot: pyclaw.plot.html_plot()
-
-    return claw.solution.state
+    return claw
 
 
 if __name__=="__main__":

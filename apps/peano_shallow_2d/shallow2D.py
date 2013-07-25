@@ -37,7 +37,7 @@ def init(state):
 
 
     
-def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_type='classic', disable_output=False):
+def shallow2D(use_petsc=False,outdir='./_output',solver_type='classic', disable_output=False):
     #===========================================================================
     # Import libraries
     #===========================================================================
@@ -105,16 +105,7 @@ def shallow2D(use_petsc=False,iplot=0,htmlplot=False,outdir='./_output',solver_t
         claw.output_format = None
     claw.num_output_times = 5
 
-    #===========================================================================
-    # Solve the problem
-    #===========================================================================
-    status = claw.run()
-
-    #===========================================================================
-    # Plot results
-    #===========================================================================
-    if iplot:     plot.interactive_plot(outdir=outdir,format=claw.output_format)
-    if htmlplot:  plot.html_plot(outdir=outdir,format=claw.output_format)
+    return claw
 
 
 if __name__=="__main__":

@@ -35,7 +35,7 @@ def auxinit(state):
     state.aux[0,:] = np.sin(2.*np.pi*xc)+2
     
 
-def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',iplot=False,htmlplot=False,outdir='./_output'):
+def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',outdir='./_output'):
     from clawpack import riemann
 
     if use_petsc:
@@ -82,8 +82,6 @@ def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',
     claw.tfinal = 1.0
     status = claw.run()
 
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main

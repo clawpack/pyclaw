@@ -2,7 +2,7 @@ def test_2d_acoustics():
     """test_2d_acoustics"""
 
     def verify_data(data_filename):
-        def verify(test_state):
+        def verify(claw):
             """ verifies 2d homogeneous acoustics from a previously verified run """
             import os
             import numpy as np
@@ -10,7 +10,7 @@ def test_2d_acoustics():
 
 
             #grabs parallel results to process 0, None to other processes
-            test_q=test_state.get_q_global()
+            test_q=claw.solution.state.get_q_global()
 
             if test_q is not None:
                 test_pressure = test_q[0,:,:]
