@@ -81,10 +81,10 @@ def compare_1D(nx=1000):
     Tests a variety of Riemann solver ideas on 1D advection
     """
 
-    import riemann_compare
+    import compare_solvers
     import time
 
-    solvers = riemann_compare.solvers_1D
+    solvers = compare_solvers.solvers_1D
 
     times, tests = {}, {}
 
@@ -93,7 +93,7 @@ def compare_1D(nx=1000):
         solver.bc_upper[0] = pyclaw.BC.periodic
 
         from clawpack.pyclaw.apps.advection_1d import advection
-        claw = advection.advection(nx=nx,outdir=riemann_compare.outdir)
+        claw = advection.advection(nx=nx,outdir=compare_solvers.outdir)
         claw.solver = solver
         claw.keep_copy = True
 
@@ -117,10 +117,10 @@ def compare_2D(nx=(250,250)):
     """
     Tests a variety of Riemann solver ideas on 2D shallow water equation
     """
-    import riemann_compare
+    import compare_solvers
     import time
 
-    solvers = riemann_compare.solvers_2D
+    solvers = compare_solvers.solvers_2D
 
     times, tests = {}, {}
 
@@ -135,7 +135,7 @@ def compare_2D(nx=(250,250)):
         solver.dimensional_split=1
 
         from clawpack.pyclaw.apps.shallow_2d import shallow2D
-        claw = shallow2D.shallow2D(outdir=riemann_compare.outdir)
+        claw = shallow2D.shallow2D(outdir=compare_solvers.outdir)
         claw.solver = solver
         claw.keep_copy = True
 
@@ -153,7 +153,7 @@ def compare_2D(nx=(250,250)):
     return times, tests
 
 if __name__=="__main__":
-    import riemann_compare
+    import compare_solvers
     disable_loggers()
 #    debug_loggers()
 
@@ -162,9 +162,9 @@ if __name__=="__main__":
     vis = True
     
     if vis:
-        riemann_compare.outdir='./_output'
+        compare_solvers.outdir='./_output'
     else:
-        riemann_compare.outdir = None
+        compare_solvers.outdir = None
         
     if len(sys.argv) > 1:
         nx_1D = int(sys.argv[1])
@@ -186,18 +186,18 @@ if __name__=="__main__":
         for name in solvers.keys():
             print "%-25s: %g" % (name, tests[name])
 
-    riemann_compare.tfinal = 1.0
+    compare_solvers.tfinal = 1.0
     print "\nRiemann comparison on 1D advection to t=%g with %d grid points" % \
-        (riemann_compare.tfinal, nx_1D)
+        (compare_solvers.tfinal, nx_1D)
 
     times, tests = compare_1D(nx=nx_1D)
 
-    print_time_accuracy(times, tests, riemann_compare.solvers_1D)
+    print_time_accuracy(times, tests, compare_solvers.solvers_1D)
 
-    riemann_compare.tfinal = 2.5
+    compare_solvers.tfinal = 2.5
     print ("\nRiemann comparison on 2D shallow water equation to t=%g" + \
-               " with %dx%d grid points") % ((riemann_compare.tfinal,) + nx_2D)
+               " with %dx%d grid points") % ((compare_solvers.tfinal,) + nx_2D)
 
     times, tests = compare_2D(nx=nx_2D)
 
-    print_time_accuracy(times, tests, riemann_compare.solvers_2D)
+    print_time_accuracy(times, tests, compare_solvers.solvers_2D)
