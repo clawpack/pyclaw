@@ -10,7 +10,7 @@ from petsc4py import PETSc
 import pickle
     
 
-def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,options={},write_p=False):
+def write(solution,frame,path='./',file_prefix='claw',write_aux=False,options={},write_p=False):
     r"""
         Write out pickle and PETSc data files representing the
         solution.  Common data is written from process 0 in pickle
@@ -124,7 +124,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
         aux_viewer.flush()
         aux_viewer.destroy()
 
-def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
+def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
     r"""
     Read in pickles and PETSc data files representing the solution
     
@@ -248,7 +248,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     if read_aux:
         aux_viewer.destroy()
 
-def read_petsc_t(frame,path='./',file_prefix='claw'):
+def read_t(frame,path='./',file_prefix='claw'):
     r"""Read only the petsc.pkl file and return the data
     
     :Input:

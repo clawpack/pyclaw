@@ -11,7 +11,7 @@ from ..util import read_data_line
 
 logger = logging.getLogger('io')
 
-def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
+def write(solution,frame,path,file_prefix='fort',write_aux=False,
                     options={},write_p=False):
     r"""
     Write out ascii data file
@@ -151,7 +151,7 @@ def write_ascii(solution,frame,path,file_prefix='fort',write_aux=False,
         logger.error("Unexpected error:", sys.exc_info()[0])
         raise
 
-def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
+def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 options={}):
     r"""
     Read in a set of ascii formatted files
@@ -184,7 +184,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
     q_fname = os.path.join(base_path, '%s.q' % file_prefix) + str(frame).zfill(4)
 
     # Read in values from fort.t file:
-    [t,num_eqn,nstates,num_aux,num_dim] = read_ascii_t(frame,path,file_prefix)
+    [t,num_eqn,nstates,num_aux,num_dim] = read_t(frame,path,file_prefix)
 
     patches = []
     
@@ -356,7 +356,7 @@ def read_ascii(solution,frame,path='./',file_prefix='fort',read_aux=False,
                     blank = f.readline()
         
             
-def read_ascii_t(frame,path='./',file_prefix='fort'):
+def read_t(frame,path='./',file_prefix='fort'):
     r"""Read only the fort.t file and return the data
     
     :Input:
