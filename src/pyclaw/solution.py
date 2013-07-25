@@ -8,7 +8,6 @@ import os
 import logging
 
 from .geometry import Patch, Dimension, Domain
-import io
 
 # ============================================================================
 #  Solution Class
@@ -279,11 +278,17 @@ class Solution(object):
             format_list = [file_format]
         elif isinstance(file_format,list):
             format_list = file_format
+
         if 'petsc' in format_list:
             from clawpack.petclaw import io
+            write_func = io.petsc.write
+        else:
+            from clawpack.pyclaw import io
+            write_func = io.ascii.write
+
+
         # Loop over list of formats requested
         for form in format_list:
-            write_func = eval('io.write_%s' % form)
             if file_prefix is None:
                 write_func(self,frame,path,write_aux=write_aux,
                             options=options,write_p=write_p)
@@ -293,6 +298,7 @@ class Solution(object):
                            write_p=write_p)
             msg = "Wrote out solution in format %s for time t=%s" % (form,self.t)
             logging.getLogger('io').info(msg)
+
         
     def read(self,frame,path='./_output',file_format='ascii',file_prefix=None,
                 read_aux=True,options={}, **kargs):
@@ -328,8 +334,12 @@ class Solution(object):
         
         if file_format=='petsc':
             from clawpack.petclaw import io
+            read_func = io.petsc.read
+        elif file_format=='ascii': 
+            from clawpack.pyclaw import io
+            read_func = io.ascii.read
+
         path = os.path.expandvars(os.path.expanduser(path))
-        read_func = eval('io.read_%s' % file_format)
         if file_prefix is None:
             read_func(self,frame,path,read_aux=read_aux,options=options)
         else:
