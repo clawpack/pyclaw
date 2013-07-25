@@ -3,9 +3,9 @@
 
 from clawpack import pyclaw
 import numpy as np
-from clawpack.riemann import rp_advection
-from clawpack.riemann import rp1_advection
-from clawpack.riemann import rp2_shallow_roe_with_efix
+from clawpack.riemann import advection_1D_py
+from clawpack.riemann import advection_1D
+from clawpack.riemann import shallow_roe_with_efix_2D
 import logging
 from timeit import timeit
 
@@ -27,17 +27,14 @@ def disable_loggers():
     root_logger = logging.getLogger()
     root_logger.disabled = True
 
-fsolver_1D = pyclaw.ClawSolver1D()
+fsolver_1D = pyclaw.ClawSolver1D(advection_1D)
 fsolver_1D.kernel_language = 'Fortran'
-fsolver_1D.rp = rp1_advection
 
-fsolver_2D = pyclaw.ClawSolver2D()
+fsolver_2D = pyclaw.ClawSolver2D(shallow_roe_with_efix_2D)
 fsolver_2D.kernel_language = 'Fortran'
-fsolver_2D.rp = rp2_shallow_roe_with_efix
 
-pysolver_1D = pyclaw.ClawSolver1D()
+pysolver_1D = pyclaw.ClawSolver1D(advection_1D_py.advection_1D)
 pysolver_1D.kernel_language = 'Python'
-pysolver_1D.rp = rp_advection.rp_advection_1d
 
 solvers_1D = {
     'current_fortran' : fsolver_1D,
@@ -60,6 +57,7 @@ try:
 
     iso_c_solver.kernel_language = 'Fortran'
     iso_c_solver.rp = next.iso_c_rp1_advection(1.0)
+    iso_c_solver.num_waves = 1
 
     new_solvers_1D['iso_c'] = iso_c_solver
 
@@ -168,7 +166,6 @@ def compare_1D(nx=1000):
     times, tests = {}, {}
 
     for name, solver in solvers.iteritems():
-        solver.num_waves = rp_advection.num_waves
         solver.bc_lower[0] = 2
         solver.bc_upper[0] = 2
         riemann_compare.solver = solver
