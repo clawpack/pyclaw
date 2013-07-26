@@ -6,16 +6,16 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 #  Author:      David Ketcheson
 """
 # Solver superclass
-from ..solver import Solver, CFLError
+from clawpack.pyclaw.solver import Solver, CFLError
+from clawpack.pyclaw.util import add_parent_doc
 
 # Reconstructor
 try:
     # load c-based WENO reconstructor (PyWENO)
-    from ..limiters import reconstruct as recon
+    from clawpack.pyclaw.limiters import reconstruct as recon
 except ImportError:
     # load old WENO5 reconstructor
-    from ..limiters import recon
-
+    from clawpack.pyclaw.limiters import recon
 
 def before_step(solver,solution):
     r"""
@@ -366,6 +366,9 @@ class SharpClawSolver1D(SharpClawSolver):
     Used to solve 1D hyperbolic systems using the SharpClaw algorithms,
     which are based on WENO reconstruction and Runge-Kutta time stepping.
     """
+
+    __doc__ += add_parent_doc(SharpClawSolver)
+    
     def __init__(self,riemann_solver=None,claw_package=None):
         r"""
         See :class:`SharpClawSolver1D` for more info.
@@ -504,11 +507,11 @@ class SharpClawSolver1D(SharpClawSolver):
 # ========================================================================
 class SharpClawSolver2D(SharpClawSolver):
 # ========================================================================
-    """SharpClaw evolution routine in 2D
-    
-    This class represents the 2D SharpClaw solver.  Note that there are 
-    routines here for interfacing with the fortran time stepping routines only.
+    """ Two Dimensional SharpClawSolver
     """
+
+    __doc__ += add_parent_doc(SharpClawSolver)
+
     def __init__(self,riemann_solver=None,claw_package=None):
         r"""
         Create 2D SharpClaw solver

@@ -11,6 +11,15 @@ import logging
 import tempfile
 import numpy as np
 
+def add_parent_doc(parent):
+    """add parent documentation for a class""" 
+    
+    return """
+    Parent Class Documentation
+    ==========================
+    """ + parent.__doc__
+
+
 def run_app_from_main(application):
     r"""
     Runs an application from apps/, automatically parsing command line keyword
