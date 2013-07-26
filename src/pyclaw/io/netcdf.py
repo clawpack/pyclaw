@@ -54,7 +54,7 @@ if not use_netcdf4:
         #raise Exception(error_msg)
         print error_msg
 
-def write_netcdf(solution,frame,path,file_prefix='claw',write_aux=False,
+def write(solution,frame,path,file_prefix='claw',write_aux=False,
                     options={}):
     r"""
     Write out a NetCDF data file representation of solution
@@ -236,7 +236,7 @@ def write_netcdf(solution,frame,path,file_prefix='claw',write_aux=False,
         raise Exception(err_msg)
         
     
-def read_netcdf(solution,frame,path='./',file_prefix='claw',read_aux=True,
+def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
                 options={}):
     r"""
     Read in a NetCDF data files into solution

@@ -15,7 +15,7 @@ __all__ = ['ascii.read','ascii.write']
 # Check for HDF 5 support
 try:
     import h5py
-    from clawpack.pyclaw.io.hdf5 import hdf5.read,hdf5.write
+    from clawpack.pyclaw.io import hdf5
     __all__ += ['hdf5.read','hdf5.write']
 except:
     logging.debug("No hdf5 support found.")
@@ -23,7 +23,7 @@ except:
 # Check for netcdf support
 try:
     import netCDF4
-    from clawpack.pyclaw.io.netcdf import netcdf.read, netcdf.write
+    from clawpack.pyclaw.io import netcdf 
     __all__ += ['netcdf.read','netcdf.write']
 except(ImportError):
     logging.debug("No netcdf4 support found.")
