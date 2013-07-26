@@ -12,7 +12,7 @@ from ..util import read_data_line
 logger = logging.getLogger('io')
 
 
-def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
+def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 options={}):
     r"""
     Read in a set of raw binary files
@@ -240,7 +240,7 @@ def read_binary(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 raise Exception("Read aux only up to 3d is supported.")
 
             
-def read_binary_t(frame,path='./',file_prefix='fort'):
+def read_t(frame,path='./',file_prefix='fort'):
     r"""Read only the fort.t file and return the data
     
     :Input:
