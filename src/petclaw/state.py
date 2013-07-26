@@ -1,7 +1,9 @@
 import clawpack.pyclaw
 
 class State(clawpack.pyclaw.State):
-    r"""  See the corresponding PyClaw class documentation."""
+    """Parallel State class"""
+
+    __doc__ += clawpack.pyclaw.util.add_parent_doc(clawpack.pyclaw.state)
 
     @property
     def num_eqn(self):

@@ -1,11 +1,18 @@
 """
-Module for PetClaw controller class.  The PetClaw controller is identical to the
-PyClaw controller except for the default value of output_format.
+Module for PetClaw controller class.
 """
 
-from clawpack.pyclaw.controller import Controller as pyclawController
+import pyclaw
+from clawpack import pyclaw
 
-class Controller(pyclawController):
+class Controller(pyclaw.controller.Controller):
+    """ Parallel Controller Class
+
+    Defaults to petsc output_format, logs only from process 0.
+    """
+    
+    __doc__ += pyclaw.util.add_parent_doc(pyclaw.controller.Controller)
+
     def __init__(self):
         super(Controller,self).__init__()
 

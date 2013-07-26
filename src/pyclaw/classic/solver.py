@@ -8,9 +8,9 @@ are both pure virtual classes; the only solver classes that should be instantiat
 are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`.
 """
 
-from ..solver import Solver
-
-from ..limiters import tvd
+from clawpack.pyclaw.util import add_parent_doc
+from clawpack.pyclaw.solver import Solver
+from clawpack.pyclaw.limiters import tvd
 
 # ============================================================================
 #  Generic Clawpack solver class
@@ -71,13 +71,15 @@ class ClawSolver(Solver):
         The level of detail of logged messages from the Fortran solver.
         ``Default = 0``.
 
-    Output:
-     - (:class:`ClawSolver`) - Initialized clawpack solver
     """
+    
     # ========== Generic Init Routine ========================================
     def __init__(self,riemann_solver=None,claw_package=None):
         r"""
         See :class:`ClawSolver` for full documentation.
+
+        Output:
+        - (:class:`ClawSolver`) - Initialized clawpack solver
         """
         self.num_ghost = 2
         self.limiters = tvd.minmod
@@ -260,13 +262,16 @@ class ClawSolver1D(ClawSolver):
     dependent on the argument given to the initialization of the solver 
     (defaults to python).
     
-    Output:
-     - (:class:`ClawSolver1D`) - Initialized 1d clawpack solver
     """
+
+    __doc__ += add_parent_doc(ClawSolver)
 
     def __init__(self, riemann_solver=None, claw_package=None):
         r"""
         Create 1d Clawpack solver
+
+        Output:
+        - (:class:`ClawSolver1D`) - Initialized 1d clawpack solver
         
         See :class:`ClawSolver1D` for more info.
         """   
@@ -399,7 +404,6 @@ class ClawSolver2D(ClawSolver):
     Solve using the wave propagation algorithms of Randy LeVeque's
     Clawpack code (www.clawpack.org).
 
-    See also the documentation for ClawSolver1D.
     In addition to the attributes of ClawSolver1D, ClawSolver2D
     also has the following options:
     
@@ -429,6 +433,8 @@ class ClawSolver2D(ClawSolver):
     Note that only the fortran routines are supported for now in 2D.
     """
 
+    __doc__ += add_parent_doc(ClawSolver)
+    
     no_trans  = 0
     trans_inc = 1
     trans_cor = 2
@@ -556,8 +562,7 @@ class ClawSolver3D(ClawSolver):
     Solve using the wave propagation algorithms of Randy LeVeque's
     Clawpack code (www.clawpack.org).
 
-    See also the documentation for ClawSolver1D.
-    In addition to the attributes of ClawSolver1D, ClawSolver3D
+    In addition to the attributes of ClawSolver, ClawSolver3D
     also has the following options:
     
     .. attribute:: dimensional_split
@@ -586,6 +591,8 @@ class ClawSolver3D(ClawSolver):
     Note that only Fortran routines are supported for now in 3D --
     there is no pure-python version.
     """
+
+    __doc__ += add_parent_doc(ClawSolver)
 
     no_trans  = 0
     trans_inc = 11
