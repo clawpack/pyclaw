@@ -62,6 +62,12 @@ def test_acoustics_2d_variable_io():
 
     import shutil
     from itertools import chain
-    for test in chain(classic_tests):
-        yield test
-        shutil.rmtree(tempdir )
+    try:
+        for test in chain(classic_tests):
+            yield test
+    finally:
+        ERROR_STR= """Error removing %(path)s, %(error)s """
+        try:
+            shutil.rmtree(tempdir )
+        except OSError as (errno, strerror):
+            print ERROR_STR % {'path' : tempdir, 'error': strerror }
