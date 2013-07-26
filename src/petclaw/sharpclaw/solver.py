@@ -5,14 +5,17 @@ Module containing SharpClaw solvers for PetClaw
 """
 
 from __future__ import absolute_import
-from clawpack.pyclaw.sharpclaw import solver
+from clawpack import pyclaw
 
-class SharpClawSolver1D(solver.SharpClawSolver1D):
-    """
-    1D parallel SharpClaw solver.  See the corresponding PyClaw class for documentation.
+class SharpClawSolver1D(pyclaw.SharpClawSolver1D):
+    """1D parallel SharpClaw solver.
     """
 
-class SharpClawSolver2D(solver.SharpClawSolver2D):
+    __doc__ += pyclaw.util.add_parent_doc(pyclaw.SharpClawSolver2D)
+
+    
+class SharpClawSolver2D(pyclaw.SharpClawSolver2D):
+    """2D parallel SharpClaw solver. 
     """
-    2D parallel SharpClaw solver.  See the corresponding PyClaw class for documentation.
-    """
+
+    __doc__ += pyclaw.util.add_parent_doc(pyclaw.SharpClawSolver2D)

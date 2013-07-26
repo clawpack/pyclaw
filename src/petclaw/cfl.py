@@ -1,8 +1,11 @@
 r"""
-Module for the CFL object, which is responsible for computing and enforcing the
-Courant-Friedrichs-Lewy condition.
+Module for the CFL object.
 """
 class CFL(object):
+    """ Parallel CFL object, responsible for computing the
+    Courant-Friedrichs-Lewy condition across all processes.
+    """
+
     def __init__(self, global_max):
         from petsc4py import PETSc
         self._local_max = global_max
