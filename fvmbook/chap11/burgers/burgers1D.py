@@ -9,8 +9,9 @@ def burgers(iplot=1,htmlplot=0,outdir='./_output'):
     import numpy as np
 
     from clawpack import pyclaw
+    from clawpack import riemann
 
-    solver = pyclaw.ClawSolver1D()
+    solver = pyclaw.ClawSolver1D(riemann.burgers_1D)
 
     solver.num_waves = 1
     solver.limiters = pyclaw.limiters.tvd.MC
@@ -21,11 +22,11 @@ def burgers(iplot=1,htmlplot=0,outdir='./_output'):
     # Initialize grids and then initialize the solution associated to the grid
     #===========================================================================
     x = pyclaw.Dimension('x',-8.0,8.0,1000)
-    grid = pyclaw.Grid(x)
+    domain = pyclaw.Domain(x)
     num_eqn = 1
-    state = pyclaw.State(grid,num_eqn)
+    state = pyclaw.State(domain,num_eqn)
 
-    xc=grid.x.center
+    xc=domain.grid.x.centers
     state.q[0,:] = (xc>-np.pi)*(xc<np.pi)*(2.*np.sin(3.*xc)+np.cos(2.*xc)+0.2)
     state.q[0,:] = state.q[0,:]*(np.cos(xc)+1.)
     state.problem_data['efix']=True
@@ -36,15 +37,11 @@ def burgers(iplot=1,htmlplot=0,outdir='./_output'):
     claw = pyclaw.Controller()
     claw.tfinal = 6.0
     claw.num_output_times   = 30
-    claw.solution = pyclaw.Solution(state)
+    claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
 
-    status = claw.run()
-
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
-
+    return claw
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
