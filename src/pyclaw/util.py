@@ -22,7 +22,7 @@ def add_parent_doc(parent):
 
 def run_app_from_main(application):
     r"""
-    Runs an application from apps/, automatically parsing command line keyword
+    Runs an application from pyclaw/examples/, automatically parsing command line keyword
     arguments (key=value) as parameters to the application, with positional
     arguments being passed to PETSc (if it is enabled).
 
