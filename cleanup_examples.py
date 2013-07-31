@@ -6,14 +6,14 @@
 import os,sys,glob
 import shutil
 
-apps_dir = os.path.abspath('./apps')
-print "Will remove all _output, _plots, and build directories from ",apps_dir
+examples_dir = os.path.abspath('./examples')
+print "Will remove all _output, _plots, and build directories from ",examples_dir
 ans = raw_input("Ok? ")
 if ans.lower() not in ['y','yes']:
     print "Aborting."
     sys.exit()
 
-os.chdir(apps_dir)
+os.chdir(examples_dir)
 exdirlist = []
 for (dirpath, subdirs, files) in os.walk('.'):
     currentdir = os.path.abspath(os.getcwd())

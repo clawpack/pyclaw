@@ -50,7 +50,7 @@ new_solvers_1D = {}
 # If we can't bring in the solver, complain and move on...
 
 try:
-    from clawpack.pyclaw.apps import iso_c_advection
+    from clawpack.pyclaw.examples import iso_c_advection
 
     iso_c_solver = iso_c_advection.ISO_C_ClawSolver1D(None, 'clawpack.pyclaw')
 
@@ -92,7 +92,7 @@ def compare_1D(nx=1000):
         solver.bc_lower[0] = pyclaw.BC.periodic
         solver.bc_upper[0] = pyclaw.BC.periodic
 
-        from clawpack.pyclaw.apps.advection_1d import advection
+        from clawpack.pyclaw.examples.advection_1d import advection
         claw = advection.advection(nx=nx,outdir=compare_solvers.outdir)
         claw.solver = solver
         claw.keep_copy = True
@@ -134,7 +134,7 @@ def compare_2D(nx=(250,250)):
         solver.limiters = pyclaw.limiters.tvd.MC
         solver.dimensional_split=1
 
-        from clawpack.pyclaw.apps.shallow_2d import shallow2D
+        from clawpack.pyclaw.examples.shallow_2d import shallow2D
         claw = shallow2D.shallow2D(outdir=compare_solvers.outdir)
         claw.solver = solver
         claw.keep_copy = True
