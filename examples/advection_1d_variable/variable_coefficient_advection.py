@@ -80,7 +80,8 @@ def vc_advection(use_petsc=False,solver_type='classic',kernel_language='Python',
     claw.solver = solver
 
     claw.tfinal = 1.0
-    status = claw.run()
+    
+    return claw
 
 
 if __name__=="__main__":
