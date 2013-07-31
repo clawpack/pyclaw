@@ -61,7 +61,7 @@ def moving_wall_bc(state,dim,t,qbc,num_ghost):
 
 
 
-def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./_output'):
+def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./_output'):
     """
     Stegoton problem.
     Nonlinear elasticity in periodic medium.
@@ -70,9 +70,6 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir=
     $$\\epsilon_t - u_x = 0$$
     $$\\rho(x) u_t - \\sigma(\\epsilon,x)_x = 0$$
     """
-
-    vary_Z=False
-
     from clawpack import riemann
 
     if use_petsc:
@@ -87,6 +84,7 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir=
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(rs)
+        solver.char_decomp=0
     else:
         solver = pyclaw.ClawSolver1D(rs)
 
@@ -136,10 +134,6 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir=
     solver.user_bc_lower=moving_wall_bc
     solver.user_bc_upper=zero_bc
 
-    if solver_type=='sharpclaw':
-        solver.lim_type = 2
-        solver.char_decomp=0
-
     claw = pyclaw.Controller()
     claw.keep_copy = False
     claw.output_style = 1
@@ -147,32 +141,6 @@ def stegoton(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir=
     claw.tfinal = tfinal
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
-
-
-    if vary_Z==True:
-        #Zvalues = [1.0,1.2,1.4,1.6,1.8,2.0,2.2,2.4,2.6,2.8,3.0,3.5,4.0]
-        Zvalues = [3.5,4.0]
-        #a2values= [0.9766161130681, 1.0888194560100042, 1.1601786315361329, 1.20973731651806, 1.2462158254919984]
-
-        for ii,Z in enumerate(Zvalues):
-            a2=1.0 #a2values[ii]
-            KB = Z
-            rhoB = Z
-            state.problem_data['KB'] = KB
-            state.problem_data['rhoB'] = rhoB
-            state.problem_data['trdone'] = False
-            state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,bc_lower,xupper=xupper)
-            patch.x.bc_lower=2
-            patch.x.bc_upper=2
-            state.t = 0.0
-            qinit(state,ic=2,a2=a2)
-            init_solution = Solution(state,domain)
-            claw.solution = init_solution
-            claw.solution.t = 0.0
-
-            claw.tfinal = tfinal
-            claw.outdir = './_output_Z'+str(Z)+'_'+str(cellsperlayer)
-            status = claw.run()
 
     return claw
 

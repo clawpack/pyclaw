@@ -22,12 +22,12 @@ def test_2d_acoustics():
         return verify
 
     from clawpack.pyclaw.util import gen_variants
-    from acoustics import acoustics2D
+    import acoustics_2d
 
-    classic_tests = gen_variants(acoustics2D, verify_data('verify_classic.txt'),
+    classic_tests = gen_variants(acoustics_2d.setup, verify_data('verify_classic.txt'),
                                  kernel_languages=('Fortran',), solver_type='classic', disable_output=True)
 
-    sharp_tests   = gen_variants(acoustics2D, verify_data('verify_sharpclaw.txt'),
+    sharp_tests   = gen_variants(acoustics_2d.setup, verify_data('verify_sharpclaw.txt'),
                                  kernel_languages=('Fortran',), solver_type='sharpclaw', disable_output=True)
 
     from itertools import chain

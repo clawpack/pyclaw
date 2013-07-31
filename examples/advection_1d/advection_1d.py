@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-def advection(nx=100,kernel_language='Python',
+def setup(nx=100,kernel_language='Python',
               use_petsc=False,solver_type='classic', weno_order=5,
               outdir='./_output'):
     """
@@ -59,4 +59,4 @@ def advection(nx=100,kernel_language='Python',
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(advection)
+    output = run_app_from_main(setup)

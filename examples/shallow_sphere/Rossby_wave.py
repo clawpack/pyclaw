@@ -367,7 +367,7 @@ def auxbc_upper_y(state,dim,t,auxbc,num_ghost):
     auxbc[:,:,-num_ghost:] = auxtemp[:,:,-num_ghost:]
 
 
-def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',outdir='./_output', disable_output=False):
+def setup(use_petsc=False,solver_type='classic',outdir='./_output', disable_output=False):
 
     # Import pyclaw module
     if use_petsc:
@@ -524,7 +524,7 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',outdir='./_o
         
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(shallow_4_Rossby_Haurwitz)
+    output = run_app_from_main(setup)
 
 
 def plot_on_sphere():
@@ -545,7 +545,7 @@ def plot_on_sphere():
 
     # Import some libraries
     from clawpack import pyclaw
-    import shallow_4_Rossby_Haurwitz_wave as rh
+    import setup as rh
     import numpy as np
 
     from mpl_toolkits.basemap import Basemap

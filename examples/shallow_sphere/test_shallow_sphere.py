@@ -12,7 +12,7 @@ def test_shallow_sphere():
         thisdir = os.path.dirname(__file__)
         subprocess.check_call('python setup.py build_ext -i', shell=True, cwd=thisdir)
         
-    from shallow_4_Rossby_Haurwitz_wave import shallow_4_Rossby_Haurwitz
+    import Rossby_wave
 
     def verify_shallow_sphere(claw):
         import os
@@ -32,7 +32,7 @@ def test_shallow_sphere():
     from clawpack.pyclaw.util import test_app
     kwargs = {}   
     kwargs['disable_output']= True
-    return test_app(shallow_4_Rossby_Haurwitz,
+    return test_app(Rossby_wave.setup,
                     verify_shallow_sphere,
                     kwargs)
 

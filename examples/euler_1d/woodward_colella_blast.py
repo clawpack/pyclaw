@@ -6,7 +6,7 @@ r"""Woodward-Colella blast wave interaction problem.
 gamma = 1.4
 gamma1 = gamma - 1.
 
-def wcblast(use_petsc=False,outdir='./_output',solver_type='classic'):
+def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a pair of interacting shock waves.
@@ -55,4 +55,4 @@ def wcblast(use_petsc=False,outdir='./_output',solver_type='classic'):
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(wcblast)
+    output = run_app_from_main(setup)
