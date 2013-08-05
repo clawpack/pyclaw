@@ -8,7 +8,7 @@ def test_acoustics_2d_variable_io():
         import os
         from clawpack.pyclaw.util import check_diff
         import numpy as np
-        from  pyclaw import Solution
+        from clawpack.pyclaw import Solution
         
         thisdir = os.path.dirname(__file__)
         verify_dir = os.path.join(thisdir,'./io_test_verification')
