@@ -1,6 +1,4 @@
 F2PY = f2py
-PYTHON = python
-FC := gfortran
 
 CLASSIC = ../../src/pyclaw/classic
 
