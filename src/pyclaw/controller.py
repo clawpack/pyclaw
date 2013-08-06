@@ -266,10 +266,11 @@ class Controller(object):
                                         options = self.output_options,
                                         write_p = True) 
 
+            write_aux = (self.write_aux_always or self.write_aux_init)
             self.solution.write(frame,self.outdir,
                                         self.output_format,
                                         self.output_file_prefix,
-                                        self.write_aux_init,
+                                        write_aux,
                                         self.output_options)
 
         self.write_F('w')
