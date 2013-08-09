@@ -60,9 +60,9 @@ subroutine limiter(maxm,num_eqn,num_waves,num_ghost,mx,wave,s,mthlim)
         
             ! Apply wave depending on sign of wave speed
             if (s(mw,i) > 0.d0) then
-                r = wnorm2 / dotl
+                r = dotl / wnorm2
             else
-                r = wnorm2 / dotr
+                r = dotr / wnorm2
             endif
 
             select case(mthlim(mw))
