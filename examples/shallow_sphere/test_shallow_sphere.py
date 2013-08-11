@@ -1,17 +1,5 @@
 def test_shallow_sphere():
-    """ test shallow sphere """
-
-    try:
-        import problem
-        import classic2
-    except ImportError:
-        import warnings
-        warnings.warn("missing extension modules, running python setup.py build_ext -i")
-        import subprocess
-        import os
-        thisdir = os.path.dirname(__file__)
-        subprocess.check_call('python setup.py build_ext -i', shell=True, cwd=thisdir)
-        
+    """Test solution of shallow water equations on the sphere."""
     import Rossby_wave
 
     def verify_shallow_sphere(claw):

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # encoding: utf-8
-
 """
 2D shallow water equations on a spherical surface. The approximation of the 
 three-dimensional equations is restricted to the surface of the sphere. 
@@ -11,23 +10,17 @@ Reference: Logically Rectangular Grids and Finite Volume Methods for PDEs in
            By Donna A. Calhoun, Christiane Helzel, and Randall J. LeVeque
            SIAM Review 50 (2008), 723-752. 
 """
-
-# Import library
-# ==============
 import numpy as np
-
-from numpy import *
-import os
-
 try:
     import problem
     import classic2
 except ImportError:
     import warnings
     warnings.warn("missing extension modules, running python setup.py build_ext -i")
+    import os
     import subprocess
-    # Try to compile the Fortran source
-    subprocess.check_call('python setup.py build_ext -i', shell=True)
+    thisdir = os.path.dirname(__file__)
+    subprocess.check_call('python setup.py build_ext -i', shell=True, cwd=thisdir)
     warnings.warn("missing extension modules built by running python setup.py build_ext -i")
     try:
         # Now try to import again
@@ -38,9 +31,6 @@ except ImportError:
         print >> sys.stderr, "***\nUnable to import problem module or automatically build, try running (in the directory of this file):\n python setup.py build_ext -i\n***"
         raise
 
-
-# Parameters used by the following routines
-# =========================================
 
 # Nondimensionalized radius of the earth
 Rsphere = 1.0
@@ -368,28 +358,20 @@ def auxbc_upper_y(state,dim,t,auxbc,num_ghost):
 
 
 def setup(use_petsc=False,solver_type='classic',outdir='./_output', disable_output=False):
-
-    # Import pyclaw module
     if use_petsc:
         raise Exception("petclaw does not currently support mapped grids (go bug Lisandro who promised to implement them)")
 
     if solver_type != 'classic':
-        raise Exception("Only Classic-style solvers (solver_type='classic') are supported")
+        raise Exception("Only Classic-style solvers (solver_type='classic') are supported on mapped grids")
 
     from clawpack import pyclaw
     from clawpack import riemann
 
-    #===========================================================================
-    # Set up solver and solver parameters
-    #===========================================================================
     solver = pyclaw.ClawSolver2D(riemann.shallow_sphere_2D)
-    
     solver.fmod = classic2
 
     # Set boundary conditions
     # =======================
-
-    # Conserved variables
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
     solver.bc_lower[1] = pyclaw.BC.custom  # Custom BC for sphere
@@ -435,7 +417,6 @@ def setup(use_petsc=False,solver_type='classic',outdir='./_output', disable_outp
     # state and finally initialize aux array
     #===========================================================================
     # Domain:
-    # ====
     xlower = -3.0
     xupper = 1.0
     mx = 40
