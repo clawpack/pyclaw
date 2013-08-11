@@ -218,13 +218,8 @@ def shockbubble(use_petsc=False,outdir='./_output',solver_type='classic'):
     claw.num_output_times = 10
     claw.outdir = outdir
 
-    # Solve
-    status = claw.run()
+    return claw
 
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
-
-    return claw.solution.q
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main

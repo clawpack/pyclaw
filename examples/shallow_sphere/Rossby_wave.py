@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # encoding: utf-8
-
 """
 2D shallow water equations on a spherical surface. The approximation of the 
 three-dimensional equations is restricted to the surface of the sphere. 
@@ -11,24 +10,20 @@ Reference: Logically Rectangular Grids and Finite Volume Methods for PDEs in
            By Donna A. Calhoun, Christiane Helzel, and Randall J. LeVeque
            SIAM Review 50 (2008), 723-752. 
 """
-
-# Import library
-# ==============
 import numpy as np
-
-from numpy import *
-import os
-
 try:
     import problem
     import classic2
 except ImportError:
     import warnings
     warnings.warn("missing extension modules, running python setup.py build_ext -i")
+    import os
     import subprocess
-    subprocess.check_call('python setup.py build_ext -i', shell=True)
+    thisdir = os.path.dirname(__file__)
+    subprocess.check_call('python setup.py build_ext -i', shell=True, cwd=thisdir)
     warnings.warn("missing extension modules built by running python setup.py build_ext -i")
     try:
+        # Now try to import again
         import problem
         import classic2
     except ImportError:
@@ -36,9 +31,6 @@ except ImportError:
         print >> sys.stderr, "***\nUnable to import problem module or automatically build, try running (in the directory of this file):\n python setup.py build_ext -i\n***"
         raise
 
-
-# Parameters used by the following routines
-# =========================================
 
 # Nondimensionalized radius of the earth
 Rsphere = 1.0
@@ -365,29 +357,21 @@ def auxbc_upper_y(state,dim,t,auxbc,num_ghost):
     auxbc[:,:,-num_ghost:] = auxtemp[:,:,-num_ghost:]
 
 
-def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',outdir='./_output', disable_output=False):
-
-    # Import pyclaw module
+def setup(use_petsc=False,solver_type='classic',outdir='./_output', disable_output=False):
     if use_petsc:
         raise Exception("petclaw does not currently support mapped grids (go bug Lisandro who promised to implement them)")
 
     if solver_type != 'classic':
-        raise Exception("Only Classic-style solvers (solver_type='classic') are supported")
+        raise Exception("Only Classic-style solvers (solver_type='classic') are supported on mapped grids")
 
     from clawpack import pyclaw
     from clawpack import riemann
 
-    #===========================================================================
-    # Set up solver and solver parameters
-    #===========================================================================
     solver = pyclaw.ClawSolver2D(riemann.shallow_sphere_2D)
-    
     solver.fmod = classic2
 
     # Set boundary conditions
     # =======================
-
-    # Conserved variables
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
     solver.bc_lower[1] = pyclaw.BC.custom  # Custom BC for sphere
@@ -433,7 +417,6 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',outdir='./_o
     # state and finally initialize aux array
     #===========================================================================
     # Domain:
-    # ====
     xlower = -3.0
     xupper = 1.0
     mx = 40
@@ -522,4 +505,141 @@ def shallow_4_Rossby_Haurwitz(use_petsc=False,solver_type='classic',outdir='./_o
         
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(shallow_4_Rossby_Haurwitz)
+    output = run_app_from_main(setup)
+
+
+def plot_on_sphere():
+    """
+    Plots the solution of the shallow water on a sphere in the 
+    rectangular computational domain. The user can specify the name of the solution
+    file and its path. If these are not given, the script checks 
+    whether the solution fort.q0000 in ./_output exists and plots it. If it it does
+    not exist an error message is printed at screen.
+    The file must be ascii and clawpack format.
+
+    To use this, you must first install the basemap toolkit; see
+    http://matplotlib.org/basemap/users/installing.html.
+
+    This function also shows how to manually read and plot the solution stored in
+    an ascii file written by pyclaw, without using the pyclaw.io.ascii routines.
+    """
+
+    # Import some libraries
+    from clawpack import pyclaw
+    import setup as rh
+    import numpy as np
+
+    from mpl_toolkits.basemap import Basemap
+    import matplotlib.pyplot as plt
+
+    import sys
+
+    # Nondimensionalized radius of the earth
+    Rsphere = 1.0
+
+    def contourLineSphere(fileName='fort.q0000',path='./_output'):
+        """
+        This function plot the contour lines on a spherical surface for the shallow
+        water equations solved on a sphere.
+        """  
+     
+        # Open file
+        # =========
+        
+        # Concatenate path and file name
+        pathFileName = path + "/" + fileName
+
+        try:
+            f = file(pathFileName,"r")
+        except IOError as e:
+            print("({})".format(e))
+            sys.exit()
+
+
+        # Read file header
+        # ================
+        # The information contained in the first two lines are not used.
+        unsed = f.readline()  # patch_number
+        unused = f.readline() # AMR_level
+
+        # Read mx, my, xlow, ylow, dx and dy
+        line = f.readline()
+        sline = line.split()
+        mx = int(sline[0])
+
+        line = f.readline()
+        sline = line.split()
+        my = int(sline[0])
+
+        line = f.readline()
+        sline = line.split()
+        xlower = float(sline[0])
+
+        line = f.readline()
+        sline = line.split()
+        ylower = float(sline[0])
+
+        line = f.readline()
+        sline = line.split()
+        dx = float(sline[0])
+
+        line = f.readline()
+        sline = line.split()
+        dy = float(sline[0])
+
+
+        # Patch:
+        # ====
+        xupper = xlower + mx * dx
+        yupper = ylower + my * dy
+
+        x = pyclaw.Dimension('x',xlower,xupper,mx)
+        y = pyclaw.Dimension('y',ylower,yupper,my)
+        patch = pyclaw.Patch([x,y])
+
+
+        # Override default mapc2p function
+        # ================================
+        patch.mapc2p = rh.mapc2p_sphere_vectorized  
+
+
+        # Compute the physical coordinates of each cell's centers
+        # ======================================================
+        patch.compute_p_centers(recompute=True)
+        xp = patch._p_centers[0]
+        yp = patch._p_centers[1]
+        zp = patch._p_centers[2]
+
+        patch.compute_c_centers(recompute=True)
+        xc = patch._c_centers[0]
+        yc = patch._c_centers[1]
+        
+        # Define arrays of conserved variables
+        h = np.zeros((mx,my))
+        hu = np.zeros((mx,my))
+        hv = np.zeros((mx,my))
+        hw = np.zeros((mx,my))
+
+        # Read solution
+        for j in range(my):
+            tmp = np.fromfile(f,dtype='float',sep=" ",count=4*mx)
+            tmp = tmp.reshape((mx,4))
+            h[:,j] = tmp[:,0]
+            hu[:,j] = tmp[:,1]
+            hv[:,j] = tmp[:,2]
+            hw[:,j] = tmp[:,3]
+
+        
+        # Plot solution in the computational domain
+        # =========================================
+
+        # Fluid height
+        plt.figure()
+        CS = plt.contour(xc,yc,h)
+        plt.title('Fluid height (computational domain)')
+        plt.xlabel('xc')
+        plt.ylabel('yc')
+        plt.clabel(CS, inline=1, fontsize=10)
+        plt.show()
+
+

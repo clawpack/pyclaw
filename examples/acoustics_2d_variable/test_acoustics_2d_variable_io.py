@@ -1,7 +1,7 @@
 def test_acoustics_2d_variable_io():
     """Test I/O on variable-coefficient 2D acoustics application"""
 
-    from acoustics import acoustics2D
+    import acoustics_2d_interface
 
     def verify_acoustics_io(controller):
         """ Verifies I/O on 2d variable-coefficient acoustics application"""
@@ -56,7 +56,7 @@ def test_acoustics_2d_variable_io():
 
     from clawpack.pyclaw.util import gen_variants
     tempdir = './_io_test_results'
-    classic_tests = gen_variants(acoustics2D, verify_acoustics_io,
+    classic_tests = gen_variants(acoustics_2d_interface.setup, verify_acoustics_io,
                                  solver_type='classic', outdir=tempdir)
 
 

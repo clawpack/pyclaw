@@ -1,7 +1,7 @@
 def test_acoustics_2d_variable():
     """Test variable-coefficient 2D acoustics"""
 
-    from acoustics import acoustics2D
+    import acoustics_2d_interface
 
     def verify_classic_acoustics(controller):
         import os
@@ -24,10 +24,10 @@ def test_acoustics_2d_variable():
 
     from clawpack.pyclaw.util import gen_variants
 
-    classic_tests = gen_variants(acoustics2D, verify_classic_acoustics,
+    classic_tests = gen_variants(acoustics_2d_interface.setup, verify_classic_acoustics,
                                  solver_type='classic', disable_output=True)
 
-    sharp_tests   = gen_variants(acoustics2D, verify_classic_acoustics,
+    sharp_tests   = gen_variants(acoustics_2d_interface.setup, verify_classic_acoustics,
                                  solver_type='sharpclaw', disable_output=True)
 
     from itertools import chain

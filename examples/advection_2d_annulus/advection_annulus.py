@@ -178,7 +178,7 @@ def stream(xp,yp):
     return streamValue
 
 
-def advection_annulus(use_petsc=False,outdir='./_output',solver_type='classic'):
+def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     from clawpack import riemann
 
     if use_petsc:
@@ -262,4 +262,4 @@ def advection_annulus(use_petsc=False,outdir='./_output',solver_type='classic'):
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(advection_annulus)
+    output = run_app_from_main(setup)

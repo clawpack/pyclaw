@@ -36,14 +36,14 @@ def test_3d_acoustics():
 
 
     from clawpack.pyclaw.util import gen_variants
-    from acoustics import acoustics3D
+    import acoustics_3d_interface
 
-    homogeneous_tests   = gen_variants(acoustics3D, acoustics_verify_homogeneous,
+    homogeneous_tests   = gen_variants(acoustics_3d_interface.setup, acoustics_verify_homogeneous,
                                        kernel_languages=('Fortran',), 
                                        solver_type='classic', test='homogeneous',
                                        disable_output=True)
 
-    heterogeneous_tests = gen_variants(acoustics3D, acoustics_verify_heterogeneous,
+    heterogeneous_tests = gen_variants(acoustics_3d_interface.setup, acoustics_verify_heterogeneous,
                                        kernel_languages=('Fortran',), 
                                        solver_type='classic', test='heterogeneous',
                                        disable_output=True)
