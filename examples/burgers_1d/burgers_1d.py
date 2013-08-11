@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-def burgers(use_petsc=0,kernel_language='Fortran',outdir='./_output',solver_type='classic'):
+def setup(use_petsc=0,kernel_language='Fortran',outdir='./_output',solver_type='classic'):
     """
     Example python script for solving the 1d Burgers equation.
     """
@@ -61,5 +61,5 @@ def burgers(use_petsc=0,kernel_language='Fortran',outdir='./_output',solver_type
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(burgers)
+    output = run_app_from_main(setup)
 

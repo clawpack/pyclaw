@@ -154,7 +154,7 @@ def dq_Euler_radial(solver,state,dt):
 
     return dq
 
-def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic', outdir='_output', disable_output=False):
+def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic', outdir='_output', disable_output=False):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a bubble of dense gas that is impacted by a shock.
@@ -228,5 +228,5 @@ def shockbubble(use_petsc=False,kernel_language='Fortran',solver_type='classic',
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(shockbubble)
+    output = run_app_from_main(setup)
 

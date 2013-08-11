@@ -6,7 +6,7 @@
 """
 
     
-def shallow1D(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_type='classic'):
+def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_type='classic'):
     #===========================================================================
     # Import libraries
     #===========================================================================
@@ -90,4 +90,4 @@ def shallow1D(use_petsc=False,kernel_language='Fortran',outdir='./_output',solve
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(shallow1D)
+    output = run_app_from_main(setup)

@@ -22,7 +22,7 @@ def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
     state.q[2,:,:] = hl*vl*(r<=radDam) + hr*vr*(r>radDam)
 
     
-def shallow2D(use_petsc=False,outdir='./_output',solver_type='classic'):
+def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     #===========================================================================
     # Import libraries
     #===========================================================================
@@ -97,4 +97,4 @@ def shallow2D(use_petsc=False,outdir='./_output',solver_type='classic'):
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(shallow2D)
+    output = run_app_from_main(setup)

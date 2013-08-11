@@ -116,7 +116,7 @@ def gauge_pfunction(q,aux):
     p = np.exp(q[0]*aux[1])-1
     return [p,10*p]
 
-def psystem2D(kernel_language='Fortran',
+def setup(kernel_language='Fortran',
               use_petsc=False,outdir='./_output',solver_type='classic',
               disable_output=False):
 
@@ -234,4 +234,4 @@ def psystem2D(kernel_language='Fortran',
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(psystem2D)
+    output = run_app_from_main(setup)

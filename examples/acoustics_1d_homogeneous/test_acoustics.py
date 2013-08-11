@@ -3,7 +3,7 @@ def test_1d_acoustics():
 
     tests against known classic, sharpclaw, and high-order weno results """
 
-    from acoustics import acoustics
+    import acoustics_1d
 
     def verify_expected(expected):
         """ binds the expected value to the acoustics_verify methods """
@@ -28,13 +28,13 @@ def test_1d_acoustics():
 
     from clawpack.pyclaw.util import gen_variants
 
-    classic_tests = gen_variants(acoustics, verify_expected(0.00104856594174),
+    classic_tests = gen_variants(acoustics_1d.setup, verify_expected(0.00104856594174),
                                  kernel_languages=('Python','Fortran'), solver_type='classic', disable_output=True)
 
-    sharp_tests   = gen_variants(acoustics, verify_expected(0.000298879563857),
+    sharp_tests   = gen_variants(acoustics_1d.setup, verify_expected(0.000298879563857),
                                  kernel_languages=('Python','Fortran'), solver_type='sharpclaw',disable_output=True)
 
-    weno_tests    = gen_variants(acoustics, verify_expected(0.000153070447918),
+    weno_tests    = gen_variants(acoustics_1d.setup, verify_expected(0.000153070447918),
                                  kernel_languages=('Fortran',), solver_type='sharpclaw',
                                  weno_order=17, disable_output=True)
 

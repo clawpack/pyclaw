@@ -3,7 +3,7 @@ def test_1d_advection():
 
     tests against expected classic, sharpclaw, and high-order weno results """
 
-    from advection import advection
+    import advection_1d
 
     def verify_expected(expected):
         """ given an expected value, returns a verification function """
@@ -24,15 +24,15 @@ def test_1d_advection():
 
     from clawpack.pyclaw.util import gen_variants
 
-    classic_tests = gen_variants(advection, verify_expected(3.203924e-04),
+    classic_tests = gen_variants(advection_1d.setup, verify_expected(3.203924e-04),
                                  kernel_languages=('Python','Fortran'),
                                  solver_type='classic', outdir=None)
 
-    sharp_tests   = gen_variants(advection, verify_expected(1.163605e-05),
+    sharp_tests   = gen_variants(advection_1d.setup, verify_expected(1.163605e-05),
                                  kernel_languages=('Python','Fortran'),
                                  solver_type='sharpclaw', outdir=None)
 
-    weno_tests    = gen_variants(advection, verify_expected(7.489618e-06),
+    weno_tests    = gen_variants(advection_1d.setup, verify_expected(7.489618e-06),
                                  kernel_languages=('Fortran',),
                                  solver_type='sharpclaw', weno_order=17,
                                  outdir=None)

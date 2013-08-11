@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
-def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5, disable_output=False):
+def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5, disable_output=False):
     """
     This example solves the 1-dimensional acoustics equations in a homogeneous
     medium.
@@ -87,4 +87,4 @@ def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',ou
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(acoustics)
+    output = run_app_from_main(setup)

@@ -3,7 +3,7 @@
 
 import numpy as np
 
-def acoustics3D(use_petsc=False,outdir='./_output',solver_type='classic',disable_output=False,**kwargs):
+def setup(use_petsc=False,outdir='./_output',solver_type='classic',disable_output=False,**kwargs):
     """
     Example python script for solving the 3d acoustics equations.
     """
@@ -118,4 +118,4 @@ def acoustics3D(use_petsc=False,outdir='./_output',solver_type='classic',disable
 if __name__=="__main__":
     import sys
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(acoustics3D)
+    output = run_app_from_main(setup)
