@@ -150,7 +150,6 @@ class SharpClawSolver(Solver):
 
         self.a = None
         self.b = None
-        self.b_hat = None
         self.c = None
         
 
@@ -267,12 +266,7 @@ class SharpClawSolver(Solver):
                     self._rk_stages[i].q = self.dq(self._rk_stages[i])
 
                 for j in range(num_stages):
-                    if self.b_hat is None:
-                        state.q += self.b[j]*self._rk_stages[j].q
-                    else:
-                        import numpy as np
-                        state.q += self.b[j]  *(state.aux[state.ti_mask_ind,:])*np.nan_to_num(self._rk_stages[j].q)
-                        state.q += self.b_hat[j]*(1.-state.aux[state.ti_mask_ind,:])*np.nan_to_num(self._rk_stages[j].q)
+                    state.q += self.b[j]*self._rk_stages[j].q
             else:
                 raise Exception('Unrecognized time integrator')
         except CFLError:
