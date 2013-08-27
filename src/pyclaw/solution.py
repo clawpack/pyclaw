@@ -2,24 +2,12 @@
 # encoding: utf-8
 r"""
 Module containing all Pyclaw solution objects
-
-:Authors:
-    Kyle T. Mandli (2008-08-07) Initial version
 """
-# ============================================================================
-#      Copyright (C) 2008 Kyle T. Mandli <mandli@amath.washington.edu>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
 
 import os
 import logging
 
 from .geometry import Patch, Dimension, Domain
-from .state import State
-import io
 
 # ============================================================================
 #  Solution Class
@@ -77,6 +65,18 @@ class Solution(object):
         >>> state = pyclaw.State(domain,3,2)
         >>> solution = pyclaw.Solution(state,domain)
     """
+    def __getattr__(self, key):
+        if key in ('t','num_eqn','mp','mF','q','p','F','aux','capa',
+                    'problem_data','num_aux'):
+            return self._get_base_state_attribute(key)
+        else:
+            raise AttributeError("'Solution' object has no attribute '"+key+"'")
+
+    def __setattr__(self, key, value):
+        if key in ('t','mp','mF'):
+            self.set_all_states(key,value)
+        else:
+            self.__dict__[key] = value
 
     # ========== Attributes ==================================================
     
@@ -91,71 +91,11 @@ class Solution(object):
         return self.domain.patch
 
     @property
-    def t(self):
-        r"""(float) - :attr:`State.t` of base state"""
-        return self._get_base_state_attribute('t')
-    @t.setter
-    def t(self,value):
-        self.set_all_states('t',value)
-
-    @property
-    def num_eqn(self):
-        r"""(int) - :attr:`State.num_eqn` of base state"""
-        return self._get_base_state_attribute('num_eqn')
-    @property
-    def mp(self):
-        r"""(int) - :attr:`State.mp` of base state"""
-        return self._get_base_state_attribute('mp')
-    @property
-    def mF(self):
-        r"""(int) - :attr:`State.mF` of base state"""
-        return self._get_base_state_attribute('mF')
-    @property
-    def q(self):
-        r"""(ndarray(...,:attr:`State.num_eqn`)) - :attr:`State.q` of base state"""
-        return self._get_base_state_attribute('q')
-    @property
-    def p(self):
-        r"""(ndarray(...,:attr:`State.mp`)) - :attr:`State.p` of base state"""
-        return self._get_base_state_attribute('p')
-    @property
-    def F(self):
-        r"""(ndarray(...,:attr:`State.mF`)) - :attr:`State.F` of base 
-                  state"""
-        return self._get_base_state_attribute('F')
-
-    @property
-    def aux(self):
-        r"""(ndarray(...,:attr:`State.num_aux`)) - :attr:`State.aux` of base 
-                  state"""
-        return self._get_base_state_attribute('aux')
-    @aux.setter
-    def aux(self, value): 
-        if len(self.states) == 1: 
-            setattr(self.states[0],'aux',value)
-
-    @property
-    def capa(self):
-        r"""(ndarray(...)) - :attr:`State.capa` of base state"""
-        return self._get_base_state_attribute('capa')
-    @capa.setter
-    def capa(self, value):
-        if len(self.states) == 1: 
-            setattr(self.states[0],'capa',value)
-
-    @property
-    def problem_data(self):
-        r"""(dict) - :attr:`State.problem_data` of base state"""
-        return self._get_base_state_attribute('problem_data')
-    @problem_data.setter
-    def problem_data(self, value):
-        if len(self.states) == 1: 
-            setattr(self.states[0],'problem_data',value)
-
-    @property
-    def num_aux(self):
-        r"""(int) - :attr:`State.num_aux` of base state"""
-        return self._get_base_state_attribute('num_aux')
+    def start_frame(self):
+        r"""(int) - : Solution start frame number in case the `Solution`
+        object is initialized by loading frame from file"""
+        return self._start_frame
+    _start_frame = 0
        
 
     # ========== Class Methods ===============================================
@@ -193,6 +133,18 @@ class Solution(object):
         if len(arg) == 1:
             # Load frame
             frame = arg[0]
+            if not isinstance(frame,int):
+                raise Exception('Invalid pyclaw.Solution object initialization')
+            if 'count_from_zero' in kargs.keys() and\
+              kargs['count_from_zero'] == True:
+                self._start_frame = 0
+            else:
+                self._start_frame = frame
+            try:
+                kargs.pop('count_from_zero')
+            except KeyError:
+                pass
+
             self.read(frame,**kargs)
         elif len(arg) == 2:
             #Set domain
@@ -327,11 +279,17 @@ class Solution(object):
             format_list = [file_format]
         elif isinstance(file_format,list):
             format_list = file_format
+
         if 'petsc' in format_list:
             from clawpack.petclaw import io
+            write_func = io.petsc.write
+        else:
+            from clawpack.pyclaw import io
+            write_func = io.ascii.write
+
+
         # Loop over list of formats requested
         for form in format_list:
-            write_func = eval('io.write_%s' % form)
             if file_prefix is None:
                 write_func(self,frame,path,write_aux=write_aux,
                             options=options,write_p=write_p)
@@ -341,6 +299,7 @@ class Solution(object):
                            write_p=write_p)
             msg = "Wrote out solution in format %s for time t=%s" % (form,self.t)
             logging.getLogger('io').info(msg)
+
         
     def read(self,frame,path='./_output',file_format='ascii',file_prefix=None,
                 read_aux=True,options={}, **kargs):
@@ -376,8 +335,12 @@ class Solution(object):
         
         if file_format=='petsc':
             from clawpack.petclaw import io
+            read_func = io.petsc.read
+        elif file_format=='ascii': 
+            from clawpack.pyclaw import io
+            read_func = io.ascii.read
+
         path = os.path.expandvars(os.path.expanduser(path))
-        read_func = eval('io.read_%s' % file_format)
         if file_prefix is None:
             read_func(self,frame,path,read_aux=read_aux,options=options)
         else:

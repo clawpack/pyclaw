@@ -4,7 +4,8 @@ r"""
 Controller for basic computation and plotting setup.
 
 This module defines the Pyclaw controller class.  It can be used to perform
-simulations similar to previous versions of Clawpack, i.e. with output_style and
+simulations in a convenient manner similar to that available in previous
+versions of Clawpack, i.e. with output_style and
 output time specification.  It also can be used to set up easy plotting and 
 running of compiled fortran binaries.
 """
@@ -34,6 +35,19 @@ class Controller(object):
         >>> claw.solution = pyclaw.Solution(state,domain)
         >>> claw.solver = pyclaw.ClawSolver1D()
     """
+
+    #  ======================================================================
+    #   Property Definitions
+    #  ======================================================================
+    @property
+    def outdir_p(self):
+        r"""(string) - Directory to use for writing derived quantity files"""
+        return os.path.join(self.outdir,'_p')
+    @property
+    def F_path(self):
+        r"""(string) - Full path to output file for functionals"""
+        return os.path.join(self.outdir,self.F_file_name+'.txt')
+
     #  ======================================================================
     #   Initialization routines
     #  ======================================================================
@@ -118,7 +132,8 @@ class Controller(object):
         self.num_output_times = 10                  # Outstyle 1 defaults
         r"""(int) - Number of output times, only used with ``output_style = 1``,
         ``default = 10``"""
-        self.out_times = np.linspace(0.0,self.tfinal,self.num_output_times) # Outstyle 2
+        self.out_times = np.linspace(0.0,self.tfinal,self.num_output_times
+                                     -self.start_frame) # Outstyle 2
         r"""(int) - Output time list, only used with ``output_style = 2``,
         ``default = numpy.linspace(0.0,tfinal,num_output_times)``"""
         
@@ -137,16 +152,12 @@ class Controller(object):
         r"""(string) - File prefix to be prepended to derived quantity output files"""
         self.compute_p = None
         r"""(function) - function that computes derived quantities"""
-        self.outdir_p = self.outdir+'/_p'
-        r"""(string) - Directory to use for writing derived quantity files"""
-
+        
         # functionals
         self.compute_F = None
         r"""(function) - Function that computes density of functional F"""
         self.F_file_name = 'F'
         r"""(string) - Name of text file containing functionals"""
-        self.F_path = './_output/'+self.F_file_name+'.txt'
-        r"""(string) - Full path to output file for functionals"""
 
     # ========== Access methods ===============================================
     def __str__(self):        
@@ -203,13 +214,17 @@ class Controller(object):
             
         :Ouput:
             (dict) - Return a dictionary of the status of the solver.
-            
-        :Version: 1.0 (2009-05-01)
         """
-        
         import numpy as np
 
+        if self.solver is None or self.solution is None:
+            raise Exception('To run, a Controller must have a Solver and a Solution.')
+
+        self.start_frame = self.solution.start_frame
+        if len(self.solution.patch.grid.gauges)>0:
+            self.solution.patch.grid.setup_gauge_files(self.outdir)
         frame = FrameCounter()
+
         frame.set_counter(self.start_frame)
         if self.keep_copy:
             self.frames = []
@@ -225,11 +240,13 @@ class Controller(object):
         # Output styles
         if self.output_style == 1:
             output_times = np.linspace(self.solution.t,
-                    self.tfinal,self.num_output_times+1)
+                    self.tfinal,self.num_output_times+1
+                    -self.start_frame)
         elif self.output_style == 2:
             output_times = self.out_times
         elif self.output_style == 3:
-            output_times = np.ones((self.num_output_times+1))
+            output_times = np.ones((self.num_output_times+1
+                                    -self.start_frame))
         else:
             raise Exception("Invalid output style %s" % self.output_style)  
          
@@ -249,10 +266,11 @@ class Controller(object):
                                         options = self.output_options,
                                         write_p = True) 
 
+            write_aux = (self.write_aux_always or self.write_aux_init)
             self.solution.write(frame,self.outdir,
                                         self.output_format,
                                         self.output_file_prefix,
-                                        self.write_aux_init,
+                                        write_aux,
                                         self.output_options)
 
         self.write_F('w')

@@ -1,7 +1,9 @@
 import clawpack.pyclaw
 
 class State(clawpack.pyclaw.State):
-    r"""  See the corresponding PyClaw class documentation."""
+    """Parallel State class"""
+
+    __doc__ += clawpack.pyclaw.util.add_parent_doc(clawpack.pyclaw.state)
 
     @property
     def num_eqn(self):
@@ -156,6 +158,13 @@ class State(clawpack.pyclaw.State):
         r"""(float) - Current time represented on this patch, 
             ``default = 0.0``"""
         self.index_capa = -1
+        self.keep_gauges = False
+        r"""(bool) - Keep gauge values in memory for every time step, 
+        ``default = False``"""
+        self.gauge_data = []
+        r"""(list) - List of numpy.ndarray objects. Each element of the list
+        stores the values of the corresponding gauge if ``keep_gauges`` is set
+        to ``True``"""
 
         self._init_q_da(num_eqn)
         if num_aux>0: self._init_aux_da(num_aux)
@@ -218,47 +227,10 @@ class State(clawpack.pyclaw.State):
 
         return DA
 
-    def set_q_from_qbc(self,num_ghost,qbc):
-        """
-        Set the value of q using the array qbc. for PetSolver, this
-        involves setting qbc as the local vector array then perform
-        a local to global communication. 
-        """
-        
-        patch = self.patch
-        if patch.num_dim == 1:
-            self.q = qbc[:,num_ghost:-num_ghost]
-        elif patch.num_dim == 2:
-            self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
-        elif patch.num_dim == 3:
-            self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost]
-        else:
-            raise NotImplementedError("The case of 3D is not handled in "\
-            +"this function yet")
-
-    def set_aux_from_auxbc(self,num_ghost,auxbc):
-        """
-        Set the value of aux using the array auxbc. for PetSolver, this
-        involves setting auxbc as the local vector array then perform
-        a local to global communication. 
-        """
-        
-        patch = self.patch
-        if patch.num_dim == 1:
-            self.aux = auxbc[:,num_ghost:-num_ghost]
-        elif patch.num_dim == 2:
-            self.aux = auxbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
-        elif patch.num_dim == 3:
-            self.aux = auxbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost]
-        else:
-            raise NotImplementedError("The case of 3D is not handled in "\
-            +"this function yet")
-
 
     def get_qbc_from_q(self,num_ghost,qbc):
         """
-        Returns q with ghost cells attached.  For PetSolver,
-        this means returning the local vector.  
+        Returns q with ghost cells attached, by accessing the local vector.
         """
         shape = [n + 2*num_ghost for n in self.grid.num_cells]
         
@@ -266,10 +238,9 @@ class State(clawpack.pyclaw.State):
         shape.insert(0,self.num_eqn)
         return self.lqVec.getArray().reshape(shape, order = 'F')
             
-    def set_auxbc_from_aux(self,num_ghost,auxbc):
+    def get_auxbc_from_aux(self,num_ghost,auxbc):
         """
-        Returns aux with ghost cells attached.  For PetSolver,
-        this means returning the local vector.  
+        Returns aux with ghost cells attached, by accessing the local vector.
         """
         shape = [n + 2*num_ghost for n in self.grid.num_cells]
         
@@ -322,3 +293,25 @@ class State(clawpack.pyclaw.State):
         q0Vec.destroy()
 
         return q0
+
+    def get_aux_global(self):
+        r"""
+        Returns a copy of the global aux array on process 0, otherwise returns None
+        """
+        from petsc4py import PETSc
+        aux_natural = self.aux_da.createNaturalVec()
+        self.aux_da.globalToNatural(self.gauxVec, aux_natural)
+        scatter, aux0Vec = PETSc.Scatter.toZero(aux_natural)
+        scatter.scatter(aux_natural, aux0Vec, False, PETSc.Scatter.Mode.FORWARD)
+        rank = PETSc.COMM_WORLD.getRank()
+        if rank == 0:
+            shape = self.patch.num_cells_global
+            shape.insert(0,self.num_aux)
+            aux0=aux0Vec.getArray().reshape(shape, order = 'F').copy()
+        else:
+            aux0=None
+        
+        scatter.destroy()
+        aux0Vec.destroy()
+
+        return aux0

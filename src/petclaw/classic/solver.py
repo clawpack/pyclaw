@@ -7,29 +7,25 @@ determine the containing claw_package to use.
 """
 
 from __future__ import absolute_import
-from clawpack.pyclaw.classic import solver
+from clawpack import pyclaw
 
-class ClawSolver1D(solver.ClawSolver1D):
+class ClawSolver1D(pyclaw.ClawSolver1D):
     r"""
-    PetClaw solver for 1D problems using classic Clawpack algorithms.
-
-    This class implements nothing; it just inherits from ClawSolver1D.
+    Parallel solver for 1D problems using classic Clawpack algorithms.
     """
 
-class ClawSolver2D(solver.ClawSolver2D):
-    r"""
-    PetClaw solver for 2D problems using classic Clawpack algorithms.
+    __doc__ += pyclaw.util.add_parent_doc(pyclaw.ClawSolver1D)
 
-    This class implements nothing; it just inherits from ClawSolver2D.
-    
-    Note that only the fortran routines are supported for now in 2D.
-    """
-    
-class ClawSolver3D(solver.ClawSolver3D):
+class ClawSolver2D(pyclaw.ClawSolver2D):
     r"""
-    PetClaw solver for 3D problems using classic Clawpack algorithms.
-
-    This class implements nothing; it just inherits from ClawSolver3D.
-    
-    Note that only fortran routines are supported in 3D.
+    Parallel solver for 2D problems using classic Clawpack algorithms.
     """
+
+    __doc__ += pyclaw.util.add_parent_doc(pyclaw.ClawSolver2D)
+    
+class ClawSolver3D(pyclaw.ClawSolver3D):
+    r"""
+    Parallel solver for 3D problems using classic Clawpack algorithms.
+    """
+
+    __doc__ += pyclaw.util.add_parent_doc(pyclaw.ClawSolver3D)

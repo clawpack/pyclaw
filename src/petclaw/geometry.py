@@ -4,9 +4,15 @@ r"""
 Module containing petclaw.geometry.
 """
 
+from clawpack import pyclaw
 from clawpack.pyclaw import geometry as pyclaw_geometry
 
 class Patch(pyclaw_geometry.Patch):
+    """Parallel Patch class.
+    """
+
+    __doc__ += pyclaw.util.add_parent_doc(pyclaw_geometry.Patch)
+    
     def __init__(self,dimensions):
         
         super(Patch,self).__init__(dimensions)
@@ -18,11 +24,22 @@ class Patch(pyclaw_geometry.Patch):
             lower = self.lower_global[i] + nrange[0]*self.delta[i]
             upper = self.lower_global[i] + nrange[1]*self.delta[i]
             num_cells   = nrange[1]-nrange[0]
+
             grid_dimensions.append(pyclaw_geometry.Dimension(lower,upper,
                                         num_cells,name=dimensions[i].name))
 
-        self.grid = pyclaw_geometry.Grid(grid_dimensions)
 
+            if nrange[0] == 0:
+                grid_dimensions[-1].on_lower_boundary = True
+            else:
+                grid_dimensions[-1].on_lower_boundary = False
+
+            if nrange[1] == self.num_cells_global[i]:
+                grid_dimensions[-1].on_upper_boundary = True
+            else:
+                grid_dimensions[-1].on_upper_boundary = False  
+
+        self.grid = pyclaw_geometry.Grid(grid_dimensions)
 
     def _create_DA(self):
         r"""Returns a PETSc DA and associated global Vec.
@@ -60,11 +77,11 @@ class Patch(pyclaw_geometry.Patch):
 #  PetClaw Domain object definition
 # ============================================================================
 class Domain(pyclaw_geometry.Domain):
-    r"""
-    A Domain is a list of Patches.
-    
-    Need to add functionality to accept a list of patches as input.
+    r""" Parallel Domain Class    
     """
+    
+    __doc__ += pyclaw.util.add_parent_doc(pyclaw.ClawSolver2D)
+
     def __init__(self,geom):
         if not isinstance(geom,list):
             geom = [geom]

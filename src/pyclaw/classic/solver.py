@@ -8,9 +8,9 @@ are both pure virtual classes; the only solver classes that should be instantiat
 are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`.
 """
 
-from ..solver import Solver
-
-from ..limiters import tvd
+from clawpack.pyclaw.util import add_parent_doc
+from clawpack.pyclaw.solver import Solver
+from clawpack.pyclaw.limiters import tvd
 
 # ============================================================================
 #  Generic Clawpack solver class
@@ -71,13 +71,15 @@ class ClawSolver(Solver):
         The level of detail of logged messages from the Fortran solver.
         ``Default = 0``.
 
-    Output:
-     - (:class:`ClawSolver`) - Initialized clawpack solver
     """
+    
     # ========== Generic Init Routine ========================================
     def __init__(self,riemann_solver=None,claw_package=None):
         r"""
         See :class:`ClawSolver` for full documentation.
+
+        Output:
+        - (:class:`ClawSolver`) - Initialized clawpack solver
         """
         self.num_ghost = 2
         self.limiters = tvd.minmod
@@ -126,7 +128,7 @@ class ClawSolver(Solver):
         """
 
         if self.before_step is not None:
-            self.before_step(self,solution)
+            self.before_step(self,solution.states[0])
 
         if self.source_split == 2 and self.step_source is not None:
             self.step_source(self,solution.states[0],self.dt/2.0)
@@ -150,10 +152,10 @@ class ClawSolver(Solver):
                 
         return True
             
-    def check_cfl_settings(self):
+    def _check_cfl_settings(self):
         pass
 
-    def allocate_workspace(self,solution):
+    def _allocate_workspace(self,solution):
         pass
 
     def step_hyperbolic(self,solution):
@@ -164,7 +166,7 @@ class ClawSolver(Solver):
         """
         raise Exception("Dummy routine, please override!")
 
-    def set_mthlim(self):
+    def _set_mthlim(self):
         r"""
         Convenience routine to convert users limiter specification to 
         the format understood by the Fortran code (i.e., a list of length num_waves).
@@ -175,7 +177,7 @@ class ClawSolver(Solver):
         if len(self._mthlim)!=self.num_waves:
             raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_waves')
  
-    def set_method(self,state):
+    def _set_method(self,state):
         r"""
         Set values of the solver._method array required by the Fortran code.
         These are algorithmic parameters.
@@ -207,30 +209,30 @@ class ClawSolver(Solver):
         solution.state.set_num_ghost(self.num_ghost)
         # End hack
 
-        self.check_cfl_settings()
+        self._check_cfl_settings()
 
-        self.set_mthlim()
+        self._set_mthlim()
         if(self.kernel_language == 'Fortran'):
             if self.fmod is None:
                 so_name = 'clawpack.pyclaw.classic.classic'+str(self.num_dim)
                 self.fmod = __import__(so_name,fromlist=['clawpack.pyclaw.classic'])
-            self.set_fortran_parameters(solution)
-            self.allocate_workspace(solution)
+            self._set_fortran_parameters(solution)
+            self._allocate_workspace(solution)
         elif self.num_dim>1:
             raise Exception('Only Fortran kernels are supported in multi-D.')
 
-        self.allocate_bc_arrays(solution.states[0])
+        self._allocate_bc_arrays(solution.states[0])
 
         self._is_set_up = True
 
 
-    def set_fortran_parameters(self,solution):
+    def _set_fortran_parameters(self,solution):
         r"""
         Pack parameters into format recognized by Clawpack (Fortran) code.
 
         Sets the solver._method array and the cparam common block for the Riemann solver.
         """
-        self.set_method(solution.state)
+        self._set_method(solution.state)
         # The reload here is necessary because otherwise the common block
         # cparam in the Riemann solver doesn't get flushed between running
         # different tests in a single Python session.
@@ -260,19 +262,22 @@ class ClawSolver1D(ClawSolver):
     dependent on the argument given to the initialization of the solver 
     (defaults to python).
     
-    Output:
-     - (:class:`ClawSolver1D`) - Initialized 1d clawpack solver
     """
 
-    def __init__(self,riemann_solver=None):
+    __doc__ += add_parent_doc(ClawSolver)
+
+    def __init__(self, riemann_solver=None, claw_package=None):
         r"""
         Create 1d Clawpack solver
+
+        Output:
+        - (:class:`ClawSolver1D`) - Initialized 1d clawpack solver
         
         See :class:`ClawSolver1D` for more info.
         """   
         self.num_dim = 1
 
-        super(ClawSolver1D,self).__init__(riemann_solver)
+        super(ClawSolver1D,self).__init__(riemann_solver, claw_package)
 
 
     # ========== Homogeneous Step =====================================
@@ -289,9 +294,9 @@ class ClawSolver1D(ClawSolver):
         state = solution.states[0]
         grid = state.grid
 
-        self.apply_q_bcs(state)
+        self._apply_q_bcs(state)
         if state.num_aux > 0:
-            self.apply_aux_bcs(state)
+            self._apply_aux_bcs(state)
             
         num_eqn,num_ghost = state.num_eqn,self.num_ghost
           
@@ -399,7 +404,6 @@ class ClawSolver2D(ClawSolver):
     Solve using the wave propagation algorithms of Randy LeVeque's
     Clawpack code (www.clawpack.org).
 
-    See also the documentation for ClawSolver1D.
     In addition to the attributes of ClawSolver1D, ClawSolver2D
     also has the following options:
     
@@ -429,11 +433,13 @@ class ClawSolver2D(ClawSolver):
     Note that only the fortran routines are supported for now in 2D.
     """
 
+    __doc__ += add_parent_doc(ClawSolver)
+    
     no_trans  = 0
     trans_inc = 1
     trans_cor = 2
 
-    def __init__(self,riemann_solver=None):
+    def __init__(self,riemann_solver=None, claw_package=None):
         r"""
         Create 2d Clawpack solver
         
@@ -449,9 +455,9 @@ class ClawSolver2D(ClawSolver):
         self.aux3 = None
         self.work = None
 
-        super(ClawSolver2D,self).__init__(riemann_solver)
+        super(ClawSolver2D,self).__init__(riemann_solver, claw_package)
 
-    def check_cfl_settings(self):
+    def _check_cfl_settings(self):
         if (not self.dimensional_split) and (self.transverse_waves==0):
             cfl_recommended = 0.5
         else:
@@ -463,7 +469,7 @@ class ClawSolver2D(ClawSolver):
             warnings.warn(str(self.cfl_desired))
 
 
-    def allocate_workspace(self,solution):
+    def _allocate_workspace(self,solution):
         r"""
         Pack parameters into format recognized by Clawpack (Fortran) code.
 
@@ -510,9 +516,9 @@ class ClawSolver2D(ClawSolver):
             mx,my = grid.num_cells
             maxm = max(mx,my)
             
-            self.apply_q_bcs(state)
+            self._apply_q_bcs(state)
             if state.num_aux > 0:
-                self.apply_aux_bcs(state)
+                self._apply_aux_bcs(state)
             qold = self.qbc.copy('F')
             
             rpn2 = self.rp.rpn2._cpointer
@@ -556,8 +562,7 @@ class ClawSolver3D(ClawSolver):
     Solve using the wave propagation algorithms of Randy LeVeque's
     Clawpack code (www.clawpack.org).
 
-    See also the documentation for ClawSolver1D.
-    In addition to the attributes of ClawSolver1D, ClawSolver3D
+    In addition to the attributes of ClawSolver, ClawSolver3D
     also has the following options:
     
     .. attribute:: dimensional_split
@@ -587,11 +592,13 @@ class ClawSolver3D(ClawSolver):
     there is no pure-python version.
     """
 
+    __doc__ += add_parent_doc(ClawSolver)
+
     no_trans  = 0
     trans_inc = 11
     trans_cor = 22
 
-    def __init__(self,riemann_solver=None):
+    def __init__(self, riemann_solver=None, claw_package=None):
         r"""
         Create 3d Clawpack solver
         
@@ -608,10 +615,10 @@ class ClawSolver3D(ClawSolver):
         self.aux3 = None
         self.work = None
 
-        super(ClawSolver3D,self).__init__(riemann_solver)
+        super(ClawSolver3D,self).__init__(riemann_solver, claw_package)
 
     # ========== Setup routine =============================   
-    def allocate_workspace(self,solution):
+    def _allocate_workspace(self,solution):
         r"""
         Allocate auxN and work arrays for use in Fortran subroutines.
         """
@@ -656,9 +663,9 @@ class ClawSolver3D(ClawSolver):
             mx,my,mz = grid.num_cells
             maxm = max(mx,my,mz)
             
-            self.apply_q_bcs(state)
+            self._apply_q_bcs(state)
             if state.num_aux > 0:
-                self.apply_aux_bcs(state)
+                self._apply_aux_bcs(state)
             qnew = self.qbc
             qold = qnew.copy('F')
             

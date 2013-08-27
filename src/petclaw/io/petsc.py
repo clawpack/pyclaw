@@ -6,15 +6,11 @@ Routines for reading and writing a petsc-style output file.
 These routines preserve petclaw/pyclaw syntax for i/o while taking advantage of PETSc's parallel i/o capabilities to allow for parallel reads and writes of frame data.
 """
 
-import os
-import logging
-logger = logging.getLogger('io')
-
 from petsc4py import PETSc
 import pickle
     
 
-def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,options={},write_p=False):
+def write(solution,frame,path='./',file_prefix='claw',write_aux=False,options={},write_p=False):
     r"""
         Write out pickle and PETSc data files representing the
         solution.  Common data is written from process 0 in pickle
@@ -38,6 +34,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
     format   : one of 'ascii' or 'binary'
     clobber  : if True (Default), files will be overwritten
     """    
+    import os
     # Option parsing
     option_defaults = {'format':'binary','clobber':True}
 
@@ -57,7 +54,7 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
 
     if solution.num_aux > 0 and write_aux:
         write_aux = True
-        aux_filename = os.path.join(path, '%s_aux.ptc' % file_prefix)
+        aux_filename = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
     else:
         write_aux = False
         
@@ -123,8 +120,11 @@ def write_petsc(solution,frame,path='./',file_prefix='claw',write_aux=False,opti
     viewer.destroy()
     if rank==0:
         pickle_file.close()
+    if write_aux:
+        aux_viewer.flush()
+        aux_viewer.destroy()
 
-def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
+def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
     r"""
     Read in pickles and PETSc data files representing the solution
     
@@ -145,6 +145,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     format   : one of 'ascii' or 'binary'
      
     """
+    import os
 
     # Option parsing
     option_defaults = {'format':'binary'}
@@ -157,12 +158,23 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
-    aux_viewer_filename = os.path.join(path, '%s_aux.ptc' % file_prefix)
+    aux_viewer_filename1 = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
+    aux_viewer_filename2 = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(0).zfill(4)
+    if os.path.exists(aux_viewer_filename1):
+         aux_viewer_filename = aux_viewer_filename1
+    else:
+         aux_viewer_filename = aux_viewer_filename2
+
+
     if frame < 0:
         # Don't construct file names with negative frameno values.
         raise IOError("Frame " + str(frame) + " does not exist ***")
 
-    pickle_file = open(pickle_filename,'rb')
+    try:
+        pickle_file = open(pickle_filename,'rb')
+    except IOError:
+        print "Error: file " + pickle_filename + " does not exist or is unreadable."
+        raise
 
     # this dictionary is mostly holding debugging information, only nstates is needed
     # most of this information is explicitly saved in the individual patches
@@ -236,7 +248,7 @@ def read_petsc(solution,frame,path='./',file_prefix='claw',read_aux=False,option
     if read_aux:
         aux_viewer.destroy()
 
-def read_petsc_t(frame,path='./',file_prefix='claw'):
+def read_t(frame,path='./',file_prefix='claw'):
     r"""Read only the petsc.pkl file and return the data
     
     :Input:
@@ -254,26 +266,26 @@ def read_petsc_t(frame,path='./',file_prefix='claw'):
       - *num_dim* - (int) Number of dimensions in q and aux
     
     """
+    import os
+    import logging
+    logger = logging.getLogger('io')
 
     base_path = os.path.join(path,)
     path = os.path.join(base_path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     try:
         f = open(path,'rb')
-        logger.debug("Opening %s file." % path)
-        patch_dict = pickle.load(f)
-
-        t      = patch_dict['t']
-        num_eqn   = patch_dict['num_eqn']
-        nstates = patch_dict['nstates']                    
-        num_aux   = patch_dict['num_aux']                    
-        num_dim   = patch_dict['num_dim']
-
-        f.close()
-    except(IOError):
+    except IOError:
+        print "Error: file " + path + " does not exist or is unreadable."
         raise
-    except:
-        logger.error("File " + path + " should contain t, num_eqn, npatches, num_aux, num_dim")
-        print "File " + path + " should contain t, num_eqn, npatches, num_aux, num_dim"
-        raise
+    logger.debug("Opening %s file." % path)
+    patch_dict = pickle.load(f)
+
+    t      = patch_dict['t']
+    num_eqn   = patch_dict['num_eqn']
+    nstates = patch_dict['nstates']                    
+    num_aux   = patch_dict['num_aux']                    
+    num_dim   = patch_dict['num_dim']
+
+    f.close()
         
     return t,num_eqn,nstates,num_aux,num_dim

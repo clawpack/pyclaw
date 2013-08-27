@@ -1,2 +1,0 @@
-include $(PYCLAW)/Makefile.variables
-include $(PYCLAW)/Makefile.rules

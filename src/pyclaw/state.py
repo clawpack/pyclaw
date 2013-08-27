@@ -64,7 +64,7 @@ class State(object):
     @property
     def mp(self):
         r"""(int) - Number of derived quantities"""
-        if self.aux is not None: return self.aux.shape[0]
+        if self.p is not None: return self.p.shape[0]
         else: return 0
     @mp.setter
     def mp(self,mp):
@@ -113,6 +113,14 @@ class State(object):
         r"""(float) - Current time represented on this patch, 
             ``default = 0.0``"""
         self.index_capa = -1
+        self.keep_gauges = False
+        r"""(bool) - Keep gauge values in memory for every time step, 
+        ``default = False``"""
+        self.gauge_data = []
+        r"""(list) - List of numpy.ndarray objects. Each element of the list
+        stores the values of the corresponding gauge if ``keep_gauges`` is set
+        to ``True``"""
+        
 
         self.q   = self.new_array(num_eqn)
         self.aux = self.new_array(num_aux)
@@ -159,7 +167,7 @@ class State(object):
         Riemann solver.
 
         This function should be called from solver.setup().  This seems like a fragile
-        interdependency between solver and patch; perhaps problem_data should belong
+        interdependency between solver and state; perhaps problem_data should belong
         to solver instead of state.
 
         This function also checks that the set of variables defined in cparam 
@@ -175,16 +183,15 @@ class State(object):
 
     def set_num_ghost(self,num_ghost):
         """
-        Virtual routine (does nothing).  Overridden in the parallel class.
+        Virtual routine (does nothing).  Overridden in the petclaw.state class.
         """
         pass
 
 
     def set_q_from_qbc(self,num_ghost,qbc):
         """
-        Set the value of q using the array qbc. for PetSolver, this
-        involves setting qbc as the local vector array then perform
-        a local to global communication. 
+        Set the value of q using the array qbc.  This is called after
+        qbc is updated by the solver.
         """
         
         patch = self.patch
@@ -199,9 +206,7 @@ class State(object):
             
     def set_aux_from_auxbc(self,num_ghost,auxbc):
         """
-        Set the value of aux using the array auxbc. for PetSolver, this
-        involves setting auxbc as the local vector array then perform
-        a local to global communication. 
+        Set the value of aux using the array auxbc. 
         """
         
         patch = self.patch
@@ -217,7 +222,7 @@ class State(object):
 
     def get_qbc_from_q(self,num_ghost,qbc):
         """
-        Fills in the interior of qbc (local vector) by copying q (global vector) to it.
+        Fills in the interior of qbc by copying q to it.
         """
         num_dim = self.patch.num_dim
         
@@ -234,7 +239,7 @@ class State(object):
         
     def get_auxbc_from_aux(self,num_ghost,auxbc):
         """
-        Fills in the interior of auxbc (local vector) by copying aux (global vector) to it.
+        Fills in the interior of auxbc by copying aux to it.
         """
         num_dim = self.patch.num_dim
         
@@ -282,9 +287,15 @@ class State(object):
 
     def get_q_global(self):
         r"""
-        Returns a copy of the global q array
+        Returns a copy of state.q.
         """
         return self.q.copy()
+
+    def get_aux_global(self):
+        r"""
+        Returns a copy of state.aux.
+        """
+        return self.aux.copy()
 
 if __name__ == "__main__":
     import doctest
