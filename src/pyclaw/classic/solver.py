@@ -635,8 +635,8 @@ class ClawSolver3D(ClawSolver):
         if(aux == None): num_aux=1
 
         grid  = state.grid
-        maxmx,maxmy = grid.num_cells[0],grid.num_cells[1]
-        maxm = max(maxmx, maxmy)
+        maxmx,maxmy,maxmz = grid.num_cells[0],grid.num_cells[1],grid.num_cells[2]
+        maxm = max(maxmx, maxmy, maxmz)
 
         # These work arrays really ought to live inside a fortran module
         # as is done for sharpclaw
