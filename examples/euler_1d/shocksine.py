@@ -3,15 +3,26 @@
 r"""Shu-Osher problem.
    1D compressible inviscid flow (Euler equations)."""
 
+import numpy as np
 gamma = 1.4
 gamma1 = gamma - 1.
 
-def soshock(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='classic'):
+a = np.array([[0., 0., 0., 0., 0., 0., 0.],
+              [.3772689153313680, 0., 0., 0., 0., 0., 0.],
+              [.3772689153313680, .3772689153313680, 0., 0., 0., 0., 0.],
+              [.2429952205373960, .2429952205373960, .2429952205373960, 0., 0., 0., 0.],
+              [.1535890676951260, .1535890676951260, .1535890676951260, .2384589328462900, 0., 0., 0.]])
+
+c = np.array([0., .3772689153313680, .7545378306627360, .7289856616121880, .6992261359316680])
+
+b = np.array([.206734020864804, .206734020864804, .117097251841844, .181802560120140, .287632146308408])
+
+def soshock(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='sharpclaw'):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a shock wave impacting a sinusoidal density field.
     """
-    import numpy as np
+    from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -19,15 +30,14 @@ def soshock(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver
         from clawpack import pyclaw
 
     if solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver1D()
+        solver = pyclaw.SharpClawSolver1D(riemann.euler_with_efix_1D)
+        solver.time_integrator = 'RK'
+        solver.a, solver.b, solver.c = a, b, c
+        solver.cfl_desired = 0.6
+        solver.cfl_max = 0.7
     else:
-        solver = pyclaw.ClawSolver1D()
-        solver.limiters = 4
+        solver = pyclaw.ClawSolver1D(riemann.euler_with_efix_1D)
 
-    from clawpack import riemann
-    solver.rp = riemann.rp1_euler_with_efix
-
-    solver.num_waves = 3
     solver.bc_lower[0]=pyclaw.BC.extrap
     solver.bc_upper[0]=pyclaw.BC.extrap
 
@@ -35,8 +45,7 @@ def soshock(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver
     mx=400;
     x = pyclaw.Dimension('x',-5.0,5.0,mx)
     domain = pyclaw.Domain([x])
-    num_eqn = 3
-    state = pyclaw.State(domain,num_eqn)
+    state = pyclaw.State(domain,solver.num_eqn)
 
     state.problem_data['gamma']= gamma
     state.problem_data['gamma1']= gamma1
