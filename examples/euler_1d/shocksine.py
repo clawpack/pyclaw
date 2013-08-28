@@ -17,7 +17,7 @@ c = np.array([0., .3772689153313680, .7545378306627360, .7289856616121880, .6992
 
 b = np.array([.206734020864804, .206734020864804, .117097251841844, .181802560120140, .287632146308408])
 
-def soshock(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='sharpclaw'):
+def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='sharpclaw',kernel_language='Fortran'):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a shock wave impacting a sinusoidal density field.
@@ -65,14 +65,9 @@ def soshock(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver
     claw.num_output_times = 10
     claw.outdir = outdir
 
-    # Solve
-    status = claw.run()
+    return claw
 
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
-
-    return claw.solution.q
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(soshock)
+    output = run_app_from_main(setup)
