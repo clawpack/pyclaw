@@ -3,7 +3,7 @@
     subroutine step3(maxm,num_eqn,num_waves,num_ghost,mx,my, &
     mz,qold,qnew,aux,dx,dy,dz,dt,method,mthlim,cfl, &
     qadd,fadd,gadd,hadd,q1d,dtdx1d,dtdy1d,dtdz1d, &
-    aux1,aux2,aux3,num_aux,work,mwork,rpn3,rpt3,rptt3)
+    aux1,aux2,aux3,num_aux,work,mwork,use_fwave,rpn3,rpt3,rptt3)
 !     ==================================================================
 
 !     # Take one time step, updating q.
@@ -38,6 +38,7 @@
     dimension dtdz1d(1-num_ghost:maxm+num_ghost)
     dimension method(7),mthlim(num_waves)
     dimension work(mwork)
+    logical ::          use_fwave
 
 !f2py intent(out) cfl
 !f2py intent(in,out) qnew
@@ -179,7 +180,7 @@
             work(i0bpcmamdq),work(i0bpcmapdq), &
             work(i0bmcpamdq),work(i0bmcpapdq), &
             work(i0bpcpamdq),work(i0bpcpapdq), &
-            rpn3,rpt3,rptt3)
+            use_fwave,rpn3,rpt3,rptt3)
         
             cfl = dmax1(cfl,cfl1d)
         
@@ -334,7 +335,7 @@
             work(i0bpcmamdq),work(i0bpcmapdq), &
             work(i0bmcpamdq),work(i0bmcpapdq), &
             work(i0bpcpamdq),work(i0bpcpapdq), &
-            rpn3,rpt3,rptt3)
+            use_fwave,rpn3,rpt3,rptt3)
         
             cfl = dmax1(cfl,cfl1d)
         
@@ -494,7 +495,7 @@
             work(i0bpcmamdq),work(i0bpcmapdq), &
             work(i0bmcpamdq),work(i0bmcpapdq), &
             work(i0bpcpamdq),work(i0bpcpapdq), &
-            rpn3,rpt3,rptt3)
+            use_fwave,rpn3,rpt3,rptt3)
         
             cfl = dmax1(cfl,cfl1d)
         
