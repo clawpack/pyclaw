@@ -8,9 +8,6 @@ module workspace
   ! For 2D:
   double precision, allocatable :: aux2(:,:)
   double precision, allocatable :: dtdx1d(:), dtdy1d(:)
-  ! For multidimensional reconstruction
-  double precision, allocatable :: qgauss(:,:,:,:), q1dgauss(:,:,:)
-  double precision, allocatable :: qlgauss(:,:,:), qrgauss(:,:,:)
 
   logical :: work_alloc = .False.
 

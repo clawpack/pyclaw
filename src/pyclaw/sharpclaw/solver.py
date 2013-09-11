@@ -616,7 +616,7 @@ class SharpClawSolver3D(SharpClawSolver):
         r"""
         Create 3D SharpClaw solver
         
-        See :class:`SharpClawSolver2D` for more info.
+        See :class:`SharpClawSolver3D` for more info.
         """   
         self.num_dim = 3
 

@@ -17,14 +17,14 @@ subroutine flux3(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
     integer :: num_aux,num_eqn,num_ghost,maxnx,mx,my,mz
     double precision, target, intent(in) :: q(num_eqn, 1-num_ghost:mx+num_ghost, 1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
     double precision, intent(inout) :: dq(num_eqn, 1-num_ghost:mx+num_ghost, 1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
-    double precision, target, intent(in) :: aux(num_aux, 1-num_ghost:mx+num_ghost, 1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
+    double precision, target, intent(in) :: aux(num_aux,1-num_ghost:mx+num_ghost,1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
     double precision :: q1d(num_eqn,1-num_ghost:maxnx+num_ghost), dq1d(num_eqn,1-num_ghost:maxnx+num_ghost)
     double precision, intent(in) :: dt,t
     double precision, intent(out) :: cfl
-    integer :: i,j,m
+    integer :: i,j,k,m
     double precision :: cfl1d
     double precision, pointer :: auxp(:,:),q1dp(:,:)
-    external :: rpn2
+    external :: rpn3
     
 !f2py intent(in,out) dq  
 !f2py intent(out) cfl  
@@ -32,7 +32,7 @@ subroutine flux3(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
 
 ! Dummy interface just so f2py doesn't complain:
 !f2py real(DP) x
-!f2py x=rpn2(x)
+!f2py x=rpn3(x)
 
     cfl = 0.d0
 
@@ -98,6 +98,7 @@ subroutine flux3(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
                 ! dq(m,i,j) = dq(m,i,j)+dq1d(m,j)/aux(index_capa,i,j)
                 dq(:,i,:,k) = dq(:,i,:,k)+dq1d
             endif
+        enddo
     enddo !end y sweeps
 
     ! perform z sweeps
@@ -107,8 +108,8 @@ subroutine flux3(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
         do j = 0, my+1
             ! copy auxiliary data along a slice into 1d arrays:
             q1dp => q(:,i,j,:)
-            forall(j=1-num_ghost:mz+num_ghost, m=1:num_eqn)
-                q1d(m,j) = q(m,i,j,:)
+            forall(k=1-num_ghost:mz+num_ghost, m=1:num_eqn)
+                q1d(m,k) = q(m,i,j,k)
             end forall
 
             if (num_aux .gt. 0)  then
@@ -128,6 +129,7 @@ subroutine flux3(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
                 ! dq(m,i,j) = dq(m,i,j)+dq1d(m,j)/aux(index_capa,i,j)
                 dq(:,i,j,:) = dq(:,i,j,:)+dq1d
             endif
+        enddo
     enddo !end y sweeps
 
 end subroutine flux3
