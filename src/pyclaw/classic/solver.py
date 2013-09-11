@@ -679,15 +679,15 @@ class ClawSolver3D(ClawSolver):
 
                 q, cfl_x = self.fmod.step3ds(maxm,self.num_ghost,mx,my,mz, \
                       qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,1,rpn3,rpt3,rptt3)
+                      self.aux1,self.aux2,self.aux3,self.work,1,self.fwave,rpn3,rpt3,rptt3)
 
                 q, cfl_y = self.fmod.step3ds(maxm,self.num_ghost,mx,my,mz, \
                       q,q,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,2,rpn3,rpt3,rptt3)
+                      self.aux1,self.aux2,self.aux3,self.work,2,self.fwave,rpn3,rpt3,rptt3)
 
                 q, cfl_z = self.fmod.step3ds(maxm,self.num_ghost,mx,my,mz, \
                       q,q,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,3,rpn3,rpt3,rptt3)
+                      self.aux1,self.aux2,self.aux3,self.work,3,self.fwave,rpn3,rpt3,rptt3)
 
                 cfl = max(cfl_x,cfl_y,cfl_z)
 
@@ -695,7 +695,7 @@ class ClawSolver3D(ClawSolver):
 
                 q, cfl = self.fmod.step3(maxm,self.num_ghost,mx,my,mz, \
                       qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,rpn3,rpt3,rptt3)
+                      self.aux1,self.aux2,self.aux3,self.work,self.fwave,rpn3,rpt3,rptt3)
 
             self.cfl.update_global_max(cfl)
             state.set_q_from_qbc(self.num_ghost,self.qbc)
