@@ -61,7 +61,7 @@ def setplot(plotdata):
 
 def stress(current_data):    
     import numpy as np
-    from psystem import setaux
+    from psystem_2d import setaux
     aux = setaux(current_data.x[:,0],current_data.y[0,:])
     q = current_data.q
     return np.exp(aux[1,...]*q[0,...])-1.
