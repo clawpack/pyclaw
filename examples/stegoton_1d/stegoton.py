@@ -147,4 +147,4 @@ def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(stegoton)
+    output = run_app_from_main(setup)
