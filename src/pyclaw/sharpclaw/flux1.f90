@@ -47,7 +47,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
     integer :: num_aux,num_eqn,num_ghost,maxnx,mx
     double precision :: q1d(num_eqn,1-num_ghost:mx+num_ghost)
     double precision :: dq1d(num_eqn,1-num_ghost:maxnx+num_ghost)
-    dimension aux(num_aux,1-num_ghost:mx+num_ghost)
+    double precision :: aux(num_aux,1-num_ghost:mx+num_ghost)
     double precision :: auxl(num_aux,1-num_ghost:mx+num_ghost), auxr(num_aux,1-num_ghost:mx+num_ghost)
     double precision, intent(out) :: cfl
     integer, intent(in) :: ixyz
@@ -89,7 +89,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
                             q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
                 else
                     call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
-                            q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
+                            q1d,q1d,aux,aux,num_aux,wave,s,amdq,apdq)
                 endif
                 ! Need to write a tvd2_fwave routine
                 call tvd2_wave(q1d,ql,qr,wave,s,mthlim)
@@ -110,7 +110,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
                             q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
                 else
                     call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
-                            q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
+                            q1d,q1d,aux,aux,num_aux,wave,s,amdq,apdq)
                 endif
 
                 if (fwave.eqv. .True.) then
@@ -143,7 +143,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
                 ql,qr,auxl,auxr,wave,s,amdq,apdq,num_aux)
     else
         call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
-                ql,qr,auxl,auxr,wave,s,amdq,apdq,num_aux)
+                ql,qr,auxl,auxr,num_aux,wave,s,amdq,apdq)
     endif
 
     ! compute maximum wave speed:
@@ -205,7 +205,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
                     ql,qr,auxl,auxr,wave,s,amdq2,apdq2,num_aux)
         else
             call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
-                    ql,qr,auxl,auxr,wave,s,amdq2,apdq2,num_aux)
+                    ql,qr,auxl,auxr,num_aux,wave,s,amdq2,apdq2)
         endif
 
         forall(i=1:mx, m=1:num_eqn)

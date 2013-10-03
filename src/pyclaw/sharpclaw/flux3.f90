@@ -44,7 +44,7 @@ subroutine flux3(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
         do k = 0,mz+1
             ! copy data along a slice into 1d arrays:
             q1dp => q(:,:,j,k)
-            if (num_aux .gt. 0)  then
+            if (num_aux.gt.0)  then
                 auxp => aux(:,:,j,k)
             endif
 
@@ -66,7 +66,7 @@ subroutine flux3(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
         do k = 0, mz+1
             ! copy data along a slice into 1d arrays:
             q1dp => q(:,i,:,k)
-            if (num_aux .gt. 0)  then
+            if (num_aux.gt.0)  then
                 auxp => aux(:,i,:,k)
             endif
 
@@ -86,7 +86,7 @@ subroutine flux3(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
         do j = 0, my+1
             ! copy data along a slice into 1d arrays:
             q1dp => q(:,i,j,:)
-            if (num_aux .gt. 0)  then
+            if (num_aux.gt.0)  then
                 auxp => aux(:,i,j,:)
             endif
 
