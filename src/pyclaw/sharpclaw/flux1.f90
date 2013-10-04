@@ -87,6 +87,9 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
                 if (num_dim.eq.1) then
                     call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
                             q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
+                elseif (num_dim.eq.2) then
+                    call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
+                            q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
                 else
                     call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
                             q1d,q1d,aux,aux,num_aux,wave,s,amdq,apdq)
@@ -140,6 +143,9 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
     ! -----------------------------------------
     if (num_dim.eq.1) then
         call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
+                ql,qr,auxl,auxr,wave,s,amdq,apdq,num_aux)
+    elseif (num_dim.eq.2) then
+        call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
                 ql,qr,auxl,auxr,wave,s,amdq,apdq,num_aux)
     else
         call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
@@ -202,6 +208,9 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
         
         if (num_dim.eq.1) then
             call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
+                    ql,qr,auxl,auxr,wave,s,amdq2,apdq2,num_aux)
+        elseif (num_dim.eq.2) then
+            call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
                     ql,qr,auxl,auxr,wave,s,amdq2,apdq2,num_aux)
         else
             call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
