@@ -79,8 +79,8 @@
 !     # solve Riemann problem at each interface
 !     -----------------------------------------
 
-    call rp1(mx,num_eqn,num_waves,num_ghost,mx,q,q,aux,aux,wave, &
-    s,amdq,apdq,num_aux)
+    call rp1(mx,num_eqn,num_waves,num_aux,num_ghost,mx,q,q,aux,aux,wave, &
+    s,amdq,apdq)
 
 !     # Modify q for Godunov update:
 !     # Note this may not correspond to a conservative flux-differencing

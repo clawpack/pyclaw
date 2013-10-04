@@ -1,6 +1,3 @@
-
-
-
 !     =====================================================
     subroutine flux2(ixy,maxm,num_eqn,num_waves,num_aux,num_ghost,mx, &
     q1d,dtdx1d,aux1,aux2,aux3,method,mthlim, &
@@ -101,8 +98,8 @@
 !     # solve Riemann problem at each interface and compute Godunov updates
 !     ---------------------------------------------------------------------
 
-    call rpn2(ixy,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d, &
-    aux2,aux2,wave,s,amdq,apdq,num_aux)
+    call rpn2(ixy,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d, &
+    aux2,aux2,wave,s,amdq,apdq)
 
 !     # Set qadd for the donor-cell upwind method (Godunov)
     forall(m=1:num_eqn, i=1:mx+1)
@@ -181,8 +178,8 @@
 
 
 !     # split the left-going flux difference into down-going and up-going:
-    call rpt2(ixy,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d, &
-    aux1,aux2,aux3,1,amdq,bmasdq,bpasdq,num_aux)
+    call rpt2(ixy,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d, &
+    aux1,aux2,aux3,1,amdq,bmasdq,bpasdq)
 
 !     # modify flux below and above by B^- A^- Delta q and  B^+ A^- Delta q:
     forall ( m=1:num_eqn , i = 1:mx+1)
@@ -194,8 +191,8 @@
      
 
 !     # split the right-going flux difference into down-going and up-going:
-    call rpt2(ixy,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d, &
-    aux1,aux2,aux3,2,apdq,bmasdq,bpasdq,num_aux)
+    call rpt2(ixy,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d, &
+    aux1,aux2,aux3,2,apdq,bmasdq,bpasdq)
 
 !     # modify flux below and above by B^- A^+ Delta q and  B^+ A^+ Delta q:
     forall ( m=1:num_eqn , i = 1: mx+1)

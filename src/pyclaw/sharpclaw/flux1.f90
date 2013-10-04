@@ -85,11 +85,11 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
             case(1)
                 ! wave-based second order reconstruction
                 if (num_dim.eq.1) then
-                    call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
-                            q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
+                    call rp1(maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,&
+                            q1d,q1d,aux,aux,wave,s,amdq,apdq)
                 else
-                    call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
-                            q1d,q1d,aux,aux,num_aux,wave,s,amdq,apdq)
+                    call rp1(ixyz,maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,&
+                            q1d,q1d,aux,aux,wave,s,amdq,apdq)
                 endif
                 ! Need to write a tvd2_fwave routine
                 call tvd2_wave(q1d,ql,qr,wave,s,mthlim)
@@ -106,11 +106,11 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
             case (1)
                 ! wave-based reconstruction
                 if (num_dim.eq.1) then
-                    call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
-                            q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
+                    call rp1(maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,&
+                            q1d,q1d,aux,aux,wave,s,amdq,apdq)
                 else
-                    call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
-                            q1d,q1d,aux,aux,num_aux,wave,s,amdq,apdq)
+                    call rp1(ixyz,maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,&
+                            q1d,q1d,aux,aux,wave,s,amdq,apdq)
                 endif
 
                 if (fwave.eqv. .True.) then
@@ -139,11 +139,11 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
     ! solve Riemann problem at each interface 
     ! -----------------------------------------
     if (num_dim.eq.1) then
-        call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
-                ql,qr,auxl,auxr,wave,s,amdq,apdq,num_aux)
+        call rp1(maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,&
+                ql,qr,auxl,auxr,wave,s,amdq,apdq)
     else
-        call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
-                ql,qr,auxl,auxr,num_aux,wave,s,amdq,apdq)
+        call rp1(ixyz,maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,&
+                ql,qr,auxl,auxr,wave,s,amdq,apdq)
     endif
 
     ! compute maximum wave speed:
@@ -201,11 +201,11 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
         endif
         
         if (num_dim.eq.1) then
-            call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
-                    ql,qr,auxl,auxr,wave,s,amdq2,apdq2,num_aux)
+            call rp1(maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,&
+                    ql,qr,auxl,auxr,wave,s,amdq2,apdq2)
         else
-            call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
-                    ql,qr,auxl,auxr,num_aux,wave,s,amdq2,apdq2)
+            call rp1(ixyz,maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,&
+                    ql,qr,auxl,auxr,wave,s,amdq2,apdq2)
         endif
 
         forall(i=1:mx, m=1:num_eqn)

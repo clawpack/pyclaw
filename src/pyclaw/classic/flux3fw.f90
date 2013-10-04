@@ -1,8 +1,8 @@
 
 
 !     ==================================================================
-    subroutine flux3(ixyz,maxm,num_eqn,num_waves,num_ghost,mx, &
-    q1d,dtdx1d,dtdy,dtdz,aux1,aux2,aux3,num_aux, &
+    subroutine flux3(ixyz,maxm,num_eqn,num_waves,num_aux,num_ghost,mx, &
+    q1d,dtdx1d,dtdy,dtdz,aux1,aux2,aux3, &
     method,mthlim,qadd,fadd,gadd,hadd,cfl1d, &
     fwave,s,amdq,apdq,cqxx, &
     bmamdq,bmapdq,bpamdq,bpapdq, &
@@ -167,9 +167,9 @@
     dimension  bmcpapdq(num_eqn,1-num_ghost:maxm+num_ghost)
 
     dimension dtdx1d(1-num_ghost:maxm+num_ghost)
-    dimension aux1(num_aux,1-num_ghost:maxm+num_ghost,3)
-    dimension aux2(num_aux,1-num_ghost:maxm+num_ghost,3)
-    dimension aux3(num_aux,1-num_ghost:maxm+num_ghost,3)
+    dimension aux1(1-num_ghost:maxm+num_ghost,3)
+    dimension aux2(1-num_ghost:maxm+num_ghost,3)
+    dimension aux3(1-num_ghost:maxm+num_ghost,3)
 
     dimension    s(num_waves,1-num_ghost:maxm+num_ghost)
     dimension  fwave(num_eqn,num_waves,1-num_ghost:maxm+num_ghost)
@@ -213,9 +213,9 @@
 
 !     # aux2(1-num_ghost,1,2) is the start of a 1d array now used by rpn3
 
-    call rpn3(ixyz,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d, &
+    call rpn3(ixyz,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d, &
     aux2(1,1-num_ghost,2),aux2(1,1-num_ghost,2), &
-    num_aux,fwave,s,amdq,apdq)
+    fwave,s,amdq,apdq)
 
 
 !     # Set qadd for the donor-cell upwind method (Godunov)
@@ -243,7 +243,7 @@
 !     -----------------------------------------------------------
 
 !     # apply limiter to waves:
-    if (limit) call limiter(maxm,num_eqn,num_waves,num_ghost,mx,fwave,s,mthlim)
+    if (limit) call limiter(maxm,num_eqn,num_waves,num_aux,num_ghost,mx,fwave,s,mthlim)
 
     do 120 i = 2-num_ghost,mx+num_ghost
     
@@ -276,26 +276,26 @@
     !     # split the left-going flux difference into down-going and up-going
     !     # flux differences (in the y-direction).
     
-        call rpt3(ixyz,2,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,aux1,aux2, &
-        aux3,num_aux,1,amdq,bmamdq,bpamdq)
+        call rpt3(ixyz,2,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d,aux1,aux2, &
+        aux3,1,amdq,bmamdq,bpamdq)
     
     !     # split the right-going flux difference into down-going and up-going
     !     # flux differences (in the y-direction).
     
-        call rpt3(ixyz,2,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,aux1,aux2, &
-        aux3,num_aux,2,apdq,bmapdq,bpapdq)
+        call rpt3(ixyz,2,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d,aux1,aux2, &
+        aux3,2,apdq,bmapdq,bpapdq)
     
     !     # split the left-going flux difference into down-going and up-going
     !     # flux differences (in the z-direction).
     
-        call rpt3(ixyz,3,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,aux1,aux2, &
-        aux3,num_aux,1,amdq,cmamdq,cpamdq)
+        call rpt3(ixyz,3,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d,aux1,aux2, &
+        aux3,1,amdq,cmamdq,cpamdq)
     
     !     # split the right-going flux difference into down-going and up-going
     !     # flux differences (in the y-direction).
     
-        call rpt3(ixyz,3,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,aux1,aux2, &
-        aux3,num_aux,2,apdq,cmapdq,cpapdq)
+        call rpt3(ixyz,3,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d,aux1,aux2, &
+        aux3,2,apdq,cmapdq,cpapdq)
     
     !     # Split the correction wave into transverse propagating waves
     !     # in the y-direction and z-direction.
@@ -312,20 +312,20 @@
             !            # amdq or apdq, i.e. cqxxm or cqxxp
 
             !            # in the y-like direction with imp=1
-                call rpt3(ixyz,2,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d, &
-                aux1,aux2,aux3,num_aux,1,cqxx,bmcqxxm,bpcqxxm)
+                call rpt3(ixyz,2,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d, &
+                aux1,aux2,aux3,1,cqxx,bmcqxxm,bpcqxxm)
 
             !            # in the y-like direction with imp=2
-                call rpt3(ixyz,2,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d, &
-                aux1,aux2,aux3,num_aux,2,cqxx,bmcqxxp,bpcqxxp)
+                call rpt3(ixyz,2,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d, &
+                aux1,aux2,aux3,2,cqxx,bmcqxxp,bpcqxxp)
 
             !            # in the z-like direction with imp=1
-                call rpt3(ixyz,3,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d, &
-                aux1,aux2, aux3,num_aux,1,cqxx,cmcqxxm,cpcqxxm)
+                call rpt3(ixyz,3,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d, &
+                aux1,aux2, aux3,1,cqxx,cmcqxxm,cpcqxxm)
 
             !            # in the z-like direction with imp=2
-                call rpt3(ixyz,3,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d, &
-                aux1,aux2,aux3,num_aux,2,cqxx,cmcqxxp,cpcqxxp)
+                call rpt3(ixyz,3,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d, &
+                aux1,aux2,aux3,2,cqxx,cmcqxxp,cpcqxxp)
             else
             !            # aux arrays aren't being used, so we only need to split
             !            # cqxx once in each transverse direction and the same result can
@@ -333,12 +333,12 @@
             !            # Set imp = 0 since this shouldn't be needed in rpt3 in this case.
 
             !            # in the y-like direction
-                call rpt3(ixyz,2,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d, &
-                aux1,aux2,aux3,num_aux,0,cqxx,bmcqxxm,bpcqxxm)
+                call rpt3(ixyz,2,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d, &
+                aux1,aux2,aux3,0,cqxx,bmcqxxm,bpcqxxm)
 
             !            # in the z-like direction
-                call rpt3(ixyz,3,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d, &
-                aux1,aux2,aux3,num_aux,0,cqxx,cmcqxxm,cpcqxxm)
+                call rpt3(ixyz,3,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d, &
+                aux1,aux2,aux3,0,cqxx,cmcqxxm,cpcqxxm)
 
             !             # use the same splitting to left and right:
                 forall (m = 1:num_eqn, i = 0:mx+2)
@@ -380,14 +380,14 @@
     !     # BCAAu_{xxzy}.
     
         if( m4 > 0 )then
-            call rptt3(ixyz,2,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,aux1,aux2, &
-            aux3,num_aux,2,2,cpapdq2,bmcpapdq,bpcpapdq)
-            call rptt3(ixyz,2,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,aux1,aux2, &
-            aux3,num_aux,1,2,cpamdq2,bmcpamdq,bpcpamdq)
-            call rptt3(ixyz,2,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,aux1,aux2, &
-            aux3,num_aux,2,1,cmapdq2,bmcmapdq,bpcmapdq)
-            call rptt3(ixyz,2,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,aux1,aux2, &
-            aux3,num_aux,1,1,cmamdq2,bmcmamdq,bpcmamdq)
+            call rptt3(ixyz,2,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d,aux1,aux2, &
+            aux3,2,2,cpapdq2,bmcpapdq,bpcpapdq)
+            call rptt3(ixyz,2,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d,aux1,aux2, &
+            aux3,1,2,cpamdq2,bmcpamdq,bpcpamdq)
+            call rptt3(ixyz,2,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d,aux1,aux2, &
+            aux3,2,1,cmapdq2,bmcmapdq,bpcmapdq)
+            call rptt3(ixyz,2,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d,aux1,aux2, &
+            aux3,1,1,cmamdq2,bmcmamdq,bpcmamdq)
         endif
     
     !     -----------------------------
@@ -505,14 +505,14 @@
     !     # we are re-using the previous storage rather than requiring new arrays.
     
         if( m4 > 0 )then
-            call rptt3(ixyz,3,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,aux1,aux2, &
-            aux3,num_aux,2,2,bpapdq,bmcpapdq,bpcpapdq)
-            call rptt3(ixyz,3,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,aux1,aux2, &
-            aux3,num_aux,1,2,bpamdq,bmcpamdq,bpcpamdq)
-            call rptt3(ixyz,3,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,aux1,aux2, &
-            aux3,num_aux,2,1,bmapdq,bmcmapdq,bpcmapdq)
-            call rptt3(ixyz,3,maxm,num_eqn,num_waves,num_ghost,mx,q1d,q1d,aux1,aux2, &
-            aux3,num_aux,1,1,bmamdq,bmcmamdq,bpcmamdq)
+            call rptt3(ixyz,3,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d,aux1,aux2, &
+            aux3,2,2,bpapdq,bmcpapdq,bpcpapdq)
+            call rptt3(ixyz,3,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d,aux1,aux2, &
+            aux3,1,2,bpamdq,bmcpamdq,bpcpamdq)
+            call rptt3(ixyz,3,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d,aux1,aux2, &
+            aux3,2,1,bmapdq,bmcmapdq,bpcmapdq)
+            call rptt3(ixyz,3,maxm,num_eqn,num_waves,num_aux,num_ghost,mx,q1d,q1d,aux1,aux2, &
+            aux3,1,1,bmamdq,bmcmamdq,bpcmamdq)
         endif
     
     !     -----------------------------
