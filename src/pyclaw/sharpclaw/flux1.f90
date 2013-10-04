@@ -1,5 +1,5 @@
 ! ===================================================================
-subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx,rp1)
+subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,rp1)
 ! ===================================================================
 !
 !     # Evaluate (delta t) * dq(t)/dt
@@ -25,7 +25,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx,rp
 !                      states i-1 and i.
 !
 !     Note that mx must be the size of the patch for the dimension corresponding
-!     to the value of ixy.
+!     to the value of ixyz.
 !
 !     t is the time at which we want to evaluate dq/dt, which may not
 !      be the current simulation time
@@ -47,10 +47,10 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx,rp
     integer :: num_aux,num_eqn,num_ghost,maxnx,mx
     double precision :: q1d(num_eqn,1-num_ghost:mx+num_ghost)
     double precision :: dq1d(num_eqn,1-num_ghost:maxnx+num_ghost)
-    dimension aux(num_aux,1-num_ghost:mx+num_ghost)
+    double precision :: aux(num_aux,1-num_ghost:mx+num_ghost)
     double precision :: auxl(num_aux,1-num_ghost:mx+num_ghost), auxr(num_aux,1-num_ghost:mx+num_ghost)
     double precision, intent(out) :: cfl
-    integer, intent(in) :: ixy
+    integer, intent(in) :: ixyz
     integer t
 
 !f2py intent(in,out) dq1d  
@@ -58,9 +58,9 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx,rp
 !f2py optional dq1d
 
     if (index_capa.gt.0) then
-        dtdx = dt / (dx(ixy)*aux(index_capa,:))
+        dtdx = dt / (dx(ixyz)*aux(index_capa,:))
     else
-        dtdx = dt/dx(ixy)
+        dtdx = dt/dx(ixyz)
     endif
     if (num_dim.gt.1) dq1d=0.d0
 
@@ -84,8 +84,16 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx,rp
                 call tvd2(q1d,ql,qr,mthlim)
             case(1)
                 ! wave-based second order reconstruction
-                call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
-                        q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
+                if (num_dim.eq.1) then
+                    call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
+                            q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
+                elseif (num_dim.eq.2) then
+                    call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
+                            q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
+                else
+                    call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
+                            q1d,q1d,aux,aux,num_aux,wave,s,amdq,apdq)
+                endif
                 ! Need to write a tvd2_fwave routine
                 call tvd2_wave(q1d,ql,qr,wave,s,mthlim)
             case(2)
@@ -100,8 +108,14 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx,rp
                 call weno_comp(q1d,ql,qr,num_eqn,maxnx,num_ghost)
             case (1)
                 ! wave-based reconstruction
-                call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
-                        q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
+                if (num_dim.eq.1) then
+                    call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
+                            q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
+                else
+                    call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
+                            q1d,q1d,aux,aux,num_aux,wave,s,amdq,apdq)
+                endif
+
                 if (fwave.eqv. .True.) then
                     call weno5_fwave(q1d,ql,qr,wave,s)
                 else
@@ -127,8 +141,16 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx,rp
 
     ! solve Riemann problem at each interface 
     ! -----------------------------------------
-    call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr,aux,aux, &
-              wave,s,amdq,apdq,num_aux)
+    if (num_dim.eq.1) then
+        call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
+                ql,qr,auxl,auxr,wave,s,amdq,apdq,num_aux)
+    elseif (num_dim.eq.2) then
+        call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
+                ql,qr,auxl,auxr,wave,s,amdq,apdq,num_aux)
+    else
+        call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
+                ql,qr,auxl,auxr,num_aux,wave,s,amdq,apdq)
+    endif
 
     ! compute maximum wave speed:
     cfl = 0.d0
@@ -147,7 +169,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx,rp
         ! and right state qr(i), and returns a total fluctuation in amdq2
         ! NOTE that here amdq2 is really a total fluctuation (should be
         ! called adq); we do it this way just to avoid declaring more storage
-        call tfluct(ixy,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr, &
+        call tfluct(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr, &
                      aux,aux,s,amdq2)
 
         ! Modify q using fluctuations:
@@ -184,8 +206,16 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixy,num_aux,num_eqn,mx,num_ghost,maxnx,rp
             enddo
         endif
         
-        call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr, &
-                 auxl,auxr,wave,s,amdq2,apdq2,num_aux)
+        if (num_dim.eq.1) then
+            call rp1(maxnx,num_eqn,num_waves,num_ghost,mx,&
+                    ql,qr,auxl,auxr,wave,s,amdq2,apdq2,num_aux)
+        elseif (num_dim.eq.2) then
+            call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
+                    ql,qr,auxl,auxr,wave,s,amdq2,apdq2,num_aux)
+        else
+            call rp1(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,&
+                    ql,qr,auxl,auxr,num_aux,wave,s,amdq2,apdq2)
+        endif
 
         forall(i=1:mx, m=1:num_eqn)
             dq1d(m,i) = dq1d(m,i)-dtdx(i)*(amdq(m,i+1)+ &

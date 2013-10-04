@@ -38,16 +38,26 @@ def test_3d_acoustics():
     from clawpack.pyclaw.util import gen_variants
     import acoustics_3d_interface
 
-    homogeneous_tests   = gen_variants(acoustics_3d_interface.setup, acoustics_verify_homogeneous,
+    homogeneous_classic_tests   = gen_variants(acoustics_3d_interface.setup, acoustics_verify_homogeneous,
                                        kernel_languages=('Fortran',), 
                                        solver_type='classic', test='homogeneous',
                                        disable_output=True)
 
-    heterogeneous_tests = gen_variants(acoustics_3d_interface.setup, acoustics_verify_heterogeneous,
+    heterogeneous_classic_tests = gen_variants(acoustics_3d_interface.setup, acoustics_verify_heterogeneous,
                                        kernel_languages=('Fortran',), 
                                        solver_type='classic', test='heterogeneous',
                                        disable_output=True)
+
+    homogeneous_sharp_tests   = gen_variants(acoustics_3d_interface.setup, acoustics_verify_homogeneous,
+                                       kernel_languages=('Fortran',), 
+                                       solver_type='sharpclaw', test='homogeneous',
+                                       disable_output=True)
+
+    heterogeneous_sharp_tests = gen_variants(acoustics_3d_interface.setup, acoustics_verify_heterogeneous,
+                                       kernel_languages=('Fortran',), 
+                                       solver_type='sharpclaw', test='heterogeneous',
+                                       disable_output=True)
     
     from itertools import chain
-    for test in chain(homogeneous_tests, heterogeneous_tests):
+    for test in chain(homogeneous_classic_tests, heterogeneous_classic_tests,homogeneous_sharp_tests, heterogeneous_sharp_tests):
         yield test

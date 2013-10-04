@@ -12,10 +12,10 @@ class CFLError(Exception):
 class BC():
     """Enumeration of boundary condition names."""
     # This could instead just be implemented as a static dictionary.
-    custom     = 0
-    extrap    = 1
-    periodic   = 2
-    wall = 3
+    custom   = 0
+    extrap   = 1
+    periodic = 2
+    wall     = 3
 
 #################### Dummy routines ######################
 def default_compute_gauge_values(q,aux):

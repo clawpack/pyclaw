@@ -16,6 +16,10 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',disable_outpu
 
     if solver_type=='classic':
         solver=pyclaw.ClawSolver3D(riemann.vc_acoustics_3D)
+    elif solver_type=='sharpclaw':
+        solver = pyclaw.SharpClawSolver3D()
+        solver.rp = riemann.vc_acoustics_3D
+        solver.num_waves = 4
     else:
         raise Exception('Unrecognized solver_type.')
 
@@ -45,14 +49,18 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',disable_outpu
         else: raise Exception('Unrecognized test')
 
     if app == 'test_homogeneous':
-        solver.dimensional_split=True
+        if solver_type=='classic':
+            solver.dimensional_split=True
+
         mx=256; my=4; mz=4
         zr = 1.0  # Impedance in right half
         cr = 1.0  # Sound speed in right half
 
     if app == 'test_heterogeneous' or app == None:
-        solver.dimensional_split=False
-        solver.dimensional_split=False
+        if solver_type=='classic':
+            solver.dimensional_split=False
+            solver.dimensional_split=False
+        
         solver.bc_lower[0]    =pyclaw.BC.wall
         solver.bc_lower[1]    =pyclaw.BC.wall
         solver.bc_lower[2]    =pyclaw.BC.wall
@@ -108,7 +116,7 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',disable_outpu
        claw.output_format = None
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
-    claw.outdir=outdir
+    claw.outdir = outdir
 
     # Solve
     claw.tfinal = 2.0
