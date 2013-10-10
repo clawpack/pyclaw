@@ -16,14 +16,12 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',disable_outpu
 
     if solver_type=='classic':
         solver=pyclaw.ClawSolver3D(riemann.vc_acoustics_3D)
+        solver.limiters = pyclaw.limiters.tvd.MC
     elif solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver3D()
-        solver.rp = riemann.vc_acoustics_3D
-        solver.num_waves = 4
+        solver = pyclaw.SharpClawSolver3D(riemann.vc_acoustics_3D)
     else:
         raise Exception('Unrecognized solver_type.')
 
-    solver.limiters = pyclaw.limiters.tvd.MC
 
     solver.bc_lower[0]=pyclaw.BC.periodic
     solver.bc_upper[0]=pyclaw.BC.periodic
@@ -51,6 +49,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',disable_outpu
     if app == 'test_homogeneous':
         if solver_type=='classic':
             solver.dimensional_split=True
+        else:
+            solver.lim_type = 1
 
         mx=256; my=4; mz=4
         zr = 1.0  # Impedance in right half
