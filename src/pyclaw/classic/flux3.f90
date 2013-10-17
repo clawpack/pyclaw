@@ -162,7 +162,7 @@
     dimension  wave(num_eqn,num_waves,1-num_ghost:maxm+num_ghost)
 
     dimension method(7),mthlim(num_waves)
-    logical :: limit
+    logical :: limit, use_fwave
     common/comxyt/dtcom,dxcom,dycom,dzcom,tcom,icom,jcom,kcom
 
 !f2py external rpn3, rpt3, rptt3
@@ -242,12 +242,21 @@
         forall (m = 1:num_eqn)
         cqxx(m,i) = 0.d0
         end forall
-        do mw = 1,num_waves
-            do m = 1,num_eqn
-                cqxx(m,i) = cqxx(m,i) + 0.5d0 * dabs(s(mw,i)) &
-                * (1.d0 - dabs(s(mw,i))*dtdxave) * wave(m,mw,i)
+        if (use_fwave.eqv. .FALSE. ) then
+            do mw = 1,num_waves
+                do m = 1,num_eqn
+                    cqxx(m,i) = cqxx(m,i) + 0.5d0 * dabs(s(mw,i)) &
+                    * (1.d0 - dabs(s(mw,i))*dtdxave) * wave(m,mw,i)
+                end do
             end do
-        end do
+        else
+            do mw = 1,num_waves
+                do m = 1,num_eqn
+                    cqxx(m,i) = cqxx(m,i) + 0.5d0 * dsign(1.d0,s(mw,i)) &
+                    * (1.d0 - dabs(s(mw,i))*dtdxave) * wave(m,mw,i)
+                end do
+            end do
+        endif 
         do m = 1,num_eqn
             fadd(m,i) = fadd(m,i) + cqxx(m,i)
         end do
