@@ -13,7 +13,7 @@ def test_3d_acoustics():
         grid = claw.solution.state.grid
         final_difference =np.prod(grid.delta)*np.linalg.norm(pfinal-pinitial,ord=1)
 
-        return check_diff(0.00286, final_difference, abstol=1e-4)
+        return check_diff(0.00286, final_difference, abstol=1e-3)
 
     def acoustics_verify_heterogeneous(claw):
         import os

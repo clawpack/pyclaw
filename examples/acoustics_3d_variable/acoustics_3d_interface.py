@@ -19,6 +19,7 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',disable_outpu
         solver.limiters = pyclaw.limiters.tvd.MC
     elif solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver3D(riemann.vc_acoustics_3D)
+        
     else:
         raise Exception('Unrecognized solver_type.')
 
@@ -52,6 +53,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',disable_outpu
         else:
             solver.lim_type = 1
 
+        solver.limiters = [4]
+        
         mx=256; my=4; mz=4
         zr = 1.0  # Impedance in right half
         cr = 1.0  # Sound speed in right half
