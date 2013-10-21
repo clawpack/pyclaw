@@ -41,31 +41,19 @@ subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
 
    
     do j = 0,my+1
-
-        ! copy auxiliary data along a slice into 1d arrays:
+        ! copy data along a slice into 1d arrays:
         q1dp => q(:,:,j)
         if (num_aux .gt. 0)  then
             auxp => aux(:,:,j)
         endif
 
-
         ! compute modification dq1d along this slice:
         call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,1,num_aux,num_eqn,mx,num_ghost,maxnx,rpn2)
         cfl = dmax1(cfl,cfl1d)
 
-
-        if (index_capa.eq.0) then
-            ! no capa array.  Standard flux differencing:
-            forall(i=1:mx, m=1:num_eqn)
-                dq(m,i,j) = dq(m,i,j)+dq1d(m,i)
-            end forall
-        else
-            ! with capa array.  Which is correct?
-            forall(i=1:mx, m=1:num_eqn)
-                dq(m,i,j) = dq(m,i,j)+dq1d(m,i)
-            end forall
-            ! dq(m,i,j) = dq(m,i,j)+dq1d(m,i)/aux(index_capa,i,j)
-        endif
+        forall(i=1:mx, m=1:num_eqn)
+            dq(m,i,j) = dq(m,i,j)+dq1d(m,i)
+        end forall
     enddo !end x sweeps
 
 
@@ -73,12 +61,8 @@ subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
     ! ==================
 
     do i = 0, mx+1
-        ! copy auxiliary data along a slice into 1d arrays:
+        ! copy data along a slice into 1d arrays:
         q1dp => q(:,i,:)
-        forall(j=1-num_ghost:my+num_ghost, m=1:num_eqn)
-            q1d(m,j) = q(m,i,j)
-        end forall
-
         if (num_aux .gt. 0)  then
             auxp => aux(:,i,:)
         endif
@@ -86,16 +70,9 @@ subroutine flux2(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
         call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,2,num_aux,num_eqn,my,num_ghost,maxnx,rpn2)
         cfl = dmax1(cfl,cfl1d)
 
-        if (index_capa.eq.0) then
-            ! no capa array.  Standard flux differencing:
-            forall(j=1:my,m=1:num_eqn)
-                dq(m,i,j) = dq(m,i,j)+dq1d(m,j)
-            end forall
-        else
-            ! with capa array.  Which is correct?
-            ! dq(m,i,j) = dq(m,i,j)+dq1d(m,j)/aux(index_capa,i,j)
-            dq(:,i,:) = dq(:,i,:)+dq1d
-        endif
+        forall(j=1:my,m=1:num_eqn)
+            dq(m,i,j) = dq(m,i,j)+dq1d(m,j)
+        end forall
     enddo !end y sweeps
 
 end subroutine flux2
