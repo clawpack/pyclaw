@@ -24,7 +24,7 @@ import plot
 
 __all__.extend(['ClawSolver1D','ClawSolver2D','ClawSolver3D','SharpClawSolver1D','SharpClawSolver2D','SharpClawSolver3D'])
 from .classic.solver import ClawSolver1D, ClawSolver2D, ClawSolver3D
-from .sharpclaw.solver import SharpClawSolver1D, SharpClawSolver2D,SharpClawSolver2D
+from .sharpclaw.solver import SharpClawSolver1D, SharpClawSolver2D,SharpClawSolver2D,SharpClawSolver3D
 
 
 # Sub-packages
