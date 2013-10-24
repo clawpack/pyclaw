@@ -127,6 +127,7 @@ def setup(kernel_language='Fortran',
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
+        solver.dimensional_split=False
     else:
         from clawpack import pyclaw
 
@@ -179,7 +180,6 @@ def setup(kernel_language='Fortran',
     solver.cfl_max = 0.9
     solver.cfl_desired = 0.8
     solver.before_step = b4step
-    solver.dimensional_split=False
 
     #controller
     claw = pyclaw.Controller()
