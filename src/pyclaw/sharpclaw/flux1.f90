@@ -4,10 +4,8 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
 !
 !     # Evaluate (delta t) * dq(t)/dt
 !
-!     SharpClaw
-!     Author: David Ketcheson
-!
-!     amdq, apdq, amdq2, apdq2, wave, and s are used locally:
+!     The following variables, from the workspace module, are used locally:
+!     amdq, apdq, amdq2, apdq2, wave, s 
 !
 !     amdq(num_eqn,1-num_ghost:mx+num_ghost) = left-going flux-differences
 !     apdq(num_eqn,1-num_ghost:mx+num_ghost) = right-going flux-differences
@@ -30,53 +28,40 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
 !     t is the time at which we want to evaluate dq/dt, which may not
 !      be the current simulation time
 ! ===================================================================
-!
-! Modified: April 26, 2011
-! Authors:  David Ketcheson
-!           Matteo Parsani
-!
-! ===================================================================
 
+    ! Modules
     USE reconstruct
     USE workspace
     USE ClawParams
 
-    implicit double precision (a-h,o-z)
+    implicit none
 
+    ! Input (dummy) variables
     external :: rp
-    integer :: num_aux,num_eqn,num_ghost,maxnx,mx
-    double precision :: q1d(num_eqn,1-num_ghost:mx+num_ghost)
-    double precision :: dq1d(num_eqn,1-num_ghost:maxnx+num_ghost)
-    double precision :: aux(num_aux,1-num_ghost:mx+num_ghost)
-    double precision :: auxl(num_aux,1-num_ghost:mx+num_ghost), auxr(num_aux,1-num_ghost:mx+num_ghost)
+    integer, intent(in) :: num_aux, num_eqn, num_ghost, maxnx, mx, ixyz
+    double precision, intent(in) ::   q1d(num_eqn,1-num_ghost:mx+num_ghost)
+    double precision, intent(out) :: dq1d(num_eqn,1-num_ghost:maxnx+num_ghost)
+    double precision, intent(in) ::   aux(num_aux,1-num_ghost:mx+num_ghost)
     double precision, intent(out) :: cfl
-    integer, intent(in) :: ixyz
-    double precision :: t, dt
+    double precision, intent(in) :: t, dt
 
 !f2py intent(in,out) dq1d  
 !f2py intent(out) cfl  
 !f2py optional dq1d
 
+    ! Local variables
+    double precision :: auxl(num_aux,1-num_ghost:mx+num_ghost)
+    double precision :: auxr(num_aux,1-num_ghost:mx+num_ghost)
+    integer :: m, mw, i
+
     if (index_capa.gt.0) then
         dtdx = dt / (dx(ixyz)*aux(index_capa,:))
     else
-        dtdx = dt/dx(ixyz)
+        dtdx = dt / dx(ixyz)
     endif
 
-
     select case(lim_type)
-        ! Non-limited reconstruction of components of q (simplest approach)
-!        case(0)
-!        select case(char_decomp)
-!            case(0)
-!                call q2qlqr_poly(q1d,ql,qr,mx)
-!            case(1)
-!                ! wave-based unlimited reconstruction
-!                call rp(maxnx,num_eqn,num_waves,num_ghost,mx,&
-!                        q1d,q1d,aux,aux,wave,s,amdq,apdq,num_aux)
-!                call q2qlqr_poly_wave(q1d,ql,qr,wave,s,mx)
-!        end select
-        case(1)
+        case(1) ! lim_type = 1: 2nd-order TVD reconstruction
         select case(char_decomp)
             case(0)
                 ! TVD reconstruction w/o char. decomp.
@@ -97,13 +82,11 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
                 call evec(mx,num_eqn,num_ghost,mx,q1d,aux,aux,evl,evr)
                 call tvd2_char(q1d,ql,qr,mthlim,evl,evr)
         end select
-        case(2)
+        case(2) ! lim_type = 2: High-order WENO reconstruction
         select case (char_decomp)
-            case (0)
-                ! no characteristic decomposition
+            case (0) ! no characteristic decomposition
                 call weno_comp(q1d,ql,qr,num_eqn,maxnx,num_ghost)
-            case (1)
-                ! wave-based reconstruction
+            case (1) ! wave-based reconstruction
                 if (num_dim.eq.1) then
                     call rp(maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,&
                             q1d,q1d,aux,aux,wave,s,amdq,apdq)
@@ -117,12 +100,10 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
                 else
                     call weno5_wave(q1d,ql,qr,wave)
                 endif
-            case (2)
-                ! characteristic-wise reconstruction
+            case (2) ! characteristic-wise reconstruction
                 call evec(mx,num_eqn,num_ghost,mx,q1d,aux,aux,evl,evr)
                 call weno5_char(q1d,ql,qr,evl,evr)
-            case (3)
-                ! transmission-based reconstruction
+            case (3) ! transmission-based reconstruction
                 call evec(mx,num_eqn,num_ghost,mx,q1d,aux,aux,evl,evr)
                 call weno5_trans(q1d,ql,qr,evl,evr)
             case default
@@ -132,6 +113,10 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
         end select
         case(3)
             call weno5(q1d,ql,qr,num_eqn,maxnx,num_ghost)
+        case default
+            write(*,*) 'ERROR: Unrecognized limiter type option'
+            write(*,*) 'You should set 1<=lim_type<=3'
+            stop
       end select
 
 
@@ -178,7 +163,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
     else
         ! Or we can just swap things around and use the usual Riemann solver
         ! This may be more convenient, but is less efficient. 
-        ! For the moment the swapping is done working with the element of the 
+        ! For the moment the swapping is done working with the elements of the 
         ! vectors qr, ql, auxl, auxr. 
         ! 
         ! TODO: Working with pointers!!!
@@ -193,8 +178,8 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
         if (num_aux .gt. 0) then
              do i = 1-num_ghost+1,mx+num_ghost
                 do m = 1, num_aux
-                    auxr(m,i-1) = aux(m,i) !aux is not patchdat type
-                    auxl(m,i  ) = aux(m,i) !aux is not patchdat type
+                    auxr(m,i-1) = aux(m,i)
+                    auxl(m,i  ) = aux(m,i)
                 enddo
             enddo
         endif

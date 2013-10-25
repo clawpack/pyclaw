@@ -1,4 +1,8 @@
 module reconstruct
+! ===================================================================
+! This module contains the spatial reconstruction routines that are
+! the heart of the SharpClaw solvers 
+! ===================================================================
 
     double precision, allocatable  :: dq1m(:)
     double precision, allocatable, private :: uu(:,:),dq(:,:)
