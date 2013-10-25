@@ -11,6 +11,8 @@ module reconstruct
     double precision, private  :: epweno = 1.e-36
     logical :: recon_alloc = .False.
 
+! ===================================================================
+! Array allocation
 contains
 
     subroutine alloc_recon_workspace(maxnx,num_ghost,num_eqn,num_waves,lim_type,char_decomp)
@@ -85,9 +87,14 @@ contains
         end select
     end subroutine dealloc_recon_workspace
 
+! ===================================================================
+! Reconstruction routines
+
     ! ===================================================================
     subroutine weno_comp(q,ql,qr,num_eqn,maxnx,num_ghost)
     ! ===================================================================
+    !   This is the main routine, which uses PyWENO-generated code
+    !   It does no characteristic decomposition
 
         use weno
         use clawparams, only: weno_order
@@ -123,6 +130,7 @@ contains
     ! ===================================================================
     subroutine weno5(q,ql,qr,num_eqn,maxnx,num_ghost)
     ! ===================================================================
+    !   This is an old routine based on Chi-Wang Shu's code
 
         implicit double precision (a-h,o-z)
 
@@ -192,6 +200,7 @@ contains
     ! ===================================================================
     subroutine weno5_char(q,ql,qr,evl,evr)
     ! ===================================================================
+    !   This is an old routine based on Chi-Wang Shu's code
 
         ! This one uses characteristic decomposition
         !  evl, evr are left and right eigenvectors at each interface
@@ -290,6 +299,7 @@ contains
     ! ===================================================================
     subroutine weno5_trans(q,ql,qr,evl,evr)
     ! ===================================================================
+    !   This is an old routine based on Chi-Wang Shu's code
 
         ! Transmission-based WENO reconstruction
 
@@ -396,6 +406,7 @@ contains
     ! ===================================================================
     subroutine weno5_wave(q,ql,qr,wave)
     ! ===================================================================
+    !   This is an old routine based on Chi-Wang Shu's code
 
         !  Fifth order WENO reconstruction, based on waves
         !  which are later interpreted as slopes.

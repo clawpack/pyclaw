@@ -29,7 +29,6 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
 !      be the current simulation time
 ! ===================================================================
 
-    ! Modules
     USE reconstruct
     USE workspace
     USE ClawParams
@@ -41,7 +40,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
     integer, intent(in) :: num_aux, num_eqn, num_ghost, maxnx, mx, ixyz
     double precision, intent(in) ::   q1d(num_eqn,1-num_ghost:mx+num_ghost)
     double precision, intent(out) :: dq1d(num_eqn,1-num_ghost:maxnx+num_ghost)
-    double precision, intent(in) ::   aux(num_aux,1-num_ghost:mx+num_ghost)
+    double precision, target, intent(in) ::   aux(num_aux,1-num_ghost:mx+num_ghost)
     double precision, intent(out) :: cfl
     double precision, intent(in) :: t, dt
 
@@ -50,9 +49,10 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
 !f2py optional dq1d
 
     ! Local variables
-    double precision :: auxl(num_aux,1-num_ghost:mx+num_ghost)
-    double precision :: auxr(num_aux,1-num_ghost:mx+num_ghost)
+    double precision, pointer :: auxl(:,:), auxr(:,:), qr_shift(:,:), ql_shift(:,:)
     integer :: m, mw, i
+
+! ===================================================================
 
     if (index_capa.gt.0) then
         dtdx = dt / (dx(ixyz)*aux(index_capa,:))
@@ -163,33 +163,21 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
     else
         ! Or we can just swap things around and use the usual Riemann solver
         ! This may be more convenient, but is less efficient. 
-        ! For the moment the swapping is done working with the elements of the 
-        ! vectors qr, ql, auxl, auxr. 
-        ! 
-        ! TODO: Working with pointers!!!
         
-        do i = 1-num_ghost+1,mx+num_ghost
-            do m = 1, num_eqn
-                qr(m,i-1) = ql(m,i)
-                ql(m,i  ) = qr(m,i)
-            enddo
-        enddo
+        qr_shift => ql(:,2-num_ghost:)
+        ql_shift => qr
 
         if (num_aux .gt. 0) then
-             do i = 1-num_ghost+1,mx+num_ghost
-                do m = 1, num_aux
-                    auxr(m,i-1) = aux(m,i)
-                    auxl(m,i  ) = aux(m,i)
-                enddo
-            enddo
+            auxr => aux(:,2-num_ghost:)
+            auxl => aux
         endif
         
         if (num_dim.eq.1) then
             call rp(maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,&
-                    ql,qr,auxl,auxr,wave,s,amdq2,apdq2)
+                    ql_shift,qr_shift,auxl,auxr,wave,s,amdq2,apdq2)
         else
             call rp(ixyz,maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,&
-                    ql,qr,auxl,auxr,wave,s,amdq2,apdq2)
+                    ql_shift,qr_shift,auxl,auxr,wave,s,amdq2,apdq2)
         endif
 
         forall(i=1:mx, m=1:num_eqn)

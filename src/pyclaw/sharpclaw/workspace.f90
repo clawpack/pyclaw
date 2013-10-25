@@ -4,7 +4,8 @@ module workspace
 ! values in the SharpClaw solvers.
 ! ===================================================================
 
-    double precision, allocatable  :: ql(:,:), qr(:,:), dtdx(:)
+    double precision, allocatable  :: dtdx(:)
+    double precision, target, allocatable  :: ql(:,:), qr(:,:)
     double precision, allocatable  :: evl(:,:,:), evr(:,:,:)
     double precision, allocatable  :: amdq(:,:), apdq(:,:), amdq2(:,:), apdq2(:,:)
     double precision, allocatable  :: wave(:,:,:), s(:,:)

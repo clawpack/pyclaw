@@ -10,7 +10,7 @@ def configuration(parent_package='',top_path=None):
 
     config.add_extension('sharpclaw2',
                          ['ClawParams.f90','weno.f90','reconstruct.f90',
-                          'tfluct.f90','evec.f90','workspace2.f90','flux2.f90',
+                          'tfluct.f90','evec.f90','workspace.f90','flux2.f90',
                           'flux1.f90'])
 
     return config
