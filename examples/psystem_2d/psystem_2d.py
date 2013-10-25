@@ -127,7 +127,6 @@ def setup(kernel_language='Fortran',
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
-        solver.dimensional_split=False
     else:
         from clawpack import pyclaw
 
@@ -159,6 +158,7 @@ def setup(kernel_language='Fortran',
 
     if solver_type=='classic':
         solver = pyclaw.ClawSolver2D(riemann.psystem_2D)
+        solver.dimensional_split=False
     elif solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D(riemann.psystem_2D)
 
