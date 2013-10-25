@@ -29,7 +29,7 @@ fr2, &
 fs0, &
 fs1
 
-  do i = num_ghost-1, maxnx+num_ghost+1
+  do i = num_ghost, maxnx+num_ghost+1
     do m = 1, num_eqn
       sigma0 = 3.3333333333333333333333333333333333d0*q(m,i+0)**2 - &
       10.333333333333333333333333333333333d0*q(m,i+0)*q(m,i+1) + &

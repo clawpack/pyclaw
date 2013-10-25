@@ -164,13 +164,11 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
         ! Or we can just swap things around and use the usual Riemann solver
         ! This may be more convenient, but is less efficient. 
         
-        qr_shift => ql(:,2-num_ghost:)
+        qr_shift => ql(:,2-num_ghost:mx+num_ghost)
         ql_shift => qr
 
-        if (num_aux .gt. 0) then
-            auxr => aux(:,2-num_ghost:)
-            auxl => aux
-        endif
+        auxr => aux(:,2-num_ghost:mx+num_ghost)
+        auxl => aux
         
         if (num_dim.eq.1) then
             call rp(maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,&

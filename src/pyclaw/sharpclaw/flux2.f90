@@ -43,9 +43,7 @@ subroutine flux2(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn2)
     do j = 0,my+1
         ! copy data along a slice into 1d arrays:
         q1d => q(:,:,j)
-        if (num_aux .gt. 0)  then
-            aux1d => aux(:,:,j)
-        endif
+        aux1d => aux(:,:,j)
 
         dq1d(:,:) = 0.d0
         ! compute modification dq1d along this slice:
@@ -64,9 +62,7 @@ subroutine flux2(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn2)
     do i = 0, mx+1
         ! copy data along a slice into 1d arrays:
         q1d => q(:,i,:)
-        if (num_aux .gt. 0)  then
-            aux1d => aux(:,i,:)
-        endif
+        aux1d => aux(:,i,:)
 
         dq1d(:,:) = 0.d0
         call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,2,num_aux,num_eqn,my,num_ghost,maxnx,rpn2)
