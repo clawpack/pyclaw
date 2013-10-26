@@ -1,13 +1,17 @@
 module ClawParams
+! ===================================================================
+! This module holds user options and grid information that are used
+! by the SharpClaw solvers in any number of dimensions.
+! ===================================================================
 
-! Problem setup:
-  double precision, allocatable :: xlower(:),xupper(:),dx(:)
-  integer :: num_dim, num_waves, index_capa
+    ! Problem setup:
+    double precision, allocatable :: xlower(:), xupper(:), dx(:)
+    integer :: num_dim, num_waves, index_capa
 
-! Method-related parameters:
-  integer :: char_decomp,lim_type,multid_recon,weno_order
-  integer, allocatable :: mthlim(:)
-  logical :: fwave, tfluct_solver
+    ! Method-related parameters:
+    integer :: char_decomp, lim_type, weno_order
+    integer, allocatable :: mthlim(:)
+    logical :: fwave, tfluct_solver
 
 contains
 

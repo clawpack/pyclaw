@@ -1,5 +1,11 @@
 module workspace
-    double precision, allocatable  :: ql(:,:), qr(:,:), dtdx(:)
+! ===================================================================
+! This module holds arrays used as work space to hold intermediate
+! values in the SharpClaw solvers.
+! ===================================================================
+
+    double precision, allocatable  :: dtdx(:)
+    double precision, target, allocatable  :: ql(:,:), qr(:,:)
     double precision, allocatable  :: evl(:,:,:), evr(:,:,:)
     double precision, allocatable  :: amdq(:,:), apdq(:,:), amdq2(:,:), apdq2(:,:)
     double precision, allocatable  :: wave(:,:,:), s(:,:)
