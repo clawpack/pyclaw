@@ -81,13 +81,13 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
             dims = patch.dimensions
             if patch.num_dim == 1:
                 for k in xrange(dims[0].num_cells):
-                    for m in xrange(state.num_eqn):
+                    for m in xrange(q.shape[0]):
                         q_file.write("%18.8e" % q[m,k])
                     q_file.write('\n')
             elif patch.num_dim == 2:
                 for j in xrange(dims[1].num_cells):
                     for k in xrange(dims[0].num_cells):
-                        for m in xrange(state.num_eqn):
+                        for m in xrange(q.shape[0]):
                             q_file.write("%18.8e" % q[m,k,j])
                         q_file.write('\n')
                     q_file.write('\n')
@@ -95,7 +95,7 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
                 for l in xrange(dims[2].num_cells):
                     for j in xrange(dims[1].num_cells):
                         for k in xrange(dims[0].num_cells):
-                            for m in range(state.num_eqn):
+                            for m in range(q.shape[0]):
                                 q_file.write("%18.8e" % q[m,k,j,l])
                             q_file.write('\n')
                     q_file.write('\n')
