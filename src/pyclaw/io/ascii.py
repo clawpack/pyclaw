@@ -172,7 +172,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
      - *options* - (dict) Dictionary of optional arguments dependent on 
        the format being read in.  ``default = {}``
     """
-    
+
     import numpy as np
 
     if frame < 0:
@@ -276,6 +276,9 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         
 
     # Read auxillary file if available and requested
+    # Matching dimension parameter tolerances
+    ABS_TOL = 1e-8
+    REL_TOL = 1e-15
     if solution.states[0].num_aux > 0 and read_aux:
         # Check for aux file
         fname1 = os.path.join(base_path,'%s.a' % file_prefix)+str(frame).zfill(4)
@@ -315,11 +318,11 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
                     raise Exception("Dimension %s's num_cells in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
             for dim in patch.dimensions:
                 lower = read_data_line(f,type='float')
-                if np.abs(lower - dim.lower)>1.e-15:
+                if np.abs(lower - dim.lower) > ABS_TOL + REL_TOL * np.abs(dim.lower):
                     raise Exception('Value of lower in aux file does not match.')
             for dim in patch.dimensions:
                 delta = read_data_line(f,type='float')
-                if np.abs(delta - dim.delta)>1.e-15:
+                if np.abs(delta - dim.delta) > ABS_TOL + REL_TOL * np.abs(dim.delta):
                     raise Exception('Value of delta in aux file does not match.')
 
             f.readline()
