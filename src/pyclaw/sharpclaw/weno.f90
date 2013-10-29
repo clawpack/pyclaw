@@ -114,7 +114,7 @@ fr5, &
 fs0, &
 fs1
 
-  do i = num_ghost-1, maxnx+num_ghost+1
+  do i = num_ghost, maxnx+num_ghost+1
     do m = 1, num_eqn
       sigma0 = 8.7791666666666666666666666666666667d0*q(m,i+0)**2 - 39.175d0*q(m,i+0)*q &
       (m,i+1) + 29.341666666666666666666666666666667d0*q(m,i+0)*q(m,i+2 &
@@ -237,7 +237,7 @@ fr5, &
 fs0, &
 fs1
 
-  do i = num_ghost-1, maxnx+num_ghost+1
+  do i = num_ghost, maxnx+num_ghost+1
     do m = 1, num_eqn
       sigma0 = 21.412301587301587301587301587301587d0*q(m,i+0)**2 - &
       128.86924603174603174603174603174603d0*q(m,i+0)*q(m,i+1) + &
@@ -416,7 +416,7 @@ fr2, &
 fs0, &
 fs1
 
-  do i = num_ghost-1, maxnx+num_ghost+1
+  do i = num_ghost, maxnx+num_ghost+1
     do m = 1, num_eqn
       sigma0 = 50.844998346560846560846560846560847d0*q(m,i+0)**2 - &
       392.36494708994708994708994708994709d0*q(m,i+0)*q(m,i+1) + &
@@ -672,7 +672,7 @@ fr2, &
 fs0, &
 fs1
 
-  do i = num_ghost-1, maxnx+num_ghost+1
+  do i = num_ghost, maxnx+num_ghost+1
     do m = 1, num_eqn
       sigma0 = 119.87696582224360002137779915557693d0*q(m,i+0)**2 - &
       1140.526913830767997434664101330768d0*q(m,i+0)*q(m,i+1) + &
@@ -1047,7 +1047,7 @@ fr2, &
 fs0, &
 fs1
 
-  do i = num_ghost-1, maxnx+num_ghost+1
+  do i = num_ghost, maxnx+num_ghost+1
     do m = 1, num_eqn
       sigma0 = 282.83760061297691506024839358172691d0*q(m,i+0)**2 - &
       3217.686587518448629559740670851782d0*q(m,i+0)*q(m,i+1) + &
@@ -1549,7 +1549,7 @@ fr2, &
 fs0, &
 fs1
 
-  do i = num_ghost-1, maxnx+num_ghost+1
+  do i = num_ghost, maxnx+num_ghost+1
     do m = 1, num_eqn
       sigma0 = 669.71498110880766304046727327150608d0*q(m,i+0)**2 - &
       8893.7804564128406927679414451901224d0*q(m,i+0)*q(m,i+1) + &
