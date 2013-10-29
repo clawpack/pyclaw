@@ -23,7 +23,7 @@ subroutine flux3(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
     double precision, intent(out) :: cfl
     integer :: i,j,k,m
     double precision :: cfl1d
-    double precision, pointer :: auxp(:,:),q1dp(:,:)
+    double precision, pointer :: aux1d(:,:),q1dp(:,:)
     external :: rpn3
     
 !f2py intent(in,out) dq  
@@ -44,12 +44,10 @@ subroutine flux3(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
         do k = 0,mz+1
             ! copy data along a slice into 1d arrays:
             q1dp => q(:,:,j,k)
-            if (num_aux.gt.0)  then
-                auxp => aux(:,:,j,k)
-            endif
+            aux1d => aux(:,:,j,k)
 
             ! compute modification dq1d along this slice:
-            call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,1,num_aux,num_eqn,mx,num_ghost,maxnx,rpn3)
+            call flux1(q1dp,dq1d,aux1d,dt,cfl1d,t,1,num_aux,num_eqn,mx,num_ghost,maxnx,rpn3)
             cfl = dmax1(cfl,cfl1d)
 
             forall(i=1:mx, m=1:num_eqn)
@@ -66,11 +64,9 @@ subroutine flux3(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
         do k = 0, mz+1
             ! copy data along a slice into 1d arrays:
             q1dp => q(:,i,:,k)
-            if (num_aux.gt.0)  then
-                auxp => aux(:,i,:,k)
-            endif
+            aux1d => aux(:,i,:,k)
 
-            call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,2,num_aux,num_eqn,my,num_ghost,maxnx,rpn3)
+            call flux1(q1dp,dq1d,aux1d,dt,cfl1d,t,2,num_aux,num_eqn,my,num_ghost,maxnx,rpn3)
             cfl = dmax1(cfl,cfl1d)
 
             forall(j=1:my,m=1:num_eqn)
@@ -86,17 +82,15 @@ subroutine flux3(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
         do j = 0, my+1
             ! copy data along a slice into 1d arrays:
             q1dp => q(:,i,j,:)
-            if (num_aux.gt.0)  then
-                auxp => aux(:,i,j,:)
-            endif
+            aux1d => aux(:,i,j,:)
 
-            call flux1(q1dp,dq1d,auxp,dt,cfl1d,t,3,num_aux,num_eqn,mz,num_ghost,maxnx,rpn3)
+            call flux1(q1dp,dq1d,aux1d,dt,cfl1d,t,3,num_aux,num_eqn,mz,num_ghost,maxnx,rpn3)
             cfl = dmax1(cfl,cfl1d)
 
             forall(k=1:mz,m=1:num_eqn)
                 dq(m,i,j,k) = dq(m,i,j,k)+dq1d(m,k)
             end forall
         enddo
-    enddo !end y sweeps
+    enddo !end z sweeps
 
 end subroutine flux3
