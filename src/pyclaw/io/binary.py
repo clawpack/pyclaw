@@ -7,10 +7,9 @@ Routines for reading a raw binary output file
 import os
 import logging
 
-import numpy
-
-import clawpack.pyclaw as pyclaw
 from ..util import read_data_line
+import numpy as np
+import clawpack.pyclaw as pyclaw
 
 logger = logging.getLogger('io')
 
@@ -40,6 +39,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
      - *options* - (dict) Dictionary of optional arguments dependent on 
        the format being read in.  ``default = {}``
     """
+    
 
     if frame < 0:
         # Don't construct file names with negative frameno values.
@@ -63,7 +63,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         print "Error: file " + b_fname + " does not exist or is unreadable."
         raise IOError("Could not read binary file %s" % b_fname)
 
-    qdata = numpy.fromfile(file=b_file, dtype=numpy.float64)
+    qdata = np.fromfile(file=b_file, dtype=np.float64)
 
     i_start_patch = 0  # index into qdata for start of next patch
 
@@ -81,9 +81,9 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         # Read in base header for this patch
         patch_index = read_data_line(f,type='int')
         level = read_data_line(f,type='int')
-        n = numpy.zeros((num_dim))
-        lower = numpy.zeros((num_dim))
-        d = numpy.zeros((num_dim))
+        n = np.zeros((num_dim))
+        lower = np.zeros((num_dim))
+        d = np.zeros((num_dim))
         for i in xrange(num_dim):
             n[i] = read_data_line(f,type='int')
         for i in xrange(num_dim):
@@ -116,7 +116,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
             mbc = num_ghost
             i_end_patch = i_start_patch + meqn*(mx+2*mbc)
             qpatch = qdata[i_start_patch:i_end_patch]
-            qpatch = numpy.reshape(qpatch, (meqn,mx+2*mbc), \
+            qpatch = np.reshape(qpatch, (meqn,mx+2*mbc), \
                         order='F')
             state.q = qpatch[:,mbc:-mbc]
             i_start_patch = i_end_patch  # prepare for next patch
@@ -129,13 +129,13 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
             mbc = num_ghost
             i_end_patch = i_start_patch + meqn*(mx+2*mbc)*(my+2*mbc)
             qpatch = qdata[i_start_patch:i_end_patch]
-            qpatch = numpy.reshape(qpatch, (meqn,mx+2*mbc,my+2*mbc), \
+            qpatch = np.reshape(qpatch, (meqn,mx+2*mbc,my+2*mbc), \
                         order='F')
             state.q = qpatch[:,mbc:-mbc,mbc:-mbc]
             i_start_patch = i_end_patch  # prepare for next patch
 
         elif patch.num_dim == 3:
-            logger.warning("*** Binary reading of fort.q* 3d not tested ***")
+            ##  NOT YET TESTED ##
             mx = patch.dimensions[0].num_cells
             my = patch.dimensions[1].num_cells
             mz = patch.dimensions[2].num_cells
@@ -144,7 +144,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
             i_end_patch = i_start_patch + \
                         meqn*(mx+2*mbc)*(my+2*mbc)*(mz+2*mbc)
             qpatch = qdata[i_start_patch:i_end_patch]
-            qpatch = numpy.reshape(qpatch, \
+            qpatch = np.reshape(qpatch, \
                         (meqn,mx+2*mbc,my+2*mbc,mz+2*mbc), \
                         order='F')
             state.q = qpatch[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
@@ -180,11 +180,11 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         else:
             logger.info("Unable to open auxillary file %s or %s" % (fname1,fname2))
             return
-
+            
         # Found a valid path, try to open and read it
         try:
             b_file = open(fname,'rb')
-            auxdata = numpy.fromfile(file=b_file, dtype=numpy.float64)
+            auxdata = np.fromfile(file=b_file, dtype=np.float64)
         except IOError:
             print "Error: file " + fname + " does not exist or is unreadable."
             raise IOError("Could not read binary file %s" % fname)
@@ -195,13 +195,13 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
 
             # Fill in aux values
             if patch.num_dim == 1:
-                logger.warning("*** Binary reading of fort.a* 1d not tested ***")
+                ##  NOT YET TESTED ##
                 mx = patch.dimensions[0].num_cells
                 maux = state.num_aux
                 mbc = num_ghost
                 i_end_patch = i_start_patch + maux*(mx+2*mbc)
                 auxpatch = auxdata[i_start_patch:i_end_patch]
-                auxpatch = numpy.reshape(auxpatch, (maux,mx+2*mbc), \
+                auxpatch = np.reshape(auxpatch, (maux,mx+2*mbc), \
                             order='F')
                 state.aux = auxpatch[:,mbc:-mbc]
                 i_start_patch = i_end_patch  # prepare for next patch
@@ -214,13 +214,13 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 mbc = num_ghost
                 i_end_patch = i_start_patch + maux*(mx+2*mbc)*(my+2*mbc)
                 auxpatch = auxdata[i_start_patch:i_end_patch]
-                auxpatch = numpy.reshape(auxpatch, (maux,mx+2*mbc,my+2*mbc), \
+                auxpatch = np.reshape(auxpatch, (maux,mx+2*mbc,my+2*mbc), \
                             order='F')
                 state.aux = auxpatch[:,mbc:-mbc,mbc:-mbc]
                 i_start_patch = i_end_patch  # prepare for next patch
 
             elif patch.num_dim == 3:
-                logger.warning("*** Binary reading of fort.a* 3d not tested ***")
+                ##  NOT YET TESTED ##
                 mx = patch.dimensions[0].num_cells
                 my = patch.dimensions[1].num_cells
                 mz = patch.dimensions[2].num_cells
@@ -229,7 +229,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 i_end_patch = i_start_patch + \
                             maux*(mx+2*mbc)*(my+2*mbc)*(mz+2*mbc)
                 auxpatch = auxdata[i_start_patch:i_end_patch]
-                auxpatch = numpy.reshape(auxpatch, \
+                auxpatch = np.reshape(auxpatch, \
                             (maux,mx+2*mbc,my+2*mbc,mz+2*mbc), \
                             order='F')
                 state.aux = auxpatch[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
@@ -242,6 +242,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
             
 def read_t(frame,path='./',file_prefix='fort'):
     r"""Read only the fort.t file and return the data
+
 
     Note that this version reads in the extra value for num_ghost so that we
     can extract only the data that's relevant.
