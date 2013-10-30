@@ -4,10 +4,12 @@ r"""
 Routines for reading a raw binary output file
 """
 
-import os,sys
+import os
 import logging
 
 from ..util import read_data_line
+import numpy as np
+import clawpack.pyclaw as pyclaw
 
 logger = logging.getLogger('io')
 
@@ -38,8 +40,6 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
        the format being read in.  ``default = {}``
     """
     
-    import numpy as np
-    import clawpack.pyclaw as pyclaw
 
     if frame < 0:
         # Don't construct file names with negative frameno values.
@@ -52,7 +52,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     b_fname = os.path.join(base_path, '%s.b' % file_prefix) + str(frame).zfill(4)
 
     # Read in values from fort.t file:
-    [t,num_eqn,nstates,num_aux,num_dim,num_ghost] = read_binary_t(frame,path,file_prefix)
+    [t,num_eqn,nstates,num_aux,num_dim,num_ghost] = read_t(frame,path,file_prefix)
 
     patches = []
     
@@ -189,9 +189,9 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
             print "Error: file " + fname + " does not exist or is unreadable."
             raise IOError("Could not read binary file %s" % fname)
 
+        i_start_patch = 0  # index into auxdata for start of next patch
         for state in solution.states:
             patch = state.patch
-            i_start_patch = 0  # index into auxdata for start of next patch
 
             # Fill in aux values
             if patch.num_dim == 1:
@@ -242,6 +242,10 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
             
 def read_t(frame,path='./',file_prefix='fort'):
     r"""Read only the fort.t file and return the data
+
+
+    Note that this version reads in the extra value for num_ghost so that we
+    can extract only the data that's relevant.
     
     :Input:
      - *frame* - (int) Frame number to be read in

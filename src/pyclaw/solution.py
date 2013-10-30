@@ -336,6 +336,9 @@ class Solution(object):
         if file_format=='petsc':
             from clawpack.petclaw import io
             read_func = io.petsc.read
+        elif file_format == 'binary':
+            from clawpack.pyclaw import io 
+            read_func = io.binary.read
         elif file_format=='ascii': 
             from clawpack.pyclaw import io
             read_func = io.ascii.read
