@@ -1,5 +1,23 @@
 #!/usr/bin/env python
 # encoding: utf-8
+
+r"""
+One-dimensional acoustics
+=========================
+
+Solve the (linear) acoustics equations:
+
+.. math:: 
+    p_t + K u_x & = 0 \\ 
+    u_t + p_x / \rho & = 0.
+
+Here p is the pressure, u is the velocity, K is the bulk modulus,
+and :math:`\rho` is the density.
+
+The initial condition is a Gaussian and the boundary conditions are periodic.
+The final solution is identical to the initial data because both waves have
+crossed the domain exactly once.
+"""
     
 def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5, disable_output=False):
     """

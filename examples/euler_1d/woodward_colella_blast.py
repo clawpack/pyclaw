@@ -1,7 +1,22 @@
 #!/usr/bin/env python
 # encoding: utf-8
-r"""Woodward-Colella blast wave interaction problem.
-   1D compressible inviscid flow (Euler equations)."""
+r"""
+Woodward-Colella blast wave problem
+===================================
+
+Solve the one-dimensional Euler equations for inviscid, compressible flow:
+
+.. math::
+    \rho_t + (\rho u)_x & = 0 \\
+    (\rho u)_t + (\rho u^2 + p)_x & = 0 \\
+    E_t + (u (E + p) )_x & = 0.
+
+The fluid is an ideal gas, with pressure given by :math:`p=\rho (\gamma-1)e` where
+e is internal energy.
+
+This script runs the Woodward-Colella blast wave interaction problem,
+involving the collision of two shock waves.
+"""
 
 gamma = 1.4
 gamma1 = gamma - 1.
