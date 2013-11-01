@@ -1,11 +1,24 @@
 #!/usr/bin/env python
 # encoding: utf-8
-def setup(nx=100,kernel_language='Python',
-              use_petsc=False,solver_type='classic', weno_order=5,
-              outdir='./_output'):
-    """
-    Example python script for solving the 1d advection equation.
-    """
+
+r"""
+One-dimensional advection
+=========================
+
+Solve the linear advection equation:
+
+.. math:: 
+    q_t + u q_x & = 0.
+
+Here q is the density of some conserved quantity and u is the velocity.
+
+The initial condition is a Gaussian and the boundary conditions are periodic.
+The final solution is identical to the initial data because the wave has
+crossed the domain exactly once.
+"""
+
+def setup(nx=100,kernel_language='Python', use_petsc=False,
+          solver_type='classic', weno_order=5, outdir='./_output'):
     import numpy as np
     from clawpack import riemann
 

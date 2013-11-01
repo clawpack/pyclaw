@@ -1,5 +1,26 @@
 #!/usr/bin/env python
 # encoding: utf-8
+r"""
+Two-dimensional p-system
+==============================
+
+Solve the two-dimensional generalization of the p-system:
+
+.. math:: 
+    \epsilon_t - u_x - v_y & = 0 \\
+    \rho(x,y) u_t - \sigma(\epsilon,x,y)_x & = 0 \\
+    \rho(x,y) v_t - \sigma(\epsilon,x,y)_y & = 0.
+
+We take :math:`\sigma = e^{K(x,y)\epsilon} - 1`, and the
+material coefficients :math:`\rho,K` vary in a checkerboard
+pattern.  The resulting dynamics lead to solitary waves,
+though much more resolution is needed in order to see them.
+
+This example shows how to set an aux array, use a b4step function,
+use gauges, compute output functionals, and restart a simulation
+from a checkpoint.
+"""
+
 
 import numpy as np
 

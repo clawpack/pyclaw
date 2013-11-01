@@ -1,9 +1,17 @@
 #!/usr/bin/env python
 # encoding: utf-8
+r"""
+Two-dimensional advection
+=========================
 
-#===========================================================================
-# Import libraries
-#===========================================================================
+Solve the two-dimensional linear advection equation
+
+.. math:: 
+    q_t + (uq)_x + (vq)_y & = 0
+
+Here q is a conserved quantity, and (u,v) is the velocity vector.
+"""
+
 import numpy as np
 
 def qinit(state):

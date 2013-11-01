@@ -1,9 +1,23 @@
 #!/usr/bin/env python
 # encoding: utf-8
+r"""
+One-dimensional advection with variable velocity
+================================================
+
+Solve the conservative variable-coefficient advection equation:
+
+.. math:: q_t + (u(x)q)_x = 0.
+
+Here q is the density of some conserved quantity and u(x) is the velocity.
+The velocity field used is
+
+.. math:: u(x) = 2 + sin(2\pi x).
+
+The boundary conditions are periodic.
+The initial data get stretched and compressed as they move through the
+fast and slow parts of the velocity field.
 """
-Example python script for solving the 1d variable-coefficient advection 
-equation: q_t + u(x)q_x = 0.
-"""
+
 
 import numpy as np
 

@@ -1,6 +1,27 @@
 #!/usr/bin/env python
 # encoding: utf-8
+r"""
+Solitary wave formation in periodic nonlinear elastic media
+===========================================================
+
+Solve a one-dimensional nonlinear elasticity system:
+
+.. math::
+    \epsilon_t + u_x & = 0 \\
+    (\rho(x) u)_t + \sigma(\epsilon,x)_x & = 0.
+
+Here :math:`\epsilon` is the strain, :math:`\sigma` is the stress, 
+u is the velocity, and :math:`\rho(x)` is the density.  
+We take the stress-strain relation :math:`\sigma = e^{K(x)\epsilon}-1`;
+:math:`K(x)` is the linearized bulk modulus.
+Note that the density and bulk modulus may depend explicitly on x.
+
+The problem solved here is based on [LeVYon03]_.  An initial hump
+evolves into two trains of solitary waves.
+
+"""
 import numpy as np
+
 
 def qinit(state,ic=2,a2=1.0,xupper=600.):
     x = state.grid.x.centers

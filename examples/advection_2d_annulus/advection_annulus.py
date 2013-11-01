@@ -1,5 +1,20 @@
 #!/usr/bin/env python
 # encoding: utf-8
+r"""
+Advection in an annular domain
+==============================
+
+Solve the linear advection equation:
+
+.. math:: 
+    q_t + (u(x,y) q)_x + (v(x,y) q)_y & = 0.
+
+Here q is the density of some conserved quantity and (u,v) is the velocity
+field.  We take a rotational velocity field: :math:`u = \cos(\theta), v = \sin(\theta)`.
+
+This is the simplest example that shows how to use a mapped grid in PyClaw.
+"""
+
 
 #===========================================================================
 # Import libraries

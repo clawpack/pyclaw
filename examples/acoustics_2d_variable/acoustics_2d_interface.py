@@ -1,8 +1,20 @@
 #!/usr/bin/env python
 # encoding: utf-8
 r"""
-Variable-coefficient acoustics example.
+Two-dimensional variable-coefficient acoustics
+==============================================
+
+Solve the variable-coefficient acoustics equations:
+
+.. math:: 
+    p_t + K(x,y) (u_x + v_y) & = 0 \\ 
+    u_t + p_x / \rho(x,y) & = 0 \\
+    v_t + p_y / \rho(x,y) & = 0.
+
+Here p is the pressure, (u,v) is the velocity, :math:`K(x,y)` is the bulk modulus,
+and :math:`\rho(x,y)` is the density.
 """
+ 
 import numpy as np
 
 def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_type='classic', disable_output=False):

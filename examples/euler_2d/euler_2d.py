@@ -2,7 +2,18 @@
 # encoding: utf-8
 
 """
-Solve the Euler equations of compressible fluid dynamics.
+2D compressible flow
+================================
+
+Solve the Euler equations of compressible fluid dynamics:
+
+.. math::
+    \rho_t + (\rho u)_x + (\rho v)_y & = 0 \\
+    (\rho u)_t + (\rho u^2 + p)_x + (\rho uv)_y & = 0 \\
+    (\rho v)_t + (\rho uv)_x + (\rho v^2 + p)_y & = 0.
+    E_t + (u (E + p) )_x + (v (E + p))_y & = 0.
+
+Here h is the depth, (u,v) is the velocity, and g is the gravitational constant.
 """
 from clawpack import pyclaw
 from clawpack import riemann
@@ -23,7 +34,6 @@ solution.q[1,...] = 0.75*t - 0.75*b
 solution.q[2,...] = 0.5*l  - 0.5*r
 solution.q[3,...] = 0.5*solution.q[0,...]*(solution.q[1,...]**2+solution.q[2,...]**2) + 1./(gamma-1.)
 
-#solver.evolve_to_time(solution,tend=0.3)
 claw = pyclaw.Controller()
 claw.tfinal = 0.3
 claw.solution = solution

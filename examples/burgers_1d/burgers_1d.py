@@ -1,6 +1,22 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+r"""
+Burgers' equation
+=========================
+
+Solve the inviscid Burgers' equation:
+
+.. math:: 
+    q_t + \frac{1}{2} (q^2)_x & = 0.
+
+This is a nonlinear PDE often used as a very simple
+model for fluid dynamics.
+
+The initial condition is sinusoidal, but after a short time a shock forms
+(due to the nonlinearity).
+"""
+
 def setup(use_petsc=0,kernel_language='Fortran',outdir='./_output',solver_type='classic'):
     """
     Example python script for solving the 1d Burgers equation.

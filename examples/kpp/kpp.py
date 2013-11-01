@@ -1,6 +1,17 @@
 #!/usr/bin/env python
 # encoding: utf-8
+r"""
+A non-convex flux scalar model
+==============================
 
+Solve the equation:
+
+.. math:: 
+    q_t + (\sin(q))_x + (\cos(q))_y & = 0
+
+first proposed by Kurganov, Petrova, and Popov.  It is challenging for schemes
+with low numerical viscosity to capture the solution accurately.
+"""
 import numpy as np
 
 def qinit(state,rad=1.0):

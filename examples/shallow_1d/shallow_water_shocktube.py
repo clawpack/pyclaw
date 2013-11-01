@@ -1,8 +1,18 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-"""
-1D shallow water equations.
+r"""
+Shallow water flow
+==================
+
+Solve the one-dimensional shallow water equations:
+
+.. math::
+    h_t + (hu)_x + (hv)_y & = 0 \\
+    (hu)_t + (hu^2 + \frac{1}{2}gh^2)_x + (huv)_y & = 0 \\
+    (hv)_t + (huv)_x + (hv^2 + \frac{1}{2}gh^2)_y & = 0.
+
+Here h is the depth, (u,v) is the velocity, and g is the gravitational constant.
 """
 
     

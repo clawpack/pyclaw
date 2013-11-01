@@ -2,7 +2,11 @@
 # encoding: utf-8
 
 """
-2D shallow water equations.
+Solve the 2D shallow water equations:
+
+.. :math:
+    h_t + (hu)_x + (hu)_y & = 0 \\
+    (hu)_t + (
 """
 #===========================================================================
 # Import libraries

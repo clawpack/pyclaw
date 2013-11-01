@@ -1,6 +1,20 @@
 #!/usr/bin/env python
 # encoding: utf-8
+r"""
+Two-dimensional acoustics
+=========================
 
+Solve the (linear) acoustics equations:
+
+.. math:: 
+    p_t + K (u_x + v_y) & = 0 \\ 
+    u_t + p_x / \rho & = 0 \\
+    v_t + p_y / \rho & = 0.
+
+Here p is the pressure, (u,v) is the velocity, K is the bulk modulus,
+and :math:`\rho` is the density.
+"""
+ 
 import numpy as np
 
 def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_type='classic',  disable_output=False):
