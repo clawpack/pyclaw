@@ -20,7 +20,7 @@ def add_parent_doc(parent):
     """ + parent.__doc__
 
 
-def run_app_from_main(application):
+def run_app_from_main(application,setplot=None):
     r"""
     Runs an application from pyclaw/examples/, automatically parsing command line keyword
     arguments (key=value) as parameters to the application, with positional
@@ -56,8 +56,16 @@ def run_app_from_main(application):
     htmlplot = pyclaw_kwargs.get('htmlplot',False)
     iplot    = pyclaw_kwargs.get('iplot',False)
     outdir   = pyclaw_kwargs.get('outdir','./_output')
-    if htmlplot:  pyclaw.plot.html_plot(outdir=outdir)
-    if iplot:     pyclaw.plot.interactive_plot(outdir=outdir)
+    if htmlplot:  
+        if setplot is not None:
+            pyclaw.plot.html_plot(outdir=outdir,setplot=setplot)
+        else:
+            pyclaw.plot.html_plot(outdir=outdir)
+    if iplot:     
+        if setplot is not None:
+            pyclaw.plot.interactive_plot(outdir=outdir,setplot=setplot)
+        else:
+            pyclaw.plot.interactive_plot(outdir=outdir)
 
     return claw
 

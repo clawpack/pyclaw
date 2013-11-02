@@ -89,7 +89,53 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
 
     return claw
 
+#--------------------------
+def setplot(plotdata):
+#--------------------------
+    """ 
+    Specify what is to be plotted at each frame.
+    Input:  plotdata, an instance of visclaw.data.ClawPlotData.
+    Output: a modified version of plotdata.
+    """ 
+    from clawpack.visclaw import colormaps
 
+    plotdata.clearfigures()  # clear any old figures,axes,items data
+
+    # Figure for pcolor plot
+    plotfigure = plotdata.new_plotfigure(name='q[0]', figno=0)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.title = 'q[0]'
+    plotaxes.scaled = True
+
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
+    plotitem.plot_var = 0
+    plotitem.pcolor_cmap = colormaps.yellow_red_blue
+    plotitem.pcolor_cmin = 0.0
+    plotitem.pcolor_cmax = 1.0
+    plotitem.add_colorbar = True
+    
+    # Figure for contour plot
+    plotfigure = plotdata.new_plotfigure(name='contour', figno=1)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.title = 'q[0]'
+    plotaxes.scaled = True
+
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='2d_contour')
+    plotitem.plot_var = 0
+    plotitem.contour_nlevels = 20
+    plotitem.contour_min = 0.01
+    plotitem.contour_max = 0.99
+    plotitem.amr_contour_colors = ['b','k','r']
+    
+    return plotdata
+
+    
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(setup)
+    output = run_app_from_main(setup,setplot)

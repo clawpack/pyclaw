@@ -252,7 +252,42 @@ def setup(kernel_language='Fortran',
 
     return claw
 
+#--------------------------
+def setplot(plotdata):
+#--------------------------
+    """ 
+    Specify what is to be plotted at each frame.
+    Input:  plotdata, an instance of visclaw.data.ClawPlotData.
+    Output: a modified version of plotdata.
+    """ 
+    from clawpack.visclaw import colormaps
+
+    plotdata.clearfigures()  # clear any old figures,axes,items data
+    
+    # Figure for strain
+    plotfigure = plotdata.new_plotfigure(name='Stress', figno=0)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.title = 'Strain'
+    plotaxes.scaled = True      # so aspect ratio is 1
+
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
+    plotitem.plot_var = stress
+    plotitem.pcolor_cmap = colormaps.yellow_red_blue
+    plotitem.add_colorbar = True
+    
+    return plotdata
+
+def stress(current_data):    
+    import numpy as np
+    from psystem_2d import setaux
+    aux = setaux(current_data.x[:,0],current_data.y[0,:])
+    q = current_data.q
+    return np.exp(aux[1,...]*q[0,...])-1.
+
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(setup)
+    output = run_app_from_main(setup,setplot)

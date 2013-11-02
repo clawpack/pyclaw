@@ -98,6 +98,51 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
     return claw
 
 
+#--------------------------
+def setplot(plotdata):
+#--------------------------
+    """ 
+    Specify what is to be plotted at each frame.
+    Input:  plotdata, an instance of visclaw.data.ClawPlotData.
+    Output: a modified version of plotdata.
+    """ 
+    plotdata.clearfigures()  # clear any old figures,axes,items data
+
+    # Figure for q[0]
+    plotfigure = plotdata.new_plotfigure(name='Water height', figno=0)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.xlimits = [-5.0,5.0]
+    plotaxes.title = 'Water height'
+    plotaxes.axescmd = 'subplot(211)'
+
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='1d')
+    plotitem.plot_var = 0
+    plotitem.plotstyle = '-'
+    plotitem.color = 'b'
+    plotitem.kwargs = {'linewidth':3}
+
+    # Figure for q[1]
+    #plotfigure = plotdata.new_plotfigure(name='Momentum', figno=1)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.axescmd = 'subplot(212)'
+    plotaxes.xlimits = [-5.0,5.0]
+    plotaxes.title = 'Momentum'
+
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='1d')
+    plotitem.plot_var = 1
+    plotitem.plotstyle = '-'
+    plotitem.color = 'b'
+    plotitem.kwargs = {'linewidth':3}
+    
+    return plotdata
+
+
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(setup)
+    output = run_app_from_main(setup,setplot)

@@ -103,6 +103,49 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir
 
     return claw
 
+#--------------------------
+def setplot(plotdata):
+#--------------------------
+    """ 
+    Specify what is to be plotted at each frame.
+    Input:  plotdata, an instance of visclaw.data.ClawPlotData.
+    Output: a modified version of plotdata.
+    """ 
+    plotdata.clearfigures()  # clear any old figures,axes,items data
+
+    # Figure for pressure
+    plotfigure = plotdata.new_plotfigure(name='Pressure', figno=1)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.axescmd = 'subplot(211)'
+    plotaxes.ylimits = [-.2,1.0]
+    plotaxes.title = 'Pressure'
+
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
+    plotitem.plot_var = 0
+    plotitem.plotstyle = '-o'
+    plotitem.color = 'b'
+    plotitem.kwargs = {'linewidth':2,'markersize':5}
+    
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.axescmd = 'subplot(212)'
+    plotaxes.xlimits = 'auto'
+    plotaxes.ylimits = [-.5,1.1]
+    plotaxes.title = 'Velocity'
+
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
+    plotitem.plot_var = 1
+    plotitem.plotstyle = '-'
+    plotitem.color = 'b'
+    plotitem.kwargs = {'linewidth':3,'markersize':5}
+    
+    return plotdata
+
+
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(setup)
+    output = run_app_from_main(setup,setplot)

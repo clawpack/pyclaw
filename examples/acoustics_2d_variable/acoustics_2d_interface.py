@@ -92,7 +92,53 @@ def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_ty
     return claw
 
 
+#--------------------------
+def setplot(plotdata):
+#--------------------------
+    """ 
+    Specify what is to be plotted at each frame.
+    Input:  plotdata, an instance of visclaw.data.ClawPlotData.
+    Output: a modified version of plotdata.
+    """ 
+
+    from clawpack.visclaw import colormaps
+
+    plotdata.clearfigures()  # clear any old figures,axes,items data
+    
+    # Figure for pressure
+    plotfigure = plotdata.new_plotfigure(name='Pressure', figno=0)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.title = 'Pressure'
+    plotaxes.scaled = True      # so aspect ratio is 1
+
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
+    plotitem.plot_var = 0
+    plotitem.pcolor_cmap = colormaps.yellow_red_blue
+    plotitem.add_colorbar = True
+    plotitem.pcolor_cmin = 0.0
+    plotitem.pcolor_cmax=1.0
+    
+
+    # Figure for x-velocity plot
+    plotfigure = plotdata.new_plotfigure(name='x-Velocity', figno=1)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.title = 'u'
+
+    plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
+    plotitem.plot_var = 1
+    plotitem.pcolor_cmap = colormaps.yellow_red_blue
+    plotitem.add_colorbar = True
+    plotitem.pcolor_cmin = -0.3
+    plotitem.pcolor_cmax=   0.3
+    
+    return plotdata
+
 if __name__=="__main__":
     import sys
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(setup)
+    output = run_app_from_main(setup,setplot)
