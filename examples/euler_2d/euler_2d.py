@@ -10,7 +10,7 @@ Solve the Euler equations of compressible fluid dynamics:
 .. math::
     \rho_t + (\rho u)_x + (\rho v)_y & = 0 \\
     (\rho u)_t + (\rho u^2 + p)_x + (\rho uv)_y & = 0 \\
-    (\rho v)_t + (\rho uv)_x + (\rho v^2 + p)_y & = 0.
+    (\rho v)_t + (\rho uv)_x + (\rho v^2 + p)_y & = 0 \\
     E_t + (u (E + p) )_x + (v (E + p))_y & = 0.
 
 Here h is the depth, (u,v) is the velocity, and g is the gravitational constant.
@@ -21,7 +21,7 @@ from clawpack import riemann
 solver = pyclaw.ClawSolver2D(riemann.euler_4wave_2D)
 solver.all_bcs = pyclaw.BC.extrap
 
-domain = pyclaw.Domain([0.,0.],[1.,1.],[100,100])
+domain = pyclaw.Domain([0.,0.],[1.,1.],[200,200])
 solution = pyclaw.Solution(solver.num_eqn,domain)
 gamma = 1.4
 solution.problem_data['gamma']  = gamma
@@ -41,4 +41,20 @@ claw.solver = solver
 
 status = claw.run()
 
-#pyclaw.plot.interactive_plot()
+#plot_results()
+
+def load_frame(frame_number):
+    from clawpack.pyclaw import Solution
+
+    return Solution(frame_number)
+
+def plot_frame(frame):
+    import matplotlib.pyplot as plt
+    q = frame.q
+    x, y = frame.state.grid.c_centers
+    plt.pcolormesh(x, y, q[0,...])
+
+def plot_results():
+    from clawpack.visclaw import iplot
+    ip = iplot.Iplot(load_frame,plot_frame)
+    ip.plotloop()

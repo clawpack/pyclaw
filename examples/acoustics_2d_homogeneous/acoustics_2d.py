@@ -93,7 +93,70 @@ def qinit(state,width=0.2):
     state.q[1,:,:] = 0.
     state.q[2,:,:] = 0.
 
+
+
+#--------------------------
+def setplot(plotdata):
+#--------------------------
+    """ 
+    Specify what is to be plotted at each frame.
+    Input:  plotdata, an instance of visclaw.data.ClawPlotData.
+    Output: a modified version of plotdata.
+    """ 
+
+    import os
+    if os.path.exists('./1drad/_output'):
+        qref_dir = os.path.abspath('./1drad/_output')
+    else:
+        qref_dir = None
+        print "Directory ./1drad/_output not found"
+
+    from clawpack.visclaw import colormaps
+
+    plotdata.clearfigures()  # clear any old figures,axes,items data
+    
+    # Figure for pressure
+    plotfigure = plotdata.new_plotfigure(name='Pressure', figno=0)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.title = 'Pressure'
+    plotaxes.scaled = True      # so aspect ratio is 1
+
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
+    plotitem.plot_var = 0
+    plotitem.pcolor_cmap = colormaps.yellow_red_blue
+    plotitem.add_colorbar = True
+
+    # Figure for scatter plot
+    plotfigure = plotdata.new_plotfigure(name='scatter', figno=1)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.title = 'Scatter plot'
+
+    # Set up for item on these axes: scatter of 2d data
+    plotitem = plotaxes.new_plotitem(plot_type='1d_from_2d_data')
+    
+    def p_vs_r(current_data):
+        # Return radius of each patch cell and p value in the cell
+        from pylab import sqrt
+        x = current_data.x
+        y = current_data.y
+        r = sqrt(x**2 + y**2)
+        q = current_data.q
+        p = q[0,:,:]
+        return r,p
+
+    plotitem.map_2d_to_1d = p_vs_r
+    plotitem.plot_var = 0
+    plotitem.plotstyle = 'ob'
+    
+    return plotdata
+
+    
 if __name__=="__main__":
     import sys
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(setup)
+    output = run_app_from_main(setup,setplot)
