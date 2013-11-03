@@ -43,21 +43,4 @@ def setplot(plotdata):
 
     plotitem.show = True       # show on plot?
 
-    # Parameters used only when creating html and/or latex hardcopy
-    # e.g., via visclaw.frametools.printframes:
-
-    plotdata.printfigs = True                # print figures
-    plotdata.print_format = 'png'            # file format
-    plotdata.print_framenos = 'all'          # list of frames to print
-    plotdata.print_fignos = 'all'            # list of figures to print
-    plotdata.html = True                     # create html files of plots?
-    plotdata.html_homelink = '../README.html'   # pointer for top of index
-    plotdata.latex = True                    # create latex file of plots?
-    plotdata.latex_figsperline = 2           # layout of plots
-    plotdata.latex_framesperline = 1         # layout of plots
-    plotdata.latex_makepdf = False           # also run pdflatex?
-
     return plotdata
-
-
-
