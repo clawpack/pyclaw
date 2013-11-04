@@ -54,8 +54,34 @@ def setup(use_petsc=0,outdir='./_output',solver_type='classic'):
 
     return claw
 
+#--------------------------
+def setplot(plotdata):
+#--------------------------
+    """ 
+    Specify what is to be plotted at each frame.
+    Input:  plotdata, an instance of visclaw.data.ClawPlotData.
+    Output: a modified version of plotdata.
+    """ 
+    plotdata.clearfigures()  # clear any old figures,axes,items data
 
+    # Figure for q[0]
+    plotfigure = plotdata.new_plotfigure(name='q[0]', figno=0)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.xlimits = 'auto'
+    plotaxes.ylimits = [-0.1, 1.1]
+    plotaxes.title = 'q[0]'
+
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='1d')
+    plotitem.plot_var = 0
+    plotitem.plotstyle = '-o'
+    plotitem.color = 'b'
+    
+    return plotdata
+
+    
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(setup)
-
+    output = run_app_from_main(setup,setplot)

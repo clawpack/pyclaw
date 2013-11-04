@@ -70,4 +70,5 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(setup)
+    from clawpack.pyclaw.examples.euler_1d.woodward_colella_blast import setplot
+    output = run_app_from_main(setup,setplot)
