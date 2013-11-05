@@ -95,6 +95,8 @@ class Controller(object):
         self.savecode = False
         r"""(bool) - Save a copy of \*.f files in outdir"""
         
+        self.setplot = None
+
         # Solver information
         self.solution = None
         self.solver = None
@@ -199,6 +201,22 @@ class Controller(object):
         
  
     # ========== Plotting methods ============================================        
+    def plot(self):
+        """Plot from memory."""
+        from clawpack.visclaw import data
+        from clawpack.visclaw import frametools
+        from clawpack.visclaw import iplot
+        plotdata = data.ClawPlotData()
+        plotdata.setplot = self.setplot
+        plotdata._mode = 'iplotclaw'
+        plotdata = frametools.call_setplot(self.setplot,plotdata)
+
+        load_frame = lambda frame_number : self.frames[frame_number]
+        plot_frame = lambda frame : frametools.plot_frame(frame, plotdata)
+
+        ip = iplot.Iplot(load_frame,plot_frame)
+        ip.plotloop()
+
     # ========== Solver convenience methods ==================================
     def run(self):
         r"""

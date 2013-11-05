@@ -8,6 +8,7 @@ gamma1 = gamma - 1.
 x0=0.5; y0=0.; r0=0.2
 xshock = 0.2
 
+
 def ycirc(x,ymin,ymax):
     if ((x-x0)**2)<(r0**2):
         return max(min(y0 + np.sqrt(r0**2-(x-x0)**2),ymax) - ymin,0.)
@@ -222,10 +223,17 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic', outdi
     claw.solver = solver
     claw.num_output_times = 1
     claw.outdir = outdir
+    claw.setplot = setplot
 
     #return claw.frames[claw.num_output_times].state
     return claw
 
+def label_axes(current_data):
+    import matplotlib.pyplot as plt
+    plt.xlabel('z')
+    plt.ylabel('r')
+    #plt.draw()
+    
 #--------------------------
 def setplot(plotdata):
 #--------------------------
@@ -235,7 +243,6 @@ def setplot(plotdata):
     Output: a modified version of plotdata.
     """ 
     from clawpack.visclaw import colormaps
-    from matplotlib import cm
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
     
@@ -300,12 +307,6 @@ def setplot(plotdata):
     
     return plotdata
 
-def label_axes(current_data):
-    import matplotlib.pyplot as plt
-    plt.xlabel('z')
-    plt.ylabel('r')
-    #plt.draw()
-    
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
