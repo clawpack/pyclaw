@@ -67,7 +67,10 @@ class Solution(object):
     """
     def __getattr__(self, key):
         if key in ('t','num_eqn','mp','mF','q','p','F','aux','capa',
-                    'problem_data','num_aux'):
+                   'problem_data','num_aux',
+                   'num_dim', 'p_centers', 'p_edges', 'c_centers', 'c_edges',
+                   'num_cells', 'lower', 'upper', 'delta', 'centers', 'edges',
+                   'gauges', 'num_eqn', 'num_aux', 'grid', 'problem_data'):
             return self._get_base_state_attribute(key)
         else:
             raise AttributeError("'Solution' object has no attribute '"+key+"'")
