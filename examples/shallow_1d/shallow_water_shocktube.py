@@ -94,6 +94,7 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
+    claw.setplot = setplot
 
     return claw
 

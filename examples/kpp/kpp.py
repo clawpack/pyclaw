@@ -63,6 +63,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.num_output_times = 10
+    claw.setplot = setplot
+    claw.keep_copy = True
 
     return claw
 

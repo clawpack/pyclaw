@@ -201,20 +201,33 @@ class Controller(object):
         
  
     # ========== Plotting methods ============================================        
+    def load_frame(self,frame_number):
+        try: 
+            return self.frames[frame_number]
+        except IndexError:
+            print "Cannot plot frame %s; only %s frames available" % (frame_number, len(self.frames))
+
+    def plot_frame(self, frame):
+        if frame is not None:
+            frameno = self.frames.index(frame)
+            from clawpack.visclaw import frametools
+            frametools.plot_frame(frame, self.plotdata, frameno=frameno)
+
     def plot(self):
         """Plot from memory."""
+        if len(self.frames) == 0:  # No frames to plot
+            print "No frames to plot.  Did you forget to run, or to set keep_copy=True?"
+            return
+
         from clawpack.visclaw import data
         from clawpack.visclaw import frametools
         from clawpack.visclaw import iplot
         plotdata = data.ClawPlotData()
         plotdata.setplot = self.setplot
         plotdata._mode = 'iplotclaw'
-        plotdata = frametools.call_setplot(self.setplot,plotdata)
+        self.plotdata = frametools.call_setplot(self.setplot,plotdata)
 
-        load_frame = lambda frame_number : self.frames[frame_number]
-        plot_frame = lambda frame : frametools.plot_frame(frame, plotdata)
-
-        ip = iplot.Iplot(load_frame,plot_frame)
+        ip = iplot.Iplot(self.load_frame,self.plot_frame)
         ip.plotloop()
 
     # ========== Solver convenience methods ==================================

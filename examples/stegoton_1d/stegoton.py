@@ -162,6 +162,8 @@ def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./
     claw.tfinal = tfinal
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
+    claw.setplot = setplot
+    claw.keep_copy = True
 
     return claw
 

@@ -67,6 +67,7 @@ def setup(nx=100,kernel_language='Python', use_petsc=False,
         claw.output_format = None
 
     claw.tfinal =1.0
+    claw.setplot = setplot
 
     return claw
 

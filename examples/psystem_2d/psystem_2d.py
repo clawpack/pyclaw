@@ -224,6 +224,8 @@ def setup(kernel_language='Fortran',
     grid.add_gauges([[0.25,0.25],[17.85,1.25],[3.25,18.75],[11.75,11.75]])
     solver.compute_gauge_values = gauge_stress
     state.keep_gauges = True
+    claw.setplot = setplot
+    claw.keep_copy = True
 
     return claw
 
@@ -245,7 +247,7 @@ def setplot(plotdata):
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.title = 'Strain'
-    plotaxes.scaled = True      # so aspect ratio is 1
+    plotaxes.image = True
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')

@@ -79,6 +79,8 @@ def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_ty
 
     claw.tfinal = 0.12
 
+    claw.setplot = setplot
+
     return claw
 
 def qinit(state,width=0.2):

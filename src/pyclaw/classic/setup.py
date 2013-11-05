@@ -7,13 +7,13 @@ def configuration(parent_package='',top_path=None):
     config = Configuration('classic', parent_package, top_path)
 
     config.add_extension('classic1',
-                         ['limiter.f90','philim.f90','step1.f90'])
+                         ['limiter.f90','philim.f90','step1.f90'],f2py_options=['--quiet'])
 
     config.add_extension('classic2',
-                         ['limiter.f90','philim.f90','flux2.f90','step2ds.f90','step2.f90'])
+                         ['limiter.f90','philim.f90','flux2.f90','step2ds.f90','step2.f90'],f2py_options=['--quiet'])
 
     config.add_extension('classic3',
-                         ['limiter.f90','philim.f90','flux3.f90','step3ds.f90','step3.f90'])
+                         ['limiter.f90','philim.f90','flux3.f90','step3ds.f90','step3.f90'],f2py_options=['--quiet'])
 
     return config
 

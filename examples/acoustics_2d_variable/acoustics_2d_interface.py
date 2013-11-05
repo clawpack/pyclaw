@@ -85,6 +85,7 @@ def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_ty
     claw.outdir=outdir
     claw.num_output_times = 20
     claw.write_aux_init = True
+    claw.setplot = setplot
 
     # Solve
     claw.tfinal = 0.6

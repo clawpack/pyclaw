@@ -95,6 +95,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     claw.solver = solver
     claw.outdir = outdir
     claw.num_output_times = 10
+    claw.setplot = setplot
+    claw.keep_copy = True
 
     return claw
 

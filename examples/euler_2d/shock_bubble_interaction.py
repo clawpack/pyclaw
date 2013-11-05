@@ -126,7 +126,6 @@ def step_Euler_radial(solver,state,dt):
 
 
 def dq_Euler_radial(solver,state,dt):
-    
     """
     Geometric source terms for Euler equations with radial symmetry.
     Integrated using a 2-stage, 2nd-order Runge-Kutta method.
@@ -217,7 +216,6 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic', outdi
     claw.keep_copy = True
     if disable_output:
         claw.output_format = None
-    # The output format MUST be set to petsc!
     claw.tfinal = tfinal
     claw.solution = initial_solution
     claw.solver = solver
@@ -225,14 +223,8 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic', outdi
     claw.outdir = outdir
     claw.setplot = setplot
 
-    #return claw.frames[claw.num_output_times].state
     return claw
 
-def label_axes(current_data):
-    import matplotlib.pyplot as plt
-    plt.xlabel('z')
-    plt.ylabel('r')
-    #plt.draw()
     
 #--------------------------
 def setplot(plotdata):
@@ -251,27 +243,20 @@ def setplot(plotdata):
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
-    plotaxes.xlimits = 'auto'
-    plotaxes.ylimits = 'auto'
     plotaxes.title = 'Density'
     plotaxes.scaled = True      # so aspect ratio is 1
     plotaxes.afteraxes = label_axes
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_schlieren')
-    #plotitem.pcolor_cmin = 0.5
-    #plotitem.pcolor_cmax=3.5
     plotitem.plot_var = 0
     plotitem.add_colorbar = False
-    plotitem.show = True       # show on plot?
     
 
     plotfigure = plotdata.new_plotfigure(name='Tracer', figno=1)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
-    plotaxes.xlimits = 'auto'
-    plotaxes.ylimits = 'auto'
     plotaxes.title = 'Tracer'
     plotaxes.scaled = True      # so aspect ratio is 1
     plotaxes.afteraxes = label_axes
@@ -280,18 +265,15 @@ def setplot(plotdata):
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
     plotitem.pcolor_cmin = 0.
     plotitem.pcolor_cmax=1.0
-    plotitem.plot_var = 3
+    plotitem.plot_var = 4
     plotitem.pcolor_cmap = colormaps.yellow_red_blue
     plotitem.add_colorbar = False
-    plotitem.show = True       # show on plot?
     
 
     plotfigure = plotdata.new_plotfigure(name='Energy', figno=2)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
-    plotaxes.xlimits = 'auto'
-    plotaxes.ylimits = 'auto'
     plotaxes.title = 'Energy'
     plotaxes.scaled = True      # so aspect ratio is 1
     plotaxes.afteraxes = label_axes
@@ -303,10 +285,14 @@ def setplot(plotdata):
     plotitem.plot_var = 3
     plotitem.pcolor_cmap = colormaps.yellow_red_blue
     plotitem.add_colorbar = False
-    plotitem.show = True       # show on plot?
     
     return plotdata
 
+def label_axes(current_data):
+    import matplotlib.pyplot as plt
+    plt.xlabel('z')
+    plt.ylabel('r')
+    
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
