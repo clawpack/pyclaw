@@ -35,28 +35,23 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir
     else:
         from clawpack import pyclaw
 
-    if solver_type=='classic':
-        if kernel_language == 'Fortran':
-            solver = pyclaw.ClawSolver1D(riemann.acoustics_1D)
-        elif kernel_language=='Python': 
-            solver = pyclaw.ClawSolver1D(riemann.acoustics_1D_py.acoustics_1D)
-    elif solver_type=='sharpclaw':
-        if kernel_language == 'Fortran':
-            solver = pyclaw.SharpClawSolver1D(riemann.acoustics_1D)
-        elif kernel_language=='Python': 
-            solver = pyclaw.SharpClawSolver1D(riemann.acoustics_1D_py.acoustics_1D)
-        solver.weno_order=weno_order
-    else: raise Exception('Unrecognized value of solver_type.')
-
     #========================================================================
     # Instantiate the solver and define the system of equations to be solved
     #========================================================================
+    if kernel_language == 'Fortran':
+        riemann_solver = riemann.acoustics_1D
+    elif kernel_language=='Python': 
+        riemann_solver = riemann.acoustics_1D_py.acoustics_1D
+
+    if solver_type=='classic':
+        solver = pyclaw.ClawSolver1D(riemann_solver)
+        solver.limiters = pyclaw.limiters.tvd.MC
+    elif solver_type=='sharpclaw':
+        solver = pyclaw.SharpClawSolver1D(riemann_solver)
+        solver.weno_order=weno_order
+    else: raise Exception('Unrecognized value of solver_type.')
+
     solver.kernel_language=kernel_language
-
-    solver.limiters = pyclaw.limiters.tvd.MC
-
-    solver.bc_lower[0] = pyclaw.BC.periodic
-    solver.bc_upper[0] = pyclaw.BC.periodic
 
     #========================================================================
     # Instantiate the domain and set the boundary conditions
@@ -66,6 +61,9 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir
     num_eqn = 2
     state = pyclaw.State(domain,num_eqn)
 
+    solver.bc_lower[0] = pyclaw.BC.periodic
+    solver.bc_upper[0] = pyclaw.BC.periodic
+
     #========================================================================
     # Set problem-specific variables
     #========================================================================
@@ -74,8 +72,8 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir
 
     state.problem_data['rho']=rho
     state.problem_data['bulk']=bulk
-    state.problem_data['zz']=sqrt(rho*bulk)
-    state.problem_data['cc']=sqrt(bulk/rho)
+    state.problem_data['zz']=sqrt(rho*bulk) # Impedance
+    state.problem_data['cc']=sqrt(bulk/rho) # Sound speed
  
 
     #========================================================================
@@ -100,6 +98,7 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir
     if disable_output:
         claw.output_format = None
     claw.tfinal = 1.0
+    claw.setplot = setplot
 
     return claw
 
@@ -145,6 +144,11 @@ def setplot(plotdata):
     
     return plotdata
 
+def run_and_plot(**kwargs):
+    claw = setup(kwargs)
+    claw.run()
+    from clawpack.pyclaw import plot
+    plot.interactive_plot(setplot=setplot)
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main

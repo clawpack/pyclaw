@@ -64,11 +64,48 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     claw.solver = solver
     claw.num_output_times = 10
     claw.outdir = outdir
+    claw.setplot = setplot
 
     return claw
 
+#--------------------------
+def setplot(plotdata):
+#--------------------------
+    """ 
+    Specify what is to be plotted at each frame.
+    Input:  plotdata, an instance of visclaw.data.ClawPlotData.
+    Output: a modified version of plotdata.
+    """ 
+    plotdata.clearfigures()  # clear any old figures,axes,items data
+
+    # Figure for q[0]
+    plotfigure = plotdata.new_plotfigure(name='Density', figno=0)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.title = 'Density'
+
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='1d')
+    plotitem.plot_var = 0
+    plotitem.plotstyle = '-'
+    plotitem.color = 'b'
+    
+    # Figure for q[1]
+    plotfigure = plotdata.new_plotfigure(name='Energy', figno=1)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.title = 'Energy'
+
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='1d')
+    plotitem.plot_var = 2
+    plotitem.plotstyle = '-'
+    plotitem.color = 'b'
+    
+    return plotdata
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    from clawpack.pyclaw.examples.euler_1d.woodward_colella_blast import setplot
     output = run_app_from_main(setup,setplot)

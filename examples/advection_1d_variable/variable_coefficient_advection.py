@@ -94,6 +94,8 @@ def setup(use_petsc=False,solver_type='classic',kernel_language='Python',outdir=
     claw.solver = solver
 
     claw.tfinal = 1.0
+    claw.setplot = setplot
+    claw.keep_copy = True
     
     return claw
 

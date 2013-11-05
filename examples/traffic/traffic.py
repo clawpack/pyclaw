@@ -51,6 +51,8 @@ def setup(use_petsc=0,outdir='./_output',solver_type='classic'):
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
+    claw.setplot = setplot
+    claw.keep_copy = True
 
     return claw
 
@@ -69,7 +71,6 @@ def setplot(plotdata):
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
-    plotaxes.xlimits = 'auto'
     plotaxes.ylimits = [-0.1, 1.1]
     plotaxes.title = 'q[0]'
 
@@ -81,7 +82,7 @@ def setplot(plotdata):
     
     return plotdata
 
-    
+
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(setup,setplot)
