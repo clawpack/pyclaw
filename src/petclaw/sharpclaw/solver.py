@@ -21,7 +21,7 @@ class SharpClawSolver2D(pyclaw.SharpClawSolver2D):
     __doc__ += pyclaw.util.add_parent_doc(pyclaw.SharpClawSolver2D)
 
 
-class SharpClawSolver3D(pyclaw.SharpClawSolver2D):
+class SharpClawSolver3D(pyclaw.SharpClawSolver3D):
     """3D parallel SharpClaw solver. 
     """
 
