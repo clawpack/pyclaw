@@ -277,11 +277,10 @@ class Controller(object):
         frame = FrameCounter()
 
         frame.set_counter(self.start_frame)
-        if self.keep_copy:
-            self.frames = []
                     
-        self.solver.setup(self.solution)
-        self.solver.dt = self.solver.dt_initial
+        if not self.solver._is_set_up:
+            self.solver.setup(self.solution)
+            self.solver.dt = self.solver.dt_initial
             
         self.check_validity()
 
@@ -291,8 +290,7 @@ class Controller(object):
         # Output styles
         if self.output_style == 1:
             output_times = np.linspace(self.solution.t,
-                    self.tfinal,self.num_output_times+1
-                    -self.start_frame)
+                    self.tfinal,self.num_output_times+1)
         elif self.output_style == 2:
             output_times = self.out_times
         elif self.output_style == 3:
@@ -300,6 +298,12 @@ class Controller(object):
                                     -self.start_frame))
         else:
             raise Exception("Invalid output style %s" % self.output_style)  
+
+        if len(output_times) == 0:
+            print "No valid output times; halting."
+            if self.t == self.tfinal:
+                print "Simulation has already reached tfinal."
+            return None
          
         # Output and save initial frame
         if self.keep_copy:
@@ -362,8 +366,9 @@ class Controller(object):
             for gfile in self.solution.state.grid.gauge_files: 
                 gfile.flush()
             
-        self.solver.teardown()
         for gfile in self.solution.state.grid.gauge_files: gfile.close()
+
+        self.solution._start_frame = len(self.frames)
 
         # Return the current status of the solver
         return status

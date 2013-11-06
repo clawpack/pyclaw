@@ -183,7 +183,22 @@ class SharpClawSolver(Solver):
 
         self._allocate_bc_arrays(state)
 
-        self._is_set_up = True
+        super(SharpClawSolver,self).setup(solution)
+
+
+    def __del__(self):
+        r"""
+        Deallocate F90 module arrays.
+        Also delete Fortran objects, which otherwise tend to persist in Python sessions.
+        """
+        if self.kernel_language=='Fortran':
+            self.fmod.clawparams.dealloc_clawparams()
+            self.fmod.workspace.dealloc_workspace(self.char_decomp)
+            self.fmod.reconstruct.dealloc_recon_workspace(self.fmod.clawparams.lim_type,self.fmod.clawparams.char_decomp)
+            del self.fmod
+
+        super(SharpClawSolver,self).__del__()
+
 
     # ========== Time stepping routines ======================================
     def step(self,solution):
@@ -397,18 +412,6 @@ class SharpClawSolver1D(SharpClawSolver):
         super(SharpClawSolver1D,self).__init__(riemann_solver,claw_package)
 
 
-    def teardown(self):
-        r"""
-        Deallocate F90 module arrays.
-        Also delete Fortran objects, which otherwise tend to persist in Python sessions.
-        """
-        if self.kernel_language=='Fortran':
-            self.fmod.clawparams.dealloc_clawparams()
-            self.fmod.workspace.dealloc_workspace(self.char_decomp)
-            self.fmod.reconstruct.dealloc_recon_workspace(self.fmod.clawparams.lim_type,self.fmod.clawparams.char_decomp)
-            del self.fmod
-
-
     def dq_hyperbolic(self,state):
         r"""
         Compute dq/dt * (delta t) for the hyperbolic hyperbolic system.
@@ -541,18 +544,6 @@ class SharpClawSolver2D(SharpClawSolver):
         self.num_dim = 2
 
         super(SharpClawSolver2D,self).__init__(riemann_solver,claw_package)
-
-
-    def teardown(self):
-        r"""
-        Deallocate F90 module arrays.
-        Also delete Fortran objects, which otherwise tend to persist in Python sessions.
-        """
-        if self.kernel_language=='Fortran':
-            self.fmod.workspace.dealloc_workspace(self.char_decomp)
-            self.fmod.reconstruct.dealloc_recon_workspace(self.fmod.clawparams.lim_type,self.fmod.clawparams.char_decomp)
-            self.fmod.clawparams.dealloc_clawparams()
-            del self.fmod
 
 
     def dq_hyperbolic(self,state):

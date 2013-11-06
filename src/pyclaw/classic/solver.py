@@ -223,7 +223,7 @@ class ClawSolver(Solver):
 
         self._allocate_bc_arrays(solution.states[0])
 
-        self._is_set_up = True
+        super(ClawSolver,self).setup(solution)
 
 
     def _set_fortran_parameters(self,solution):
@@ -240,13 +240,14 @@ class ClawSolver(Solver):
         solution.state.set_cparam(self.fmod)
         solution.state.set_cparam(self.rp)
 
-    def teardown(self):
+    def __del__(self):
         r"""
         Delete Fortran objects, which otherwise tend to persist in Python sessions.
         """
         if(self.kernel_language == 'Fortran'):
             del self.fmod
 
+        super(ClawSolver,self).__del__()
 
 
 # ============================================================================

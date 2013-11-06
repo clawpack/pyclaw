@@ -259,9 +259,9 @@ class Solver(object):
         requires knowledge of the solution object.
         """
 
-        pass
+        self._is_set_up = True
 
-    def teardown(self):
+    def __del__(self):
         r"""
         Stub for solver teardown routines.
         
@@ -269,7 +269,8 @@ class Solver(object):
         A subclass should override it only if it needs to 
         perform some cleanup, such as deallocating arrays in a Fortran module.
         """
-        pass
+        self._is_set_up = False
+
 
 
     def __str__(self):
