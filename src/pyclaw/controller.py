@@ -36,6 +36,26 @@ class Controller(object):
         >>> claw.solver = pyclaw.ClawSolver1D()
     """
 
+    def __getattr__(self, key):
+        if key in ('t','num_eqn','mp','mF','q','p','F','aux','capa',
+                   'problem_data','num_aux',
+                   'num_dim', 'p_centers', 'p_edges', 'c_centers', 'c_edges',
+                   'num_cells', 'lower', 'upper', 'delta', 'centers', 'edges',
+                   'gauges', 'num_eqn', 'num_aux', 'grid', 'problem_data'):
+            return self._get_solution_attribute(key)
+        else:
+            raise AttributeError("'Controller' object has no attribute '"+key+"'")
+
+    def _get_solution_attribute(self, name):
+        r"""
+        Return solution attribute
+        
+        :Output:
+         - (id) - Value of attribute from ``solution``
+        """
+        return getattr(self.solution,name)
+ 
+
     #  ======================================================================
     #   Property Definitions
     #  ======================================================================

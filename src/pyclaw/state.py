@@ -47,6 +47,24 @@ class State(object):
     can be set using the dictionary state.problem_data.
     """
 
+    def __getattr__(self, key):
+        if key in ('num_dim', 'p_centers', 'p_edges', 'c_centers', 'c_edges',
+                   'num_cells', 'lower', 'upper', 'delta', 'centers', 'edges',
+                   'gauges'):
+            return self._get_grid_attribute(key)
+        else:
+            raise AttributeError("'State' object has no attribute '"+key+"'")
+
+    def _get_grid_attribute(self, name):
+        r"""
+        Return grid attribute
+        
+        :Output:
+         - (id) - Value of attribute from ``grid``
+        """
+        return getattr(self.grid,name)
+ 
+
     # ========== Property Definitions ========================================
     @property
     def num_eqn(self):
