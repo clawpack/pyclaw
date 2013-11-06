@@ -61,6 +61,8 @@ def b4step(solver,state):
     if state.t>5*state.problem_data['tw1'] and solver.bc_lower[0]==0:
         solver.bc_lower[0]=2
         solver.bc_upper[0]=2
+        solver.aux_bc_lower[0]=2
+        solver.aux_bc_upper[0]=2
 
 
 def zero_bc(state,dim,t,qbc,num_ghost):
@@ -83,14 +85,6 @@ def moving_wall_bc(state,dim,t,qbc,num_ghost):
 
 
 def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./_output'):
-    """
-    Stegoton problem.
-    Nonlinear elasticity in periodic medium.
-    See LeVeque & Yong (2003).
-
-    $$\\epsilon_t - u_x = 0$$
-    $$\\rho(x) u_t - \\sigma(\\epsilon,x)_x = 0$$
-    """
     from clawpack import riemann
 
     if use_petsc:
@@ -111,15 +105,15 @@ def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./
 
     solver.kernel_language = kernel_language
 
-    solver.bc_lower[0] = pyclaw.BC.periodic
-    solver.bc_upper[0] = pyclaw.BC.periodic
+    solver.bc_lower[0] = pyclaw.BC.custom
+    solver.bc_upper[0] = pyclaw.BC.extrap
 
     #Use the same BCs for the aux array
-    solver.aux_bc_lower = solver.bc_lower
-    solver.aux_bc_upper = solver.bc_upper
+    solver.aux_bc_lower[0] = pyclaw.BC.extrap
+    solver.aux_bc_upper[0] = pyclaw.BC.extrap
 
-    xlower=0.0; xupper=600.0
-    cellsperlayer=6; mx=int(round(xupper-xlower))*cellsperlayer
+    xlower=0.0; xupper=300.0
+    cells_per_layer=12; mx=int(round(xupper-xlower))*cells_per_layer
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     domain = pyclaw.Domain(x)
     state = pyclaw.State(domain,solver.num_eqn)
@@ -133,21 +127,21 @@ def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./
     state.problem_data = {}
     state.problem_data['t1']    = 10.0
     state.problem_data['tw1']   = 10.0
-    state.problem_data['a1']    = 0.0
+    state.problem_data['a1']    = 0.4
     state.problem_data['alpha'] = alpha
     state.problem_data['KA'] = KA
     state.problem_data['KB'] = KB
     state.problem_data['rhoA'] = rhoA
     state.problem_data['rhoB'] = rhoB
-    state.problem_data['trtime'] = 250.0
+    state.problem_data['trtime'] = 999999999.0
     state.problem_data['trdone'] = False
 
     #Initialize q and aux
     xc=state.grid.x.centers
     state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,xlower=xlower,xupper=xupper)
-    qinit(state,ic=2,a2=1.0,xupper=xupper)
+    qinit(state,ic=1,a2=1.0,xupper=xupper)
 
-    tfinal=500.; num_output_times = 10;
+    tfinal=500.; num_output_times = 20;
 
     solver.max_steps = 5000000
     solver.fwave = True 
@@ -156,7 +150,6 @@ def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./
     solver.user_bc_upper=zero_bc
 
     claw = pyclaw.Controller()
-    claw.keep_copy = False
     claw.output_style = 1
     claw.num_output_times = num_output_times
     claw.tfinal = tfinal
@@ -184,14 +177,12 @@ def setplot(plotdata):
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.title = 'Stress'
+    plotaxes.ylimits = [-0.1,1.0]
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
     plotitem.plot_var = stress
-    plotitem.plotstyle = '-'
-    plotitem.color = 'b'
-    plotitem.show = True       # show on plot?
-    plotitem.kwargs = {'linewidth':2,'markersize':5}
+    plotitem.kwargs = {'linewidth':2}
     
     # Figure for q[1]
     plotfigure = plotdata.new_plotfigure(name='Velocity', figno=2)
@@ -199,16 +190,13 @@ def setplot(plotdata):
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.xlimits = 'auto'
-    plotaxes.ylimits = [-.5,1.1]
+    plotaxes.ylimits = [-.5,0.1]
     plotaxes.title = 'Velocity'
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='1d_plot')
     plotitem.plot_var = velocity
-    plotitem.plotstyle = '-'
-    plotitem.color = 'b'
-    plotitem.show = True       # show on plot?
-    plotitem.kwargs = {'linewidth':3,'markersize':5}
+    plotitem.kwargs = {'linewidth':2}
     
     return plotdata
 

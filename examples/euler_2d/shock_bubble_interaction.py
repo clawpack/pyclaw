@@ -154,7 +154,9 @@ def dq_Euler_radial(solver,state,dt):
 
     return dq
 
-def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic', outdir='_output', disable_output=False):
+def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',
+          outdir='_output', disable_output=False, mx=320, my=80, tfinal=0.6,
+          num_output_times = 10):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a bubble of dense gas that is impacted by a shock.
@@ -181,21 +183,17 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic', outdi
         solver.step_source=step_Euler_radial
 
     # Initialize domain
-    mx=160; my=40
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
     domain = pyclaw.Domain([x,y])
+
     num_aux=1
     state = pyclaw.State(domain,solver.num_eqn,num_aux)
-
     state.problem_data['gamma']= gamma
     state.problem_data['gamma1']= gamma1
 
-    tfinal = 0.2
-
     qinit(state)
     auxinit(state)
-    initial_solution = pyclaw.Solution(state,domain)
 
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
@@ -213,13 +211,14 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic', outdi
     solver.aux_bc_upper[1]=pyclaw.BC.extrap
 
     claw = pyclaw.Controller()
+    claw.solution = pyclaw.Solution(state,domain)
+    claw.solver = solver
+
     claw.keep_copy = True
     if disable_output:
         claw.output_format = None
     claw.tfinal = tfinal
-    claw.solution = initial_solution
-    claw.solver = solver
-    claw.num_output_times = 1
+    claw.num_output_times = num_output_times
     claw.outdir = outdir
     claw.setplot = setplot
 
@@ -238,30 +237,27 @@ def setplot(plotdata):
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
     
-    # Figure for pressure
+    # Pressure plot
     plotfigure = plotdata.new_plotfigure(name='Density', figno=0)
 
-    # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.title = 'Density'
     plotaxes.scaled = True      # so aspect ratio is 1
     plotaxes.afteraxes = label_axes
 
-    # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_schlieren')
     plotitem.plot_var = 0
     plotitem.add_colorbar = False
     
 
+    # Tracer plot
     plotfigure = plotdata.new_plotfigure(name='Tracer', figno=1)
 
-    # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.title = 'Tracer'
     plotaxes.scaled = True      # so aspect ratio is 1
     plotaxes.afteraxes = label_axes
 
-    # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
     plotitem.pcolor_cmin = 0.
     plotitem.pcolor_cmax=1.0
@@ -270,15 +266,14 @@ def setplot(plotdata):
     plotitem.add_colorbar = False
     
 
+    # Energy plot
     plotfigure = plotdata.new_plotfigure(name='Energy', figno=2)
 
-    # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.title = 'Energy'
     plotaxes.scaled = True      # so aspect ratio is 1
     plotaxes.afteraxes = label_axes
 
-    # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
     plotitem.pcolor_cmin = 2.
     plotitem.pcolor_cmax=18.0
