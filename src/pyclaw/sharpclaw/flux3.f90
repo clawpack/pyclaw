@@ -1,5 +1,5 @@
 ! ==========================================================
-subroutine flux3(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,mz,rpn3)
+subroutine flux3(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn3)
 ! ==========================================================
 
     ! Evaluate (delta t) *dq/dt
@@ -14,26 +14,28 @@ subroutine flux3(q,dq,q1d,dq1d,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,m
     use ClawParams
     implicit none
 
-    integer :: num_aux,num_eqn,num_ghost,maxnx,mx,my,mz
-    double precision, target, intent(in) :: q(num_eqn, 1-num_ghost:mx+num_ghost, 1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
-    double precision, intent(inout) :: dq(num_eqn, 1-num_ghost:mx+num_ghost, 1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
-    double precision, target, intent(in) :: aux(num_aux,1-num_ghost:mx+num_ghost,1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
-    double precision :: q1d(num_eqn,1-num_ghost:maxnx+num_ghost), dq1d(num_eqn,1-num_ghost:maxnx+num_ghost)
+    external :: rpn3
+    integer, intent(in) :: num_aux,num_eqn,num_ghost,maxnx,mx,my,mz
     double precision, intent(in) :: dt,t
+    double precision, target, intent(in) :: q(num_eqn, 1-num_ghost:mx+num_ghost, 1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
+    double precision, target, intent(in) :: aux(num_aux,1-num_ghost:mx+num_ghost,1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
+    double precision, intent(inout) :: dq(num_eqn, 1-num_ghost:mx+num_ghost, 1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
     double precision, intent(out) :: cfl
+
+    !f2py intent(in,out) dq  
+    !f2py intent(out) cfl  
+    !f2py optional dq
+
+    ! Dummy interface just so f2py doesn't complain:
+    !f2py real(DP) x
+    !f2py x=rpn3(x)
+    
+    !local variables
     integer :: i,j,k,m
     double precision :: cfl1d
     double precision, pointer :: aux1d(:,:),q1dp(:,:)
-    external :: rpn3
+    double precision :: dq1d(num_eqn,1-num_ghost:maxnx+num_ghost)
     
-!f2py intent(in,out) dq  
-!f2py intent(out) cfl  
-!f2py optional dq, q1d, dq1d
-
-! Dummy interface just so f2py doesn't complain:
-!f2py real(DP) x
-!f2py x=rpn3(x)
-
     cfl = 0.d0
 
     ! perform x-sweeps

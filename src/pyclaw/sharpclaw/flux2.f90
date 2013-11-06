@@ -7,7 +7,7 @@ subroutine flux2(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn2)
 ! ==========================================================
 
     use ClawParams
-
+    use workspace
     implicit none
     
     ! Input (dummy) variables
@@ -19,13 +19,13 @@ subroutine flux2(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn2)
     double precision, intent(inout) :: dq(num_eqn, 1-num_ghost:mx+num_ghost, 1-num_ghost:my+num_ghost)
     double precision, intent(out) :: cfl
 
-!f2py intent(in,out) dq  
-!f2py intent(out) cfl  
-!f2py optional dq
+    !f2py intent(in,out) dq  
+    !f2py intent(out) cfl  
+    !f2py optional dq
 
-! Dummy interface just so f2py doesn't complain:
-!f2py real(DP) x
-!f2py x=rpn2(x)
+    ! Dummy interface just so f2py doesn't complain:
+    !f2py real(DP) x
+    !f2py x=rpn2(x)
 
     ! Local variables
     integer :: i,j,m
