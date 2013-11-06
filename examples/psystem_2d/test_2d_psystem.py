@@ -55,7 +55,8 @@ def test_2d_psystem():
                                  kernel_languages=('Fortran',), 
                                  solver_type='classic', 
                                  disable_output=True,
-                                 outdir=tempdir)
+                                 outdir=tempdir, cells_per_layer=10,
+                                 tfinal=40)
     from itertools import chain
 
     try:

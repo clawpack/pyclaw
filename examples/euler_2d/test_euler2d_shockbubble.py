@@ -28,5 +28,7 @@ def test_2d_euler_shockbubble():
     
     from clawpack.pyclaw.util import gen_variants
     for test in gen_variants(shock_bubble_interaction.setup, verify_classic_shockbubble, 
-                             kernel_languages=('Fortran',), solver_type='classic', disable_output=True):
+                             kernel_languages=('Fortran',),
+                             solver_type='classic', disable_output=True,
+                             mx=160, my=40, tfinal=0.2, num_output_times=1):
         yield test

@@ -124,7 +124,7 @@ def gauge_stress(q,aux):
 
 def setup(kernel_language='Fortran',
               use_petsc=False,outdir='./_output',solver_type='classic',
-              disable_output=False):
+              disable_output=False, cells_per_layer=30, tfinal=18.):
 
     """
     Solve the p-system in 2D with variable coefficients
@@ -145,8 +145,8 @@ def setup(kernel_language='Fortran',
     x_lower=0.25; x_upper=20.25
     y_lower=0.25; y_upper=20.25
     # cells per layer
-    Ng=10
-    mx=(x_upper-x_lower)*Ng; my=(y_upper-y_lower)*Ng
+    mx=(x_upper-x_lower)*cells_per_layer; 
+    my=(y_upper-y_lower)*cells_per_layer
     # Initial condition parameters
     initial_amplitude=10.
     x0=0.25 # Center of initial perturbation
@@ -181,7 +181,7 @@ def setup(kernel_language='Fortran',
 
     #controller
     claw = pyclaw.Controller()
-    claw.tfinal = 40.0
+    claw.tfinal = tfinal
     claw.solver = solver
     claw.outdir = outdir
     
@@ -247,7 +247,9 @@ def setplot(plotdata):
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.title = 'Strain'
-    plotaxes.image = True
+    plotaxes.xlimits = [0.,20.]
+    plotaxes.ylimits = [0.,20.]
+    plotaxes.scaled = True
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
