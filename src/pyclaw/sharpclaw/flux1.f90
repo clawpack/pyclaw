@@ -54,6 +54,8 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
 
 ! ===================================================================
 
+    dq1d(:,:) = 0.d0
+
     if (index_capa.gt.0) then
         dtdx = dt / (dx(ixyz)*aux(index_capa,:))
     else

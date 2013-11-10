@@ -11,7 +11,6 @@ subroutine flux3(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,mz,rpn3
     ! See the flux1 documentation for more information.
 
     use ClawParams
-    use workspace
     implicit none
 
     external :: rpn3
