@@ -38,9 +38,9 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
     ! Input (dummy) variables
     external :: rp
     integer, intent(in) :: num_aux, num_eqn, num_ghost, maxnx, mx, ixyz
-    double precision, intent(in) ::   q1d(num_eqn,1-num_ghost:mx+num_ghost)
-    double precision, intent(out) :: dq1d(num_eqn,1-num_ghost:maxnx+num_ghost)
-    double precision, target, intent(in) ::   aux(num_aux,1-num_ghost:mx+num_ghost)
+    double precision, intent(in) :: q1d(num_eqn,1-num_ghost:mx+num_ghost)
+    double precision, intent(inout) :: dq1d(num_eqn,1-num_ghost:maxnx+num_ghost)
+    double precision, target, intent(in) :: aux(num_aux,1-num_ghost:mx+num_ghost)
     double precision, intent(out) :: cfl
     double precision, intent(in) :: t, dt
 
