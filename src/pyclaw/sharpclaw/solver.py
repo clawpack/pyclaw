@@ -146,7 +146,7 @@ class SharpClawSolver(Solver):
         self.call_before_step_each_stage = False
         self._mthlim = self.limiters
         self._method = None
-        self._rk_stages = None
+        self._registers = None
 
         self.a = None
         self.b = None
@@ -168,7 +168,7 @@ class SharpClawSolver(Solver):
         state.set_num_ghost(self.num_ghost)
         # End hack
 
-        self._allocate_rk_stages(solution)
+        self._allocate_registers(solution)
         self._set_mthlim()
 
         state = solution.states[0]
@@ -222,24 +222,24 @@ class SharpClawSolver(Solver):
 
             elif self.time_integrator=='SSP33':
                 deltaq=self.dq(state)
-                self._rk_stages[0].q=state.q+deltaq
-                self._rk_stages[0].t =state.t+self.dt
+                self._registers[0].q=state.q+deltaq
+                self._registers[0].t =state.t+self.dt
 
                 if self.call_before_step_each_stage:
-                    self.before_step(self,self._rk_stages[0])
-                deltaq=self.dq(self._rk_stages[0])
-                self._rk_stages[0].q= 0.75*state.q + 0.25*(self._rk_stages[0].q+deltaq)
-                self._rk_stages[0].t = state.t+0.5*self.dt
+                    self.before_step(self,self._registers[0])
+                deltaq=self.dq(self._registers[0])
+                self._registers[0].q= 0.75*state.q + 0.25*(self._registers[0].q+deltaq)
+                self._registers[0].t = state.t+0.5*self.dt
 
                 if self.call_before_step_each_stage:
-                    self.before_step(self,self._rk_stages[0])
-                deltaq=self.dq(self._rk_stages[0])
-                state.q = 1./3.*state.q + 2./3.*(self._rk_stages[0].q+deltaq)
+                    self.before_step(self,self._registers[0])
+                deltaq=self.dq(self._registers[0])
+                state.q = 1./3.*state.q + 2./3.*(self._registers[0].q+deltaq)
 
 
             elif self.time_integrator=='SSP104':
-                s1=self._rk_stages[0]
-                s2=self._rk_stages[1]
+                s1=self._registers[0]
+                s2=self._registers[1]
                 s1.q = state.q.copy()
 
                 deltaq=self.dq(state)
@@ -271,17 +271,17 @@ class SharpClawSolver(Solver):
                 
             elif self.time_integrator=='RK':
                 # General RK with specified coefficients
-                # self._rk_stages[i].q actually stores f(y_i)
+                # self._registers[i].q actually stores f(y_i)
                 num_stages = len(self.b)
                 for i in range(num_stages):
-                    self._rk_stages[i].q = state.q.copy()
+                    self._registers[i].q = state.q.copy()
                     for j in range(i):
-                        self._rk_stages[i].q += self.a[i,j]*self._rk_stages[j].q
-                    self._rk_stages[i].t = state.t + self.dt * self.c[i]
-                    self._rk_stages[i].q = self.dq(self._rk_stages[i])
+                        self._registers[i].q += self.a[i,j]*self._registers[j].q
+                    self._registers[i].t = state.t + self.dt * self.c[i]
+                    self._registers[i].q = self.dq(self._registers[i])
 
                 for j in range(num_stages):
-                    state.q += self.b[j]*self._rk_stages[j].q
+                    state.q += self.b[j]*self._registers[j].q
             else:
                 raise Exception('Unrecognized time integrator')
         except CFLError:
@@ -360,7 +360,7 @@ class SharpClawSolver(Solver):
         reconstruct.alloc_recon_workspace(maxnx,self.num_ghost,state.num_eqn,self.num_waves,
                                             clawparams.lim_type,clawparams.char_decomp)
 
-    def _allocate_rk_stages(self,solution):
+    def _allocate_registers(self,solution):
         r"""
         Instantiate State objects for Runge--Kutta stages.
 
@@ -379,15 +379,15 @@ class SharpClawSolver(Solver):
         state = solution.states[0]
         # use the same class constructor as the solution for the Runge Kutta stages
         State = type(state)
-        self._rk_stages = []
+        self._registers = []
         for i in xrange(nregisters-1):
             #Maybe should use State.copy() here?
-            self._rk_stages.append(State(state.patch,state.num_eqn,state.num_aux))
-            self._rk_stages[-1].problem_data       = state.problem_data
-            self._rk_stages[-1].set_num_ghost(self.num_ghost)
-            self._rk_stages[-1].t                = state.t
+            self._registers.append(State(state.patch,state.num_eqn,state.num_aux))
+            self._registers[-1].problem_data       = state.problem_data
+            self._registers[-1].set_num_ghost(self.num_ghost)
+            self._registers[-1].t                = state.t
             if state.num_aux > 0:
-                self._rk_stages[-1].aux              = state.aux
+                self._registers[-1].aux              = state.aux
 
 
 
