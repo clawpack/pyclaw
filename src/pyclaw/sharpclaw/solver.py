@@ -133,14 +133,14 @@ class SharpClawSolver(Solver):
         self.before_step = before_step
         self.lim_type = 2
         self.weno_order = 5
-        self.time_integrator = 'SSP104'
+        self.time_integrator = 'LMM'
         self.char_decomp = 0
         self.tfluct_solver = False
         self.aux_time_dep = False
         self.kernel_language = 'Fortran'
         self.num_ghost = 3
         self.fwave = False
-        self.cfl_desired = 2.45
+        self.cfl_desired = 2.45/12.
         self.cfl_max = 2.5
         self.dq_src = None
         self.call_before_step_each_stage = False
@@ -148,17 +148,22 @@ class SharpClawSolver(Solver):
         self._method = None
         self._registers = None
 
+        # Used only if time integrator is 'RK'
         self.a = None
         self.b = None
         self.c = None
-        
+
+        # Used only if time integrator is a multistep method
+        self.step_index = 0
+        self.alpha = [11./27.,0.,0.,16./27.]
+        self.beta = [12./27.,0.,0.,16./9.]    
 
         # Call general initialization function
         super(SharpClawSolver,self).__init__(riemann_solver,claw_package)
         
     def setup(self,solution):
         """
-        Allocate RK stage arrays and fortran routine work arrays.
+        Allocate RK stage arrays or previous step solutions and fortran routine work arrays.
         """
         self.num_ghost = (self.weno_order+1)/2
 
@@ -205,11 +210,12 @@ class SharpClawSolver(Solver):
         """Evolve q over one time step.
 
         Take on Runge-Kutta time step using the method specified by
-        self..time_integrator.  Currently implemented methods:
+        self.time_integrator.  Currently implemented methods:
 
         'Euler'  : 1st-order Forward Euler integration
         'SSP33'  : 3rd-order strong stability preserving method of Shu & Osher
         'SSP104' : 4th-order strong stability preserving method Ketcheson
+        'SSPMS32': 2nd-order strong stability preserving 3-step linear multistep method
         """
         state = solution.states[0]
 
@@ -282,6 +288,47 @@ class SharpClawSolver(Solver):
 
                 for j in range(num_stages):
                     state.q += self.b[j]*self._registers[j].q
+
+            elif self.time_integrator == 'SSPMS32':
+                if self._registers[2].t == 0.:
+                    # Using Euler method for previous step values
+                    deltaq = self.dq(state)
+                    state.q += deltaq
+                    self._registers[self.step_index].q = state.q.copy()
+                    self._registers[self.step_index].t = state.t
+                    self.step_index += 1
+                else:
+                    deltaq = self.dq(self._registers[2])
+                    state.q = 0.75*(self._registers[2].q + 2.*deltaq) + 0.25*self._registers[0].q
+                    self._registers[0].q = self._registers[1].q.copy()
+                    self._registers[1].q = self._registers[2].q.copy()
+                    self._registers[2].q = state.q.copy()
+                    
+            elif self.time_integrator == 'LMM':
+                num_steps = len(self.alpha)
+                if self._registers[num_steps-1].t == 0.:
+                    # Using Euler method for previous step values
+                    deltaq = self.dq(state)
+                    state.q += deltaq
+                    self._registers[self.step_index].q = state.q.copy()
+                    self._registers[self.step_index].t = state.t
+                    self.step_index += 1
+                else:
+                    # Here we assume that alpha[-1] and beta[-1] correspond 
+                    # to solution at the previous step
+                    state.q = self.alpha[0]*self._registers[0].q
+                    if self.beta[0] > 1.e-15:
+                        deltaq = self.dq(self._registers[0])
+                        state.q += self.beta[0]*deltaq
+                    for i in range(1,num_steps):
+                        if self.alpha[i] > 1.e-15:
+                            state.q +=self. alpha[i]*self._registers[i].q
+                        if self.beta[i] > 1.e-15:
+                            deltaq = self.dq(self._registers[i])
+                            state.q += self.beta[i]*deltaq
+                        self._registers[i-1].q = self._registers[i].q.copy()
+                    self._registers[-1].q = state.q.copy()
+
             else:
                 raise Exception('Unrecognized time integrator')
         except CFLError:
@@ -373,9 +420,16 @@ class SharpClawSolver(Solver):
         if self.time_integrator   == 'Euler':  nregisters=1
         elif self.time_integrator == 'SSP33':  nregisters=2
         elif self.time_integrator == 'SSP104': nregisters=3
-        elif self.time_integrator == 'RK': 
-            nregisters=len(self.b)+2
- 
+        elif self.time_integrator == 'RK': nregisters=len(self.b)+2
+        elif self.time_integrator == 'SSPMS32':
+            nregisters=4
+            self.dt_initial = 0.001
+            self.dt_variable = False
+        elif self.time_integrator == 'LMM':
+            nregisters=len(self.alpha)+1
+            self.dt_initial = 0.001
+            self.dt_variable = False
+        
         state = solution.states[0]
         # use the same class constructor as the solution for the Runge Kutta stages
         State = type(state)
