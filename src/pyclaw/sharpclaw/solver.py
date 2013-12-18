@@ -133,14 +133,14 @@ class SharpClawSolver(Solver):
         self.before_step = before_step
         self.lim_type = 2
         self.weno_order = 5
-        self.time_integrator = 'LMM'
+        self.time_integrator = 'SSP104'
         self.char_decomp = 0
         self.tfluct_solver = False
         self.aux_time_dep = False
         self.kernel_language = 'Fortran'
         self.num_ghost = 3
         self.fwave = False
-        self.cfl_desired = 2.45/12.
+        self.cfl_desired = 2.45
         self.cfl_max = 2.5
         self.dq_src = None
         self.call_before_step_each_stage = False
@@ -155,8 +155,8 @@ class SharpClawSolver(Solver):
 
         # Used only if time integrator is a multistep method
         self.step_index = 0
-        self.alpha = [11./27.,0.,0.,16./27.]
-        self.beta = [12./27.,0.,0.,16./9.]    
+        self.alpha = None
+        self.beta = None    
 
         # Call general initialization function
         super(SharpClawSolver,self).__init__(riemann_solver,claw_package)
@@ -209,7 +209,7 @@ class SharpClawSolver(Solver):
     def step(self,solution):
         """Evolve q over one time step.
 
-        Take on Runge-Kutta time step using the method specified by
+        Take on Runge-Kutta time step or multistep method using the method specified by
         self.time_integrator.  Currently implemented methods:
 
         'Euler'  : 1st-order Forward Euler integration
@@ -274,10 +274,11 @@ class SharpClawSolver(Solver):
                     self.before_step(self,s1)
                 deltaq = self.dq(s1)
                 state.q = s2.q + 0.6 * s1.q + 0.1 * deltaq
-                
+
+
             elif self.time_integrator=='RK':
                 # General RK with specified coefficients
-                # self._registers[i].q actually stores f(y_i)
+                # self._registers[i].q actually stores dt*f(y_i)
                 num_stages = len(self.b)
                 for i in range(num_stages):
                     self._registers[i].q = state.q.copy()
@@ -289,8 +290,9 @@ class SharpClawSolver(Solver):
                 for j in range(num_stages):
                     state.q += self.b[j]*self._registers[j].q
 
+
             elif self.time_integrator == 'SSPMS32':
-                if self._registers[2].t == 0.:
+                if self.step_index < 3:
                     # Using Euler method for previous step values
                     deltaq = self.dq(state)
                     state.q += deltaq
@@ -303,31 +305,32 @@ class SharpClawSolver(Solver):
                     self._registers[0].q = self._registers[1].q.copy()
                     self._registers[1].q = self._registers[2].q.copy()
                     self._registers[2].q = state.q.copy()
-                    
+
+
             elif self.time_integrator == 'LMM':
                 num_steps = len(self.alpha)
-                if self._registers[num_steps-1].t == 0.:
+                if self.step_index < num_steps:
                     # Using Euler method for previous step values
                     deltaq = self.dq(state)
                     state.q += deltaq
                     self._registers[self.step_index].q = state.q.copy()
+                    self._registers[self.step_index].dq = deltaq
                     self._registers[self.step_index].t = state.t
                     self.step_index += 1
                 else:
-                    # Here we assume that alpha[-1] and beta[-1] correspond 
-                    # to solution at the previous step
-                    state.q = self.alpha[0]*self._registers[0].q
-                    if self.beta[0] > 1.e-15:
-                        deltaq = self.dq(self._registers[0])
-                        state.q += self.beta[0]*deltaq
-                    for i in range(1,num_steps):
-                        if self.alpha[i] > 1.e-15:
-                            state.q +=self. alpha[i]*self._registers[i].q
-                        if self.beta[i] > 1.e-15:
-                            deltaq = self.dq(self._registers[i])
-                            state.q += self.beta[i]*deltaq
-                        self._registers[i-1].q = self._registers[i].q.copy()
+                    # Store current solution and function evaluation
+                    deltaq = self.dq(state)
                     self._registers[-1].q = state.q.copy()
+                    self._registers[-1].dq = deltaq
+                    
+                    # Update solution: alpha[-1] and beta[-1] correspond to solution 
+                    # at the previous step
+                    state.q = self.alpha[-1]*state.q + self.beta[-1]*deltaq
+                    for i in range(num_steps-1):
+                        state.q += self.alpha[i]*self._registers[i].q + self.beta[i]*self._registers[i].dq 
+                        self._registers[i].q = self._registers[i+1].q.copy()
+                        self._registers[i].dq = self._registers[i+1].dq.copy()
+
 
             else:
                 raise Exception('Unrecognized time integrator')
@@ -409,11 +412,12 @@ class SharpClawSolver(Solver):
 
     def _allocate_registers(self,solution):
         r"""
-        Instantiate State objects for Runge--Kutta stages.
+        Instantiate State objects for Runge--Kutta stages and Linear Multistep method steps.
 
         This routine is only used by method-of-lines solvers (SharpClaw),
         not by the Classic solvers.  It allocates additional State objects
-        to store the intermediate stages used by Runge--Kutta time integrators.
+        to store the intermediate stages used by Runge--Kutta and Multistep 
+        time integrators.
 
         If we create a MethodOfLinesSolver subclass, this should be moved there.
         """
@@ -423,11 +427,9 @@ class SharpClawSolver(Solver):
         elif self.time_integrator == 'RK': nregisters=len(self.b)+2
         elif self.time_integrator == 'SSPMS32':
             nregisters=4
-            self.dt_initial = 0.001
             self.dt_variable = False
         elif self.time_integrator == 'LMM':
             nregisters=len(self.alpha)+1
-            self.dt_initial = 0.001
             self.dt_variable = False
         
         state = solution.states[0]
