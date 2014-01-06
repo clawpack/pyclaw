@@ -223,5 +223,5 @@ def shockbubble(use_petsc=False,outdir='./_output',solver_type='classic'):
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    from clawpack.pyclaw.examples import *
+    from clawpack.pyclaw.examples import shock_bubble_interaction
     output = run_app_from_main(shockbubble,shock_bubble_interaction.setplot)
