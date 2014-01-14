@@ -221,6 +221,14 @@ class Controller(object):
         
  
     # ========== Plotting methods ============================================        
+    def set_plotdata(self):
+        from clawpack.visclaw import data
+        from clawpack.visclaw import frametools
+        plotdata = data.ClawPlotData()
+        plotdata.setplot = self.setplot
+        self.plotdata = frametools.call_setplot(self.setplot,plotdata)
+        plotdata._mode = 'iplotclaw'
+
     def load_frame(self,frame_number):
         try: 
             return self.frames[frame_number]
@@ -228,6 +236,9 @@ class Controller(object):
             print "Cannot plot frame %s; only %s frames available" % (frame_number, len(self.frames))
 
     def plot_frame(self, frame):
+        if self.plotdata is None:
+            self.set_plotdata()
+
         if frame is not None:
             frameno = self.frames.index(frame)
             from clawpack.visclaw import frametools
@@ -239,13 +250,10 @@ class Controller(object):
             print "No frames to plot.  Did you forget to run, or to set keep_copy=True?"
             return
 
-        from clawpack.visclaw import data
-        from clawpack.visclaw import frametools
         from clawpack.visclaw import iplot
-        plotdata = data.ClawPlotData()
-        plotdata.setplot = self.setplot
-        plotdata._mode = 'iplotclaw'
-        self.plotdata = frametools.call_setplot(self.setplot,plotdata)
+
+        if self.plotdata is None:
+            self.set_plotdata()
 
         ip = iplot.Iplot(self.load_frame,self.plot_frame)
         ip.plotloop()

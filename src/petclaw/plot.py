@@ -1,16 +1,16 @@
-def interactive_plot(outdir='./_output',file_format='petsc'):
+def interactive_plot(outdir='./_output',file_format='petsc',setplot=None):
     """
     Convenience function for launching an interactive plotting session.
     """
     from clawpack.pyclaw.plot import plot
-    plot(outdir=outdir,file_format=file_format,iplot=True,htmlplot=False)
+    plot(setplot,outdir=outdir,file_format=file_format,iplot=True,htmlplot=False)
 
-def html_plot(outdir='./_output',file_format='petsc'):
+def html_plot(outdir='./_output',file_format='petsc',setplot=None):
     """
     Convenience function for creating html page with plots.
     """
     from clawpack.pyclaw.plot import plot
-    plot(outdir=outdir,file_format=file_format,iplot=False,htmlplot=True)
+    plot(setplot,outdir=outdir,file_format=file_format,htmlplot=True,iplot=False)
 
 def plotPetsc(clawobj,delay=1):
     """
