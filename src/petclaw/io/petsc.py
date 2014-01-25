@@ -3,14 +3,16 @@
 r"""
 Routines for reading and writing a petsc-style output file.
 
-These routines preserve petclaw/pyclaw syntax for i/o while taking advantage of PETSc's parallel i/o capabilities to allow for parallel reads and writes of frame data.
+These routines preserve petclaw/pyclaw syntax for i/o while taking advantage of
+PETSc's parallel i/o capabilities to allow for parallel reads and writes of
+frame data.
 """
 
 from petsc4py import PETSc
 import pickle
     
 
-def write(solution,frame,path='./',file_prefix='claw',write_aux=False,options={},write_p=False):
+def write(solution,frame,path='./',file_prefix='claw',write_aux=False,file_format='binary',clobber=True,write_p=False):
     r"""
         Write out pickle and PETSc data files representing the
         solution.  Common data is written from process 0 in pickle
@@ -26,64 +28,46 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,options={}
         'claw'``
      - *write_aux* - (bool) Boolean controlling whether the associated 
        auxiliary array should be written out. ``default = False``     
-     - *options* - (dict) Optional argument dictionary, see 
-       `PETScIO Option Table`_
-    
-    .. _`PETScIO Option Table`:
-    
-    format   : one of 'ascii' or 'binary'
-    clobber  : if True (Default), files will be overwritten
+     - *format*   : one of 'ascii', 'vtk', or 'binary'
+     - *clobber*  : if True (Default), files will be overwritten
     """    
     import os
-    # Option parsing
-    option_defaults = {'format':'binary','clobber':True}
 
-    for k in option_defaults.iterkeys():
-        if options.has_key(k):
-            pass
-        else:
-            options[k] = option_defaults[k]
-
-    clobber = options['clobber']
-    
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
-    if options['format']=='vtk':
+    if file_format == 'vtk':
         viewer_filename = os.path.join(path, file_prefix+str(frame).zfill(4)+'.vtk')
     else:
         viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
 
-    if solution.num_aux > 0 and write_aux:
-        write_aux = True
-        aux_filename = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
-    else:
+    if solution.num_aux == 0:
         write_aux = False
+    if write_aux:
+        aux_filename = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
         
     if not clobber:
-        if os.path.exists(pickle_filename):
-            raise IOError('Cowardly refusing to clobber %s!' % pickle_filename)
-        if os.path.exists(viewer_filename):
-            raise IOError('Cowardly refusing to clobber %s!' % viewer_filename)
-        if write_aux and os.path.exists(aux_filename):
-            raise IOError('Cowardly refusing to clobber %s!' % aux_filename)
+        for f in (pickle_filename, viewer_filename, aux_filename):
+            if os.path.exists(f):
+                raise IOError('Cowardly refusing to clobber %s!' % f)
+
     rank =  PETSc.Comm.getRank(PETSc.COMM_WORLD)
     if rank==0:
         pickle_file = open(pickle_filename,'wb')
         # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
+        sol_dict = {'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
+                         'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,
+                         'write_aux':write_aux,
+                         'problem_data' : solution.problem_data}
         if write_p:
-            pickle.dump({'t':solution.t,'num_eqn':solution.mp,'nstates':len(solution.states),
-                         'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,'write_aux':write_aux,
-                         'problem_data' : solution.problem_data}, pickle_file)
-        else:
-            pickle.dump({'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
-                         'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,'write_aux':write_aux,
-                         'problem_data' : solution.problem_data}, pickle_file)
+            sol_dict[num_eqn] = solution.mp
+
+        pickle.dump(sol_dict, pickle_file)
 
     # now set up the PETSc viewers
-    if options['format'] == 'ascii':
+    if file_format == 'ascii':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.WRITE)
         if write_aux:
             aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE) 
-    elif options['format'] == 'binary':
+    elif file_format == 'binary':
         if hasattr(PETSc.Viewer,'createMPIIO'):
             viewer = PETSc.Viewer().createMPIIO(viewer_filename, PETSc.Viewer.Mode.WRITE)
         else:
@@ -93,12 +77,12 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,options={}
                 aux_viewer = PETSc.Viewer().createMPIIO(aux_filename, PETSc.Viewer.Mode.WRITE)
             else:
                 aux_viewer = PETSc.Viewer().createBinary(aux_filename, PETSc.Viewer.Mode.WRITE)
-    elif options['format'] == 'vtk':
+    elif file_format == 'vtk':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.WRITE, format=PETSc.Viewer.Format.ASCII_VTK)
         if write_aux:
             aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE) 
     else:
-        raise IOError('format type %s not supported' % options['format'])
+        raise IOError('format type %s not supported' % file_format)
     
     for state in solution.states:
         patch = state.patch
@@ -124,7 +108,8 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,options={}
         aux_viewer.flush()
         aux_viewer.destroy()
 
-def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
+
+def read(solution,frame,path='./',file_prefix='claw',read_aux=False,file_format='binary'):
     r"""
     Read in pickles and PETSc data files representing the solution
     
@@ -137,25 +122,11 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
        ``default = 'fort'``
      - *read_aux* (bool) Whether or not an auxiliary file will try to be read 
        in.  ``default = False``
-     - *options* - (dict) Optional argument dictionary, see 
-       `PETScIO Option Table`_
-    
-    .. _`PETScIO Option Table`:
-    
-    format   : one of 'ascii' or 'binary'
+     - file_format   : one of 'ascii' or 'binary'
      
     """
     import os
 
-    # Option parsing
-    option_defaults = {'format':'binary'}
-
-    for k in option_defaults.iterkeys():
-        if options.has_key(k):
-            pass
-        else:
-            options[k] = option_defaults[k]
-    
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
     aux_viewer_filename1 = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
@@ -164,11 +135,6 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
          aux_viewer_filename = aux_viewer_filename1
     else:
          aux_viewer_filename = aux_viewer_filename2
-
-
-    if frame < 0:
-        # Don't construct file names with negative frameno values.
-        raise IOError("Frame " + str(frame) + " does not exist ***")
 
     try:
         pickle_file = open(pickle_filename,'rb')
@@ -185,11 +151,11 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
     num_eqn       = value_dict['num_eqn']
 
     # now set up the PETSc viewer
-    if options['format'] == 'ascii':
+    if file_format == 'ascii':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.READ)
         if read_aux:
             aux_viewer = PETSc.Viewer().createASCII(aux_viewer_filename, PETSc.Viewer.Mode.READ)
-    elif options['format'] == 'binary':
+    elif file_format == 'binary':
         if hasattr(PETSc.Viewer,'createMPIIO'):
             viewer = PETSc.Viewer().createMPIIO(viewer_filename, PETSc.Viewer.Mode.READ)
         else:
@@ -206,7 +172,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
                 warn('read_aux=True but aux file %s does not exist' % aux_file_path)
                 read_aux=False
     else:
-        raise IOError('format type %s not supported' % options['format'])
+        raise IOError('format type %s not supported' % file_format)
 
     patches = []
     for m in xrange(nstates):
@@ -222,13 +188,10 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
         dimensions = []
         for i in xrange(num_dim):
             dimensions.append(
-                #pyclaw.solution.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
                 petclaw.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
-        #patch = pyclaw.solution.Patch(dimensions)
         patch = petclaw.Patch(dimensions)
         patch.level = level 
-        #state = pyclaw.state.State(patch)
-        state = petclaw.State(patch,num_eqn,num_aux) ##
+        state = petclaw.State(patch,num_eqn,num_aux)
         state.t = value_dict['t']
         state.problem_data = value_dict['problem_data']
 

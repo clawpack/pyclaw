@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
 r"""
-Routines for reading a raw binary output file
+Routines for reading a raw binary output file from AMRClaw.
+Note that there is no corresponding output option in PyClaw,
+which is why there is no "write" function here (the code that
+writes these files is in AMRClaw, in Fortran).
 """
 
 import os
@@ -40,14 +43,8 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
        the format being read in.  ``default = {}``
     """
     
-
-    if frame < 0:
-        # Don't construct file names with negative frameno values.
-        raise IOError("Frame " + str(frame) + " does not exist ***")
-
     # Construct path names
     base_path = os.path.join(path,)
-    # t_fname = os.path.join(base_path, '%s.t' % file_prefix) + str(frame).zfill(4)
     q_fname = os.path.join(base_path, '%s.q' % file_prefix) + str(frame).zfill(4)
     b_fname = os.path.join(base_path, '%s.b' % file_prefix) + str(frame).zfill(4)
 
