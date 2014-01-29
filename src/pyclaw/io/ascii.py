@@ -103,7 +103,6 @@ def write_patch_header(f,patch):
 
 def write_array(f,patch,q):
 
-    f.write("\n")
     dims = patch.dimensions
     if patch.num_dim == 1:
         for k in xrange(dims[0].num_cells):
@@ -202,8 +201,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
             state.aux[:]=0.
         
         # Fill in q values
-        f.readline()
-        state.q = read_array(f, state)
+        state.q = read_array(f, state, num_eqn)
 
         # Add AMR attributes:
         patch.patch_index = patch_index
@@ -213,6 +211,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         solution.states.append(state)
         patches.append(state.patch)
     solution.domain = pyclaw.geometry.Domain(patches)
+    f.close()
 
     # Read auxillary file if available and requested
     # Matching dimension parameter tolerances
@@ -264,9 +263,11 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 if np.abs(delta - dim.delta) > ABS_TOL + REL_TOL * np.abs(dim.delta):
                     raise Exception('Value of delta in aux file does not match.')
 
-            f.readline()
+            blank = f.readline()
     
-            state.aux = read_array(f, state)
+            state.aux = read_array(f, state, num_aux)
+
+        f.close()
         
             
 def read_t(frame,path='./',file_prefix='fort'):
@@ -308,22 +309,22 @@ def read_t(frame,path='./',file_prefix='fort'):
     return t,num_eqn,nstates,num_aux,num_dim
 
 
-def read_array(f, state):
+def read_array(f, state, num_var):
 
     patch = state.patch
-    q_shape = [state.num_eqn] + patch.num_cells_global
+    q_shape = [num_var] + patch.num_cells_global
     q = np.zeros(q_shape)
 
     if patch.num_dim == 1:
         for i in xrange(patch.dimensions[0].num_cells):
             l = f.readline().split()
-            for m in xrange(state.num_eqn):
+            for m in xrange(num_var):
                 q[m,i] = float(l[m])
     elif patch.num_dim == 2:
         for j in xrange(patch.dimensions[1].num_cells):
             for i in xrange(patch.dimensions[0].num_cells):
                 l = f.readline().split()
-                for m in xrange(state.num_eqn):
+                for m in xrange(num_var):
                     q[m,i,j] = float(l[m])
             blank = f.readline()
     elif patch.num_dim == 3:
@@ -331,7 +332,7 @@ def read_array(f, state):
             for j in xrange(patch.dimensions[1].num_cells):
                 for i in xrange(patch.dimensions[0].num_cells):
                     l = f.readline().split()
-                    for m in xrange(state.num_eqn):
+                    for m in xrange(num_var):
                         q[m,i,j,k] = float(l[m])
                 blank = f.readline()
             blank = f.readline()
