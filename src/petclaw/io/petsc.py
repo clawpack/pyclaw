@@ -12,7 +12,8 @@ from petsc4py import PETSc
 import pickle
     
 
-def write(solution,frame,path='./',file_prefix='claw',write_aux=False,file_format='binary',clobber=True,write_p=False):
+def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
+          options={},write_p=False):
     r"""
         Write out pickle and PETSc data files representing the
         solution.  Common data is written from process 0 in pickle
@@ -28,10 +29,27 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,file_forma
         'claw'``
      - *write_aux* - (bool) Boolean controlling whether the associated 
        auxiliary array should be written out. ``default = False``     
-     - *format*   : one of 'ascii', 'vtk', or 'binary'
-     - *clobber*  : if True (Default), files will be overwritten
+     - *options* - (dict) Optional argument dictionary, see 
+        `PETScIO Option Table`_
+     
+     .. _`PETScIO Option Table`:
+     
+     format   : one of 'ascii' or 'binary'
+     clobber  : if True (Default), files will be overwritten
     """    
     import os
+
+    # Option parsing
+    option_defaults = {'format':'binary','clobber':True}
+  
+    for k in option_defaults.iterkeys():
+        if options.has_key(k):
+            pass
+        else:
+            options[k] = option_defaults[k]
+ 
+    clobber = options['clobber']
+    file_format = options['format']
 
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     if file_format == 'vtk':
@@ -109,7 +127,7 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,file_forma
         aux_viewer.destroy()
 
 
-def read(solution,frame,path='./',file_prefix='claw',read_aux=False,file_format='binary'):
+def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
     r"""
     Read in pickles and PETSc data files representing the solution
     
@@ -122,10 +140,20 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,file_format=
        ``default = 'fort'``
      - *read_aux* (bool) Whether or not an auxiliary file will try to be read 
        in.  ``default = False``
-     - file_format   : one of 'ascii' or 'binary'
+     - *options* - (dict) Optional argument dictionary, see 
+       `PETScIO Option Table`_
+    
+    .. _`PETScIO Option Table`:
+    
+    format   : one of 'ascii' or 'binary'
      
     """
     import os
+
+    if options.has_key('format'):
+        file_format = options['format']
+    else:
+        file_format = 'binary'
 
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
