@@ -6,6 +6,7 @@ Routines for reading and writing an ascii output file
 
 import os,sys
 import logging
+import numpy as np
 
 from ..util import read_data_line
 
@@ -57,92 +58,27 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
             file_name = 'fort.a%s' % str(frame).zfill(4)
             aux_file = open(os.path.join(path,file_name),'w')
         
-        # for i in range(0,len(solution.patchs)):
         for state in solution.states:
             patch = state.patch
-            # Header for fort.qxxxx file
-            q_file.write("%5i                  patch_number\n" % patch.patch_index)
-            q_file.write("%5i                  AMR_level\n" % patch.level)
-            for dim in patch.dimensions:
-                q_file.write("%5i                  m%s\n" % (dim.num_cells,dim.name))
-            for dim in patch.dimensions:
-                q_file.write("%18.8e     %slow\n" % (dim.lower,dim.name))
-            for dim in patch.dimensions:
-                q_file.write("%18.8e     d%s\n" % (dim.delta,dim.name))
+
+            write_patch_header(q_file,patch)
             
-            q_file.write("\n")
-            
-            # Write data from q
             if write_p:
                 q = state.p
             else:
                 q = state.q
 
-            dims = patch.dimensions
-            if patch.num_dim == 1:
-                for k in xrange(dims[0].num_cells):
-                    for m in xrange(q.shape[0]):
-                        q_file.write("%18.8e" % q[m,k])
-                    q_file.write('\n')
-            elif patch.num_dim == 2:
-                for j in xrange(dims[1].num_cells):
-                    for k in xrange(dims[0].num_cells):
-                        for m in xrange(q.shape[0]):
-                            q_file.write("%18.8e" % q[m,k,j])
-                        q_file.write('\n')
-                    q_file.write('\n')
-            elif patch.num_dim == 3:
-                for l in xrange(dims[2].num_cells):
-                    for j in xrange(dims[1].num_cells):
-                        for k in xrange(dims[0].num_cells):
-                            for m in range(q.shape[0]):
-                                q_file.write("%18.8e" % q[m,k,j,l])
-                            q_file.write('\n')
-                    q_file.write('\n')
-                q_file.write('\n')
-            else:
-                raise Exception("Dimension Exception in writing fort file.")
-            
-            if state.num_aux > 0 and write_aux:
-                aux = state.aux
-                
-                aux_file.write("%5i                  patch_number\n" % patch.patch_index)
-                aux_file.write("%5i                  AMR_level\n" % patch.level)
-                
-                for dim in patch.dimensions:
-                    aux_file.write("%5i                  m%s\n" % (dim.num_cells,dim.name))
-                for dim in patch.dimensions:
-                    aux_file.write("%18.8e     %slow\n" % (dim.lower,dim.name))
-                for dim in patch.dimensions:
-                    aux_file.write("%18.8e     d%s\n" % (dim.delta,dim.name))
+            write_array(q_file, patch, q)
 
-                aux_file.write("\n")
-                dims = patch.dimensions
-                if patch.num_dim == 1:
-                    for k in xrange(dims[0].num_cells):
-                        for m in xrange(state.num_aux):
-                            aux_file.write("%18.8e" % aux[m,k])
-                        aux_file.write('\n')
-                elif patch.num_dim == 2:
-                    for j in xrange(dims[1].num_cells):
-                        for k in xrange(dims[0].num_cells):
-                            for m in xrange(state.num_aux):
-                                aux_file.write("%18.8e" % aux[m,k,j])
-                            aux_file.write('\n')    
-                        aux_file.write('\n')
-                elif patch.num_dim == 3:
-                    for l in xrange(dims[2].num_cells):
-                        for j in xrange(dims[1].num_cells):
-                            for k in xrange(dims[0].num_cells):
-                                for m in xrange(state.num_aux):
-                                    aux_file.write("%18.8e" % aux[m,k,j,l])
-                                aux_file.write('\n')
-                            aux_file.write('\n')    
-                        aux_file.write('\n')
-    
+            if state.num_aux > 0 and write_aux:
+                write_patch_header(aux_file,state.patch)
+                write_array(aux_file,patch,state.aux)
+
         q_file.close()
+
         if state.num_aux > 0 and write_aux:
             aux_file.close()
+
     except IOError, (errno, strerror):
         logger.error("Error writing file: %s" % os.path.join(path,file_name))
         logger.error("I/O error(%s): %s" % (errno, strerror))
@@ -150,6 +86,48 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
     except:
         logger.error("Unexpected error:", sys.exc_info()[0])
         raise
+
+
+def write_patch_header(f,patch):
+    f.write("%5i                  patch_number\n" % patch.patch_index)
+    f.write("%5i                  AMR_level\n" % patch.level)
+    for dim in patch.dimensions:
+        f.write("%5i                  m%s\n" % (dim.num_cells,dim.name))
+    for dim in patch.dimensions:
+        f.write("%18.8e     %slow\n" % (dim.lower,dim.name))
+    for dim in patch.dimensions:
+        f.write("%18.8e     d%s\n" % (dim.delta,dim.name))
+    
+    f.write("\n")
+
+
+def write_array(f,patch,q):
+
+    dims = patch.dimensions
+    if patch.num_dim == 1:
+        for k in xrange(dims[0].num_cells):
+            for m in xrange(q.shape[0]):
+                f.write("%18.8e" % q[m,k])
+            f.write('\n')
+    elif patch.num_dim == 2:
+        for j in xrange(dims[1].num_cells):
+            for k in xrange(dims[0].num_cells):
+                for m in xrange(q.shape[0]):
+                    f.write("%18.8e" % q[m,k,j])
+                f.write('\n')    
+            f.write('\n')
+    elif patch.num_dim == 3:
+        for l in xrange(dims[2].num_cells):
+            for j in xrange(dims[1].num_cells):
+                for k in xrange(dims[0].num_cells):
+                    for m in xrange(q.shape[0]):
+                        f.write("%18.8e" % q[m,k,j,l])
+                    f.write('\n')
+                f.write('\n')    
+            f.write('\n')
+    else:
+        raise Exception("Dimension Exception in writing fort file.")
+
 
 def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 options={}):
@@ -173,12 +151,6 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
        the format being read in.  ``default = {}``
     """
 
-    import numpy as np
-
-    if frame < 0:
-        # Don't construct file names with negative frameno values.
-        raise IOError("Frame " + str(frame) + " does not exist ***")
-
     # Construct path names
     base_path = os.path.join(path,)
     q_fname = os.path.join(base_path, '%s.q' % file_prefix) + str(frame).zfill(4)
@@ -195,18 +167,18 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         print "Error: file " + q_fname + " does not exist or is unreadable."
         raise
     
+    n = np.zeros((num_dim))
+    d = np.zeros((num_dim))
+    lower = np.zeros((num_dim))
+
     # Loop through every patch setting the appropriate information
-    # for ng in range(len(solution.patchs)):
     for m in xrange(nstates):
     
         # Read in base header for this patch
-        patch_index = read_data_line(f,type='int')
-        level = read_data_line(f,type='int')
-        n = np.zeros((num_dim))
-        lower = np.zeros((num_dim))
-        d = np.zeros((num_dim))
+        patch_index = read_data_line(f,data_type=int)
+        level       = read_data_line(f,data_type=int)
         for i in xrange(num_dim):
-            n[i] = read_data_line(f,type='int')
+            n[i] = read_data_line(f,data_type=int)
         for i in xrange(num_dim):
             lower[i] = read_data_line(f)
         for i in xrange(num_dim):
@@ -225,46 +197,12 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         state= pyclaw.state.State(patch,num_eqn,num_aux)
         state.t = t
 
-
         if num_aux > 0:   
             state.aux[:]=0.
         
         # Fill in q values
-        if patch.num_dim == 1:
-            for i in xrange(patch.dimensions[0].num_cells):
-                l = []
-                while len(l)<state.num_eqn:
-                    line = f.readline()
-                    l = l + line.split()
-                for m in xrange(state.num_eqn):
-                    state.q[m,i] = float(l[m])
-        elif patch.num_dim == 2:
-            for j in xrange(patch.dimensions[1].num_cells):
-                for i in xrange(patch.dimensions[0].num_cells):
-                    l = []
-                    while len(l)<state.num_eqn:
-                        line = f.readline()
-                        l = l + line.split()
-                    for m in xrange(state.num_eqn):
-                        state.q[m,i,j] = float(l[m])
-                blank = f.readline()
-        elif patch.num_dim == 3:
-            for k in xrange(patch.dimensions[2].num_cells):
-                for j in xrange(patch.dimensions[1].num_cells):
-                    for i in xrange(patch.dimensions[0].num_cells):
-                        l=[]
-                        while len(l) < state.num_eqn:
-                            line = f.readline()
-                            l = l + line.split()
-                        for m in xrange(state.num_eqn):
-                            state.q[m,i,j,k] = float(l[m])
-                    blank = f.readline()
-                blank = f.readline()
-        else:
-            msg = "Read only supported up to 3d."
-            logger.critical(msg)
-            raise Exception(msg)
-    
+        state.q = read_array(f, state, num_eqn)
+
         # Add AMR attributes:
         patch.patch_index = patch_index
         patch.level = level
@@ -273,7 +211,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         solution.states.append(state)
         patches.append(state.patch)
     solution.domain = pyclaw.geometry.Domain(patches)
-        
+    f.close()
 
     # Read auxillary file if available and requested
     # Matching dimension parameter tolerances
@@ -307,56 +245,29 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         for state in solution.states:
             patch = state.patch
             # Fetch correct patch
-            patch_index = read_data_line(f,type='int')
+            patch_index = read_data_line(f,data_type=int)
     
             # These should match this patch already, raise exception otherwise
-            if not (patch.level == read_data_line(f,type='int')):
+            if not (patch.level == read_data_line(f,data_type=int)):
                 raise IOError("Patch level in aux file header did not match patch no %s." % patch.patch_index)
             for dim in patch.dimensions:
-                num_cells = read_data_line(f,type='int')
+                num_cells = read_data_line(f,data_type=int)
                 if not dim.num_cells == num_cells:
                     raise Exception("Dimension %s's num_cells in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
             for dim in patch.dimensions:
-                lower = read_data_line(f,type='float')
+                lower = read_data_line(f,data_type=float)
                 if np.abs(lower - dim.lower) > ABS_TOL + REL_TOL * np.abs(dim.lower):
                     raise Exception('Value of lower in aux file does not match.')
             for dim in patch.dimensions:
-                delta = read_data_line(f,type='float')
+                delta = read_data_line(f,data_type=float)
                 if np.abs(delta - dim.delta) > ABS_TOL + REL_TOL * np.abs(dim.delta):
                     raise Exception('Value of delta in aux file does not match.')
 
-            f.readline()
+            blank = f.readline()
     
-            if patch.num_dim == 1:
-                for i in xrange(patch.dimensions[0].num_cells):
-                    l = []
-                    while len(l)<state.num_aux:
-                        line = f.readline()
-                        l = l + line.split()
-                    for m in xrange(state.num_aux):
-                        state.aux[m,i] = float(l[m])
-            elif patch.num_dim == 2:
-                for j in xrange(patch.dimensions[1].num_cells):
-                    for i in xrange(patch.dimensions[0].num_cells):
-                        l = []
-                        while len(l)<state.num_aux:
-                            line = f.readline()
-                            l = l + line.split()
-                        for m in xrange(state.num_aux):
-                            state.aux[m,i,j] = float(l[m])
-                    blank = f.readline()
-            elif patch.num_dim == 3:
-                for k in xrange(patch.dimensions[2].num_cells):
-                    for j in xrange(patch.dimensions[1].num_cells):
-                        for i in xrange(patch.dimensions[0].num_cells):
-                            l = []
-                            while len(l)<state.num_aux:
-                                line = f.readline()
-                                l = l + line.split()
-                            for m in xrange(state.num_aux):
-                                state.aux[m,i,j,k] = float(l[m])
-                        blank = f.readline()
-                    blank = f.readline()
+            state.aux = read_array(f, state, num_aux)
+
+        f.close()
         
             
 def read_t(frame,path='./',file_prefix='fort'):
@@ -388,11 +299,47 @@ def read_t(frame,path='./',file_prefix='fort'):
         raise
         
     t = read_data_line(f)
-    num_eqn = read_data_line(f,type='int')
-    nstates = read_data_line(f,type='int')
-    num_aux = read_data_line(f,type='int')
-    num_dim = read_data_line(f,type='int')
+    num_eqn = read_data_line(f,data_type=int)
+    nstates = read_data_line(f,data_type=int)
+    num_aux = read_data_line(f,data_type=int)
+    num_dim = read_data_line(f,data_type=int)
     
     f.close()
         
     return t,num_eqn,nstates,num_aux,num_dim
+
+
+def read_array(f, state, num_var):
+
+    patch = state.patch
+    q_shape = [num_var] + patch.num_cells_global
+    q = np.zeros(q_shape)
+
+    if patch.num_dim == 1:
+        for i in xrange(patch.dimensions[0].num_cells):
+            l = f.readline().split()
+            for m in xrange(num_var):
+                q[m,i] = float(l[m])
+    elif patch.num_dim == 2:
+        for j in xrange(patch.dimensions[1].num_cells):
+            for i in xrange(patch.dimensions[0].num_cells):
+                l = f.readline().split()
+                for m in xrange(num_var):
+                    q[m,i,j] = float(l[m])
+            blank = f.readline()
+    elif patch.num_dim == 3:
+        for k in xrange(patch.dimensions[2].num_cells):
+            for j in xrange(patch.dimensions[1].num_cells):
+                for i in xrange(patch.dimensions[0].num_cells):
+                    l = f.readline().split()
+                    for m in xrange(num_var):
+                        q[m,i,j,k] = float(l[m])
+                blank = f.readline()
+            blank = f.readline()
+    else:
+        msg = "Read only supported up to 3d."
+        logger.critical(msg)
+        raise Exception(msg)
+
+    return q
+

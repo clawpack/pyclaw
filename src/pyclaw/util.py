@@ -434,7 +434,7 @@ def construct_function_handle(path,function_name=None):
 
 
 #---------------------------------------------------------
-def read_data_line(inputfile,num_entries=1,type='float'):
+def read_data_line(inputfile,num_entries=1,data_type=float):
 #---------------------------------------------------------
     r"""
     Read data a single line from an input file
@@ -443,7 +443,7 @@ def read_data_line(inputfile,num_entries=1,type='float'):
 
     inputfile: a file pointer to an open file object
     num_entries: number of entries that should be read, defaults to only 1
-    type: Type of the values to be read in, they all most be the same type
+    type: Type of the values to be read in, they all must be the same type
 
     This function will return either a single value or an array of values
     depending on if num_entries > 1
@@ -453,22 +453,14 @@ def read_data_line(inputfile,num_entries=1,type='float'):
     while  l==[]:  # skip over blank lines
         line = inputfile.readline()
         l = line.split()
-    val = np.empty(num_entries,type)
+    val = np.empty(num_entries,data_type)
     if num_entries > len(l):
         print 'Error in read_data_line: num_entries = ', num_entries
         print '  is larger than length of l = ',l
-    try:
-        for i in range(num_entries):
-            exec("val[i] = %s(l[i])" % type)
-        if num_entries == 1:  # This is a convenience for calling functions
-            return val[0]
-        return val
-    except(ValueError):
-        print "Invalid type for the %s value in %s" % (i,l)
-        print "  type = ",type
-        return None
-    except:
-        raise
+    if num_entries == 1:  # This is a convenience for calling functions
+        return data_type(l[0])
+    val = [data_type(entry) for entry in l[:num_entries]]
+    return val
 
 #----------------------------------------
 def convert_fort_double_to_float(number):
