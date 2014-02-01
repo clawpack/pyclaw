@@ -2,6 +2,7 @@ r"""
 Module specifying the interface to every solver in PyClaw.
 """
 import logging
+import numpy as np
 
 class CFLError(Exception):
     """Error raised when cfl_max is exceeded.  Is this a
@@ -65,10 +66,9 @@ class Solver(object):
          - ``cflmax`` = Maximum CFL number
          - ``dtmin`` = Minimum time step taken
          - ``dtmax`` = Maximum time step taken
-         - ``numsteps`` = Current number of time steps that have been taken
+         - ``numsteps`` = Total number of time steps that have been taken
 
-        solver.status is reset each time solver.evolve_to_time is called, and
-        it is also returned by solver.evolve_to_time.
+        solver.status is returned by solver.evolve_to_time.
     
     .. attribute:: dt_variable
     
@@ -183,10 +183,10 @@ class Solver(object):
         self.cfl = self.claw_package.CFL(self.cfl_desired)
        
         # Status Dictionary
-        self.status = {'cflmax':self.cfl.get_cached_max(),
-                       'dtmin':self.dt, 
-                       'dtmax':self.dt,
-                       'numsteps':0 }
+        self.status = {'cflmax': -np.inf,
+                       'dtmin': np.inf,
+                       'dtmax': -np.inf,
+                       'numsteps': 0 }
         
         # No default BCs; user must set them
         self.bc_lower =    [None]*self.num_dim
@@ -290,7 +290,6 @@ class Solver(object):
 
         This is typically called by solver.setup().
         """
-        import numpy as np
         qbc_dim = [n+2*self.num_ghost for n in state.grid.num_cells]
         qbc_dim.insert(0,state.num_eqn)
         self.qbc = np.zeros(qbc_dim,order='F')
@@ -614,10 +613,7 @@ class Solver(object):
         tstart = solution.t
 
         # Reset status dictionary
-        self.status['cflmax'] = self.cfl.get_cached_max()
-        self.status['dtmin'] = self.dt
-        self.status['dtmax'] = self.dt
-        self.status['numsteps'] = 0
+        num_steps = 0
 
         # Setup for the run
         if not self.dt_variable:
@@ -668,6 +664,7 @@ class Solver(object):
                     
                 self.write_gauge_values(solution)
                 # Increment number of time steps completed
+                num_steps += 1
                 self.status['numsteps'] += 1
             else:
                 # Reject this step
@@ -698,7 +695,7 @@ class Solver(object):
         # End of main time-stepping loop -------------------------------------
 
         if self.dt_variable and solution.t < tend \
-                and self.status['numsteps'] == self.max_steps:
+                and num_steps == self.max_steps:
             raise Exception("Maximum number of timesteps have been taken")
 
         return self.status
