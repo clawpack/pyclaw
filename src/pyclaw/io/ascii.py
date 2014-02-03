@@ -7,6 +7,7 @@ Routines for reading and writing an ascii output file
 import os,sys
 import logging
 import numpy as np
+import pickle
 
 from ..util import read_data_line
 
@@ -87,6 +88,19 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
         logger.error("Unexpected error:", sys.exc_info()[0])
         raise
 
+    pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
+    pickle_file = open(pickle_filename,'wb')
+    # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
+    if write_p:
+        pickle.dump({'t':solution.t,'num_eqn':solution.mp,'nstates':len(solution.states),
+                     'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,'write_aux':write_aux,
+                     'problem_data' : solution.problem_data, 'mapc2p': solution.state.grid.mapc2p}, pickle_file)
+    else:
+        pickle.dump({'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
+                     'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,'write_aux':write_aux,
+                     'problem_data' : solution.problem_data, 'mapc2p': solution.state.grid.mapc2p}, pickle_file)
+    pickle_file.close()
+
 
 def write_patch_header(f,patch):
     f.write("%5i                  patch_number\n" % patch.patch_index)
@@ -151,6 +165,18 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
        the format being read in.  ``default = {}``
     """
 
+    pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
+    try:
+        pickle_file = open(pickle_filename,'rb')
+        value_dict = pickle.load(pickle_file)
+        problem_data = value_dict.get('problem_data',None)
+        mapc2p       = value_dict.get('mapc2p',None)
+    except IOError:
+        logger.info("Unable to open pickle file %s" % (pickle_filename))
+        problem_data = None
+        mapc2p = None
+
+
     # Construct path names
     base_path = os.path.join(path,)
     q_fname = os.path.join(base_path, '%s.q' % file_prefix) + str(frame).zfill(4)
@@ -196,6 +222,8 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         patch = pyclaw.geometry.Patch(dimensions)
         state= pyclaw.state.State(patch,num_eqn,num_aux)
         state.t = t
+        state.problem_data = problem_data
+        state.grid.mapc2p = mapc2p
 
         if num_aux > 0:   
             state.aux[:]=0.
