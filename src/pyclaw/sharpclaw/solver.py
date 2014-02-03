@@ -177,7 +177,6 @@ class SharpClawSolver(Solver):
 
         self._allocate_registers(solution)
         self._set_mthlim()
-        self._set_sspcoeff()
 
         state = solution.states[0]
  
@@ -496,18 +495,38 @@ class SharpClawSolver(Solver):
             self._registers[-1].t                           = state.t
             if state.num_aux > 0: self._registers[-1].aux   = state.aux
 
-    def _set_sspcoeff(self):
+    def set_sspcoeff(self):
         """
         Dictionary of SSP coefficients for time integrators.
         """
-        sspcoefflist = {
+        sspcoeff = {
             'Euler' :       1.0,
             'SSP33':        1.0,
-            'SSPRK104' :    6.0,
+            'SSP104' :      6.0,
             'SSPMS32' :     0.5
         }
         
-        self._sspcoeff = sspcoefflist[self.time_integrator]
+        return sspcoeff[self.time_integrator]
+
+
+    def set_cfl_max_dt_new(self):
+        """
+        Set maximum CFL number and time-step for next step depending on time integrator
+        """
+        if self.time_integrator == 'SSPMS32' and self.step_index > 2:
+            sigma0 = self._registers[-3].cfl + self._registers[-2].cfl
+            sigma1 = sigma0 / (self.set_sspcoeff() * sigma0 + self.cfl_max)
+
+            sigma0 = self._registers[-2].cfl + self._registers[-1].cfl
+            sigma2 = sigma0 / (self.set_sspcoeff() * sigma0 + self.cfl_desired)
+        else:
+            sigma1 = 1.0
+            sigma2 = 1.0 
+        
+        cfl_max = sigma1 *self.cfl_max
+        dt_new = sigma2 * self.dt * self.cfl_desired / self.cfl.get_cached_max()
+
+        return cfl_max,dt_new
 
 
 
