@@ -650,7 +650,14 @@ class Solver(object):
 
             # Check to make sure that the Courant number was not too large
             cfl = self.cfl.get_cached_max()
-            if cfl <= self.cfl_max:
+            if self.time_integrator == 'SSPMS32' and self.step_index > 2:
+                sigma0 = self._registers[-3].cfl + self._registers[-2].cfl
+                sigma = sigma0 / (self._sspcoeff * sigma0 + self.cfl_max)
+                cfl_max = sigma*self.cfl_max
+            else:
+                cfl_max = self.cfl_max
+
+            if cfl <= cfl_max:
                 # Accept this step
                 self.status['cflmax'] = max(cfl, self.status['cflmax'])
                 if self.dt_variable==True:
@@ -658,6 +665,7 @@ class Solver(object):
                 else:
                     #Avoid roundoff error if dt_variable=False:
                     solution.t = tstart+(n+1)*self.dt
+
                 # Verbose messaging
                 self.logger.debug("Step %i  CFL = %f   dt = %f   t = %f"
                     % (n,cfl,self.dt,solution.t))
@@ -681,8 +689,12 @@ class Solver(object):
             # Choose new time step
             if self.dt_variable:
                 if cfl > 0.0:
-                    self.dt = min(self.dt_max,self.dt * self.cfl_desired 
-                                    / cfl)
+                    if self.time_integrator == 'SSPMS32' and self.step_index > 2:
+                        sigma0 = self._registers[-2].cfl + self._registers[-1].cfl
+                        sigma = sigma0 / (self._sspcoeff * sigma0 + self.cfl_desired)
+                        self.dt = min(self.dt_max,sigma * self.dt * self.cfl_desired / cfl)
+                    else:
+                        self.dt = min(self.dt_max,self.dt * self.cfl_desired / cfl)
                     self.status['dtmin'] = min(self.dt, self.status['dtmin'])
                     self.status['dtmax'] = max(self.dt, self.status['dtmax'])
                 else:
