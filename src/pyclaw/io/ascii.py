@@ -90,15 +90,15 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
 
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     pickle_file = open(pickle_filename,'wb')
-    # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
+    sol_dict = {'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
+                     'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,
+                     'write_aux':write_aux,
+                     'problem_data' : solution.problem_data,
+                     'mapc2p': solution.state.grid.mapc2p}
     if write_p:
-        pickle.dump({'t':solution.t,'num_eqn':solution.mp,'nstates':len(solution.states),
-                     'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,'write_aux':write_aux,
-                     'problem_data' : solution.problem_data, 'mapc2p': solution.state.grid.mapc2p}, pickle_file)
-    else:
-        pickle.dump({'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
-                     'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,'write_aux':write_aux,
-                     'problem_data' : solution.problem_data, 'mapc2p': solution.state.grid.mapc2p}, pickle_file)
+        sol_dict[num_eqn] = solution.mp
+
+    pickle.dump(sol_dict, pickle_file)
     pickle_file.close()
 
 
