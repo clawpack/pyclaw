@@ -650,12 +650,11 @@ class Solver(object):
 
             # Check to make sure that the Courant number was not too large
             cfl = self.cfl.get_cached_max()
-            if self.time_integrator == 'SSPMS32' and self.step_index > 2:
-                sigma0 = self._registers[-3].cfl + self._registers[-2].cfl
-                sigma = sigma0 / (self._sspcoeff * sigma0 + self.cfl_max)
-                cfl_max = sigma*self.cfl_max
+            from clawpack.pyclaw.sharpclaw.solver import SharpClawSolver
+            if isinstance(self,SharpClawSolver):
+                cfl_max,dt_new = self.set_cfl_max_dt_new()
             else:
-                cfl_max = self.cfl_max
+                cfl_max  = self.cfl_max
 
             if cfl <= cfl_max:
                 # Accept this step
@@ -689,10 +688,8 @@ class Solver(object):
             # Choose new time step
             if self.dt_variable:
                 if cfl > 0.0:
-                    if self.time_integrator == 'SSPMS32' and self.step_index > 2:
-                        sigma0 = self._registers[-2].cfl + self._registers[-1].cfl
-                        sigma = sigma0 / (self._sspcoeff * sigma0 + self.cfl_desired)
-                        self.dt = min(self.dt_max,sigma * self.dt * self.cfl_desired / cfl)
+                    if isinstance(self,SharpClawSolver):
+                        self.dt = min(self.dt_max,dt_new)
                     else:
                         self.dt = min(self.dt_max,self.dt * self.cfl_desired / cfl)
                     self.status['dtmin'] = min(self.dt, self.status['dtmin'])
