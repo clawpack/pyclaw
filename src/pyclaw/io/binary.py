@@ -76,13 +76,13 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     for m in xrange(nstates):
     
         # Read in base header for this patch
-        patch_index = read_data_line(f,type='int')
-        level = read_data_line(f,type='int')
+        patch_index = read_data_line(f,data_type=int)
+        level = read_data_line(f,data_type=int)
         n = np.zeros((num_dim))
         lower = np.zeros((num_dim))
         d = np.zeros((num_dim))
         for i in xrange(num_dim):
-            n[i] = read_data_line(f,type='int')
+            n[i] = read_data_line(f,data_type=int)
         for i in xrange(num_dim):
             lower[i] = read_data_line(f)
         for i in xrange(num_dim):
@@ -268,11 +268,11 @@ def read_t(frame,path='./',file_prefix='fort'):
         f = open(path,'r')
         
         t = read_data_line(f)
-        num_eqn = read_data_line(f,type='int')
-        nstates = read_data_line(f,type='int')
-        num_aux = read_data_line(f,type='int')
-        num_dim = read_data_line(f,type='int')
-        num_ghost = read_data_line(f,type='int')
+        num_eqn = read_data_line(f, data_type=int)
+        nstates = read_data_line(f, data_type=int)
+        num_aux = read_data_line(f, data_type=int)
+        num_dim = read_data_line(f, data_type=int)
+        num_ghost = read_data_line(f, data_type=int)
         
         f.close()
     except(IOError):
