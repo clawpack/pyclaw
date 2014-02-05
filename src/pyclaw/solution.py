@@ -325,7 +325,7 @@ class Solution(object):
          - *frame* - (int) Frame number to be read in
          - *path* - (string) Base path to the files to be read. 
            ``default = './'``
-         - *format* - (string) Format of the file, should match on of the 
+         - *file_format* - (string) Format of the file, should match on of the 
            modules inside of the io package.  ``default = 'ascii'``
          - *file_prefix* - (string) Name prefix in front of all the files, 
            defaults to whatever the format defaults to, e.g. fort for ascii
