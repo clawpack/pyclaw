@@ -583,6 +583,13 @@ class Solver(object):
     # ========================================================================
     #  Evolution routines
     # ========================================================================
+    def get_cfl_max(self):
+        return self.cfl_max
+
+    def get_dt_new(self):
+        cfl = self.cfl.get_cached_max()
+        return min(self.dt_max,self.dt * self.cfl_desired / cfl)
+
     def evolve_to_time(self,solution,tend=None):
         r"""
         Evolve solution from solution.t to tend.  If tend is not specified,
@@ -650,12 +657,7 @@ class Solver(object):
 
             # Check to make sure that the Courant number was not too large
             cfl = self.cfl.get_cached_max()
-            from clawpack.pyclaw.sharpclaw.solver import SharpClawSolver
-            if isinstance(self,SharpClawSolver):
-                cfl_max,dt_new = self.set_cfl_max_dt_new()
-            else:
-                cfl_max  = self.cfl_max
-
+            cfl_max = self.get_cfl_max()
             if cfl <= cfl_max:
                 # Accept this step
                 self.status['cflmax'] = max(cfl, self.status['cflmax'])
@@ -688,10 +690,7 @@ class Solver(object):
             # Choose new time step
             if self.dt_variable:
                 if cfl > 0.0:
-                    if isinstance(self,SharpClawSolver):
-                        self.dt = min(self.dt_max,dt_new)
-                    else:
-                        self.dt = min(self.dt_max,self.dt * self.cfl_desired / cfl)
+                    self.dt = self.get_dt_new()
                     self.status['dtmin'] = min(self.dt, self.status['dtmin'])
                     self.status['dtmax'] = max(self.dt, self.status['dtmax'])
                 else:

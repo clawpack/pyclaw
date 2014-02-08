@@ -121,6 +121,12 @@ class SharpClawSolver(Solver):
         ``Default = False``
 
     """
+    sspcoeff = {
+       'Euler' :       1.0,
+       'SSP33':        1.0,
+       'SSP104' :      6.0,
+       'SSPMS32' :     0.5
+       }
     
     # ========================================================================
     #   Initialization routines
@@ -147,7 +153,6 @@ class SharpClawSolver(Solver):
         self._mthlim = self.limiters
         self._method = None
         self._registers = None
-        self._sspcoeff = None
 
         # Used only if time integrator is 'RK'
         self.a = None
@@ -314,11 +319,11 @@ class SharpClawSolver(Solver):
                     state.q = r*beta*(state.q + 2*deltaq) + alpha*self._registers[-3].q
                 
                 # Update stored solutions
-                self._registers[-3].q = self._registers[-2].q.copy()
+                self._registers[-3].q = self._registers[-2].q
                 self._registers[-3].cfl = self._registers[-2].cfl
-                self._registers[-2].q = self._registers[-1].q.copy()
+                self._registers[-2].q = self._registers[-1].q
                 self._registers[-2].cfl = self._registers[-1].cfl
-                self._registers[-1].q = state.q.copy()
+                self._registers[-1].q = state.q
                 self._registers[-1].cfl = self.cfl.get_cached_max()
 
 
@@ -356,9 +361,9 @@ class SharpClawSolver(Solver):
 
     def ssp104(self,state):
         import copy
-        s1 = copy.deepcopy(self._registers[0])
-        s2 = copy.deepcopy(self._registers[1])
-        s1.q = state.q.copy()
+        State = type(state)
+        s1 = copy.deepcopy(self.state)
+        s2 = State(state.patch,state.num_eqn,state.num_aux)
 
         deltaq=self.dq(state)
         s1.q = state.q + deltaq/6.
@@ -494,39 +499,32 @@ class SharpClawSolver(Solver):
             self._registers[-1].set_num_ghost(self.num_ghost)
             self._registers[-1].t                           = state.t
             if state.num_aux > 0: self._registers[-1].aux   = state.aux
-
-    def set_sspcoeff(self):
-        """
-        Dictionary of SSP coefficients for time integrators.
-        """
-        sspcoeff = {
-            'Euler' :       1.0,
-            'SSP33':        1.0,
-            'SSP104' :      6.0,
-            'SSPMS32' :     0.5
-        }
-        
-        return sspcoeff[self.time_integrator]
+       
+        return self.sspcoeff[self.time_integrator]
 
 
-    def set_cfl_max_dt_new(self):
+    def get_cfl_max(self):
+        if self.time_integrator == 'SSPMS32' and self.step_index > 2:
+            sigma0 = self._registers[-3].cfl + self._registers[-2].cfl
+            sigma1 = sigma0 / (self.sspcoeff[self.time_integrator] * sigma0 + self.cfl_max)
+        else:
+            sigma1 = 1.0
+
+        return sigma1 *self.cfl_max
+
+    def get_dt_new(self):
         """
         Set maximum CFL number and time-step for next step depending on time integrator
         """
         if self.time_integrator == 'SSPMS32' and self.step_index > 2:
-            sigma0 = self._registers[-3].cfl + self._registers[-2].cfl
-            sigma1 = sigma0 / (self.set_sspcoeff() * sigma0 + self.cfl_max)
-
             sigma0 = self._registers[-2].cfl + self._registers[-1].cfl
-            sigma2 = sigma0 / (self.set_sspcoeff() * sigma0 + self.cfl_desired)
+            sigma2 = sigma0 / (self.sspcoeff[self.time_integrator] * sigma0 + self.cfl_desired)
         else:
-            sigma1 = 1.0
             sigma2 = 1.0 
         
-        cfl_max = sigma1 *self.cfl_max
         dt_new = sigma2 * self.dt * self.cfl_desired / self.cfl.get_cached_max()
 
-        return cfl_max,dt_new
+        return dt_new
 
 
 
