@@ -76,7 +76,7 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
                          'write_aux':write_aux,
                          'problem_data' : solution.problem_data}
         if write_p:
-            sol_dict[num_eqn] = solution.mp
+            sol_dict['num_eqn'] = solution.mp
 
         pickle.dump(sol_dict, pickle_file)
 
