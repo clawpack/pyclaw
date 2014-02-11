@@ -15,8 +15,6 @@ toolkit containing various other routines to help users use Clawpack.
 You can get the latest development version of PyClaw from
 http://github.com/clawpack/pyclaw.
 
-Full documentation can be found at http://numerics.kaust.edu.sa/.
-
 *********
 PetClaw
 *********
