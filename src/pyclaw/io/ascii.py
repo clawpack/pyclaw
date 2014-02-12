@@ -102,6 +102,11 @@ def write_patch_header(f,patch):
 
 
 def write_array(f,patch,q):
+    """
+    Write a single array to output file f as ASCII text.
+
+    The variable q here may in fact refer to q or to aux.
+    """
 
     dims = patch.dimensions
     if patch.num_dim == 1:
@@ -310,20 +315,37 @@ def read_t(frame,path='./',file_prefix='fort'):
 
 
 def read_array(f, state, num_var):
+    """
+    Read in an array from an ASCII output file.  
 
+    The variable q here may in fact refer to q or to aux.
+
+    This routine supports the possibility that the values
+    q[:,i,j,k] (for a fixed i,j,k) have been split over multiple lines, because
+    some packages write just 4 values per line.
+    For Clawpack 6.0, we plan to make all packages write
+    q[:,i,j,k] on a single line.  This routine can then be simplified.
+    """
     patch = state.patch
     q_shape = [num_var] + patch.num_cells_global
     q = np.zeros(q_shape)
 
+
     if patch.num_dim == 1:
         for i in xrange(patch.dimensions[0].num_cells):
-            l = f.readline().split()
+            l = []
+            while len(l)<num_var:
+                line = f.readline()
+                l = l + line.split()
             for m in xrange(num_var):
                 q[m,i] = float(l[m])
     elif patch.num_dim == 2:
         for j in xrange(patch.dimensions[1].num_cells):
             for i in xrange(patch.dimensions[0].num_cells):
-                l = f.readline().split()
+                l = []
+                while len(l)<num_var:
+                    line = f.readline()
+                    l = l + line.split()
                 for m in xrange(num_var):
                     q[m,i,j] = float(l[m])
             blank = f.readline()
@@ -331,7 +353,10 @@ def read_array(f, state, num_var):
         for k in xrange(patch.dimensions[2].num_cells):
             for j in xrange(patch.dimensions[1].num_cells):
                 for i in xrange(patch.dimensions[0].num_cells):
-                    l = f.readline().split()
+                    l=[]
+                    while len(l) < num_var:
+                        line = f.readline()
+                        l = l + line.split()
                     for m in xrange(num_var):
                         q[m,i,j,k] = float(l[m])
                 blank = f.readline()
