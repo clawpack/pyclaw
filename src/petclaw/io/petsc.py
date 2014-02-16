@@ -74,7 +74,8 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
         sol_dict = {'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
                          'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,
                          'write_aux':write_aux,
-                         'problem_data' : solution.problem_data}
+                         'problem_data' : solution.problem_data,
+                         'mapc2p': solution.state.grid.mapc2p}
         if write_p:
             sol_dict['num_eqn'] = solution.mp
 
@@ -222,6 +223,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
         state = petclaw.State(patch,num_eqn,num_aux)
         state.t = value_dict['t']
         state.problem_data = value_dict['problem_data']
+        state.grid.mapc2p = value_dict['mapc2p']
 
 #       DA View/Load is broken in Petsc-3.1.8, we can load/view the DA if needed in petsc-3.2
 #       state.q_da.load(viewer)
