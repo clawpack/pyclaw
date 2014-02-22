@@ -171,15 +171,16 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     """
 
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
+    problem_data = None
+    mapc2p = None
     try:
-        pickle_file = open(pickle_filename,'rb')
-        value_dict = pickle.load(pickle_file)
-        problem_data = value_dict.get('problem_data',None)
-        mapc2p       = value_dict.get('mapc2p',None)
+        if os.path.exists(pickle_filename):
+            pickle_file = open(pickle_filename,'rb')
+            value_dict = pickle.load(pickle_file)
+            problem_data = value_dict.get('problem_data',None)
+            mapc2p       = value_dict.get('mapc2p',None)
     except IOError:
         logger.info("Unable to open pickle file %s" % (pickle_filename))
-        problem_data = None
-        mapc2p = None
 
 
     # Construct path names
@@ -228,7 +229,9 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         state= pyclaw.state.State(patch,num_eqn,num_aux)
         state.t = t
         state.problem_data = problem_data
-        state.grid.mapc2p = mapc2p
+        if mapc2p is not None:
+            # If no mapc2p the default in the identity map in grid will be used
+            state.grid.mapc2p = mapc2p
 
         if num_aux > 0:   
             state.aux[:]=0.
