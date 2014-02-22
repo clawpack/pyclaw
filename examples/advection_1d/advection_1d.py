@@ -17,8 +17,8 @@ The final solution is identical to the initial data because the wave has
 crossed the domain exactly once.
 """
 
-def setup(nx=100,kernel_language='Python', use_petsc=False,
-          solver_type='classic', weno_order=5, outdir='./_output'):
+def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5, 
+        time_integrator=None, outdir='./_output'):
     import numpy as np
     from clawpack import riemann
 
@@ -38,6 +38,7 @@ def setup(nx=100,kernel_language='Python', use_petsc=False,
         elif kernel_language=='Python': 
             solver = pyclaw.SharpClawSolver1D(riemann.advection_1D_py.advection_1D)
         solver.weno_order=weno_order
+        solver.time_integrator=time_integrator
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language
@@ -101,3 +102,4 @@ def setplot(plotdata):
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(setup,setplot)
+

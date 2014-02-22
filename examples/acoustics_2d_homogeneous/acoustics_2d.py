@@ -17,7 +17,8 @@ and :math:`\rho` is the density.
  
 import numpy as np
 
-def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_type='classic',  disable_output=False):
+def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_type='classic',
+        time_integrator=None, disable_output=False):
     """
     Example python script for solving the 2d acoustics equations.
     """
@@ -32,6 +33,7 @@ def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_ty
         solver.dimensional_split=True
     elif solver_type=='sharpclaw':
         solver=pyclaw.SharpClawSolver2D(riemann.acoustics_2D)
+        solver.time_integrator=time_integrator
 
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
@@ -162,3 +164,4 @@ if __name__=="__main__":
     import sys
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(setup,setplot)
+
