@@ -148,8 +148,8 @@ class SharpClawSolver(Solver):
         self.kernel_language = 'Fortran'
         self.num_ghost = 3
         self.fwave = False
-        self.cfl_desired = 2.45
-        self.cfl_max = 2.5
+        self.cfl_desired = None
+        self.cfl_max = None
         self.dq_src = None
         self.call_before_step_each_stage = False
         self._mthlim = self.limiters
@@ -184,6 +184,7 @@ class SharpClawSolver(Solver):
 
         self._allocate_registers(solution)
         self._set_mthlim()
+        self._set_cflmax_cfldesired()
 
         state = solution.states[0]
  
@@ -402,6 +403,15 @@ class SharpClawSolver(Solver):
         if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_waves
         if len(self._mthlim)!=self.num_waves:
             raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_waves')
+
+
+    def _set_cflmax_cfldesired(self):
+        if self.time_integrator =='SSP104':
+            self.cfl_desired = 2.45
+            self.cfl_max = 2.5
+        elif self.time_integrator =='SSPMS32':
+            self.cfl_desired = 0.16#2.45/16.
+            self.cfl_max = 0.2#2.5/16.
  
        
     def dq(self,state):
