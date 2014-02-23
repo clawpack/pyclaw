@@ -18,7 +18,7 @@ crossed the domain exactly once.
 """
 
 def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5, 
-        time_integrator=None, outdir='./_output'):
+        time_integrator='SSP104', outdir='./_output'):
     import numpy as np
     from clawpack import riemann
 
@@ -102,4 +102,3 @@ def setplot(plotdata):
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(setup,setplot)
-
