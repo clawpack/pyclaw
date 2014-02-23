@@ -511,9 +511,6 @@ class SharpClawSolver(Solver):
             self._registers[-1].set_num_ghost(self.num_ghost)
             self._registers[-1].t                           = state.t
             if state.num_aux > 0: self._registers[-1].aux   = state.aux
-        
-        # set ssp coefficient 
-        self.sspcoeff[self.time_integrator]
 
 
     def get_cfl_max(self):
