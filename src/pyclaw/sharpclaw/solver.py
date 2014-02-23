@@ -410,8 +410,8 @@ class SharpClawSolver(Solver):
             self.cfl_desired = 2.45
             self.cfl_max = 2.5
         elif self.time_integrator =='SSPMS32':
-            self.cfl_desired = 0.16#2.45/16.
-            self.cfl_max = 0.2#2.5/16.
+            self.cfl_desired = 0.16
+            self.cfl_max = 0.2
  
        
     def dq(self,state):
@@ -511,8 +511,9 @@ class SharpClawSolver(Solver):
             self._registers[-1].set_num_ghost(self.num_ghost)
             self._registers[-1].t                           = state.t
             if state.num_aux > 0: self._registers[-1].aux   = state.aux
-       
-        return self.sspcoeff[self.time_integrator]
+        
+        # set ssp coefficient 
+        self.sspcoeff[self.time_integrator]
 
 
     def get_cfl_max(self):
