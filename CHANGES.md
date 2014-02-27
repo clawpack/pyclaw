@@ -1,4 +1,16 @@
-# Major changes since PyClaw 1.0
+# 5.1.0 release
+
+- SharpClaw: now includes a 3D solver.  See the 3D variable acoustics example.
+  Note that the 3D solver, like the 2D solver, simply does dimension-by-dimension
+  reconstruction and is thus formally 2nd order accurate, regardless of the
+  order of WENO reconstruction actually used.  Nevertheless, practical accuracy for
+  most multidimensional problems is substantially better than with typical 2nd-order methods.
+- I/O: problem_data and mapc2p are now saved to the pickle file and read back in
+- pyclaw.examples is now importable (previously it only worked if you did a dev install)
+- Controller class: the status dictionary returned by controller.run() now contains
+  information relevant to the whole simulation, not merely the last call of evolve_to_time().
+
+# Clawpack 5.0 release: major changes since PyClaw 1.0
 
 - The Riemann solver is selected (by setting solver.rp) at run-time instead of compile-time
 - Syntax: many variable names have changed and simpler syntax has been
