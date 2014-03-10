@@ -211,8 +211,8 @@ class Solver(object):
             self.rp = riemann_solver
             rp_name = riemann_solver.__name__.split('.')[-1]
             from clawpack import riemann
-            self.num_eqn = riemann.static.num_eqn[rp_name]
-            self.num_waves = riemann.static.num_waves[rp_name]
+            self.num_eqn   = riemann.static.num_eqn.get(rp_name,None)
+            self.num_waves = riemann.static.num_waves.get(rp_name,None)
 
         self._isinitialized = True
 
@@ -238,15 +238,28 @@ class Solver(object):
         
         """
         valid = True
+        reason = None
         if any([bcmeth == BC.custom for bcmeth in self.bc_lower]):
             if self.user_bc_lower is None:
-                self.logger.debug('Lower custom BC function has not been set.')
                 valid = False
+                reason = 'Lower custom BC function has not been set.'
         if any([bcmeth == BC.custom for bcmeth in self.bc_upper]):
             if self.user_bc_upper is None:
-                self.logger.debug('Upper custom BC function has not been set.')
                 valid = False
-        return valid
+                reason = 'Upper custom BC function has not been set.'
+        if self.num_waves is None:
+            valid = False
+            reason = 'solver.num_waves has not been set.'
+        if self.num_eqn is None:
+            valid = False
+            reason = 'solver.num_eqn has not been set.'
+        if (None in self.bc_lower) or (None in self.bc_upper):
+            valid = False
+            reason = 'One of the boundary conditions has not been set.'
+
+        if reason is not None:
+            self.logger.debug(reason)
+        return valid, reason
         
     def setup(self,solution):
         r"""

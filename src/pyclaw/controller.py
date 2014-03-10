@@ -203,15 +203,16 @@ class Controller(object):
     def check_validity(self):
         r"""Check that the controller has been properly set up and is ready to run.
 
-            Checks validity of the solver
+            Also checks validity of the solver, solution and states.
         """
         # Check to make sure we have a valid solver to use
         if self.solver is None:
             raise Exception("No solver set in controller.")
         if not isinstance(self.solver,Solver):
             raise Exception("Solver is not of correct type.")
-        if not self.solver.is_valid():
-            raise Exception("The solver failed to initialize properly.") 
+        valid, reason = self.solver.is_valid()
+        if not valid:
+            raise Exception("The solver failed to initialize properly because "+reason) 
             
         # Check to make sure the initial solution is valid
         if not self.solution.is_valid():
