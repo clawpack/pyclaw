@@ -7,6 +7,7 @@ Routines for reading and writing an ascii output file
 import os,sys
 import logging
 import numpy as np
+import pickle
 
 from ..util import read_data_line
 
@@ -87,6 +88,19 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
         logger.error("Unexpected error:", sys.exc_info()[0])
         raise
 
+    pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
+    pickle_file = open(pickle_filename,'wb')
+    sol_dict = {'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
+                     'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,
+                     'write_aux':write_aux,
+                     'problem_data' : solution.problem_data,
+                     'mapc2p': solution.state.grid.mapc2p}
+    if write_p:
+        sol_dict[num_eqn] = solution.mp
+
+    pickle.dump(sol_dict, pickle_file)
+    pickle_file.close()
+
 
 def write_patch_header(f,patch):
     f.write("%5i                  patch_number\n" % patch.patch_index)
@@ -102,6 +116,11 @@ def write_patch_header(f,patch):
 
 
 def write_array(f,patch,q):
+    """
+    Write a single array to output file f as ASCII text.
+
+    The variable q here may in fact refer to q or to aux.
+    """
 
     dims = patch.dimensions
     if patch.num_dim == 1:
@@ -151,6 +170,19 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
        the format being read in.  ``default = {}``
     """
 
+    pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
+    problem_data = None
+    mapc2p = None
+    try:
+        if os.path.exists(pickle_filename):
+            pickle_file = open(pickle_filename,'rb')
+            value_dict = pickle.load(pickle_file)
+            problem_data = value_dict.get('problem_data',None)
+            mapc2p       = value_dict.get('mapc2p',None)
+    except IOError:
+        logger.info("Unable to open pickle file %s" % (pickle_filename))
+
+
     # Construct path names
     base_path = os.path.join(path,)
     q_fname = os.path.join(base_path, '%s.q' % file_prefix) + str(frame).zfill(4)
@@ -196,6 +228,10 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         patch = pyclaw.geometry.Patch(dimensions)
         state= pyclaw.state.State(patch,num_eqn,num_aux)
         state.t = t
+        state.problem_data = problem_data
+        if mapc2p is not None:
+            # If no mapc2p the default in the identity map in grid will be used
+            state.grid.mapc2p = mapc2p
 
         if num_aux > 0:   
             state.aux[:]=0.
@@ -310,20 +346,37 @@ def read_t(frame,path='./',file_prefix='fort'):
 
 
 def read_array(f, state, num_var):
+    """
+    Read in an array from an ASCII output file.  
 
+    The variable q here may in fact refer to q or to aux.
+
+    This routine supports the possibility that the values
+    q[:,i,j,k] (for a fixed i,j,k) have been split over multiple lines, because
+    some packages write just 4 values per line.
+    For Clawpack 6.0, we plan to make all packages write
+    q[:,i,j,k] on a single line.  This routine can then be simplified.
+    """
     patch = state.patch
     q_shape = [num_var] + patch.num_cells_global
     q = np.zeros(q_shape)
 
+
     if patch.num_dim == 1:
         for i in xrange(patch.dimensions[0].num_cells):
-            l = f.readline().split()
+            l = []
+            while len(l)<num_var:
+                line = f.readline()
+                l = l + line.split()
             for m in xrange(num_var):
                 q[m,i] = float(l[m])
     elif patch.num_dim == 2:
         for j in xrange(patch.dimensions[1].num_cells):
             for i in xrange(patch.dimensions[0].num_cells):
-                l = f.readline().split()
+                l = []
+                while len(l)<num_var:
+                    line = f.readline()
+                    l = l + line.split()
                 for m in xrange(num_var):
                     q[m,i,j] = float(l[m])
             blank = f.readline()
@@ -331,7 +384,10 @@ def read_array(f, state, num_var):
         for k in xrange(patch.dimensions[2].num_cells):
             for j in xrange(patch.dimensions[1].num_cells):
                 for i in xrange(patch.dimensions[0].num_cells):
-                    l = f.readline().split()
+                    l=[]
+                    while len(l) < num_var:
+                        line = f.readline()
+                        l = l + line.split()
                     for m in xrange(num_var):
                         q[m,i,j,k] = float(l[m])
                 blank = f.readline()

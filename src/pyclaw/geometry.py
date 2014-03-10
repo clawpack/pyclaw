@@ -302,6 +302,36 @@ class Grid(object):
                     #numpy arrays instead of lists of numpy arrays
                     self._c_centers.append(center_array[index[i,...]])
 
+    def compute_c_centers_with_ghost(self, nghost, recompute=False):
+        r"""
+        Calculate the :attr:`c_centers` array
+        
+        This array is computed only when requested and then stored for later
+        use unless the recompute flag is set to True.
+        
+        Access the resulting computational coodinate array via the
+        corresponding dimensions or via the computational grid properties
+        :attr:`c_centers`.
+        
+        :Input:
+         - *recompute* - (bool) Whether to force a recompute of the arrays
+        """
+        setattr(self, _nghost, nghost)
+
+        if recompute or (self._c_centers is None):
+            self._c_centers = [None]*self.num_dim
+            
+            # For one dimension, the center and edge arrays are equivalent
+            if self.num_dim == 1:
+                self._c_centers[0] = self.dimensions[0].centers
+            else:
+                index = np.indices(self.num_cells)
+                self._c_centers = []
+                for i,center_array in enumerate(self.get_dim_attribute('centers_with_ghost')):
+                    #We could just use indices directly and deal with
+                    #numpy arrays instead of lists of numpy arrays
+                    self._c_centers.append(center_array[index[i,...]])
+
     def compute_c_edges(self, recompute=False):
         r"""
         Calculate the :attr:`c_edges` array
@@ -440,14 +470,28 @@ class Dimension(object):
                 self._centers[i] = self.lower + (i+0.5)*self.delta
         return self._centers
     _centers = None
-
-    def centers_with_ghost(self,nghost):
+    @property
+    def centers_with_ghost(self):
         r"""(ndarrary(:)) - Location of all cell center coordinates
         for this dimension, including centers of ghost cells."""
         centers = self.centers
-        pre  = np.linspace(self.lower-(nghost-0.5)*self.delta,self.lower-0.5*self.delta,nghost)
-        post = np.linspace(self.upper+0.5*self.delta, self.upper+(nghost-0.5)*self.delta,nghost)
-        return np.hstack((pre,centers,post))
+        nghost  = self._nghost
+        if self._centers_with_ghost is None:
+            pre  = np.linspace(self.lower-(nghost-0.5)*self.delta,self.lower-0.5*self.delta,nghost)
+            post = np.linspace(self.upper+0.5*self.delta, self.upper+(nghost-0.5)*self.delta,nghost)
+            self._centers_with_ghost = np.hstack((pr,centers,post))
+        return self._centers_with_ghost #np.hstack((pre,centers,post))
+    _centers_with_ghost = None
+    @property
+    def edges_with_ghost(self):
+        edges   = self.edges
+        nghost  = self._nghost
+        if self._edges_with_ghost is None:
+            pre  = np.linspace(self.lower-(nghost)*self.delta,self.lower-self.delta,nghost)
+            post = np.linspace(self.upper+self.delta, self.upper+(nghost)*self.delta,nghost)
+            self._edges_with_ghost = np.hstack((pr,edges,post))
+        return self._edges_with_ghost
+
     
     def __init__(self, *args, **kargs):
         r"""

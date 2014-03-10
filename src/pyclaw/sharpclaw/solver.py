@@ -741,3 +741,84 @@ class SharpClawSolver2D(SharpClawSolver):
 
         self.cfl.update_global_max(cfl)
         return dq[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
+
+# ========================================================================
+class SharpClawSolver3D(SharpClawSolver):
+# ========================================================================
+    """ Three Dimensional SharpClawSolver
+    """
+
+    __doc__ += add_parent_doc(SharpClawSolver)
+
+    def __init__(self,riemann_solver=None,claw_package=None):
+        r"""
+        Create 3D SharpClaw solver
+        
+        See :class:`SharpClawSolver3D` for more info.
+        """   
+        self.num_dim = 3
+
+        super(SharpClawSolver3D,self).__init__(riemann_solver,claw_package)
+
+
+    def teardown(self):
+        r"""
+        Deallocate F90 module arrays.
+        Also delete Fortran objects, which otherwise tend to persist in Python sessions.
+        """
+        if self.kernel_language=='Fortran':
+            self.fmod.workspace.dealloc_workspace(self.char_decomp)
+            self.fmod.reconstruct.dealloc_recon_workspace(self.fmod.clawparams.lim_type,self.fmod.clawparams.char_decomp)
+            self.fmod.clawparams.dealloc_clawparams()
+            del self.fmod
+
+
+    def dq_hyperbolic(self,state):
+        """Compute dq/dt * (delta t) for the hyperbolic hyperbolic system
+
+        Note that the capa array, if present, should be located in the aux
+        variable.
+
+        Indexing works like this (here num_ghost=2 as an example)::
+
+         0     1     2     3     4     mx+num_ghost-2     mx+num_ghost      mx+num_ghost+2
+                     |                        mx+num_ghost-1 |  mx+num_ghost+1
+         |     |     |     |     |   ...   |     |     |     |     |
+            0     1  |  2     3            mx+num_ghost-2    |mx+num_ghost       
+                                                  mx+num_ghost-1   mx+num_ghost+1
+
+        The top indices represent the values that are located on the grid
+        cell boundaries such as waves, s and other Riemann problem values, 
+        the bottom for the cell centered values such as q.  In particular
+        the ith grid cell boundary has the following related information::
+
+                          i-1         i         i+1
+                           |          |          |
+                           |   i-1    |     i    |
+                           |          |          |
+
+        Again, grid cell boundary quantities are at the top, cell centered
+        values are in the cell.
+
+        """
+        self._apply_q_bcs(state)
+        if state.num_aux > 0:    
+            self._apply_aux_bcs(state)
+        q = self.qbc 
+
+        grid = state.grid
+
+        num_ghost=self.num_ghost
+        mx=grid.num_cells[0]
+        my=grid.num_cells[1]
+        mz=grid.num_cells[2]
+        maxm = max(mx,my,mz)
+
+        if self.kernel_language=='Fortran':
+            rpn3 = self.rp.rpn3._cpointer
+            dq,cfl=self.fmod.flux3(q,self.auxbc,self.dt,state.t,num_ghost,maxm,mx,my,mz,rpn3)
+
+        else: raise Exception('Only Fortran kernels are supported in 3D.')
+
+        self.cfl.update_global_max(cfl)
+        return dq[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost]

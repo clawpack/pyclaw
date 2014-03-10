@@ -7,7 +7,6 @@ subroutine flux2(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn2)
 ! ==========================================================
 
     use ClawParams
-
     implicit none
     
     ! Input (dummy) variables
@@ -45,7 +44,6 @@ subroutine flux2(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn2)
         q1d => q(:,:,j)
         aux1d => aux(:,:,j)
 
-        dq1d(:,:) = 0.d0
         ! compute modification dq1d along this slice:
         call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,1,num_aux,num_eqn,mx,num_ghost,maxnx,rpn2)
         cfl = dmax1(cfl,cfl1d)
@@ -64,7 +62,6 @@ subroutine flux2(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn2)
         q1d => q(:,i,:)
         aux1d => aux(:,i,:)
 
-        dq1d(:,:) = 0.d0
         call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,2,num_aux,num_eqn,my,num_ghost,maxnx,rpn2)
         cfl = dmax1(cfl,cfl1d)
 
