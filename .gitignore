@@ -20,3 +20,6 @@ pyclaw.log
 .noseids
 _build
 build
+
+# symlink to examples directory
+src/pyclaw/examples
