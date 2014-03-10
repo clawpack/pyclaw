@@ -169,8 +169,8 @@ class Controller(object):
         r"""(float) - Final time output, ``default = 1.0``"""
         self.output_style = 1
         r"""(int) - Time output style, ``default = 1``"""
-        self.verbosity = 0 
-        r"""(int) - Level of output, ``default = 0``"""
+        self.verbosity = 3 
+        r"""(int) - Level of output, ``default = 3``"""
         self.num_output_times = 10                  # Outstyle 1 defaults
         r"""(int) - Number of output times, only used with ``output_style = 1``,
         ``default = 10``"""
