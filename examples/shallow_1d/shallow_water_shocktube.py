@@ -29,7 +29,7 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
         from clawpack import pyclaw
 
     if kernel_language =='Python':
-        rs = riemann.shallow_1D_py.shallow_1D
+        rs = riemann.shallow_1D_py.shallow_roe_1D
     elif kernel_language =='Fortran':
         rs = riemann.shallow_roe_with_efix_1D
  
@@ -60,6 +60,7 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
 
     # Parameters
     state.problem_data['grav'] = 1.0
+    state.problem_data['efix'] = False
     
     xc = state.grid.x.centers
 
