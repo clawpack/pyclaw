@@ -148,8 +148,8 @@ class SharpClawSolver(Solver):
         self.kernel_language = 'Fortran'
         self.num_ghost = 3
         self.fwave = False
-        self.cfl_desired = None
-        self.cfl_max = None
+        self.cfl_desired = 2.45
+        self.cfl_max = 2.5
         self.dq_src = None
         self.call_before_step_each_stage = False
         self._mthlim = self.limiters
@@ -254,36 +254,7 @@ class SharpClawSolver(Solver):
 
 
             elif self.time_integrator=='SSP104':
-                s1=self._registers[0]
-                s2=self._registers[1]
-                s1.q = state.q.copy()
-
-                deltaq=self.dq(state)
-                s1.q = state.q + deltaq/6.
-                s1.t = state.t + self.dt/6.
-
-                for i in xrange(4):
-                    if self.call_before_step_each_stage:
-                        self.before_step(self,s1)
-                    deltaq=self.dq(s1)
-                    s1.q=s1.q + deltaq/6.
-                    s1.t =s1.t + self.dt/6.
-
-                s2.q = state.q/25. + 9./25 * s1.q
-                s1.q = 15. * s2.q - 5. * s1.q
-                s1.t = state.t + self.dt/3.
-
-                for i in xrange(4):
-                    if self.call_before_step_each_stage:
-                        self.before_step(self,s1)
-                    deltaq=self.dq(s1)
-                    s1.q=s1.q + deltaq/6.
-                    s1.t =s1.t + self.dt/6.
-                
-                if self.call_before_step_each_stage:
-                    self.before_step(self,s1)
-                deltaq = self.dq(s1)
-                state.q = s2.q + 0.6 * s1.q + 0.1 * deltaq
+                state.q = self.ssp104(state)
 
 
             elif self.time_integrator=='RK':
@@ -363,10 +334,15 @@ class SharpClawSolver(Solver):
 
 
     def ssp104(self,state):
-        import copy
-        State = type(state)
-        s1 = copy.deepcopy(self.state)
-        s2 = State(state.patch,state.num_eqn,state.num_aux)
+        if self.time_integrator == 'SSP104':
+            s1=self._registers[0]
+            s2=self._registers[1]
+            s1.q = state.q.copy()
+        elif self.time_integrator == 'LMM':
+            import copy
+            State = type(state)
+            s1 = copy.deepcopy(state)
+            s2 = State(state.patch,state.num_eqn,state.num_aux)
 
         deltaq=self.dq(state)
         s1.q = state.q + deltaq/6.
@@ -520,7 +496,7 @@ class SharpClawSolver(Solver):
         else:
             sigma1 = 1.0
 
-        return sigma1 *self.cfl_max
+        return sigma1 * self.cfl_max
 
     def get_dt_new(self):
         """
