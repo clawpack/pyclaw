@@ -287,8 +287,8 @@ contains
                 ! Project to the physical space:
             do m = 1,num_eqn
                 do i=num_ghost,mx2-num_ghost+1
-                    qr(m,i-1) = qr(m,i-1) + evr(i,m,ip)*uu(1,i)
-                    ql(m,i  ) = ql(m,i  ) + evr(i,m,ip)*uu(2,i)
+                    qr(m,i-1) = qr(m,i-1) + evr(ip,m,i)*uu(1,i)
+                    ql(m,i  ) = ql(m,i  ) + evr(ip,m,i)*uu(2,i)
                 enddo
             enddo
         enddo !end loop over waves
@@ -344,7 +344,7 @@ contains
                     hh(m1,i) = 0.d0
                     do m=1,num_eqn 
                         hh(m1,i) = hh(m1,i)+evl(mw,m,i)* &
-                                    gg(i+m1,mw)*evr(i+m1,m,mw)
+                                    gg(i+m1,mw)*evr(mw,m,i+m1)
                     enddo
                 enddo
             enddo
