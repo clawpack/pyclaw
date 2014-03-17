@@ -96,7 +96,7 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
                      'problem_data' : solution.problem_data,
                      'mapc2p': solution.state.grid.mapc2p}
     if write_p:
-        sol_dict[num_eqn] = solution.mp
+        sol_dict['num_eqn'] = solution.mp
 
     pickle.dump(sol_dict, pickle_file)
     pickle_file.close()

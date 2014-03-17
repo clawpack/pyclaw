@@ -54,7 +54,6 @@ def test_2d_psystem():
     classic_tests = gen_variants(psystem_2d.setup, verify_data(),
                                  kernel_languages=('Fortran',), 
                                  solver_type='classic', 
-                                 disable_output=True,
                                  outdir=tempdir, cells_per_layer=10,
                                  tfinal=40)
     from itertools import chain
