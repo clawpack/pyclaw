@@ -121,6 +121,14 @@ class SharpClawSolver(Solver):
         ``Default = False``
 
     """
+    sspcoeff = {
+       'Euler' :    1.0,
+       'SSP33':     1.0,
+       'SSP104' :   6.0,
+       'SSPMS32' :  0.5,
+       'RK':        None,
+       'LMM':       None
+       }
     
     # ========================================================================
     #   Initialization routines
@@ -146,21 +154,27 @@ class SharpClawSolver(Solver):
         self.call_before_step_each_stage = False
         self._mthlim = self.limiters
         self._method = None
-        self._rk_stages = None
+        self._registers = None
 
+        # Used only if time integrator is 'RK'
         self.a = None
         self.b = None
         self.c = None
-        
+
+        # Used only if time integrator is a multistep method
+        self.step_index = 1
+        self.alpha = None
+        self.beta = None
 
         # Call general initialization function
         super(SharpClawSolver,self).__init__(riemann_solver,claw_package)
         
     def setup(self,solution):
         """
-        Allocate RK stage arrays and fortran routine work arrays.
+        Allocate RK stage arrays or previous step solutions and fortran routine work arrays.
         """
-        self.num_ghost = (self.weno_order+1)/2
+        if self.lim_type == 2:
+            self.num_ghost = (self.weno_order+1)/2
 
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (num_ghost)
@@ -168,8 +182,9 @@ class SharpClawSolver(Solver):
         state.set_num_ghost(self.num_ghost)
         # End hack
 
-        self._allocate_rk_stages(solution)
+        self._allocate_registers(solution)
         self._set_mthlim()
+        self._set_cflmax_cfldesired()
 
         state = solution.states[0]
  
@@ -204,12 +219,13 @@ class SharpClawSolver(Solver):
     def step(self,solution):
         """Evolve q over one time step.
 
-        Take on Runge-Kutta time step using the method specified by
-        self..time_integrator.  Currently implemented methods:
+        Take on Runge-Kutta time step or multistep method using the method specified by
+        self.time_integrator.  Currently implemented methods:
 
         'Euler'  : 1st-order Forward Euler integration
         'SSP33'  : 3rd-order strong stability preserving method of Shu & Osher
         'SSP104' : 4th-order strong stability preserving method Ketcheson
+        'SSPMS32': 2nd-order strong stability preserving 3-step linear multistep method
         """
         state = solution.states[0]
 
@@ -222,70 +238,139 @@ class SharpClawSolver(Solver):
 
             elif self.time_integrator=='SSP33':
                 deltaq=self.dq(state)
-                self._rk_stages[0].q=state.q+deltaq
-                self._rk_stages[0].t =state.t+self.dt
+                self._registers[0].q=state.q+deltaq
+                self._registers[0].t =state.t+self.dt
 
                 if self.call_before_step_each_stage:
-                    self.before_step(self,self._rk_stages[0])
-                deltaq=self.dq(self._rk_stages[0])
-                self._rk_stages[0].q= 0.75*state.q + 0.25*(self._rk_stages[0].q+deltaq)
-                self._rk_stages[0].t = state.t+0.5*self.dt
+                    self.before_step(self,self._registers[0])
+                deltaq=self.dq(self._registers[0])
+                self._registers[0].q= 0.75*state.q + 0.25*(self._registers[0].q+deltaq)
+                self._registers[0].t = state.t+0.5*self.dt
 
                 if self.call_before_step_each_stage:
-                    self.before_step(self,self._rk_stages[0])
-                deltaq=self.dq(self._rk_stages[0])
-                state.q = 1./3.*state.q + 2./3.*(self._rk_stages[0].q+deltaq)
+                    self.before_step(self,self._registers[0])
+                deltaq=self.dq(self._registers[0])
+                state.q = 1./3.*state.q + 2./3.*(self._registers[0].q+deltaq)
 
 
             elif self.time_integrator=='SSP104':
-                s1=self._rk_stages[0]
-                s2=self._rk_stages[1]
-                s1.q = state.q.copy()
+                state.q = self.ssp104(state)
 
-                deltaq=self.dq(state)
-                s1.q = state.q + deltaq/6.
-                s1.t = state.t + self.dt/6.
 
-                for i in xrange(4):
-                    if self.call_before_step_each_stage:
-                        self.before_step(self,s1)
-                    deltaq=self.dq(s1)
-                    s1.q=s1.q + deltaq/6.
-                    s1.t =s1.t + self.dt/6.
-
-                s2.q = state.q/25. + 9./25 * s1.q
-                s1.q = 15. * s2.q - 5. * s1.q
-                s1.t = state.t + self.dt/3.
-
-                for i in xrange(4):
-                    if self.call_before_step_each_stage:
-                        self.before_step(self,s1)
-                    deltaq=self.dq(s1)
-                    s1.q=s1.q + deltaq/6.
-                    s1.t =s1.t + self.dt/6.
-                
-                if self.call_before_step_each_stage:
-                    self.before_step(self,s1)
-                deltaq = self.dq(s1)
-                state.q = s2.q + 0.6 * s1.q + 0.1 * deltaq
-                
             elif self.time_integrator=='RK':
                 # General RK with specified coefficients
-                # self._rk_stages[i].q actually stores f(y_i)
+                # self._registers[i].q actually stores dt*f(y_i)
                 num_stages = len(self.b)
                 for i in range(num_stages):
-                    self._rk_stages[i].q = state.q.copy()
+                    self._registers[i].q = state.q.copy()
                     for j in range(i):
-                        self._rk_stages[i].q += self.a[i,j]*self._rk_stages[j].q
-                    self._rk_stages[i].t = state.t + self.dt * self.c[i]
-                    self._rk_stages[i].q = self.dq(self._rk_stages[i])
+                        self._registers[i].q += self.a[i,j]*self._registers[j].q
+                    self._registers[i].t = state.t + self.dt * self.c[i]
+                    self._registers[i].q = self.dq(self._registers[i])
 
                 for j in range(num_stages):
-                    state.q += self.b[j]*self._rk_stages[j].q
+                    state.q += self.b[j]*self._registers[j].q
+
+
+            elif self.time_integrator == 'SSPMS32':
+                # Store initial solution
+                if self.step_index == 1:
+                    self._registers[-2].cfl = self.cfl_desired
+                    self._registers[-1].q = state.q.copy()
+                    self._registers[-1].cfl = self.cfl_desired
+
+                if self.step_index < 3:
+                    # Using Euler method for previous step values
+                    deltaq = self.dq(state)
+                    state.q += deltaq
+                    self.step_index += 1
+                else:
+                    omega = (self._registers[-2].cfl + self._registers[-1].cfl)/self.cfl.get_cached_max()
+                    r = (omega-1.)/omega
+                    beta = (omega+1.)/omega
+                    alpha = 1./omega**2
+                    deltaq = self.dq(state)
+                    state.q = r*beta*(state.q + 2*deltaq) + alpha*self._registers[-3].q
+                
+                # Update stored solutions
+                self._registers[-3].q = self._registers[-2].q
+                self._registers[-3].cfl = self._registers[-2].cfl
+                self._registers[-2].q = self._registers[-1].q
+                self._registers[-2].cfl = self._registers[-1].cfl
+                self._registers[-1].q = state.q
+                self._registers[-1].cfl = self.cfl.get_cached_max()
+
+
+            elif self.time_integrator == 'LMM':
+                num_steps = len(self.alpha)
+
+                # Store initial solution
+                if self.step_index == 1:
+                    self._registers[-num_steps].q  = state.q.copy()
+                    self._registers[-num_steps].dq = self.dq(state)
+
+                if self.step_index < num_steps:
+                    # Using SSP104 for previous step values
+                    state.q = self.ssp104(state)
+                    self._registers[-num_steps+self.step_index].q = state.q.copy()
+                    self._registers[-num_steps+self.step_index].dq = self.dq(state)
+                    self.step_index += 1
+                else:
+                    # Update solution: alpha[-1] and beta[-1] correspond to solution at the previous step
+                    state.q = self.alpha[-1]*self._registers[-1].q + self.beta[-1]*self._registers[-1].dq
+                    for i in range(-num_steps,-1):
+                        state.q += self.alpha[i]*self._registers[i].q + self.beta[i]*self._registers[i].dq
+                        self._registers[i].q = self._registers[i+1].q.copy()
+                        self._registers[i].dq = self._registers[i+1].dq.copy()
+                    # Store current solution and function evaluation
+                    self._registers[-1].q = state.q.copy()
+                    self._registers[-1].dq = self.dq(state)
+
+
             else:
                 raise Exception('Unrecognized time integrator')
         except CFLError:
             return False
+
+
+    def ssp104(self,state):
+        if self.time_integrator == 'SSP104':
+            s1=self._registers[0]
+            s2=self._registers[1]
+            s1.q = state.q.copy()
+        elif self.time_integrator == 'LMM':
+            import copy
+            State = type(state)
+            s1 = copy.deepcopy(state)
+            s2 = State(state.patch,state.num_eqn,state.num_aux)
+
+        deltaq=self.dq(state)
+        s1.q = state.q + deltaq/6.
+        s1.t = state.t + self.dt/6.
+
+        for i in xrange(4):
+            if self.call_before_step_each_stage:
+                self.before_step(self,s1)
+            deltaq=self.dq(s1)
+            s1.q=s1.q + deltaq/6.
+            s1.t =s1.t + self.dt/6.
+
+        s2.q = state.q/25. + 9./25 * s1.q
+        s1.q = 15. * s2.q - 5. * s1.q
+        s1.t = state.t + self.dt/3.
+
+        for i in xrange(4):
+            if self.call_before_step_each_stage:
+                self.before_step(self,s1)
+            deltaq=self.dq(s1)
+            s1.q=s1.q + deltaq/6.
+            s1.t =s1.t + self.dt/6.
+
+        if self.call_before_step_each_stage:
+            self.before_step(self,s1)
+        deltaq = self.dq(s1)
+ 
+        return s2.q + 0.6 * s1.q + 0.1 * deltaq
 
 
     def _set_mthlim(self):
@@ -294,6 +379,15 @@ class SharpClawSolver(Solver):
         if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_waves
         if len(self._mthlim)!=self.num_waves:
             raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_waves')
+
+
+    def _set_cflmax_cfldesired(self):
+        if self.time_integrator =='SSP104':
+            self.cfl_desired = 2.45
+            self.cfl_max = 2.5
+        elif self.time_integrator =='SSPMS32':
+            self.cfl_desired = 0.16
+            self.cfl_max = 0.2
  
        
     def dq(self,state):
@@ -360,34 +454,63 @@ class SharpClawSolver(Solver):
         reconstruct.alloc_recon_workspace(maxnx,self.num_ghost,state.num_eqn,self.num_waves,
                                             clawparams.lim_type,clawparams.char_decomp)
 
-    def _allocate_rk_stages(self,solution):
+    def _allocate_registers(self,solution):
         r"""
-        Instantiate State objects for Runge--Kutta stages.
+        Instantiate State objects for Runge--Kutta stages and Linear Multistep method steps.
 
         This routine is only used by method-of-lines solvers (SharpClaw),
         not by the Classic solvers.  It allocates additional State objects
-        to store the intermediate stages used by Runge--Kutta time integrators.
+        to store the intermediate stages used by Runge--Kutta and Multistep 
+        time integrators.
 
         If we create a MethodOfLinesSolver subclass, this should be moved there.
         """
-        if self.time_integrator   == 'Euler':  nregisters=1
-        elif self.time_integrator == 'SSP33':  nregisters=2
-        elif self.time_integrator == 'SSP104': nregisters=3
-        elif self.time_integrator == 'RK': 
-            nregisters=len(self.b)+2
- 
+        if self.time_integrator   == 'Euler':   nregisters=1
+        elif self.time_integrator == 'SSP33':   nregisters=2
+        elif self.time_integrator == 'SSP104':  nregisters=3
+        elif self.time_integrator == 'RK':      nregisters=len(self.b)+2
+        elif self.time_integrator == 'SSPMS32': nregisters=4
+        elif self.time_integrator == 'LMM':
+            nregisters=len(self.alpha)+1
+            self.dt_variable = False
+        else:
+            raise Exception('Unrecognized time intergrator')
+        
         state = solution.states[0]
         # use the same class constructor as the solution for the Runge Kutta stages
         State = type(state)
-        self._rk_stages = []
+        self._registers = []
         for i in xrange(nregisters-1):
             #Maybe should use State.copy() here?
-            self._rk_stages.append(State(state.patch,state.num_eqn,state.num_aux))
-            self._rk_stages[-1].problem_data       = state.problem_data
-            self._rk_stages[-1].set_num_ghost(self.num_ghost)
-            self._rk_stages[-1].t                = state.t
-            if state.num_aux > 0:
-                self._rk_stages[-1].aux              = state.aux
+            self._registers.append(State(state.patch,state.num_eqn,state.num_aux))
+            self._registers[-1].problem_data                = state.problem_data
+            self._registers[-1].set_num_ghost(self.num_ghost)
+            self._registers[-1].t                           = state.t
+            if state.num_aux > 0: self._registers[-1].aux   = state.aux
+
+
+    def get_cfl_max(self):
+        if self.time_integrator == 'SSPMS32' and self.step_index > 2:
+            sigma0 = self._registers[-3].cfl + self._registers[-2].cfl
+            sigma1 = sigma0 / (self.sspcoeff[self.time_integrator] * sigma0 + self.cfl_max)
+        else:
+            sigma1 = 1.0
+
+        return sigma1 * self.cfl_max
+
+    def get_dt_new(self):
+        """
+        Set maximum CFL number and time-step for next step depending on time integrator
+        """
+        if self.time_integrator == 'SSPMS32' and self.step_index > 2:
+            sigma0 = self._registers[-2].cfl + self._registers[-1].cfl
+            sigma2 = sigma0 / (self.sspcoeff[self.time_integrator] * sigma0 + self.cfl_desired)
+        else:
+            sigma2 = 1.0 
+        
+        dt_new = sigma2 * self.dt * self.cfl_desired / self.cfl.get_cached_max()
+
+        return dt_new
 
 
 
