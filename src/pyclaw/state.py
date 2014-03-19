@@ -171,7 +171,7 @@ class State(object):
         """
         import logging
         valid = True
-        logger = logging.getLogger('solution')
+        logger = logging.getLogger('pyclaw.solution')
         if not self.q.flags['F_CONTIGUOUS']:
             logger.debug('q array is not Fortran contiguous.')
             valid = False

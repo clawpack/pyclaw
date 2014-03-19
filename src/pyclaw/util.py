@@ -11,6 +11,13 @@ import logging
 import tempfile
 import numpy as np
 
+
+LOGGING_LEVELS = {0:logging.CRITICAL,
+                  1:logging.ERROR,
+                  2:logging.WARNING,
+                  3:logging.INFO,
+                  4:logging.DEBUG}
+
 def add_parent_doc(parent):
     """add parent documentation for a class""" 
     
