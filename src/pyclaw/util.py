@@ -44,8 +44,15 @@ def run_app_from_main(application,setplot=None):
     else:
         from clawpack import pyclaw
 
-    app_kwargs = {key: value for key, value in pyclaw_kwargs.items() 
-                  if not key in ('htmlplot','iplot')}
+    if sys.version_info >= (2, 7):
+        app_kwargs = {key: value for key, value in pyclaw_kwargs.items() 
+                      if not key in ('htmlplot','iplot')}
+    else:
+        # the above fails with Python < 2.7, so write it out...
+        app_kwargs = {}
+        for key,value in pyclaw_kwargs.items():
+            if key not in ('htmlplot','iplot'):
+                app_kwargs[key] = value
 
     claw=application(**app_kwargs)
 
