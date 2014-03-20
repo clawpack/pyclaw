@@ -44,10 +44,10 @@ def run_app_from_main(application,setplot=None):
     else:
         from clawpack import pyclaw
 
-    try:
+    if sys.version_info >= (2, 7):
         app_kwargs = {key: value for key, value in pyclaw_kwargs.items() 
                       if not key in ('htmlplot','iplot')}
-    except:
+    else:
         # the above fails with Python < 2.7, so write it out...
         app_kwargs = {}
         for key,value in pyclaw_kwargs.items():
