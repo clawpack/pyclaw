@@ -2,7 +2,6 @@
 # encoding: utf-8
 r"""Shu-Osher problem.
    1D compressible inviscid flow (Euler equations)."""
-
 import numpy as np
 gamma = 1.4
 gamma1 = gamma - 1.
@@ -17,12 +16,14 @@ c = np.array([0., .3772689153313680, .7545378306627360, .7289856616121880, .6992
 
 b = np.array([.206734020864804, .206734020864804, .117097251841844, .181802560120140, .287632146308408])
 
-def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='sharpclaw',kernel_language='Fortran'):
+def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='sharpclaw',kernel_language='Fortran',char_decomp=2):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a shock wave impacting a sinusoidal density field.
     """
+
     from clawpack import riemann
+    import sharpclaw1
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -36,14 +37,16 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(rs)
-        solver.time_integrator = 'RK'
+        solver.time_integrator = 'SSP104'
         solver.a, solver.b, solver.c = a, b, c
-        solver.cfl_desired = 0.6
-        solver.cfl_max = 0.7
+        #solver.cfl_desired = 0.6
+        #solver.cfl_max = 0.7
+        solver.char_decomp = char_decomp
     elif solver_type == 'classic':
         solver = pyclaw.ClawSolver1D(rs)
 
     solver.kernel_language = kernel_language
+    solver.fmod = sharpclaw1
 
     solver.bc_lower[0]=pyclaw.BC.extrap
     solver.bc_upper[0]=pyclaw.BC.extrap

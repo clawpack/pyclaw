@@ -7,9 +7,11 @@ module reconstruct
     double precision, allocatable  :: dq1m(:)
     double precision, allocatable, private :: uu(:,:),dq(:,:)
     double precision, allocatable, private :: uh(:,:,:),gg(:,:),hh(:,:),u(:,:,:)
+    double precision, allocatable, private  :: dw1m(:), w(:,:), norm(:), qq(:,:), wl(:,:), wr(:,:)
     double precision, allocatable, private :: evl(:,:,:),evr(:,:,:)
     double precision, private  :: epweno = 1.e-36
     logical :: recon_alloc = .False.
+    logical :: flag
 
 ! ===================================================================
 ! Array allocation
@@ -38,6 +40,15 @@ contains
                     allocate(dq(num_eqn,maxnx+2*num_ghost))
                     allocate(uu(2,maxnx+2*num_ghost))
                     allocate(hh(-2:2,maxnx+2*num_ghost))
+
+                    allocate( w(num_eqn,maxnx+2*num_ghost))
+                    allocate(qq(num_eqn,maxnx+2*num_ghost))
+                    allocate( dw1m(maxnx+2*num_ghost))
+                    allocate(norm(num_eqn))
+                    allocate(wr(num_eqn,maxnx+1))
+                    allocate(wl(num_eqn,maxnx+1))
+                    allocate( dq1m(maxnx+2*num_ghost))
+
                 case(3) ! Storage for weno5_trans
                     allocate(dq(num_eqn,maxnx+2*num_ghost))
                     allocate(gg(num_eqn,maxnx+2*num_ghost))
@@ -47,7 +58,7 @@ contains
             end select
             case(3)
                 allocate(uu(2,maxnx+2*num_ghost))
-                allocate( dq1m(maxnx+2*num_ghost))
+                allocate(dq1m(maxnx+2*num_ghost))
         end select
         recon_alloc = .True.
 
@@ -76,6 +87,16 @@ contains
                     deallocate(dq)
                     deallocate(uu)
                     deallocate(hh)
+
+                    deallocate(w)
+                    deallocate(qq)
+                    deallocate(dw1m)
+                    deallocate(norm)
+                    deallocate(wl)
+                    deallocate(wr)
+
+                    deallocate(dq1m)
+
                 case(3) ! Storage for weno5_trans
                     deallocate(dq)
                     deallocate(gg)
@@ -193,17 +214,145 @@ contains
 
         end do
 
-      return
-      end subroutine weno5
+        return
+    end subroutine weno5
+
+    ! ===================================================================
+    subroutine weno5_char2(q,ql,qr,maxnx,num_eqn,num_ghost,evl,evr,flag)
+    ! ===================================================================
+    !   This is a routine that does projection on the characterstic space,
+    !   then performs WENO reconstruction and projects back to physical
+    !   space
+    !   evl, evr matrices of left and right eigenvectors at each interface
+
+        implicit double precision (a-h,o-z)
+
+        integer,          intent(in) :: maxnx, num_eqn, num_ghost
+        double precision, intent(in) :: q(num_eqn,maxnx+2*num_ghost)
+        logical, intent(in) :: flag
+        double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost)
+        double precision, intent(out) :: qr(num_eqn,maxnx+2*num_ghost)
+        double precision, intent(out) :: evl(num_eqn,num_eqn,maxnx+2*num_ghost)
+        double precision, intent(out) :: evr(num_eqn,num_eqn,maxnx+2*num_ghost)
+        integer :: mx2
+
+        mx2  = maxnx + 2*num_ghost
+
+        ! loop over all equations (all components).  
+        ! the reconstruction is performed using characteristic decomposition 
+        
+        do i = 1,mx2
+
+            ! Project the cell averages to the m'th characteristic field
+            
+            do ip=1,num_eqn
+                w(ip,i) = 0.d0
+                do m=1,num_eqn 
+                    w(ip,i) = w(ip,i)+ evl(ip,m,i)*q(m,i)
+                enddo
+            enddo
+
+        enddo
+
+        ! do i = 1,mx2
+
+        !     ! Project to the physical space:
+        ! 
+        !     do ip = 1,num_eqn
+        !         qq(ip,i) = 0.d0
+        !         do m=1,num_eqn 
+        !             qq(ip,i) = qq(ip,i) + evr(ip,m,i)*w(m,i)
+        !         enddo
+        !     enddo
+
+        ! enddo
+        
+        ! check if qq and q are the same
+        !do ip = 1,num_eqn
+        !    norm(ip) = 0.d0
+        !    do i = 1,mx2
+        !        norm(ip) = norm(ip)+ abs(qq(ip,i)-q(ip,i))
+        !    enddo
+        !enddo        
+        !write(*,*) norm
+        !read(*,*)        
+                            
+
+        do m=1,num_eqn
+
+            forall (i=2:mx2)
+                ! compute and store the differences of the characteristics
+                dw1m(i)=w(m,i)-w(m,i-1)
+            end forall
+
+            ! the reconstruction
+
+            do m1=1,2
+
+                ! m1=1: construct wl (wr(m,i-1))
+                ! m1=2: construct wr (wl(m,i))
+
+                im=(-1)**(m1+1)
+                ione=im; inone=-im; intwo=-2*im
+  
+                do i=num_ghost,mx2-num_ghost+1
+                
+                    t1=im*(dw1m(i+intwo)-dw1m(i+inone))
+                    t2=im*(dw1m(i+inone)-dw1m(i      ))
+                    t3=im*(dw1m(i      )-dw1m(i+ione ))
+  
+                    tt1=13.*t1**2+3.*(   dw1m(i+intwo)-3.*dw1m(i+inone))**2
+                    tt2=13.*t2**2+3.*(   dw1m(i+inone)+   dw1m(i      ))**2
+                    tt3=13.*t3**2+3.*(3.*dw1m(i      )-   dw1m(i+ione ))**2
+       
+                    tt1=(epweno+tt1)**2
+                    tt2=(epweno+tt2)**2
+                    tt3=(epweno+tt3)**2
+                    s1 =tt2*tt3
+                    s2 =6.*tt1*tt3
+                    s3 =3.*tt1*tt2
+                    t0 =1./(s1+s2+s3)
+                    s1 =s1*t0
+                    s3 =s3*t0
+  
+                    uu(m1,i) = (s1*(t2-t1)+(0.5*s3-0.25)*(t3-t2))/3. &
+                             +(-w(m,i-2)+7.*(w(m,i-1)+w(m,i))-w(m,i+1))/12.
+
+                end do
+            end do
+
+           wr(m,num_ghost-1:mx2-num_ghost  )=uu(1,num_ghost:mx2-num_ghost+1)
+           wl(m,num_ghost  :mx2-num_ghost+1)=uu(2,num_ghost:mx2-num_ghost+1)
+
+        end do
+
+        do i=num_ghost,mx2-num_ghost+1
+            do ip = 1,num_eqn
+                qr(ip,i-1) = 0.d0
+                ql(ip,i  ) = 0.d0
+                do m = 1,num_eqn
+                   ! if (flag) then
+                   !     qr(ip,i-1) = qr(ip,i-1) + evr(ip,m,i)*wr(m,i-1)
+                   ! else
+                   !     qr(ip,i-1) = qr(ip,i-1) + evr(ip,m,i-1)*wr(m,i-1)
+                   ! endif
+                    qr(ip,i-1) = qr(ip,i-1) + evr(ip,m,i-1)*wr(m,i-1)
+                    ql(ip,i  ) = ql(ip,i  ) + evr(ip,m,i)*wl(m,i)
+                enddo
+            enddo
+        enddo
+
+        return
+    end subroutine weno5_char2
 
 
     ! ===================================================================
     subroutine weno5_char(q,ql,qr,evl,evr)
     ! ===================================================================
-    !   This is an old routine based on Chi-Wang Shu's code
+    ! This is an old routine based on Chi-Wang Shu's code
 
         ! This one uses characteristic decomposition
-        !  evl, evr are left and right eigenvectors at each interface
+        ! evl, evr are left and right eigenvectors at each interface
 
         implicit double precision (a-h,o-z)
 
@@ -214,9 +363,9 @@ contains
         integer, parameter :: num_ghost=3
         integer :: num_eqn, mx2
 
-        mx2  = size(q,2); num_eqn = size(q,1)
+        mx2 = size(q,2); num_eqn = size(q,1)
 
-        ! loop over all equations (all components).  
+        ! loop over all equations (all components).
         ! the reconstruction is performed using characteristic decomposition
 
         forall(m=1:num_eqn,i=2:mx2)
@@ -228,7 +377,7 @@ contains
             ! Compute the part of the reconstruction that is
             ! stencil-independent
             qr(m,i-1) = (-q(m,i-2)+7.*(q(m,i-1)+q(m,i))-q(m,i+1))/12.
-            ql(m,i)   = qr(m,i-1)
+            ql(m,i) = qr(m,i-1)
         end forall
 
         do ip=1,num_eqn
@@ -238,9 +387,9 @@ contains
 
         
             do m2 = -2,2
-               do  i = num_ghost+1,mx2-2
+               do i = num_ghost+1,mx2-2
                   hh(m2,i) = 0.d0
-                  do m=1,num_eqn 
+                  do m=1,num_eqn
                     hh(m2,i) = hh(m2,i)+ evl(ip,m,i)*dq(m,i+m2)
                   enddo
                enddo
@@ -262,12 +411,12 @@ contains
                 do i=num_ghost,mx2-num_ghost+1
       
                     t1=im*(hh(intwo,i)-hh(inone,i))
-                    t2=im*(hh(inone,i)-hh(0,i    ))
-                    t3=im*(hh(0,i    )-hh(ione,i ))
+                    t2=im*(hh(inone,i)-hh(0,i ))
+                    t3=im*(hh(0,i )-hh(ione,i ))
       
-                    tt1=13.*t1**2+3.*(   hh(intwo,i)-3.*hh(inone,i))**2
-                    tt2=13.*t2**2+3.*(   hh(inone,i)+   hh(0,i    ))**2
-                    tt3=13.*t3**2+3.*(3.*hh(0,i    )-   hh(ione,i ))**2
+                    tt1=13.*t1**2+3.*( hh(intwo,i)-3.*hh(inone,i))**2
+                    tt2=13.*t2**2+3.*( hh(inone,i)+ hh(0,i ))**2
+                    tt3=13.*t3**2+3.*(3.*hh(0,i )- hh(ione,i ))**2
 
                     tt1=(epweno+tt1)**2
                     tt2=(epweno+tt2)**2
@@ -288,13 +437,13 @@ contains
             do m = 1,num_eqn
                 do i=num_ghost,mx2-num_ghost+1
                     qr(m,i-1) = qr(m,i-1) + evr(ip,m,i)*uu(1,i)
-                    ql(m,i  ) = ql(m,i  ) + evr(ip,m,i)*uu(2,i)
+                    ql(m,i ) = ql(m,i ) + evr(ip,m,i)*uu(2,i)
                 enddo
             enddo
         enddo !end loop over waves
 
       return
-      end subroutine weno5_char
+    end subroutine weno5_char
 
     ! ===================================================================
     subroutine weno5_trans(q,ql,qr,evl,evr)
@@ -637,8 +786,7 @@ contains
       enddo
 
       return
-      end subroutine tvd2
-
+    end subroutine tvd2
 
     ! ===================================================================
     subroutine tvd2_char(q,ql,qr,mthlim,evl,evr)
@@ -818,6 +966,6 @@ contains
         enddo !end loop over waves
 
       return
-      end subroutine tvd2_wave
+    end subroutine tvd2_wave
 
 end module reconstruct

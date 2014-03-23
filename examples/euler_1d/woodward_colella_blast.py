@@ -17,17 +17,17 @@ e is internal energy.
 This script runs the Woodward-Colella blast wave interaction problem,
 involving the collision of two shock waves.
 """
-
 gamma = 1.4
 gamma1 = gamma - 1.
 
-def setup(use_petsc=False,outdir='./_output',kernel_language='Fortran',solver_type='classic'):
+def setup(use_petsc=False,outdir='./_output',kernel_language='Fortran',solver_type='sharpclaw',char_decomp=2):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a pair of interacting shock waves.
     The conserved quantities are density, momentum density, and total energy density.
     """
     from clawpack import riemann
+    import sharpclaw1
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -41,10 +41,12 @@ def setup(use_petsc=False,outdir='./_output',kernel_language='Fortran',solver_ty
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(rs)
+        solver.char_decomp = char_decomp
     elif solver_type=='classic':
         solver = pyclaw.ClawSolver1D(rs)
 
     solver.kernel_language = kernel_language
+    solver.fmod = sharpclaw1
 
     solver.bc_lower[0]=pyclaw.BC.wall
     solver.bc_upper[0]=pyclaw.BC.wall

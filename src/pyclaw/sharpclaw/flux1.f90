@@ -103,8 +103,9 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
                     call weno5_wave(q1d,ql,qr,wave)
                 endif
             case (2) ! characteristic-wise reconstruction
-                call evec(mx,num_eqn,num_ghost,mx,q1d,aux,aux,evl,evr)
-                call weno5_char(q1d,ql,qr,evl,evr)
+                call evec(mx,num_eqn,num_ghost,mx,q1d,ql,qr,evl,evr,flag)
+                call weno5_char2(q1d,ql,qr,maxnx,num_eqn,num_ghost,evl,evr,flag)
+                !call weno5_char(q1d,ql,qr,evl,evr)
             case (3) ! transmission-based reconstruction
                 call evec(mx,num_eqn,num_ghost,mx,q1d,aux,aux,evl,evr)
                 call weno5_trans(q1d,ql,qr,evl,evr)
