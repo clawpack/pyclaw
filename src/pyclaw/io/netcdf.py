@@ -33,7 +33,7 @@ import logging
 
 import clawpack.pyclaw.solution
 
-logger = logging.getLogger('io')
+logger = logging.getLogger('pyclaw.io')
 
 # Import appropriate netcdf package
 use_netcdf4 = False

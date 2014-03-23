@@ -14,7 +14,7 @@ from ..util import read_data_line
 import numpy as np
 import clawpack.pyclaw as pyclaw
 
-logger = logging.getLogger('io')
+logger = logging.getLogger('pyclaw.io')
 
 
 def read(solution,frame,path='./',file_prefix='fort',read_aux=False,

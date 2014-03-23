@@ -149,7 +149,7 @@ class Solver(object):
         See :class:`Solver` for full documentation
         """ 
         # Setup solve logger
-        self.logger = logging.getLogger('evolve')
+        self.logger = logging.getLogger('pyclaw.solver')
 
         self.dt_initial = 0.1
         self.dt_max = 1e99
