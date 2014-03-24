@@ -363,19 +363,50 @@ class Grid(object):
         :Input:
          - *recompute* - (bool) Whether to force a recompute of the arrays
         """
-        if recompute or not len(self._c_edges) == len(self._dimensions):
-            self._c_edges = [None for i in xrange(self.num_dim)]
-            
+        if recompute or (self._c_edges is None):
+            self._c_edges = [None]*self.num_dim
+
             if self.num_dim == 1:
                 self._c_edges[0] = self.dimensions[0].edges
             else:
-                index = np.indices([n+1 for n in self.num_cells])
+                index = np.indices(n+1 for n in self.num_cells)
                 self._c_edges = []
                 for i,edge_array in enumerate(self.get_dim_attribute('edges')):
                     #We could just use indices directly and deal with
                     #numpy arrays instead of lists of numpy arrays
                     self._c_edges.append(edge_array[index[i,...]])
             
+    def compute_c_edges_with_ghost(self, nghost,recompute=False):
+        r"""
+        Calculate the :attr:`c_centers_with_ghost` array
+        
+        This array is computed only when requested and then stored for later
+        use unless the recompute flag is set to True.
+        
+        Access the resulting computational coodinate array via the
+        corresponding dimensions or via the computational grid properties
+        :attr:`c_centers_with_ghost`.
+        
+        :Input:
+         - *recompute* - (bool) Whether to force a recompute of the arrays
+        """
+        self.num_ghost = nghost
+        if recompute or (self._c_edges_with_ghost is None):
+            self._c_edges_with_ghost = [None]*self.num_dim
+            
+            # For one dimension, the center and edge arrays are equivalent
+            for i in xrange(0,self.num_dim):
+                self.dimensions[i].num_ghost = nghost
+
+            if self.num_dim == 1:
+                self._c_edges_with_ghost[0] = self.dimensions[0].edges_with_ghost(nghost)
+            else:
+                index = np.indices(n+2.0*nghost+1 for n in self.num_cells)
+                self._c_edges_with_ghost = []
+                for i,center_array in enumerate(self.get_dim_attribute('edges_with_ghost')):
+                    #We could just use indices directly and deal with
+                    #numpy arrays instead of lists of numpy arrays
+                    self._c_edges_with_ghost.append(center_array[index[i,...]])
 
     # ========================================================================
     #  Gauges
