@@ -222,8 +222,10 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
         patch.level = level 
         state = petclaw.State(patch,num_eqn,num_aux)
         state.t = value_dict['t']
-        state.problem_data = value_dict['problem_data']
-        state.grid.mapc2p = value_dict['mapc2p']
+        state.problem_data = value_dict.get('problem_data',{})
+        if value_dict.has_key('mapc2p'):
+            # If no mapc2p is provided, leave the default identity map in grid
+            state.grid.mapc2p = value_dict['mapc2p']
 
 #       DA View/Load is broken in Petsc-3.1.8, we can load/view the DA if needed in petsc-3.2
 #       state.q_da.load(viewer)
