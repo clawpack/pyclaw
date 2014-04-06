@@ -9,9 +9,8 @@ module reconstruct
     double precision, allocatable, private :: uh(:,:,:),gg(:,:),hh(:,:),u(:,:,:)
     double precision, allocatable, private  :: dw1m(:), w(:,:), norm(:), qq(:,:), wl(:,:), wr(:,:)
     double precision, allocatable, private :: evl(:,:,:),evr(:,:,:)
-    double precision, private  :: epweno = 1.e-36
+    double precision, private  :: epweno = 1.e-6
     logical :: recon_alloc = .False.
-    logical :: flag
 
 ! ===================================================================
 ! Array allocation
@@ -189,10 +188,10 @@ contains
                     t2=im*(dq1m(i+inone)-dq1m(i      ))
                     t3=im*(dq1m(i      )-dq1m(i+ione ))
   
-                    tt1=13.*t1**2+3.*(   dq1m(i+intwo)-3.*dq1m(i+inone))**2
-                    tt2=13.*t2**2+3.*(   dq1m(i+inone)+   dq1m(i      ))**2
-                    tt3=13.*t3**2+3.*(3.*dq1m(i      )-   dq1m(i+ione ))**2
-       
+                    tt1=(13.*t1**2+3.*(   dq1m(i+intwo)-3.*dq1m(i+inone))**2)/12.
+                    tt2=(13.*t2**2+3.*(   dq1m(i+inone)+   dq1m(i      ))**2)/12.
+                    tt3=(13.*t3**2+3.*(3.*dq1m(i      )-   dq1m(i+ione ))**2)/12.
+
                     tt1=(epweno+tt1)**2
                     tt2=(epweno+tt2)**2
                     tt3=(epweno+tt3)**2
@@ -202,9 +201,9 @@ contains
                     t0 =1./(s1+s2+s3)
                     s1 =s1*t0
                     s3 =s3*t0
-  
+
                     uu(m1,i) = (s1*(t2-t1)+(0.5*s3-0.25)*(t3-t2))/3. &
-                             +(-q(m,i-2)+7.*(q(m,i-1)+q(m,i))-q(m,i+1))/12.
+                            +(-q(m,i-2)+7.*(q(m,i-1)+q(m,i))-q(m,i+1))/12.
 
                 end do
             end do
@@ -218,28 +217,32 @@ contains
     end subroutine weno5
 
     ! ===================================================================
-    subroutine weno5_char2(q,ql,qr,maxnx,num_eqn,num_ghost,evl,evr,flag)
+    subroutine weno5_char2(q,ql,qr,maxnx,num_eqn,num_ghost,evl,evr)
     ! ===================================================================
-    !   This is a routine that does projection on the characterstic space,
-    !   then performs WENO reconstruction and projects back to physical
-    !   space
-    !   evl, evr matrices of left and right eigenvectors at each interface
+    ! This is a routine that does projection on the characterstic space,
+    ! then performs WENO reconstruction and projects back to physical
+    ! space
+    ! evl, evr matrices of left and right eigenvectors at each interface
+    !
+    ! NOTE that evl and evr and characeteristic projections are computed over 
+    ! cell averages instead of Roe averages.
+    ! This is not the correct way for characeteristic-wise WENO and adds 
+    ! difussion to the problem (the correct is in weno5_char)
 
         implicit double precision (a-h,o-z)
 
-        integer,          intent(in) :: maxnx, num_eqn, num_ghost
+        integer, intent(in) :: maxnx, num_eqn, num_ghost
         double precision, intent(in) :: q(num_eqn,maxnx+2*num_ghost)
-        logical, intent(in) :: flag
         double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost)
         double precision, intent(out) :: qr(num_eqn,maxnx+2*num_ghost)
         double precision, intent(out) :: evl(num_eqn,num_eqn,maxnx+2*num_ghost)
         double precision, intent(out) :: evr(num_eqn,num_eqn,maxnx+2*num_ghost)
         integer :: mx2
 
-        mx2  = maxnx + 2*num_ghost
+        mx2 = maxnx + 2*num_ghost
 
-        ! loop over all equations (all components).  
-        ! the reconstruction is performed using characteristic decomposition 
+        ! loop over all equations (all components).
+        ! the reconstruction is performed using characteristic decomposition
         
         do i = 1,mx2
 
@@ -247,36 +250,12 @@ contains
             
             do ip=1,num_eqn
                 w(ip,i) = 0.d0
-                do m=1,num_eqn 
+                do m=1,num_eqn
                     w(ip,i) = w(ip,i)+ evl(ip,m,i)*q(m,i)
                 enddo
             enddo
 
-        enddo
-
-        ! do i = 1,mx2
-
-        !     ! Project to the physical space:
-        ! 
-        !     do ip = 1,num_eqn
-        !         qq(ip,i) = 0.d0
-        !         do m=1,num_eqn 
-        !             qq(ip,i) = qq(ip,i) + evr(ip,m,i)*w(m,i)
-        !         enddo
-        !     enddo
-
-        ! enddo
-        
-        ! check if qq and q are the same
-        !do ip = 1,num_eqn
-        !    norm(ip) = 0.d0
-        !    do i = 1,mx2
-        !        norm(ip) = norm(ip)+ abs(qq(ip,i)-q(ip,i))
-        !    enddo
-        !enddo        
-        !write(*,*) norm
-        !read(*,*)        
-                            
+        enddo                            
 
         do m=1,num_eqn
 
@@ -298,12 +277,12 @@ contains
                 do i=num_ghost,mx2-num_ghost+1
                 
                     t1=im*(dw1m(i+intwo)-dw1m(i+inone))
-                    t2=im*(dw1m(i+inone)-dw1m(i      ))
-                    t3=im*(dw1m(i      )-dw1m(i+ione ))
+                    t2=im*(dw1m(i+inone)-dw1m(i ))
+                    t3=im*(dw1m(i )-dw1m(i+ione ))
   
-                    tt1=13.*t1**2+3.*(   dw1m(i+intwo)-3.*dw1m(i+inone))**2
-                    tt2=13.*t2**2+3.*(   dw1m(i+inone)+   dw1m(i      ))**2
-                    tt3=13.*t3**2+3.*(3.*dw1m(i      )-   dw1m(i+ione ))**2
+                    tt1=13.*t1**2+3.*( dw1m(i+intwo)-3.*dw1m(i+inone))**2
+                    tt2=13.*t2**2+3.*( dw1m(i+inone)+ dw1m(i ))**2
+                    tt3=13.*t3**2+3.*(3.*dw1m(i )- dw1m(i+ione ))**2
        
                     tt1=(epweno+tt1)**2
                     tt2=(epweno+tt2)**2
@@ -321,23 +300,18 @@ contains
                 end do
             end do
 
-           wr(m,num_ghost-1:mx2-num_ghost  )=uu(1,num_ghost:mx2-num_ghost+1)
-           wl(m,num_ghost  :mx2-num_ghost+1)=uu(2,num_ghost:mx2-num_ghost+1)
+            wr(m,num_ghost-1:mx2-num_ghost )=uu(1,num_ghost:mx2-num_ghost+1)
+            wl(m,num_ghost :mx2-num_ghost+1)=uu(2,num_ghost:mx2-num_ghost+1)
 
         end do
 
         do i=num_ghost,mx2-num_ghost+1
             do ip = 1,num_eqn
                 qr(ip,i-1) = 0.d0
-                ql(ip,i  ) = 0.d0
+                ql(ip,i ) = 0.d0
                 do m = 1,num_eqn
-                   ! if (flag) then
-                   !     qr(ip,i-1) = qr(ip,i-1) + evr(ip,m,i)*wr(m,i-1)
-                   ! else
-                   !     qr(ip,i-1) = qr(ip,i-1) + evr(ip,m,i-1)*wr(m,i-1)
-                   ! endif
                     qr(ip,i-1) = qr(ip,i-1) + evr(ip,m,i-1)*wr(m,i-1)
-                    ql(ip,i  ) = ql(ip,i  ) + evr(ip,m,i)*wl(m,i)
+                    ql(ip,i ) = ql(ip,i ) + evr(ip,m,i)*wl(m,i)
                 enddo
             enddo
         enddo
@@ -345,9 +319,8 @@ contains
         return
     end subroutine weno5_char2
 
-
     ! ===================================================================
-    subroutine weno5_char(q,ql,qr,evl,evr)
+    subroutine weno5_char(q,ql,qr,maxnx,num_eqn,num_ghost,evl,evr)
     ! ===================================================================
     ! This is an old routine based on Chi-Wang Shu's code
 
@@ -356,14 +329,20 @@ contains
 
         implicit double precision (a-h,o-z)
 
-        double precision, intent(in) :: q(:,:)
-        double precision, intent(out) :: ql(:,:),qr(:,:)
-        double precision, intent(in) :: evl(:,:,:),evr(:,:,:)
+        !double precision, intent(in) :: q(:,:)
+        !double precision, intent(out) :: ql(:,:),qr(:,:)
+        !double precision, intent(in) :: evl(:,:,:),evr(:,:,:)
 
-        integer, parameter :: num_ghost=3
-        integer :: num_eqn, mx2
-
-        mx2 = size(q,2); num_eqn = size(q,1)
+        integer,          intent(in) :: maxnx, num_eqn, num_ghost
+        double precision, intent(in) :: q(num_eqn,maxnx+2*num_ghost)
+        double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost)
+        double precision, intent(out) :: qr(num_eqn,maxnx+2*num_ghost)
+        double precision, intent(in) :: evl(num_eqn,num_eqn,maxnx+2*num_ghost)
+        double precision, intent(in) :: evr(num_eqn,num_eqn,maxnx+2*num_ghost)
+        
+        integer :: mx2
+        
+        mx2 = size(q,2)
 
         ! loop over all equations (all components).
         ! the reconstruction is performed using characteristic decomposition
@@ -373,7 +352,7 @@ contains
             dq(m,i)=q(m,i)-q(m,i-1)
         end forall
 
-        forall(m=1:num_eqn,i=3:mx2-1)
+        forall(m=1:num_eqn,i=num_ghost:mx2-num_ghost+1)
             ! Compute the part of the reconstruction that is
             ! stencil-independent
             qr(m,i-1) = (-q(m,i-2)+7.*(q(m,i-1)+q(m,i))-q(m,i+1))/12.
@@ -387,7 +366,7 @@ contains
 
         
             do m2 = -2,2
-               do i = num_ghost+1,mx2-2
+               do i = num_ghost,mx2-2
                   hh(m2,i) = 0.d0
                   do m=1,num_eqn
                     hh(m2,i) = hh(m2,i)+ evl(ip,m,i)*dq(m,i+m2)
@@ -427,17 +406,17 @@ contains
                     t0 =1./(s1+s2+s3)
                     s1 =s1*t0
                     s3 =s3*t0
-      
+                    
                     uu(m1,i) = ( s1*(t2-t1) + (0.5*s3-0.25)*(t3-t2) ) /3.
 
                 end do !end loop over interfaces
             end do !end loop over which side of interface
 
-                ! Project to the physical space:
+            ! Project to the physical space:
             do m = 1,num_eqn
                 do i=num_ghost,mx2-num_ghost+1
-                    qr(m,i-1) = qr(m,i-1) + evr(ip,m,i)*uu(1,i)
-                    ql(m,i ) = ql(m,i ) + evr(ip,m,i)*uu(2,i)
+                    qr(m,i-1) = qr(m,i-1) + evr(m,ip,i)*uu(1,i)
+                    ql(m,i ) = ql(m,i ) + evr(m,ip,i)*uu(2,i)
                 enddo
             enddo
         enddo !end loop over waves

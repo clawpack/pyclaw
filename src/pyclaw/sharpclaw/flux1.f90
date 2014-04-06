@@ -103,9 +103,9 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
                     call weno5_wave(q1d,ql,qr,wave)
                 endif
             case (2) ! characteristic-wise reconstruction
-                call evec(mx,num_eqn,num_ghost,mx,q1d,ql,qr,evl,evr,flag)
-                call weno5_char2(q1d,ql,qr,maxnx,num_eqn,num_ghost,evl,evr,flag)
-                !call weno5_char(q1d,ql,qr,evl,evr)
+                call evec(mx,num_eqn,num_ghost,mx,q1d,auxl,auxr,evl,evr)
+                !call weno5_char2(q1d,ql,qr,maxnx,num_eqn,num_ghost,evl,evr)
+                call weno5_char(q1d,ql,qr,maxnx,num_eqn,num_ghost,evl,evr)
             case (3) ! transmission-based reconstruction
                 call evec(mx,num_eqn,num_ghost,mx,q1d,aux,aux,evl,evr)
                 call weno5_trans(q1d,ql,qr,evl,evr)
@@ -144,19 +144,20 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
     enddo
 
     ! Find total fluctuation within each cell
-    if (tfluct_solver.eqv. .True.) then
+    tfluct_solver = .False.
+    if (tfluct_solver .eqv. .True.) then
         ! tfluct should be a special solver that uses the parameters aux(i)
         ! to solve a Riemann problem with left state ql(i)
         ! and right state qr(i), and returns a total fluctuation in amdq2
         ! NOTE that here amdq2 is really a total fluctuation (should be
         ! called adq); we do it this way just to avoid declaring more storage
         call tfluct(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr, &
-                     aux,aux,s,amdq2)
+                     aux,aux,amdq2)
 
         ! Modify q using fluctuations:
         ! Note this may not correspond to a conservative flux-differencing
         ! for equations not in conservation form.  It is conservative if
-        ! adq = f(qr(i)) - f(ql(i)).
+        ! amdq2 = f(qr(i)) - f(ql(i)).
 
         forall (i=1:mx, m=1:num_eqn)
             dq1d(m,i) = dq1d(m,i) - dtdx(i)*(apdq(m,i) + &

@@ -24,6 +24,7 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
 
     from clawpack import riemann
     import sharpclaw1
+    import euler_with_efix_1D
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -33,12 +34,12 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     if kernel_language =='Python':
         rs = riemann.euler_1D_py.euler_roe_1D
     elif kernel_language =='Fortran':
-        rs = riemann.euler_with_efix_1D
+        rs = euler_with_efix_1D
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(rs)
         solver.time_integrator = 'SSP104'
-        solver.a, solver.b, solver.c = a, b, c
+        #solver.a, solver.b, solver.c = a, b, c
         #solver.cfl_desired = 0.6
         #solver.cfl_max = 0.7
         solver.char_decomp = char_decomp
@@ -60,6 +61,7 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     state.problem_data['gamma']= gamma
     state.problem_data['gamma1']= gamma1
     state.problem_data['efix'] = False
+    state.problem_data['tfluct_solver'] = True
 
     xc =state.grid.x.centers
     epsilon=0.2
