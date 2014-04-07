@@ -121,7 +121,7 @@ class SharpClawSolver(Solver):
         ``Default = False``
 
     """
-    sspcoeff = {
+    _sspcoeff = {
        'Euler' :    1.0,
        'SSP33':     1.0,
        'SSP104' :   6.0,
@@ -130,7 +130,7 @@ class SharpClawSolver(Solver):
        'LMM':       None
        }
 
-    cfl_dict = {
+    _cfl_default = {
         'SSP104':   [2.45, 2.5],
         'SSPMS32':  [0.16, 0.2]
         }
@@ -191,10 +191,10 @@ class SharpClawSolver(Solver):
         self._set_mthlim()
         try:
             if self.cfl_max is None:
-                self.cfl_desired  = self.cfl_dict[self.time_integrator][0]
-                self.cfl_max  = self.cfl_dict[self.time_integrator][1]
+                self.cfl_desired  = self._cfl_default[self.time_integrator][0]
+                self.cfl_max  = self._cfl_default[self.time_integrator][1]
             if self.cfl_desired is None:
-                self.cfl_desired = self.cfl_max
+                self.cfl_desired = 0.9*self.cfl_max
         except KeyError:
             raise KeyError('Maximum CFL number is not provided.')
 
@@ -495,7 +495,7 @@ class SharpClawSolver(Solver):
     def get_cfl_max(self):
         if self.time_integrator == 'SSPMS32' and self.step_index > 2:
             sigma0 = self._registers[-3].cfl + self._registers[-2].cfl
-            sigma1 = sigma0 / (self.sspcoeff[self.time_integrator] * sigma0 + self.cfl_max)
+            sigma1 = sigma0 / (self._sspcoeff[self.time_integrator] * sigma0 + self.cfl_max)
         else:
             sigma1 = 1.0
 
@@ -507,7 +507,7 @@ class SharpClawSolver(Solver):
         """
         if self.time_integrator == 'SSPMS32' and self.step_index > 2:
             sigma0 = self._registers[-2].cfl + self._registers[-1].cfl
-            sigma2 = sigma0 / (self.sspcoeff[self.time_integrator] * sigma0 + self.cfl_desired)
+            sigma2 = sigma0 / (self._sspcoeff[self.time_integrator] * sigma0 + self.cfl_desired)
         else:
             sigma2 = 1.0 
         
