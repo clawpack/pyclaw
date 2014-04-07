@@ -200,6 +200,9 @@ class Solver(object):
         self.user_aux_bc_lower = None
         self.user_aux_bc_upper = None
 
+        self.num_eqn   = None
+        self.num_waves = None
+
         self.compute_gauge_values = default_compute_gauge_values
         r"""(function) - Function that computes quantities to be recorded at gauges"""
 
