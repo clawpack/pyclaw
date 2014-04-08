@@ -54,6 +54,8 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     if file_format == 'vtk':
         viewer_filename = os.path.join(path, file_prefix+str(frame).zfill(4)+'.vtk')
+    elif file_format == 'hdf5':
+        viewer_filename = os.path.join(path, file_prefix+str(frame).zfill(4)+'.hdf5')        
     else:
         viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
 
@@ -85,7 +87,7 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
     if file_format == 'ascii':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.WRITE)
         if write_aux:
-            aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE) 
+            aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE)
     elif file_format == 'binary':
         if hasattr(PETSc.Viewer,'createMPIIO'):
             viewer = PETSc.Viewer().createMPIIO(viewer_filename, PETSc.Viewer.Mode.WRITE)
@@ -99,7 +101,11 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
     elif file_format == 'vtk':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.WRITE, format=PETSc.Viewer.Format.ASCII_VTK)
         if write_aux:
-            aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE) 
+            aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE)
+    elif file_format == 'hdf5':
+        viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.WRITE)
+        if write_aux:
+            aux_viewer = PETSc.Viewer().createHDF5(aux_filename, PETSc.Viewer.Mode.WRITE)
     else:
         raise IOError('format type %s not supported' % file_format)
     
@@ -195,6 +201,16 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
                     aux_viewer = PETSc.Viewer().createMPIIO(aux_viewer_filename, PETSc.Viewer.Mode.READ)
                 else:
                     aux_viewer = PETSc.Viewer().createBinary(aux_viewer_filename, PETSc.Viewer.Mode.READ)
+            else:
+                from warnings import warn
+                aux_file_path = os.path.join(path,aux_viewer_filename)
+                warn('read_aux=True but aux file %s does not exist' % aux_file_path)
+                read_aux=False
+    elif file_format == 'hdf5':
+        viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.READ)
+        if read_aux:
+            if os.path.exists(aux_viewer_filename):
+                aux_viewer = PETSc.Viewer().createHDF5(aux_viewer_filename, PETSc.Viewer.Mode.READ)
             else:
                 from warnings import warn
                 aux_file_path = os.path.join(path,aux_viewer_filename)
