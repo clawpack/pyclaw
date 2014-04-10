@@ -45,14 +45,14 @@ def setup(use_petsc=False,outdir='./_output',kernel_language='Fortran',solver_ty
         solver.time_integrator = 'SSP33'
         solver.cfl_max = 0.65
         solver.cfl_desired = 0.6
-        solver.lim_type = 2
-        solver.char_decomp = 3
+        solver.lim_type = 1
+        solver.char_decomp = 0
+        solver.fmod = sharpclaw1
     elif solver_type=='classic':
         solver = pyclaw.ClawSolver1D(rs)
         solver.limiters = 4
 
     solver.kernel_language = kernel_language
-    solver.fmod = sharpclaw1
 
     solver.bc_lower[0]=pyclaw.BC.wall
     solver.bc_upper[0]=pyclaw.BC.wall
