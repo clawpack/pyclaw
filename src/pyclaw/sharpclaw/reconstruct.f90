@@ -322,16 +322,11 @@ contains
     ! ===================================================================
     subroutine weno5_char(q,ql,qr,maxnx,num_eqn,num_ghost,evl,evr)
     ! ===================================================================
-    ! This is an old routine based on Chi-Wang Shu's code
 
         ! This one uses characteristic decomposition
         ! evl, evr are left and right eigenvectors at each interface
 
         implicit double precision (a-h,o-z)
-
-        !double precision, intent(in) :: q(:,:)
-        !double precision, intent(out) :: ql(:,:),qr(:,:)
-        !double precision, intent(in) :: evl(:,:,:),evr(:,:,:)
 
         integer,          intent(in) :: maxnx, num_eqn, num_ghost
         double precision, intent(in) :: q(num_eqn,maxnx+2*num_ghost)

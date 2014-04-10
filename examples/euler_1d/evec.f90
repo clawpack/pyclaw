@@ -30,7 +30,7 @@ subroutine evec(maxnx,num_eqn,num_ghost,mx,q,auxl,auxr,evl,evr)
 
     matrix_type = 2
     ! matrix_type:
-    ! 0: computed at cell avarages
+    ! 0: computed at cell averages
     ! 1: arithmetic mean of cell averages
     ! 2: Roe mean of cell averages
 
@@ -55,9 +55,9 @@ subroutine evec(maxnx,num_eqn,num_ghost,mx,q,auxl,auxr,evl,evr)
                 c = dsqrt(c2)
             case(2)
                 rhsqrtl = dsqrt(q(1,i-1))
-                rhsqrtr = dsqrt(q(1,i))
+                rhsqrtr = dsqrt(q(1,i  ))
                 pl = gamma1*(q(3,i-1) - 0.5d0*(q(2,i-1)**2)/q(1,i-1))
-                pr = gamma1*(q(3,i) - 0.5d0*(q(2,i)**2)/q(1,i))
+                pr = gamma1*(q(3,i  ) - 0.5d0*(q(2,i  )**2)/q(1,i  ))
                 rhsq2 = rhsqrtl + rhsqrtr
                 u = (q(2,i-1)/rhsqrtl + q(2,i)/rhsqrtr) / rhsq2
                 enth = (((q(3,i-1)+pl)/rhsqrtl + (q(3,i)+pr)/rhsqrtr)) / rhsq2
@@ -96,24 +96,24 @@ subroutine evec(maxnx,num_eqn,num_ghost,mx,q,auxl,auxr,evl,evr)
         !                         |                                         |
         !                         |  uc/gamma1+u^2/2    -c/gamma1-u     1   |
         !                         |                                         |
-        ! R^{-1} =  gamma1/(2c^2) |  2(H-u^2)           2u      u+c     -2  |
+        ! R^{-1} =  gamma1/(2c^2) |  2(H-u^2)           2u             -2   |
         !                         |                                         |
         !                         |  -uc/gamma1+u^2/2   c/gamma1-u      1   |
         !                         |_                                       _|
 
-        det_evr = 2.d0*c**3 / gamma1        
+        det_evr_inv = 0.5d0 * gamma1 / c**2
 
-        evl(1,1,i) = (c*u/gamma1 + .5d0*u**2) * c / det_evr
-        evl(2,1,i) = 2.d0*(enth-u**2) * c / det_evr
-        evl(3,1,i) = (-c*u/gamma1 + .5d0*u**2) * c / det_evr
+        evl(1,1,i) = (c*u/gamma1 + .5d0*u**2) * det_evr_inv
+        evl(2,1,i) = 2.d0*(enth-u**2) * det_evr_inv
+        evl(3,1,i) = (-c*u/gamma1 + .5d0*u**2) * det_evr_inv
 
-        evl(1,2,i) = -(c/gamma1 + u) * c / det_evr
-        evl(2,2,i) = 2.d0*u * c / det_evr
-        evl(3,2,i) = (c/gamma1 - u) * c / det_evr
+        evl(1,2,i) = -(c/gamma1 + u) * det_evr_inv
+        evl(2,2,i) = 2.d0*u * det_evr_inv
+        evl(3,2,i) = (c/gamma1 - u) * det_evr_inv
 
-        evl(1,3,i) = 1.d0 * c / det_evr
-        evl(2,3,i) = -2.d0 * c / det_evr
-        evl(3,3,i) = 1.d0 * c / det_evr
+        evl(1,3,i) = det_evr_inv
+        evl(2,3,i) = -2.d0 * det_evr_inv
+        evl(3,3,i) = det_evr_inv
 
     20 enddo
 

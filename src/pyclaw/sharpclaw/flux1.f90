@@ -144,7 +144,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
     enddo
 
     ! Find total fluctuation within each cell
-    tfluct_solver = .False.
+    tfluct_solver = .True.
     if (tfluct_solver .eqv. .True.) then
         ! tfluct should be a special solver that uses the parameters aux(i)
         ! to solve a Riemann problem with left state ql(i)

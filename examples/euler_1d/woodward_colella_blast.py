@@ -42,8 +42,14 @@ def setup(use_petsc=False,outdir='./_output',kernel_language='Fortran',solver_ty
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(rs)
         solver.char_decomp = char_decomp
+        solver.time_integrator = 'SSP33'
+        solver.cfl_max = 0.65
+        solver.cfl_desired = 0.6
+        solver.lim_type = 2
+        solver.char_decomp = 3
     elif solver_type=='classic':
         solver = pyclaw.ClawSolver1D(rs)
+        solver.limiters = 4
 
     solver.kernel_language = kernel_language
     solver.fmod = sharpclaw1
@@ -59,14 +65,12 @@ def setup(use_petsc=False,outdir='./_output',kernel_language='Fortran',solver_ty
 
     state.problem_data['gamma']= gamma
     state.problem_data['gamma1']= gamma1
-    state.problem_data['efix'] = False
+    state.problem_data['efix'] = True
 
     state.q[0,:] = 1.
     state.q[1,:] = 0.
-    x =state.grid.x.centers
-    state.q[2,:] = ( (x<0.1)*1.e3 + (0.1<=x)*(x<0.9)*1.e-2 + (0.9<=x)*1.e2 ) / gamma1
-
-    solver.limiters = 4
+    xc =state.grid.x.centers
+    state.q[2,:] = ( (xc<0.1)*1.e3 + (0.1<=xc)*(xc<0.9)*1.e-2 + (0.9<=xc)*1.e2 ) / gamma1
 
     claw = pyclaw.Controller()
     claw.tfinal = 0.038
