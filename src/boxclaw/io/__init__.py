@@ -19,19 +19,18 @@ try:
     __all__ += ['hdf5.read','hdf5.write']
 except:
     logging.debug("No hdf5 support found.")
-    
+
 # Check for netcdf support
 try:
     import netCDF4
-    from clawpack.pyclaw.io import netcdf 
+    from clawpack.pyclaw.io import netcdf
     __all__ += ['netcdf.read','netcdf.write']
 except(ImportError):
     logging.debug("No netcdf4 support found.")
 
-# Check for petsc4py support
 try:
-    import petsc
-    __all__ += ['petsc.read','petsc.write']
+    import multifab
+    __all__ += ['multifab.write']
 except(ImportError):
-    logging.debug("No petsc support found.")
- 
+    logging.debug("No boxlib support found.")
+

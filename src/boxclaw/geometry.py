@@ -19,11 +19,11 @@ class Patch(pyclaw_geometry.Patch):
 
         super(Patch,self).__init__(dimensions)
 
-        self._ba, box   = self._create_boxarray()
+        self._ba, self._gbox   = self._create_boxarray()
 
         is_per = np.asarray(self.num_dim * [ 1 ], np.int32)
-        rb = boxlib.RealBox(boxlib.lo(box), boxlib.hi(box))
-        self._geom = boxlib.bl[self.num_dim].Geometry(box, rb, 0, is_per)
+        rb = boxlib.RealBox(boxlib.lo(self._gbox), boxlib.hi(self._gbox))
+        self._geom = boxlib.bl[self.num_dim].Geometry(self._gbox, rb, 0, is_per)
 
         # XXX: create a multifab from the boxarray to get geometry information
         tmp = boxlib.MultiFab(self._ba)

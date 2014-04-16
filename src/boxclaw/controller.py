@@ -11,6 +11,7 @@ class Controller(pyclaw.controller.Controller):
 
     def __init__(self):
         super(Controller,self).__init__()
+        self.output_format = 'multifab'
 
     def is_proc_0(self):
         import boxlib
