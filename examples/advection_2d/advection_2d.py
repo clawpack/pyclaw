@@ -29,8 +29,8 @@ def qinit(state):
                 state.q[:,i,j] = 1.0
             else:
                 state.q[:,i,j] = 0.1
-                
-def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
+
+def setup(use_petsc=False,use_boxlib=False,outdir='./_output',solver_type='classic'):
     """
     Example python script for solving the 2d advection equation.
     """
@@ -38,6 +38,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
+    elif use_boxlib:
+        import clawpack.boxclaw as pyclaw
     else:
         from clawpack import pyclaw
 

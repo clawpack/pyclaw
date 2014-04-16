@@ -17,25 +17,27 @@ The final solution is identical to the initial data because the wave has
 crossed the domain exactly once.
 """
 
-def setup(nx=100,kernel_language='Python', use_petsc=False,
+def setup(nx=100,kernel_language='Python', use_petsc=False, use_boxlib=False,
           solver_type='classic', weno_order=5, outdir='./_output'):
     import numpy as np
     from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
+    elif use_boxlib:
+        import clawpack.boxclaw as pyclaw
     else:
         from clawpack import pyclaw
 
     if solver_type=='classic':
         if kernel_language == 'Fortran':
             solver = pyclaw.ClawSolver1D(riemann.advection_1D)
-        elif kernel_language=='Python': 
+        elif kernel_language=='Python':
             solver = pyclaw.ClawSolver1D(riemann.advection_1D_py.advection_1D)
     elif solver_type=='sharpclaw':
         if kernel_language == 'Fortran':
             solver = pyclaw.SharpClawSolver1D(riemann.advection_1D)
-        elif kernel_language=='Python': 
+        elif kernel_language=='Python':
             solver = pyclaw.SharpClawSolver1D(riemann.advection_1D_py.advection_1D)
         solver.weno_order=weno_order
     else: raise Exception('Unrecognized value of solver_type.')

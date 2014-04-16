@@ -18,8 +18,8 @@ The initial condition is a Gaussian and the boundary conditions are periodic.
 The final solution is identical to the initial data because both waves have
 crossed the domain exactly once.
 """
-    
-def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5, disable_output=False):
+
+def setup(use_petsc=False,use_boxlib=False,kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5, disable_output=False):
     """
     This example solves the 1-dimensional acoustics equations in a homogeneous
     medium.
@@ -32,6 +32,8 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir
     #=================================================================
     if use_petsc:
         import clawpack.petclaw as pyclaw
+    elif use_boxlib:
+        import clawpack.boxclaw as pyclaw
     else:
         from clawpack import pyclaw
 
