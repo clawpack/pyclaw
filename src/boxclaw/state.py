@@ -9,36 +9,53 @@ class State(clawpack.pyclaw.State):
         """
         XXX: Fills in the interior of qbc by copying q to it.
         """
-
-        num_dim = self.patch.num_dim
-
-        mf = self._create_multifab(self.num_eqn, num_ghost)
-        a  = self._get_array(mf)
-
-        if num_dim == 1:
-            a[num_ghost:-num_ghost,:] = np.rollaxis(self.q, self.q.ndim-1)
-        elif num_dim == 2:
-            a[num_ghost:-num_ghost,num_ghost:-num_ghost,:] = np.rollaxis(self.q, self.q.ndim-1)
-        elif num_dim == 3:
-            a[num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost,:] = np.rollaxis(self.q, self.q.ndim-1)
-        else:
-            raise Exception("Assumption (1 <= num_dim <= 3) violated.")
-
-        mf.FillBoundary()
-        self.patch._geom.FillPeriodicBoundary(mf)
-
-        qbc[...] = np.rollaxis(a, self.q.ndim-1)
-
+        self._fill_boundary(self.num_eqn, num_ghost, self.q, qbc)
         return qbc
 
+    def get_auxbc_from_aux(self,num_ghost,auxbc):
+        self._fill_boundary(self.num_aux, num_ghost, self.aux, auxbc)
+        return auxbc
+
+    def _fill_boundary(self, ncomp, nghost, q, qbc):
+        mf = self._create_multifab(ncomp, nghost)
+        self._copy_into_multifab(mf, nghost, q)
+        mf.FillBoundary()
+        self.patch._geom.FillPeriodicBoundary(mf)
+        self._copy_outof_multifab(mf, qbc)
 
     def _create_multifab(self, ncomp, nghost):
         import boxlib
         return boxlib.MultiFab(self.patch._ba, ncomp, nghost)
-
 
     def _get_array(self, mf):
         for i in range(mf.size()):
             if mf[i] is not None:
                 return mf[i].get_array()
         return None
+
+    def _copy_into_multifab(self, mf, ng, q):
+
+        num_dim = self.patch.num_dim
+        fab     = self._get_array(mf)
+
+        if ng == 0:
+            fab[...] = np.rollaxis(q, 0, q.ndim)
+        elif num_dim == 1:
+            fab[ng:-ng,:] = np.rollaxis(q, 0, q.ndim)
+        elif num_dim == 2:
+            fab[ng:-ng,ng:-ng,:] = np.rollaxis(q, 0, q.ndim)
+        elif num_dim == 3:
+            fab[ng:-ng,ng:-ng,ng:-ng,:] = np.rollaxis(q, 0, q.ndim)
+        else:
+            raise Exception("Assumption (1 <= num_dim <= 3) violated.")
+
+    def _copy_outof_multifab(self, mf, q):
+        num_dim = self.patch.num_dim
+        fab     = self._get_array(mf)
+        q[...] = np.rollaxis(fab, self.q.ndim-1)
+
+
+
+
+
+
