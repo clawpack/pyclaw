@@ -1,18 +1,10 @@
-#!/usr/bin/env python
-# encoding: utf-8
-#  ======================================================================
-#  Package:     pyclaw.io
-#  File:        __init__.py
-#  Created:     Feb 10, 2008
-#  Author:      Kyle Mandli
-#  ======================================================================
 """Output package for Pyclaw"""
 
 import logging
 from clawpack.pyclaw.io import ascii
+
 __all__ = ['ascii.read','ascii.write']
 
-# Check for HDF 5 support
 try:
     import h5py
     from clawpack.pyclaw.io import hdf5
@@ -20,7 +12,6 @@ try:
 except:
     logging.debug("No hdf5 support found.")
 
-# Check for netcdf support
 try:
     import netCDF4
     from clawpack.pyclaw.io import netcdf
@@ -32,5 +23,5 @@ try:
     import multifab
     __all__ += ['multifab.write']
 except(ImportError):
-    logging.debug("No boxlib support found.")
+    logging.debug("No multifab io support found.")
 

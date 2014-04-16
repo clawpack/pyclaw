@@ -12,6 +12,9 @@ import boxlib
 import pickle
 import numpy as np
 
+import logging
+logger = logging.getLogger('io')
+
 def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
           options={},write_p=False):
     r"""

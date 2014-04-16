@@ -286,6 +286,9 @@ class Solution(object):
         if 'petsc' in format_list:
             from clawpack.petclaw import io
             write_func = io.petsc.write
+        elif 'multifab' in format_list:
+            from clawpack.boxclaw import io
+            write_func = io.multifab.write
         else:
             from clawpack.pyclaw import io
             write_func = io.ascii.write
