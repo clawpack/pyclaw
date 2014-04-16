@@ -3,7 +3,7 @@
 
 import numpy as np
 
-def setup(use_petsc=False,outdir='./_output',solver_type='classic',disable_output=False,**kwargs):
+def setup(use_petsc=False,use_boxlib=False,outdir='./_output',solver_type='classic',disable_output=False,**kwargs):
     """
     Example python script for solving the 3d acoustics equations.
     """
@@ -11,6 +11,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',disable_outpu
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
+    elif use_boxlib:
+        import clawpack.boxclaw as pyclaw
     else:
         from clawpack import pyclaw
 
@@ -126,6 +128,5 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',disable_outpu
 
 
 if __name__=="__main__":
-    import sys
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(setup)
