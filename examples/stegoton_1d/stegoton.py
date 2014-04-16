@@ -127,7 +127,7 @@ def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./
     state.problem_data = {}
     state.problem_data['t1']    = 10.0
     state.problem_data['tw1']   = 10.0
-    state.problem_data['a1']    = 0.4
+    state.problem_data['a1']    = 0.1
     state.problem_data['alpha'] = alpha
     state.problem_data['KA'] = KA
     state.problem_data['KB'] = KB

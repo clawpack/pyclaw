@@ -7,8 +7,8 @@ One-dimensional acoustics
 
 Solve the (linear) acoustics equations:
 
-.. math:: 
-    p_t + K u_x & = 0 \\ 
+.. math::
+    p_t + K u_x & = 0 \\
     u_t + p_x / \rho & = 0.
 
 Here p is the pressure, u is the velocity, K is the bulk modulus,
@@ -19,7 +19,8 @@ The final solution is identical to the initial data because both waves have
 crossed the domain exactly once.
 """
 
-def setup(use_petsc=False,use_boxlib=False,kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5, disable_output=False):
+def setup(use_petsc=False,use_boxlib=False,kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5,
+          time_integrator='SSP104', disable_output=False):
     """
     This example solves the 1-dimensional acoustics equations in a homogeneous
     medium.
@@ -42,7 +43,7 @@ def setup(use_petsc=False,use_boxlib=False,kernel_language='Fortran',solver_type
     #========================================================================
     if kernel_language == 'Fortran':
         riemann_solver = riemann.acoustics_1D
-    elif kernel_language=='Python': 
+    elif kernel_language=='Python':
         riemann_solver = riemann.acoustics_1D_py.acoustics_1D
 
     if solver_type=='classic':
@@ -51,6 +52,7 @@ def setup(use_petsc=False,use_boxlib=False,kernel_language='Fortran',solver_type
     elif solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(riemann_solver)
         solver.weno_order=weno_order
+        solver.time_integrator=time_integrator
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language=kernel_language
@@ -76,7 +78,7 @@ def setup(use_petsc=False,use_boxlib=False,kernel_language='Fortran',solver_type
     state.problem_data['bulk']=bulk
     state.problem_data['zz']=sqrt(rho*bulk) # Impedance
     state.problem_data['cc']=sqrt(bulk/rho) # Sound speed
- 
+
 
     #========================================================================
     # Set the initial condition
@@ -107,11 +109,11 @@ def setup(use_petsc=False,use_boxlib=False,kernel_language='Fortran',solver_type
 #--------------------------
 def setplot(plotdata):
 #--------------------------
-    """ 
+    """
     Specify what is to be plotted at each frame.
     Input:  plotdata, an instance of visclaw.data.ClawPlotData.
     Output: a modified version of plotdata.
-    """ 
+    """
     plotdata.clearfigures()  # clear any old figures,axes,items data
 
     # Figure for pressure
@@ -129,7 +131,7 @@ def setplot(plotdata):
     plotitem.plotstyle = '-o'
     plotitem.color = 'b'
     plotitem.kwargs = {'linewidth':2,'markersize':5}
-    
+
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.axescmd = 'subplot(212)'
@@ -143,7 +145,7 @@ def setplot(plotdata):
     plotitem.plotstyle = '-'
     plotitem.color = 'b'
     plotitem.kwargs = {'linewidth':3,'markersize':5}
-    
+
     return plotdata
 
 def run_and_plot(**kwargs):

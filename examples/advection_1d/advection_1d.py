@@ -7,7 +7,7 @@ One-dimensional advection
 
 Solve the linear advection equation:
 
-.. math:: 
+.. math::
     q_t + u q_x & = 0.
 
 Here q is the density of some conserved quantity and u is the velocity.
@@ -17,8 +17,8 @@ The final solution is identical to the initial data because the wave has
 crossed the domain exactly once.
 """
 
-def setup(nx=100,kernel_language='Python', use_petsc=False, use_boxlib=False,
-          solver_type='classic', weno_order=5, outdir='./_output'):
+def setup(nx=100, kernel_language='Python', use_petsc=False, use_boxlib=False, solver_type='classic', weno_order=5,
+        time_integrator='SSP104', outdir='./_output'):
     import numpy as np
     from clawpack import riemann
 
@@ -40,6 +40,7 @@ def setup(nx=100,kernel_language='Python', use_petsc=False, use_boxlib=False,
         elif kernel_language=='Python':
             solver = pyclaw.SharpClawSolver1D(riemann.advection_1D_py.advection_1D)
         solver.weno_order=weno_order
+        solver.time_integrator=time_integrator
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language
@@ -76,11 +77,11 @@ def setup(nx=100,kernel_language='Python', use_petsc=False, use_boxlib=False,
 #--------------------------
 def setplot(plotdata):
 #--------------------------
-    """ 
+    """
     Specify what is to be plotted at each frame.
     Input:  plotdata, an instance of visclaw.data.ClawPlotData.
     Output: a modified version of plotdata.
-    """ 
+    """
     plotdata.clearfigures()  # clear any old figures,axes,items data
 
     plotfigure = plotdata.new_plotfigure(name='q', figno=1)
@@ -96,10 +97,10 @@ def setplot(plotdata):
     plotitem.plotstyle = '-o'
     plotitem.color = 'b'
     plotitem.kwargs = {'linewidth':2,'markersize':5}
-    
+
     return plotdata
 
- 
+
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(setup,setplot)

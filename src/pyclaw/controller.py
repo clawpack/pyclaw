@@ -17,6 +17,7 @@ import copy
 
 from .solver import Solver
 from .util import FrameCounter
+from .util import LOGGING_LEVELS
 
 class Controller(object):
     r"""Controller for pyclaw simulation runs and plotting
@@ -59,6 +60,16 @@ class Controller(object):
     #  ======================================================================
     #   Property Definitions
     #  ======================================================================
+    @property
+    def verbosity(self):
+        return self._verbosity
+
+    @verbosity.setter
+    def verbosity(self, value):
+        self._verbosity = value
+        # Only adjust console logger; leave file logger alone
+        self.logger.handlers[1].setLevel(LOGGING_LEVELS[value])
+
     @property
     def outdir_p(self):
         r"""(string) - Directory to use for writing derived quantity files"""
@@ -144,13 +155,15 @@ class Controller(object):
         r"""(dict) - Output options passed to function writing and reading 
         data in output_format's format.  ``default = {}``"""
         
+        self.logger = logging.getLogger('pyclaw.controller')
+
         # Classic output parameters, used in run convenience method
         self.tfinal = 1.0
         r"""(float) - Final time output, ``default = 1.0``"""
         self.output_style = 1
         r"""(int) - Time output style, ``default = 1``"""
-        self.verbosity = 0 
-        r"""(int) - Level of output, ``default = 0``"""
+        self.verbosity = 3
+        r"""(int) - Level of output to screen; ``default = 3``"""
         self.num_output_times = 10                  # Outstyle 1 defaults
         r"""(int) - Number of output times, only used with ``output_style = 1``,
         ``default = 10``"""
@@ -203,15 +216,16 @@ class Controller(object):
     def check_validity(self):
         r"""Check that the controller has been properly set up and is ready to run.
 
-            Checks validity of the solver
+            Also checks validity of the solver, solution and states.
         """
         # Check to make sure we have a valid solver to use
         if self.solver is None:
             raise Exception("No solver set in controller.")
         if not isinstance(self.solver,Solver):
             raise Exception("Solver is not of correct type.")
-        if not self.solver.is_valid():
-            raise Exception("The solver failed to initialize properly.") 
+        valid, reason = self.solver.is_valid()
+        if not valid:
+            raise Exception("The solver failed to initialize properly because "+reason) 
             
         # Check to make sure the initial solution is valid
         if not self.solution.is_valid():
@@ -399,8 +413,7 @@ class Controller(object):
         return True
 
     def log_info(self, str):
-        import logging
-        logging.info(str)
+        self.logger.info(str)
 
 if __name__ == "__main__":
     import doctest

@@ -30,7 +30,7 @@ import logging
 
 import clawpack.pyclaw.solution
 
-logger = logging.getLogger('io')
+logger = logging.getLogger('pyclaw.io')
 
 # Import appropriate hdf5 package
 use_h5py = False
