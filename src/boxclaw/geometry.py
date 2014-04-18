@@ -40,8 +40,8 @@ class Patch(pyclaw_geometry.Patch):
         hi = boxlib.hi(fab.box())
         grid_dimensions = []
         for i in range(self.num_dim):
-            lower = self.lower_global[i] + lo[i]*self.delta[i]
-            upper = self.lower_global[i] + (hi[i]+1)*self.delta[i]
+            lower = (lo[i]+0) * self.delta[i]
+            upper = (hi[i]+1) * self.delta[i]
             num_cells = hi[i]-lo[i]+1
 
             grid_dimensions.append(pyclaw_geometry.Dimension(lower,upper,
