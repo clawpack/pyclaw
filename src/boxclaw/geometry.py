@@ -7,10 +7,17 @@ Module containing boxclaw.geometry.
 from clawpack import pyclaw
 from clawpack.pyclaw import geometry as pyclaw_geometry
 
+import logging
+logger = logging.getLogger('root')
+
 class Patch(pyclaw_geometry.Patch):
     """Parallel Patch class."""
 
     __doc__ += pyclaw.util.add_parent_doc(pyclaw_geometry.Patch)
+
+    def __deepcopy__(self,memo):
+        # don't recreate boxarrays
+        return self
 
     def __init__(self,dimensions):
 
@@ -19,10 +26,10 @@ class Patch(pyclaw_geometry.Patch):
 
         super(Patch,self).__init__(dimensions)
 
-        self._ba, self._gbox   = self._create_boxarray()
+        self._ba, self._gbox = self._create_boxarray()
 
         is_per = np.asarray(self.num_dim * [ 1 ], np.int32)
-        rb = boxlib.RealBox(boxlib.lo(self._gbox), boxlib.hi(self._gbox))
+        rb     = boxlib.RealBox(boxlib.lo(self._gbox), boxlib.hi(self._gbox))
         self._geom = boxlib.bl[self.num_dim].Geometry(self._gbox, rb, 0, is_per)
 
         # XXX: create a multifab from the boxarray to get geometry information
@@ -65,7 +72,10 @@ class Patch(pyclaw_geometry.Patch):
     def _create_boxarray(self):
         """Returns a BoxLib BoxArray."""
 
+        # note that boxlib supports more than one box per processor
+
         import boxlib
+        import math
         import numpy as np
 
         dx = self.delta
@@ -78,16 +88,27 @@ class Patch(pyclaw_geometry.Patch):
         box = boxlib.Box(lo, hi)
         ba  = boxlib.BoxArray([box])
 
-        # XXX: breaking up the box array to distribute it should be
-        # done more intelligently
+        max_sizes = self.num_dim * [ 1 ]
 
-        # boxlib supports more than one box per processor; however,
-        # for pyclaw we will enforce one box per processor
-        nproc_per_dim = int(float(boxlib.size())**(1./self.num_dim))
+        nprocs = boxlib.size()
+        if nprocs % 2**self.num_dim == 0:
+            # divide domain into cubes
+            nproc_per_dim = nprocs / 2**self.num_dim + 1
+            print nproc_per_dim
+            for d in range(self.num_dim):
+                max_sizes[d] = int(math.ceil(float(hi[d] - lo[d] + 1) / nproc_per_dim))
+        else:
+            # divide domain into slabs
+            max_sizes[0] = int(math.ceil(float(hi[0] - lo[0] + 1) / nprocs))
+            for d in range(1, self.num_dim):
+                max_sizes[d] = hi[d] - lo[d] + 1
 
-        max_sizes = [ (hi[d] - lo[d]) / nproc_per_dim + 1 for d in range(self.num_dim) ]
         max_sizes = boxlib.bl[self.num_dim].IntVect(*max_sizes)
         ba.maxSize(max_sizes)
+
+        if boxlib.rank() == 0:
+            logger.info("max_sizes: " + str(max_sizes))
+            logger.info("boxarray:  " + str(ba))
 
         return ba, box
 
@@ -104,5 +125,3 @@ class Domain(pyclaw_geometry.Domain):
             self.patches = geom
         elif isinstance(geom[0],pyclaw_geometry.Dimension):
             self.patches = [Patch(geom)]
-
-
