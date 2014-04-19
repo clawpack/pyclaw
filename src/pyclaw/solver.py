@@ -741,14 +741,18 @@ class Solver(object):
             to file.
         """
         import numpy as np
+        if solution.num_aux == 0:
+            aux = None
         for i,gauge in enumerate(solution.state.grid.gauges):
             if self.num_dim == 1:
                 ix=gauge[0];
-                aux=solution.state.aux[:,ix]
+                if solution.num_aux > 0:
+                    aux = solution.state.aux[:,ix]
                 q=solution.state.q[:,ix]
             elif self.num_dim == 2:
                 ix=gauge[0]; iy=gauge[1]
-                aux=solution.state.aux[:,ix,iy]
+                if solution.num_aux > 0:
+                    aux = solution.state.aux[:,ix,iy]
                 q=solution.state.q[:,ix,iy]
             p=self.compute_gauge_values(q,aux)
             t=solution.t
