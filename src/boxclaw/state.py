@@ -7,7 +7,7 @@ class State(clawpack.pyclaw.State):
 
     def get_qbc_from_q(self,num_ghost,qbc):
         """
-        XXX: Fills in the interior of qbc by copying q to it.
+        Fills in the interior of qbc by copying q to it.
         """
         self._fill_boundary(self.num_eqn, num_ghost, self.q, qbc)
         return qbc
@@ -22,6 +22,7 @@ class State(clawpack.pyclaw.State):
         mf.FillBoundary()
         self.patch._geom.FillPeriodicBoundary(mf)
         self._copy_outof_multifab(mf, qbc)
+        del mf
 
     def _create_multifab(self, ncomp, nghost):
         import boxlib

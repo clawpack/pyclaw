@@ -96,6 +96,8 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
         mf = solution.state._create_multifab(solution.state.num_eqn, 0)
         solution.state._copy_into_multifab(mf, 0, solution.state.q)
 
+        finest_level = 0
+
         # write header
         if rank==0:
             with open(os.path.join(plt_filename, 'Header'), 'w') as f:
@@ -105,16 +107,18 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
                 phi = solution.domain.patch.upper_global
                 dx  = solution.domain.patch.delta
 
-                write("HyperCLaw-V1.1")                 # yeah, i have no idea why...
+                write("BoxCLaw")
                 write(solution.state.num_eqn)           # number of variables
                 for i in range(solution.state.num_eqn): # variable names
                     write('q'+str(i))
                 write(solution.state.num_dim)           # number of dimensions
                 write(solution.state.t)                 # time
-                write('0')                              # finest amr level number
+                write(finest_level)                     # finest amr level number
                 write(' '.join(map(str, plo)))          # lower corner of problem domain
                 write(' '.join(map(str, phi)))          # upper corner of problem domain
-                write('1')                              # refinement ratio
+
+                if finest_level == 0:
+                    write('')
                 write(solution.state.patch._gbox)       # grid domain
                 write(frame)                            # time step number
                 write(' '.join(map(str, dx)))           # dx
@@ -129,7 +133,7 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
                     lo = bx.smallEnd()
                     hi = bx.bigEnd()
                     for d in range(solution.state.num_dim):
-                        write("%lf %lf" % (plo[d] + lo[d]*dx[d], plo[d] + hi[d]*dx[d]))
+                        write("%lf %lf" % (lo[d]*dx[d], (hi[d]+1)*dx[d]))
                 write("Level_0/Cell")
 
         # write cell data
