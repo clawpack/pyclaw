@@ -20,8 +20,7 @@ def write(solution,frame,path,prefix='fort',clobber=True,
                     write_aux=False,write_p=False):
     pass
 
-def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
-                options={}):
+def read(solution,frame,path='./',file_prefix='fort',read_aux=False):
     r"""
     Read in a set of raw binary files
     
@@ -42,8 +41,6 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
        ``default = 'fort'``
      - *read_aux* (bool) Whether or not an auxillary file will try to be read 
        in.  ``default = False``
-     - *options* - (dict) Dictionary of optional arguments dependent on 
-       the format being read in.  ``default = {}``
     """
     
     # Construct path names
