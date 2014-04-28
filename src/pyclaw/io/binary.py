@@ -16,6 +16,9 @@ import clawpack.pyclaw as pyclaw
 
 logger = logging.getLogger('pyclaw.io')
 
+def write(solution,frame,path,prefix='fort',clobber=True,
+                    write_aux=False,write_p=False):
+    pass
 
 def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 options={}):

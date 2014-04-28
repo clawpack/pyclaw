@@ -13,8 +13,8 @@ from ..util import read_data_line
 
 logger = logging.getLogger('io')
 
-def write(solution,frame,path,file_prefix='fort',write_aux=False,
-                    options={},write_p=False):
+def write(solution,frame,path,prefix='fort',clobber=True,
+                    write_aux=False,write_p=False):
     r"""
     Write out ascii data file
     
@@ -31,7 +31,7 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
        output.
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *file_prefix* - (string) Prefix for the file name.  ``default = 'fort'``
+     - *prefix* - (string) Prefix for the file name.  ``default = 'fort'``
      - *write_aux* - (bool) Boolean controlling whether the associated 
        auxiliary array should be written out.  ``default = False``
      - *options* - (dict) Dictionary of optional arguments dependent on 
@@ -39,7 +39,7 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
     """
     try:
         # Create file name
-        file_name = '%s.t%s' % (file_prefix,str(frame).zfill(4))
+        file_name = '%s.t%s' % (prefix,str(frame).zfill(4))
         f = open(os.path.join(path,file_name),'w')
         
         # Header for fort.txxxx file
@@ -88,7 +88,7 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
         logger.error("Unexpected error:", sys.exc_info()[0])
         raise
 
-    pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
+    pickle_filename = os.path.join(path, '%s.pkl' % prefix) + str(frame).zfill(4)
     pickle_file = open(pickle_filename,'wb')
     sol_dict = {'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
                      'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,
@@ -148,8 +148,7 @@ def write_array(f,patch,q):
         raise Exception("Dimension Exception in writing fort file.")
 
 
-def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
-                options={}):
+def read(solution,frame,path='./',prefix='fort',read_aux=False):
     r"""
     Read in a set of ascii formatted files
     
@@ -162,7 +161,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
        read the data into.
      - *frame* - (int) Frame number to be read in
      - *path* - (string) Path to the current directory of the file
-     - *file_prefix* - (string) Prefix of the files to be read in.  
+     - *prefix* - (string) Prefix of the files to be read in.  
        ``default = 'fort'``
      - *read_aux* (bool) Whether or not an auxillary file will try to be read 
        in.  ``default = False``
@@ -170,7 +169,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
        the format being read in.  ``default = {}``
     """
 
-    pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
+    pickle_filename = os.path.join(path, '%s.pkl' % prefix) + str(frame).zfill(4)
     problem_data = None
     mapc2p = None
     try:
@@ -185,10 +184,10 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
 
     # Construct path names
     base_path = os.path.join(path,)
-    q_fname = os.path.join(base_path, '%s.q' % file_prefix) + str(frame).zfill(4)
+    q_fname = os.path.join(base_path, '%s.q' % prefix) + str(frame).zfill(4)
 
     # Read in values from fort.t file:
-    [t,num_eqn,nstates,num_aux,num_dim] = read_t(frame,path,file_prefix)
+    [t,num_eqn,nstates,num_aux,num_dim] = read_t(frame,path,prefix)
 
     patches = []
     
@@ -255,8 +254,8 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     REL_TOL = 1e-15
     if solution.states[0].num_aux > 0 and read_aux:
         # Check for aux file
-        fname1 = os.path.join(base_path,'%s.a' % file_prefix)+str(frame).zfill(4)
-        fname2 = os.path.join(base_path,'%s.a' % file_prefix)+str(0).zfill(4)
+        fname1 = os.path.join(base_path,'%s.a' % prefix)+str(frame).zfill(4)
+        fname2 = os.path.join(base_path,'%s.a' % prefix)+str(0).zfill(4)
         if os.path.exists(fname1):
             # aux file specific to this frame:
             fname = fname1
@@ -306,13 +305,13 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         f.close()
         
             
-def read_t(frame,path='./',file_prefix='fort'):
+def read_t(frame,path='./',prefix='fort'):
     r"""Read only the fort.t file and return the data
     
     :Input:
      - *frame* - (int) Frame number to be read in
      - *path* - (string) Path to the current directory of the file
-     - *file_prefix* - (string) Prefix of the files to be read in.  
+     - *prefix* - (string) Prefix of the files to be read in.  
        ``default = 'fort'``
      
     :Output:
@@ -326,7 +325,7 @@ def read_t(frame,path='./',file_prefix='fort'):
     """
 
     base_path = os.path.join(path,)
-    path = os.path.join(base_path, '%s.t' % file_prefix) + str(frame).zfill(4)
+    path = os.path.join(base_path, '%s.t' % prefix) + str(frame).zfill(4)
     logger.debug("Opening %s file." % path)
     try:
         f = open(path,'r')

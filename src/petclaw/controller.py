@@ -7,7 +7,7 @@ from clawpack import pyclaw
 class Controller(pyclaw.controller.Controller):
     """ Parallel Controller Class
 
-    Defaults to petsc output_format, logs only from process 0.
+    Defaults to petsc output_method, logs only from process 0.
     """
     
     __doc__ += pyclaw.util.add_parent_doc(pyclaw.controller.Controller)
@@ -15,7 +15,7 @@ class Controller(pyclaw.controller.Controller):
     def __init__(self):
         super(Controller,self).__init__()
 
-        self.output_format = 'petsc'
+        self.output_method = 'petsc'
 
     def is_proc_0(self):
         from petsc4py import PETSc

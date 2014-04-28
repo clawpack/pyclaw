@@ -53,8 +53,8 @@ if not use_h5py:
 if not use_h5py and not use_PyTables:
     logging.critical("Could not import h5py or PyTables!")
 
-def write(solution,frame,path,file_prefix='claw',write_aux=False,
-                options={},write_p=False):
+def write(solution,frame,path,prefix='claw',clobber=True,
+                write_aux=False,write_p=False,options={}):
     r"""
     Write out a Solution to a HDF5 file.
     
@@ -63,7 +63,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
        object to input into
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *file_prefix* - (string) Prefix for the file name.  ``default = 'claw'``
+     - *prefix* - (string) Prefix for the file name.  ``default = 'claw'``
      - *write_aux* - (bool) Boolean controlling whether the associated 
        auxiliary array should be written out.  ``default = False``     
      - *options* - (dict) Optional argument dictionary, see 
@@ -116,7 +116,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
     
     # File name
     filename = os.path.join(path,'%s%s.hdf' % 
-                                (file_prefix,str(frame).zfill(4)))
+                                (prefix,str(frame).zfill(4)))
     
     # Write out using h5py
     if use_h5py:
@@ -175,7 +175,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
         logging.critical(err_msg)
         raise Exception(err_msg)
 
-def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
+def read(solution,frame,path='./',prefix='claw',read_aux=True,
                 options={}):
     r"""
     Read in a HDF5 file into a Solution
@@ -185,7 +185,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
        output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *file_prefix* - (string) Prefix for the file name.  ``default = 'claw'``
+     - *prefix* - (string) Prefix for the file name.  ``default = 'claw'``
      - *write_aux* - (bool) Boolean controlling whether the associated 
        auxiliary array should be written out.  ``default = False``     
      - *options* - (dict) Optional argument dictionary, unused for reading.
@@ -201,7 +201,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
     
     # File name
     filename = os.path.join(path,'%s%s.hdf' % 
-                                (file_prefix,str(frame).zfill(4)))
+                                (prefix,str(frame).zfill(4)))
 
     if use_h5py:
         f = h5py.File(filename,'r')

@@ -54,8 +54,8 @@ if not use_netcdf4:
         #raise Exception(error_msg)
         print error_msg
 
-def write(solution,frame,path,file_prefix='claw',write_aux=False,
-                    options={}):
+def write(solution,frame,path,prefix='claw',clobber=True,
+                write_aux=False,write_p=False,options={}):
     r"""
     Write out a NetCDF data file representation of solution
     
@@ -64,7 +64,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
        output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *prefix* - (string) Prefix for the file name. ``default = 'claw'``
      - *write_aux* - (bool) Boolean controlling whether the associated 
        auxiliary array should be written out. ``default = False``     
      - *options* - (dict) Optional argument dictionary, see 
@@ -171,9 +171,13 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
             exec('%s = v' % k)
             
     # Filename
-    filename = os.path.join(path,"%s%s.nc" % (file_prefix,str(frame).zfill(4)))
-        
+    filename = os.path.join(path,"%s%s.nc" % (prefix,str(frame).zfill(4)))
+    
+    if write_p:
+        print "write_p not implemented in netcdf"
+
     if use_netcdf4:
+
         # Open new file
         f = netCDF4.Dataset(filename,'w',clobber=clobber,format=format)
         
@@ -236,7 +240,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
         raise Exception(err_msg)
         
     
-def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
+def read(solution,frame,path='./',prefix='claw',read_aux=True,
                 options={}):
     r"""
     Read in a NetCDF data files into solution
@@ -246,7 +250,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
        output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *file_prefix* - (string) Prefix for the file name.  ``default = 'claw'``
+     - *prefix* - (string) Prefix for the file name.  ``default = 'claw'``
      - *write_aux* - (bool) Boolean controlling whether the associated 
        auxiliary array should be written out.  ``default = False``     
      - *options* - (dict) Optional argument dictionary, unused for reading.
@@ -261,7 +265,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
             exec('%s = v' % k)
             
     # Filename
-    filename = os.path.join(path,"%s%s.nc" % (file_prefix,str(frame).zfill(4)))
+    filename = os.path.join(path,"%s%s.nc" % (prefix,str(frame).zfill(4)))
         
     if use_netcdf4:
         # Open file
