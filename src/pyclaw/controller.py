@@ -333,9 +333,12 @@ class Controller(object):
             return None
 
         # Output and save initial frame
+
         if self.keep_copy:
             self.frames.append(copy.deepcopy(self.solution))
-        if self.output_method or self.output_format is not None:
+        if self.output_method==None or self.output_format==None:
+            pass
+        else:
             if os.path.exists(self.outdir) and self.output_clobber==False:
                 raise Exception("Refusing to overwrite existing output data. \
                  \nEither delete/move the directory or set controller.overwrite=True.")
@@ -378,7 +381,9 @@ class Controller(object):
             if self.keep_copy:
                 # Save current solution to dictionary with frame as key
                 self.frames.append(copy.deepcopy(self.solution))
-            if self.output_method or self.output_format is not None:
+            if self.output_method==None or self.output_format==None:
+                pass
+            else:
                 if self.compute_p is not None:
                     self.compute_p(self.solution.state)
                     self.solution.write(frame=frame,

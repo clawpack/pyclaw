@@ -247,8 +247,8 @@ class Solution(object):
     
     
     # ========== IO Functions ================================================
-    def write(self,frame,path='./',prefix=None,method='serial',format='binary',
-                clobber=True,write_aux=False,write_p=False,options={}):
+    def write(self,frame,path='./',prefix=None,method='serial',format='ascii',
+                clobber=True,write_aux=False,write_p=False,options={}, **kwargs):
         r"""
         Write out a representation of the solution
 
@@ -274,6 +274,14 @@ class Solution(object):
          - method ``petsc``: 'ascii', 'binary', 'hdf5', 'netcfd', 'vtk'
 
         """
+        for key,value in kwargs.iteritems():
+            if key=='file_format':
+                format = value
+            elif key=='file_prefix':
+                prefix = value
+            else:
+                pass
+
         if path is not None:
             # Determine if we need to create the path
             path = os.path.expandvars(os.path.expanduser(path))
@@ -285,7 +293,10 @@ class Solution(object):
 
             # Take the usual prefix if None given
             if prefix is None:
-                prefix = 'claw'
+                if method=='serial':
+                    prefix = 'fort'
+                elif method=='petsc':
+                    prefix = 'claw'
             if format is None:
                 method = None
             # Call the correct write function based on the output method/format
@@ -317,7 +328,7 @@ class Solution(object):
             pass
 
        
-    def read(self,frame,path='./_output',prefix=None,method='serial',format='binary',
+    def read(self,frame,path='./_output',prefix=None,method='serial',format='ascii',
                 read_aux=True,options={}, **kwargs):
         r"""
         Reads in a Solution object from a file
@@ -348,11 +359,20 @@ class Solution(object):
         :Output:
          - (bool) - True if read was successful, False otherwise
         """
-        if prefix is None:
-            prefix = 'claw'
         for key,value in kwargs.iteritems():
             if key=='file_format':
                 format = value
+            elif key=='file_prefix':
+                prefix = value
+            else:
+                pass
+
+        if prefix is None:
+            if method=='serial':
+                prefix = 'fort'
+            elif method=='petsc':
+                prefix = 'claw'
+        
 
         path = os.path.expandvars(os.path.expanduser(path))
         
