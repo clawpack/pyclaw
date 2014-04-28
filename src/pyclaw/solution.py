@@ -318,10 +318,6 @@ class Solution(object):
             else:
                 pass
 
-            
-
-            
-
             msg = "Wrote out solution in format %s for time t=%s" % (format,self.t)
             logging.getLogger('pyclaw.io').info(msg)
         else:
