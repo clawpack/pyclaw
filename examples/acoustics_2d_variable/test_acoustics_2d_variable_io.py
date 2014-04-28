@@ -57,7 +57,7 @@ def test_acoustics_2d_variable_io():
     from clawpack.pyclaw.util import gen_variants
     tempdir = './_io_test_results'
     classic_tests = gen_variants(acoustics_2d_interface.setup, verify_acoustics_io,
-                                 solver_type='classic', outdir=tempdir)
+                                 solver_type='classic',use_petsc=False, outdir=tempdir)
 
 
     import shutil
