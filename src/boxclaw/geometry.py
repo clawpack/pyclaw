@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 r"""
-Module containing boxclaw.geometry.
+Module containing BoxClaw geometry.
 """
 
 from clawpack import pyclaw

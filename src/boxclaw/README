@@ -1,0 +1,17 @@
+
+BoxLib backend for PyClaw
+=========================
+
+This backend uses the C++ version of the CCSE BoxLib_ library.  To
+install BoxLib, `download BoxLib`_ and
+
+.. code-block:: sh
+
+   cd BoxLib/Src/Python
+   python setup.py build
+   python setup.py install
+
+
+.. _BoxLib: https://ccse.lbl.gov/BoxLib/index.html
+.. _`download BoxLib`: https://ccse.lbl.gov/Downloads/downloadBoxLib.html
+

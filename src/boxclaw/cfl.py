@@ -1,8 +1,6 @@
-r"""
-Module for the CFL object.
-"""
+
 class CFL(object):
-    """ Parallel CFL object, responsible for computing the
+    """Parallel CFL object, responsible for computing the
     Courant-Friedrichs-Lewy condition across all processes.
     """
 
