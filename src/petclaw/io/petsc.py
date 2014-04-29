@@ -46,7 +46,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='binary',clobber=Tr
         prefix = kwargs['file_prefix']
 
     fallback_binary = False
-    
+
     pickle_filename = os.path.join(path, '%s.pkl' % prefix) + str(frame).zfill(4)
     
     if file_format == 'vtk':
@@ -72,7 +72,8 @@ def write(solution,frame,path='./',prefix='claw',file_format='binary',clobber=Tr
                          'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,
                          'write_aux':write_aux,
                          'problem_data' : solution.problem_data,
-                         'mapc2p': solution.state.grid.mapc2p}
+                         'mapc2p': solution.state.grid.mapc2p,
+                         'file_format':file_format}
         if write_p:
             sol_dict['num_eqn'] = solution.mp
 
