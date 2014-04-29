@@ -54,7 +54,7 @@ if not use_netcdf4:
         #raise Exception(error_msg)
         print error_msg
 
-def write(solution,frame,path='./',prefix='claw',file_format='netcdf',clobber=True,
+def write(solution,frame,path='./',file_prefix='claw',file_format='netcdf',clobber=True,
           write_aux=False,write_p=False,options={}, **kwargs):
     r"""
     Write out a NetCDF data file representation of solution
@@ -63,7 +63,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='netcdf',clobber=Tr
        object to be output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
      - *file_format* - (string) Format to output data, ``default = 'binary'``
      - *clobber* - (bool) Bollean controlling whether to overwrite files
      - *write_aux* - (bool) Boolean controlling whether the associated 
@@ -162,9 +162,9 @@ def write(solution,frame,path='./',prefix='claw',file_format='netcdf',clobber=Tr
     """
     
     if 'format' in kwargs:
-        file_format = kwargs['file_format']
-    if 'file_prefix' in kwargs:
-        prefix = kwargs['file_prefix']
+        file_format = kwargs['format']
+    if 'prefix' in kwargs:
+        file_prefix = kwargs['prefix']
     
     # Option parsing
     option_defaults = {'format':'NETCDF4','zlib':False,'complevel':6,
@@ -179,7 +179,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='netcdf',clobber=Tr
             exec('%s = v' % k)
             
     # Filename
-    filename = os.path.join(path,"%s%s.nc" % (prefix,str(frame).zfill(4)))
+    filename = os.path.join(path,"%s%s.nc" % (file_prefix,str(frame).zfill(4)))
     
     if write_p:
         print "write_p not implemented in netcdf"
@@ -249,7 +249,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='netcdf',clobber=Tr
         raise Exception(err_msg)
         
     
-def read(solution,frame,path='./',prefix='fort',file_format='netcdf',read_aux=False,options={}, **kwargs):
+def read(solution,frame,path='./',file_prefix='fort',file_format='netcdf',read_aux=False,options={}, **kwargs):
     r"""
     Read in a NetCDF data files into solution
     
@@ -258,13 +258,13 @@ def read(solution,frame,path='./',prefix='fort',file_format='netcdf',read_aux=Fa
        output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *prefix* - (string) Prefix for the file name.  ``default = 'claw'``
+     - *file_prefix* - (string) Prefix for the file name.  ``default = 'claw'``
      - *write_aux* - (bool) Boolean controlling whether the associated 
        auxiliary array should be written out.  ``default = False``     
      - *options* - (dict) Optional argument dictionary, unused for reading.
     """
-    if 'file_prefix' in kwargs:
-            prefix = kwargs['file_prefix']
+    if 'prefix' in kwargs:
+            file_prefix = kwargs['prefix']
     if 'format' in kwargs:
             file_format = kwargs['format']
 
@@ -277,7 +277,7 @@ def read(solution,frame,path='./',prefix='fort',file_format='netcdf',read_aux=Fa
             exec('%s = v' % k)
             
     # Filename
-    filename = os.path.join(path,"%s%s.nc" % (prefix,str(frame).zfill(4)))
+    filename = os.path.join(path,"%s%s.nc" % (file_prefix,str(frame).zfill(4)))
         
     if use_netcdf4:
         # Open file

@@ -247,14 +247,14 @@ class Solution(object):
     
     
     # ========== IO Functions ================================================
-    def write(self,frame,path='./',prefix=None,method='serial',file_format='ascii',
+    def write(self,frame,path='./',file_prefix=None,method='serial',file_format='ascii',
                 clobber=True,write_aux=False,write_p=False,options={}, **kwargs):
         r"""
         Write out a representation of the solution
 
         Writes out a suitable representation of this solution object based on
         the format requested.  The path is built from the optional path and
-        prefix arguments.  Will raise an IOError if unsuccessful.
+        file_prefix arguments.  Will raise an IOError if unsuccessful.
 
         :Input:
          - *frame* - (int) Frame number to append to the file output
@@ -262,7 +262,7 @@ class Solution(object):
            does not already exist. ``default = './'``
          - *method* - (string) A string describing write method, 'serial','petsc', or None.
          - *format* - (string) A string with the desired output format. ``default = 'ascii'``
-         - *prefix* - (string) Prefix for the file name.  Defaults to
+         - *file_prefix* - (string) Prefix for the file name.  Defaults to
            the particular io modules default, ``default = None`
          - *clobber* - (bool) Overwritte the current files if path exists
          - *write_aux* - (bool) Write the auxillary array out as well if 
@@ -275,8 +275,8 @@ class Solution(object):
 
         """
 
-        if 'file_prefix' in kwargs:
-            prefix = kwargs['file_prefix']
+        if 'prefix' in kwargs:
+            file_prefix = kwargs['prefix']
         if 'format' in kwargs:
             file_format = kwargs['format']
 
@@ -289,12 +289,12 @@ class Solution(object):
                 except OSError:
                     print "directory already exists, ignoring"  
 
-            # Take the usual prefix if None given
-            if prefix is None:
+            # Take the usual file_prefix if None given
+            if file_prefix is None:
                 if method=='serial':
-                    prefix = 'fort'
+                    file_prefix = 'fort'
                 elif method=='petsc':
-                    prefix = 'claw'
+                    file_prefix = 'claw'
             if file_format is None:
                 method = None
             # Call the correct write function based on the output method/file_format
@@ -311,7 +311,7 @@ class Solution(object):
                 pass
 
             # write
-            write_func(self,frame,path,prefix,file_format,clobber,write_aux,write_p,options)
+            write_func(self,frame,path,file_prefix,file_format,clobber,write_aux,write_p,options)
 
             msg = "Wrote out solution in format %s for time t=%s" % (file_format,self.t)
             logging.getLogger('pyclaw.io').info(msg)
@@ -319,7 +319,7 @@ class Solution(object):
             pass
 
  
-    def read(self,frame,path='./_output',prefix=None,method='serial',file_format='ascii',
+    def read(self,frame,path='./_output',file_prefix=None,method='serial',file_format='ascii',
                 read_aux=True,options={}, **kwargs):
         r"""
         Reads in a Solution object from a file
@@ -332,7 +332,7 @@ class Solution(object):
         False otherwise.  Options is a dictionary of parameters that each
         format can specify.  See the ascii module for an example.::
         
-            read_<format>(solution,path,frame,prefix,options={})
+            read_<format>(solution,path,frame,file_prefix,options={})
             
         ``<format>`` is the name of the format in question.
         
@@ -342,7 +342,7 @@ class Solution(object):
            ``default = './'``
          - *file_format* - (string) Format of the file, should match on of the 
            modules inside of the io package.  ``default = 'ascii'``
-         - *prefix* - (string) Name prefix in front of all the files, 
+         - *file_prefix* - (string) Name file_prefix in front of all the files, 
            defaults to whatever the format defaults to, e.g. fort for ascii
          - *options* - (dict) Dictionary of optional arguments dependent on 
            the format being read in.  ``default = {}``
@@ -351,16 +351,16 @@ class Solution(object):
          - (bool) - True if read was successful, False otherwise
         """
 
-        if 'file_prefix' in kwargs:
-            prefix = kwargs['file_prefix']
+        if 'prefix' in kwargs:
+            file_prefix = kwargs['prefix']
         if 'format' in kwargs:
             file_format = kwargs['format']
 
-        if prefix is None:
+        if file_prefix is None:
             if method=='serial':
-                prefix = 'fort'
+                file_prefix = 'fort'
             elif method=='petsc':
-                prefix = 'claw'
+                file_prefix = 'claw'
         
 
         path = os.path.expandvars(os.path.expanduser(path))
@@ -375,7 +375,7 @@ class Solution(object):
             from clawpack.petclaw import io
             read_func = getattr(getattr(io,method),'read')
 
-        read_func(self,frame,path,prefix,file_format,read_aux,options)
+        read_func(self,frame,path,file_prefix,file_format,read_aux,options)
         logging.getLogger('pyclaw.io').info("Read in solution for time t=%s" % self.t)
         
         

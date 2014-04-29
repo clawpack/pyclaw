@@ -13,7 +13,7 @@ from ..util import read_data_line
 
 logger = logging.getLogger('io')
 
-def write(solution,frame,path='./',prefix='claw',file_format='ascii',clobber=True,
+def write(solution,frame,path='./',file_prefix='claw',file_format='ascii',clobber=True,
           write_aux=False,write_p=False,options={}, **kwargs):
     r"""
     Write out ascii data file
@@ -31,7 +31,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='ascii',clobber=Tru
        object to be output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
      - *file_format* - (string) Format to output data, ``default = 'binary'``
      - *clobber* - (bool) Bollean controlling whether to overwrite files
      - *write_aux* - (bool) Boolean controlling whether the associated 
@@ -42,13 +42,13 @@ def write(solution,frame,path='./',prefix='claw',file_format='ascii',clobber=Tru
     """
 
     if 'format' in kwargs:
-        file_format = kwargs['file_format']
-    if 'file_prefix' in kwargs:
-        prefix = kwargs['file_prefix']    
+        file_format = kwargs['format']
+    if 'prefix' in kwargs:
+        file_prefix = kwargs['prefix']    
     
     try:
         # Create file name
-        file_name = '%s.t%s' % (prefix,str(frame).zfill(4))
+        file_name = '%s.t%s' % (file_prefix,str(frame).zfill(4))
         f = open(os.path.join(path,file_name),'w')
         
         # Header for fort.txxxx file
@@ -97,7 +97,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='ascii',clobber=Tru
         logger.error("Unexpected error:", sys.exc_info()[0])
         raise
 
-    pickle_filename = os.path.join(path, '%s.pkl' % prefix) + str(frame).zfill(4)
+    pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     pickle_file = open(pickle_filename,'wb')
     sol_dict = {'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
                      'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,
@@ -156,20 +156,20 @@ def write_array(f,patch,q):
     else:
         raise Exception("Dimension Exception in writing fort file.")
 
-def read(solution,frame,path='./',prefix='fort',file_format='ascii',read_aux=False,options={}, **kwargs):
+def read(solution,frame,path='./',file_prefix='fort',file_format='ascii',read_aux=False,options={}, **kwargs):
     r"""
     Read in a set of ascii formatted files
     
     This routine reads the ascii formatted files corresponding to the classic
     clawpack format 'fort.txxxx', 'fort.qxxxx', and 'fort.axxxx' or 'fort.aux'
-    Note that the fort prefix can be changed.
+    Note that the fort file_prefix can be changed.
     
     :Input:
      - *solution* - (:class:`~pyclaw.solution.Solution`) Solution object to 
        read the data into.
      - *frame* - (int) Frame number to be read in
      - *path* - (string) Path to the current directory of the file
-     - *prefix* - (string) Prefix of the files to be read in.  
+     - *file_prefix* - (string) Prefix of the files to be read in.  
        ``default = 'fort'``
      - *read_aux* (bool) Whether or not an auxillary file will try to be read 
        in.  ``default = False``
@@ -178,11 +178,11 @@ def read(solution,frame,path='./',prefix='fort',file_format='ascii',read_aux=Fal
     """
 
     if 'format' in kwargs:
-        file_format = kwargs['file_format']
-    if 'file_prefix' in kwargs:
-        prefix = kwargs['file_prefix']
+        file_format = kwargs['format']
+    if 'prefix' in kwargs:
+        file_prefix = kwargs['prefix']
     
-    pickle_filename = os.path.join(path, '%s.pkl' % prefix) + str(frame).zfill(4)
+    pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     problem_data = None
     mapc2p = None
     try:
@@ -197,10 +197,10 @@ def read(solution,frame,path='./',prefix='fort',file_format='ascii',read_aux=Fal
 
     # Construct path names
     base_path = os.path.join(path,)
-    q_fname = os.path.join(base_path, '%s.q' % prefix) + str(frame).zfill(4)
+    q_fname = os.path.join(base_path, '%s.q' % file_prefix) + str(frame).zfill(4)
 
     # Read in values from fort.t file:
-    [t,num_eqn,nstates,num_aux,num_dim] = read_t(frame,path,prefix)
+    [t,num_eqn,nstates,num_aux,num_dim] = read_t(frame,path,file_prefix)
 
     patches = []
     
@@ -267,8 +267,8 @@ def read(solution,frame,path='./',prefix='fort',file_format='ascii',read_aux=Fal
     REL_TOL = 1e-15
     if solution.states[0].num_aux > 0 and read_aux:
         # Check for aux file
-        fname1 = os.path.join(base_path,'%s.a' % prefix)+str(frame).zfill(4)
-        fname2 = os.path.join(base_path,'%s.a' % prefix)+str(0).zfill(4)
+        fname1 = os.path.join(base_path,'%s.a' % file_prefix)+str(frame).zfill(4)
+        fname2 = os.path.join(base_path,'%s.a' % file_prefix)+str(0).zfill(4)
         if os.path.exists(fname1):
             # aux file specific to this frame:
             fname = fname1
@@ -318,13 +318,13 @@ def read(solution,frame,path='./',prefix='fort',file_format='ascii',read_aux=Fal
         f.close()
         
             
-def read_t(frame,path='./',prefix='fort'):
+def read_t(frame,path='./',file_prefix='fort'):
     r"""Read only the fort.t file and return the data
     
     :Input:
      - *frame* - (int) Frame number to be read in
      - *path* - (string) Path to the current directory of the file
-     - *prefix* - (string) Prefix of the files to be read in.  
+     - *file_prefix* - (string) Prefix of the files to be read in.  
        ``default = 'fort'``
      
     :Output:
@@ -338,7 +338,7 @@ def read_t(frame,path='./',prefix='fort'):
     """
 
     base_path = os.path.join(path,)
-    path = os.path.join(base_path, '%s.t' % prefix) + str(frame).zfill(4)
+    path = os.path.join(base_path, '%s.t' % file_prefix) + str(frame).zfill(4)
     logger.debug("Opening %s file." % path)
     try:
         f = open(path,'r')

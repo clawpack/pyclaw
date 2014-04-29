@@ -12,7 +12,7 @@ from petsc4py import PETSc
 import pickle
     
 
-def write(solution,frame,path='./',prefix='claw',file_format='binary',clobber=True,
+def write(solution,frame,path='./',file_prefix='claw',file_format='binary',clobber=True,
           write_aux=False,write_p=False,options={}, **kwargs):
     r"""
         Write out pickle and PETSc data files representing the
@@ -25,7 +25,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='binary',clobber=Tr
        object to be output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
      - *file_format* - (string) Format to output data, ``default = 'binary'``
      - *clobber* - (bool) Bollean controlling whether to overwrite files
      - *write_aux* - (bool) Boolean controlling whether the associated 
@@ -41,23 +41,23 @@ def write(solution,frame,path='./',prefix='claw',file_format='binary',clobber=Tr
     import os
 
     if 'format' in kwargs:
-        file_format = kwargs['file_format']
-    if 'file_prefix' in kwargs:
-        prefix = kwargs['file_prefix']
+        file_format = kwargs['format']
+    if 'prefix' in kwargs:
+        file_prefix = kwargs['prefix']
 
     fallback_binary = False
 
-    pickle_filename = os.path.join(path, '%s.pkl' % prefix) + str(frame).zfill(4)
+    pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     
     if file_format == 'vtk':
-        viewer_filename = os.path.join(path, prefix+str(frame).zfill(4)+'.vtk')
+        viewer_filename = os.path.join(path, file_prefix+str(frame).zfill(4)+'.vtk')
     else:
-        viewer_filename = os.path.join(path, '%s.ptc' % prefix) + str(frame).zfill(4)
+        viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
 
     if solution.num_aux == 0:
         write_aux = False
     if write_aux:
-        aux_filename = os.path.join(path, '%s_aux.ptc' % prefix) + str(frame).zfill(4)
+        aux_filename = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
 
     if not clobber:
         for f in (pickle_filename, viewer_filename, aux_filename):
@@ -163,7 +163,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='binary',clobber=Tr
         aux_viewer.destroy()
 
 
-def read(solution,frame,path='./',prefix='claw',file_format='binary',read_aux=False,options={},**kwargs):
+def read(solution,frame,path='./',file_prefix='claw',file_format='binary',read_aux=False,options={},**kwargs):
     r"""
     Read in pickles and PETSc data files representing the solution
     
@@ -172,7 +172,7 @@ def read(solution,frame,path='./',prefix='claw',file_format='binary',read_aux=Fa
        read the data into.
      - *frame* - (int) Frame number to be read in
      - *path* - (string) Path to the current directory of the file
-     - *prefix* - (string) Prefix of the files to be read in.  
+     - *file_prefix* - (string) Prefix of the files to be read in.  
        ``default = 'fort'``
      - *file_format* - (string) format of data, ``default = 'binary'``
      - *read_aux* (bool) Whether or not an auxiliary file will try to be read 
@@ -188,14 +188,14 @@ def read(solution,frame,path='./',prefix='claw',file_format='binary',read_aux=Fa
     import os
 
     if 'format' in kwargs:
-        file_format = kwargs['file_format']
-    if 'file_prefix' in kwargs:
-        prefix = kwargs['file_prefix']
+        file_format = kwargs['format']
+    if 'prefix' in kwargs:
+        file_prefix = kwargs['prefix']
 
-    pickle_filename = os.path.join(path, '%s.pkl' % prefix) + str(frame).zfill(4)
-    viewer_filename = os.path.join(path, '%s.ptc' % prefix) + str(frame).zfill(4)
-    aux_viewer_filename1 = os.path.join(path, '%s_aux.ptc' % prefix) + str(frame).zfill(4)
-    aux_viewer_filename2 = os.path.join(path, '%s_aux.ptc' % prefix) + str(0).zfill(4)
+    pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
+    viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
+    aux_viewer_filename1 = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
+    aux_viewer_filename2 = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(0).zfill(4)
     if os.path.exists(aux_viewer_filename1):
          aux_viewer_filename = aux_viewer_filename1
     else:
@@ -318,13 +318,13 @@ def read(solution,frame,path='./',prefix='claw',file_format='binary',read_aux=Fa
     if read_aux:
         aux_viewer.destroy()
 
-def read_t(frame,path='./',prefix='claw',**kwargs):
+def read_t(frame,path='./',file_prefix='claw',**kwargs):
     r"""Read only the petsc.pkl file and return the data
     
     :Input:
      - *frame* - (int) Frame number to be read in
      - *path* - (string) Path to the current directory of the file
-     - *prefix* - (string) Prefix of the files to be read in.  
+     - *file_prefix* - (string) Prefix of the files to be read in.  
        ``default = 'claw'``
      
     :Output:
@@ -340,11 +340,11 @@ def read_t(frame,path='./',prefix='claw',**kwargs):
     import logging
     logger = logging.getLogger('io')
 
-    if 'file_prefix' in kwargs:
-        prefix = kwargs['file_prefix']
+    if 'prefix' in kwargs:
+        file_prefix = kwargs['prefix']
     
     base_path = os.path.join(path,)
-    path = os.path.join(base_path, '%s.pkl' % prefix) + str(frame).zfill(4)
+    path = os.path.join(base_path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     try:
         f = open(path,'rb')
     except IOError:

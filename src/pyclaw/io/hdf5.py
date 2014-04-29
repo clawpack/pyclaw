@@ -53,7 +53,7 @@ if not use_h5py:
 if not use_h5py and not use_PyTables:
     logging.critical("Could not import h5py or PyTables!")
 
-def write(solution,frame,path='./',prefix='claw',file_format='hdf5',clobber=True,
+def write(solution,frame,path='./',file_prefix='claw',file_format='hdf5',clobber=True,
           write_aux=False,write_p=False,options={}, **kwargs):
     r"""
     Write out a HDF5 data file representation of solution
@@ -63,7 +63,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='hdf5',clobber=True
        object to be output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
      - *file_format* - (string) Format to output data, ``default = 'binary'``
      - *clobber* - (bool) Bollean controlling whether to overwrite files
      - *write_aux* - (bool) Boolean controlling whether the associated 
@@ -110,9 +110,9 @@ def write(solution,frame,path='./',prefix='claw',file_format='hdf5',clobber=True
     """
     
     if 'format' in kwargs:
-        file_format = kwargs['file_format']
-    if 'file_prefix' in kwargs:
-        prefix = kwargs['file_prefix']
+        file_format = kwargs['format']
+    if 'prefix' in kwargs:
+        file_prefix = kwargs['prefix']
 
     # Option parsing
     option_defaults = {'compression':None,'compression_opts':None,
@@ -125,7 +125,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='hdf5',clobber=True
     
     # File name
     filename = os.path.join(path,'%s%s.hdf' % 
-                                (prefix,str(frame).zfill(4)))
+                                (file_prefix,str(frame).zfill(4)))
     
     # Write out using h5py
     if use_h5py:
@@ -184,7 +184,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='hdf5',clobber=True
         logging.critical(err_msg)
         raise Exception(err_msg)
 
-def read(solution,frame,path='./',prefix='fort',file_format='hdf5',read_aux=False,options={}, **kwargs):
+def read(solution,frame,path='./',file_prefix='fort',file_format='hdf5',read_aux=False,options={}, **kwargs):
     r"""
     Read in a HDF5 file into a Solution
     
@@ -193,14 +193,14 @@ def read(solution,frame,path='./',prefix='fort',file_format='hdf5',read_aux=Fals
        output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *prefix* - (string) Prefix for the file name.  ``default = 'claw'``
+     - *file_prefix* - (string) Prefix for the file name.  ``default = 'claw'``
      - *write_aux* - (bool) Boolean controlling whether the associated 
        auxiliary array should be written out.  ``default = False``     
      - *options* - (dict) Optional argument dictionary, unused for reading.
     """
     
-    if 'file_prefix' in kwargs:
-            prefix = kwargs['file_prefix']
+    if 'prefix' in kwargs:
+            file_prefix = kwargs['prefix']
     if 'format' in kwargs:
             file_format = kwargs['format']
 
@@ -214,7 +214,7 @@ def read(solution,frame,path='./',prefix='fort',file_format='hdf5',read_aux=Fals
     
     # File name
     filename = os.path.join(path,'%s%s.hdf' % 
-                                (prefix,str(frame).zfill(4)))
+                                (file_prefix,str(frame).zfill(4)))
 
     if use_h5py:
         f = h5py.File(filename,'r')

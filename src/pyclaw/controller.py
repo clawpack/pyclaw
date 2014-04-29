@@ -346,7 +346,7 @@ class Controller(object):
                 self.compute_p(self.solution.state)
                 self.solution.write(frame = frame,
                                         path = self.outdir_p,
-                                        prefix = self.file_prefix_p,
+                                        file_prefix = self.file_prefix_p,
                                         method = self.output_method,
                                         file_format = self.output_format,
                                         clobber = self.output_clobber,
@@ -357,7 +357,7 @@ class Controller(object):
             write_aux = (self.write_aux_always or self.write_aux_init)
             self.solution.write(frame = frame,
                                 path = self.outdir,
-                                prefix = self.output_file_prefix,
+                                file_prefix = self.output_file_prefix,
                                 method = self.output_method,
                                 file_format = self.output_format,
                                 clobber = self.output_clobber,
@@ -388,7 +388,7 @@ class Controller(object):
                     self.compute_p(self.solution.state)
                     self.solution.write(frame=frame,
                                         path = self.outdir,
-                                        prefix = self.file_prefix_p,
+                                        file_prefix = self.file_prefix_p,
                                         method = self.output_method,
                                         file_format = self.output_format,
                                         clobber = self.output_clobber,
@@ -398,7 +398,7 @@ class Controller(object):
                 
                 self.solution.write(frame=frame,
                                     path = self.outdir,
-                                    prefix = self.output_file_prefix,
+                                    file_prefix = self.output_file_prefix,
                                     method = self.output_method,
                                     file_format = self.output_format,
                                     clobber = self.output_clobber,

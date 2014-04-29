@@ -16,7 +16,7 @@ import clawpack.pyclaw as pyclaw
 
 logger = logging.getLogger('pyclaw.io')
 
-def write(solution,frame,path='./',prefix='claw',file_format='binary',clobber=True,
+def write(solution,frame,path='./',file_prefix='claw',file_format='binary',clobber=True,
           write_aux=False,write_p=False,options={}, **kwargs):
     r"""
     Write out binary data file
@@ -28,7 +28,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='binary',clobber=Tr
        object to be output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
      - *file_format* - (string) Format to output data, ``default = 'binary'``
      - *clobber* - (bool) Bollean controlling whether to overwrite files
      - *write_aux* - (bool) Boolean controlling whether the associated 
@@ -39,13 +39,13 @@ def write(solution,frame,path='./',prefix='claw',file_format='binary',clobber=Tr
     """
 
     if 'format' in kwargs:
-        file_format = kwargs['file_format']
-    if 'file_prefix' in kwargs:
-        prefix = kwargs['file_prefix']
+        file_format = kwargs['format']
+    if 'prefix' in kwargs:
+        file_prefix = kwargs['prefix']
     
     pass
 
-def read(solution,frame,path='./',prefix='fort',file_format='binary',read_aux=False,options={}, **kwargs):
+def read(solution,frame,path='./',file_prefix='fort',file_format='binary',read_aux=False,options={}, **kwargs):
     r"""
     Read in a set of raw binary files
     
@@ -55,7 +55,7 @@ def read(solution,frame,path='./',prefix='fort',file_format='binary',read_aux=Fa
     fort.bxxxx is binary dump of data from all patches.
     fort.axxxx is binary dump of aux arrays from all patches.
 
-    Note that the fort prefix can be changed.
+    Note that the fort file_prefix can be changed.
     
     :Input:
      - *solution* - (:class:`~pyclaw.solution.Solution`) Solution object to 
@@ -67,8 +67,8 @@ def read(solution,frame,path='./',prefix='fort',file_format='binary',read_aux=Fa
      - *read_aux* (bool) Whether or not an auxillary file will try to be read 
        in.  ``default = False``
     """
-    if 'file_prefix' in kwargs:
-            prefix = kwargs['file_prefix']
+    if 'prefix' in kwargs:
+            file_prefix = kwargs['prefix']
     if 'format' in kwargs:
             file_format = kwargs['format']
     
