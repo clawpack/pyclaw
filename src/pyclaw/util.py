@@ -43,7 +43,7 @@ def run_app_from_main(application,setplot=None):
     # will be passed to PETSc
     petsc_args, pyclaw_kwargs = _info_from_argv(sys.argv)
 
-    if 'use_petsc' in pyclaw_kwargs and pyclaw_kwargs['use_petsc']:
+    if pyclaw_kwargs.get('use_petsc', False):
         import petsc4py
         petsc_args = [arg.replace('--','-') for arg in sys.argv[1:] if '=' not in arg]
         petsc4py.init(petsc_args)
@@ -60,6 +60,8 @@ def run_app_from_main(application,setplot=None):
         for key,value in pyclaw_kwargs.items():
             if key not in ('htmlplot','iplot'):
                 app_kwargs[key] = value
+
+    app_kwargs['pyclaw'] = pyclaw
 
     claw=application(**app_kwargs)
 
