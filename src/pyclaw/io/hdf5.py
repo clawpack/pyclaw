@@ -184,8 +184,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='hdf5',clobber=True
         logging.critical(err_msg)
         raise Exception(err_msg)
 
-def read(solution,frame,path='./',prefix='claw',read_aux=True,
-                options={}):
+def read(solution,frame,path='./',prefix='fort',file_format='hdf5',read_aux=False,options={}, **kwargs):
     r"""
     Read in a HDF5 file into a Solution
     
@@ -200,6 +199,11 @@ def read(solution,frame,path='./',prefix='claw',read_aux=True,
      - *options* - (dict) Optional argument dictionary, unused for reading.
     """
     
+    if 'file_prefix' in kwargs:
+            prefix = kwargs['file_prefix']
+    if 'format' in kwargs:
+            file_format = kwargs['format']
+
     # Option parsing
     option_defaults = {}
     for (k,v) in option_defaults.iteritems():

@@ -45,7 +45,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='binary',clobber=Tr
     
     pass
 
-def read(solution,frame,path='./',file_prefix='fort',read_aux=False):
+def read(solution,frame,path='./',prefix='fort',file_format='binary',read_aux=False,options={}, **kwargs):
     r"""
     Read in a set of raw binary files
     
@@ -67,6 +67,10 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False):
      - *read_aux* (bool) Whether or not an auxillary file will try to be read 
        in.  ``default = False``
     """
+    if 'file_prefix' in kwargs:
+            prefix = kwargs['file_prefix']
+    if 'format' in kwargs:
+            file_format = kwargs['format']
     
     # Construct path names
     base_path = os.path.join(path,)

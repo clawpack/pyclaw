@@ -195,7 +195,8 @@ def write(solution,frame,path='./',prefix='claw',file_format='netcdf',clobber=Tr
             exec('f.%s = %s' % (k,v))
         
         # For each patch, write out attributes
-        for patch in solution.patchs:
+        for state in solution.states:
+            patch = state.patch
             # Create group for this patch
             subgroup = f.createGroup('patch%s' % patch.patch_index)
         
@@ -229,9 +230,9 @@ def write(solution,frame,path='./',prefix='claw',file_format='netcdf',clobber=Tr
             exec("q[%s] = patch.q" % index_str)
             
             # Write out aux
-            if patch.num_aux > 0 and write_aux:
+            if solution.num_aux > 0 and write_aux:
                 dim_names[-1] = 'num_aux'
-                subgroup.createDimension('num_aux',patch.num_aux)
+                subgroup.createDimension('num_aux',solution.num_aux)
                 aux = subgroup.createVariable('aux','f8',dim_names,
                                             zlib,complevel,shuffle,fletcher32,
                                             contiguous,chunksizes,endian,
@@ -248,8 +249,7 @@ def write(solution,frame,path='./',prefix='claw',file_format='netcdf',clobber=Tr
         raise Exception(err_msg)
         
     
-def read(solution,frame,path='./',prefix='claw',read_aux=True,
-                options={}):
+def read(solution,frame,path='./',prefix='fort',file_format='netcdf',read_aux=False,options={}, **kwargs):
     r"""
     Read in a NetCDF data files into solution
     
@@ -263,7 +263,11 @@ def read(solution,frame,path='./',prefix='claw',read_aux=True,
        auxiliary array should be written out.  ``default = False``     
      - *options* - (dict) Optional argument dictionary, unused for reading.
     """
-    
+    if 'file_prefix' in kwargs:
+            prefix = kwargs['file_prefix']
+    if 'format' in kwargs:
+            file_format = kwargs['format']
+
     # Option parsing
     option_defaults = {}
     for (k,v) in option_defaults.iteritems():

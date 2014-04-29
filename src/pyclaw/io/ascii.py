@@ -156,8 +156,7 @@ def write_array(f,patch,q):
     else:
         raise Exception("Dimension Exception in writing fort file.")
 
-
-def read(solution,frame,path='./',prefix='fort',read_aux=False):
+def read(solution,frame,path='./',prefix='fort',file_format='ascii',read_aux=False,options={}, **kwargs):
     r"""
     Read in a set of ascii formatted files
     
@@ -178,6 +177,11 @@ def read(solution,frame,path='./',prefix='fort',read_aux=False):
        the format being read in.  ``default = {}``
     """
 
+    if 'format' in kwargs:
+        file_format = kwargs['file_format']
+    if 'file_prefix' in kwargs:
+        prefix = kwargs['file_prefix']
+    
     pickle_filename = os.path.join(path, '%s.pkl' % prefix) + str(frame).zfill(4)
     problem_data = None
     mapc2p = None

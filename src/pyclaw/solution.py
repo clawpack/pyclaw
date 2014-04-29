@@ -318,7 +318,7 @@ class Solution(object):
         else:
             pass
 
-       
+ 
     def read(self,frame,path='./_output',prefix=None,method='serial',file_format='ascii',
                 read_aux=True,options={}, **kwargs):
         r"""
@@ -370,16 +370,12 @@ class Solution(object):
             if hasattr(io, file_format):
                 read_func = getattr(getattr(io,file_format),'read')
             else:
-                read_func = getattr(getattr(io,'binary'),'read')
-            if file_format=='hdf5' or file_format=='netcdf':
-                read_func(self,frame,path,prefix,read_aux,options)
-            else:
-                read_func(self,frame,path,prefix,read_aux)
+                read_func = getattr(getattr(io,'ascii'),'read')
         elif method=='petsc':
             from clawpack.petclaw import io
-            read_func = getattr(getattr(io,method),'read')            
-            read_func(self,frame,path,prefix,file_format,read_aux)
-        
+            read_func = getattr(getattr(io,method),'read')
+
+        read_func(self,frame,path,prefix,file_format,read_aux,options)
         logging.getLogger('pyclaw.io').info("Read in solution for time t=%s" % self.t)
         
         
