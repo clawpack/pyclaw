@@ -164,8 +164,8 @@ def write(solution,frame,path='./',prefix='claw',file_format='hdf5',clobber=True
                                         compression_opts=compression_opts,
                                         chunks=chunks,shuffle=shuffle,
                                         fletcher32=fletcher32)
-            if write_aux and patch.num_aux > 0:
-                subgroup.create_dataset('aux',data=patch.aux,
+            if write_aux and solution.num_aux > 0:
+                subgroup.create_dataset('aux',data=solution.num_aux,
                                         compression=compression,
                                         compression_opts=compression_opts,
                                         chunks=chunks,shuffle=shuffle,
@@ -247,7 +247,7 @@ def read(solution,frame,path='./',prefix='claw',read_aux=True,
             # Read in aux if applicable
             if read_aux and subgroup.get('aux',None) is not None:
                 index_str = ','.join( [':' for i in xrange(len(subgroup['aux'].shape))] )
-                exec("patch.aux = subgroup['aux'][%s]" % index_str)
+                exec("solution.num_aux = subgroup['aux'][%s]" % index_str)
                 
             solution.patchs.append(patch)
             
