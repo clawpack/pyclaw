@@ -45,6 +45,8 @@ def write(solution,frame,path='./',prefix='claw',file_format='binary',clobber=Tr
     if 'file_prefix' in kwargs:
         prefix = kwargs['file_prefix']
 
+    fallback_binary = False
+    
     pickle_filename = os.path.join(path, '%s.pkl' % prefix) + str(frame).zfill(4)
     
     if file_format == 'vtk':
@@ -100,27 +102,39 @@ def write(solution,frame,path='./',prefix='claw',file_format='binary',clobber=Tr
             viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.WRITE)
         else:
             viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.WRITE)
+            fallback_binary = True
         if write_aux:
             if hasattr(PETSc.Viewer,'createHDF5'):
                 aux_viewer = PETSc.Viewer().createHDF5(aux_filename, PETSc.Viewer.Mode.WRITE)
             else:
                 aux_viewer = PETSc.Viewer().createBinary(aux_filename, PETSc.Viewer.Mode.WRITE)
+                fallback_binary = True
     elif file_format=='netcdf':
         if hasattr(PETSc.Viewer, 'createNetCDF'):
             viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.WRITE)
         else:
             viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.WRITE)
+            fallback_binary = True
             msg = 'PETSc.Viewer has no attribute createHDF5, falling back to binary output'
             petsc_warning=True
             file_format='binary'
         if write_aux:
-            if hasattr(PETSc.Viewer,'createHDF5'):
+            if hasattr(PETSc.Viewer,'createNetCDF'):
                 aux_viewer = PETSc.Viewer().createHDF5(aux_filename, PETSc.Viewer.Mode.WRITE)
             else:
                 aux_viewer = PETSc.Viewer().createBinary(aux_filename, PETSc.Viewer.Mode.WRITE)
+                fallback_binary = True
     else:
         raise IOError('file format type %s not supported' % file_format)
     
+    if fallback_binary:
+        from warnings import warn
+        import logging
+        msg = 'write format %s not available, falling back to ``binary`` format \n have you compiled it correctly on PETSc/petsc4py? ' % file_format
+        # print warning to user (?)
+        warn(msg)
+        # print to logger
+        logging.getLogger('io').WARN(msg)
 
     for state in solution.states:
         patch = state.patch
@@ -159,6 +173,7 @@ def read(solution,frame,path='./',prefix='claw',file_format='binary',read_aux=Fa
      - *path* - (string) Path to the current directory of the file
      - *prefix* - (string) Prefix of the files to be read in.  
        ``default = 'fort'``
+     - *file_format* - (string) format of data, ``default = 'binary'``
      - *read_aux* (bool) Whether or not an auxiliary file will try to be read 
        in.  ``default = False``
      - *options* - (dict) Optional argument dictionary, see 
@@ -199,6 +214,10 @@ def read(solution,frame,path='./',prefix='claw',file_format='binary',read_aux=Fa
     num_aux       = value_dict['num_aux']
     num_eqn       = value_dict['num_eqn']
 
+    # (bool) read succesful
+    failed_format_read = False
+    failed_aux_read = False
+
     # now set up the PETSc viewer
     if file_format == 'ascii':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.READ)
@@ -216,44 +235,47 @@ def read(solution,frame,path='./',prefix='claw',file_format='binary',read_aux=Fa
                 else:
                     aux_viewer = PETSc.Viewer().createBinary(aux_viewer_filename, PETSc.Viewer.Mode.READ)
             else:
-                from warnings import warn
-                aux_file_path = os.path.join(path,aux_viewer_filename)
-                warn('read_aux=True but aux file %s does not exist' % aux_file_path)
+                failed_aux_read = True
                 read_aux=False
     elif file_format == 'hdf5':
         if hasattr(PETSc.Viewer,'createHDF5'):
             viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.READ)
         else:
-            viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.READ)
+            failed_format_read = True
         if read_aux:
             if os.path.exists(aux_viewer_filename):
                 if hasattr(PETSc.Viewer,'createHDF5'):
                     aux_viewer = PETSc.Viewer().createHDF5(aux_viewer_filename, PETSc.Viewer.Mode.READ)
                 else:
-                    aux_viewer = PETSc.Viewer().createBinary(aux_viewer_filename, PETSc.Viewer.Mode.READ)
-            else:
-                from warnings import warn
-                aux_file_path = os.path.join(path,aux_viewer_filename)
-                warn('read_aux=True but aux file %s does not exist' % aux_file_path)
+                    failed_format_read = True
+            else:         
+                failed_aux_read = True
                 read_aux=False
     elif file_format == 'netcdf':
         if hasattr(PETSc.Viewer,'createNetCDF'):
             viewer = PETSc.Viewer().createNetCDF(viewer_filename, PETSc.Viewer.Mode.READ)
         else:
-            viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.READ)
+            failed_format_read = True
         if read_aux:
             if os.path.exists(aux_viewer_filename):
                 if hasattr(PETSc.Viewer,'createNetCDF'):
                     aux_viewer = PETSc.Viewer().createNetCDF(aux_viewer_filename, PETSc.Viewer.Mode.READ)
                 else:
-                    aux_viewer = PETSc.Viewer().createBinary(aux_viewer_filename, PETSc.Viewer.Mode.READ)
+                    failed_format_read = True
             else:
-                from warnings import warn
-                aux_file_path = os.path.join(path,aux_viewer_filename)
-                warn('read_aux=True but aux file %s does not exist' % aux_file_path)
+                failed_aux_read = True
                 read_aux=False
     else:
         raise IOError('file format type %s not supported' % file_format)
+
+    if failed_format_read:
+        msg = 'read failed because there is no method for format %s in class petsc4py.PETSc, \n have you installed HDF5?' % file_format
+        raise IOError(msg)
+
+    if failed_aux_read:
+        from warnings import warn
+        aux_file_path = os.path.join(path,aux_viewer_filename)
+        warn('read_aux=True but aux file %s does not exist' % aux_file_path)
 
     patches = []
     for m in xrange(nstates):
