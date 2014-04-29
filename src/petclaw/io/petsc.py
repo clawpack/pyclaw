@@ -12,8 +12,8 @@ from petsc4py import PETSc
 import pickle
     
 
-def write(solution,frame,path='./',prefix='claw',format='binary',clobber=True,
-          write_aux=False,write_p=False):
+def write(solution,frame,path='./',prefix='claw',file_format='binary',clobber=True,
+          write_aux=False,write_p=False,options={}, **kwargs):
     r"""
         Write out pickle and PETSc data files representing the
         solution.  Common data is written from process 0 in pickle
@@ -26,12 +26,13 @@ def write(solution,frame,path='./',prefix='claw',format='binary',clobber=True,
      - *frame* - (int) Frame number
      - *path* - (string) Root path
      - *prefix* - (string) Prefix for the file name. ``default = 'claw'``
-     - *format* - (string) Format to output data, ``default = 'binary'``
+     - *file_format* - (string) Format to output data, ``default = 'binary'``
      - *clobber* - (bool) Bollean controlling whether to overwrite files
      - *write_aux* - (bool) Boolean controlling whether the associated 
        auxiliary array should be written out. ``default = False``     
      - *write_p* - (bool) Boolean controlling whether the associated 
-       p array should be written out. ``default = False``     
+       p array should be written out. ``default = False``
+     - *options* - (dict) Optional argument dictionary     
     
     : Available formats
      - 'ascii', 'binary', 'hdf5', 'netcdf', 'vtk'
@@ -39,9 +40,14 @@ def write(solution,frame,path='./',prefix='claw',format='binary',clobber=True,
     """    
     import os
 
+    if 'format' in kwargs:
+        file_format = kwargs['file_format']
+    if 'file_prefix' in kwargs:
+        prefix = kwargs['file_prefix']
+
     pickle_filename = os.path.join(path, '%s.pkl' % prefix) + str(frame).zfill(4)
     
-    if format == 'vtk':
+    if file_format == 'vtk':
         viewer_filename = os.path.join(path, prefix+str(frame).zfill(4)+'.vtk')
     else:
         viewer_filename = os.path.join(path, '%s.ptc' % prefix) + str(frame).zfill(4)
@@ -71,11 +77,11 @@ def write(solution,frame,path='./',prefix='claw',format='binary',clobber=True,
         pickle.dump(sol_dict, pickle_file)
 
     # now set up the PETSc viewers
-    if format == 'ascii':
+    if file_format == 'ascii':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.WRITE)
         if write_aux:
             aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE)
-    elif format == 'binary':
+    elif file_format == 'binary':
         if hasattr(PETSc.Viewer,'createMPIIO'):
             viewer = PETSc.Viewer().createMPIIO(viewer_filename, PETSc.Viewer.Mode.WRITE)
         else:
@@ -85,11 +91,11 @@ def write(solution,frame,path='./',prefix='claw',format='binary',clobber=True,
                 aux_viewer = PETSc.Viewer().createMPIIO(aux_filename, PETSc.Viewer.Mode.WRITE)
             else:
                 aux_viewer = PETSc.Viewer().createBinary(aux_filename, PETSc.Viewer.Mode.WRITE)
-    elif format == 'vtk':
+    elif file_format == 'vtk':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.WRITE, format=PETSc.Viewer.Format.ASCII_VTK)
         if write_aux:
             aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE)
-    elif format=='hdf5':
+    elif file_format=='hdf5':
         if hasattr(PETSc.Viewer, 'createHDF5'):
             viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.WRITE)
         else:
@@ -99,19 +105,23 @@ def write(solution,frame,path='./',prefix='claw',format='binary',clobber=True,
                 aux_viewer = PETSc.Viewer().createHDF5(aux_filename, PETSc.Viewer.Mode.WRITE)
             else:
                 aux_viewer = PETSc.Viewer().createBinary(aux_filename, PETSc.Viewer.Mode.WRITE)
-    elif format=='netcdf':
+    elif file_format=='netcdf':
         if hasattr(PETSc.Viewer, 'createNetCDF'):
             viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.WRITE)
         else:
             viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.WRITE)
+            msg = 'PETSc.Viewer has no attribute createHDF5, falling back to binary output'
+            petsc_warning=True
+            file_format='binary'
         if write_aux:
             if hasattr(PETSc.Viewer,'createHDF5'):
                 aux_viewer = PETSc.Viewer().createHDF5(aux_filename, PETSc.Viewer.Mode.WRITE)
             else:
                 aux_viewer = PETSc.Viewer().createBinary(aux_filename, PETSc.Viewer.Mode.WRITE)
     else:
-        raise IOError('format type %s not supported' % format)
+        raise IOError('file format type %s not supported' % file_format)
     
+
     for state in solution.states:
         patch = state.patch
         if rank==0:
@@ -138,7 +148,7 @@ def write(solution,frame,path='./',prefix='claw',format='binary',clobber=True,
         aux_viewer.destroy()
 
 
-def read(solution,frame,path='./',prefix='claw',format='binary',read_aux=False):
+def read(solution,frame,path='./',prefix='claw',file_format='binary',read_aux=False,options={},**kwargs):
     r"""
     Read in pickles and PETSc data files representing the solution
     
@@ -161,6 +171,10 @@ def read(solution,frame,path='./',prefix='claw',format='binary',read_aux=False):
     """
     import os
 
+    if 'format' in kwargs:
+        file_format = kwargs['file_format']
+    if 'file_prefix' in kwargs:
+        prefix = kwargs['file_prefix']
 
     pickle_filename = os.path.join(path, '%s.pkl' % prefix) + str(frame).zfill(4)
     viewer_filename = os.path.join(path, '%s.ptc' % prefix) + str(frame).zfill(4)
@@ -186,11 +200,11 @@ def read(solution,frame,path='./',prefix='claw',format='binary',read_aux=False):
     num_eqn       = value_dict['num_eqn']
 
     # now set up the PETSc viewer
-    if format == 'ascii':
+    if file_format == 'ascii':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.READ)
         if read_aux:
             aux_viewer = PETSc.Viewer().createASCII(aux_viewer_filename, PETSc.Viewer.Mode.READ)
-    elif format == 'binary':
+    elif file_format == 'binary':
         if hasattr(PETSc.Viewer,'createMPIIO'):
             viewer = PETSc.Viewer().createMPIIO(viewer_filename, PETSc.Viewer.Mode.READ)
         else:
@@ -206,7 +220,7 @@ def read(solution,frame,path='./',prefix='claw',format='binary',read_aux=False):
                 aux_file_path = os.path.join(path,aux_viewer_filename)
                 warn('read_aux=True but aux file %s does not exist' % aux_file_path)
                 read_aux=False
-    elif format == 'hdf5':
+    elif file_format == 'hdf5':
         if hasattr(PETSc.Viewer,'createHDF5'):
             viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.READ)
         else:
@@ -222,7 +236,7 @@ def read(solution,frame,path='./',prefix='claw',format='binary',read_aux=False):
                 aux_file_path = os.path.join(path,aux_viewer_filename)
                 warn('read_aux=True but aux file %s does not exist' % aux_file_path)
                 read_aux=False
-    elif format == 'netcdf':
+    elif file_format == 'netcdf':
         if hasattr(PETSc.Viewer,'createNetCDF'):
             viewer = PETSc.Viewer().createNetCDF(viewer_filename, PETSc.Viewer.Mode.READ)
         else:
@@ -239,7 +253,7 @@ def read(solution,frame,path='./',prefix='claw',format='binary',read_aux=False):
                 warn('read_aux=True but aux file %s does not exist' % aux_file_path)
                 read_aux=False
     else:
-        raise IOError('format type %s not supported' % format)
+        raise IOError('file format type %s not supported' % file_format)
 
     patches = []
     for m in xrange(nstates):
@@ -281,7 +295,7 @@ def read(solution,frame,path='./',prefix='claw',format='binary',read_aux=False):
     if read_aux:
         aux_viewer.destroy()
 
-def read_t(frame,path='./',prefix='claw'):
+def read_t(frame,path='./',prefix='claw',**kwargs):
     r"""Read only the petsc.pkl file and return the data
     
     :Input:
@@ -303,6 +317,9 @@ def read_t(frame,path='./',prefix='claw'):
     import logging
     logger = logging.getLogger('io')
 
+    if 'file_prefix' in kwargs:
+        prefix = kwargs['file_prefix']
+    
     base_path = os.path.join(path,)
     path = os.path.join(base_path, '%s.pkl' % prefix) + str(frame).zfill(4)
     try:

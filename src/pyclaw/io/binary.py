@@ -16,8 +16,33 @@ import clawpack.pyclaw as pyclaw
 
 logger = logging.getLogger('pyclaw.io')
 
-def write(solution,frame,path,prefix='fort',clobber=True,
-                    write_aux=False,write_p=False):
+def write(solution,frame,path='./',prefix='claw',file_format='binary',clobber=True,
+          write_aux=False,write_p=False,options={}, **kwargs):
+    r"""
+    Write out binary data file
+    
+    NOT IMPLEMENTED
+    
+    :Input:
+     - *solution* - (:class:`~pyclaw.solution.Solution`) pyclaw
+       object to be output
+     - *frame* - (int) Frame number
+     - *path* - (string) Root path
+     - *prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *file_format* - (string) Format to output data, ``default = 'binary'``
+     - *clobber* - (bool) Bollean controlling whether to overwrite files
+     - *write_aux* - (bool) Boolean controlling whether the associated 
+       auxiliary array should be written out. ``default = False``     
+     - *write_p* - (bool) Boolean controlling whether the associated 
+       p array should be written out. ``default = False``
+     - *options* - (dict) Optional argument dictionary
+    """
+
+    if 'format' in kwargs:
+        file_format = kwargs['file_format']
+    if 'file_prefix' in kwargs:
+        prefix = kwargs['file_prefix']
+    
     pass
 
 def read(solution,frame,path='./',file_prefix='fort',read_aux=False):

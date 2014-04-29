@@ -13,8 +13,8 @@ from ..util import read_data_line
 
 logger = logging.getLogger('io')
 
-def write(solution,frame,path,prefix='fort',clobber=True,
-                    write_aux=False,write_p=False):
+def write(solution,frame,path='./',prefix='claw',file_format='ascii',clobber=True,
+          write_aux=False,write_p=False,options={}, **kwargs):
     r"""
     Write out ascii data file
     
@@ -27,16 +27,25 @@ def write(solution,frame,path,prefix='fort',clobber=True,
     3 dimensions.
     
     :Input:
-     - *solution* - (:class:`~pyclaw.solution.Solution`) Pyclaw object to be 
-       output.
+     - *solution* - (:class:`~pyclaw.solution.Solution`) pyclaw
+       object to be output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *prefix* - (string) Prefix for the file name.  ``default = 'fort'``
+     - *prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *file_format* - (string) Format to output data, ``default = 'binary'``
+     - *clobber* - (bool) Bollean controlling whether to overwrite files
      - *write_aux* - (bool) Boolean controlling whether the associated 
-       auxiliary array should be written out.  ``default = False``
-     - *options* - (dict) Dictionary of optional arguments dependent on 
-       the format being written.  ``default = {}``
+       auxiliary array should be written out. ``default = False``     
+     - *write_p* - (bool) Boolean controlling whether the associated 
+       p array should be written out. ``default = False``
+     - *options* - (dict) Optional argument dictionary
     """
+
+    if 'format' in kwargs:
+        file_format = kwargs['file_format']
+    if 'file_prefix' in kwargs:
+        prefix = kwargs['file_prefix']    
+    
     try:
         # Create file name
         file_name = '%s.t%s' % (prefix,str(frame).zfill(4))

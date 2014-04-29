@@ -247,7 +247,7 @@ class Solution(object):
     
     
     # ========== IO Functions ================================================
-    def write(self,frame,path='./',prefix=None,method='serial',format='ascii',
+    def write(self,frame,path='./',prefix=None,method='serial',file_format='ascii',
                 clobber=True,write_aux=False,write_p=False,options={}, **kwargs):
         r"""
         Write out a representation of the solution
@@ -274,13 +274,11 @@ class Solution(object):
          - method ``petsc``: 'ascii', 'binary', 'hdf5', 'netcfd', 'vtk'
 
         """
-        for key,value in kwargs.iteritems():
-            if key=='file_format':
-                format = value
-            elif key=='file_prefix':
-                prefix = value
-            else:
-                pass
+
+        if 'file_prefix' in kwargs:
+            prefix = kwargs['file_prefix']
+        if 'format' in kwargs:
+            file_format = kwargs['format']
 
         if path is not None:
             # Determine if we need to create the path
@@ -297,34 +295,31 @@ class Solution(object):
                     prefix = 'fort'
                 elif method=='petsc':
                     prefix = 'claw'
-            if format is None:
+            if file_format is None:
                 method = None
-            # Call the correct write function based on the output method/format
+            # Call the correct write function based on the output method/file_format
             if method=='serial':
                 from clawpack.pyclaw import io
-                if hasattr(io, format):
-                    write_func = getattr(getattr(io,format),'write')
+                if hasattr(io, file_format):
+                    write_func = getattr(getattr(io,file_format),'write')
                 else:
                     write_func = getattr(getattr(io,'ascii'),'write')
-                if format=='hdf5' or format=='netcdf':
-                    write_func(self,frame,path,prefix,clobber,write_aux,write_p,options)
-                else:
-                    write_func(self,frame,path,prefix,clobber,write_aux,write_p)
             elif method=='petsc':
                 from clawpack.petclaw import io
                 write_func = getattr(getattr(io,method),'write')
-                # write
-                write_func(self,frame,path,prefix,format,clobber,write_aux,write_p)
             else:
                 pass
 
-            msg = "Wrote out solution in format %s for time t=%s" % (format,self.t)
+            # write
+            write_func(self,frame,path,prefix,file_format,clobber,write_aux,write_p,options)
+
+            msg = "Wrote out solution in format %s for time t=%s" % (file_format,self.t)
             logging.getLogger('pyclaw.io').info(msg)
         else:
             pass
 
        
-    def read(self,frame,path='./_output',prefix=None,method='serial',format='ascii',
+    def read(self,frame,path='./_output',prefix=None,method='serial',file_format='ascii',
                 read_aux=True,options={}, **kwargs):
         r"""
         Reads in a Solution object from a file
@@ -355,13 +350,11 @@ class Solution(object):
         :Output:
          - (bool) - True if read was successful, False otherwise
         """
-        for key,value in kwargs.iteritems():
-            if key=='file_format':
-                format = value
-            elif key=='file_prefix':
-                prefix = value
-            else:
-                pass
+
+        if 'file_prefix' in kwargs:
+            prefix = kwargs['file_prefix']
+        if 'format' in kwargs:
+            file_format = kwargs['format']
 
         if prefix is None:
             if method=='serial':
@@ -374,18 +367,18 @@ class Solution(object):
         
         if method=='serial':
             from clawpack.pyclaw import io
-            if hasattr(io, format):
-                read_func = getattr(getattr(io,format),'read')
+            if hasattr(io, file_format):
+                read_func = getattr(getattr(io,file_format),'read')
             else:
                 read_func = getattr(getattr(io,'binary'),'read')
-            if format=='hdf5' or format=='netcdf':
+            if file_format=='hdf5' or file_format=='netcdf':
                 read_func(self,frame,path,prefix,read_aux,options)
             else:
                 read_func(self,frame,path,prefix,read_aux)
         elif method=='petsc':
             from clawpack.petclaw import io
             read_func = getattr(getattr(io,method),'read')            
-            read_func(self,frame,path,prefix,format,read_aux)
+            read_func(self,frame,path,prefix,file_format,read_aux)
         
         logging.getLogger('pyclaw.io').info("Read in solution for time t=%s" % self.t)
         

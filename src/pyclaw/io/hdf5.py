@@ -53,19 +53,23 @@ if not use_h5py:
 if not use_h5py and not use_PyTables:
     logging.critical("Could not import h5py or PyTables!")
 
-def write(solution,frame,path,prefix='claw',clobber=True,
-                write_aux=False,write_p=False,options={}):
+def write(solution,frame,path='./',prefix='claw',file_format='hdf5',clobber=True,
+          write_aux=False,write_p=False,options={}, **kwargs):
     r"""
-    Write out a Solution to a HDF5 file.
+    Write out a HDF5 data file representation of solution
     
     :Input:
-     - *solution* - (:class:`~pyclaw.solution.Solution`) Pyclaw solution 
-       object to input into
+     - *solution* - (:class:`~pyclaw.solution.Solution`) pyclaw
+       object to be output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *prefix* - (string) Prefix for the file name.  ``default = 'claw'``
+     - *prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *file_format* - (string) Format to output data, ``default = 'binary'``
+     - *clobber* - (bool) Bollean controlling whether to overwrite files
      - *write_aux* - (bool) Boolean controlling whether the associated 
-       auxiliary array should be written out.  ``default = False``     
+       auxiliary array should be written out. ``default = False``     
+     - *write_p* - (bool) Boolean controlling whether the associated 
+       p array should be written out. ``default = False`` 
      - *options* - (dict) Optional argument dictionary, see 
        `HDF5 Option Table`_
     
@@ -105,6 +109,11 @@ def write(solution,frame,path,prefix='claw',clobber=True,
     +-----------------+------------------------------------------------------+
     """
     
+    if 'format' in kwargs:
+        file_format = kwargs['file_format']
+    if 'file_prefix' in kwargs:
+        prefix = kwargs['file_prefix']
+
     # Option parsing
     option_defaults = {'compression':None,'compression_opts':None,
                        'chunks':None,'shuffle':False,'fletcher32':False}
