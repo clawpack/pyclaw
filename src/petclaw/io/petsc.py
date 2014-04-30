@@ -36,14 +36,9 @@ def write(solution,frame,path='./',file_prefix='claw',file_format='binary',clobb
     
     : Available formats
      - 'ascii', 'binary', 'hdf5', 'netcdf', 'vtk'
+    """
 
-    """    
     import os
-
-    if 'format' in kwargs:
-        file_format = kwargs['format']
-    if 'prefix' in kwargs:
-        file_prefix = kwargs['prefix']
 
     fallback_binary = False
 
@@ -172,25 +167,16 @@ def read(solution,frame,path='./',file_prefix='claw',file_format='binary',read_a
        read the data into.
      - *frame* - (int) Frame number to be read in
      - *path* - (string) Path to the current directory of the file
-     - *file_prefix* - (string) Prefix of the files to be read in.  
-       ``default = 'fort'``
+     - *file_prefix* - (string) Prefix of the files to be read in, ``default = 'claw'``
      - *file_format* - (string) format of data, ``default = 'binary'``
-     - *read_aux* (bool) Whether or not an auxiliary file will try to be read 
-       in.  ``default = False``
-     - *options* - (dict) Optional argument dictionary, see 
-       `PETScIO Option Table`_
+     - *read_aux* (bool) Whether or not an auxiliary file will try to be read in, ``default = False``
+     - *options* - (dict) Optional argument dictionary
     
-    .. _`PETScIO Option Table`:
-    
-    format   : one of 'ascii' or 'binary'
-     
+    : Available formats
+     - 'ascii', 'binary', 'hdf5', 'netcdf', 'vtk'
     """
-    import os
 
-    if 'format' in kwargs:
-        file_format = kwargs['format']
-    if 'prefix' in kwargs:
-        file_prefix = kwargs['prefix']
+    import os
 
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
