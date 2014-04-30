@@ -275,11 +275,6 @@ class Solution(object):
 
         """
 
-        if 'prefix' in kwargs:
-            file_prefix = kwargs['prefix']
-        if 'format' in kwargs:
-            file_format = kwargs['format']
-
         if path is not None:
             # Determine if we need to create the path
             path = os.path.expandvars(os.path.expanduser(path))
@@ -350,11 +345,6 @@ class Solution(object):
         :Output:
          - (bool) - True if read was successful, False otherwise
         """
-
-        if 'prefix' in kwargs:
-            file_prefix = kwargs['prefix']
-        if 'format' in kwargs:
-            file_format = kwargs['format']
 
         if file_prefix is None:
             if method=='serial':

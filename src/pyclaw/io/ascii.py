@@ -40,11 +40,6 @@ def write(solution,frame,path='./',file_prefix='claw',file_format='ascii',clobbe
        p array should be written out. ``default = False``
      - *options* - (dict) Optional argument dictionary
     """
-
-    if 'format' in kwargs:
-        file_format = kwargs['format']
-    if 'prefix' in kwargs:
-        file_prefix = kwargs['prefix']    
     
     try:
         # Create file name
@@ -176,11 +171,6 @@ def read(solution,frame,path='./',file_prefix='fort',file_format='ascii',read_au
      - *options* - (dict) Dictionary of optional arguments dependent on 
        the format being read in.  ``default = {}``
     """
-
-    if 'format' in kwargs:
-        file_format = kwargs['format']
-    if 'prefix' in kwargs:
-        file_prefix = kwargs['prefix']
     
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     problem_data = None

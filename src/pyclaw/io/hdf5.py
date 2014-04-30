@@ -108,11 +108,6 @@ def write(solution,frame,path='./',file_prefix='claw',file_format='hdf5',clobber
     |                 | be used with or without compression.                 |
     +-----------------+------------------------------------------------------+
     """
-    
-    if 'format' in kwargs:
-        file_format = kwargs['format']
-    if 'prefix' in kwargs:
-        file_prefix = kwargs['prefix']
 
     # Option parsing
     option_defaults = {'compression':None,'compression_opts':None,
@@ -198,11 +193,6 @@ def read(solution,frame,path='./',file_prefix='fort',file_format='hdf5',read_aux
        auxiliary array should be written out.  ``default = False``     
      - *options* - (dict) Optional argument dictionary, unused for reading.
     """
-    
-    if 'prefix' in kwargs:
-            file_prefix = kwargs['prefix']
-    if 'format' in kwargs:
-            file_format = kwargs['format']
 
     # Option parsing
     option_defaults = {}

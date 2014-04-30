@@ -37,11 +37,6 @@ def write(solution,frame,path='./',file_prefix='claw',file_format='binary',clobb
        p array should be written out. ``default = False``
      - *options* - (dict) Optional argument dictionary
     """
-
-    if 'format' in kwargs:
-        file_format = kwargs['format']
-    if 'prefix' in kwargs:
-        file_prefix = kwargs['prefix']
     
     pass
 
@@ -67,10 +62,6 @@ def read(solution,frame,path='./',file_prefix='fort',file_format='binary',read_a
      - *read_aux* (bool) Whether or not an auxillary file will try to be read 
        in.  ``default = False``
     """
-    if 'prefix' in kwargs:
-            file_prefix = kwargs['prefix']
-    if 'format' in kwargs:
-            file_format = kwargs['format']
     
     # Construct path names
     base_path = os.path.join(path,)

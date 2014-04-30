@@ -161,11 +161,6 @@ def write(solution,frame,path='./',file_prefix='claw',file_format='netcdf',clobb
         
     """
     
-    if 'format' in kwargs:
-        file_format = kwargs['format']
-    if 'prefix' in kwargs:
-        file_prefix = kwargs['prefix']
-    
     # Option parsing
     option_defaults = {'format':'NETCDF4','zlib':False,'complevel':6,
                        'shuffle':True,'fletcher32':False,'contiguous':False,
@@ -263,10 +258,6 @@ def read(solution,frame,path='./',file_prefix='fort',file_format='netcdf',read_a
        auxiliary array should be written out.  ``default = False``     
      - *options* - (dict) Optional argument dictionary, unused for reading.
     """
-    if 'prefix' in kwargs:
-            file_prefix = kwargs['prefix']
-    if 'format' in kwargs:
-            file_format = kwargs['format']
 
     # Option parsing
     option_defaults = {}
