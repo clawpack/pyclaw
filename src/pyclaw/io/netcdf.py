@@ -230,7 +230,7 @@ def write(solution,frame,path='./',file_prefix='claw',file_format='netcdf',clobb
             exec("q[%s] = patch.q" % index_str)
             
             # Write out aux
-            if solution.num_aux > 0 and write_aux:
+            if patch.num_aux > 0 and write_aux:
                 dim_names[-1] = 'num_aux'
                 subgroup.createDimension('num_aux',solution.num_aux)
                 aux = subgroup.createVariable('aux','f8',dim_names,
