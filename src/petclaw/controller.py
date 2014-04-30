@@ -16,6 +16,7 @@ class Controller(pyclaw.controller.Controller):
         super(Controller,self).__init__()
 
         self.output_method = 'petsc'
+        self.output_format = 'binary'
 
     def is_proc_0(self):
         from petsc4py import PETSc
