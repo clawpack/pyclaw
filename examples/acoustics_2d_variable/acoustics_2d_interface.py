@@ -87,7 +87,6 @@ def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_ty
             claw.output_format = 'binary'
         else:
             claw.output_format = 'ascii'
-    claw.output_file_prefix='fort'
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir=outdir
