@@ -29,14 +29,16 @@ def test_acoustics_2d_variable_io():
         sol_0_test.read(0,path=controller.outdir,
                         file_format=controller.output_format,
                         file_prefix=None,read_aux=True,
-                        options=controller.output_options)
+                        options=controller.output_options,
+                        io_handler=controller.output_handler)
         test_aux = sol_0_test.state.get_aux_global()
 
         sol_20_test = Solution()
         sol_20_test.read(20,path=controller.outdir,
                         file_format=controller.output_format,
                         file_prefix=None,read_aux=False,
-                        options=controller.output_options)
+                        options=controller.output_options,
+                        io_handler=controller.output_handler)
         test_q = sol_20_test.state.get_q_global()
 
 

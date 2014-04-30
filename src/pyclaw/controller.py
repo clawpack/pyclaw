@@ -96,7 +96,8 @@ class Controller(object):
                         'solver','keep_copy','write_aux_init',
                         'write_aux_always','output_format',
                         'output_file_prefix','output_options','num_output_times',
-                        'output_style','verbosity']
+                        'output_style','verbosity',
+                        'output_handler','output_clobber']
         r"""(list) - Viewable attributes of the `:class:`~pyclaw.controller.Controller`"""
 
         # Global information for running and/or plotting
@@ -109,7 +110,6 @@ class Controller(object):
         r"""(string) - Output directory, directs output files to outdir"""
         self.overwrite = True
         r"""(bool) - Ok to overwrite old result in outdir, ``default = True``"""
-
         self.xclawcmd = 'xclaw'
         r"""(string) - Command to execute (if using fortran), defaults to xclaw or
         xclaw.exe if cygwin is being used (which it checks vis sys.platform)"""
@@ -117,6 +117,7 @@ class Controller(object):
             self.xclawcmd = 'xclaw.exe'
 
         self.start_frame = 0
+        r"""(int) - Frame at which begins, ``default = 0``"""
         self.xclawout = None
         r"""(string) - Where to write timestep messages"""
         self.xclawerr = None
@@ -127,6 +128,7 @@ class Controller(object):
         r"""(bool) - Save a copy of \*.f files in outdir"""
         
         self.setplot = None
+        r""" (string) - Name of setplot py file ``default = None``"""
 
         # Solver information
         self.solution = None
@@ -144,16 +146,19 @@ class Controller(object):
         self.write_aux_always = False
         r"""(bool) - Write out auxiliary array at every time step, 
         ``default = False``"""
+        self.output_handler = 'pyclaw'
+        r"""(string) - Method to output data. Available methods are: 'petsc', 'serial', None.
+        ``default = 'serial'``"""
         self.output_format = 'ascii'
-        r"""(list of strings) - Format or list of formats to output the data, 
-        if this is None, no output is performed.  See _pyclaw_io for more info
-        on available formats.  ``default = 'ascii'``"""
+        r"""(string) - Format to output data, if this is None, no output is performed.
+        See _pyclaw_io for more info on available formats.  ``default = 'ascii'``"""
         self.output_file_prefix = None
         r"""(string) - File prefix to be appended to output files, 
         ``default = None``"""
+        self.output_clobber = True
+        r"""(bool) - Whether to overwrite files in output directory, ``default = True``"""
         self.output_options = {}
-        r"""(dict) - Output options passed to function writing and reading 
-        data in output_format's format.  ``default = {}``"""
+        r"""(dict) - output options to be passed to hdf5/netcdf in serial method"""
         
         self.logger = logging.getLogger('pyclaw.controller')
 
@@ -299,11 +304,11 @@ class Controller(object):
         frame = FrameCounter()
 
         frame.set_counter(self.start_frame)
-                    
+
         if not self.solver._is_set_up:
             self.solver.setup(self.solution)
             self.solver.dt = self.solver.dt_initial
-            
+
         self.check_validity()
 
         # Write initial gauge values
@@ -326,29 +331,39 @@ class Controller(object):
             if self.t == self.tfinal:
                 print "Simulation has already reached tfinal."
             return None
-         
+
         # Output and save initial frame
+
         if self.keep_copy:
             self.frames.append(copy.deepcopy(self.solution))
-        if self.output_format is not None:
-            if os.path.exists(self.outdir) and self.overwrite==False:
+        if self.output_handler==None or self.output_format==None:
+            pass
+        else:
+            if os.path.exists(self.outdir) and self.output_clobber==False:
                 raise Exception("Refusing to overwrite existing output data. \
                  \nEither delete/move the directory or set controller.overwrite=True.")
             if self.compute_p is not None:
                 self.compute_p(self.solution.state)
-                self.solution.write(frame,self.outdir_p,
-                                        self.output_format,
-                                        self.file_prefix_p,
+                self.solution.write(frame = frame,
+                                        path = self.outdir_p,
+                                        file_prefix = self.file_prefix_p,
+                                        io_handler = self.output_handler,
+                                        file_format = self.output_format,
+                                        clobber = self.output_clobber,
                                         write_aux = False,
-                                        options = self.output_options,
-                                        write_p = True) 
+                                        write_p = True,
+                                        options = self.output_options)
 
             write_aux = (self.write_aux_always or self.write_aux_init)
-            self.solution.write(frame,self.outdir,
-                                        self.output_format,
-                                        self.output_file_prefix,
-                                        write_aux,
-                                        self.output_options)
+            self.solution.write(frame = frame,
+                                path = self.outdir,
+                                file_prefix = self.output_file_prefix,
+                                io_handler = self.output_handler,
+                                file_format = self.output_format,
+                                clobber = self.output_clobber,
+                                write_aux = write_aux,
+                                write_p = False,
+                                options = self.output_options)
 
         self.write_F('w')
 
@@ -366,21 +381,30 @@ class Controller(object):
             if self.keep_copy:
                 # Save current solution to dictionary with frame as key
                 self.frames.append(copy.deepcopy(self.solution))
-            if self.output_format is not None:
+            if self.output_handler==None or self.output_format==None:
+                pass
+            else:
                 if self.compute_p is not None:
                     self.compute_p(self.solution.state)
-                    self.solution.write(frame,self.outdir_p,
-                                            self.output_format,
-                                            self.file_prefix_p,
-                                            write_aux = False, 
-                                            options = self.output_options,
-                                            write_p = True) 
+                    self.solution.write(frame=frame,
+                                        path = self.outdir,
+                                        file_prefix = self.file_prefix_p,
+                                        io_handler = self.output_handler,
+                                        file_format = self.output_format,
+                                        clobber = self.output_clobber,
+                                        write_aux = False,
+                                        write_p = True,
+                                        options = self.output_options)
                 
-                self.solution.write(frame,self.outdir,
-                                            self.output_format,
-                                            self.output_file_prefix,
-                                            self.write_aux_always,
-                                            self.output_options)
+                self.solution.write(frame=frame,
+                                    path = self.outdir,
+                                    file_prefix = self.output_file_prefix,
+                                    io_handler = self.output_handler,
+                                    file_format = self.output_format,
+                                    clobber = self.output_clobber,
+                                    write_aux = self.write_aux_always,
+                                    write_p = False,
+                                    options = self.output_options)
             self.write_F()
 
             self.log_info("Solution %s computed for time t=%f"
