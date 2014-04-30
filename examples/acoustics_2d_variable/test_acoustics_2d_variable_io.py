@@ -17,7 +17,7 @@ def test_acoustics_2d_variable_io():
         sol_0_expected = Solution()
         sol_0_expected.read(frame = 0,
                             path = verify_dir,
-                            prefix = None,
+                            file_prefix = None,
                             method = 'serial',
                             file_format = 'ascii',
                             read_aux = True)
@@ -26,7 +26,7 @@ def test_acoustics_2d_variable_io():
         sol_20_expected = Solution()
         sol_20_expected.read(frame = 20,
                             path = verify_dir,
-                            prefix = None,
+                            file_prefix = None,
                             method = 'serial',
                             file_format = 'ascii',
                             read_aux = True)
@@ -34,13 +34,13 @@ def test_acoustics_2d_variable_io():
 
         # Test solution
         sol_0_test = Solution()
-        sol_0_test.read(frame = 0, path = controller.outdir, prefix = controller.output_file_prefix,
+        sol_0_test.read(frame = 0, path = controller.outdir, file_prefix = controller.output_file_prefix,
                         method = controller.output_method, file_format = controller.output_format,
                         read_aux=True)
         test_aux = sol_0_test.state.get_aux_global()
 
         sol_20_test = Solution()
-        sol_20_test.read(frame = 20,path = controller.outdir,prefix = controller.output_file_prefix,
+        sol_20_test.read(frame = 20,path = controller.outdir,file_prefix = controller.output_file_prefix,
                         method = controller.output_method, file_format = controller.output_format,
                         read_aux=True)
         test_q = sol_20_test.state.get_q_global()
