@@ -15,26 +15,34 @@ def test_acoustics_2d_variable_io():
         
         # Expected solution
         sol_0_expected = Solution()
-        sol_0_expected.read(0,path=verify_dir,file_format='ascii',
-                               file_prefix=None,read_aux=True)
+        sol_0_expected.read(frame = 0,
+                            path = verify_dir,
+                            file_prefix = None,
+                            method = 'serial',
+                            file_format = 'ascii',
+                            read_aux = True)
         expected_aux = sol_0_expected.state.aux
 
         sol_20_expected = Solution()
-        sol_20_expected.read(20,path=verify_dir,file_format='ascii',
-                               file_prefix=None,read_aux=False)
+        sol_20_expected.read(frame = 20,
+                            path = verify_dir,
+                            file_prefix = None,
+                            method = 'serial',
+                            file_format = 'ascii',
+                            read_aux = True)
         expected_q = sol_20_expected.state.q
 
         # Test solution
         sol_0_test = Solution()
-        sol_0_test.read(0,path=controller.outdir,
-                        file_format=controller.output_format,
-                        file_prefix=None,read_aux=True)
+        sol_0_test.read(frame = 0, path = controller.outdir, file_prefix = controller.output_file_prefix,
+                        method = controller.output_method, file_format = controller.output_format,
+                        read_aux=True)
         test_aux = sol_0_test.state.get_aux_global()
 
         sol_20_test = Solution()
-        sol_20_test.read(20,path=controller.outdir,
-                        file_format=controller.output_format,
-                        file_prefix=None,read_aux=False)
+        sol_20_test.read(frame = 20,path = controller.outdir,file_prefix = controller.output_file_prefix,
+                        method = controller.output_method, file_format = controller.output_format,
+                        read_aux=True)
         test_q = sol_20_test.state.get_q_global()
 
 

@@ -12,8 +12,8 @@ from petsc4py import PETSc
 import pickle
     
 
-def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
-          options={},write_p=False):
+def write(solution,frame,path='./',file_prefix='claw',file_format='binary',clobber=True,
+          write_aux=False,write_p=False,options={}, **kwargs):
     r"""
         Write out pickle and PETSc data files representing the
         solution.  Common data is written from process 0 in pickle
@@ -25,33 +25,25 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
        object to be output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *file_prefix* - (string) Prefix for the file name. ``default =
-        'claw'``
+     - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *file_format* - (string) Format to output data, ``default = 'binary'``
+     - *clobber* - (bool) Bollean controlling whether to overwrite files
      - *write_aux* - (bool) Boolean controlling whether the associated 
        auxiliary array should be written out. ``default = False``     
-     - *options* - (dict) Optional argument dictionary, see 
-        `PETScIO Option Table`_
-     
-     .. _`PETScIO Option Table`:
-     
-     format   : one of 'ascii' or 'binary'
-     clobber  : if True (Default), files will be overwritten
-    """    
+     - *write_p* - (bool) Boolean controlling whether the associated 
+       p array should be written out. ``default = False``
+     - *options* - (dict) Optional argument dictionary     
+    
+    : Available formats
+     - 'ascii', 'binary', 'hdf5', 'netcdf', 'vtk'
+    """
+
     import os
 
-    # Option parsing
-    option_defaults = {'format':'binary','clobber':True}
-  
-    for k in option_defaults.iterkeys():
-        if options.has_key(k):
-            pass
-        else:
-            options[k] = option_defaults[k]
- 
-    clobber = options['clobber']
-    file_format = options['format']
+    fallback_binary = False
 
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
+    
     if file_format == 'vtk':
         viewer_filename = os.path.join(path, file_prefix+str(frame).zfill(4)+'.vtk')
     else:
@@ -61,7 +53,7 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
         write_aux = False
     if write_aux:
         aux_filename = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
-        
+
     if not clobber:
         for f in (pickle_filename, viewer_filename, aux_filename):
             if os.path.exists(f):
@@ -75,7 +67,8 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
                          'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,
                          'write_aux':write_aux,
                          'problem_data' : solution.problem_data,
-                         'mapc2p': solution.state.grid.mapc2p}
+                         'mapc2p': solution.state.grid.mapc2p,
+                         'file_format':file_format}
         if write_p:
             sol_dict['num_eqn'] = solution.mp
 
@@ -85,7 +78,7 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
     if file_format == 'ascii':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.WRITE)
         if write_aux:
-            aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE) 
+            aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE)
     elif file_format == 'binary':
         if hasattr(PETSc.Viewer,'createMPIIO'):
             viewer = PETSc.Viewer().createMPIIO(viewer_filename, PETSc.Viewer.Mode.WRITE)
@@ -99,10 +92,46 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
     elif file_format == 'vtk':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.WRITE, format=PETSc.Viewer.Format.ASCII_VTK)
         if write_aux:
-            aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE) 
+            aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE)
+    elif file_format=='hdf5':
+        if hasattr(PETSc.Viewer, 'createHDF5'):
+            viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.WRITE)
+        else:
+            viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.WRITE)
+            fallback_binary = True
+        if write_aux:
+            if hasattr(PETSc.Viewer,'createHDF5'):
+                aux_viewer = PETSc.Viewer().createHDF5(aux_filename, PETSc.Viewer.Mode.WRITE)
+            else:
+                aux_viewer = PETSc.Viewer().createBinary(aux_filename, PETSc.Viewer.Mode.WRITE)
+                fallback_binary = True
+    elif file_format=='netcdf':
+        if hasattr(PETSc.Viewer, 'createNetCDF'):
+            viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.WRITE)
+        else:
+            viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.WRITE)
+            fallback_binary = True
+            msg = 'PETSc.Viewer has no attribute createHDF5, falling back to binary output'
+            petsc_warning=True
+            file_format='binary'
+        if write_aux:
+            if hasattr(PETSc.Viewer,'createNetCDF'):
+                aux_viewer = PETSc.Viewer().createHDF5(aux_filename, PETSc.Viewer.Mode.WRITE)
+            else:
+                aux_viewer = PETSc.Viewer().createBinary(aux_filename, PETSc.Viewer.Mode.WRITE)
+                fallback_binary = True
     else:
-        raise IOError('format type %s not supported' % file_format)
+        raise IOError('file format type %s not supported' % file_format)
     
+    if fallback_binary:
+        from warnings import warn
+        import logging
+        msg = 'write format %s not available, falling back to ``binary`` format \n have you compiled it correctly on PETSc/petsc4py? ' % file_format
+        # print warning to user (?)
+        warn(msg)
+        # print to logger
+        logging.getLogger('io').WARN(msg)
+
     for state in solution.states:
         patch = state.patch
         if rank==0:
@@ -121,6 +150,7 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
     
     viewer.flush()
     viewer.destroy()
+
     if rank==0:
         pickle_file.close()
     if write_aux:
@@ -128,7 +158,7 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
         aux_viewer.destroy()
 
 
-def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
+def read(solution,frame,path='./',file_prefix='claw',file_format='binary',read_aux=False,options={},**kwargs):
     r"""
     Read in pickles and PETSc data files representing the solution
     
@@ -137,24 +167,16 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
        read the data into.
      - *frame* - (int) Frame number to be read in
      - *path* - (string) Path to the current directory of the file
-     - *file_prefix* - (string) Prefix of the files to be read in.  
-       ``default = 'fort'``
-     - *read_aux* (bool) Whether or not an auxiliary file will try to be read 
-       in.  ``default = False``
-     - *options* - (dict) Optional argument dictionary, see 
-       `PETScIO Option Table`_
+     - *file_prefix* - (string) Prefix of the files to be read in, ``default = 'claw'``
+     - *file_format* - (string) format of data, ``default = 'binary'``
+     - *read_aux* (bool) Whether or not an auxiliary file will try to be read in, ``default = False``
+     - *options* - (dict) Optional argument dictionary
     
-    .. _`PETScIO Option Table`:
-    
-    format   : one of 'ascii' or 'binary'
-     
+    : Available formats
+     - 'ascii', 'binary', 'hdf5', 'netcdf', 'vtk'
     """
-    import os
 
-    if options.has_key('format'):
-        file_format = options['format']
-    else:
-        file_format = 'binary'
+    import os
 
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
@@ -179,6 +201,10 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
     num_aux       = value_dict['num_aux']
     num_eqn       = value_dict['num_eqn']
 
+    # (bool) read succesful
+    failed_format_read = False
+    failed_aux_read = False
+
     # now set up the PETSc viewer
     if file_format == 'ascii':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.READ)
@@ -196,12 +222,47 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
                 else:
                     aux_viewer = PETSc.Viewer().createBinary(aux_viewer_filename, PETSc.Viewer.Mode.READ)
             else:
-                from warnings import warn
-                aux_file_path = os.path.join(path,aux_viewer_filename)
-                warn('read_aux=True but aux file %s does not exist' % aux_file_path)
+                failed_aux_read = True
+                read_aux=False
+    elif file_format == 'hdf5':
+        if hasattr(PETSc.Viewer,'createHDF5'):
+            viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.READ)
+        else:
+            failed_format_read = True
+        if read_aux:
+            if os.path.exists(aux_viewer_filename):
+                if hasattr(PETSc.Viewer,'createHDF5'):
+                    aux_viewer = PETSc.Viewer().createHDF5(aux_viewer_filename, PETSc.Viewer.Mode.READ)
+                else:
+                    failed_format_read = True
+            else:         
+                failed_aux_read = True
+                read_aux=False
+    elif file_format == 'netcdf':
+        if hasattr(PETSc.Viewer,'createNetCDF'):
+            viewer = PETSc.Viewer().createNetCDF(viewer_filename, PETSc.Viewer.Mode.READ)
+        else:
+            failed_format_read = True
+        if read_aux:
+            if os.path.exists(aux_viewer_filename):
+                if hasattr(PETSc.Viewer,'createNetCDF'):
+                    aux_viewer = PETSc.Viewer().createNetCDF(aux_viewer_filename, PETSc.Viewer.Mode.READ)
+                else:
+                    failed_format_read = True
+            else:
+                failed_aux_read = True
                 read_aux=False
     else:
-        raise IOError('format type %s not supported' % file_format)
+        raise IOError('file format type %s not supported' % file_format)
+
+    if failed_format_read:
+        msg = 'read failed because there is no method for format %s in class petsc4py.PETSc, \n have you installed HDF5?' % file_format
+        raise IOError(msg)
+
+    if failed_aux_read:
+        from warnings import warn
+        aux_file_path = os.path.join(path,aux_viewer_filename)
+        warn('read_aux=True but aux file %s does not exist' % aux_file_path)
 
     patches = []
     for m in xrange(nstates):
@@ -243,7 +304,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
     if read_aux:
         aux_viewer.destroy()
 
-def read_t(frame,path='./',file_prefix='claw'):
+def read_t(frame,path='./',file_prefix='claw',**kwargs):
     r"""Read only the petsc.pkl file and return the data
     
     :Input:
@@ -265,6 +326,9 @@ def read_t(frame,path='./',file_prefix='claw'):
     import logging
     logger = logging.getLogger('io')
 
+    if 'prefix' in kwargs:
+        file_prefix = kwargs['prefix']
+    
     base_path = os.path.join(path,)
     path = os.path.join(base_path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     try:

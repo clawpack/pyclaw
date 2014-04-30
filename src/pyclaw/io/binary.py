@@ -16,9 +16,31 @@ import clawpack.pyclaw as pyclaw
 
 logger = logging.getLogger('pyclaw.io')
 
+def write(solution,frame,path='./',file_prefix='claw',file_format='binary',clobber=True,
+          write_aux=False,write_p=False,options={}, **kwargs):
+    r"""
+    Write out binary data file
+    
+    NOT IMPLEMENTED
+    
+    :Input:
+     - *solution* - (:class:`~pyclaw.solution.Solution`) pyclaw
+       object to be output
+     - *frame* - (int) Frame number
+     - *path* - (string) Root path
+     - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *file_format* - (string) Format to output data, ``default = 'binary'``
+     - *clobber* - (bool) Bollean controlling whether to overwrite files
+     - *write_aux* - (bool) Boolean controlling whether the associated 
+       auxiliary array should be written out. ``default = False``     
+     - *write_p* - (bool) Boolean controlling whether the associated 
+       p array should be written out. ``default = False``
+     - *options* - (dict) Optional argument dictionary
+    """
+    
+    pass
 
-def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
-                options={}):
+def read(solution,frame,path='./',file_prefix='fort',file_format='binary',read_aux=False,options={}, **kwargs):
     r"""
     Read in a set of raw binary files
     
@@ -28,7 +50,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     fort.bxxxx is binary dump of data from all patches.
     fort.axxxx is binary dump of aux arrays from all patches.
 
-    Note that the fort prefix can be changed.
+    Note that the fort file_prefix can be changed.
     
     :Input:
      - *solution* - (:class:`~pyclaw.solution.Solution`) Solution object to 
@@ -39,8 +61,6 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
        ``default = 'fort'``
      - *read_aux* (bool) Whether or not an auxillary file will try to be read 
        in.  ``default = False``
-     - *options* - (dict) Dictionary of optional arguments dependent on 
-       the format being read in.  ``default = {}``
     """
     
     # Construct path names

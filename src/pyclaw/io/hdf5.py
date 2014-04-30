@@ -53,19 +53,23 @@ if not use_h5py:
 if not use_h5py and not use_PyTables:
     logging.critical("Could not import h5py or PyTables!")
 
-def write(solution,frame,path,file_prefix='claw',write_aux=False,
-                options={},write_p=False):
+def write(solution,frame,path='./',file_prefix='claw',file_format='hdf5',clobber=True,
+          write_aux=False,write_p=False,options={}, **kwargs):
     r"""
-    Write out a Solution to a HDF5 file.
+    Write out a HDF5 data file representation of solution
     
     :Input:
-     - *solution* - (:class:`~pyclaw.solution.Solution`) Pyclaw solution 
-       object to input into
+     - *solution* - (:class:`~pyclaw.solution.Solution`) pyclaw
+       object to be output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *file_prefix* - (string) Prefix for the file name.  ``default = 'claw'``
+     - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *file_format* - (string) Format to output data, ``default = 'binary'``
+     - *clobber* - (bool) Bollean controlling whether to overwrite files
      - *write_aux* - (bool) Boolean controlling whether the associated 
-       auxiliary array should be written out.  ``default = False``     
+       auxiliary array should be written out. ``default = False``     
+     - *write_p* - (bool) Boolean controlling whether the associated 
+       p array should be written out. ``default = False`` 
      - *options* - (dict) Optional argument dictionary, see 
        `HDF5 Option Table`_
     
@@ -104,7 +108,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
     |                 | be used with or without compression.                 |
     +-----------------+------------------------------------------------------+
     """
-    
+
     # Option parsing
     option_defaults = {'compression':None,'compression_opts':None,
                        'chunks':None,'shuffle':False,'fletcher32':False}
@@ -155,8 +159,8 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
                                         compression_opts=compression_opts,
                                         chunks=chunks,shuffle=shuffle,
                                         fletcher32=fletcher32)
-            if write_aux and patch.num_aux > 0:
-                subgroup.create_dataset('aux',data=patch.aux,
+            if write_aux and solution.num_aux > 0:
+                subgroup.create_dataset('aux',data=solution.num_aux,
                                         compression=compression,
                                         compression_opts=compression_opts,
                                         chunks=chunks,shuffle=shuffle,
@@ -175,8 +179,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
         logging.critical(err_msg)
         raise Exception(err_msg)
 
-def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
-                options={}):
+def read(solution,frame,path='./',file_prefix='fort',file_format='hdf5',read_aux=False,options={}, **kwargs):
     r"""
     Read in a HDF5 file into a Solution
     
@@ -190,7 +193,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
        auxiliary array should be written out.  ``default = False``     
      - *options* - (dict) Optional argument dictionary, unused for reading.
     """
-    
+
     # Option parsing
     option_defaults = {}
     for (k,v) in option_defaults.iteritems():
@@ -238,7 +241,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
             # Read in aux if applicable
             if read_aux and subgroup.get('aux',None) is not None:
                 index_str = ','.join( [':' for i in xrange(len(subgroup['aux'].shape))] )
-                exec("patch.aux = subgroup['aux'][%s]" % index_str)
+                exec("solution.num_aux = subgroup['aux'][%s]" % index_str)
                 
             solution.patchs.append(patch)
             

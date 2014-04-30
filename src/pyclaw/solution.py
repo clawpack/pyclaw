@@ -247,8 +247,8 @@ class Solution(object):
     
     
     # ========== IO Functions ================================================
-    def write(self,frame,path='./',file_format='ascii',file_prefix=None,
-                write_aux=False,options={},write_p=False):
+    def write(self,frame,path='./',file_prefix=None,method='serial',file_format='ascii',
+                clobber=True,write_aux=False,write_p=False,options={}, **kwargs):
         r"""
         Write out a representation of the solution
 
@@ -260,52 +260,62 @@ class Solution(object):
          - *frame* - (int) Frame number to append to the file output
          - *path* - (string) Root path, will try and create the path if it 
            does not already exist. ``default = './'``
-         - *format* - (string or list of strings) a string or list of strings 
-           containing the desired output formats. ``default = 'ascii'``
+         - *method* - (string) A string describing write method, 'serial','petsc', or None.
+         - *format* - (string) A string with the desired output format. ``default = 'ascii'``
          - *file_prefix* - (string) Prefix for the file name.  Defaults to
-           the particular io modules default.
-         - *write_aux* - (book) Write the auxillary array out as well if 
+           the particular io modules default, ``default = None`
+         - *clobber* - (bool) Overwritte the current files if path exists
+         - *write_aux* - (bool) Write the auxillary array out as well if 
            present. ``default = False``
-         - *options* - (dict) Dictionary of optional arguments dependent on 
-           which format is being used. ``default = {}``
+         - *write_p* - (bool) Write the p array out as well if present. ``default = False``
+         - *options* _ (dict) Options to hdf5 and netcdf in serial implementation 
+        : Available formats
+         - method ``serial``: 'ascii', 'binary', 'hdf5', 'netcfd'
+         - method ``petsc``: 'ascii', 'binary', 'hdf5', 'netcfd', 'vtk'
+
         """
-        # Determine if we need to create the path
-        path = os.path.expandvars(os.path.expanduser(path))
-        if not os.path.exists(path):
-            try:
-                os.makedirs(path)
-            except OSError:
-                print "directory already exists, ignoring"  
 
-        # Call the correct write function based on the output format
-        if isinstance(file_format,str):
-            format_list = [file_format]
-        elif isinstance(file_format,list):
-            format_list = file_format
+        if path is not None:
+            # Determine if we need to create the path
+            path = os.path.expandvars(os.path.expanduser(path))
+            if not os.path.exists(path):
+                try:
+                    os.makedirs(path)
+                except OSError:
+                    print "directory already exists, ignoring"  
 
-        if 'petsc' in format_list:
-            from clawpack.petclaw import io
-            write_func = io.petsc.write
-        else:
-            from clawpack.pyclaw import io
-            write_func = io.ascii.write
-
-
-        # Loop over list of formats requested
-        for form in format_list:
+            # Take the usual file_prefix if None given
             if file_prefix is None:
-                write_func(self,frame,path,write_aux=write_aux,
-                            options=options,write_p=write_p)
+                if method=='serial':
+                    file_prefix = 'fort'
+                elif method=='petsc':
+                    file_prefix = 'claw'
+            if file_format is None:
+                method = None
+            # Call the correct write function based on the output method/file_format
+            if method=='serial':
+                from clawpack.pyclaw import io
+                if hasattr(io, file_format):
+                    write_func = getattr(getattr(io,file_format),'write')
+                else:
+                    write_func = getattr(getattr(io,'ascii'),'write')
+            elif method=='petsc':
+                from clawpack.petclaw import io
+                write_func = getattr(getattr(io,method),'write')
             else:
-                write_func(self,frame,path,file_prefix=file_prefix,
-                                write_aux=write_aux,options=options,
-                           write_p=write_p)
-            msg = "Wrote out solution in format %s for time t=%s" % (form,self.t)
-            logging.getLogger('pyclaw.io').info(msg)
+                pass
 
-        
-    def read(self,frame,path='./_output',file_format='ascii',file_prefix=None,
-                read_aux=True,options={}, **kargs):
+            # write
+            write_func(self,frame,path,file_prefix,file_format,clobber,write_aux,write_p,options)
+
+            msg = "Wrote out solution in format %s for time t=%s" % (file_format,self.t)
+            logging.getLogger('pyclaw.io').info(msg)
+        else:
+            pass
+
+ 
+    def read(self,frame,path='./_output',file_prefix=None,method='serial',file_format='ascii',
+                read_aux=True,options={}, **kwargs):
         r"""
         Reads in a Solution object from a file
         
@@ -327,7 +337,7 @@ class Solution(object):
            ``default = './'``
          - *file_format* - (string) Format of the file, should match on of the 
            modules inside of the io package.  ``default = 'ascii'``
-         - *file_prefix* - (string) Name prefix in front of all the files, 
+         - *file_prefix* - (string) Name file_prefix in front of all the files, 
            defaults to whatever the format defaults to, e.g. fort for ascii
          - *options* - (dict) Dictionary of optional arguments dependent on 
            the format being read in.  ``default = {}``
@@ -335,23 +345,27 @@ class Solution(object):
         :Output:
          - (bool) - True if read was successful, False otherwise
         """
+
+        if file_prefix is None:
+            if method=='serial':
+                file_prefix = 'fort'
+            elif method=='petsc':
+                file_prefix = 'claw'
         
-        if file_format=='petsc':
-            from clawpack.petclaw import io
-            read_func = io.petsc.read
-        elif file_format == 'binary':
-            from clawpack.pyclaw import io 
-            read_func = io.binary.read
-        elif file_format=='ascii': 
-            from clawpack.pyclaw import io
-            read_func = io.ascii.read
 
         path = os.path.expandvars(os.path.expanduser(path))
-        if file_prefix is None:
-            read_func(self,frame,path,read_aux=read_aux,options=options)
-        else:
-            read_func(self,frame,path,file_prefix=file_prefix,
-                                    read_aux=read_aux,options=options)
+        
+        if method=='serial':
+            from clawpack.pyclaw import io
+            if hasattr(io, file_format):
+                read_func = getattr(getattr(io,file_format),'read')
+            else:
+                read_func = getattr(getattr(io,'ascii'),'read')
+        elif method=='petsc':
+            from clawpack.petclaw import io
+            read_func = getattr(getattr(io,method),'read')
+
+        read_func(self,frame,path,file_prefix,file_format,read_aux,options)
         logging.getLogger('pyclaw.io').info("Read in solution for time t=%s" % self.t)
         
         

@@ -54,19 +54,22 @@ if not use_netcdf4:
         #raise Exception(error_msg)
         print error_msg
 
-def write(solution,frame,path,file_prefix='claw',write_aux=False,
-                    options={}):
+def write(solution,frame,path='./',file_prefix='claw',file_format='netcdf',clobber=True,
+          write_aux=False,write_p=False,options={}, **kwargs):
     r"""
     Write out a NetCDF data file representation of solution
     
-    :Input:
-     - *solution* - (:class:`~pyclaw.solution.Solution`) Pyclaw object to be 
-       output
+     - *solution* - (:class:`~pyclaw.solution.Solution`) pyclaw
+       object to be output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
      - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *file_format* - (string) Format to output data, ``default = 'binary'``
+     - *clobber* - (bool) Bollean controlling whether to overwrite files
      - *write_aux* - (bool) Boolean controlling whether the associated 
        auxiliary array should be written out. ``default = False``     
+     - *write_p* - (bool) Boolean controlling whether the associated 
+       p array should be written out. ``default = False`` 
      - *options* - (dict) Optional argument dictionary, see 
        `NetCDF Option Table`_
     
@@ -172,8 +175,12 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
             
     # Filename
     filename = os.path.join(path,"%s%s.nc" % (file_prefix,str(frame).zfill(4)))
-        
+    
+    if write_p:
+        print "write_p not implemented in netcdf"
+
     if use_netcdf4:
+
         # Open new file
         f = netCDF4.Dataset(filename,'w',clobber=clobber,format=format)
         
@@ -183,7 +190,8 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
             exec('f.%s = %s' % (k,v))
         
         # For each patch, write out attributes
-        for patch in solution.patchs:
+        for state in solution.states:
+            patch = state.patch
             # Create group for this patch
             subgroup = f.createGroup('patch%s' % patch.patch_index)
         
@@ -219,7 +227,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
             # Write out aux
             if patch.num_aux > 0 and write_aux:
                 dim_names[-1] = 'num_aux'
-                subgroup.createDimension('num_aux',patch.num_aux)
+                subgroup.createDimension('num_aux',solution.num_aux)
                 aux = subgroup.createVariable('aux','f8',dim_names,
                                             zlib,complevel,shuffle,fletcher32,
                                             contiguous,chunksizes,endian,
@@ -236,8 +244,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
         raise Exception(err_msg)
         
     
-def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
-                options={}):
+def read(solution,frame,path='./',file_prefix='fort',file_format='netcdf',read_aux=False,options={}, **kwargs):
     r"""
     Read in a NetCDF data files into solution
     
@@ -251,7 +258,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
        auxiliary array should be written out.  ``default = False``     
      - *options* - (dict) Optional argument dictionary, unused for reading.
     """
-    
+
     # Option parsing
     option_defaults = {}
     for (k,v) in option_defaults.iteritems():

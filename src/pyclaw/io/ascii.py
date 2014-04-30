@@ -13,8 +13,8 @@ from ..util import read_data_line
 
 logger = logging.getLogger('io')
 
-def write(solution,frame,path,file_prefix='fort',write_aux=False,
-                    options={},write_p=False):
+def write(solution,frame,path='./',file_prefix='claw',file_format='ascii',clobber=True,
+          write_aux=False,write_p=False,options={}, **kwargs):
     r"""
     Write out ascii data file
     
@@ -27,16 +27,20 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
     3 dimensions.
     
     :Input:
-     - *solution* - (:class:`~pyclaw.solution.Solution`) Pyclaw object to be 
-       output.
+     - *solution* - (:class:`~pyclaw.solution.Solution`) pyclaw
+       object to be output
      - *frame* - (int) Frame number
      - *path* - (string) Root path
-     - *file_prefix* - (string) Prefix for the file name.  ``default = 'fort'``
+     - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *file_format* - (string) Format to output data, ``default = 'binary'``
+     - *clobber* - (bool) Bollean controlling whether to overwrite files
      - *write_aux* - (bool) Boolean controlling whether the associated 
-       auxiliary array should be written out.  ``default = False``
-     - *options* - (dict) Dictionary of optional arguments dependent on 
-       the format being written.  ``default = {}``
+       auxiliary array should be written out. ``default = False``     
+     - *write_p* - (bool) Boolean controlling whether the associated 
+       p array should be written out. ``default = False``
+     - *options* - (dict) Optional argument dictionary
     """
+    
     try:
         # Create file name
         file_name = '%s.t%s' % (file_prefix,str(frame).zfill(4))
@@ -147,15 +151,13 @@ def write_array(f,patch,q):
     else:
         raise Exception("Dimension Exception in writing fort file.")
 
-
-def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
-                options={}):
+def read(solution,frame,path='./',file_prefix='fort',file_format='ascii',read_aux=False,options={}, **kwargs):
     r"""
     Read in a set of ascii formatted files
     
     This routine reads the ascii formatted files corresponding to the classic
     clawpack format 'fort.txxxx', 'fort.qxxxx', and 'fort.axxxx' or 'fort.aux'
-    Note that the fort prefix can be changed.
+    Note that the fort file_prefix can be changed.
     
     :Input:
      - *solution* - (:class:`~pyclaw.solution.Solution`) Solution object to 
@@ -169,7 +171,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
      - *options* - (dict) Dictionary of optional arguments dependent on 
        the format being read in.  ``default = {}``
     """
-
+    
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     problem_data = None
     mapc2p = None
