@@ -81,15 +81,13 @@ def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_ty
     claw = pyclaw.Controller()
     claw.keep_copy = True
     if disable_output:
-        claw.output_format = None
+        claw.output_manager = None
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir=outdir
     claw.num_output_times = 20
     claw.write_aux_init = True
     claw.setplot = setplot
-    if use_petsc:
-        claw.output_options = {'format':'binary'}
 
     # Solve
     claw.tfinal = 0.6

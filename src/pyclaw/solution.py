@@ -244,11 +244,11 @@ class Solution(object):
         result.domain = copy.deepcopy(self.domain)
         
         return result
-    
+
     
     # ========== IO Functions ================================================
-    def write(self,frame,path='./',file_format='ascii',file_prefix=None,
-                write_aux=False,options={},write_p=False):
+    def write(self,frame,path='./',io_manager='pyclaw',io_handler=None,file_format='ascii',file_prefix=None,
+                clobber=True,write_aux=False,write_p=False,options={}):
         r"""
         Write out a representation of the solution
 
@@ -277,34 +277,61 @@ class Solution(object):
             except OSError:
                 print "directory already exists, ignoring"  
 
+        # Deal with backward compatibility
+        if 'petsc' in file_format:
+            io_manager = 'petclaw'
+            io_handler = 'petsc'
+            file_format = 'binary'
+
         # Call the correct write function based on the output format
         if isinstance(file_format,str):
             format_list = [file_format]
         elif isinstance(file_format,list):
             format_list = file_format
 
-        if 'petsc' in format_list:
-            from clawpack.petclaw import io
-            write_func = io.petsc.write
-        else:
-            from clawpack.pyclaw import io
-            write_func = io.ascii.write
+        # Take the usual file_prefix if None given
+        if file_prefix is None:
+            if io_manager=='pyclaw':
+                file_prefix = 'fort'
+            elif io_manager=='petclaw':
+                file_prefix = 'claw'
 
+        # backward compatibility, if file_format=None don't write output
+        if file_format is None:
+            io_manager = None
+
+        #sanity check in case manager is petclaw for io_handler is None
+        if io_manager=='petclaw' and io_handler==None:
+            io_handler='petsc'
+
+        # Call the correct write function based on the output io_manager/file_format
+        # for petclaw we only need to create one write_func regardless of len(format_list)
+        if io_manager=='petclaw':
+            from clawpack.petclaw import io
+            write_func = getattr(getattr(io,io_handler),'write')
 
         # Loop over list of formats requested
         for form in format_list:
-            if file_prefix is None:
-                write_func(self,frame,path,write_aux=write_aux,
-                            options=options,write_p=write_p)
-            else:
-                write_func(self,frame,path,file_prefix=file_prefix,
+            if io_manager=='pyclaw':
+                # Set equivalence between io_handler and file_format if using pyclaw (see pyclaw.io)
+                io_handler = form
+                from clawpack.pyclaw import io
+                write_func = getattr(getattr(io,io_handler),'write')
+
+            if io_manager is not None:
+                if file_prefix is None:
+                    write_func(self,frame,path,write_aux=write_aux,
+                                options=options,write_p=write_p)
+                else:
+                    write_func(self,frame,path,file_prefix=file_prefix,
                                 write_aux=write_aux,options=options,
-                           write_p=write_p)
+                                write_p=write_p)
+
             msg = "Wrote out solution in format %s for time t=%s" % (form,self.t)
             logging.getLogger('pyclaw.io').info(msg)
 
         
-    def read(self,frame,path='./_output',file_format='ascii',file_prefix=None,
+    def read(self,frame,path='./_output',io_manager='pyclaw',io_handler=None,file_format='ascii',file_prefix=None,
                 read_aux=True,options={}, **kargs):
         r"""
         Reads in a Solution object from a file
@@ -335,18 +362,21 @@ class Solution(object):
         :Output:
          - (bool) - True if read was successful, False otherwise
         """
-        
-        if file_format=='petsc':
-            from clawpack.petclaw import io
-            read_func = io.petsc.read
-        elif file_format == 'binary':
-            from clawpack.pyclaw import io 
-            read_func = io.binary.read
-        elif file_format=='ascii': 
+        #sanity check in case manager is petclaw for io_handler is None
+        if io_manager=='petclaw' and io_handler==None:
+            io_handler='petsc'
+
+        if io_manager=='pyclaw':
+            io_handler = file_format
             from clawpack.pyclaw import io
-            read_func = io.ascii.read
+            if hasattr(io, file_format):
+                read_func = getattr(getattr(io,io_handler),'read')
+        elif io_manager=='petclaw':
+            from clawpack.petclaw import io
+            read_func = getattr(getattr(io,io_handler),'read')
 
         path = os.path.expandvars(os.path.expanduser(path))
+
         if file_prefix is None:
             read_func(self,frame,path,read_aux=read_aux,options=options)
         else:
