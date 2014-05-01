@@ -19,7 +19,7 @@ The final solution is identical to the initial data because both waves have
 crossed the domain exactly once.
 """
 
-def setup(pyclaw=None,kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5,
+def setup(state_backend='numpy',kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5,
         time_integrator='SSP104', disable_output=False, **kwargs):
     """
     This example solves the 1-dimensional acoustics equations in a homogeneous
@@ -27,6 +27,9 @@ def setup(pyclaw=None,kernel_language='Fortran',solver_type='classic',outdir='./
     """
     from numpy import sqrt, exp, cos
     from clawpack import riemann
+    from clawpack.pyclaw.util import get_state_backend
+
+    pyclaw = get_state_backend(state_backend)
 
     #========================================================================
     # Instantiate the solver and define the system of equations to be solved

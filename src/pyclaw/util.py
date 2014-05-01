@@ -61,7 +61,10 @@ def run_app_from_main(application,setplot=None):
             if key not in ('htmlplot','iplot'):
                 app_kwargs[key] = value
 
-    app_kwargs['pyclaw'] = pyclaw
+    if pyclaw_kwargs.get('use_petsc', False):
+        app_kwargs['state_backend'] = 'petsc'
+    else:
+        app_kwargs['state_backend'] = 'numpy'
 
     claw=application(**app_kwargs)
 
@@ -84,6 +87,13 @@ def run_app_from_main(application,setplot=None):
             pyclaw.plot.interactive_plot(outdir=outdir)
 
     return claw
+
+def get_state_backend(state_backend):
+    if state_backend == 'petsc':
+        import clawpack.petclaw as backend
+    else:
+        from clawpack import pyclaw as backend
+    return backend
 
 class VerifyError(Exception):
     pass
