@@ -247,7 +247,7 @@ class Solution(object):
 
     
     # ========== IO Functions ================================================
-    def write(self,frame,path='./',io_handler='pyclaw',file_format='ascii',file_prefix=None,
+    def write(self,frame,path='./',io_manager='pyclaw',io_handler=None,file_format='ascii',file_prefix=None,
                 clobber=True,write_aux=False,write_p=False,options={}):
         r"""
         Write out a representation of the solution
@@ -277,6 +277,12 @@ class Solution(object):
             except OSError:
                 print "directory already exists, ignoring"  
 
+        # Deal with backward compatibility
+        if 'petsc' in file_format:
+            io_manager = 'petclaw'
+            io_handler = 'petsc'
+            file_format = 'binary'
+
         # Call the correct write function based on the output format
         if isinstance(file_format,str):
             format_list = [file_format]
@@ -285,27 +291,34 @@ class Solution(object):
 
         # Take the usual file_prefix if None given
         if file_prefix is None:
-            if io_handler=='serial':
+            if io_manager=='pyclaw':
                 file_prefix = 'fort'
-            elif io_handler=='petsc':
+            elif io_manager=='petclaw':
                 file_prefix = 'claw'
 
         # backward compatibility, if file_format=None don't write output
         if file_format is None:
-            io_handler = None
+            io_manager = None
 
-        # Call the correct write function based on the output io_handler/file_format
-        if io_handler=='petsc':
+        #sanity check in case manager is petclaw for io_handler is None
+        if io_manager=='petclaw' and io_handler==None:
+            io_handler='petsc'
+
+        # Call the correct write function based on the output io_manager/file_format
+        # for petclaw we only need to create one write_func regardless of len(format_list)
+        if io_manager=='petclaw':
             from clawpack.petclaw import io
             write_func = getattr(getattr(io,io_handler),'write')
 
         # Loop over list of formats requested
         for form in format_list:
-            if io_handler=='pyclaw':
+            if io_manager=='pyclaw':
+                # Set equivalence between io_handler and file_format if using pyclaw (see pyclaw.io)
+                io_handler = form
                 from clawpack.pyclaw import io
-                write_func = getattr(getattr(io,file_format),'write')
+                write_func = getattr(getattr(io,io_handler),'write')
 
-            if io_handler is not None:
+            if io_manager is not None:
                 if file_prefix is None:
                     write_func(self,frame,path,write_aux=write_aux,
                                 options=options,write_p=write_p)
@@ -318,7 +331,7 @@ class Solution(object):
             logging.getLogger('pyclaw.io').info(msg)
 
         
-    def read(self,frame,path='./_output',io_handler='pyclaw',file_format='ascii',file_prefix=None,
+    def read(self,frame,path='./_output',io_manager='pyclaw',io_handler=None,file_format='ascii',file_prefix=None,
                 read_aux=True,options={}, **kargs):
         r"""
         Reads in a Solution object from a file
@@ -349,12 +362,16 @@ class Solution(object):
         :Output:
          - (bool) - True if read was successful, False otherwise
         """
-        
-        if io_handler=='pyclaw':
+        #sanity check in case manager is petclaw for io_handler is None
+        if io_manager=='petclaw' and io_handler==None:
+            io_handler='petsc'
+
+        if io_manager=='pyclaw':
+            io_handler = file_format
             from clawpack.pyclaw import io
             if hasattr(io, file_format):
-                read_func = getattr(getattr(io,file_format),'read')
-        elif io_handler=='petsc':
+                read_func = getattr(getattr(io,io_handler),'read')
+        elif io_manager=='petclaw':
             from clawpack.petclaw import io
             read_func = getattr(getattr(io,io_handler),'read')
 

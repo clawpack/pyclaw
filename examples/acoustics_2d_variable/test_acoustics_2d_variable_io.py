@@ -30,7 +30,7 @@ def test_acoustics_2d_variable_io():
                         file_format=controller.output_format,
                         file_prefix=None,read_aux=True,
                         options=controller.output_options,
-                        io_handler=controller.output_handler)
+                        io_manager=controller.output_manager)
         test_aux = sol_0_test.state.get_aux_global()
 
         sol_20_test = Solution()
@@ -38,7 +38,7 @@ def test_acoustics_2d_variable_io():
                         file_format=controller.output_format,
                         file_prefix=None,read_aux=False,
                         options=controller.output_options,
-                        io_handler=controller.output_handler)
+                        io_manager=controller.output_manager)
         test_q = sol_20_test.state.get_q_global()
 
 

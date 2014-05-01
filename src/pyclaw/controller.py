@@ -97,7 +97,7 @@ class Controller(object):
                         'write_aux_always','output_format',
                         'output_file_prefix','output_options','num_output_times',
                         'output_style','verbosity',
-                        'output_handler','output_clobber']
+                        'output_manager','output_clobber']
         r"""(list) - Viewable attributes of the `:class:`~pyclaw.controller.Controller`"""
 
         # Global information for running and/or plotting
@@ -146,12 +146,14 @@ class Controller(object):
         self.write_aux_always = False
         r"""(bool) - Write out auxiliary array at every time step, 
         ``default = False``"""
-        self.output_handler = 'pyclaw'
+        self.output_manager = 'pyclaw'
         r"""(string) - Method to output data. Available methods are: 'petsc', 'serial', None.
         ``default = 'serial'``"""
         self.output_format = 'ascii'
         r"""(string) - Format to output data, if this is None, no output is performed.
         See _pyclaw_io for more info on available formats.  ``default = 'ascii'``"""
+        self.output_handler = 'ascii'
+        r"""(string) - Handler of manager, e.g. for manager = 'petclaw', handler = 'petsc'"""
         self.output_file_prefix = None
         r"""(string) - File prefix to be appended to output files, 
         ``default = None``"""
@@ -336,7 +338,7 @@ class Controller(object):
 
         if self.keep_copy:
             self.frames.append(copy.deepcopy(self.solution))
-        if self.output_handler==None or self.output_format==None:
+        if self.output_manager==None or self.output_format==None:
             pass
         else:
             if os.path.exists(self.outdir) and self.output_clobber==False:
@@ -347,7 +349,7 @@ class Controller(object):
                 self.solution.write(frame = frame,
                                         path = self.outdir_p,
                                         file_prefix = self.file_prefix_p,
-                                        io_handler = self.output_handler,
+                                        io_manager = self.output_manager,
                                         file_format = self.output_format,
                                         clobber = self.output_clobber,
                                         write_aux = False,
@@ -358,7 +360,7 @@ class Controller(object):
             self.solution.write(frame = frame,
                                 path = self.outdir,
                                 file_prefix = self.output_file_prefix,
-                                io_handler = self.output_handler,
+                                io_manager = self.output_manager,
                                 file_format = self.output_format,
                                 clobber = self.output_clobber,
                                 write_aux = write_aux,
@@ -381,7 +383,7 @@ class Controller(object):
             if self.keep_copy:
                 # Save current solution to dictionary with frame as key
                 self.frames.append(copy.deepcopy(self.solution))
-            if self.output_handler==None or self.output_format==None:
+            if self.output_manager==None or self.output_format==None:
                 pass
             else:
                 if self.compute_p is not None:
@@ -389,7 +391,7 @@ class Controller(object):
                     self.solution.write(frame=frame,
                                         path = self.outdir,
                                         file_prefix = self.file_prefix_p,
-                                        io_handler = self.output_handler,
+                                        io_manager = self.output_manager,
                                         file_format = self.output_format,
                                         clobber = self.output_clobber,
                                         write_aux = False,
@@ -399,7 +401,7 @@ class Controller(object):
                 self.solution.write(frame=frame,
                                     path = self.outdir,
                                     file_prefix = self.output_file_prefix,
-                                    io_handler = self.output_handler,
+                                    io_manager = self.output_manager,
                                     file_format = self.output_format,
                                     clobber = self.output_clobber,
                                     write_aux = self.write_aux_always,

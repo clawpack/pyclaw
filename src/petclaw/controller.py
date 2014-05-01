@@ -14,9 +14,9 @@ class Controller(pyclaw.controller.Controller):
 
     def __init__(self):
         super(Controller,self).__init__()
-        self.output_handler = 'petsc'
+        self.output_manager = 'petclaw'
         self.output_format = 'binary'
-
+        self.output_handler = 'petsc'
     def is_proc_0(self):
         from petsc4py import PETSc
         rank = PETSc.Comm.getRank(PETSc.COMM_WORLD)
