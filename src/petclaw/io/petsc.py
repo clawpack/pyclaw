@@ -53,9 +53,9 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
 
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
     if file_format == 'vtk':
-        viewer_filename = os.path.join(path, file_prefix+str(frame).zfill(4)+'.vtk')
+        q_filename = os.path.join(path, file_prefix+str(frame).zfill(4)+'.vtk')
     else:
-        viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
+        q_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
 
     if solution.num_aux == 0:
         write_aux = False
@@ -63,7 +63,7 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
         aux_filename = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
         
     if not clobber:
-        for f in (pickle_filename, viewer_filename, aux_filename):
+        for f in (pickle_filename, q_filename, aux_filename):
             if os.path.exists(f):
                 raise IOError('Cowardly refusing to clobber %s!' % f)
 
@@ -83,34 +83,30 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
         pickle.dump(sol_dict, pickle_file)
 
     # now set up the PETSc viewers
+    v = PETSc.Viewer()
+    opts = {}
+    file_format = file_format.lower()
     if file_format == 'ascii':
-        viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.WRITE)
-        if write_aux:
-            aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE) 
+        create_viewer = v.createASCII
+    elif file_format == 'vtk':
+        create_viewer = v.createASCII
+        opts['format'] = PETSc.Viewer.Format.ASCII_VTK
+    elif file_format == 'hdf5':
+        create_viewer = v.createHDF5
+    elif file_format == 'netcdf':
+        create_viewer = v.createNetCDF
     elif file_format == 'binary':
         if hasattr(PETSc.Viewer,'createMPIIO'):
-            viewer = PETSc.Viewer().createMPIIO(viewer_filename, PETSc.Viewer.Mode.WRITE)
+            create_viewer = v.createMPIIO
         else:
-            viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.WRITE)
-        if write_aux:
-            if hasattr(PETSc.Viewer,'createMPIIO'):
-                aux_viewer = PETSc.Viewer().createMPIIO(aux_filename, PETSc.Viewer.Mode.WRITE)
-            else:
-                aux_viewer = PETSc.Viewer().createBinary(aux_filename, PETSc.Viewer.Mode.WRITE)
-    elif file_format == 'vtk':
-        viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.WRITE, format=PETSc.Viewer.Format.ASCII_VTK)
-        if write_aux:
-            aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE)
-    elif file_format=='hdf5':
-        viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.WRITE)
-        if write_aux:
-            aux_viewer = PETSc.Viewer().createHDF5(aux_filename, PETSc.Viewer.Mode.WRITE)
-    elif file_format=='netcdf':
-        viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.WRITE)
-        if write_aux:
-            aux_viewer = PETSc.Viewer().createHDF5(aux_filename, PETSc.Viewer.Mode.WRITE)
+            create_viewer = v.createBinary
     else:
-        raise IOError('format type %s not supported' % file_format)
+        raise IOError('PETSc has no viewer for the output format %s ' % file_format)
+
+    q_viewer = create_viewer(q_filename, PETSc.Viewer.Mode.WRITE, **opts)
+    if write_aux:
+        aux_viewer = create_viewer(aux_filename, PETSc.Viewer.Mode.WRITE, **opts)
+
     
     for state in solution.states:
         patch = state.patch
@@ -119,22 +115,21 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
                          'names':patch.name,'lower':patch.lower_global,
                          'num_cells':patch.num_cells_global,'delta':patch.delta}, pickle_file)
 #       we will reenable this bad boy when we switch over to petsc-dev
-#        state.q_da.view(viewer)
+#        state.q_da.view(q_viewer)
         if write_p:
-            state.gpVec.view(viewer)
+            state.gpVec.view(q_viewer)
         else:
-            state.gqVec.view(viewer)
+            state.gqVec.view(q_viewer)
         
         if write_aux:
             state.gauxVec.view(aux_viewer)
     
-    viewer.flush()
-    viewer.destroy()
-    if rank==0:
-        pickle_file.close()
+    q_viewer.flush()
     if write_aux:
         aux_viewer.flush()
-        aux_viewer.destroy()
+    q_viewer.destroy() # Destroys aux_viewer also
+    if rank==0:
+        pickle_file.close()
 
 
 def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
@@ -166,13 +161,13 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
         file_format = 'binary'
 
     pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
-    viewer_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
-    aux_viewer_filename1 = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
-    aux_viewer_filename2 = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(0).zfill(4)
-    if os.path.exists(aux_viewer_filename1):
-         aux_viewer_filename = aux_viewer_filename1
+    q_filename = os.path.join(path, '%s.ptc' % file_prefix) + str(frame).zfill(4)
+    aux_filename1 = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(frame).zfill(4)
+    aux_filename2 = os.path.join(path, '%s_aux.ptc' % file_prefix) + str(0).zfill(4)
+    if os.path.exists(aux_filename1):
+         aux_filename = aux_filename1
     else:
-         aux_viewer_filename = aux_viewer_filename2
+         aux_filename = aux_filename2
 
     try:
         pickle_file = open(pickle_filename,'rb')
@@ -191,51 +186,35 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
     aux_warning = False
 
     # now set up the PETSc viewer
+    v = PETSc.Viewer()
+    opts = {}
+    file_format = file_format.lower()
     if file_format == 'ascii':
-        viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.READ)
-        if read_aux:
-            if os.path.exists(aux_viewer_filename):
-                aux_viewer = PETSc.Viewer().createASCII(aux_viewer_filename, PETSc.Viewer.Mode.READ)
-            else:
-                aux_warning = True
-                read_aux = False
+        create_viewer = v.createASCII
+    elif file_format == 'vtk':
+        create_viewer = v.createASCII
+        opts['format'] = PETSc.Viewer.Format.ASCII_VTK
+    elif file_format == 'hdf5':
+        create_viewer = v.createHDF5
+    elif file_format == 'netcdf':
+        create_viewer = v.createNetCDF
     elif file_format == 'binary':
         if hasattr(PETSc.Viewer,'createMPIIO'):
-            viewer = PETSc.Viewer().createMPIIO(viewer_filename, PETSc.Viewer.Mode.READ)
+            create_viewer = v.createMPIIO
         else:
-            viewer = PETSc.Viewer().createBinary(viewer_filename, PETSc.Viewer.Mode.READ)
-        if read_aux:
-            if os.path.exists(aux_viewer_filename):
-                if hasattr(PETSc.Viewer,'createMPIIO'):
-                    aux_viewer = PETSc.Viewer().createMPIIO(aux_viewer_filename, PETSc.Viewer.Mode.READ)
-                else:
-                    aux_viewer = PETSc.Viewer().createBinary(aux_viewer_filename, PETSc.Viewer.Mode.READ)
-            else:
-                aux_warning = True
-                read_aux = False
-    elif file_format == 'hdf5':
-        viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.READ)
-        if read_aux:
-            if os.path.exists(aux_viewer_filename):
-                aux_viewer = PETSc.Viewer().createHDF5(aux_viewer_filename, PETSc.Viewer.Mode.READ)
-            else:         
-                aux_warning = True
-                read_aux=False
-    elif file_format == 'netcdf':
-        viewer = PETSc.Viewer().createNetCDF(viewer_filename, PETSc.Viewer.Mode.READ)
-        if read_aux:
-            if os.path.exists(aux_viewer_filename):
-                aux_viewer = PETSc.Viewer().createNetCDF(aux_viewer_filename, PETSc.Viewer.Mode.READ)
-            else:
-                aux_warning = True
-                read_aux=False
+            create_viewer = v.createBinary
     else:
-        raise IOError('format type %s not supported' % file_format)
+        raise IOError('PETSc has no viewer for the output format %s ' % file_format)
 
-    if aux_warning:
-        from warnings import warn
-        aux_file_path = os.path.join(path,aux_viewer_filename)
-        warn('read_aux=True but aux file %s does not exist' % aux_file_path)
+    q_viewer = create_viewer(q_filename, PETSc.Viewer.Mode.READ, **opts)
+    if read_aux:
+        if os.path.exists(aux_filename):
+            aux_viewer = create_viewer(aux_filename, PETSc.Viewer.Mode.READ)
+        else:
+            from warnings import warn
+            aux_file_path = os.path.join(path,aux_filename)
+            warn('read_aux=True but aux file %s does not exist' % aux_file_path)
+            read_aux = False
 
     patches = []
     for m in xrange(nstates):
@@ -262,8 +241,8 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
             state.grid.mapc2p = value_dict['mapc2p']
 
 #       DA View/Load is broken in Petsc-3.1.8, we can load/view the DA if needed in petsc-3.2
-#       state.q_da.load(viewer)
-        state.gqVec.load(viewer)
+#       state.q_da.load(q_viewer)
+        state.gqVec.load(q_viewer)
         
         if read_aux:
             state.gauxVec.load(aux_viewer)
@@ -273,9 +252,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
     solution.domain = petclaw.geometry.Domain(patches)
 
     pickle_file.close()
-    viewer.destroy()
-    if read_aux:
-        aux_viewer.destroy()
+    q_viewer.destroy() # Destroys aux_viewer also
 
 def read_t(frame,path='./',file_prefix='claw'):
     r"""Read only the petsc.pkl file and return the data
