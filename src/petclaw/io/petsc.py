@@ -75,7 +75,8 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
                          'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,
                          'write_aux':write_aux,
                          'problem_data' : solution.problem_data,
-                         'mapc2p': solution.state.grid.mapc2p}
+                         'mapc2p': solution.state.grid.mapc2p,
+                         'file_format':file_format}
         if write_p:
             sol_dict['num_eqn'] = solution.mp
 
@@ -99,7 +100,15 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
     elif file_format == 'vtk':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.WRITE, format=PETSc.Viewer.Format.ASCII_VTK)
         if write_aux:
-            aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE) 
+            aux_viewer = PETSc.Viewer().createASCII(aux_filename, PETSc.Viewer.Mode.WRITE)
+    elif file_format=='hdf5':
+        viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.WRITE)
+        if write_aux:
+            aux_viewer = PETSc.Viewer().createHDF5(aux_filename, PETSc.Viewer.Mode.WRITE)
+    elif file_format=='netcdf':
+        viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.WRITE)
+        if write_aux:
+            aux_viewer = PETSc.Viewer().createHDF5(aux_filename, PETSc.Viewer.Mode.WRITE)
     else:
         raise IOError('format type %s not supported' % file_format)
     
@@ -179,11 +188,17 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
     num_aux       = value_dict['num_aux']
     num_eqn       = value_dict['num_eqn']
 
+    aux_warning = False
+
     # now set up the PETSc viewer
     if file_format == 'ascii':
         viewer = PETSc.Viewer().createASCII(viewer_filename, PETSc.Viewer.Mode.READ)
         if read_aux:
-            aux_viewer = PETSc.Viewer().createASCII(aux_viewer_filename, PETSc.Viewer.Mode.READ)
+            if os.path.exists(aux_viewer_filename):
+                aux_viewer = PETSc.Viewer().createASCII(aux_viewer_filename, PETSc.Viewer.Mode.READ)
+            else:
+                aux_warning = True
+                read_aux = False
     elif file_format == 'binary':
         if hasattr(PETSc.Viewer,'createMPIIO'):
             viewer = PETSc.Viewer().createMPIIO(viewer_filename, PETSc.Viewer.Mode.READ)
@@ -196,12 +211,31 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
                 else:
                     aux_viewer = PETSc.Viewer().createBinary(aux_viewer_filename, PETSc.Viewer.Mode.READ)
             else:
-                from warnings import warn
-                aux_file_path = os.path.join(path,aux_viewer_filename)
-                warn('read_aux=True but aux file %s does not exist' % aux_file_path)
+                aux_warning = True
+                read_aux = False
+    elif file_format == 'hdf5':
+        viewer = PETSc.Viewer().createHDF5(viewer_filename, PETSc.Viewer.Mode.READ)
+        if read_aux:
+            if os.path.exists(aux_viewer_filename):
+                aux_viewer = PETSc.Viewer().createHDF5(aux_viewer_filename, PETSc.Viewer.Mode.READ)
+            else:         
+                aux_warning = True
+                read_aux=False
+    elif file_format == 'netcdf':
+        viewer = PETSc.Viewer().createNetCDF(viewer_filename, PETSc.Viewer.Mode.READ)
+        if read_aux:
+            if os.path.exists(aux_viewer_filename):
+                aux_viewer = PETSc.Viewer().createNetCDF(aux_viewer_filename, PETSc.Viewer.Mode.READ)
+            else:
+                aux_warning = True
                 read_aux=False
     else:
         raise IOError('format type %s not supported' % file_format)
+
+    if aux_warning:
+        from warnings import warn
+        aux_file_path = os.path.join(path,aux_viewer_filename)
+        warn('read_aux=True but aux file %s does not exist' % aux_file_path)
 
     patches = []
     for m in xrange(nstates):
