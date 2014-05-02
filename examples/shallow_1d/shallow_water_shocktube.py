@@ -15,24 +15,21 @@ Solve the one-dimensional shallow water equations:
 Here h is the depth, (u,v) is the velocity, and g is the gravitational constant.
 """
 
-    
-def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_type='classic'):
+
+def setup(state_backend='pyclaw',kernel_language='Fortran',outdir='./_output',solver_type='classic'):
     #===========================================================================
     # Import libraries
     #===========================================================================
     import numpy as np
     from clawpack import riemann
-
-    if use_petsc:
-        import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     if kernel_language =='Python':
         rs = riemann.shallow_1D_py.shallow_1D
     elif kernel_language =='Fortran':
         rs = riemann.shallow_roe_with_efix_1D
- 
+
     if solver_type == 'classic':
         solver = pyclaw.ClawSolver1D(rs)
         solver.limiters = pyclaw.limiters.tvd.vanleer

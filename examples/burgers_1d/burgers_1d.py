@@ -17,36 +17,33 @@ The initial condition is sinusoidal, but after a short time a shock forms
 (due to the nonlinearity).
 """
 
-def setup(use_petsc=0,kernel_language='Fortran',outdir='./_output',solver_type='classic'):
+def setup(state_backend='pyclaw',kernel_language='Fortran',outdir='./_output',solver_type='classic'):
     """
     Example python script for solving the 1d Burgers equation.
     """
 
     import numpy as np
     from clawpack import riemann
-
-    if use_petsc:
-        import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     #===========================================================================
     # Setup solver and solver parameters
     #===========================================================================
     if solver_type=='sharpclaw':
-        if kernel_language=='Python': 
+        if kernel_language=='Python':
             solver = pyclaw.SharpClawSolver1D(riemann.burgers_1D_py.burgers_1D)
         elif kernel_language=='Fortran':
             solver = pyclaw.SharpClawSolver1D(riemann.burgers_1D)
     else:
-        if kernel_language=='Python': 
+        if kernel_language=='Python':
             solver = pyclaw.ClawSolver1D(riemann.burgers_1D_py.burgers_1D)
         elif kernel_language=='Fortran':
             solver = pyclaw.ClawSolver1D(riemann.burgers_1D)
         solver.limiters = pyclaw.limiters.tvd.vanleer
 
     solver.kernel_language = kernel_language
-        
+
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
 

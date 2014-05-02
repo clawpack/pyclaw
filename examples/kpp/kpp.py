@@ -23,16 +23,13 @@ def qinit(state,rad=1.0):
     state.q[0,:,:] = 0.25*np.pi + 3.25*np.pi*(r<=rad)
 
 
-def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
+def setup(state_backend='pyclaw',outdir='./_output',solver_type='classic'):
     """
     Example python script for solving the 2d KPP equations.
     """
     from clawpack import riemann
-
-    if use_petsc:
-        import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D(riemann.kpp_2D)

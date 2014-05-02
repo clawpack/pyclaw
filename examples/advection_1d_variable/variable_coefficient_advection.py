@@ -47,25 +47,22 @@ def auxinit(state):
     # Initilize petsc Structures for aux
     xc=state.grid.x.centers
     state.aux[0,:] = np.sin(2.*np.pi*xc)+2
-    
 
-def setup(use_petsc=False,solver_type='classic',kernel_language='Python',outdir='./_output'):
+
+def setup(state_backend='pyclaw',solver_type='classic',kernel_language='Python',outdir='./_output'):
     from clawpack import riemann
-
-    if use_petsc:
-        import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     if solver_type=='classic':
         if kernel_language == 'Fortran':
             solver = pyclaw.ClawSolver1D(riemann.vc_advection_1D)
-        elif kernel_language=='Python': 
+        elif kernel_language=='Python':
             solver = pyclaw.ClawSolver1D(riemann.vc_advection_1D_py.vc_advection_1D)
     elif solver_type=='sharpclaw':
         if kernel_language == 'Fortran':
             solver = pyclaw.SharpClawSolver1D(riemann.vc_advection_1D)
-        elif kernel_language=='Python': 
+        elif kernel_language=='Python':
             solver = pyclaw.SharpClawSolver1D(riemann.vc_advection_1D_py.vc_advection_1D)
         solver.weno_order=weno_order
     else: raise Exception('Unrecognized value of solver_type.')

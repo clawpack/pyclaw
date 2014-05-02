@@ -25,17 +25,14 @@ def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
     state.q[1,:,:] = hl*ul*(r<=radDam) + hr*ur*(r>radDam)
     state.q[2,:,:] = hl*vl*(r<=radDam) + hr*vr*(r>radDam)
 
-    
-def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
+
+def setup(state_backend='pyclaw',outdir='./_output',solver_type='classic'):
     #===========================================================================
     # Import libraries
     #===========================================================================
     from clawpack import riemann
-
-    if use_petsc:
-        import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     #===========================================================================
     # Setup solver and solver parameters

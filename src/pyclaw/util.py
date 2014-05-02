@@ -43,16 +43,15 @@ def run_app_from_main(application,setplot=None):
     # will be passed to PETSc
     petsc_args, pyclaw_kwargs = _info_from_argv(sys.argv)
 
-    if pyclaw_kwargs.get('use_petsc', False):
+    state_backend = pyclaw_kwargs.get('state_backend', 'pyclaw')
+
+    if state_backend == 'petclaw':
         import petsc4py
         petsc_args = [arg.replace('--','-') for arg in sys.argv[1:] if '=' not in arg]
         petsc4py.init(petsc_args)
-        from clawpack import petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
 
     if sys.version_info >= (2, 7):
-        app_kwargs = {key: value for key, value in pyclaw_kwargs.items() 
+        app_kwargs = {key: value for key, value in pyclaw_kwargs.items()
                       if not key in ('htmlplot','iplot')}
     else:
         # the above fails with Python < 2.7, so write it out...
@@ -61,26 +60,22 @@ def run_app_from_main(application,setplot=None):
             if key not in ('htmlplot','iplot'):
                 app_kwargs[key] = value
 
-    if pyclaw_kwargs.get('use_petsc', False):
-        app_kwargs['state_backend'] = 'petsc'
-    else:
-        app_kwargs['state_backend'] = 'numpy'
-
     claw=application(**app_kwargs)
 
     # Solve
     status = claw.run()
 
     # Plot results
+    pyclaw   = get_state_backend(state_backend)
     htmlplot = pyclaw_kwargs.get('htmlplot',False)
     iplot    = pyclaw_kwargs.get('iplot',False)
     outdir   = pyclaw_kwargs.get('outdir','./_output')
-    if htmlplot:  
+    if htmlplot:
         if setplot is not None:
             pyclaw.plot.html_plot(outdir=outdir,setplot=setplot)
         else:
             pyclaw.plot.html_plot(outdir=outdir)
-    if iplot:     
+    if iplot:
         if setplot is not None:
             pyclaw.plot.interactive_plot(outdir=outdir,setplot=setplot)
         else:
@@ -89,10 +84,12 @@ def run_app_from_main(application,setplot=None):
     return claw
 
 def get_state_backend(state_backend):
-    if state_backend == 'petsc':
+    if state_backend == 'petclaw':
         import clawpack.petclaw as backend
-    else:
+    elif state_backend == 'pyclaw':
         from clawpack import pyclaw as backend
+    else:
+        raise ValueError("invalid state backend: " + state_backend)
     return backend
 
 class VerifyError(Exception):
@@ -128,12 +125,12 @@ def build_variant_arg_dicts(kernel_languages=('Fortran',)):
     # only test petsc4py if it is available
     try:
         import petsc4py
-        use_petsc_opts=(True,False)
+        use_state_backend_opts = ('pyclaw','petclaw')
     except Exception as err:
-        use_petsc_opts = (False,)
+        use_state_backend_opts = ('pyclaw',)
 
-    opt_names = 'use_petsc','kernel_language'
-    opt_product = itertools.product(use_petsc_opts,kernel_languages)
+    opt_names = 'state_backend','kernel_language'
+    opt_product = itertools.product(use_state_backend_opts,kernel_languages)
     arg_dicts = [dict(zip(opt_names,argset)) for argset in opt_product]
 
     return arg_dicts
@@ -169,7 +166,7 @@ def test_app(application, verifier, kwargs):
     """
     print kwargs
 
-    if 'use_petsc' in kwargs and not kwargs['use_petsc']:
+    if kwargs.get('state_backend', 'pyclaw') == 'petclaw':
         try:
             # don't duplicate serial test runs
             from petsc4py import PETSc

@@ -3,23 +3,20 @@
 
 import numpy as np
 
-def setup(use_petsc=False,outdir='./_output',solver_type='classic',disable_output=False,**kwargs):
+def setup(state_backend='pyclaw',outdir='./_output',solver_type='classic',disable_output=False,**kwargs):
     """
     Example python script for solving the 3d acoustics equations.
     """
     from clawpack import riemann
-
-    if use_petsc:
-        import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     if solver_type=='classic':
         solver=pyclaw.ClawSolver3D(riemann.vc_acoustics_3D)
         solver.limiters = pyclaw.limiters.tvd.MC
     elif solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver3D(riemann.vc_acoustics_3D)
-        
+
     else:
         raise Exception('Unrecognized solver_type.')
 

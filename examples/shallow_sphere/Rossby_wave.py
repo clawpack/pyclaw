@@ -350,15 +350,15 @@ def auxbc_upper_y(state,dim,t,auxbc,num_ghost):
     mx, my = grid.num_cells[0], grid.num_cells[1]
     xlower, ylower = grid.lower[0], grid.lower[1]
     dx, dy = grid.delta[0],grid.delta[1]
-    
+
     # Impose BC
     auxtemp = auxbc.copy()
     auxtemp = problem.setaux(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
     auxbc[:,:,-num_ghost:] = auxtemp[:,:,-num_ghost:]
 
 
-def setup(use_petsc=False,solver_type='classic',outdir='./_output', disable_output=False):
-    if use_petsc:
+def setup(state_backend='pyclaw',solver_type='classic',outdir='./_output', disable_output=False):
+    if state_backend == 'petclaw':
         raise Exception("petclaw does not currently support mapped grids (go bug Lisandro who promised to implement them)")
 
     if solver_type != 'classic':

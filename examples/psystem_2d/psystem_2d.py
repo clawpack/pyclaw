@@ -115,26 +115,23 @@ def total_energy(state):
     potential = (sigma-np.log(sigma+1.))/K
 
     dx=state.grid.delta[0]; dy=state.grid.delta[1]
-    
-    state.F[0,:,:] = (potential+kinetic)*dx*dy 
+
+    state.F[0,:,:] = (potential+kinetic)*dx*dy
 
 def gauge_stress(q,aux):
     p = np.exp(q[0]*aux[1])-1
     return [p,10*p]
 
 def setup(kernel_language='Fortran',
-              use_petsc=False,outdir='./_output',solver_type='classic',
+              state_backend='pyclaw',outdir='./_output',solver_type='classic',
               disable_output=False, cells_per_layer=30, tfinal=18.):
 
     """
     Solve the p-system in 2D with variable coefficients
     """
     from clawpack import riemann
-
-    if use_petsc:
-        import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     # material parameters
     KA=1.;   rhoA=1.
