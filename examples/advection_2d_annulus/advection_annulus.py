@@ -193,13 +193,10 @@ def stream(xp,yp):
     return streamValue
 
 
-def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
+def setup(state_backend='pyclaw',outdir='./_output',solver_type='classic'):
     from clawpack import riemann
-
-    if use_petsc:
-        import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     if solver_type == 'classic':
         solver = pyclaw.ClawSolver2D(riemann.vc_advection_2D)

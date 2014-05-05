@@ -18,8 +18,8 @@ The initial condition is a Gaussian and the boundary conditions are periodic.
 The final solution is identical to the initial data because both waves have
 crossed the domain exactly once.
 """
-    
-def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5, 
+
+def setup(state_backend='pyclaw',kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5,
         time_integrator='SSP104', disable_output=False):
     """
     This example solves the 1-dimensional acoustics equations in a homogeneous
@@ -28,20 +28,15 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir
     from numpy import sqrt, exp, cos
     from clawpack import riemann
 
-    #=================================================================
-    # Import the appropriate classes, depending on the options passed
-    #=================================================================
-    if use_petsc:
-        import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     #========================================================================
     # Instantiate the solver and define the system of equations to be solved
     #========================================================================
     if kernel_language == 'Fortran':
         riemann_solver = riemann.acoustics_1D
-    elif kernel_language=='Python': 
+    elif kernel_language=='Python':
         riemann_solver = riemann.acoustics_1D_py.acoustics_1D
 
     if solver_type=='classic':

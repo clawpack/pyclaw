@@ -1,20 +1,15 @@
 #!/usr/bin/env python
 # encoding: utf-8
-    
-def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False,outdir='./_output',weno_order=5):
+
+def acoustics(state_backend='pyclaw',kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False,outdir='./_output',weno_order=5):
     """
     This example solves the 1-dimensional acoustics equations in a homogeneous
     medium.
     """
     import numpy as np
 
-    #=================================================================
-    # Import the appropriate classes, depending on the options passed
-    #=================================================================
-    if use_petsc:
-        import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     if solver_type=='classic':
         solver = pyclaw.ClawSolver1D()

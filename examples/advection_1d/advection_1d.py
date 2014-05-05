@@ -17,25 +17,22 @@ The final solution is identical to the initial data because the wave has
 crossed the domain exactly once.
 """
 
-def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5, 
+def setup(state_backend='pyclaw', nx=100, kernel_language='Python',solver_type='classic', weno_order=5,
         time_integrator='SSP104', outdir='./_output'):
     import numpy as np
     from clawpack import riemann
-
-    if use_petsc:
-        import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     if solver_type=='classic':
         if kernel_language == 'Fortran':
             solver = pyclaw.ClawSolver1D(riemann.advection_1D)
-        elif kernel_language=='Python': 
+        elif kernel_language=='Python':
             solver = pyclaw.ClawSolver1D(riemann.advection_1D_py.advection_1D)
     elif solver_type=='sharpclaw':
         if kernel_language == 'Fortran':
             solver = pyclaw.SharpClawSolver1D(riemann.advection_1D)
-        elif kernel_language=='Python': 
+        elif kernel_language=='Python':
             solver = pyclaw.SharpClawSolver1D(riemann.advection_1D_py.advection_1D)
         solver.weno_order=weno_order
         solver.time_integrator=time_integrator

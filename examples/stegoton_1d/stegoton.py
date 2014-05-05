@@ -84,13 +84,10 @@ def moving_wall_bc(state,dim,t,qbc,num_ghost):
 
 
 
-def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./_output'):
+def setup(state_backend='pyclaw',kernel_language='Fortran',solver_type='classic',outdir='./_output'):
     from clawpack import riemann
-
-    if use_petsc:
-        import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     if kernel_language=='Python':
         rs = riemann.nonlinear_elasticity_1D_py.nonlinear_elasticity_1D

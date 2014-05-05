@@ -154,7 +154,7 @@ def dq_Euler_radial(solver,state,dt):
 
     return dq
 
-def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',
+def setup(state_backend='pyclaw',kernel_language='Fortran',solver_type='classic',
           outdir='_output', disable_output=False, mx=320, my=80, tfinal=0.6,
           num_output_times = 10):
     """
@@ -162,16 +162,13 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',
     This example involves a bubble of dense gas that is impacted by a shock.
     """
     from clawpack import riemann
-
-    if use_petsc:
-        import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     if kernel_language != 'Fortran':
         raise Exception('Unrecognized value of kernel_language for Euler Shockbubble')
 
-    
+
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D(riemann.euler_5wave_2D)
         solver.dq_src=dq_Euler_radial

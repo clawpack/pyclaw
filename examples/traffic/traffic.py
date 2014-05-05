@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-def setup(use_petsc=0,outdir='./_output',solver_type='classic'):
+def setup(state_backend='pyclaw',outdir='./_output',solver_type='classic'):
     """
     Example python script for solving 1d traffic model:
 
@@ -10,11 +10,8 @@ def setup(use_petsc=0,outdir='./_output',solver_type='classic'):
 
     import numpy as np
     from clawpack import riemann
-
-    if use_petsc:
-        import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     #===========================================================================
     # Setup solver and solver parameters

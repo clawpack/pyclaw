@@ -6,27 +6,25 @@ Two-dimensional acoustics
 
 Solve the (linear) acoustics equations:
 
-.. math:: 
-    p_t + K (u_x + v_y) & = 0 \\ 
+.. math::
+    p_t + K (u_x + v_y) & = 0 \\
     u_t + p_x / \rho & = 0 \\
     v_t + p_y / \rho & = 0.
 
 Here p is the pressure, (u,v) is the velocity, K is the bulk modulus,
 and :math:`\rho` is the density.
 """
- 
+
 import numpy as np
 
-def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_type='classic',
+def setup(state_backend='pyclaw',kernel_language='Fortran',outdir='./_output',solver_type='classic',
         time_integrator='SSP104', disable_output=False):
     """
     Example python script for solving the 2d acoustics equations.
     """
     from clawpack import riemann
-    if use_petsc:
-        from clawpack import petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    from clawpack.pyclaw.util import get_state_backend
+    pyclaw = get_state_backend(state_backend)
 
     if solver_type=='classic':
         solver=pyclaw.ClawSolver2D(riemann.acoustics_2D)
