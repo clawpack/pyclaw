@@ -1,9 +1,15 @@
 language: python
+env:
+  - TEST_PACKAGE="pyclaw"
+  - TEST_PACKAGE="petclaw"
 python:
   - 2.7
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq gfortran liblapack-pic
+  - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
+      sudo apt-get install pv mpich2 liblapack-dev;
+    fi
   # Print NumPy version that is already installed by Travis CI:
   - python -c "import numpy; print numpy.__version__"
   - git clone --branch=master --depth=100 --quiet git://github.com/clawpack/clawpack
@@ -13,10 +19,28 @@ before_install:
   - rm -rf pyclaw
   - ln -s ../ pyclaw
 install:
-  # no need for pip installer here if numpy is present
-  - python setup.py install
+  - export CLAWPACK=`pwd`
+  # Build the petsc4py dependency on Travis CI using HashDist
+  - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
+      bash ../.travis_build_petsc4py.sh;
+    fi
+  - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
+       export PATH=${CLAWPACK}/petsc4py_stack/bin:${PATH};
+    fi
+  - python setup.py install;
+
 script:
+  # Set up HashDist-built petsc4py stack for Travis
+  - export CLAWPACK=`pwd`
+  - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
+       export PATH=${CLAWPACK}/petsc4py_stack/bin:${PATH};
+    fi
   - cd pyclaw
-  - nosetests
+  - if [[ "${TEST_PACKAGE}" == "pyclaw" ]]; then
+       nosetests -v;
+    fi
+  - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
+       mpirun -n 4 ${CLAWPACK}/petsc4py_stack/bin/nosetests -v;
+    fi
 notifications:
   email: false
