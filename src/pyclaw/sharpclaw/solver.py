@@ -305,11 +305,11 @@ class SharpClawSolver(Solver):
                     state.q = r*beta*(state.q + 2*deltaq) + alpha*self._registers[-3].q
                 
                 # Update stored solutions
-                self._registers[-3].q = self._registers[-2].q
+                self._registers[-3].q = self._registers[-2].q.copy()
                 self._registers[-3].cfl = self._registers[-2].cfl
-                self._registers[-2].q = self._registers[-1].q
+                self._registers[-2].q = self._registers[-1].q.copy()
                 self._registers[-2].cfl = self._registers[-1].cfl
-                self._registers[-1].q = state.q
+                self._registers[-1].q = state.q.copy()
                 self._registers[-1].cfl = self.cfl.get_cached_max()
 
 
