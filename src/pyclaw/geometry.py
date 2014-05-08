@@ -126,7 +126,7 @@ class Grid(object):
         r"""(list of ndarray(...)) - List containing the arrays locating
                 the computational locations of cell centers, see 
                 :meth:`compute_c_centers` for more info."""
-        self.compute_c_centers_with_ghost(self,num_ghost)
+        self.compute_c_centers_with_ghost(self,num_ghost,recompute=True)
         return self._c_centers_with_ghost
     _c_centers_with_ghost = None
     @property
