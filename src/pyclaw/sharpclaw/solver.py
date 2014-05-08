@@ -287,30 +287,33 @@ class SharpClawSolver(Solver):
             elif self.time_integrator == 'SSPMS32':
                 # Store initial solution
                 if self.step_index == 1:
-                    self._registers[-2].cfl = self.cfl_desired
+                    for i in range(2):
+                        self._registers[-2+i].cfl = self.cfl_desired
+                        self._registers[-2+i].dt = self.dt
                     self._registers[-1].q = state.q.copy()
-                    self._registers[-1].cfl = self.cfl_desired
 
                 if self.step_index < 3:
                     # Using Euler method for previous step values
                     deltaq = self.dq(state)
                     state.q += deltaq
                     self.step_index += 1
-                else:
-                    omega = (self._registers[-2].cfl + self._registers[-1].cfl)/self.cfl.get_cached_max()
-                    r = (omega-1.)/omega
-                    beta = (omega+1.)/omega
-                    alpha = 1./omega**2
-                    deltaq = self.dq(state)
-                    state.q = r*beta*(state.q + 2*deltaq) + alpha*self._registers[-3].q
                 
+                else:
+                    omega = (self._registers[-2].dt + self._registers[-1].dt)/self.dt
+                    r = (omega-1.)/omega
+                    delta = 1./omega**2
+                    beta = (omega+1.)/omega
+                    deltaq = self.dq(state)
+                    state.q = r*beta*(state.q + 2.*deltaq) + delta*self._registers[-3].q
+
                 # Update stored solutions
-                self._registers[-3].q = self._registers[-2].q
-                self._registers[-3].cfl = self._registers[-2].cfl
-                self._registers[-2].q = self._registers[-1].q
-                self._registers[-2].cfl = self._registers[-1].cfl
-                self._registers[-1].q = state.q
+                for i in range(2):
+                    self._registers[-3+i].q = self._registers[-2+i].q.copy()
+                    self._registers[-3+i].cfl = self._registers[-2+i].cfl
+                    self._registers[-3+i].dt = self._registers[-2+i].dt
+                self._registers[-1].q = state.q.copy()
                 self._registers[-1].cfl = self.cfl.get_cached_max()
+                self._registers[-1].dt = self.dt
 
 
             elif self.time_integrator == 'LMM':
