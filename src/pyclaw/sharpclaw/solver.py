@@ -126,13 +126,15 @@ class SharpClawSolver(Solver):
        'SSP33':     1.0,
        'SSP104' :   6.0,
        'SSPMS32' :  0.5,
+       'SSPMS43' :  1./3.,
        'RK':        None,
        'LMM':       None
        }
 
     _cfl_default = {
         'SSP104':   [2.45, 2.5],
-        'SSPMS32':  [0.16, 0.2]
+        'SSPMS32':  [0.16, 0.2],
+        'SSPMS43':  [0.14, 0.16]
         }
 
     # ========================================================================
@@ -288,7 +290,6 @@ class SharpClawSolver(Solver):
                 # Store initial solution
                 if self.step_index == 1:
                     for i in range(2):
-                        self._registers[-2+i].cfl = self.cfl_desired
                         self._registers[-2+i].dt = self.dt
                     self._registers[-1].q = state.q.copy()
 
@@ -304,15 +305,57 @@ class SharpClawSolver(Solver):
                     delta = 1./omega**2
                     beta = (omega+1.)/omega
                     deltaq = self.dq(state)
-                    state.q = r*beta*(state.q + 2.*deltaq) + delta*self._registers[-3].q
+                    state.q = beta*(r*state.q + deltaq) + delta*self._registers[-3].q
 
                 # Update stored solutions
                 for i in range(2):
                     self._registers[-3+i].q = self._registers[-2+i].q.copy()
-                    self._registers[-3+i].cfl = self._registers[-2+i].cfl
                     self._registers[-3+i].dt = self._registers[-2+i].dt
                 self._registers[-1].q = state.q.copy()
-                self._registers[-1].cfl = self.cfl.get_cached_max()
+                self._registers[-1].dt = self.dt
+
+
+            elif self.time_integrator == 'SSPMS43':
+                # Store initial solution
+                if self.step_index == 1:
+                    for i in range(3):
+                        self._registers[-3+i].dt = self.dt
+                    self._registers[-1].q = state.q.copy()
+
+                if self.step_index < 4:
+                    # Using SSP22 method for previous step values
+                    State = type(state)
+                    s1 = State(state.patch,state.num_eqn,state.num_aux)
+                    s1.problem_data = state.problem_data
+                    s1.set_num_ghost(self.num_ghost)
+                    if state.num_aux > 0: s1.aux = state.aux
+
+                    deltaq=self.dq(state)
+                    s1.q = state.q + deltaq
+                    s1.t = state.t + self.dt
+                    deltaq = self.dq(s1)
+                    state.q = 0.5*(state.q + s1.q + deltaq)
+
+                    self.step_index += 1
+                
+                else:
+                    H = self._registers[-3].dt + self._registers[-2].dt + self._registers[-1].dt
+                    omega3 = H/self.dt
+                    omega4 = omega3 + 1.
+                    r = (omega3-2.)/omega3
+                    delta0 = (4*omega4 - omega3**2)/omega3**3
+                    beta0 = omega4/omega3**2
+                    beta3 = omega4**2/omega3**2
+                    deltaq = self.dq(state)
+                    deltaqm4 = self.dq(self._registers[-4]) 
+                    state.q = beta3*(r*state.q + deltaq) + \
+                            (r*beta0+delta0)*self._registers[-4].q + beta0*deltaqm4
+
+                # Update stored solutions
+                for i in range(3):
+                    self._registers[-4+i].q = self._registers[-3+i].q.copy()
+                    self._registers[-4+i].dt = self._registers[-3+i].dt
+                self._registers[-1].q = state.q.copy()
                 self._registers[-1].dt = self.dt
 
 
@@ -356,8 +399,11 @@ class SharpClawSolver(Solver):
         elif self.time_integrator == 'LMM':
             import copy
             State = type(state)
-            s1 = copy.deepcopy(state)
-            s2 = State(state.patch,state.num_eqn,state.num_aux)
+            s1 = State(state.patch,state.num_eqn,state.num_aux)
+            s1.problem_data = state.problem_data
+            s1.set_num_ghost(self.num_ghost)
+            if state.num_aux > 0: s1.aux = state.aux
+            s2 = copy.deepcopy(s1)
 
         deltaq=self.dq(state)
         s1.q = state.q + deltaq/6.
@@ -471,13 +517,14 @@ class SharpClawSolver(Solver):
 
         If we create a MethodOfLinesSolver subclass, this should be moved there.
         """
-        if self.time_integrator   == 'Euler':   nregisters=1
-        elif self.time_integrator == 'SSP33':   nregisters=2
-        elif self.time_integrator == 'SSP104':  nregisters=3
-        elif self.time_integrator == 'RK':      nregisters=len(self.b)+2
-        elif self.time_integrator == 'SSPMS32': nregisters=4
+        if self.time_integrator   == 'Euler':   nregisters=0
+        elif self.time_integrator == 'SSP33':   nregisters=1
+        elif self.time_integrator == 'SSP104':  nregisters=2
+        elif self.time_integrator == 'RK':      nregisters=len(self.b)+1
+        elif self.time_integrator == 'SSPMS32': nregisters=3
+        elif self.time_integrator == 'SSPMS43': nregisters=4
         elif self.time_integrator == 'LMM':
-            nregisters=len(self.alpha)+1
+            nregisters=len(self.alpha)
             self.dt_variable = False
         else:
             raise Exception('Unrecognized time intergrator')
@@ -486,7 +533,7 @@ class SharpClawSolver(Solver):
         # use the same class constructor as the solution for the Runge Kutta stages
         State = type(state)
         self._registers = []
-        for i in xrange(nregisters-1):
+        for i in xrange(nregisters):
             #Maybe should use State.copy() here?
             self._registers.append(State(state.patch,state.num_eqn,state.num_aux))
             self._registers[-1].problem_data                = state.problem_data
@@ -496,28 +543,38 @@ class SharpClawSolver(Solver):
 
 
     def get_cfl_max(self):
-        if self.time_integrator == 'SSPMS32' and self.step_index > 2:
-            sigma0 = self._registers[-3].cfl + self._registers[-2].cfl
-            sigma1 = sigma0 / (self._sspcoeff[self.time_integrator] * sigma0 + self.cfl_max)
+        """
+        Set maximum CFL number for current step depending on time integrator
+        """
+        if self.time_integrator[:-2] == 'SSPMS' and self.step_index >= len(self._registers):
+            s = len(self._registers)-2
+            H = self._registers[-2].dt
+            for i in range(s):
+                H += self._registers[-3-i].dt
+            r = (H - s*self._registers[-1].dt)/H
+            sigma = r/self._sspcoeff[self.time_integrator]
         else:
-            sigma1 = 1.0
+            sigma = 1.0
 
-        return sigma1 * self.cfl_max
+        return sigma * self.cfl_max
 
     def get_dt_new(self):
         """
-        Set maximum CFL number and time-step for next step depending on time integrator
+        Set time-step for next step depending on time integrator
         """
-        if self.time_integrator == 'SSPMS32' and self.step_index > 2:
-            sigma0 = self._registers[-2].cfl + self._registers[-1].cfl
-            sigma2 = sigma0 / (self._sspcoeff[self.time_integrator] * sigma0 + self.cfl_desired)
+        # desired time-step 
+        dt_des = self.dt * self.cfl_desired / self.cfl.get_cached_max()
+
+        if self.time_integrator[:-2] == 'SSPMS' and self.step_index >= len(self._registers):
+            s = len(self._registers)-2
+            H = self._registers[-1].dt
+            for i in range(s):
+                H += self._registers[-2-i].dt
+            sigma = H / (self._sspcoeff[self.time_integrator]*H + s*dt_des)
         else:
-            sigma2 = 1.0 
-        
-        dt_new = sigma2 * self.dt * self.cfl_desired / self.cfl.get_cached_max()
+            sigma = 1.0
 
-        return dt_new
-
+        return sigma * dt_des
 
 
 
