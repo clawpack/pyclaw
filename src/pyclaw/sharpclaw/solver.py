@@ -172,6 +172,7 @@ class SharpClawSolver(Solver):
         self.step_index = 1
         self.alpha = None
         self.beta = None
+        self.len_alpha = None
 
         # Call general initialization function
         super(SharpClawSolver,self).__init__(riemann_solver,claw_package)
@@ -287,6 +288,7 @@ class SharpClawSolver(Solver):
 
 
             elif self.time_integrator == 'SSPMS32':
+                self.len_alpha = 3
                 # Store initial solution
                 if self.step_index == 1:
                     for i in range(2):
@@ -301,7 +303,9 @@ class SharpClawSolver(Solver):
                 
                 else:
                     omega = (self._registers[-2].dt + self._registers[-1].dt)/self.dt
+                    # ssp coefficient
                     r = (omega-1.)/omega
+                    # method coefficients 
                     delta = 1./omega**2
                     beta = (omega+1.)/omega
                     deltaq = self.dq(state)
@@ -316,6 +320,7 @@ class SharpClawSolver(Solver):
 
 
             elif self.time_integrator == 'SSPMS43':
+                self.len_alpha = 4
                 # Store initial solution
                 if self.step_index == 1:
                     for i in range(3):
@@ -342,7 +347,9 @@ class SharpClawSolver(Solver):
                     H = self._registers[-3].dt + self._registers[-2].dt + self._registers[-1].dt
                     omega3 = H/self.dt
                     omega4 = omega3 + 1.
+                    # ssp coefficient
                     r = (omega3-2.)/omega3
+                    # method coefficients
                     delta0 = (4*omega4 - omega3**2)/omega3**3
                     beta0 = omega4/omega3**2
                     beta3 = omega4**2/omega3**2
@@ -399,10 +406,11 @@ class SharpClawSolver(Solver):
         elif self.time_integrator == 'LMM':
             import copy
             State = type(state)
-            s1 = State(state.patch,state.num_eqn,state.num_aux)
+            s1 = copy.deepcopy(state)
             s1.problem_data = state.problem_data
             s1.set_num_ghost(self.num_ghost)
-            if state.num_aux > 0: s1.aux = state.aux
+            if state.num_aux > 0:
+                s1.aux = state.aux
             s2 = copy.deepcopy(s1)
 
         deltaq=self.dq(state)
@@ -517,6 +525,8 @@ class SharpClawSolver(Solver):
 
         If we create a MethodOfLinesSolver subclass, this should be moved there.
         """
+        # Generally the number of registers for the starting method should be at most 
+        # equal to the number of registers of the LMM
         if self.time_integrator   == 'Euler':   nregisters=0
         elif self.time_integrator == 'SSP33':   nregisters=1
         elif self.time_integrator == 'SSP104':  nregisters=2
@@ -551,7 +561,7 @@ class SharpClawSolver(Solver):
             H = self._registers[-2].dt
             for i in range(s):
                 H += self._registers[-3-i].dt
-            r = (H - s*self._registers[-1].dt)/H
+            r = (H - s*self._registers[-1].dt)/H # ssp coefficient at the current step
             sigma = r/self._sspcoeff[self.time_integrator]
         else:
             sigma = 1.0
