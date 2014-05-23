@@ -122,11 +122,11 @@ class Grid(object):
         self.compute_c_centers(self)
         return self._c_centers
     _c_centers = None
-    def c_centers_with_ghost(self,nghost):
+    def c_centers_with_ghost(self,num_ghost):
         r"""(list of ndarray(...)) - List containing the arrays locating
                 the computational locations of cell centers, see 
                 :meth:`compute_c_centers` for more info."""
-        self.compute_c_centers_with_ghost(self,nghost)
+        self.compute_c_centers_with_ghost(self,num_ghost,recompute=True)
         return self._c_centers_with_ghost
     _c_centers_with_ghost = None
     @property
@@ -317,7 +317,7 @@ class Grid(object):
                     #numpy arrays instead of lists of numpy arrays
                     self._c_centers.append(center_array[index[i,...]])
 
-    def compute_c_centers_with_ghost(self, nghost,recompute=False):
+    def compute_c_centers_with_ghost(self, num_ghost,recompute=False):
         r"""
         Calculate the :attr:`c_centers_with_ghost` array
         
@@ -331,18 +331,20 @@ class Grid(object):
         :Input:
          - *recompute* - (bool) Whether to force a recompute of the arrays
         """
-        self.num_ghost = nghost
+        self.num_ghost = num_ghost
         if recompute or (self._c_centers_with_ghost is None):
             self._c_centers_with_ghost = [None]*self.num_dim
             
             # For one dimension, the center and edge arrays are equivalent
             for i in xrange(0,self.num_dim):
-                self.dimensions[i].num_ghost = nghost
+                self.dimensions[i]._centers_with_ghost = None
+                self.dimensions[i]._c_centers_with_ghost = None
+                self.dimensions[i].num_ghost = num_ghost
 
             if self.num_dim == 1:
-                self._c_centers_with_ghost[0] = self.dimensions[0].centers_with_ghost(nghost)
+                self._c_centers_with_ghost[0] = self.dimensions[0].centers_with_ghost
             else:
-                index = np.indices(n+2.0*nghost for n in self.num_cells)
+                index = np.indices(n+2.0*num_ghost for n in self.num_cells)
                 self._c_centers_with_ghost = []
                 for i,center_array in enumerate(self.get_dim_attribute('centers_with_ghost')):
                     #We could just use indices directly and deal with
@@ -376,7 +378,7 @@ class Grid(object):
                     #numpy arrays instead of lists of numpy arrays
                     self._c_edges.append(edge_array[index[i,...]])
             
-    def compute_c_edges_with_ghost(self, nghost,recompute=False):
+    def compute_c_edges_with_ghost(self, num_ghost,recompute=False):
         r"""
         Calculate the :attr:`c_centers_with_ghost` array
         
@@ -390,21 +392,22 @@ class Grid(object):
         :Input:
          - *recompute* - (bool) Whether to force a recompute of the arrays
         """
-        self.num_ghost = nghost
+        self.num_ghost = num_ghost
         if recompute or (self._c_edges_with_ghost is None):
             self._c_edges_with_ghost = [None]*self.num_dim
-            
+
             # For one dimension, the center and edge arrays are equivalent
             for i in xrange(0,self.num_dim):
-                self.dimensions[i].num_ghost = nghost
+                self.dimensions[i]._edges_with_ghost = None
+                self.dimensions[i].num_ghost = num_ghost
 
             if self.num_dim == 1:
-                self._c_edges_with_ghost[0] = self.dimensions[0].edges_with_ghost(nghost)
+                self._c_edges_with_ghost[0] = self.dimensions[0].edges_with_ghost
             else:
-                index = np.indices(n+2.0*nghost+1 for n in self.num_cells)
+                index = np.indices(n+2.0*num_ghost+1 for n in self.num_cells)
                 self._c_edges_with_ghost = []
                 for i,center_array in enumerate(self.get_dim_attribute('edges_with_ghost')):
-                    #We could just use indices directly and deal with
+                    #We could just use indices directly and dneal with
                     #numpy arrays instead of lists of numpy arrays
                     self._c_edges_with_ghost.append(center_array[index[i,...]])
 
@@ -523,20 +526,20 @@ class Dimension(object):
         r"""(ndarrary(:)) - Location of all cell center coordinates
         for this dimension, including centers of ghost cells."""
         centers = self.centers
-        nghost  = self.num_ghost
+        num_ghost  = self.num_ghost
         if self._centers_with_ghost is None:
-            pre  = np.linspace(self.lower-(nghost-0.5)*self.delta,self.lower-0.5*self.delta,nghost)
-            post = np.linspace(self.upper+0.5*self.delta, self.upper+(nghost-0.5)*self.delta,nghost)
+            pre  = np.linspace(self.lower-(num_ghost-0.5)*self.delta,self.lower-0.5*self.delta,num_ghost)
+            post = np.linspace(self.upper+0.5*self.delta, self.upper+(num_ghost-0.5)*self.delta,num_ghost)
             self._centers_with_ghost = np.hstack((pre,centers,post))
         return self._centers_with_ghost #np.hstack((pre,centers,post))
     _centers_with_ghost = None
     @property
     def edges_with_ghost(self):
         edges   = self.edges
-        nghost  = self.num_ghost
+        num_ghost  = self.num_ghost
         if self._edges_with_ghost is None:
-            pre  = np.linspace(self.lower-(nghost)*self.delta,self.lower-self.delta,nghost)
-            post = np.linspace(self.upper+self.delta, self.upper+(nghost)*self.delta,nghost)
+            pre  = np.linspace(self.lower-(num_ghost)*self.delta,self.lower-self.delta,num_ghost)
+            post = np.linspace(self.upper+self.delta, self.upper+(num_ghost)*self.delta,num_ghost)
             self._edges_with_ghost = np.hstack((pre,edges,post))
         return self._edges_with_ghost
     _edges_with_ghost = None
