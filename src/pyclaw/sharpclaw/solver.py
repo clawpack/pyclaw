@@ -172,7 +172,6 @@ class SharpClawSolver(Solver):
         self.step_index = 1
         self.alpha = None
         self.beta = None
-        self.len_alpha = None
 
         # Call general initialization function
         super(SharpClawSolver,self).__init__(riemann_solver,claw_package)
@@ -288,7 +287,6 @@ class SharpClawSolver(Solver):
 
 
             elif self.time_integrator == 'SSPMS32':
-                self.len_alpha = 3
                 # Store initial solution
                 if self.step_index == 1:
                     for i in range(2):
@@ -320,7 +318,6 @@ class SharpClawSolver(Solver):
 
 
             elif self.time_integrator == 'SSPMS43':
-                self.len_alpha = 4
                 # Store initial solution
                 if self.step_index == 1:
                     for i in range(3):
