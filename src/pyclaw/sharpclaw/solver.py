@@ -326,11 +326,9 @@ class SharpClawSolver(Solver):
 
                 if self.step_index < 4:
                     # Using SSP22 method for previous step values
-                    State = type(state)
-                    s1 = State(state.patch,state.num_eqn,state.num_aux)
-                    s1.problem_data = state.problem_data
+                    import copy
+                    s1 = copy.deepcopy(state)
                     s1.set_num_ghost(self.num_ghost)
-                    if state.num_aux > 0: s1.aux = state.aux
 
                     deltaq=self.dq(state)
                     s1.q = state.q + deltaq
@@ -402,12 +400,8 @@ class SharpClawSolver(Solver):
             s1.q = state.q.copy()
         elif self.time_integrator == 'LMM':
             import copy
-            State = type(state)
             s1 = copy.deepcopy(state)
-            s1.problem_data = state.problem_data
             s1.set_num_ghost(self.num_ghost)
-            if state.num_aux > 0:
-                s1.aux = state.aux
             s2 = copy.deepcopy(s1)
 
         deltaq=self.dq(state)
