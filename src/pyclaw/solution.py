@@ -29,7 +29,7 @@ class Solution(object):
         If there is only one state and patch belonging to this solution, 
         the solution will appear to have many of the attributes assigned to its
         one state and patch.  Some parameters that have in the past been
-        parameters for all patchs are also reachable although Solution does not
+        parameters for all patch,s are also reachable although Solution does not
         check to see if these parameters are truly universal.
 
         Patch Attributes:
@@ -283,16 +283,17 @@ class Solution(object):
         elif isinstance(file_format,list):
             format_list = file_format
 
-        if 'petsc' in format_list:
-            from clawpack.petclaw import io
-            write_func = io.petsc.write
-        else:
-            from clawpack.pyclaw import io
-            write_func = io.ascii.write
-
 
         # Loop over list of formats requested
         for form in format_list:
+            if 'petsc' in form:
+                from clawpack.petclaw import io
+                write_func = io.petsc.write
+            else:
+                from clawpack.pyclaw import io
+                write_func = getattr(getattr(io,form),'write')
+
+
             if file_prefix is None:
                 write_func(self,frame,path,write_aux=write_aux,
                             options=options,write_p=write_p)
