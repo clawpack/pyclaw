@@ -5,10 +5,13 @@ Pyclaw utility methods
 """
 
 import time
-import os,sys
+import os
+import sys
 import subprocess
 import logging
 import tempfile
+import inspect
+
 import numpy as np
 
 def add_parent_doc(parent):
@@ -93,7 +96,18 @@ def gen_variants(application, verifier, kernel_languages=('Fortran',), **kwargs)
 
     for test_kwargs in arg_dicts:
         test_kwargs.update(kwargs)
-        yield (test_app, application, verifier, test_kwargs)
+        test = test_app
+        try:
+            test_name = application.__module__
+        except:
+            test_name = inspect.getmodule(application)
+        if 'solver_type' in test_kwargs:
+            solver_info = 'solver_type={solver_type!s}, '
+        else:
+            solver_info = ''
+        test.description = ('{test_name!s}(kernel_language={kernel_language!s}, ' +
+                            solver_info + 'use_petsc={use_petsc!s})').format(test_name=test_name, **test_kwargs)
+        yield (test, application, verifier, test_kwargs)
     return
 
 def build_variant_arg_dicts(kernel_languages=('Fortran',)):
@@ -158,7 +172,6 @@ def test_app(application, verifier, kwargs):
     check_values = verifier(claw)
 
     if check_values is not None:
-        import inspect
         err = \
         """%s
 ********************************************************************************
