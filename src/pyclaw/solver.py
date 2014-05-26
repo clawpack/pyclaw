@@ -34,9 +34,9 @@ class Solver(object):
     Solver initialization takes one argument -- a Riemann solver:
 
         >>> from clawpack import pyclaw, riemann
-        >>> solver = pyclaw.ClawSolver2D(riemann.rp2_euler_4wave)
+        >>> solver = pyclaw.ClawSolver2D(riemann.euler_4wave_2D)
 
-    After which solver options may be set.
+    after which solver options may be set.
     It is necessary to set the boundary conditions (for q, and
     for aux if an aux array is used):
 
