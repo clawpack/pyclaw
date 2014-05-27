@@ -2,7 +2,7 @@
 subroutine tfluct(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr,auxl,auxr,adq)
 ! ============================================================================
 !   
-!   "Internal" Riemann solver for the euler equations in 1d.
+!   "Internal" Riemann solver for the euler equations in 1D.
 !   Te riemann problem is solved by assuming a discontinuity at the
 !   center of the i'th cell.
 !
@@ -23,7 +23,7 @@ subroutine tfluct(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr,auxl,auxr,adq)
 !   where q1 = rho, q2 = rho*u, q3 = E and
 !              _                                              _  
 !             |                       q2                       |
-!   f(q) =    |   0.5(3-gamma)q2^2/q1 + (gamma-1)q3            |
+!   f(q) =    |        0.5(3-gamma)q2^2/q1 + (gamma-1)q3       |
 !             |_  ( gamma*q3 - 0.5(gamma-1)q2^2/q1 ) * q2/g1  _|
 
 
@@ -50,6 +50,3 @@ subroutine tfluct(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr,auxl,auxr,adq)
 
     return
 end subroutine tfluct
-
-
-

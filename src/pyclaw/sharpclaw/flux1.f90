@@ -104,9 +104,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
                 endif
             case (2) ! characteristic-wise reconstruction
                 call evec(mx,num_eqn,num_ghost,mx,q1d,auxl,auxr,evl,evr)
-                !call weno5_char2(q1d,ql,qr,maxnx,num_eqn,num_ghost,evl,evr)
-                call weno5_char_clean(q1d,ql,qr,maxnx,num_eqn,num_ghost,evl,evr)
-                !call weno5_p(q1d,ql,qr,num_eqn,maxnx,num_ghost)
+                call weno5_char(q1d,ql,qr,maxnx,num_eqn,num_ghost,evl,evr)
             case (3) ! transmission-based reconstruction
                 call evec(mx,num_eqn,num_ghost,mx,q1d,aux,aux,evl,evr)
                 call weno5_trans(q1d,ql,qr,evl,evr)
@@ -145,7 +143,6 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
     enddo
 
     ! Find total fluctuation within each cell
-    tfluct_solver = .True.
     if (tfluct_solver .eqv. .True.) then
         ! tfluct should be a special solver that uses the parameters aux(i)
         ! to solve a Riemann problem with left state ql(i)

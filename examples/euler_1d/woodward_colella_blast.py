@@ -20,15 +20,14 @@ involving the collision of two shock waves.
 gamma = 1.4
 gamma1 = gamma - 1.
 
-def setup(use_petsc=False,outdir='./_output',kernel_language='Fortran',solver_type='sharpclaw',char_decomp=2):
+def setup(use_petsc=False,outdir='./_output',kernel_language='Fortran',solver_type='sharpclaw'):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a pair of interacting shock waves.
     The conserved quantities are density, momentum density, and total energy density.
     """
     from clawpack import riemann
-    import sharpclaw1
-
+    
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
@@ -41,13 +40,17 @@ def setup(use_petsc=False,outdir='./_output',kernel_language='Fortran',solver_ty
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(rs)
-        solver.char_decomp = char_decomp
         solver.time_integrator = 'SSP33'
         solver.cfl_max = 0.65
         solver.cfl_desired = 0.6
-        solver.lim_type = 1
-        solver.char_decomp = 0
-        solver.fmod = sharpclaw1
+        try:
+            import sharpclaw1
+            solver.fmod = sharpclaw1
+            solver.tfluct_solver = True
+            solver.lim_type = 1     # TVD reconstruction 
+            solver.char_decomp = 2  # characteristic-wise reconstructiong
+        except ImportError:
+            pass
     elif solver_type=='classic':
         solver = pyclaw.ClawSolver1D(rs)
         solver.limiters = 4
@@ -65,7 +68,8 @@ def setup(use_petsc=False,outdir='./_output',kernel_language='Fortran',solver_ty
 
     state.problem_data['gamma']= gamma
     state.problem_data['gamma1']= gamma1
-    state.problem_data['efix'] = True
+    if kernel_language =='Python':
+        state.problem_data['efix'] = False
 
     state.q[0,:] = 1.
     state.q[1,:] = 0.
