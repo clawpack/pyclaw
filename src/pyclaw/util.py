@@ -11,8 +11,10 @@ import subprocess
 import logging
 import tempfile
 import inspect
+import warnings
 
 import numpy as np
+import contextlib
 
 def add_parent_doc(parent):
     """add parent documentation for a class""" 
@@ -22,6 +24,55 @@ def add_parent_doc(parent):
     ==========================
     """ + parent.__doc__
 
+def run_serialized(fun):
+    """ Decorates a function to only run serially, even if called in parallel.
+
+    In a parallel communicator, the first process will run while the remaining processes
+    block on a barrier.  In a serial run, the function will be called directly.
+
+    This currently assumes the global communicator is PETSc.COMM_WORLD, but is easily
+    generalized.
+    """
+
+    try:
+        from petsc4py import PETSc
+        is_parallel = True
+    except ImportError:
+        is_parallel = False
+
+    if is_parallel:
+        rank = PETSc.COMM_WORLD.getRank()
+        if rank == 0:
+            def serial_fun(*args, **kwargs):
+                fun(*args, **kwargs)
+                PETSc.COMM_WORLD.Barrier()
+        else:
+            def serial_fun(*args, **kwargs):
+                PETSc.COMM_WORLD.Barrier()
+    else:
+        def serial_fun(*args, **kwargs):
+            fun(*args, **kwargs)
+
+    return serial_fun
+
+@run_serialized
+def inplace_build(working_dir, warn=True):
+    """Build missing extension modules with an in-place build.  This is a convenience
+    function for PyClaw applications that rely on custom extension modules.  In its default
+    mode, this function emits warnings indicating its actions.
+
+    This function is safe to execute in parallel, it will only run on the 0 zero process while
+    the other processes block.
+    """
+
+    if warn:
+        warnings.warn("missing extension modules")
+        warnings.warn("running python setup.py build_ext -i in %s" % working_dir)
+
+    subprocess.check_call('python setup.py build_ext -i', shell=True, cwd=working_dir)
+
+    if warn:
+        warnings.warn("successfully executed python setup.py build_ext -i in %s" % working_dir)
 
 def run_app_from_main(application,setplot=None):
     r"""
@@ -117,7 +168,7 @@ def build_variant_arg_dicts(kernel_languages=('Fortran',)):
     try:
         import petsc4py
         use_petsc_opts=(True,False)
-    except Exception as err:
+    except ImportError:
         use_petsc_opts = (False,)
 
     opt_names = 'use_petsc','kernel_language'
