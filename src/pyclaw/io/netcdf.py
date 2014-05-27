@@ -33,7 +33,7 @@ import logging
 
 import clawpack.pyclaw.solution
 
-logger = logging.getLogger('io')
+logger = logging.getLogger('pyclaw.io')
 
 # Import appropriate netcdf package
 use_netcdf4 = False
@@ -55,7 +55,7 @@ if not use_netcdf4:
         print error_msg
 
 def write(solution,frame,path,file_prefix='claw',write_aux=False,
-                    options={}):
+                    options={},write_p=False):
     r"""
     Write out a NetCDF data file representation of solution
     
@@ -183,12 +183,15 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
             exec('f.%s = %s' % (k,v))
         
         # For each patch, write out attributes
-        for patch in solution.patchs:
+        for state in solution.states:
+            patch = solution.patch
             # Create group for this patch
             subgroup = f.createGroup('patch%s' % patch.patch_index)
         
             # General patch properties
-            for attr in ['t','num_eqn','patch_index','level','num_ghost']:
+            for attr in ['t','num_eqn']:
+                setattr(subgroup,attr,getattr(state,attr))
+            for attr in ['patch_index','level']:
                 setattr(subgroup,attr,getattr(patch,attr))
             
             # Write out dimension names
@@ -196,35 +199,36 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
             
             # Create dimensions for q (and aux)
             for dim in patch.dimensions:
-                subgroup.createDimension(dim.name,dim.n)
+                subgroup.createDimension(dim.name,dim.num_cells)
                 # Write other dimension attributes
-                for attr in ['n','lower','d','upper','bc_lower',
+                for attr in ['num_cells','lower','delta','upper','bc_lower',
                              'bc_upper','units']:
                     if hasattr(dim,attr):
                         if getattr(dim,attr) is not None:
                             attr_name = '%s.%s' % (dim.name,attr)
                             setattr(subgroup,attr_name,getattr(dim,attr))
-            subgroup.createDimension('num_eqn',patch.num_eqn)
+            subgroup.createDimension('num_eqn',state.num_eqn)
             
             # Write q array
-            dim_names = patch.name
+            from copy import copy
+            dim_names = copy(patch.name)
             dim_names.append('num_eqn')
             index_str = ','.join( [':' for name in dim_names] )
             q = subgroup.createVariable('q','f8',dim_names,zlib,
                                             complevel,shuffle,fletcher32,
                                             contiguous,chunksizes,endian,
                                             least_significant_digit,fill_value)
-            exec("q[%s] = patch.q" % index_str)
+            exec("q[%s] = state.q" % index_str)
             
             # Write out aux
-            if patch.num_aux > 0 and write_aux:
+            if state.num_aux > 0 and write_aux:
                 dim_names[-1] = 'num_aux'
-                subgroup.createDimension('num_aux',patch.num_aux)
+                subgroup.createDimension('num_aux',state.num_aux)
                 aux = subgroup.createVariable('aux','f8',dim_names,
                                             zlib,complevel,shuffle,fletcher32,
                                             contiguous,chunksizes,endian,
                                             least_significant_digit,fill_value)
-                exec("aux[%s] = patch.aux" % index_str)
+                exec("aux[%s] = state.aux" % index_str)
         
         f.close()
     elif use_pupynere:
@@ -234,7 +238,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
         err_msg = "No netcdf python modules available."
         logging.critical(err_msg)
         raise Exception(err_msg)
-        
+
     
 def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
                 options={}):
@@ -267,7 +271,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
         # Open file
         f = netCDF4.Dataset(filename,'r')
         
-        # We only expect subgroups of patchs, otherwise we need to put some
+        # We only expect subgroups of patches, otherwise we need to put some
         # sort of conditional here
         for subgroup in f.groups.itervalues():
             # Construct each dimension
@@ -302,7 +306,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
             if read_aux and subgroup.dimensions.has_key('num_aux'):
                 exec("patch.aux = subgroup.variables['aux'][%s]" % index_str)
         
-            solution.patchs.append(patch)
+            solution.patches.append(patch)
             
         f.close()
     elif use_pupynere:

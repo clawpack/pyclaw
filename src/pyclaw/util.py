@@ -16,6 +16,13 @@ import warnings
 import numpy as np
 import contextlib
 
+
+LOGGING_LEVELS = {0:logging.CRITICAL,
+                  1:logging.ERROR,
+                  2:logging.WARNING,
+                  3:logging.INFO,
+                  4:logging.DEBUG}
+
 def add_parent_doc(parent):
     """add parent documentation for a class""" 
     
@@ -98,8 +105,15 @@ def run_app_from_main(application,setplot=None):
     else:
         from clawpack import pyclaw
 
-    app_kwargs = {key: value for key, value in pyclaw_kwargs.items() 
-                  if not key in ('htmlplot','iplot')}
+    if sys.version_info >= (2, 7):
+        app_kwargs = {key: value for key, value in pyclaw_kwargs.items() 
+                      if not key in ('htmlplot','iplot')}
+    else:
+        # the above fails with Python < 2.7, so write it out...
+        app_kwargs = {}
+        for key,value in pyclaw_kwargs.items():
+            if key not in ('htmlplot','iplot'):
+                app_kwargs[key] = value
 
     claw=application(**app_kwargs)
 

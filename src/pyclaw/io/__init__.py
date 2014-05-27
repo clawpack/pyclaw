@@ -9,6 +9,7 @@
 """Output package for Pyclaw"""
 
 import logging
+logger = logging.getLogger('pyclaw.io')
 
 import ascii 
 __all__ = ['ascii.read','ascii.write']
@@ -22,7 +23,7 @@ try:
     import hdf5
     __all__ += ['hdf5.read','hdf5.write']
 except ImportError:
-    logging.debug("No hdf5 support found.")
+    logger.debug("No hdf5 support found.")
     
 # Check for netcdf support
 try:
@@ -30,4 +31,4 @@ try:
     import netcdf
     __all__ += ['netcdf.read','netcdf.write']
 except(ImportError):
-    logging.debug("No netcdf4 support found.")
+    logger.debug("No netcdf4 support found.")

@@ -29,7 +29,7 @@ class Solution(object):
         If there is only one state and patch belonging to this solution, 
         the solution will appear to have many of the attributes assigned to its
         one state and patch.  Some parameters that have in the past been
-        parameters for all patchs are also reachable although Solution does not
+        parameters for all patch,s are also reachable although Solution does not
         check to see if these parameters are truly universal.
 
         Patch Attributes:
@@ -283,16 +283,17 @@ class Solution(object):
         elif isinstance(file_format,list):
             format_list = file_format
 
-        if 'petsc' in format_list:
-            from clawpack.petclaw import io
-            write_func = io.petsc.write
-        else:
-            from clawpack.pyclaw import io
-            write_func = io.ascii.write
-
 
         # Loop over list of formats requested
         for form in format_list:
+            if 'petsc' in form:
+                from clawpack.petclaw import io
+                write_func = io.petsc.write
+            else:
+                from clawpack.pyclaw import io
+                write_func = getattr(getattr(io,form),'write')
+
+
             if file_prefix is None:
                 write_func(self,frame,path,write_aux=write_aux,
                             options=options,write_p=write_p)
@@ -301,7 +302,7 @@ class Solution(object):
                                 write_aux=write_aux,options=options,
                            write_p=write_p)
             msg = "Wrote out solution in format %s for time t=%s" % (form,self.t)
-            logging.getLogger('io').info(msg)
+            logging.getLogger('pyclaw.io').info(msg)
 
         
     def read(self,frame,path='./_output',file_format='ascii',file_prefix=None,
@@ -352,7 +353,7 @@ class Solution(object):
         else:
             read_func(self,frame,path,file_prefix=file_prefix,
                                     read_aux=read_aux,options=options)
-        logging.getLogger('io').info("Read in solution for time t=%s" % self.t)
+        logging.getLogger('pyclaw.io').info("Read in solution for time t=%s" % self.t)
         
         
     def plot(self):

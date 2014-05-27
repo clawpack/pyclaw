@@ -19,7 +19,8 @@ The final solution is identical to the initial data because both waves have
 crossed the domain exactly once.
 """
     
-def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5, disable_output=False):
+def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5, 
+        time_integrator='SSP104', disable_output=False):
     """
     This example solves the 1-dimensional acoustics equations in a homogeneous
     medium.
@@ -49,6 +50,7 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir
     elif solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(riemann_solver)
         solver.weno_order=weno_order
+        solver.time_integrator=time_integrator
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language=kernel_language

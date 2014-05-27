@@ -149,7 +149,7 @@ class Solver(object):
         See :class:`Solver` for full documentation
         """ 
         # Setup solve logger
-        self.logger = logging.getLogger('evolve')
+        self.logger = logging.getLogger('pyclaw.solver')
 
         self.dt_initial = 0.1
         self.dt_max = 1e99
@@ -200,6 +200,9 @@ class Solver(object):
         self.user_aux_bc_lower = None
         self.user_aux_bc_upper = None
 
+        self.num_eqn   = None
+        self.num_waves = None
+
         self.compute_gauge_values = default_compute_gauge_values
         r"""(function) - Function that computes quantities to be recorded at gauges"""
 
@@ -211,8 +214,8 @@ class Solver(object):
             self.rp = riemann_solver
             rp_name = riemann_solver.__name__.split('.')[-1]
             from clawpack import riemann
-            self.num_eqn = riemann.static.num_eqn[rp_name]
-            self.num_waves = riemann.static.num_waves[rp_name]
+            self.num_eqn   = riemann.static.num_eqn.get(rp_name,None)
+            self.num_waves = riemann.static.num_waves.get(rp_name,None)
 
         self._isinitialized = True
 
@@ -238,15 +241,28 @@ class Solver(object):
         
         """
         valid = True
+        reason = None
         if any([bcmeth == BC.custom for bcmeth in self.bc_lower]):
             if self.user_bc_lower is None:
-                self.logger.debug('Lower custom BC function has not been set.')
                 valid = False
+                reason = 'Lower custom BC function has not been set.'
         if any([bcmeth == BC.custom for bcmeth in self.bc_upper]):
             if self.user_bc_upper is None:
-                self.logger.debug('Upper custom BC function has not been set.')
                 valid = False
-        return valid
+                reason = 'Upper custom BC function has not been set.'
+        if self.num_waves is None:
+            valid = False
+            reason = 'solver.num_waves has not been set.'
+        if self.num_eqn is None:
+            valid = False
+            reason = 'solver.num_eqn has not been set.'
+        if (None in self.bc_lower) or (None in self.bc_upper):
+            valid = False
+            reason = 'One of the boundary conditions has not been set.'
+
+        if reason is not None:
+            self.logger.debug(reason)
+        return valid, reason
         
     def setup(self,solution):
         r"""
@@ -583,6 +599,13 @@ class Solver(object):
     # ========================================================================
     #  Evolution routines
     # ========================================================================
+    def get_cfl_max(self):
+        return self.cfl_max
+
+    def get_dt_new(self):
+        cfl = self.cfl.get_cached_max()
+        return min(self.dt_max,self.dt * self.cfl_desired / cfl)
+
     def evolve_to_time(self,solution,tend=None):
         r"""
         Evolve solution from solution.t to tend.  If tend is not specified,
@@ -650,7 +673,8 @@ class Solver(object):
 
             # Check to make sure that the Courant number was not too large
             cfl = self.cfl.get_cached_max()
-            if cfl <= self.cfl_max:
+            cfl_max = self.get_cfl_max()
+            if cfl <= cfl_max:
                 # Accept this step
                 self.status['cflmax'] = max(cfl, self.status['cflmax'])
                 if self.dt_variable==True:
@@ -658,6 +682,7 @@ class Solver(object):
                 else:
                     #Avoid roundoff error if dt_variable=False:
                     solution.t = tstart+(n+1)*self.dt
+
                 # Verbose messaging
                 self.logger.debug("Step %i  CFL = %f   dt = %f   t = %f"
                     % (n,cfl,self.dt,solution.t))
@@ -681,8 +706,7 @@ class Solver(object):
             # Choose new time step
             if self.dt_variable:
                 if cfl > 0.0:
-                    self.dt = min(self.dt_max,self.dt * self.cfl_desired 
-                                    / cfl)
+                    self.dt = self.get_dt_new()
                     self.status['dtmin'] = min(self.dt, self.status['dtmin'])
                     self.status['dtmax'] = max(self.dt, self.status['dtmax'])
                 else:
@@ -717,14 +741,18 @@ class Solver(object):
             to file.
         """
         import numpy as np
+        if solution.num_aux == 0:
+            aux = None
         for i,gauge in enumerate(solution.state.grid.gauges):
             if self.num_dim == 1:
                 ix=gauge[0];
-                aux=solution.state.aux[:,ix]
+                if solution.num_aux > 0:
+                    aux = solution.state.aux[:,ix]
                 q=solution.state.q[:,ix]
             elif self.num_dim == 2:
                 ix=gauge[0]; iy=gauge[1]
-                aux=solution.state.aux[:,ix,iy]
+                if solution.num_aux > 0:
+                    aux = solution.state.aux[:,ix,iy]
                 q=solution.state.q[:,ix,iy]
             p=self.compute_gauge_values(q,aux)
             t=solution.t

@@ -27,9 +27,12 @@ def test_acoustics_2d_variable():
     classic_tests = gen_variants(acoustics_2d_interface.setup, verify_classic_acoustics,
                                  solver_type='classic', disable_output=True)
 
-    sharp_tests   = gen_variants(acoustics_2d_interface.setup, verify_classic_acoustics,
-                                 solver_type='sharpclaw', disable_output=True)
+    sharp_tests_rk   = gen_variants(acoustics_2d_interface.setup, verify_classic_acoustics,
+                                 solver_type='sharpclaw', time_integrator='SSP104', disable_output=True)
+
+    sharp_tests_lmm   = gen_variants(acoustics_2d_interface.setup, verify_classic_acoustics, lim_type=1,
+                                 solver_type='sharpclaw', time_integrator='SSPMS32', disable_output=True)
 
     from itertools import chain
-    for test in chain(classic_tests, sharp_tests):
+    for test in chain(classic_tests, sharp_tests_rk, sharp_tests_lmm):
         yield test
