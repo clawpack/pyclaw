@@ -601,7 +601,7 @@ contains
 
             ! compute and store the differences of the cell averages
 
-            do i=num_ghost+1,mx2-num_ghost
+            do i=2,mx2-1
                 dqm=dqp
                 dqp=q(m,i+1)-q(m,i)
                 r=dqp/dqm
