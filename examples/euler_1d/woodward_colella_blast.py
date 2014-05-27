@@ -61,7 +61,7 @@ def setup(use_petsc=False,outdir='./_output',kernel_language='Fortran',solver_ty
     solver.bc_upper[0]=pyclaw.BC.wall
 
     # Initialize domain
-    mx=500;
+    mx=800;
     x = pyclaw.Dimension('x',0.0,1.0,mx)
     domain = pyclaw.Domain([x])
     state = pyclaw.State(domain,solver.num_eqn)

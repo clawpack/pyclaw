@@ -17,15 +17,14 @@ c = np.array([0., .3772689153313680, .7545378306627360, .7289856616121880, .6992
 b = np.array([.206734020864804, .206734020864804, .117097251841844, .181802560120140, .287632146308408])
 
 def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='sharpclaw',
-        kernel_language='Fortran'):
+        kernel_language='Fortran',use_char_decomp=False):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a shock wave impacting a sinusoidal density field.
     """
 
     from clawpack import riemann
-    import euler_with_efix_1D
-
+    
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
@@ -34,7 +33,7 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     if kernel_language =='Python':
         rs = riemann.euler_1D_py.euler_roe_1D
     elif kernel_language =='Fortran':
-        rs = euler_with_efix_1D
+        rs = riemann.euler_with_efix_1D
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(rs)
@@ -42,14 +41,15 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
         solver.a, solver.b, solver.c = a, b, c
         solver.cfl_desired = 0.6
         solver.cfl_max = 0.7
-        try:
-            import sharpclaw1
-            solver.fmod = sharpclaw1
-            solver.tfluct_solver = True
-            solver.lim_type = 2     # WENO reconstruction 
-            solver.char_decomp = 2  # characteristic-wise reconstruction
-        except ImportError:
-            pass
+        if use_char_decomp:
+            try:
+                import sharpclaw1
+                solver.fmod = sharpclaw1
+                solver.tfluct_solver = True
+                solver.lim_type = 2     # WENO reconstruction 
+                solver.char_decomp = 2  # characteristic-wise reconstruction
+            except ImportError:
+                pass
     elif solver_type == 'classic':
         solver = pyclaw.ClawSolver1D(rs)
 
