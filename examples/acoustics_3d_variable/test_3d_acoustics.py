@@ -19,13 +19,14 @@ def test_3d_acoustics():
         pinitial = claw.frames[0].state.get_q_global()
         pfinal = claw.frames[claw.num_output_times].state.get_q_global()
 
-        if pinitial is not None and pfinal is not None:
+        if pinitial is not None:
             pinitial = pinitial[0, :, :, :].reshape(-1)
             pfinal = pfinal[0, :, :, :].reshape(-1)
             grid = claw.solution.state.grid
             final_difference = np.prod(grid.delta)*np.linalg.norm(pfinal-pinitial, ord=1)
             return check_diff(0., final_difference, abstol=1e-1)
         else:
+            # In parallel, we check values only for the rank 0 process
             return
 
     def acoustics_verify_heterogeneous(claw):
@@ -35,13 +36,14 @@ def test_3d_acoustics():
         pinitial = claw.frames[0].state.get_q_global()
         pfinal = claw.frames[claw.num_output_times].state.get_q_global()
 
-        if pinitial is not None and pfinal is not None:
+        if pinitial is not None:
             pfinal = pfinal[0, :, :, :].reshape(-1)
             thisdir = os.path.dirname(__file__)
             verify_pfinal = np.loadtxt(os.path.join(thisdir, 'verify_classic_heterogeneous.txt'))
             norm_err = np.linalg.norm(pfinal-verify_pfinal)
             return check_diff(0, norm_err, abstol=10.)
         else:
+            # In parallel, we check values only for the rank 0 process
             return
 
     classic_homogeneous_tests = gen_variants(acoustics_3d_interface.setup, acoustics_verify_homogeneous,

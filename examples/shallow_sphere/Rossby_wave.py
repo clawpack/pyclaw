@@ -27,6 +27,8 @@ try:
 
 except ImportError:
     this_dir = os.path.dirname(__file__)
+    if this_dir == '':
+        this_dir = os.path.abspath('.')
     inplace_build(this_dir)
 
     try:
