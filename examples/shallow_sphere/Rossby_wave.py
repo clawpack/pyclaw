@@ -10,24 +10,32 @@ Reference: Logically Rectangular Grids and Finite Volume Methods for PDEs in
            By Donna A. Calhoun, Christiane Helzel, and Randall J. LeVeque
            SIAM Review 50 (2008), 723-752. 
 """
+
+import math
+import os
+import sys
+
 import numpy as np
+
+from clawpack import pyclaw
+from clawpack import riemann
+from clawpack.pyclaw.util import inplace_build
+
 try:
     import problem
     import classic2
+
 except ImportError:
-    import warnings
-    warnings.warn("missing extension modules, running python setup.py build_ext -i")
-    import os
-    import subprocess
-    thisdir = os.path.dirname(__file__)
-    subprocess.check_call('python setup.py build_ext -i', shell=True, cwd=thisdir)
-    warnings.warn("missing extension modules built by running python setup.py build_ext -i")
+    this_dir = os.path.dirname(__file__)
+    if this_dir == '':
+        this_dir = os.path.abspath('.')
+    inplace_build(this_dir)
+
     try:
         # Now try to import again
         import problem
         import classic2
     except ImportError:
-        import sys
         print >> sys.stderr, "***\nUnable to import problem module or automatically build, try running (in the directory of this file):\n python setup.py build_ext -i\n***"
         raise
 
@@ -75,9 +83,7 @@ def mapc2p_sphere_nonvectorized(grid,mC):
                  [array ([xp1, xp2, ...]), array([yp1, yp2, ...]), array([zp1, zp2, ...])]
 
     NOTE: this function is not used in the standard script.
-    """  
-    # Import library            
-    import math
+    """
 
     # Get number of cells in both directions
     mx, my = grid.num_cells[0], grid.num_cells[1]
@@ -364,9 +370,6 @@ def setup(use_petsc=False,solver_type='classic',outdir='./_output', disable_outp
     if solver_type != 'classic':
         raise Exception("Only Classic-style solvers (solver_type='classic') are supported on mapped grids")
 
-    from clawpack import pyclaw
-    from clawpack import riemann
-
     solver = pyclaw.ClawSolver2D(riemann.shallow_sphere_2D)
     solver.fmod = classic2
 
@@ -429,12 +432,10 @@ def setup(use_petsc=False,solver_type='classic',outdir='./_output', disable_outp
     # directions. If odd numbers are used a message is print at screen and the 
     # simulation is interrputed.
     if(mx % 2 != 0 or my % 2 != 0):
-        import sys
         message = 'Please, use even numbers of cells in both direction. ' \
                   'Only even numbers allow to impose correctly the boundary ' \
                   'conditions!'
-        print message
-        sys.exit(0)
+        raise ValueError(message)
 
 
     x = pyclaw.Dimension('x',xlower,xupper,mx)
@@ -524,22 +525,14 @@ def plot_on_sphere():
     an ascii file written by pyclaw, without using the pyclaw.io.ascii routines.
     """
 
-    # Import some libraries
-    from clawpack import pyclaw
-    import setup as rh
-    import numpy as np
-
-    from mpl_toolkits.basemap import Basemap
     import matplotlib.pyplot as plt
-
-    import sys
 
     # Nondimensionalized radius of the earth
     Rsphere = 1.0
 
     def contourLineSphere(fileName='fort.q0000',path='./_output'):
         """
-        This function plot the contour lines on a spherical surface for the shallow
+        This function plots the contour lines on a spherical surface for the shallow
         water equations solved on a sphere.
         """  
      
@@ -549,17 +542,12 @@ def plot_on_sphere():
         # Concatenate path and file name
         pathFileName = path + "/" + fileName
 
-        try:
-            f = file(pathFileName,"r")
-        except IOError as e:
-            print("({})".format(e))
-            sys.exit()
-
+        f = file(pathFileName,"r")
 
         # Read file header
         # ================
         # The information contained in the first two lines are not used.
-        unsed = f.readline()  # patch_number
+        unused = f.readline()  # patch_number
         unused = f.readline() # AMR_level
 
         # Read mx, my, xlow, ylow, dx and dy
@@ -600,7 +588,7 @@ def plot_on_sphere():
 
         # Override default mapc2p function
         # ================================
-        patch.mapc2p = rh.mapc2p_sphere_vectorized  
+        patch.mapc2p = mapc2p_sphere_vectorized
 
 
         # Compute the physical coordinates of each cell's centers
