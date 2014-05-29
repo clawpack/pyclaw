@@ -20,13 +20,12 @@ involving the collision of two shock waves.
 try:
     import sharpclaw1
 except ImportError:
-    import warnings
-    warnings.warn("missing extension modules, running python setup.py build_ext -i")
     import os
-    import subprocess
-    thisdir = os.path.dirname(__file__)
-    subprocess.check_call('python setup.py build_ext -i', shell=True, cwd=thisdir)
-    warnings.warn("missing extension modules built by running python setup.py build_ext -i")
+    from clawpack.pyclaw.util import inplace_build
+    this_dir = os.path.dirname(__file__)
+    if this_dir == '':
+        this_dir = os.path.abspath('.')
+    inplace_build(this_dir)
     try:
         # Now try to import again
         import sharpclaw1
