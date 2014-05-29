@@ -35,7 +35,7 @@ script:
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
        export PATH=${CLAWPACK}/petsc4py_stack/bin:${PATH};
     fi
-  - cd pyclaw
+  - cd pyclaw/examples
   - if [[ "${TEST_PACKAGE}" == "pyclaw" ]]; then
        nosetests -v;
     fi
