@@ -3,17 +3,19 @@ subroutine tfluct(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr,auxl,auxr,adq)
 ! ============================================================================
 !   
 !   "Internal" Riemann solver for the euler equations in 1D.
-!   Te riemann problem is solved by assuming a discontinuity at the
+!   The riemann problem is solved by assuming a discontinuity at the
 !   center of the i'th cell.
 !
 !   On input, ql contains the state vector at the left edge of each cell
 !             qr contains the state vector at the right edge of each cell
 !             auxl contains the auxiliary vector at the left edge of each cell
 !             auxr contains the state vector at the right edge of each cell
-!             maxnx contains the number of physical points (without ghost cells)
+!             maxnx is the number of physical points (without ghost cells)
 !             num_ghost is the number of ghost cells
 !             num_eqn is the number of equations
 !             ixyz is the dimension index
+!             mx is the size of the patch for the dimension corresponding
+!               to the value of ixyz
 !
 !   On output, adq contains the decomposition of the flux difference
 !              f(qr(i)) - f(ql(i)).
