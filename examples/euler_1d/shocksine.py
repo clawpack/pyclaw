@@ -17,7 +17,8 @@ c = np.array([0., .3772689153313680, .7545378306627360, .7289856616121880, .6992
 
 b = np.array([.206734020864804, .206734020864804, .117097251841844, .181802560120140, .287632146308408])
 
-def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='sharpclaw',kernel_language='Fortran'):
+def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='sharpclaw',
+        kernel_language='Fortran',use_char_decomp=False):
     """
     Solve the Euler equations of compressible fluid dynamics.
     This example involves a shock wave impacting a sinusoidal density field.
@@ -29,14 +30,30 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     else:
         from clawpack import pyclaw
 
+    if kernel_language =='Python':
+        rs = riemann.euler_1D_py.euler_roe_1D
+    elif kernel_language =='Fortran':
+        rs = riemann.euler_with_efix_1D
+
     if solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver1D(riemann.euler_with_efix_1D)
+        solver = pyclaw.SharpClawSolver1D(rs)
         solver.time_integrator = 'RK'
         solver.a, solver.b, solver.c = a, b, c
         solver.cfl_desired = 0.6
         solver.cfl_max = 0.7
+        if use_char_decomp:
+            try:
+                import sharpclaw1
+                solver.fmod = sharpclaw1
+                solver.tfluct_solver = True
+                solver.lim_type = 2     # WENO reconstruction 
+                solver.char_decomp = 2  # characteristic-wise reconstruction
+            except ImportError:
+                pass
     else:
-        solver = pyclaw.ClawSolver1D(riemann.euler_with_efix_1D)
+        solver = pyclaw.ClawSolver1D(rs)
+
+    solver.kernel_language = kernel_language
 
     solver.bc_lower[0]=pyclaw.BC.extrap
     solver.bc_upper[0]=pyclaw.BC.extrap
@@ -49,6 +66,8 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
 
     state.problem_data['gamma']= gamma
     state.problem_data['gamma1']= gamma1
+    if kernel_language =='Python':
+        state.problem_data['efix'] = False
 
     xc =state.grid.x.centers
     epsilon=0.2

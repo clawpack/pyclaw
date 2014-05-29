@@ -37,6 +37,8 @@ contains
 
     subroutine dealloc_workspace(char_decomp)
 
+        integer :: char_decomp
+
         deallocate(ql)
         deallocate(qr)
         deallocate(amdq)
