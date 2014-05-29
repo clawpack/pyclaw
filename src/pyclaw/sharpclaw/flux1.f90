@@ -67,7 +67,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
         select case(char_decomp)
             case(0)
                 ! TVD reconstruction w/o char. decomp.
-                call tvd2(q1d,ql,qr,mthlim)
+                call tvd2(q1d,ql,qr,mthlim,num_eqn)
             case(1)
                 ! wave-based second order reconstruction
                 if (num_dim.eq.1) then
@@ -78,11 +78,11 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
                             q1d,q1d,aux,aux,wave,s,amdq,apdq)
                 endif
                 ! Need to write a tvd2_fwave routine
-                call tvd2_wave(q1d,ql,qr,wave,s,mthlim)
+                call tvd2_wave(q1d,ql,qr,wave,s,mthlim,num_eqn,num_ghost)
             case(2)
                 ! characteristic-wise second order reconstruction
                 call evec(mx,num_eqn,num_ghost,mx,q1d,aux,aux,evl,evr)
-                call tvd2_char(q1d,ql,qr,mthlim,evl,evr)
+                call tvd2_char(q1d,ql,qr,mthlim,num_eqn,num_ghost,evl,evr)
         end select
         case(2) ! lim_type = 2: High-order WENO reconstruction
         select case (char_decomp)
