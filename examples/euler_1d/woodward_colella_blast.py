@@ -67,7 +67,6 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
             solver.tfluct_solver = True
             solver.lim_type = 1     # TVD reconstruction 
             solver.char_decomp = 2  # characteristic-wise reconstructiong
-            print 'ole'
         except ImportError:
             pass
     elif solver_type=='classic':

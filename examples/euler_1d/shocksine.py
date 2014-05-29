@@ -48,9 +48,7 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
                 solver.tfluct_solver = True
                 solver.lim_type = 2     # WENO reconstruction 
                 solver.char_decomp = 2  # characteristic-wise reconstruction
-                print 'ole'
             except ImportError:
-                print 'ddgf'
                 pass
     else:
         solver = pyclaw.ClawSolver1D(rs)
