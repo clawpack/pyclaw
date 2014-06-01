@@ -169,7 +169,7 @@ def gen_variants(application, verifier, kernel_languages=('Fortran',), **kwargs)
             solver_info = 'solver_type={solver_type!s}, '
         else:
             solver_info = ''
-        test = lambda: test_app(application, verifiers, test_kwargs)
+        test = lambda: test_app(application, verifier, test_kwargs)
         test.description = ('{test_name!s}(kernel_language={kernel_language!s}, ' +
                             solver_info + 'use_petsc={use_petsc!s})').format(test_name=test_name, **test_kwargs)
         yield test
