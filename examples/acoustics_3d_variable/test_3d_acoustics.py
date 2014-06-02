@@ -48,22 +48,22 @@ def test_3d_acoustics():
 
     classic_homogeneous_tests = gen_variants(acoustics_3d_interface.setup, acoustics_verify_homogeneous,
                                              kernel_languages=('Fortran',),
-                                             solver_type='classic', test='homogeneous',
+                                             solver_type='classic', problem='homogeneous',
                                              disable_output=True)
 
     classic_heterogeneous_tests = gen_variants(acoustics_3d_interface.setup, acoustics_verify_heterogeneous,
                                                kernel_languages=('Fortran',),
-                                               solver_type='classic', test='heterogeneous',
+                                               solver_type='classic', problem='heterogeneous',
                                                disable_output=True)
 
     sharp_homogeneous_tests = gen_variants(acoustics_3d_interface.setup, acoustics_verify_homogeneous,
                                            kernel_languages=('Fortran',),
-                                           solver_type='sharpclaw', test='homogeneous',
+                                           solver_type='sharpclaw', problem='homogeneous',
                                            disable_output=True)
 
     sharp_heterogeneous_tests = gen_variants(acoustics_3d_interface.setup, acoustics_verify_heterogeneous,
                                              kernel_languages=('Fortran',),
-                                             solver_type='sharpclaw', test='heterogeneous',
+                                             solver_type='sharpclaw', problem='heterogeneous',
                                              disable_output=True)
 
     for test in chain(classic_homogeneous_tests, classic_heterogeneous_tests, sharp_homogeneous_tests,

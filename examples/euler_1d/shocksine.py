@@ -1,29 +1,44 @@
 #!/usr/bin/env python
 # encoding: utf-8
-r"""Shu-Osher problem.
-   1D compressible inviscid flow (Euler equations)."""
+r"""
+Shu-Osher problem
+====================
+
+Solve the one-dimensional compressible Euler equations:
+
+.. math::
+    \rho_t + (\rho u)_x & = 0 \\
+    (\rho u)_t + (\rho u^2 + p)_x & = 0 \\
+    E_t + (u (E + p) )_x & = 0.
+
+The initial condition corresponds to the Shu-Osher problem
+in which a shock wave impacts a sinusoidally-varying density field.
+
+This example also demonstrates:
+
+ - how to use an arbitrary Runge-Kutta method by simply providing the
+   Butcher coefficients of the method.
+ - How to use a total fluctuation solver in SharpClaw
+ - How to use characteristic decomposition with an evec() routine in SharpClaw
+"""
 
 import numpy as np
-gamma = 1.4
+from clawpack import riemann
+
+gamma = 1.4  # Ratio of specific heats
 gamma1 = gamma - 1.
 
+# Coefficients of Runge-Kutta method
 a = np.array([[0., 0., 0., 0., 0., 0., 0.],
               [.3772689153313680, 0., 0., 0., 0., 0., 0.],
               [.3772689153313680, .3772689153313680, 0., 0., 0., 0., 0.],
               [.2429952205373960, .2429952205373960, .2429952205373960, 0., 0., 0., 0.],
               [.1535890676951260, .1535890676951260, .1535890676951260, .2384589328462900, 0., 0., 0.]])
-
-c = np.array([0., .3772689153313680, .7545378306627360, .7289856616121880, .6992261359316680])
-
 b = np.array([.206734020864804, .206734020864804, .117097251841844, .181802560120140, .287632146308408])
+c = np.array([0., .3772689153313680, .7545378306627360, .7289856616121880, .6992261359316680])
 
 def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='sharpclaw',
         kernel_language='Fortran',use_char_decomp=False):
-    """
-    Solve the Euler equations of compressible fluid dynamics.
-    This example involves a shock wave impacting a sinusoidal density field.
-    """
-    from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -43,11 +58,11 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
         solver.cfl_max = 0.7
         if use_char_decomp:
             try:
-                import sharpclaw1
+                import sharpclaw1               # Import custom Fortran code
                 solver.fmod = sharpclaw1
-                solver.tfluct_solver = True
-                solver.lim_type = 2     # WENO reconstruction 
-                solver.char_decomp = 2  # characteristic-wise reconstruction
+                solver.tfluct_solver = True     # Use total fluctuation solver for efficiency
+                solver.lim_type = 2             # WENO reconstruction 
+                solver.char_decomp = 2          # characteristic-wise reconstruction
             except ImportError:
                 pass
     else:
@@ -58,8 +73,7 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     solver.bc_lower[0]=pyclaw.BC.extrap
     solver.bc_upper[0]=pyclaw.BC.extrap
 
-    # Initialize domain
-    mx=400;
+    mx = 400;
     x = pyclaw.Dimension('x',-5.0,5.0,mx)
     domain = pyclaw.Domain([x])
     state = pyclaw.State(domain,solver.num_eqn)
@@ -69,12 +83,16 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     if kernel_language =='Python':
         state.problem_data['efix'] = False
 
-    xc =state.grid.x.centers
-    epsilon=0.2
-    state.q[0,:] = (xc<-4.)*3.857143 + (xc>=-4.)*(1+epsilon*np.sin(5*xc))
+    xc = state.grid.p_centers[0]
+    epsilon = 0.2
     velocity = (xc<-4.)*2.629369
-    state.q[1,:] = velocity * state.q[0,:]
     pressure = (xc<-4.)*10.33333 + (xc>=-4.)*1.
+
+    # Density
+    state.q[0,:] = (xc<-4.)*3.857143 + (xc>=-4.)*(1+epsilon*np.sin(5*xc))
+    # Momentum
+    state.q[1,:] = velocity * state.q[0,:]
+    # Energy
     state.q[2,:] = pressure/gamma1 + 0.5 * state.q[0,:] * velocity**2
 
     claw = pyclaw.Controller()
@@ -84,6 +102,7 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     claw.num_output_times = 10
     claw.outdir = outdir
     claw.setplot = setplot
+    claw.keep_copy = True
 
     return claw
 
@@ -98,30 +117,25 @@ def setplot(plotdata):
     plotdata.clearfigures()  # clear any old figures,axes,items data
 
     # Figure for q[0]
-    plotfigure = plotdata.new_plotfigure(name='Density', figno=0)
+    plotfigure = plotdata.new_plotfigure(name='', figno=0)
 
-    # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
+    plotaxes.axescmd = 'subplot(211)'
     plotaxes.title = 'Density'
+    plotaxes.xlimits = (-5.,5.)
 
-    # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='1d')
     plotitem.plot_var = 0
-    plotitem.plotstyle = '-'
-    plotitem.color = 'b'
+    plotitem.kwargs = {'linewidth':3}
     
-    # Figure for q[1]
-    plotfigure = plotdata.new_plotfigure(name='Energy', figno=1)
-
-    # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.title = 'Energy'
+    plotaxes.axescmd = 'subplot(212)'
 
-    # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='1d')
     plotitem.plot_var = 2
-    plotitem.plotstyle = '-'
-    plotitem.color = 'b'
+    plotitem.kwargs = {'linewidth':3}
+    plotaxes.xlimits = (-5.,5.)
     
     return plotdata
 

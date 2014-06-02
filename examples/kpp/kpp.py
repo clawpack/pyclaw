@@ -4,7 +4,7 @@ r"""
 A non-convex flux scalar model
 ==============================
 
-Solve the equation:
+Solve the KPP equation:
 
 .. math:: 
     q_t + (\sin(q))_x + (\cos(q))_y & = 0
@@ -13,21 +13,9 @@ first proposed by Kurganov, Petrova, and Popov.  It is challenging for schemes
 with low numerical viscosity to capture the solution accurately.
 """
 import numpy as np
-
-def qinit(state,rad=1.0):
-    x = state.grid.x.centers
-    y = state.grid.y.centers
-    Y,X = np.meshgrid(y,x)
-    r = np.sqrt(X**2 + Y**2)
-
-    state.q[0,:,:] = 0.25*np.pi + 3.25*np.pi*(r<=rad)
-
+from clawpack import riemann
 
 def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
-    """
-    Example python script for solving the 2d KPP equations.
-    """
-    from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -38,6 +26,10 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
         solver = pyclaw.SharpClawSolver2D(riemann.kpp_2D)
     else:
         solver = pyclaw.ClawSolver2D(riemann.kpp_2D)
+        solver.dimensional_split = 1
+        solver.cfl_max = 1.0
+        solver.cfl_desired = 0.9
+        solver.limiters = pyclaw.limiters.tvd.minmod
 
     solver.bc_lower[0]=pyclaw.BC.extrap
     solver.bc_upper[0]=pyclaw.BC.extrap
@@ -51,18 +43,15 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     domain = pyclaw.Domain([x,y])
     state = pyclaw.State(domain,solver.num_eqn)
 
-    qinit(state)
-
-    solver.dimensional_split = 1
-    solver.cfl_max = 1.0
-    solver.cfl_desired = 0.9
-    solver.limiters = pyclaw.limiters.tvd.minmod
+    # Initial data
+    X, Y = state.grid.p_centers
+    r = np.sqrt(X**2 + Y**2)
+    state.q[0,:,:] = 0.25*np.pi + 3.25*np.pi*(r<=1.0)
 
     claw = pyclaw.Controller()
     claw.tfinal = 1.0
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
-    claw.num_output_times = 10
     claw.setplot = setplot
     claw.keep_copy = True
 

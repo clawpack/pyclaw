@@ -18,27 +18,17 @@ The initial condition is a Gaussian and the boundary conditions are periodic.
 The final solution is identical to the initial data because both waves have
 crossed the domain exactly once.
 """
+from numpy import sqrt, exp, cos
+from clawpack import riemann
     
-def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir='./_output',weno_order=5, 
-        time_integrator='SSP104', disable_output=False):
-    """
-    This example solves the 1-dimensional acoustics equations in a homogeneous
-    medium.
-    """
-    from numpy import sqrt, exp, cos
-    from clawpack import riemann
+def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',
+          outdir='./_output',weno_order=5,time_integrator='SSP104', disable_output=False):
 
-    #=================================================================
-    # Import the appropriate classes, depending on the options passed
-    #=================================================================
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
         from clawpack import pyclaw
 
-    #========================================================================
-    # Instantiate the solver and define the system of equations to be solved
-    #========================================================================
     if kernel_language == 'Fortran':
         riemann_solver = riemann.acoustics_1D
     elif kernel_language=='Python': 
@@ -55,9 +45,6 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir
 
     solver.kernel_language=kernel_language
 
-    #========================================================================
-    # Instantiate the domain and set the boundary conditions
-    #========================================================================
     x = pyclaw.Dimension('x',0.0,1.0,100)
     domain = pyclaw.Domain(x)
     num_eqn = 2
@@ -66,21 +53,14 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
 
-    #========================================================================
-    # Set problem-specific variables
-    #========================================================================
-    rho = 1.0
-    bulk = 1.0
+    rho  = 1.0 # Material density
+    bulk = 1.0 # Material bulk modulus
 
     state.problem_data['rho']=rho
     state.problem_data['bulk']=bulk
     state.problem_data['zz']=sqrt(rho*bulk) # Impedance
     state.problem_data['cc']=sqrt(bulk/rho) # Sound speed
  
-
-    #========================================================================
-    # Set the initial condition
-    #========================================================================
     xc=domain.grid.x.centers
     beta=100; gamma=0; x0=0.75
     state.q[0,:] = exp(-beta * (xc-x0)**2) * cos(gamma * (xc - x0))
@@ -88,15 +68,12 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir
 
     solver.dt_initial=domain.grid.delta[0]/state.problem_data['cc']*0.1
 
-    #========================================================================
-    # Set up the controller object
-    #========================================================================
     claw = pyclaw.Controller()
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
     claw.keep_copy = True
-    claw.num_output_times = 5
+    claw.num_output_times = 10
     if disable_output:
         claw.output_format = None
     claw.tfinal = 1.0
@@ -104,9 +81,8 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',outdir
 
     return claw
 
-#--------------------------
+
 def setplot(plotdata):
-#--------------------------
     """ 
     Specify what is to be plotted at each frame.
     Input:  plotdata, an instance of visclaw.data.ClawPlotData.
@@ -145,6 +121,7 @@ def setplot(plotdata):
     plotitem.kwargs = {'linewidth':3,'markersize':5}
     
     return plotdata
+
 
 def run_and_plot(**kwargs):
     claw = setup(kwargs)

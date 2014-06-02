@@ -7,18 +7,15 @@ Advection in an annular domain
 Solve the linear advection equation:
 
 .. math:: 
-    q_t + (u(x,y) q)_x + (v(x,y) q)_y & = 0.
+    q_t + (u(x,y) q)_x + (v(x,y) q)_y & = 0
+
+in an annular domain, using a mapped grid.
 
 Here q is the density of some conserved quantity and (u,v) is the velocity
 field.  We take a rotational velocity field: :math:`u = \cos(\theta), v = \sin(\theta)`.
 
 This is the simplest example that shows how to use a mapped grid in PyClaw.
 """
-
-
-#===========================================================================
-# Import libraries
-#===========================================================================
 import numpy as np
 
 def mapc2p_annulus(grid,mC):
@@ -36,11 +33,9 @@ def mapc2p_annulus(grid,mC):
     Output: pC = list composed by two arrays 
                  [array ([xp1, xp2, ...]), array([yp1, yp2, ...])]
     """  
-    # Define new empty list
     pC = []
 
-    # Populate it with the physical coordinates 
-    # Polar coordinates (x coordinate = radius,  y coordinate = theta)
+    # Polar coordinates (first coordinate = radius,  second coordinate = theta)
     pC.append(mC[0][:]*np.cos(mC[1][:]))
     pC.append(mC[0][:]*np.sin(mC[1][:]))
     
@@ -51,9 +46,6 @@ def qinit(state,mx,my):
     """
     Initialize with two Gaussian pulses.
     """
-
-    # The following parameters match the vaules used in clawpack
-    # ==========================================================
     # First gaussian pulse
     A1    = 1.    # Amplitude
     beta1 = 40.   # Decay factor
@@ -66,14 +58,9 @@ def qinit(state,mx,my):
     x2    = 0.5   # x-coordinate of the centers
     y2    = 0.    # y-coordinate of the centers
 
-    
-    # Compute location of all grid cell centers coordinates and store them
-    state.grid.compute_p_centers(recompute=True)
-
-    xp = state.grid.p_centers[0]
-    yp = state.grid.p_centers[1]
-    state.q[0,:,:] = A1*np.exp(-beta1*(np.square(xp-x1) + np.square(yp-y1)))\
-                   + A2*np.exp(-beta2*(np.square(xp-x2) + np.square(yp-y2)))
+    X, Y = state.grid.p_centers
+    state.q[0,:,:] = A1*np.exp(-beta1*(np.square(X-x1) + np.square(Y-y1)))\
+                   + A2*np.exp(-beta2*(np.square(X-x2) + np.square(Y-y2)))
 
 
 def setaux(state,mx,my):
@@ -83,16 +70,10 @@ def setaux(state,mx,my):
     aux[1,i,j] is edges velocity at "bottom" boundary of grid point (i,j)
     aux[2,i,j] = kappa  is ratio of cell area to (dxc * dyc)
     """    
-    
-    # Compute location of all grid cell corner coordinates and store them
-    state.grid.compute_p_edges(recompute=True)
-
-    # Get grid spacing
-    dxc = state.grid.delta[0]
-    dyc = state.grid.delta[1]
+    dx, dy = state.grid.delta  # Mesh widths
     pcorners = state.grid.p_edges
 
-    aux = velocities_capa(pcorners[0],pcorners[1],dxc,dyc)
+    aux = velocities_capa(pcorners[0],pcorners[1],dx,dy)
     return aux
 
 
@@ -103,19 +84,19 @@ def velocities_upper(state,dim,t,auxbc,num_ghost):
     from mapc2p import mapc2p
 
     grid=state.grid
-    mx = grid.num_cells[0]
-    my = grid.num_cells[1]
-    dxc = grid.delta[0]
-    dyc = grid.delta[1]
+    mx, my = grid.num_cells
+    dx, dy = grid.delta
 
     if dim == grid.dimensions[0]:
-        xc1d = grid.lower[0]+dxc*(np.arange(mx+num_ghost,mx+2*num_ghost+1)-num_ghost)
-        yc1d = grid.lower[1]+dyc*(np.arange(my+2*num_ghost+1)-num_ghost)
-        yc,xc = np.meshgrid(yc1d,xc1d)
+        #xc1d = grid.lower[0]+dx*(np.arange(mx+num_ghost,mx+2*num_ghost+1)-num_ghost)
+        #yc1d = grid.lower[1]+dy*(np.arange(my+2*num_ghost+1)-num_ghost)
+        #yc,xc = np.meshgrid(yc1d,xc1d)
 
-        xp,yp = mapc2p(xc,yc)
+        Xc, Yc = grid.c_centers_with_ghost(num_ghost=2)
 
-        auxbc[:,-num_ghost:,:] = velocities_capa(xp,yp,dxc,dyc)
+        Xp,Yp = mapc2p(Xc,Yc)
+
+        auxbc[:,-num_ghost:,:] = velocities_capa(Xp,Yp,dx,dy)
 
     else:
         raise Exception('Custum BC for this boundary is not appropriate!')
@@ -243,7 +224,7 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     y = pyclaw.Dimension('y',ylower,yupper,my)
     domain = pyclaw.Domain([x,y])
-    domain.grid.mapc2p = mapc2p_annulus # Override default_mapc2p function implemented in geometry.py
+    domain.grid.mapc2p = mapc2p_annulus
 
     # State:
     num_eqn = 1  # Number of equations
