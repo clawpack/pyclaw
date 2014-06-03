@@ -18,145 +18,120 @@ This is the simplest example that shows how to use a mapped grid in PyClaw.
 """
 import numpy as np
 
-def mapc2p_annulus(grid,mC):
+def mapc2p_annulus(grid,c_centers):
     """
     Specifies the mapping to curvilinear coordinates.
 
-    Takes as input: array_list made by x_coordinates, y_ccordinates in the map 
-                    space.
-    Returns as output: array_list made by x_coordinates, y_ccordinates in the 
-                       physical space.
+    Inputs: c_centers = Computational cell centers
+                 [array ([Xc1, Xc2, ...]), array([Yc1, Yc2, ...])]
 
-    Inputs: mC = list composed by two arrays 
-                 [array ([xc1, xc2, ...]), array([yc1, yc2, ...])]
-
-    Output: pC = list composed by two arrays 
-                 [array ([xp1, xp2, ...]), array([yp1, yp2, ...])]
+    Output: p_centers = Physical cell centers
+                 [array ([Xp1, Xp2, ...]), array([Yp1, Yp2, ...])]
     """  
-    pC = []
+    p_centers = []
 
     # Polar coordinates (first coordinate = radius,  second coordinate = theta)
-    pC.append(mC[0][:]*np.cos(mC[1][:]))
-    pC.append(mC[0][:]*np.sin(mC[1][:]))
+    p_centers.append(c_centers[0][:]*np.cos(c_centers[1][:]))
+    p_centers.append(c_centers[0][:]*np.sin(c_centers[1][:]))
     
-    return pC
+    return p_centers
 
 
-def qinit(state,mx,my):
+def qinit(state):
     """
     Initialize with two Gaussian pulses.
     """
     # First gaussian pulse
-    A1    = 1.    # Amplitude
-    beta1 = 40.   # Decay factor
-    x1    = -0.5  # x-coordinate of the centers
-    y1    = 0.    # y-coordinate of the centers
+    A1     = 1.    # Amplitude
+    beta1  = 40.   # Decay factor
+    r1     = -0.5  # r-coordinate of the center
+    theta1 = 0.    # theta-coordinate of the center
 
     # Second gaussian pulse
-    A2    = -1.   # Amplitude
-    beta2 = 40.   # Decay factor
-    x2    = 0.5   # x-coordinate of the centers
-    y2    = 0.    # y-coordinate of the centers
+    A2     = -1.   # Amplitude
+    beta2  = 40.   # Decay factor
+    r2     = 0.5   # r-coordinate of the centers
+    theta2 = 0.    # theta-coordinate of the centers
 
-    X, Y = state.grid.p_centers
-    state.q[0,:,:] = A1*np.exp(-beta1*(np.square(X-x1) + np.square(Y-y1)))\
-                   + A2*np.exp(-beta2*(np.square(X-x2) + np.square(Y-y2)))
-
-
-def setaux(state,mx,my):
-    """ 
-    Set auxiliary array
-    aux[0,i,j] is edges velocity at "left" boundary of grid point (i,j)
-    aux[1,i,j] is edges velocity at "bottom" boundary of grid point (i,j)
-    aux[2,i,j] = kappa  is ratio of cell area to (dxc * dyc)
-    """    
-    dx, dy = state.grid.delta  # Mesh widths
-    pcorners = state.grid.p_edges
-
-    aux = velocities_capa(pcorners[0],pcorners[1],dx,dy)
-    return aux
+    R, Theta = state.grid.p_centers
+    state.q[0,:,:] = A1*np.exp(-beta1*(np.square(R-r1) + np.square(Theta-theta1)))\
+                   + A2*np.exp(-beta2*(np.square(R-r2) + np.square(Theta-theta2)))
 
 
-def velocities_upper(state,dim,t,auxbc,num_ghost):
+def ghost_velocities_upper(state,dim,t,auxbc,num_ghost):
     """
     Set the velocities for the ghost cells outside the outer radius of the annulus.
+    In the computational domain, these are the cells at the top of the grid.
     """
     from mapc2p import mapc2p
 
     grid=state.grid
-    mx, my = grid.num_cells
-    dx, dy = grid.delta
-
     if dim == grid.dimensions[0]:
-        #xc1d = grid.lower[0]+dx*(np.arange(mx+num_ghost,mx+2*num_ghost+1)-num_ghost)
-        #yc1d = grid.lower[1]+dy*(np.arange(my+2*num_ghost+1)-num_ghost)
-        #yc,xc = np.meshgrid(yc1d,xc1d)
+        dx, dy = grid.delta
+        X_edges, Y_edges = grid.c_edges_with_ghost(num_ghost=2)
+        R_edges,Theta_edges = mapc2p(X_edges,Y_edges)  # Compute edge coordinates in physical domain
 
-        Xc, Yc = grid.c_centers_with_ghost(num_ghost=2)
-
-        Xp,Yp = mapc2p(Xc,Yc)
-
-        auxbc[:,-num_ghost:,:-1] = velocities_capa(Xp[-num_ghost-1:,:],Yp[-num_ghost-1:,:],dx,dy)
+        auxbc[:,-num_ghost:,:] = edge_velocities_and_area(R_edges[-num_ghost-1:,:],Theta_edges[-num_ghost-1:,:],dx,dy)
 
     else:
         raise Exception('Custom BC for this boundary is not appropriate!')
 
 
-def velocities_lower(state,dim,t,auxbc,num_ghost):
+def ghost_velocities_lower(state,dim,t,auxbc,num_ghost):
     """
     Set the velocities for the ghost cells outside the inner radius of the annulus.
+    In the computational domain, these are the cells at the bottom of the grid.
     """
     from mapc2p import mapc2p
 
     grid=state.grid
-    my = grid.num_cells[1]
-    dxc = grid.delta[0]
-    dyc = grid.delta[1]
-
     if dim == grid.dimensions[0]:
-        xc1d = grid.lower[0]+dxc*(np.arange(num_ghost+1)-num_ghost)
-        yc1d = grid.lower[1]+dyc*(np.arange(my+2*num_ghost+1)-num_ghost)
-        yc,xc = np.meshgrid(yc1d,xc1d)
+        dx, dy = grid.delta
+        X_edges, Y_edges = grid.c_edges_with_ghost(num_ghost=2)
+        R_edges,Theta_edges = mapc2p(X_edges,Y_edges)
 
-        xp,yp = mapc2p(xc,yc)
-
-        auxbc[:,0:num_ghost,:] = velocities_capa(xp,yp,dxc,dyc)
+        auxbc[:,0:num_ghost,:] = edge_velocities_and_area(R_edges[0:num_ghost+1,:],Theta_edges[0:num_ghost+1,:],dx,dy)
 
     else:
         raise Exception('Custom BC for this boundary is not appropriate!')
 
 
-def velocities_capa(xp,yp,dx,dy):
+def edge_velocities_and_area(R_edges,Theta_edges,dx,dy):
+    """This routine fills in the aux arrays for the problem:
 
-    mx = xp.shape[0]-1
-    my = xp.shape[1]-1
+        aux[0,i,j] = u-velocity at left edge of cell (i,j)
+        aux[1,i,j] = v-velocity at bottom edge of cell (i,j)
+        aux[2,i,j] = physical area of cell (i,j) (relative to area of computational cell)
+    """
+    mx = R_edges.shape[0]-1
+    my = R_edges.shape[1]-1
     aux = np.empty((3,mx,my), order='F')
 
     # Bottom-left corners
-    xp0 = xp[:mx,:my]
-    yp0 = yp[:mx,:my]
+    Xp0 = R_edges[:mx,:my]
+    Yp0 = Theta_edges[:mx,:my]
 
     # Top-left corners
-    xp1 = xp[:mx,1:]
-    yp1 = yp[:mx,1:]
+    Xp1 = R_edges[:mx,1:]
+    Yp1 = Theta_edges[:mx,1:]
 
     # Top-right corners
-    xp2 = xp[1:,1:]
-    yp2 = yp[1:,1:]
+    Xp2 = R_edges[1:,1:]
+    Yp2 = Theta_edges[1:,1:]
 
     # Top-left corners
-    xp3 = xp[1:,:my]
-    yp3 = yp[1:,:my]
+    Xp3 = R_edges[1:,:my]
+    Yp3 = Theta_edges[1:,:my]
 
     # Compute velocity component
-    aux[0,:mx,:my] = (stream(xp1,yp1)- stream(xp0,yp0))/dy
-    aux[1,:mx,:my] = -(stream(xp3,yp3)- stream(xp0,yp0))/dx
+    aux[0,:mx,:my] = (stream(Xp1,Yp1)- stream(Xp0,Yp0))/dy
+    aux[1,:mx,:my] = -(stream(Xp3,Yp3)- stream(Xp0,Yp0))/dx
 
     # Compute area of the physical element
-    area = 1./2.*( (yp0+yp1)*(xp1-xp0) +
-                   (yp1+yp2)*(xp2-xp1) +
-                   (yp2+yp3)*(xp3-xp2) +
-                   (yp3+yp0)*(xp0-xp3) )
+    area = 1./2.*( (Yp0+Yp1)*(Xp1-Xp0) +
+                   (Yp1+Yp2)*(Xp2-Xp1) +
+                   (Yp2+Yp3)*(Xp3-Xp2) +
+                   (Yp3+Yp0)*(Xp0-Xp3) )
     
     # Compute capa 
     aux[2,:mx,:my] = area/(dx*dy)
@@ -164,14 +139,12 @@ def velocities_capa(xp,yp,dx,dy):
     return aux
 
     
-def stream(xp,yp):
+def stream(Xp,Yp):
     """ 
     Calculates the stream function in physical space.
     Clockwise rotation. One full rotation corresponds to 1 (second).
     """
-    streamValue = np.pi*(xp**2 + yp**2)
-
-    return streamValue
+    return np.pi*(Xp**2 + Yp**2)
 
 
 def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
@@ -184,7 +157,7 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
 
     if solver_type == 'classic':
         solver = pyclaw.ClawSolver2D(riemann.vc_advection_2D)
-        solver.dimensional_split = 0
+        solver.dimensional_split = False
         solver.transverse_waves = 2
         solver.order = 2
     elif solver_type == 'sharpclaw':
@@ -197,57 +170,41 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
 
     solver.aux_bc_lower[0] = pyclaw.BC.custom
     solver.aux_bc_upper[0] = pyclaw.BC.custom
-    solver.user_aux_bc_lower = velocities_lower
-    solver.user_aux_bc_upper = velocities_upper
+    solver.user_aux_bc_lower = ghost_velocities_lower
+    solver.user_aux_bc_upper = ghost_velocities_upper
     solver.aux_bc_lower[1] = pyclaw.BC.periodic
     solver.aux_bc_upper[1] = pyclaw.BC.periodic
 
     solver.dt_initial = 0.1
     solver.cfl_max = 0.5
-    solver.cfl_desired = 0.2
+    solver.cfl_desired = 0.4
 
     solver.limiters = pyclaw.limiters.tvd.vanleer
 
-    #===========================================================================
-    # Initialize domain and state, then initialize the solution associated to the 
-    # state and finally initialize aux array
-    #===========================================================================
-    # Domain:
-    xlower = 0.2
-    xupper = 1.0
-    mx = 40
+    r_lower = 0.2
+    r_upper = 1.0
+    m_r = 40
 
-    ylower = 0.0
-    yupper = np.pi*2.0
-    my = 120
+    theta_lower = 0.0
+    theta_upper = np.pi*2.0
+    m_theta = 120
 
-    x = pyclaw.Dimension('x',xlower,xupper,mx)
-    y = pyclaw.Dimension('y',ylower,yupper,my)
-    domain = pyclaw.Domain([x,y])
+    r     = pyclaw.Dimension('r',    r_lower,r_upper,m_r)
+    theta = pyclaw.Dimension('theta',theta_lower,theta_upper,m_theta)
+    domain = pyclaw.Domain([r,theta])
     domain.grid.mapc2p = mapc2p_annulus
 
-    # State:
-    num_eqn = 1  # Number of equations
+    num_eqn = 1
     state = pyclaw.State(domain,num_eqn)
 
-    
-    # Set initial solution
-    # ====================
-    qinit(state,mx,my) # This function is defined above
+    qinit(state)
 
-    # Set auxiliary array
-    # ===================
-    state.aux = setaux(state,mx,my) # This function is defined above
-    state.index_capa = 2
+    dx, dy = state.grid.delta
+    p_corners = state.grid.p_edges
+    state.aux = edge_velocities_and_area(p_corners[0],p_corners[1],dx,dy)
+    state.index_capa = 2 # aux[2,:,:] holds the capacity function
 
-    
-    #===========================================================================
-    # Set up controller and controller parameters
-    #===========================================================================
     claw = pyclaw.Controller()
-    claw.keep_copy = False
-    claw.output_style = 1
-    claw.num_output_times = 10
     claw.tfinal = 1.0
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
@@ -258,43 +215,19 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     return claw
 
 
-#--------------------------
 def setplot(plotdata):
-#--------------------------
     """ 
-    Specify what is to be plotted at each frame.
-    Input:  plotdata, an instance of visclaw.data.ClawPlotData.
-    Output: a modified version of plotdata.
+    Plot solution using VisClaw.
     """
     from mapc2p import mapc2p
     import numpy as np
     from clawpack.visclaw import colormaps
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
+    plotdata.mapc2p = mapc2p
     
-    # Figure for pcolor plot
-    plotfigure = plotdata.new_plotfigure(name='q[0]', figno=0)
-
-    # Set up for axes in this figure:
-    plotaxes = plotfigure.new_plotaxes()
-    plotaxes.xlimits = 'auto'
-    plotaxes.ylimits = 'auto'
-    plotaxes.title = 'q[0]'
-    plotaxes.afteraxes = "pylab.axis('scaled')" 
-
-    # Set up for item on these axes:
-    plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
-    plotitem.plot_var = 0
-    plotitem.pcolor_cmap = colormaps.red_yellow_blue
-    plotitem.pcolor_cmin = -1.
-    plotitem.pcolor_cmax = 1.
-    plotitem.add_colorbar = True
-    plotitem.MappedGrid = True
-    plotitem.mapc2p = mapc2p
-
-
     # Figure for contour plot
-    plotfigure = plotdata.new_plotfigure(name='contour', figno=1)
+    plotfigure = plotdata.new_plotfigure(name='contour', figno=0)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
@@ -310,7 +243,26 @@ def setplot(plotdata):
     plotitem.contour_colors = 'k'
     plotitem.patchedges_show = 1
     plotitem.MappedGrid = True
-    plotitem.mapc2p = mapc2p
+
+    # Figure for pcolor plot
+    plotfigure = plotdata.new_plotfigure(name='q[0]', figno=1)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.xlimits = 'auto'
+    plotaxes.ylimits = 'auto'
+    plotaxes.title = 'q[0]'
+    plotaxes.scaled = True
+
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
+    plotitem.plot_var = 0
+    plotitem.pcolor_cmap = colormaps.red_yellow_blue
+    plotitem.pcolor_cmin = -1.
+    plotitem.pcolor_cmax = 1.
+    plotitem.add_colorbar = True
+    plotitem.MappedGrid = True
+
 
     return plotdata
 

@@ -137,7 +137,7 @@ class Grid(object):
         self.compute_c_edges(self)
         return self._c_edges
     _c_edges = None
-    def c_edges_with_ghost(self):
+    def c_edges_with_ghost(self,num_ghost):
         r"""(list of ndarray(...)) - List containing the arrays locating
                   the computational locations of cell edges, see 
                   :meth:`compute_c_edges` for more info."""
