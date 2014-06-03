@@ -96,10 +96,10 @@ def velocities_upper(state,dim,t,auxbc,num_ghost):
 
         Xp,Yp = mapc2p(Xc,Yc)
 
-        auxbc[:,-num_ghost:,:] = velocities_capa(Xp,Yp,dx,dy)
+        auxbc[:,-num_ghost:,:-1] = velocities_capa(Xp[-num_ghost-1:,:],Yp[-num_ghost-1:,:],dx,dy)
 
     else:
-        raise Exception('Custum BC for this boundary is not appropriate!')
+        raise Exception('Custom BC for this boundary is not appropriate!')
 
 
 def velocities_lower(state,dim,t,auxbc,num_ghost):
@@ -123,7 +123,7 @@ def velocities_lower(state,dim,t,auxbc,num_ghost):
         auxbc[:,0:num_ghost,:] = velocities_capa(xp,yp,dxc,dyc)
 
     else:
-        raise Exception('Custum BC for this boundary is not appropriate!')
+        raise Exception('Custom BC for this boundary is not appropriate!')
 
 
 def velocities_capa(xp,yp,dx,dy):

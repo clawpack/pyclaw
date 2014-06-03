@@ -178,7 +178,7 @@ def gen_variants(application, verifier, kernel_languages=('Fortran',), **kwargs)
 def build_variant_arg_dicts(kernel_languages=('Fortran',)):
     import itertools
 
-    # only test petsc4py if it is available
+    # test petsc4py only if it is available
     try:
         import petsc4py
         use_petsc_opts=(True,False)
