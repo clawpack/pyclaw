@@ -30,10 +30,9 @@ import numpy as np
 from clawpack import riemann
 from scipy import integrate
 
-gamma = 1.4
+gamma = 1.4 # Ratio of specific heats
 gamma1 = gamma - 1.
 x0=0.5; y0=0.; r0=0.2
-xshock = 0.2
 
 
 def ycirc(x,ymin,ymax):
@@ -49,21 +48,24 @@ def qinit(state,rhoin=0.1,pinf=5.):
     rhoout = 1.
     pout   = 1.
     pin    = 1.
+    xshock = 0.2
 
     rinf = (gamma1 + pinf*(gamma+1.))/ ((gamma+1.) + gamma1*pinf)
     vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
     einf = 0.5*rinf*vinf**2 + pinf/gamma1
     
     X, Y = grid.p_centers
+
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
 
+    #First set the values for the cells that don't intersect the bubble boundary
     state.q[0,:,:] = rinf*(X<xshock) + rhoin*(r<=r0) + rhoout*(r>r0)*(X>=xshock)
     state.q[1,:,:] = rinf*vinf*(X<xshock)
     state.q[2,:,:] = 0.
     state.q[3,:,:] = einf*(X<xshock) + (pin*(r<=r0) + pout*(r>r0)*(X>=xshock))/gamma1
     state.q[4,:,:] = 1.*(r<=r0)
 
-    #Now average for the cells on the edge of the bubble
+    #Now compute average density for the cells on the edge of the bubble
     d2 = np.linalg.norm(state.grid.delta)/2.
     dx = state.grid.delta[0]
     dy = state.grid.delta[1]
@@ -71,24 +73,26 @@ def qinit(state,rhoin=0.1,pinf=5.):
     dy2 = state.grid.delta[1]/2.
     for i in xrange(state.q.shape[1]):
         for j in xrange(state.q.shape[2]):
-            ydown = y[j]-dy2
-            yup   = y[j]+dy2
+            ydown = Y[i,j]-dy2
+            yup   = Y[i,j]+dy2
             if abs(r[i,j]-r0)<d2:
-                infrac,abserr = integrate.quad(ycirc,x[i]-dx2,x[i]+dx2,args=(ydown,yup),epsabs=1.e-8,epsrel=1.e-5)
+                infrac,abserr = integrate.quad(ycirc,X[i,j]-dx2,X[i,j]+dx2,args=(ydown,yup),epsabs=1.e-8,epsrel=1.e-5)
                 infrac=infrac/(dx*dy)
                 state.q[0,i,j] = rhoin*infrac + rhoout*(1.-infrac)
                 state.q[3,i,j] = (pin*infrac + pout*(1.-infrac))/gamma1
                 state.q[4,i,j] = 1.*infrac
 
+
 def auxinit(state):
     """
-    aux[1,i,j] = y-coordinate of cell centers for cylindrical source terms
+    aux[1,i,j] = radial coordinate of cell centers for cylindrical source terms
     """
-    y=state.grid.y.centers
-    for j,ycoord in enumerate(y):
-        state.aux[0,:,j] = ycoord
+    y = state.grid.y.centers
+    for j,r in enumerate(y):
+        state.aux[0,:,j] = r
 
-def shockbc(state,dim,t,qbc,num_ghost):
+
+def incoming_shock(state,dim,t,qbc,num_ghost):
     """
     Incoming shock at left boundary.
     """
@@ -104,20 +108,18 @@ def shockbc(state,dim,t,qbc,num_ghost):
         qbc[3,i,...] = einf
         qbc[4,i,...] = 0.
 
+
 def step_Euler_radial(solver,state,dt):
     """
-    Geometric source terms for Euler equations with radial symmetry.
+    Geometric source terms for Euler equations with cylindrical symmetry.
     Integrated using a 2-stage, 2nd-order Runge-Kutta method.
-    This is a Clawpack-style source term routine.
+    This is a Clawpack-style source term routine, which approximates
+    the integral of the source terms over a step.
     """
-    
     dt2 = dt/2.
-    ndim = 2
 
-    aux=state.aux
     q = state.q
-
-    rad = aux[0,:,:]
+    rad = state.aux[0,:,:]
 
     rho = q[0,:,:]
     u   = q[1,:,:]/rho
@@ -145,13 +147,11 @@ def step_Euler_radial(solver,state,dt):
 def dq_Euler_radial(solver,state,dt):
     """
     Geometric source terms for Euler equations with radial symmetry.
-    Integrated using a 2-stage, 2nd-order Runge-Kutta method.
-    This is a SharpClaw-style source term routine.
+    This is a SharpClaw-style source term routine, which returns
+    the value of the source terms.
     """
     q   = state.q
-    aux = state.aux
-
-    rad = aux[0,:,:]
+    rad = state.aux[0,:,:]
 
     rho = q[0,:,:]
     u   = q[1,:,:]/rho
@@ -168,34 +168,24 @@ def dq_Euler_radial(solver,state,dt):
 
     return dq
 
-def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',
-          outdir='_output', disable_output=False, mx=320, my=80, tfinal=0.6,
-          num_output_times = 10):
-    """
-    Solve the Euler equations of compressible fluid dynamics.
-    This example involves a bubble of dense gas that is impacted by a shock.
-    """
-
+def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_language='Fortran',
+        disable_output=False, mx=320, my=80, tfinal=0.6, num_output_times = 10):
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
         from clawpack import pyclaw
 
-    if kernel_language != 'Fortran':
-        raise Exception('Unrecognized value of kernel_language for Euler Shockbubble')
-
-    
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D(riemann.euler_5wave_2D)
-        solver.dq_src=dq_Euler_radial
-        solver.weno_order=5
-        solver.lim_type=2
+        solver.dq_src = dq_Euler_radial
+        solver.weno_order = 5
+        solver.lim_type   = 2
     else:
         solver = pyclaw.ClawSolver2D(riemann.euler_5wave_2D)
+        solver.step_source = step_Euler_radial
+        solver.source_split = 1
         solver.limiters = [4,4,4,4,2]
-        solver.step_source=step_Euler_radial
 
-    # Initialize domain
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
     domain = pyclaw.Domain([x,y])
@@ -211,8 +201,8 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',
     solver.cfl_max = 0.5
     solver.cfl_desired = 0.45
     solver.dt_initial=0.005
-    solver.user_bc_lower=shockbc
-    solver.source_split = 1
+    solver.user_bc_lower = incoming_shock
+
     solver.bc_lower[0]=pyclaw.BC.custom
     solver.bc_upper[0]=pyclaw.BC.extrap
     solver.bc_lower[1]=pyclaw.BC.wall
