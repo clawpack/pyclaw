@@ -28,7 +28,6 @@ This problem demonstrates:
 
 import numpy as np
 from clawpack import riemann
-from scipy import integrate
 
 gamma = 1.4 # Ratio of specific heats
 gamma1 = gamma - 1.
@@ -42,6 +41,7 @@ def ycirc(x,ymin,ymax):
         return 0
 
 def qinit(state,rhoin=0.1,pinf=5.):
+    from scipy import integrate
 
     grid = state.grid
 

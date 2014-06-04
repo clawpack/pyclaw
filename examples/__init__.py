@@ -11,7 +11,7 @@ from euler_1d import woodward_colella_blast
 from euler_2d import shock_bubble_interaction
 from kpp import kpp
 from psystem_2d import psystem_2d
-from shallow_1d import shallow_water_shocktube
+from shallow_1d import dam_break
 from shallow_2d import radial_dam_break
 from shallow_sphere import Rossby_wave
 from stegoton_1d import stegoton
