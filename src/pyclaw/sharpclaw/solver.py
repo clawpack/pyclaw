@@ -646,7 +646,8 @@ class SharpClawSolver1D(SharpClawSolver):
             if self.tfluct_solver:
                 tfluct1 = self.tfluct.tfluct1._cpointer
             else:
-                tfluct1 = None
+                from clawpack.pyclaw.sharpclaw.sharpclaw1 import tfluct as tfluct1 
+                tfluct1 = tfluct1._cpointer
 
             dq,cfl=self.fmod.flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.num_ghost,mx,rp1,tfluct1)
 
