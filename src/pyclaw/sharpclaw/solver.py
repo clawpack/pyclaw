@@ -643,7 +643,12 @@ class SharpClawSolver1D(SharpClawSolver):
 
         if self.kernel_language=='Fortran':
             rp1 = self.rp.rp1._cpointer
-            dq,cfl=self.fmod.flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.num_ghost,mx,rp1)
+            if self.tfluct_solver:
+                tfluct1 = self.tfluct.tfluct1._cpointer
+            else:
+                tfluct1 = None
+
+            dq,cfl=self.fmod.flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.num_ghost,mx,rp1,tfluct1)
 
         elif self.kernel_language=='Python':
 
