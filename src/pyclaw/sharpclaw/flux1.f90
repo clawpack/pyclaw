@@ -150,11 +150,11 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
         ! NOTE that here amdq2 is really a total fluctuation (should be
         ! called adq); we do it this way just to avoid declaring more storage
         if (num_dim.eq.1) then
-            call tfluct(maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr, &
-                         aux,aux,amdq2)
+            call tfluct(maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,&
+                        ql,qr,aux,aux,amdq2)
         else
-            call tfluct(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr, &
-                         aux,aux,amdq2)
+            call tfluct(ixyz,maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,&
+                        ql,qr,aux,aux,amdq2)
         endif
 
         ! Modify q using fluctuations:
