@@ -8,20 +8,17 @@ Shallow water flow
 Solve the one-dimensional shallow water equations:
 
 .. math::
-    h_t + (hu)_x + (hv)_y & = 0 \\
-    (hu)_t + (hu^2 + \frac{1}{2}gh^2)_x + (huv)_y & = 0 \\
-    (hv)_t + (huv)_x + (hv^2 + \frac{1}{2}gh^2)_y & = 0.
+    h_t + (hu)_x & = 0 \\
+    (hu)_t + (hu^2 + \frac{1}{2}gh^2)_x & = 0.
 
-Here h is the depth, (u,v) is the velocity, and g is the gravitational constant.
+Here h is the depth, u is the velocity, and g is the gravitational constant.
+The default initial condition used here models a dam break.
 """
 
-    
+import numpy as np
+from clawpack import riemann
+
 def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_type='classic'):
-    #===========================================================================
-    # Import libraries
-    #===========================================================================
-    import numpy as np
-    from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -39,17 +36,11 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver1D(rs)
 
-    #===========================================================================
-    # Setup solver and solver parameters
-    #===========================================================================
     solver.kernel_language=kernel_language
 
     solver.bc_lower[0] = pyclaw.BC.extrap
     solver.bc_upper[0] = pyclaw.BC.extrap
 
-    #===========================================================================
-    # Initialize domain and then initialize the solution associated to the domain
-    #===========================================================================
     xlower = -5.0
     xupper = 5.0
     mx = 500
@@ -58,12 +49,12 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
     num_eqn = 2
     state = pyclaw.State(domain,num_eqn)
 
-    # Parameters
+    # Gravitational constant
     state.problem_data['grav'] = 1.0
     
     xc = state.grid.x.centers
 
-    IC='2-shock'
+    IC='dam-break'
     x0=0.
 
     if IC=='dam-break':
@@ -85,9 +76,6 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
         state.q[0,:] = 1.0 + eps*np.exp(-(xc-x0)**2/0.5)
         state.q[1,:] = 0.
 
-    #===========================================================================
-    # Setup controller and controller paramters
-    #===========================================================================
     claw = pyclaw.Controller()
     claw.keep_copy = True
     claw.tfinal = 2.0

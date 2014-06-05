@@ -5,41 +5,38 @@
 Solve the 2D shallow water equations:
 
 .. :math:
-    h_t + (hu)_x + (hu)_y & = 0 \\
-    (hu)_t + (
+    h_t + (hu)_x + (hv)_y & = 0 \\
+    (hu)_t + (hu^2 + \frac{1}{2}gh^2)_x + (huv)_y & = 0 \\
+    (hv)_t + (huv)_x + (hv^2 + \frac{1}{2}gh^2)_y & = 0.
+
+The initial condition is a circular area with high depth surrounded by lower-depth water.
+The top and right boundary conditions reflect, while the bottom and left boundaries
+are outflow.
 """
-#===========================================================================
-# Import libraries
-#===========================================================================
 
 import numpy as np
+from clawpack import riemann
 
-def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
+def qinit(state,h_in=2.,h_out=1.,dam_radius=0.5):
     x0=0.
     y0=0.
-    xCenter = state.grid.x.centers
-    yCenter = state.grid.y.centers
-    Y,X = np.meshgrid(yCenter,xCenter)
+    X, Y = state.p_centers
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
-    state.q[0,:,:] = hl*(r<=radDam) + hr*(r>radDam)
-    state.q[1,:,:] = hl*ul*(r<=radDam) + hr*ur*(r>radDam)
-    state.q[2,:,:] = hl*vl*(r<=radDam) + hr*vr*(r>radDam)
+
+    # Height
+    state.q[0,:,:] = h_in*(r<=dam_radius) + h_out*(r>dam_radius)
+    # x-momentum
+    state.q[1,:,:] = 0.
+    # y-momentum
+    state.q[2,:,:] = 0.
 
     
 def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
-    #===========================================================================
-    # Import libraries
-    #===========================================================================
-    from clawpack import riemann
-
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
         from clawpack import pyclaw
 
-    #===========================================================================
-    # Setup solver and solver parameters
-    #===========================================================================
     if solver_type == 'classic':
         solver = pyclaw.ClawSolver2D(riemann.shallow_roe_with_efix_2D)
         solver.limiters = pyclaw.limiters.tvd.MC
@@ -51,11 +48,6 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     solver.bc_upper[0] = pyclaw.BC.wall
     solver.bc_lower[1] = pyclaw.BC.extrap
     solver.bc_upper[1] = pyclaw.BC.wall
-
-    #===========================================================================
-    # Initialize domain and state, then initialize the solution associated to the 
-    # state and finally initialize aux array
-    #===========================================================================
 
     # Domain:
     xlower = -2.5
@@ -70,25 +62,11 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
 
     state = pyclaw.State(domain,solver.num_eqn)
 
-    grav = 1.0 # Parameter (global auxiliary variable)
-    state.problem_data['grav'] = grav
+    # Gravitational constant
+    state.problem_data['grav'] = 1.0
 
-    # Initial solution
-    # ================
-    # Riemann states of the dam break problem
-    damRadius = 0.5
-    hl = 2.
-    ul = 0.
-    vl = 0.
-    hr = 1.
-    ur = 0.
-    vr = 0.
-    
-    qinit(state,hl,ul,vl,hr,ur,vr,damRadius) # This function is defined above
+    qinit(state)
 
-    #===========================================================================
-    # Set up controller and controller parameters
-    #===========================================================================
     claw = pyclaw.Controller()
     claw.tfinal = 2.5
     claw.solution = pyclaw.Solution(state,domain)

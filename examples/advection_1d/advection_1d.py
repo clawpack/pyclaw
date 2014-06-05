@@ -16,45 +16,44 @@ The initial condition is a Gaussian and the boundary conditions are periodic.
 The final solution is identical to the initial data because the wave has
 crossed the domain exactly once.
 """
+import numpy as np
+from clawpack import riemann
 
 def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5, 
-        time_integrator='SSP104', outdir='./_output'):
-    import numpy as np
-    from clawpack import riemann
+          time_integrator='SSP104', outdir='./_output'):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
         from clawpack import pyclaw
 
+    if kernel_language == 'Fortran':
+        riemann_solver = riemann.advection_1D
+    elif kernel_language == 'Python':
+        riemann_solver = riemann.advection_1D_py.advection_1D
+            
     if solver_type=='classic':
-        if kernel_language == 'Fortran':
-            solver = pyclaw.ClawSolver1D(riemann.advection_1D)
-        elif kernel_language=='Python': 
-            solver = pyclaw.ClawSolver1D(riemann.advection_1D_py.advection_1D)
+        solver = pyclaw.ClawSolver1D(riemann_solver)
     elif solver_type=='sharpclaw':
-        if kernel_language == 'Fortran':
-            solver = pyclaw.SharpClawSolver1D(riemann.advection_1D)
-        elif kernel_language=='Python': 
-            solver = pyclaw.SharpClawSolver1D(riemann.advection_1D_py.advection_1D)
-        solver.weno_order=weno_order
-        solver.time_integrator=time_integrator
+        solver = pyclaw.SharpClawSolver1D(riemann_solver)
+        solver.weno_order = weno_order
+        solver.time_integrator = time_integrator
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language
 
-    solver.bc_lower[0] = 2
-    solver.bc_upper[0] = 2
+    solver.bc_lower[0] = pyclaw.BC.periodic
+    solver.bc_upper[0] = pyclaw.BC.periodic
 
     x = pyclaw.Dimension('x',0.0,1.0,nx)
     domain = pyclaw.Domain(x)
-    num_eqn = 1
-    state = pyclaw.State(domain,num_eqn)
-    state.problem_data['u']=1.
+    state = pyclaw.State(domain,solver.num_eqn)
 
-    grid = state.grid
-    xc=grid.x.centers
-    beta=100; gamma=0; x0=0.75
+    state.problem_data['u'] = 1.  # Advection velocity
+
+    # Initial data
+    xc = state.grid.x.centers
+    beta = 100; gamma = 0; x0 = 0.75
     state.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
 
     claw = pyclaw.Controller()
@@ -72,13 +71,9 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
 
     return claw
 
-#--------------------------
 def setplot(plotdata):
-#--------------------------
     """ 
-    Specify what is to be plotted at each frame.
-    Input:  plotdata, an instance of visclaw.data.ClawPlotData.
-    Output: a modified version of plotdata.
+    Plot solution using VisClaw.
     """ 
     plotdata.clearfigures()  # clear any old figures,axes,items data
 

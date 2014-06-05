@@ -21,8 +21,8 @@ use gauges, compute output functionals, and restart a simulation
 from a checkpoint.
 """
 
-
 import numpy as np
+from clawpack import riemann
 
 def qinit(state,A,x0,y0,varx,vary):
     r""" Set initial conditions:
@@ -60,7 +60,7 @@ def setaux(x,y, KA=1, KB=4, rhoA=1, rhoB=4, stress_rel=2):
                   +rhoA*(xf >alphax*deltax)*(yf >alphay*deltay)\
                   +rhoB*(xf >alphax*deltax)*(yf<=alphay*deltay)\
                   +rhoB*(xf<=alphax*deltax)*(yf >alphay*deltay)
-        #Young modulus
+        #Young's modulus
         aux[1,:,:]=KA*(xf<=alphax*deltax)*(yf<=alphay*deltay)\
                   +KA*(xf >alphax*deltax)*(yf >alphay*deltay)\
                   +KB*(xf >alphax*deltax)*(yf<=alphay*deltay)\
@@ -125,11 +125,6 @@ def gauge_stress(q,aux):
 def setup(kernel_language='Fortran',
               use_petsc=False,outdir='./_output',solver_type='classic',
               disable_output=False, cells_per_layer=30, tfinal=18.):
-
-    """
-    Solve the p-system in 2D with variable coefficients
-    """
-    from clawpack import riemann
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
