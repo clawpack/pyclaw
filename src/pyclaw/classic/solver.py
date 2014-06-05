@@ -419,7 +419,7 @@ class ClawSolver2D(ClawSolver):
     .. attribute:: transverse_waves
     
         If dimensional_split is True, this option has no effect.  If
-        dim_plit is False, then transverse_waves should be one of
+        dimensional_split is False, then transverse_waves should be one of
         the following values:
 
         ClawSolver2D.no_trans: Transverse Riemann solver
@@ -523,7 +523,11 @@ class ClawSolver2D(ClawSolver):
             qold = self.qbc.copy('F')
             
             rpn2 = self.rp.rpn2._cpointer
-            rpt2 = self.rp.rpt2._cpointer
+
+            if (self.dimensional_split) or (self.transverse_waves==0):
+                rpt2 = rpn2 # dummy value; it won't be called
+            else:
+                rpt2 = self.rp.rpt2._cpointer
 
             if self.dimensional_split:
                 #Right now only Godunov-dimensional-splitting is implemented.
@@ -671,12 +675,17 @@ class ClawSolver3D(ClawSolver):
             qold = qnew.copy('F')
             
             rpn3  = self.rp.rpn3._cpointer
-            rpt3  = self.rp.rpt3._cpointer
-            rptt3 = self.rp.rptt3._cpointer
+
+            if (self.dimensional_split) or (self.transverse_waves==0):
+                rpt3  = rpn3 # dummy value; it won't be called
+                rptt3 = rpn3 # dummy value; it won't be called
+            else:
+                rpt3  = self.rp.rpt3._cpointer
+                rptt3 = self.rp.rptt3._cpointer
 
             if self.dimensional_split:
                 #Right now only Godunov-dimensional-splitting is implemented.
-                #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
+                #Strang-dimensional-splitting could be added following dimsp3.f in Clawpack.
 
                 q, cfl_x = self.fmod.step3ds(maxm,self.num_ghost,mx,my,mz, \
                       qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
