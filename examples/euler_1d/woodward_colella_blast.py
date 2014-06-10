@@ -24,24 +24,24 @@ This example also demonstrates:
 """
 from clawpack import riemann
 
-# Compile Fortran code if not already compiled
-try:
-    import sharpclaw1
-except ImportError:
-    import os
-    from clawpack.pyclaw.util import inplace_build
-    this_dir = os.path.dirname(__file__)
-    if this_dir == '':
-        this_dir = os.path.abspath('.')
-    inplace_build(this_dir)
-    try:
-        # Now try to import again
-        import sharpclaw1
-    except ImportError:
-        import logging
-        logger = logging.getLogger()
-        logger.warn('unable to compile Fortran modules; some SharpClaw options will not be available for this example')
-        raise
+# # Compile Fortran code if not already compiled
+# try:
+#     import sharpclaw1
+# except ImportError:
+#     import os
+#     from clawpack.pyclaw.util import inplace_build
+#     this_dir = os.path.dirname(__file__)
+#     if this_dir == '':
+#         this_dir = os.path.abspath('.')
+#     inplace_build(this_dir)
+#     try:
+#         # Now try to import again
+#         import sharpclaw1
+#     except ImportError:
+#         import logging
+#         logger = logging.getLogger()
+#         logger.warn('unable to compile Fortran modules; some SharpClaw options will not be available for this example')
+#         raise
 
 gamma = 1.4 # Ratio of specific heats
 gamma1 = gamma - 1.
@@ -58,17 +58,22 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
     elif kernel_language =='Fortran':
         rs = riemann.euler_with_efix_1D
 
+
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(rs)
         solver.time_integrator = 'SSP33'
         solver.cfl_max = 0.65
         solver.cfl_desired = 0.6
+        #solver.rp = rs
+        solver.tfluct_solver = True
+        if solver.tfluct_solver:
+            import shock_tfluct
+            solver.tfluct = shock_tfluct
+        solver.lim_type = 1
+        solver.char_decomp = 2
         try:
             import sharpclaw1
             solver.fmod = sharpclaw1
-            solver.tfluct_solver = True
-            solver.lim_type = 1     # TVD reconstruction 
-            solver.char_decomp = 2  # characteristic-wise reconstructiong
         except ImportError:
             pass
     elif solver_type=='classic':

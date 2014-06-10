@@ -2,13 +2,17 @@ F2PY = f2py
 
 SHARPCLAW = ../../src/pyclaw/sharpclaw
 
-ONE_D_SHARPCLAW_SOURCES = evec.f90 tfluct.f90 $(SHARPCLAW)/flux1.f90 $(SHARPCLAW)/ClawParams.f90 $(SHARPCLAW)/workspace.f90 $(SHARPCLAW)/weno.f90 $(SHARPCLAW)/reconstruct.f90
+ONE_D_SHARPCLAW_SOURCES = evec.f90 $(SHARPCLAW)/tfluct.f90 $(SHARPCLAW)/flux1.f90 $(SHARPCLAW)/ClawParams.f90 $(SHARPCLAW)/workspace.f90 $(SHARPCLAW)/weno.f90 $(SHARPCLAW)/reconstruct.f90
 
 all: 
 	make sharpclaw1.so
+	make shock_tfluct.so
 
 sharpclaw1.so: $(ONE_D_SHARPCLAW_SOURCES) 
 	${F2PY} -m sharpclaw1 -c $(ONE_D_SHARPCLAW_SOURCES) 
+
+shock_tfluct.so: tfluct.f90
+	f2py -m $(basename $(notdir $@)) -c $^
 
 clean:
 	rm -f *.o *.so *.pyc *.log
