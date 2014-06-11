@@ -1,5 +1,5 @@
 ! ============================================================================
-subroutine tfluct1(maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,ql,qr,auxl,auxr,amdq2)
+subroutine tfluct1(maxnx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,amdq2)
 ! ============================================================================
 !   "Internal" Riemann solver for the euler equations in 1D.
 !   The riemann problem is solved by assuming a discontinuity at the
@@ -10,8 +10,8 @@ subroutine tfluct1(maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,ql,qr,auxl,auxr,
 !             auxl contains the auxiliary vector at the left edge of each cell
 !             auxr contains the state vector at the right edge of each cell
 !             maxnx is the number of physical points (without ghost cells)
-!             num_ghost is the number of ghost cells
-!             num_eqn is the number of equations
+!             mbc is the number of ghost cells
+!             meqn is the number of equations
 !             ixyz is the dimension index
 !             mx is the size of the patch for the dimension corresponding
 !               to the value of ixyz
@@ -28,13 +28,13 @@ subroutine tfluct1(maxnx,num_eqn,num_waves,num_aux,num_ghost,mx,ql,qr,auxl,auxr,
 
 
     implicit none
-    integer,          intent(in)  :: maxnx, mx, num_eqn, num_waves, num_aux, num_ghost
-    double precision, intent(in)  :: auxl(num_aux,1-num_ghost:maxnx+num_ghost)
-    double precision, intent(in)  :: auxr(num_aux,1-num_ghost:maxnx+num_ghost)
-    double precision, intent(in)  ::   ql(num_eqn,1-num_ghost:maxnx+num_ghost)
-    double precision, intent(in)  ::   qr(num_eqn,1-num_ghost:maxnx+num_ghost)
+    integer,          intent(in)  :: maxnx, mx, meqn, mwaves, maux, mbc
+    double precision, intent(in)  :: auxl(maux,1-mbc:maxnx+mbc)
+    double precision, intent(in)  :: auxr(maux,1-mbc:maxnx+mbc)
+    double precision, intent(in)  ::   ql(meqn,1-mbc:maxnx+mbc)
+    double precision, intent(in)  ::   qr(meqn,1-mbc:maxnx+mbc)
 
-    double precision, intent(out) :: amdq2(num_eqn,1-num_ghost:maxnx+num_ghost)
+    double precision, intent(out) :: amdq2(meqn,1-mbc:maxnx+mbc)
 
     integer :: i
     double precision :: gamma, gamma1

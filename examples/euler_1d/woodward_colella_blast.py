@@ -24,29 +24,30 @@ This example also demonstrates:
 """
 from clawpack import riemann
 
-# # Compile Fortran code if not already compiled
-# try:
-#     import sharpclaw1
-# except ImportError:
-#     import os
-#     from clawpack.pyclaw.util import inplace_build
-#     this_dir = os.path.dirname(__file__)
-#     if this_dir == '':
-#         this_dir = os.path.abspath('.')
-#     inplace_build(this_dir)
-#     try:
-#         # Now try to import again
-#         import sharpclaw1
-#     except ImportError:
-#         import logging
-#         logger = logging.getLogger()
-#         logger.warn('unable to compile Fortran modules; some SharpClaw options will not be available for this example')
-#         raise
+# Compile Fortran code if not already compiled
+try:
+    import sharpclaw1
+except ImportError:
+    import os
+    from clawpack.pyclaw.util import inplace_build
+    this_dir = os.path.dirname(__file__)
+    if this_dir == '':
+        this_dir = os.path.abspath('.')
+    inplace_build(this_dir)
+    try:
+        # Now try to import again
+        import sharpclaw1
+    except ImportError:
+        import logging
+        logger = logging.getLogger()
+        logger.warn('unable to compile Fortran modules; some SharpClaw options will not be available for this example')
+        print 'unable to compile Fortran modules; some SharpClaw options will not be available for this example'
+        raise
 
 gamma = 1.4 # Ratio of specific heats
 gamma1 = gamma - 1.
 
-def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_language='Fortran'):
+def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_language='Fortran',tfluct_solver=True):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -58,17 +59,22 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
     elif kernel_language =='Fortran':
         rs = riemann.euler_with_efix_1D
 
-
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(rs)
         solver.time_integrator = 'SSP33'
         solver.cfl_max = 0.65
         solver.cfl_desired = 0.6
-        #solver.rp = rs
-        solver.tfluct_solver = True
+        solver.tfluct_solver = tfluct_solver
         if solver.tfluct_solver:
-            import shock_tfluct
-            solver.tfluct = shock_tfluct
+            try:
+                import euler_tfluct
+                solver.tfluct = euler_tfluct
+            except ImportError:
+                import logging
+                logger = logging.getLogger()
+                logger.error('Unable to load tfluct solver '+ tfluct+', did you run make?')
+                print 'Unable to load tfluct solver '+ tfluct+', did you run make?'
+                raise
         solver.lim_type = 1
         solver.char_decomp = 2
         try:
@@ -85,13 +91,13 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
     solver.bc_lower[0]=pyclaw.BC.wall
     solver.bc_upper[0]=pyclaw.BC.wall
 
-    mx=800;
+    mx = 800;
     x = pyclaw.Dimension('x',0.0,1.0,mx)
     domain = pyclaw.Domain([x])
     state = pyclaw.State(domain,solver.num_eqn)
 
-    state.problem_data['gamma']= gamma
-    state.problem_data['gamma1']= gamma1
+    state.problem_data['gamma'] = gamma
+    state.problem_data['gamma1'] = gamma1
     if kernel_language =='Python':
         state.problem_data['efix'] = False
 
