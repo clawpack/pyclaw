@@ -208,6 +208,7 @@ class SharpClawSolver(Solver):
                 self.fmod = __import__(so_name,fromlist=['clawpack.pyclaw.sharpclaw'])
             state.set_cparam(self.fmod)
             state.set_cparam(self.rp)
+            state.set_cparam(self.tfluct)
             self._set_fortran_parameters(state,self.fmod.clawparams,self.fmod.workspace,self.fmod.reconstruct)
 
         self._allocate_bc_arrays(state)
