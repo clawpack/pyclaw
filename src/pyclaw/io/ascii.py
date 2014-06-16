@@ -151,7 +151,8 @@ def write_array(f,patch,q):
 def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 options={}):
     r"""
-    Read in a set of ascii formatted files
+    Read in a frame of ascii formatted files, and enter the data into the
+    solution object.
     
     This routine reads the ascii formatted files corresponding to the classic
     clawpack format 'fort.txxxx', 'fort.qxxxx', and 'fort.axxxx' or 'fort.aux'
@@ -267,7 +268,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
             # Should give a better warning message in line below where
             # IOError exception is raised.
         else:
-            logger.info("Unable to open auxillary file %s or %s" % (fname1,fname2))
+            logger.debug("Unable to open auxillary file %s or %s" % (fname1,fname2))
             return
             
         # Found a valid path, try to open and read it
@@ -347,7 +348,7 @@ def read_t(frame,path='./',file_prefix='fort'):
 
 def read_array(f, state, num_var):
     """
-    Read in an array from an ASCII output file.  
+    Read in an array from an ASCII output file f.
 
     The variable q here may in fact refer to q or to aux.
 
