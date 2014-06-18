@@ -25,6 +25,7 @@ subroutine flux2(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn2,tf
 ! Dummy interface just so f2py doesn't complain:
 !f2py real(DP) x
 !f2py x=rpn2(x)
+!f2py x=tfluct2(x)
 
     ! Local variables
     integer :: i,j,m
