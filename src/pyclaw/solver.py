@@ -159,6 +159,7 @@ class Solver(object):
         self.qbc = None
         self.auxbc = None
         self.rp = None
+        self.tfluct = None
         self.fmod = None
         self._is_set_up = False
 

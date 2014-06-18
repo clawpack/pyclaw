@@ -208,6 +208,7 @@ class SharpClawSolver(Solver):
                 self.fmod = __import__(so_name,fromlist=['clawpack.pyclaw.sharpclaw'])
             state.set_cparam(self.fmod)
             state.set_cparam(self.rp)
+            state.set_cparam(self.tfluct)
             self._set_fortran_parameters(state,self.fmod.clawparams,self.fmod.workspace,self.fmod.reconstruct)
 
         self._allocate_bc_arrays(state)
@@ -643,7 +644,13 @@ class SharpClawSolver1D(SharpClawSolver):
 
         if self.kernel_language=='Fortran':
             rp1 = self.rp.rp1._cpointer
-            dq,cfl=self.fmod.flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.num_ghost,mx,rp1)
+            if self.tfluct_solver:
+                tfluct1 = self.tfluct.tfluct1._cpointer
+            else:
+                from clawpack.pyclaw.sharpclaw.sharpclaw1 import tfluct as tfluct1
+                tfluct1 = tfluct1._cpointer
+
+            dq,cfl=self.fmod.flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.num_ghost,mx,rp1,tfluct1)
 
         elif self.kernel_language=='Python':
 
@@ -775,7 +782,13 @@ class SharpClawSolver2D(SharpClawSolver):
 
         if self.kernel_language=='Fortran':
             rpn2 = self.rp.rpn2._cpointer
-            dq,cfl=self.fmod.flux2(q,self.auxbc,self.dt,state.t,num_ghost,maxm,mx,my,rpn2)
+            if self.tfluct_solver:
+                tfluct2 = self.tfluct.tfluct2._cpointer
+            else:
+                from clawpack.pyclaw.sharpclaw.sharpclaw2 import tfluct as tfluct2
+                tfluct2 = tfluct2._cpointer
+
+            dq,cfl=self.fmod.flux2(q,self.auxbc,self.dt,state.t,num_ghost,maxm,mx,my,rpn2,tfluct2)
 
         else: raise Exception('Only Fortran kernels are supported in 2D.')
 
@@ -856,7 +869,13 @@ class SharpClawSolver3D(SharpClawSolver):
 
         if self.kernel_language=='Fortran':
             rpn3 = self.rp.rpn3._cpointer
-            dq,cfl=self.fmod.flux3(q,self.auxbc,self.dt,state.t,num_ghost,maxm,mx,my,mz,rpn3)
+            if self.tfluct_solver:
+                tfluct3 = self.tfluct.tfluct3._cpointer
+            else:
+                from clawpack.pyclaw.sharpclaw.sharpclaw3 import tfluct as tfluct3
+                tfluct3 = tfluct3._cpointer
+
+            dq,cfl=self.fmod.flux3(q,self.auxbc,self.dt,state.t,num_ghost,maxm,mx,my,mz,rpn3,tfluct3)
 
         else: raise Exception('Only Fortran kernels are supported in 3D.')
 
