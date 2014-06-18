@@ -91,10 +91,9 @@ class Patch(pyclaw_geometry.Patch):
         max_sizes = self.num_dim * [ 1 ]
 
         nprocs = boxlib.size()
-        if nprocs % 2**self.num_dim == 0:
+        if (self.num_dim > 1) and (nprocs % 2**self.num_dim == 0):
             # divide domain into cubes
             nproc_per_dim = nprocs / 2**self.num_dim + 1
-            print nproc_per_dim
             for d in range(self.num_dim):
                 max_sizes[d] = int(math.ceil(float(hi[d] - lo[d] + 1) / nproc_per_dim))
         else:
