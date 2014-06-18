@@ -1,5 +1,5 @@
 ! ==========================================================
-subroutine flux3(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,mz,rpn3)
+subroutine flux3(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,mz,rpn3,tfluct3)
 ! ==========================================================
 
     ! Evaluate (delta t) *dq/dt
@@ -13,7 +13,7 @@ subroutine flux3(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,mz,rpn3
     use ClawParams
     implicit none
 
-    external :: rpn3
+    external :: rpn3, tfluct3
     integer, intent(in) :: num_aux,num_eqn,num_ghost,maxnx,mx,my,mz
     double precision, intent(in) :: dt,t
     double precision, target, intent(in) :: q(num_eqn,1-num_ghost:mx+num_ghost,1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
@@ -48,7 +48,7 @@ subroutine flux3(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,mz,rpn3
             aux1d => aux(:,:,j,k)
 
             ! compute modification dq1d along this slice:
-            call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,1,num_aux,num_eqn,mx,num_ghost,maxnx,rpn3)
+            call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,1,num_aux,num_eqn,mx,num_ghost,maxnx,rpn3,tfluct3)
             cfl = dmax1(cfl,cfl1d)
 
             forall(i=1:mx, m=1:num_eqn)
@@ -67,7 +67,7 @@ subroutine flux3(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,mz,rpn3
             q1d => q(:,i,:,k)
             aux1d => aux(:,i,:,k)
 
-            call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,2,num_aux,num_eqn,my,num_ghost,maxnx,rpn3)
+            call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,2,num_aux,num_eqn,my,num_ghost,maxnx,rpn3,tfluct3)
             cfl = dmax1(cfl,cfl1d)
 
             forall(j=1:my,m=1:num_eqn)
@@ -85,7 +85,7 @@ subroutine flux3(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,mz,rpn3
             q1d => q(:,i,j,:)
             aux1d => aux(:,i,j,:)
 
-            call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,3,num_aux,num_eqn,mz,num_ghost,maxnx,rpn3)
+            call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,3,num_aux,num_eqn,mz,num_ghost,maxnx,rpn3,tfluct3)
             cfl = dmax1(cfl,cfl1d)
 
             forall(k=1:mz,m=1:num_eqn)
