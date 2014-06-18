@@ -62,12 +62,23 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
                 solver.fmod = sharpclaw1
                 solver.tfluct_solver = tfluct_solver     # Use total fluctuation solver for efficiency
                 if solver.tfluct_solver:
-                    import euler_tfluct
-                    solver.tfluct = euler_tfluct
-                solver.lim_type = 2             # WENO reconstruction 
-                solver.char_decomp = 2          # characteristic-wise reconstruction
+                    try:
+                        import euler_tfluct
+                        solver.tfluct = euler_tfluct
+                    except ImportError:
+                        import logging
+                        logger = logging.getLogger()
+                        logger.error('Unable to load tfluct solver, did you run make?')
+                        print 'Unable to load tfluct solver, did you run make?'
+                        raise
             except ImportError:
+                import logging
+                logger = logging.getLogger()
+                logger.error('Unable to load sharpclaw1 solver, did you run make?')
+                print 'Unable to load sharpclaw1 solver, did you run make?'
                 pass
+            solver.lim_type = 2             # WENO reconstruction
+            solver.char_decomp = 2          # characteristic-wise reconstruction
     else:
         solver = pyclaw.ClawSolver1D(rs)
 

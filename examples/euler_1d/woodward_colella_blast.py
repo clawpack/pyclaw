@@ -72,8 +72,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
             except ImportError:
                 import logging
                 logger = logging.getLogger()
-                logger.error('Unable to load tfluct solver '+ tfluct+', did you run make?')
-                print 'Unable to load tfluct solver '+ tfluct+', did you run make?'
+                logger.error('Unable to load tfluct solver, did you run make?')
+                print 'Unable to load tfluct solver, did you run make?'
                 raise
         solver.lim_type = 1
         solver.char_decomp = 2
