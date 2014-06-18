@@ -1,3 +1,24 @@
+# Changes since 5.1.0
+
+- **Linear multistep methods for timestepping in SharpClaw**: 
+  Previously, only Runge-Kutta time stepping was included in SharpClaw.
+  Now, you can use a linear multistep method by setting `solver.time_integrator`
+  to an appropriate value.  See the docstring of the SharpClawSolver class for
+  details.
+- **Characteristic-wise WENO and TVD reconstructions in SharpClaw** are now available.
+  The user must provide a routine that computes the eigenvectors.  See 
+  `clawpack/pyclaw/examples/euler_1d/`.
+- **Logging control**: it is now easy to modify the logging levels interactively,
+  without modifying the logger files.
+- It is no longer necessary to compile dummy transverse Riemann solvers when using
+  an algorithm with no transverse wave propagation.
+- Add functions to compute cell centers of ghost cells.
+- Tests run in parallel on Travis.
+- Writing of HDF5 and netcdf files now works in serial and parallel.
+- Improvements to examples.
+- Miscellaneous bug fixes.
+
+
 # 5.1.0 release
 
 - SharpClaw: now includes a 3D solver.  See the 3D variable acoustics example.

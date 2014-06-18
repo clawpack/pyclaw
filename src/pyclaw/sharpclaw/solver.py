@@ -56,10 +56,20 @@ class SharpClawSolver(Solver):
 
     .. attribute:: time_integrator
 
-        Time integrator to be used.
-        Euler: forward Euler method.
-        SSP33: 3-stages, 3rd-order SSP Runge-Kutta method.
-        SSP104: 10-stages, 4th-order SSP Runge-Kutta method.
+        Time integrator to be used. Currently implemented methods:
+
+        'Euler'  : 1st-order Forward Euler integration
+        'SSP33'  : 3rd-order strong stability preserving method of Shu & Osher
+        'SSP104' : 4th-order strong stability preserving method Ketcheson
+        'SSPMS32': 2nd-order strong stability preserving 3-step linear multistep method,
+                   using Euler for starting values
+        'SSPMS43': 3rd-order strong stability preserving 4-step linear multistep method
+                   using SSPRK22 for starting values
+        'RK'     : Arbitrary Runge-Kutta method, specified by setting `solver.a`
+                   and `solver.b` to the Butcher arrays of the method.
+        'LMM'    : Arbitrary linear multistep method, specified by setting the
+                   coefficient arrays `solver.alpha` and `solver.beta`.
+
         ``Default = 'SSP104'``
 
     .. attribute:: char_decomp
@@ -233,13 +243,8 @@ class SharpClawSolver(Solver):
     def step(self,solution):
         """Evolve q over one time step.
 
-        Take on Runge-Kutta time step or multistep method using the method specified by
-        self.time_integrator.  Currently implemented methods:
-
-        'Euler'  : 1st-order Forward Euler integration
-        'SSP33'  : 3rd-order strong stability preserving method of Shu & Osher
-        'SSP104' : 4th-order strong stability preserving method Ketcheson
-        'SSPMS32': 2nd-order strong stability preserving 3-step linear multistep method
+        Take one step with a Runge-Kutta or multistep method as specified by
+        `solver.time_integrator`.
         """
         state = solution.states[0]
 
@@ -294,7 +299,7 @@ class SharpClawSolver(Solver):
                     self._registers[-1].q = state.q.copy()
 
                 if self.step_index < 3:
-                    # Using Euler method for previous step values
+                    # Use Euler method for starting values
                     deltaq = self.dq(state)
                     state.q += deltaq
                     self.step_index += 1
@@ -325,7 +330,7 @@ class SharpClawSolver(Solver):
                     self._registers[-1].q = state.q.copy()
 
                 if self.step_index < 4:
-                    # Using SSP22 method for previous step values
+                    # Use SSP22 method for starting values
                     import copy
                     s1 = copy.deepcopy(state)
                     s1.set_num_ghost(self.num_ghost)
@@ -342,7 +347,7 @@ class SharpClawSolver(Solver):
                     H = self._registers[-3].dt + self._registers[-2].dt + self._registers[-1].dt
                     omega3 = H/self.dt
                     omega4 = omega3 + 1.
-                    # ssp coefficient
+                    # SSP coefficient
                     r = (omega3-2.)/omega3
                     # method coefficients
                     delta0 = (4*omega4 - omega3**2)/omega3**3
