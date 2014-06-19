@@ -41,12 +41,13 @@ except ImportError:
         import logging
         logger = logging.getLogger()
         logger.warn('unable to compile Fortran modules; some SharpClaw options will not be available for this example')
+        print 'unable to compile Fortran modules; some SharpClaw options will not be available for this example'
         raise
 
 gamma = 1.4 # Ratio of specific heats
 gamma1 = gamma - 1.
 
-def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_language='Fortran'):
+def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_language='Fortran',tfluct_solver=True):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -63,12 +64,22 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
         solver.time_integrator = 'SSP33'
         solver.cfl_max = 0.65
         solver.cfl_desired = 0.6
+        solver.tfluct_solver = tfluct_solver
+        if solver.tfluct_solver:
+            try:
+                import euler_tfluct
+                solver.tfluct = euler_tfluct
+            except ImportError:
+                import logging
+                logger = logging.getLogger()
+                logger.error('Unable to load tfluct solver, did you run make?')
+                print 'Unable to load tfluct solver, did you run make?'
+                raise
+        solver.lim_type = 1
+        solver.char_decomp = 2
         try:
             import sharpclaw1
             solver.fmod = sharpclaw1
-            solver.tfluct_solver = True
-            solver.lim_type = 1     # TVD reconstruction 
-            solver.char_decomp = 2  # characteristic-wise reconstructiong
         except ImportError:
             pass
     elif solver_type=='classic':
@@ -80,13 +91,13 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
     solver.bc_lower[0]=pyclaw.BC.wall
     solver.bc_upper[0]=pyclaw.BC.wall
 
-    mx=800;
+    mx = 800;
     x = pyclaw.Dimension('x',0.0,1.0,mx)
     domain = pyclaw.Domain([x])
     state = pyclaw.State(domain,solver.num_eqn)
 
-    state.problem_data['gamma']= gamma
-    state.problem_data['gamma1']= gamma1
+    state.problem_data['gamma'] = gamma
+    state.problem_data['gamma1'] = gamma1
     if kernel_language =='Python':
         state.problem_data['efix'] = False
 

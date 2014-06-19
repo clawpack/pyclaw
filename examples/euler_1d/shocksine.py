@@ -38,7 +38,7 @@ b = np.array([.206734020864804, .206734020864804, .117097251841844, .18180256012
 c = np.array([0., .3772689153313680, .7545378306627360, .7289856616121880, .6992261359316680])
 
 def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='sharpclaw',
-        kernel_language='Fortran',use_char_decomp=False):
+        kernel_language='Fortran',use_char_decomp=False,tfluct_solver=True):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -60,11 +60,25 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
             try:
                 import sharpclaw1               # Import custom Fortran code
                 solver.fmod = sharpclaw1
-                solver.tfluct_solver = True     # Use total fluctuation solver for efficiency
-                solver.lim_type = 2             # WENO reconstruction 
-                solver.char_decomp = 2          # characteristic-wise reconstruction
+                solver.tfluct_solver = tfluct_solver     # Use total fluctuation solver for efficiency
+                if solver.tfluct_solver:
+                    try:
+                        import euler_tfluct
+                        solver.tfluct = euler_tfluct
+                    except ImportError:
+                        import logging
+                        logger = logging.getLogger()
+                        logger.error('Unable to load tfluct solver, did you run make?')
+                        print 'Unable to load tfluct solver, did you run make?'
+                        raise
             except ImportError:
+                import logging
+                logger = logging.getLogger()
+                logger.error('Unable to load sharpclaw1 solver, did you run make?')
+                print 'Unable to load sharpclaw1 solver, did you run make?'
                 pass
+            solver.lim_type = 2             # WENO reconstruction
+            solver.char_decomp = 2          # characteristic-wise reconstruction
     else:
         solver = pyclaw.ClawSolver1D(rs)
 
