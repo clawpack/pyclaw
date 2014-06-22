@@ -651,7 +651,7 @@ class SharpClawSolver1D(SharpClawSolver):
             if self.tfluct_solver:
                 tfluct1 = self.tfluct.tfluct1._cpointer
             else:
-                from clawpack.pyclaw.sharpclaw.sharpclaw1 import tfluct as tfluct1
+                from clawpack.pyclaw.sharpclaw.sharpclaw1 import tfluct1
                 tfluct1 = tfluct1._cpointer
 
             dq,cfl=self.fmod.flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.num_ghost,mx,rp1,tfluct1)
@@ -787,7 +787,7 @@ class SharpClawSolver2D(SharpClawSolver):
             if self.tfluct_solver:
                 tfluct2 = self.tfluct.tfluct2._cpointer
             else:
-                from clawpack.pyclaw.sharpclaw.sharpclaw2 import tfluct as tfluct2
+                from clawpack.pyclaw.sharpclaw.sharpclaw2 import tfluct2
                 tfluct2 = tfluct2._cpointer
 
             dq,cfl=self.fmod.flux2(q,self.auxbc,self.dt,state.t,num_ghost,maxm,mx,my,rpn2,tfluct2)
@@ -872,7 +872,7 @@ class SharpClawSolver3D(SharpClawSolver):
             if self.tfluct_solver:
                 tfluct3 = self.tfluct.tfluct3._cpointer
             else:
-                from clawpack.pyclaw.sharpclaw.sharpclaw3 import tfluct as tfluct3
+                from clawpack.pyclaw.sharpclaw.sharpclaw3 import tfluct3
                 tfluct3 = tfluct3._cpointer
 
             dq,cfl=self.fmod.flux3(q,self.auxbc,self.dt,state.t,num_ghost,maxm,mx,my,mz,rpn3,tfluct3)
