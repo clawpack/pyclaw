@@ -75,9 +75,9 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
 
         pickle.dump(sol_dict, metadata_file)
 
-    q_viewer, aux_viewer = set_up_viewers(filenames,file_format.lower(),
-                                          write_aux,PETSc.Viewer.Mode.WRITE)
-
+    q_viewer = set_up_viewers(filenames,file_format.lower(),'q',PETSc.Viewer.Mode.WRITE)
+    if write_aux:
+        aux_viewer = set_up_viewers(filenames,file_format.lower(),'aux',PETSc.Viewer.Mode.WRITE)
     
     for state in solution.states:
         patch = state.patch
@@ -96,7 +96,7 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
             state.gauxVec.view(aux_viewer)
     
     q_viewer.flush()
-    if aux_viewer is not None:
+    if write_aux:
         aux_viewer.flush()
     q_viewer.destroy() # Destroys aux_viewer also
     if rank==0:
@@ -158,8 +158,9 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
         warn('read_aux=True but aux file %s does not exist' % aux_file_path)
         read_aux = False
 
-    q_viewer, aux_viewer = set_up_viewers(filenames,file_format.lower(),
-                                          read_aux,PETSc.Viewer.Mode.READ)
+    q_viewer = set_up_viewers(filenames,file_format.lower(), 'q',PETSc.Viewer.Mode.READ)
+    if read_aux:
+        aux_viewer = set_up_viewers(filenames,file_format.lower(), 'aux',PETSc.Viewer.Mode.READ)
 
     patches = []
     for m in xrange(nstates):
@@ -242,7 +243,7 @@ def read_t(frame,path='./',file_prefix='claw'):
     return t,num_eqn,nstates,num_aux,num_dim
 
 
-def set_up_viewers(filenames,file_format,do_aux,mode):
+def set_up_viewers(filenames,file_format,q_or_aux,mode):
     v = PETSc.Viewer()
     opts = {}
     if file_format == 'ascii':
@@ -262,13 +263,8 @@ def set_up_viewers(filenames,file_format,do_aux,mode):
     else:
         raise IOError('PETSc has no viewer for the output format %s ' % file_format)
 
-    q_viewer = create_viewer(filenames['q'], mode, **opts)
-    if do_aux:
-        aux_viewer = create_viewer(filenames['aux'], mode, **opts)
-    else: 
-        aux_viewer = None
-
-    return q_viewer, aux_viewer
+    viewer = create_viewer(filenames[q_or_aux], mode, **opts)
+    return viewer
 
 
 def set_filenames(frame,path,file_format,file_prefix,do_aux):
