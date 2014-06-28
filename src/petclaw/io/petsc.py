@@ -75,9 +75,9 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
 
         pickle.dump(sol_dict, metadata_file)
 
-    q_viewer = set_up_viewers(filenames,file_format.lower(),'q',PETSc.Viewer.Mode.WRITE)
+    q_viewer = set_up_viewers(filenames['q'],file_format.lower(),PETSc.Viewer.Mode.WRITE)
     if write_aux:
-        aux_viewer = set_up_viewers(filenames,file_format.lower(),'aux',PETSc.Viewer.Mode.WRITE)
+        aux_viewer = set_up_viewers(filenames['aux'],file_format.lower(),PETSc.Viewer.Mode.WRITE)
     
     for state in solution.states:
         patch = state.patch
@@ -158,9 +158,9 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
         warn('read_aux=True but aux file %s does not exist' % aux_file_path)
         read_aux = False
 
-    q_viewer = set_up_viewers(filenames,file_format.lower(), 'q',PETSc.Viewer.Mode.READ)
+    q_viewer = set_up_viewers(filenames['q'],file_format.lower(),PETSc.Viewer.Mode.READ)
     if read_aux:
-        aux_viewer = set_up_viewers(filenames,file_format.lower(), 'aux',PETSc.Viewer.Mode.READ)
+        aux_viewer = set_up_viewers(filenames['aux'],file_format.lower(),PETSc.Viewer.Mode.READ)
 
     patches = []
     for m in xrange(nstates):
@@ -243,7 +243,7 @@ def read_t(frame,path='./',file_prefix='claw'):
     return t,num_eqn,nstates,num_aux,num_dim
 
 
-def set_up_viewers(filenames,file_format,q_or_aux,mode):
+def set_up_viewers(filename,file_format,mode):
     v = PETSc.Viewer()
     opts = {}
     if file_format == 'ascii':
@@ -263,7 +263,7 @@ def set_up_viewers(filenames,file_format,q_or_aux,mode):
     else:
         raise IOError('PETSc has no viewer for the output format %s ' % file_format)
 
-    viewer = create_viewer(filenames[q_or_aux], mode, **opts)
+    viewer = create_viewer(filename, mode, **opts)
     return viewer
 
 
