@@ -1,6 +1,6 @@
 """Generate Fortran WENO kernels with PyWENO."""
 
-# Copyright (c) 2011, Matthew Emmett.  All rights reserved.
+# Copyright (c) 2011, 2014 Matthew Emmett.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,17 +27,14 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import pyweno.symbolic
-import pyweno.kernels
-import pyweno.functions
-
 import numpy as np
+import pyweno
 
-wrapper = pyweno.functions.FunctionGenerator('fortran')
+kernel = pyweno.kernels.KernelGenerator('fortran')
 
 #### set fortran templatese to match clawpack
 
-pyweno.functions.templates['fortran']['callable'] = '''
+template = '''
 subroutine {function}(q, ql, qr, num_eqn, maxnx, num_ghost)
 
   implicit none
@@ -57,7 +54,17 @@ subroutine {function}(q, ql, qr, num_eqn, maxnx, num_ghost)
 
 end subroutine
 '''
-pyweno.kernels.global_names['fortran'] = 'q(m,i{r:+d})'
+
+class FGenerator(pyweno.symbols.FGenerator):
+  def __getitem__(self, idx):
+    return pyweno.symbols.real('q(m,i{:+d})'.format(idx))
+
+class FStarGenerator(pyweno.symbols.FStarGenerator):
+  def __getitem__(self, idx):
+    return pyweno.symbols.real([ 'ql(m,i)', 'qr(m,i)' ][idx])
+
+pyweno.symbols.f  = FGenerator()
+pyweno.symbols.fs = FStarGenerator()
 
 
 #### open weno.f90 and write header
@@ -69,35 +76,31 @@ contains
 ''')
 
 
-#### generate and write reconstruction functions
+#### generate and write reconstruction functions for cell boundaries
 
-for k in range(3, 10):
-# for k in range(3, 5):
+for k in range(3, 3):
 
   print 'generating reconstruction for k: %02d' % k
-  
-  # set smoothness
+
+  # smoothness
   beta = pyweno.symbolic.jiang_shu_smoothness_coefficients(k)
-  wrapper.set_smoothness(beta)
 
   # reconstructions: -1=left, 1=right
-  (varpi, split) = pyweno.symbolic.optimal_weights(k, [ -1, 1 ])
+  varpi, split = pyweno.symbolic.optimal_weights(k, [ -1, 1 ])
   coeffs = pyweno.symbolic.reconstruction_coefficients(k, [ -1, 1 ])
 
-  wrapper.set_optimal_weights(varpi, split)
-  wrapper.set_reconstruction_coefficients(coeffs)
+  body = []
+  body.append(kernel.smoothness(beta=beta))
+  body.append(kernel.weights(varpi=varpi, split=split))
+  body.append(kernel.reconstruction(coeffs=coeffs))
 
-  # tweak reconstructed function (f_star) names to match subroutine
-  # definition above
-  wrapper.global_f_star[0] = 'ql(m,i)'
-  wrapper.global_f_star[1] = 'qr(m,i)'
-  
+  variables = []
+  variables.extend([ x['name'] for x in pyweno.symbols.sigma.all(k) ])
+  variables.extend([ x['name'] for x in pyweno.symbols.omega.all(2, k, split) ])
+  variables.extend([ x['name'] for x in pyweno.symbols.fr.all(2, k) ])
+
   # write function
-  out.write(wrapper.generate(
-    function='weno%d' % (2*k-1), normalise=False))
-
-
-#### done
-
-out.write('''end module weno''')
-out.close()
+  out.write(template.format(
+      function='weno%d' % (2*k-1),
+      variables=', &\n'.join(variables),
+      kernel='\n'.join(body)))
