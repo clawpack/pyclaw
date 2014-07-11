@@ -7,7 +7,6 @@ def test_acoustics_2d_variable_io():
         """ Verifies I/O on 2d variable-coefficient acoustics application"""
         import os
         from clawpack.pyclaw.util import check_diff
-        import numpy as np
         from clawpack.pyclaw import Solution
         
         thisdir = os.path.dirname(__file__)
@@ -40,16 +39,15 @@ def test_acoustics_2d_variable_io():
         test_q = sol_20_test.state.get_q_global()
 
 
-        test_passed = True
         if test_q is not None:
-            q_err = check_diff(expected_q, test_q, reltol=1e-4)
+            q_err = check_diff(expected_q, test_q, reltol=1e-6)
             if q_err is not None:
                 return q_err
         else:
             return
 
         if test_aux is not None:
-            aux_err = check_diff(expected_aux, test_aux, reltol=1e-4)
+            aux_err = check_diff(expected_aux, test_aux, reltol=1e-6)
             if aux_err is not None:
                 return aux_err
         else:
@@ -58,9 +56,9 @@ def test_acoustics_2d_variable_io():
 
     from clawpack.pyclaw.util import gen_variants
     tempdir = './_io_test_results'
-    classic_tests = gen_variants(acoustics_2d_interface.setup, verify_acoustics_io,
-                                 solver_type='classic', outdir=tempdir)
-
+    classic_tests = gen_variants(acoustics_2d_interface.setup, 
+                                 verify_acoustics_io, solver_type='classic', 
+                                 outdir=tempdir, num_cells=(50, 50))
 
     import shutil
     from itertools import chain
