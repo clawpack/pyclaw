@@ -20,8 +20,9 @@ The left and right halves of the domain consist of different materials.
  
 import numpy as np
 
-def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_type='classic',
-        time_integrator='SSP104',lim_type=2,disable_output=False):
+def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output', 
+          solver_type='classic', time_integrator='SSP104', lim_type=2, 
+          disable_output=False, num_cells=(200, 200)):
     """
     Example python script for solving the 2d acoustics equations.
     """
@@ -52,9 +53,8 @@ def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_ty
     solver.aux_bc_lower[1]=pyclaw.BC.wall
     solver.aux_bc_upper[1]=pyclaw.BC.extrap
 
-    mx=200; my=200
-    x = pyclaw.Dimension('x',-1.0,1.0,mx)
-    y = pyclaw.Dimension('y',-1.0,1.0,my)
+    x = pyclaw.Dimension('x',-1.0,1.0,num_cells[0])
+    y = pyclaw.Dimension('y',-1.0,1.0,num_cells[1])
     domain = pyclaw.Domain([x,y])
 
     num_eqn = 3
