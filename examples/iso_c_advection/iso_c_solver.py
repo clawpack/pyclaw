@@ -139,9 +139,7 @@ class ISO_C_ClawSolver1D(ClawSolver1D):
         state = solution.states[0]
         grid = state.grid
 
-        self._apply_q_bcs(state)
-        if state.num_aux > 0:
-            self._apply_aux_bcs(state)
+        self._apply_bcs(state)
 
         num_eqn,num_ghost = state.num_eqn,self.num_ghost
 

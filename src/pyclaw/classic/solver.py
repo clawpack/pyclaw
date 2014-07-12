@@ -295,9 +295,7 @@ class ClawSolver1D(ClawSolver):
         state = solution.states[0]
         grid = state.grid
 
-        self._apply_q_bcs(state)
-        if state.num_aux > 0:
-            self._apply_aux_bcs(state)
+        self._apply_bcs(state)
             
         num_eqn,num_ghost = state.num_eqn,self.num_ghost
           
@@ -517,9 +515,7 @@ class ClawSolver2D(ClawSolver):
             mx,my = grid.num_cells
             maxm = max(mx,my)
             
-            self._apply_q_bcs(state)
-            if state.num_aux > 0:
-                self._apply_aux_bcs(state)
+            self._apply_bcs(state)
             qold = self.qbc.copy('F')
             
             rpn2 = self.rp.rpn2._cpointer
@@ -668,9 +664,7 @@ class ClawSolver3D(ClawSolver):
             mx,my,mz = grid.num_cells
             maxm = max(mx,my,mz)
             
-            self._apply_q_bcs(state)
-            if state.num_aux > 0:
-                self._apply_aux_bcs(state)
+            self._apply_bcs(state)
             qnew = self.qbc
             qold = qnew.copy('F')
             
