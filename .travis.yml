@@ -5,6 +5,8 @@ env:
 python:
   - 2.7
 before_install:
+  - pip install coverage
+  - pip install python-coveralls
   - sudo apt-get update -qq
   - sudo apt-get install -qq gfortran liblapack-pic
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
@@ -37,10 +39,14 @@ script:
     fi
   - cd pyclaw/examples
   - if [[ "${TEST_PACKAGE}" == "pyclaw" ]]; then
-       nosetests -v;
+       nosetests -v --with-coverage --cover-package=clawpack.pyclaw;
     fi
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
        mpirun -n 4 ${CLAWPACK}/petsc4py_stack/bin/nosetests -v;
     fi
+
+after_success:
+  - coveralls
+
 notifications:
   email: false
