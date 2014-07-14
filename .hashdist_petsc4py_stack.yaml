@@ -1,0 +1,26 @@
+extends:
+ - name: hashstack
+   urls: ['https://github.com/hashdist/hashstack.git']
+   key: 'git:c626e4442f3dd07ce4fe474b814dbe63aa108a81'
+   file: linux.yaml
+
+parameters:
+  HOST_MPICC: /usr/bin/mpicc
+  HOST_MPICXX: /usr/bin/mpic++
+  HOST_MPIF77: /usr/bin/mpif77
+  HOST_MPIF90: /usr/bin/mpif90
+  HOST_MPIEXEC: /usr/bin/mpiexec
+
+packages:
+  launcher:
+  blas:
+    use: host-blas
+  mpi:
+    use: host-mpi
+  nose:
+  python:
+    host: false
+    build_with: |
+      bzip2, openssl
+  petsc:
+  petsc4py:

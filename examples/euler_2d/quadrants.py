@@ -1,9 +1,22 @@
 #!/usr/bin/env python
 # encoding: utf-8
+"""
+2D Euler Riemann problem
+================================
 
+Solve the Euler equations of compressible fluid dynamics:
+
+.. math::
+    \rho_t + (\rho u)_x + (\rho v)_y & = 0 \\
+    (\rho u)_t + (\rho u^2 + p)_x + (\rho uv)_y & = 0 \\
+    (\rho v)_t + (\rho uv)_x + (\rho v^2 + p)_y & = 0 \\
+    E_t + (u (E + p) )_x + (v (E + p))_y & = 0.
+
+Here :math:`\rho` is the density, (u,v) is the velocity, and E is the total energy.
+The initial condition is one of the 2D Riemann problems from the paper of
+Liska and Wendroff.
 """
-Solve the Euler equations of compressible fluid dynamics.
-"""
+
 from clawpack import pyclaw
 from clawpack import riemann
 
@@ -28,7 +41,6 @@ solution.q[1,...] = solution.q[0,...] * u
 solution.q[2,...] = solution.q[0,...] * v
 solution.q[3,...] = 0.5*solution.q[0,...]*(u**2+v**2) + p/(gamma-1.)
 
-#solver.evolve_to_time(solution,tend=0.3)
 claw = pyclaw.Controller()
 claw.tfinal = 0.8
 claw.solution = solution

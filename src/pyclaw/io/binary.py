@@ -175,7 +175,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         elif os.path.exists(fname2):
             fname = fname2
         else:
-            logger.info("Unable to open auxillary file %s or %s" % (fname1,fname2))
+            logger.debug("Unable to open auxillary file %s or %s" % (fname1,fname2))
             return
             
         # Found a valid path, try to open and read it

@@ -14,7 +14,7 @@ Solve the (linear) acoustics equations:
 Here p is the pressure, (u,v) is the velocity, K is the bulk modulus,
 and :math:`\rho` is the density.
 """
- 
+from clawpack import riemann
 import numpy as np
 
 def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_type='classic',
@@ -22,7 +22,6 @@ def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_ty
     """
     Example python script for solving the 2d acoustics equations.
     """
-    from clawpack import riemann
     if use_petsc:
         from clawpack import petclaw as pyclaw
     else:
@@ -33,6 +32,7 @@ def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_ty
         solver.dimensional_split=True
         solver.cfl_max = 0.5
         solver.cfl_desired = 0.45
+        solver.limiters = pyclaw.limiters.tvd.MC
     elif solver_type=='sharpclaw':
         solver=pyclaw.SharpClawSolver2D(riemann.acoustics_2D)
         solver.time_integrator=time_integrator
@@ -44,16 +44,12 @@ def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_ty
             solver.cfl_desired = 0.16
         else:
             raise Exception('CFL desired and CFL max have not been provided for the particular time integrator.')
-
     
-    solver.limiters = pyclaw.limiters.tvd.MC
-
     solver.bc_lower[0]=pyclaw.BC.extrap
     solver.bc_upper[0]=pyclaw.BC.extrap
     solver.bc_lower[1]=pyclaw.BC.extrap
     solver.bc_upper[1]=pyclaw.BC.extrap
 
-    # Initialize domain
     mx=100; my=100
     x = pyclaw.Dimension('x',-1.0,1.0,mx)
     y = pyclaw.Dimension('y',-1.0,1.0,my)
@@ -62,14 +58,16 @@ def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_ty
     num_eqn = 3
     state = pyclaw.State(domain,num_eqn)
 
-    rho = 1.0
-    bulk = 4.0
-    cc = np.sqrt(bulk/rho)
-    zz = rho*cc
+    rho  = 1.0  # Material density
+    bulk = 4.0  # Material bulk modulus
+    cc = np.sqrt(bulk/rho)  # sound speed
+    zz = rho*cc             # impedance
     state.problem_data['rho']= rho
     state.problem_data['bulk']=bulk
     state.problem_data['zz']= zz
     state.problem_data['cc']=cc
+
+    solver.dt_initial=np.min(domain.grid.delta)/state.problem_data['cc']*solver.cfl_desired
 
     qinit(state)
 
@@ -78,27 +76,16 @@ def setup(kernel_language='Fortran',use_petsc=False,outdir='./_output',solver_ty
     if disable_output:
         claw.output_format = None
     claw.solution = pyclaw.Solution(state,domain)
-    solver.dt_initial=np.min(domain.grid.delta)/state.problem_data['cc']*solver.cfl_desired
-
     claw.solver = solver
     claw.outdir = outdir
-
-    num_output_times = 10
-    
-    claw.num_output_times = num_output_times
-
+    claw.num_output_times = 10
     claw.tfinal = 0.12
-
     claw.setplot = setplot
 
     return claw
 
 def qinit(state,width=0.2):
-    
-    grid = state.grid
-    x =grid.x.centers
-    y =grid.y.centers
-    Y,X = np.meshgrid(y,x)
+    X, Y = state.grid.p_centers
     r = np.sqrt(X**2 + Y**2)
 
     state.q[0,:,:] = (np.abs(r-0.5)<=width)*(1.+np.cos(np.pi*(r-0.5)/width))
@@ -106,22 +93,11 @@ def qinit(state,width=0.2):
     state.q[2,:,:] = 0.
 
 
-
-#--------------------------
 def setplot(plotdata):
-#--------------------------
     """ 
-    Specify what is to be plotted at each frame.
-    Input:  plotdata, an instance of visclaw.data.ClawPlotData.
-    Output: a modified version of plotdata.
+    Plot output with VisClaw.
+    This example demonstrates how to plot a 1D projection from 2D data.
     """ 
-
-    import os
-    if os.path.exists('./1drad/_output'):
-        qref_dir = os.path.abspath('./1drad/_output')
-    else:
-        qref_dir = None
-        print "Directory ./1drad/_output not found"
 
     from clawpack.visclaw import colormaps
 

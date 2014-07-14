@@ -198,7 +198,7 @@ contains
 
 
     ! ===================================================================
-    subroutine weno5_char(q,ql,qr,evl,evr)
+    subroutine weno5_char(q,ql,qr,maxnx,num_eqn,num_ghost,evl,evr)
     ! ===================================================================
     !   This is an old routine based on Chi-Wang Shu's code
 
@@ -207,14 +207,16 @@ contains
 
         implicit double precision (a-h,o-z)
 
-        double precision, intent(in) :: q(:,:)
-        double precision, intent(out) :: ql(:,:),qr(:,:)
-        double precision, intent(in) :: evl(:,:,:),evr(:,:,:)
+        integer,          intent(in) :: maxnx, num_eqn, num_ghost
+        double precision, intent(in) :: q(num_eqn,maxnx+2*num_ghost)
+        double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost)
+        double precision, intent(out) :: qr(num_eqn,maxnx+2*num_ghost)
+        double precision, intent(in) :: evl(num_eqn,num_eqn,maxnx+2*num_ghost)
+        double precision, intent(in) :: evr(num_eqn,num_eqn,maxnx+2*num_ghost)
 
-        integer, parameter :: num_ghost=3
-        integer :: num_eqn, mx2
+        integer :: mx2
 
-        mx2  = size(q,2); num_eqn = size(q,1)
+        mx2  = size(q,2)
 
         ! loop over all equations (all components).  
         ! the reconstruction is performed using characteristic decomposition
@@ -224,7 +226,7 @@ contains
             dq(m,i)=q(m,i)-q(m,i-1)
         end forall
 
-        forall(m=1:num_eqn,i=3:mx2-1)
+        forall(m=1:num_eqn,i=num_ghost:mx2-num_ghost+1)
             ! Compute the part of the reconstruction that is
             ! stencil-independent
             qr(m,i-1) = (-q(m,i-2)+7.*(q(m,i-1)+q(m,i))-q(m,i+1))/12.
@@ -241,7 +243,7 @@ contains
                do  i = num_ghost+1,mx2-2
                   hh(m2,i) = 0.d0
                   do m=1,num_eqn 
-                    hh(m2,i) = hh(m2,i)+ evl(ip,m,i)*dq(m,i+m2)
+                    hh(m2,i) = hh(m2,i) + evl(ip,m,i)*dq(m,i+m2)
                   enddo
                enddo
             enddo
@@ -279,7 +281,7 @@ contains
                     s1 =s1*t0
                     s3 =s3*t0
       
-                    uu(m1,i) = ( s1*(t2-t1) + (0.5*s3-0.25)*(t3-t2) ) /3.
+                    uu(m1,i) = ( s1*(t2-t1) + (0.5*s3-0.25)*(t3-t2) )/3.
 
                 end do !end loop over interfaces
             end do !end loop over which side of interface
@@ -287,8 +289,8 @@ contains
                 ! Project to the physical space:
             do m = 1,num_eqn
                 do i=num_ghost,mx2-num_ghost+1
-                    qr(m,i-1) = qr(m,i-1) + evr(i,m,ip)*uu(1,i)
-                    ql(m,i  ) = ql(m,i  ) + evr(i,m,ip)*uu(2,i)
+                    qr(m,i-1) = qr(m,i-1) + evr(m,ip,i)*uu(1,i)
+                    ql(m,i  ) = ql(m,i  ) + evr(m,ip,i)*uu(2,i)
                 enddo
             enddo
         enddo !end loop over waves
@@ -330,7 +332,7 @@ contains
             do i = 2,mx2
                 gg(mw,i) = 0.d0
                 do m=1,num_eqn
-                    gg(mw,i) = gg(mw,i)+ evl(mw,m,i)*dq(m,i)
+                    gg(mw,i) = gg(mw,i) + evl(mw,m,i)*dq(m,i)
                 enddo
             enddo
         enddo
@@ -344,7 +346,7 @@ contains
                     hh(m1,i) = 0.d0
                     do m=1,num_eqn 
                         hh(m1,i) = hh(m1,i)+evl(mw,m,i)* &
-                                    gg(i+m1,mw)*evr(i+m1,m,mw)
+                                    gg(mw,i+m1)*evr(mw,m,i+m1)
                     enddo
                 enddo
             enddo
@@ -580,19 +582,19 @@ contains
     end subroutine weno5_fwave
 
     ! ===================================================================
-    subroutine tvd2(q,ql,qr,mthlim)
+    subroutine tvd2(q,ql,qr,mthlim,num_eqn)
     ! ===================================================================
     ! Second order TVD reconstruction
 
         implicit double precision (a-h,o-z)
 
+        integer,          intent(in) :: num_eqn 
         double precision, intent(in) :: q(:,:)
         integer, intent(in) :: mthlim(:)
         double precision, intent(out) :: ql(:,:),qr(:,:)
-        integer, parameter :: num_ghost=2
-        integer :: num_eqn, mx2
+        integer :: mx2
 
-        mx2  = size(q,2); num_eqn = size(q,1); 
+        mx2  = size(q,2)
 
         ! loop over all equations (all components).  
         ! the reconstruction is performed component-wise
@@ -601,7 +603,7 @@ contains
 
             ! compute and store the differences of the cell averages
 
-            do i=num_ghost+1,mx2-num_ghost
+            do i=1,mx2-1
                 dqm=dqp
                 dqp=q(m,i+1)-q(m,i)
                 r=dqp/dqm
@@ -641,7 +643,7 @@ contains
 
 
     ! ===================================================================
-    subroutine tvd2_char(q,ql,qr,mthlim,evl,evr)
+    subroutine tvd2_char(q,ql,qr,mthlim,num_eqn,num_ghost,evl,evr)
     ! ===================================================================
 
         ! Second order TVD reconstruction for WENOCLAW
@@ -650,14 +652,14 @@ contains
         !  evl, evr are left and right eigenvectors at each interface
         implicit double precision (a-h,o-z)
 
+        integer,          intent(in) :: num_eqn, num_ghost        
         double precision, intent(in) :: q(:,:)
         integer, intent(in) :: mthlim(:)
         double precision, intent(out) :: ql(:,:),qr(:,:)
         double precision, intent(in) :: evl(:,:,:),evr(:,:,:)
-        integer, parameter :: num_ghost=2
-        integer :: num_eqn, mx2
+        integer :: mx2
 
-        mx2  = size(q,2); num_eqn = size(q,1); 
+        mx2  = size(q,2)
 
         ! loop over all equations (all components).  
         ! the reconstruction is performed using characteristic decomposition
@@ -740,21 +742,20 @@ contains
     end subroutine tvd2_char
 
     ! ===================================================================
-    subroutine tvd2_wave(q,ql,qr,wave,s,mthlim)
+    subroutine tvd2_wave(q,ql,qr,wave,s,mthlim,num_eqn,num_ghost)
     ! ===================================================================
         ! Second order TVD reconstruction for WENOCLAW
         ! This one uses projected waves
 
         implicit double precision (a-h,o-z)
-
+        integer,          intent(in) :: num_eqn, num_ghost        
         double precision, intent(in) :: q(:,:)
         integer, intent(in) :: mthlim(:)
         double precision, intent(out) :: ql(:,:),qr(:,:)
         double precision, intent(in) :: wave(:,:,:), s(:,:)
-        integer, parameter :: num_ghost=2
-        integer :: num_eqn, mx2
+        integer :: mx2, num_waves
 
-        mx2  = size(q,2); num_eqn = size(q,1); num_waves=size(wave,2)
+        mx2  = size(q,2); num_waves=size(wave,2)
 
         forall(i=2:mx2,m=1:num_eqn)
             qr(m,i-1) = q(m,i-1)
