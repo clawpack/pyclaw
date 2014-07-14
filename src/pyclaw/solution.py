@@ -15,18 +15,18 @@ from .geometry import Patch, Dimension, Domain
 class Solution(object):
     r"""
     Pyclaw patch container class
-
+        
     :Input and Output:
-
+    
         Input and output of solution objects is handle via the io package.
         Solution contains the generic methods :meth:`write`, :meth:`read` and
         :meth:`plot` which then figure out the correct method to call.  Please
-        see the io package for the particulars of each format and method and
+        see the io package for the particulars of each format and method and 
         the methods in this class for general input and output information.
-
+    
     :Properties:
-
-        If there is only one state and patch belonging to this solution,
+    
+        If there is only one state and patch belonging to this solution, 
         the solution will appear to have many of the attributes assigned to its
         one state and patch.  Some parameters that have in the past been
         parameters for all patch,s are also reachable although Solution does not
@@ -36,27 +36,27 @@ class Solution(object):
             'dimensions'
         State Attributes:
             't','num_eqn','q','aux','capa','problem_data'
-
-
+            
+            
     :Initialization:
-
+        
         The initialization of a Solution can happen one of these ways
-
+        
             1. `args` is empty and an empty Solution is created
             2. `args` is an integer (the number of components of q), a single
                State, or a list of States and is followed
                by the appropriate :ref:`geometry <pyclaw_geometry>` object
                which can be one of:
-
+                
                  - (:class:`~pyclaw.geometry.Domain`)
                  - (:class:`~pyclaw.geometry.Patch`) - A domain is created
                    with the patch or list of patches provided.
-                 - (:class:`~pyclaw.geometry.Dimension`) - A domain and
-                   patch is created with the dimensions or list of
+                 - (:class:`~pyclaw.geometry.Dimension`) - A domain and 
+                   patch is created with the dimensions or list of 
                    dimensions provided.
-            3. `args` is a variable number of arguments that describes the
+            3. `args` is a variable number of arguments that describes the 
                location of a file to be read in to initialize the object
-
+    
     :Examples:
 
         >>> import clawpack.pyclaw as pyclaw
@@ -82,7 +82,7 @@ class Solution(object):
             self.__dict__[key] = value
 
     # ========== Attributes ==================================================
-
+    
     # ========== Properties ==================================================
     @property
     def state(self):
@@ -99,18 +99,18 @@ class Solution(object):
         object is initialized by loading frame from file"""
         return self._start_frame
     _start_frame = 0
-
+       
 
     # ========== Class Methods ===============================================
     def __init__(self,*arg,**kargs):
         r"""Solution Initiatlization Routine
-
+        
         See :class:`Solution` for more info.
         """
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
-        # for example, if Solution is implemented in 'clawpack.petclaw.solution', then
+        # for example, if Solution is implemented in 'clawpack.petclaw.solution', then 
         # the computed claw_package will be 'clawpack.petclaw'
 
         import sys
@@ -179,16 +179,16 @@ class Solution(object):
                 self.states.append(State(self.domain,arg[0]))
             if self.states == [] or self.domain is None:
                 raise Exception("Invalid argument list")
-
-
+                
+                
     def is_valid(self):
         r"""
         Checks to see if this solution is valid
-
+        
         The Solution checks to make sure it is valid by checking each of its
         states.  If an invalid state is found, a message is logged what
         specifically made this solution invalid.
-
+       
         :Output:
          - (bool) - True if valid, false otherwise
         """
@@ -201,51 +201,51 @@ class Solution(object):
         for state in self.states:
             output = output + str(state)
         return str(output)
-
-
+    
+    
     def set_all_states(self,attr,value,overwrite=True):
         r"""
         Sets all member states attribute 'attr' to value
-
+        
         :Input:
          - *attr* - (string) Attribute name to be set
          - *value* - (id) Value for attribute
-         - *overwrite* - (bool) Whether to overwrite the attribute if it
+         - *overwrite* - (bool) Whether to overwrite the attribute if it 
            already exists.  ``default = True``
         """
         for state in self.states:
             if getattr(state,attr) is None or overwrite:
-                setattr(state,attr,value)
-
-
+                setattr(state,attr,value) 
+    
+                    
     def _get_base_state_attribute(self, name):
         r"""
         Return base state attribute
-
+        
         :Output:
          - (id) - Value of attribute from ``states[0]``
         """
         return getattr(self.states[0],name)
-
-
+    
+    
     def __copy__(self):
         return self.__class__(self)
-
-
+    
+    
     def __deepcopy__(self,memo={}):
         import copy
         # Create basic container
         result = self.__class__()
         result.__init__()
-
+        
         # Populate the states
         for state in self.states:
             result.states.append(copy.deepcopy(state))
         result.domain = copy.deepcopy(self.domain)
-
+        
         return result
-
-
+    
+    
     # ========== IO Functions ================================================
     def write(self,frame,path='./',file_format='ascii',file_prefix=None,
                 write_aux=False,options={},write_p=False):
@@ -258,15 +258,15 @@ class Solution(object):
 
         :Input:
          - *frame* - (int) Frame number to append to the file output
-         - *path* - (string) Root path, will try and create the path if it
+         - *path* - (string) Root path, will try and create the path if it 
            does not already exist. ``default = './'``
-         - *format* - (string or list of strings) a string or list of strings
+         - *format* - (string or list of strings) a string or list of strings 
            containing the desired output formats. ``default = 'ascii'``
          - *file_prefix* - (string) Prefix for the file name.  Defaults to
            the particular io modules default.
-         - *write_aux* - (book) Write the auxillary array out as well if
+         - *write_aux* - (book) Write the auxillary array out as well if 
            present. ``default = False``
-         - *options* - (dict) Dictionary of optional arguments dependent on
+         - *options* - (dict) Dictionary of optional arguments dependent on 
            which format is being used. ``default = {}``
         """
         # Determine if we need to create the path
@@ -275,7 +275,7 @@ class Solution(object):
             try:
                 os.makedirs(path)
             except OSError:
-                print "directory already exists, ignoring"
+                print "directory already exists, ignoring"  
 
         # Call the correct write function based on the output format
         if isinstance(file_format,str):
@@ -306,46 +306,46 @@ class Solution(object):
             msg = "Wrote out solution in format %s for time t=%s" % (form,self.t)
             logging.getLogger('pyclaw.io').info(msg)
 
-
+        
     def read(self,frame,path='./_output',file_format='ascii',file_prefix=None,
                 read_aux=True,options={}, **kargs):
         r"""
         Reads in a Solution object from a file
-
-        Reads in and initializes this Solution with the data specified.  This
-        function will raise an IOError if it was unsuccessful.
+        
+        Reads in and initializes this Solution with the data specified.  This 
+        function will raise an IOError if it was unsuccessful.  
 
         Any format must conform to the following call signiture and return
         True if the file has been successfully read into the given solution or
         False otherwise.  Options is a dictionary of parameters that each
         format can specify.  See the ascii module for an example.::
-
+        
             read_<format>(solution,path,frame,file_prefix,options={})
-
+            
         ``<format>`` is the name of the format in question.
-
+        
         :Input:
          - *frame* - (int) Frame number to be read in
-         - *path* - (string) Base path to the files to be read.
+         - *path* - (string) Base path to the files to be read. 
            ``default = './'``
-         - *file_format* - (string) Format of the file, should match on of the
+         - *file_format* - (string) Format of the file, should match on of the 
            modules inside of the io package.  ``default = 'ascii'``
-         - *file_prefix* - (string) Name prefix in front of all the files,
+         - *file_prefix* - (string) Name prefix in front of all the files, 
            defaults to whatever the format defaults to, e.g. fort for ascii
-         - *options* - (dict) Dictionary of optional arguments dependent on
+         - *options* - (dict) Dictionary of optional arguments dependent on 
            the format being read in.  ``default = {}``
-
+            
         :Output:
          - (bool) - True if read was successful, False otherwise
         """
-
+        
         if file_format=='petsc':
             from clawpack.petclaw import io
             read_func = io.petsc.read
         elif file_format == 'binary':
-            from clawpack.pyclaw import io
+            from clawpack.pyclaw import io 
             read_func = io.binary.read
-        elif file_format=='ascii':
+        elif file_format=='ascii': 
             from clawpack.pyclaw import io
             read_func = io.ascii.read
 
@@ -356,8 +356,8 @@ class Solution(object):
             read_func(self,frame,path,file_prefix=file_prefix,
                                     read_aux=read_aux,options=options)
         logging.getLogger('pyclaw.io').info("Read in solution for time t=%s" % self.t)
-
-
+        
+        
     def plot(self):
         r"""
         Plot the solution
