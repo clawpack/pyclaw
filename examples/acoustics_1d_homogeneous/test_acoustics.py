@@ -46,3 +46,16 @@ def test_1d_acoustics():
     from itertools import chain
     for test in chain(classic_tests, sharp_tests_rk, sharp_tests_lmm, weno_tests):
         yield test
+
+
+if __name__=='__main__':
+    for test in test_1d_acoustics():
+        test()
+
+    # monkey patch util.build_variant_arg_dicts and rerun tests
+    import clawpack.pyclaw.util
+    import clawpack.boxclaw.util
+    clawpack.pyclaw.util.build_variant_arg_dicts = clawpack.boxclaw.util.boxlib_build_variant_arg_dicts
+
+    for test in test_1d_acoustics():
+        test()
