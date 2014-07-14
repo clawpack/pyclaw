@@ -7,9 +7,9 @@ install BoxLib, `download BoxLib`_ and
 
 .. code-block:: sh
 
+   git clone https://ccse.lbl.gov/pub/Downloads/BoxLib.git
    cd BoxLib/Src/Python
-   python setup.py build
-   python setup.py install
+   python setup.py install --user
 
 
 .. _BoxLib: https://ccse.lbl.gov/BoxLib/index.html

@@ -7,7 +7,7 @@ One-dimensional advection
 
 Solve the linear advection equation:
 
-.. math::
+.. math:: 
     q_t + u q_x & = 0.
 
 Here q is the density of some conserved quantity and u is the velocity.
@@ -33,7 +33,7 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, use_boxlib=False, s
         riemann_solver = riemann.advection_1D
     elif kernel_language == 'Python':
         riemann_solver = riemann.advection_1D_py.advection_1D
-
+            
     if solver_type=='classic':
         solver = pyclaw.ClawSolver1D(riemann_solver)
     elif solver_type=='sharpclaw':
@@ -74,9 +74,9 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, use_boxlib=False, s
     return claw
 
 def setplot(plotdata):
-    """
+    """ 
     Plot solution using VisClaw.
-    """
+    """ 
     plotdata.clearfigures()  # clear any old figures,axes,items data
 
     plotfigure = plotdata.new_plotfigure(name='q', figno=1)
@@ -92,10 +92,10 @@ def setplot(plotdata):
     plotitem.plotstyle = '-o'
     plotitem.color = 'b'
     plotitem.kwargs = {'linewidth':2,'markersize':5}
-
+    
     return plotdata
 
-
+ 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(setup,setplot)

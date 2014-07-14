@@ -6,7 +6,7 @@ Two-dimensional advection
 
 Solve the two-dimensional advection equation
 
-.. math::
+.. math:: 
     q_t + u q_x + v q_y & = 0
 
 Here q is a conserved quantity, and (u,v) is the velocity vector.
@@ -76,9 +76,9 @@ def setup(use_petsc=False,use_boxlib=False,outdir='./_output',solver_type='class
 
 
 def setplot(plotdata):
-    """
+    """ 
     Plot solution using VisClaw.
-    """
+    """ 
     from clawpack.visclaw import colormaps
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
@@ -98,7 +98,7 @@ def setplot(plotdata):
     plotitem.pcolor_cmin = 0.0
     plotitem.pcolor_cmax = 1.0
     plotitem.add_colorbar = True
-
+    
     # Figure for contour plot
     plotfigure = plotdata.new_plotfigure(name='contour', figno=1)
 
@@ -114,10 +114,10 @@ def setplot(plotdata):
     plotitem.contour_min = 0.01
     plotitem.contour_max = 0.99
     plotitem.amr_contour_colors = ['b','k','r']
-
+    
     return plotdata
 
-
+    
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(setup,setplot)

@@ -6,8 +6,8 @@ Three-dimensional variable-coefficient acoustics
 
 Solve the variable-coefficient acoustics equations in 3D:
 
-.. math::
-    p_t + K(x,y,z) (u_x + v_y + w_z) & = 0 \\
+.. math:: 
+    p_t + K(x,y,z) (u_x + v_y + w_z) & = 0 \\ 
     u_t + p_x / \rho(x,y,z) & = 0 \\
     v_t + p_y / \rho(x,y,z) & = 0 \\
     w_t + p_z / \rho(x,y,z) & = 0 \\
@@ -40,7 +40,7 @@ def setup(use_petsc=False,use_boxlib=False,outdir='./_output',solver_type='class
         solver.limiters = pyclaw.limiters.tvd.MC
     elif solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver3D(riemann.vc_acoustics_3D)
-
+        
     else:
         raise Exception('Unrecognized solver_type.')
 
@@ -69,7 +69,7 @@ def setup(use_petsc=False,use_boxlib=False,outdir='./_output',solver_type='class
             solver.lim_type = 1
 
         solver.limiters = [4]
-
+        
         mx=mx; my=my; mz=mz # Grid resolution
 
         zr = 1.0  # Impedance in right half
@@ -78,7 +78,7 @@ def setup(use_petsc=False,use_boxlib=False,outdir='./_output',solver_type='class
     if problem == 'heterogeneous':
         if solver_type=='classic':
             solver.dimensional_split=False
-
+        
         solver.bc_lower[0]    =pyclaw.BC.wall
         solver.bc_lower[1]    =pyclaw.BC.wall
         solver.bc_lower[2]    =pyclaw.BC.wall
@@ -118,9 +118,9 @@ def setup(use_petsc=False,use_boxlib=False,outdir='./_output',solver_type='class
         r = np.sqrt((X-x0)**2 + (Y-y0)**2 + (Z-z0)**2)
         width=0.1
         state.q[0,:,:,:] = (np.abs(r-0.3)<=width)*(1.+np.cos(np.pi*(r-0.3)/width))
-    else:
+    else: 
         raise Exception('Unrecognized problem name')
-
+        
     # Set initial velocities to zero
     state.q[1,:,:,:] = 0.
     state.q[2,:,:,:] = 0.
@@ -139,5 +139,6 @@ def setup(use_petsc=False,use_boxlib=False,outdir='./_output',solver_type='class
 
 
 if __name__=="__main__":
+    import sys
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(setup)
