@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/clawpack/pyclaw.svg?branch=master)](https://travis-ci.org/clawpack/pyclaw)
+[![Coverage Status](https://img.shields.io/coveralls/clawpack/pyclaw.svg)](https://coveralls.io/r/clawpack/pyclaw?branch=master)
+
+
 Quick start:
 
     git clone git@github.com:clawpack/clawpack.git
@@ -16,6 +20,3 @@ PyClaw also includes a scalable parallel implementation of Clawpack using PETSc.
 
 You can get the latest development version of PyClaw from
 http://github.com/clawpack/.
-
-
-[![Coverage Status](https://img.shields.io/coveralls/clawpack/pyclaw.svg)](https://coveralls.io/r/clawpack/pyclaw?branch=master)
