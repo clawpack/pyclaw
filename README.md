@@ -18,4 +18,4 @@ You can get the latest development version of PyClaw from
 http://github.com/clawpack/.
 
 
-[![Coverage Status](https://coveralls.io/repos/clawpack/pyclaw/badge.png?branch=master)](https://coveralls.io/r/clawpack/pyclaw?branch=master)
+[![Coverage Status](https://img.shields.io/coveralls/clawpack/pyclaw.svg)](https://coveralls.io/r/clawpack/pyclaw?branch=master)
