@@ -16,3 +16,6 @@ PyClaw also includes a scalable parallel implementation of Clawpack using PETSc.
 
 You can get the latest development version of PyClaw from
 http://github.com/clawpack/.
+
+
+[![Coverage Status](https://coveralls.io/repos/clawpack/pyclaw/badge.png?branch=master)](https://coveralls.io/r/clawpack/pyclaw?branch=master)
