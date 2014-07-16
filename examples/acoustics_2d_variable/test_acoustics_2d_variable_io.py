@@ -1,3 +1,6 @@
+def ls_dir(arg, dirname, fnames):
+    print "%s: %s" % (dirname, fnames)
+
 def test_acoustics_2d_variable_io():
     """Test I/O on variable-coefficient 2D acoustics application"""
 
@@ -25,6 +28,7 @@ def test_acoustics_2d_variable_io():
 
         # Test solution
         sol_0_test = Solution()
+        os.path.walk(controller.outdir, ls_dir, None)
         sol_0_test.read(0,path=controller.outdir,
                         file_format=controller.output_format,
                         file_prefix=None,read_aux=True,
@@ -32,6 +36,7 @@ def test_acoustics_2d_variable_io():
         test_aux = sol_0_test.state.get_aux_global()
 
         sol_20_test = Solution()
+        os.path.walk(controller.outdir, ls_dir, None)
         sol_20_test.read(20,path=controller.outdir,
                         file_format=controller.output_format,
                         file_prefix=None,read_aux=False,
