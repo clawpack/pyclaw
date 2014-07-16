@@ -9,26 +9,17 @@ This module reads and writes hdf5 files via either of the following modules:
 
 It will first try h5py and then PyTables and use the correct calls
 according to whichever is present on the system.  We recommend that you use
-h5py as it is a minimal wrapper to the HDF5 library and will create 
+h5py as it is a minimal wrapper to the HDF5 library.
 
 To install either, you must also install the hdf5 library from the website:
     http://www.hdfgroup.org/HDF5/release/obtain5.html
-    
-:Authors:
-    Kyle T. Mandli (2009-02-13) Initial version
 """
-# ============================================================================
-#      Copyright (C) 2009 Kyle T. Mandli <mandli@amath.washington.edu>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
 
 import os
 import logging
 
 import clawpack.pyclaw.solution
+from clawpack import pyclaw
 
 logger = logging.getLogger('pyclaw.io')
 
@@ -129,7 +120,10 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
             subgroup = f.create_group('patch%s' % patch.patch_index)
             
             # General patch properties
-            for attr in ['t','num_eqn','num_ghost','patch_index','level']:
+            subgroup.attrs['t'] = state.t
+            subgroup.attrs['num_eqn'] = state.num_eqn
+            subgroup.attrs['num_aux'] = state.num_aux
+            for attr in ['num_ghost','patch_index','level']:
                 if hasattr(patch,attr):
                     if getattr(patch,attr) is not None:
                         subgroup.attrs[attr] = getattr(patch,attr)
@@ -175,6 +169,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
         logging.critical(err_msg)
         raise Exception(err_msg)
 
+
 def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
                 options={}):
     r"""
@@ -206,42 +201,48 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
     if use_h5py:
         f = h5py.File(filename,'r')
         
-        for subgroup in f.iterobjects():
+        patches = []
+
+        for patch in f.itervalues():
 
             # Construct each dimension
             dimensions = []
-            dim_names = subgroup.attrs['dimensions']
+            dim_names = patch.attrs['dimensions']
             for dim_name in dim_names:
                 # Create dimension
                 dim = pyclaw.solution.Dimension(dim_name,
-                                    subgroup.attrs["%s.lower" % dim_name],
-                                    subgroup.attrs["%s.upper" % dim_name],
-                                    subgroup.attrs["%s.n" % dim_name])                    
+                                    patch.attrs["%s.lower" % dim_name],
+                                    patch.attrs["%s.upper" % dim_name],
+                                    patch.attrs["%s.num_cells" % dim_name])                    
                 # Optional attributes
                 for attr in ['bc_lower','bc_upper','units']:
                     attr_name = "%s.%s" % (dim_name,attr)
-                    if subgroup.attrs.get(attr_name, None):
-                        setattr(dim,attr,subgroup.attrs["%s.%s" % (dim_name,attr)])
+                    if patch.attrs.get(attr_name, None):
+                        setattr(dim,attr,patch.attrs["%s.%s" % (dim_name,attr)])
                 dimensions.append(dim)
             
             # Create patch
-            patch = pyclaw.solution.Patch(dimensions)
+            pyclaw_patch = pyclaw.solution.Patch(dimensions)
                 
             # Fetch general patch properties
             for attr in ['t','num_eqn','patch_index','level']:
-                setattr(patch,attr,subgroup.attrs[attr])
-            
+                setattr(pyclaw_patch,attr,patch.attrs[attr])
+
+            state= pyclaw.state.State(pyclaw_patch,patch.attrs['num_eqn'],patch.attrs['num_aux'])
             # Read in q
-            index_str = ','.join( [':' for i in xrange(len(subgroup['q'].shape))] )
-            exec("patch.q = subgroup['q'][%s]" % index_str)
+            index_str = ','.join( [':' for i in xrange(len(patch['q'].shape))] )
+            exec("state.q = patch['q'][%s]" % index_str)
             
             # Read in aux if applicable
-            if read_aux and subgroup.get('aux',None) is not None:
-                index_str = ','.join( [':' for i in xrange(len(subgroup['aux'].shape))] )
-                exec("patch.aux = subgroup['aux'][%s]" % index_str)
+            if read_aux and patch.get('aux',None) is not None:
+                index_str = ','.join( [':' for i in xrange(len(patch['aux'].shape))] )
+                exec("state.aux = patch['aux'][%s]" % index_str)
                 
-            solution.patchs.append(patch)
+            solution.states.append(state)
+            patches.append(pyclaw_patch)
             
+        print patches
+        solution.domain = pyclaw.geometry.Domain(patches)
         # Flush and close the file
         f.close()
             
@@ -253,4 +254,3 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
         err_msg = "No hdf5 python modules available."
         logging.critical(err_msg)
         raise Exception(err_msg)
-        
