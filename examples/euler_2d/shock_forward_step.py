@@ -134,7 +134,7 @@ def setplot(plotdata):
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.title = 'Density'
     plotaxes.scaled = True      # so aspect ratio is 1
-
+    plotaxes.afteraxes = fill_step
     #plotitem = plotaxes.new_plotitem(plot_type='2d_schlieren')
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
     plotitem.pcolor_cmin = 1
@@ -149,7 +149,8 @@ def setplot(plotdata):
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.title = 'Energy'
     plotaxes.scaled = True      # so aspect ratio is 1
-
+    
+    plotaxes.afteraxes = fill_step
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
     plotitem.pcolor_cmin = 2.
     plotitem.pcolor_cmax=18.0
@@ -159,6 +160,13 @@ def setplot(plotdata):
     
     return plotdata
    
+def fill_step(currentdata):
+    import matplotlib.pyplot as plt
+    plt.hold(True);
+    rectangle = plt.Rectangle((0.6,0.0),2.4,0.2,color="k",fill=True)
+    plt.gca().add_patch(rectangle)
+    plt.hold(False);
+
 
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
