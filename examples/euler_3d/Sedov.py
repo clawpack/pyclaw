@@ -34,9 +34,9 @@ def f(y, x, zdown, zup):
     return top-bottom
 
 
-def sedov(kernel_language='Fortran', solver_type='classic', use_petsc=False,
+def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
           dimensional_split=False, outdir='Sedov_output', output_format='hdf5',
-          disable_output=False, mx=64, my=64, mz=64,
+          disable_output=False, num_cells=(64,64,64),
           tfinal=0.10, num_output_times=10):
 
     from clawpack import riemann
@@ -49,15 +49,15 @@ def sedov(kernel_language='Fortran', solver_type='classic', use_petsc=False,
         solver = pyclaw.ClawSolver3D(riemann.euler_3D)
         solver.dimensional_split = dimensional_split
         solver.limiters = pyclaw.limiters.tvd.minmod
-        solver.cfl_max = 1.0
-        solver.cfl_desired = 0.84
+        solver.cfl_max = 0.6
+        solver.cfl_desired = 0.55
         solver.dt_initial = 3e-4
     else:
         raise Exception('Unrecognized solver_type.')
 
-    x = pyclaw.Dimension('x', -1.0, 1.0, mx)
-    y = pyclaw.Dimension('y', -1.0, 1.0, my)
-    z = pyclaw.Dimension('z', -1.0, 1.0, mz)
+    x = pyclaw.Dimension('x', -1.0, 1.0, num_cells[0])
+    y = pyclaw.Dimension('y', -1.0, 1.0, num_cells[1])
+    z = pyclaw.Dimension('z', -1.0, 1.0, num_cells[2])
     domain = pyclaw.Domain([x,y,z])
 
     state = pyclaw.State(domain,solver.num_eqn)
@@ -120,4 +120,4 @@ def sedov(kernel_language='Fortran', solver_type='classic', use_petsc=False,
 # __main__()
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
-    output = run_app_from_main(sedov)
+    output = run_app_from_main(setup)

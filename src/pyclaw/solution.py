@@ -346,9 +346,11 @@ class Solution(object):
         elif file_format=='ascii': 
             from clawpack.pyclaw import io
             read_func = io.ascii.read
-        elif file_format=='hdf': 
+        elif file_format in ('hdf','hdf5'): 
             from clawpack.pyclaw import io
             read_func = io.hdf5.read
+        else:
+            raise Exception('Unrecognized file format: '+file_format)
 
         path = os.path.expandvars(os.path.expanduser(path))
         if file_prefix is None:
