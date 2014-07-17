@@ -346,6 +346,9 @@ class Solution(object):
         elif file_format == 'ascii': 
             from clawpack.pyclaw import io
             read_func = io.ascii.read
+        elif file_format=='hdf': 
+            from clawpack.pyclaw import io
+            read_func = io.hdf5.read
         else:
             raise ValueError("File format %s not supported." % file_format)
 
