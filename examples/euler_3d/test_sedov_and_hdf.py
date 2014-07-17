@@ -2,6 +2,12 @@ def test_sedov_and_hdf():
     """Test HDF I/O on Sedov 3D Euler application"""
 
     import Sedov
+    try:
+        import h5py
+        import scipy
+    except ImportError:
+        import nose
+        raise nose.SkipTest
 
     def verify_sedov(controller):
         import os
