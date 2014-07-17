@@ -2,6 +2,10 @@
 
 # Get <#>
 git clone https://github.com/hashdist/hashdist
+( 
+    cd hashdist
+    git checkout v0.3
+)
 export PATH=`pwd`/hashdist/bin:$PATH
 
 # a reasonable profile for building petsc4py on Travis
