@@ -305,8 +305,8 @@ class Solution(object):
             logging.getLogger('pyclaw.io').info(msg)
 
         
-    def read(self,frame,path='./_output',file_format='ascii',file_prefix=None,
-                read_aux=True,options={}, **kargs):
+    def read(self, frame, path='./_output', file_format='ascii', 
+                          file_prefix=None, read_aux=True, options={}, **kargs):
         r"""
         Reads in a Solution object from a file
         
@@ -325,7 +325,7 @@ class Solution(object):
         :Input:
          - *frame* - (int) Frame number to be read in
          - *path* - (string) Base path to the files to be read. 
-           ``default = './'``
+           ``default = './_output'``
          - *file_format* - (string) Format of the file, should match on of the 
            modules inside of the io package.  ``default = 'ascii'``
          - *file_prefix* - (string) Name prefix in front of all the files, 
@@ -337,18 +337,20 @@ class Solution(object):
          - (bool) - True if read was successful, False otherwise
         """
         
-        if file_format=='petsc':
+        if file_format == 'petsc':
             from clawpack.petclaw import io
             read_func = io.petsc.read
         elif file_format == 'binary':
             from clawpack.pyclaw import io 
             read_func = io.binary.read
-        elif file_format=='ascii': 
+        elif file_format == 'ascii': 
             from clawpack.pyclaw import io
             read_func = io.ascii.read
         elif file_format=='hdf': 
             from clawpack.pyclaw import io
             read_func = io.hdf5.read
+        else:
+            raise ValueError("File format %s not supported." % file_format)
 
         path = os.path.expandvars(os.path.expanduser(path))
         if file_prefix is None:
