@@ -1,5 +1,5 @@
 ! ============================================================================
-subroutine tfluct1(maxnx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,amdq2)
+subroutine tfluct1(maxnx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,adq)
 ! ============================================================================
 !   "Internal" Riemann solver for the euler equations in 1D.
 !   The riemann problem is solved by assuming a discontinuity at the
@@ -34,7 +34,7 @@ subroutine tfluct1(maxnx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,amdq2)
     double precision, intent(in)  ::   ql(meqn,1-mbc:maxnx+mbc)
     double precision, intent(in)  ::   qr(meqn,1-mbc:maxnx+mbc)
 
-    double precision, intent(out) :: amdq2(meqn,1-mbc:maxnx+mbc)
+    double precision, intent(out) :: adq(meqn,1-mbc:maxnx+mbc)
 
     integer :: i
     double precision :: gamma, gamma1
@@ -46,10 +46,10 @@ subroutine tfluct1(maxnx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,amdq2)
     gamma = gamma1 + 1.d0
 
     do i = 1,mx
-        amdq2(1,i) = qr(2,i) - ql(2,i)
-        amdq2(2,i) = 0.5d0*(3.d0-gamma)*(qr(2,i)**2/qr(1,i) - ql(2,i)**2/ql(1,i)) &
+        adq(1,i) = qr(2,i) - ql(2,i)
+        adq(2,i) = 0.5d0*(3.d0-gamma)*(qr(2,i)**2/qr(1,i) - ql(2,i)**2/ql(1,i)) &
                     + gamma1*(qr(3,i) - ql(3,i))
-        amdq2(3,i) = (gamma*qr(3,i)-0.5d0*gamma1*qr(2,i)**2/qr(1,i))*qr(2,i)/qr(1,i) & 
+        adq(3,i) = (gamma*qr(3,i)-0.5d0*gamma1*qr(2,i)**2/qr(1,i))*qr(2,i)/qr(1,i) & 
                     - (gamma*ql(3,i)-0.5d0*gamma1*ql(2,i)**2/ql(1,i))*ql(2,i)/ql(1,i)
     enddo
 
