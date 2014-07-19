@@ -93,6 +93,11 @@ class SharpClawSolver(Solver):
         that calculates the total fluctuation must be provided.
         ``Default = False``
 
+    .. attribute:: tfluct
+
+        Pointer to Fortran routine to calculate total fluctuation
+        ``Default = empty_tfluct (None)``
+
     .. attribute:: aux_time_dep
 
         Whether the auxiliary array is time dependent.
