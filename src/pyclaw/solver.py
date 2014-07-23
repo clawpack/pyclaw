@@ -322,8 +322,10 @@ class Solver(object):
 
         import numpy as np
 
-        self.auxbc = state.get_auxbc_from_aux(self.num_ghost, self.auxbc)
         self.qbc = state.get_qbc_from_q(self.num_ghost, self.qbc)
+        if state.num_aux > 0:
+            self.auxbc = state.get_auxbc_from_aux(self.num_ghost, self.auxbc)
+        
         grid = state.grid
 
         for (idim, dim) in enumerate(grid.dimensions):
