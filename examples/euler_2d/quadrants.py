@@ -17,35 +17,90 @@ The initial condition is one of the 2D Riemann problems from the paper of
 Liska and Wendroff.
 """
 
-from clawpack import pyclaw
-from clawpack import riemann
+def setplot(plotdata):
 
-solver = pyclaw.ClawSolver2D(riemann.euler_4wave_2D)
-solver.all_bcs = pyclaw.BC.extrap
+    from clawpack.visclaw import colormaps
 
-domain = pyclaw.Domain([0.,0.],[1.,1.],[100,100])
-solution = pyclaw.Solution(solver.num_eqn,domain)
-gamma = 1.4
-solution.problem_data['gamma']  = gamma
-solver.dimensional_split = False
-solver.transverse_waves = 2
+    plotdata.clearfigures()  # clear any old figures,axes,items data
 
-# Set initial data
-xx,yy = domain.grid.p_centers
-l = xx<0.8; r = xx>=0.8; b = yy<0.8; t = yy>=0.8
-solution.q[0,...] = 1.5*r*t + 0.532258064516129*l*t + 0.137992831541219*l*b + 0.532258064516129*r*b
-u = 0.*r*t + 1.206045378311055*l*t + 1.206045378311055*l*b + 0.*r*b
-v = 0.*r*t + 0.*l*t + 1.206045378311055*l*b + 1.206045378311055*r*b
-p = 1.5*r*t + 0.3*l*t + 0.029032258064516*l*b + 0.3*r*b
-solution.q[1,...] = solution.q[0,...] * u
-solution.q[2,...] = solution.q[0,...] * v
-solution.q[3,...] = 0.5*solution.q[0,...]*(u**2+v**2) + p/(gamma-1.)
+    # Figure for density - pcolor
+    plotfigure = plotdata.new_plotfigure(name='Density', figno=0)
 
-claw = pyclaw.Controller()
-claw.tfinal = 0.8
-claw.solution = solution
-claw.solver = solver
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.xlimits = 'auto'
+    plotaxes.ylimits = 'auto'
+    plotaxes.scaled = True
+    plotaxes.title = 'Density'
 
-status = claw.run()
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
+    plotitem.plot_var = 0
+    plotitem.pcolor_cmap = colormaps.yellow_red_blue
+    plotitem.pcolor_cmin = 0.
+    plotitem.pcolor_cmax = 2.
+    plotitem.add_colorbar = True
 
-#pyclaw.plot.interactive_plot()
+    # Figure for density - Schlieren
+    plotfigure = plotdata.new_plotfigure(name='Schlieren', figno=1)
+
+    # Set up for axes in this figure:
+    plotaxes = plotfigure.new_plotaxes()
+    plotaxes.xlimits = 'auto'
+    plotaxes.ylimits = 'auto'
+    plotaxes.title = 'Density'
+    plotaxes.scaled = True      # so aspect ratio is 1
+
+    # Set up for item on these axes:
+    plotitem = plotaxes.new_plotitem(plot_type='2d_schlieren')
+    plotitem.schlieren_cmin = 0.0
+    plotitem.schlieren_cmax = 1.0
+    plotitem.plot_var = 0
+    plotitem.add_colorbar = False
+    
+    return plotdata
+
+
+def setup(use_petsc=False):
+    
+    if use_petsc:
+        import clawpack.petclaw as pyclaw
+    else:
+        from clawpack import pyclaw
+    from clawpack import riemann
+
+    solver = pyclaw.ClawSolver2D(riemann.euler_4wave_2D)
+    solver.all_bcs = pyclaw.BC.extrap
+
+    domain = pyclaw.Domain([0.,0.],[1.,1.],[100,100])
+    solution = pyclaw.Solution(solver.num_eqn,domain)
+    gamma = 1.4
+    solution.problem_data['gamma']  = gamma
+    solver.dimensional_split = False
+    solver.transverse_waves = 2
+
+    # Set initial data
+    xx,yy = domain.grid.p_centers
+    l = xx<0.8; r = xx>=0.8; b = yy<0.8; t = yy>=0.8
+    solution.q[0,...] = 1.5*r*t + 0.532258064516129*l*t + 0.137992831541219*l*b + 0.532258064516129*r*b
+    u = 0.*r*t + 1.206045378311055*l*t + 1.206045378311055*l*b + 0.*r*b
+    v = 0.*r*t + 0.*l*t + 1.206045378311055*l*b + 1.206045378311055*r*b
+    p = 1.5*r*t + 0.3*l*t + 0.029032258064516*l*b + 0.3*r*b
+    solution.q[1,...] = solution.q[0,...] * u
+    solution.q[2,...] = solution.q[0,...] * v
+    solution.q[3,...] = 0.5*solution.q[0,...]*(u**2+v**2) + p/(gamma-1.)
+
+    claw = pyclaw.Controller()
+    claw.tfinal = 0.8
+    claw.solution = solution
+    claw.solver = solver
+
+    claw.output_format = 'ascii'    
+    claw.outdir = "./_output"
+    claw.setplot = setplot
+
+    return claw
+
+if __name__ == "__main__":
+    from clawpack.pyclaw.util import run_app_from_main
+    output = run_app_from_main(setup, setplot)
