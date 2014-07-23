@@ -80,9 +80,9 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',
         solver.bc_lower[0]    =pyclaw.BC.wall
         solver.bc_lower[1]    =pyclaw.BC.wall
         solver.bc_lower[2]    =pyclaw.BC.wall
-        solver.aux_bc_lower[0]=pyclaw.BC.wall
-        solver.aux_bc_lower[1]=pyclaw.BC.wall
-        solver.aux_bc_lower[2]=pyclaw.BC.wall
+        solver.aux_bc_lower[0]=pyclaw.BC.extrap
+        solver.aux_bc_lower[1]=pyclaw.BC.extrap
+        solver.aux_bc_lower[2]=pyclaw.BC.extrap
 
         mx=mx; my=my; mz=mz # Grid resolution
 
