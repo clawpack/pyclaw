@@ -65,12 +65,12 @@ def b4step(solver,state):
         solver.aux_bc_upper[0]=2
 
 
-def zero_bc(state,dim,t,qbc,num_ghost):
+def zero_bc(state,dim,t,qbc,auxbc,num_ghost):
     """Set everything to zero"""
     if dim.on_upper_boundary:
         qbc[:,-num_ghost:]=0.
 
-def moving_wall_bc(state,dim,t,qbc,num_ghost):
+def moving_wall_bc(state,dim,t,qbc,auxbc,num_ghost):
     """Initial pulse generated at left boundary by prescribed motion"""
     if dim.on_lower_boundary:
         qbc[0,:num_ghost]=qbc[0,num_ghost] 
