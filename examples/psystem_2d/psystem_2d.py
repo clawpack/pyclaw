@@ -148,13 +148,9 @@ def setup(kernel_language='Fortran',
     y0=0.25 # Center of initial perturbation
     varx=0.5; vary=0.5 # Width of initial perturbation
 
-    # Boundary conditions
-    bc_x_lower=pyclaw.BC.wall; bc_x_upper=pyclaw.BC.extrap
-    bc_y_lower=pyclaw.BC.wall; bc_y_upper=pyclaw.BC.extrap
+    num_output_times = 10
 
-    num_output_times=10
-
-    if solver_type=='classic':
+    if solver_type == 'classic':
         solver = pyclaw.ClawSolver2D(riemann.psystem_2D)
         solver.dimensional_split=False
         solver.cfl_max = 0.9
@@ -166,10 +162,15 @@ def setup(kernel_language='Fortran',
     if kernel_language != 'Fortran':
         raise Exception('Unrecognized value of kernel_language for 2D psystem')
 
-    solver.bc_lower     = [bc_x_lower, bc_y_lower]
-    solver.bc_upper     = [bc_x_upper, bc_y_upper]
-    solver.aux_bc_lower = [bc_x_lower, bc_y_lower]
-    solver.aux_bc_upper = [bc_x_upper, bc_y_upper]
+    # Boundary conditions
+    solver.bc_lower[0] = pyclaw.BC.wall
+    solver.bc_upper[0] = pyclaw.BC.extrap
+    solver.bc_lower[1] = pyclaw.BC.wall
+    solver.bc_upper[1] = pyclaw.BC.extrap
+    solver.aux_bc_lower[0] = pyclaw.BC.extrap
+    solver.aux_bc_upper[0] = pyclaw.BC.extrap
+    solver.aux_bc_lower[1] = pyclaw.BC.extrap
+    solver.aux_bc_upper[1] = pyclaw.BC.extrap
 
     solver.fwave = True
     solver.before_step = b4step
