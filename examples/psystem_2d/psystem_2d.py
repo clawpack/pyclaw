@@ -122,6 +122,16 @@ def gauge_stress(q,aux):
     p = np.exp(q[0]*aux[1])-1
     return [p,10*p]
 
+def wall_aux_bcs(state, dim, t, qbc, auxbc, num_ghost):
+    if dim.name == "x":
+        for i in xrange(num_ghost):
+            auxbc[:,i,:] = auxbc[:, 2 * num_ghost-1-i, :]
+    elif dim.name == 'y':
+        for i in xrange(num_ghost):
+            auxbc[:,:,i] = auxbc[:, :, 2 * num_ghost-1-i]
+    else:
+        raise ValueError("Unknown dimension label %s." % dim.name)
+
 def setup(kernel_language='Fortran',
               use_petsc=False,outdir='./_output',solver_type='classic',
               disable_output=False, cells_per_layer=30, tfinal=18.):
@@ -167,9 +177,11 @@ def setup(kernel_language='Fortran',
     solver.bc_upper[0] = pyclaw.BC.extrap
     solver.bc_lower[1] = pyclaw.BC.wall
     solver.bc_upper[1] = pyclaw.BC.extrap
-    solver.aux_bc_lower[0] = pyclaw.BC.extrap
+    solver.aux_bc_lower[0] = pyclaw.BC.custom
+    solver.user_aux_bc_lower = wall_aux_bcs
     solver.aux_bc_upper[0] = pyclaw.BC.extrap
-    solver.aux_bc_lower[1] = pyclaw.BC.extrap
+    solver.aux_bc_lower[1] = pyclaw.BC.custom
+    solver.user_aux_bc_lower = wall_aux_bcs
     solver.aux_bc_upper[1] = pyclaw.BC.extrap
 
     solver.fwave = True
