@@ -48,9 +48,11 @@ def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output',
     solver.bc_upper[0]=pyclaw.BC.extrap
     solver.bc_lower[1]=pyclaw.BC.wall
     solver.bc_upper[1]=pyclaw.BC.extrap
-    solver.aux_bc_lower[0]=pyclaw.BC.wall
+    # solver.aux_bc_lower[0]=pyclaw.BC.wall
+    solver.aux_bc_lower[0] = pyclaw.BC.extrap
     solver.aux_bc_upper[0]=pyclaw.BC.extrap
-    solver.aux_bc_lower[1]=pyclaw.BC.wall
+    # solver.aux_bc_lower[1]=pyclaw.BC.wall
+    solver.aux_bc_lower[1]=pyclaw.BC.extrap
     solver.aux_bc_upper[1]=pyclaw.BC.extrap
 
     x = pyclaw.Dimension('x',-1.0,1.0,num_cells[0])
