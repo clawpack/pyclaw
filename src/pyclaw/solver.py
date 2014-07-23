@@ -342,7 +342,7 @@ class Solver(object):
                     # everything relying on the user to NOT change the other 
                     # array
                     if method[1][idim] == BC.custom:
-                        method[2](state, dim, state.t, self.qbc, self.auxbc, idim)
+                        method[2](state, dim, state.t, self.qbc, self.auxbc, self.num_ghost)
                     
                     elif method[1][idim] == BC.periodic:
                         # Check to see if we own the entire patch, PETSc handles
@@ -371,7 +371,7 @@ class Solver(object):
                     # everything relying on the user to NOT change the other 
                     # array
                     if method[1][idim] == BC.custom:
-                        method[2](state, dim, state.t, self.qbc, self.auxbc, idim)
+                        method[2](state, dim, state.t, self.qbc, self.auxbc, self.num_ghost)
                     
                     elif method[1][idim] == BC.periodic:
                         # Check to see if we own the entire patch, PETSc handles
