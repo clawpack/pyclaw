@@ -344,7 +344,22 @@ class Solver(object):
                     # everything relying on the user to NOT change the other 
                     # array
                     if method[1][idim] == BC.custom:
-                        method[2](state, dim, state.t, self.qbc, self.auxbc, self.num_ghost)
+                        try:
+                            method[2](state, dim, state.t, self.qbc, self.auxbc,
+                                      self.num_ghost)
+                        except TypeError:
+                            # Custom BC function is using old signature
+                            logger.warn("The custom boundary condition ",
+                                        "function signature has been changed, ",
+                                        "the previous one will not be ",
+                                        "supported in Clawpack 6.0.  ",
+                                        "Please see http://clawpack.github.io/",
+                                        "doc/pyclaw/solvers.html ",
+                                        "for more info.")
+                            if method[3] == 'q':
+                                method[2](state, dim, state.t, self.qbc, self.num_ghost)
+                            else:
+                                method[2](state, dim, state.t, self.auxbc, self.num_ghost)
                     
                     elif method[1][idim] == BC.periodic:
                         # Check to see if we own the entire patch, PETSc handles
@@ -375,7 +390,22 @@ class Solver(object):
                     # everything relying on the user to NOT change the other 
                     # array
                     if method[1][idim] == BC.custom:
-                        method[2](state, dim, state.t, self.qbc, self.auxbc, self.num_ghost)
+                        try:
+                            method[2](state, dim, state.t, self.qbc, self.auxbc,
+                                      self.num_ghost)
+                        except TypeError:
+                            # Custom BC function is using old signature
+                            logger.warn("The custom boundary condition ",
+                                        "function signature has been changed, ",
+                                        "the previous one will not be ",
+                                        "supported in Clawpack 6.0.  ",
+                                        "Please see http://clawpack.github.io/",
+                                        "doc/pyclaw/solvers.html ",
+                                        "for more info.")
+                            if method[3] == 'q':
+                                method[2](state, dim, state.t, self.qbc, self.num_ghost)
+                            else:
+                                method[2](state, dim, state.t, self.auxbc, self.num_ghost)
                     
                     elif method[1][idim] == BC.periodic:
                         # Check to see if we own the entire patch, PETSc handles
