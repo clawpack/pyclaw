@@ -1,4 +1,4 @@
-# Changes since 5.1.0
+# 5.2.0 release
 
 - **Linear multistep methods for timestepping in SharpClaw**: 
   Previously, only Runge-Kutta time stepping was included in SharpClaw.
@@ -9,12 +9,16 @@
   The user must provide a routine that computes the eigenvectors.  See 
   `clawpack/pyclaw/examples/euler_1d/`.
 - **Logging control**: it is now easy to modify the logging levels interactively,
-  without modifying the logger files.
+  without modifying the logger files.  All logging configuration is
+  set by default with `pyclaw/log.config`; the file `petclaw/log.config` is
+  no longer used.
 - It is no longer necessary to compile dummy transverse Riemann solvers when using
   an algorithm with no transverse wave propagation.
 - Add functions to compute cell centers of ghost cells.
 - Tests run in parallel on Travis.
-- Writing of HDF5 and netcdf files now works in serial and parallel.
+- All tests now run in under two minutes on most systems.
+- PyWENO-generated code updated to match latest PyWENO release.
+- Writing and reading of HDF5 and netcdf files now works in serial and parallel.
 - Improvements to examples.
 - Miscellaneous bug fixes.
 
