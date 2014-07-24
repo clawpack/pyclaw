@@ -241,7 +241,6 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
             solution.states.append(state)
             patches.append(pyclaw_patch)
             
-        print patches
         solution.domain = pyclaw.geometry.Domain(patches)
         # Flush and close the file
         f.close()
