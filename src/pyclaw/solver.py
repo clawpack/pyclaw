@@ -318,7 +318,22 @@ class Solver(object):
 
 
     def _apply_bcs(self, state):
-        r"""Apply boundary conditions to both q and aux arrays."""
+        r"""
+        Apply boundary conditions to both q and aux arrays.
+        
+        In the case of a user-defined boundary condition, both arrays
+        qbc and auxbc are passed to the user function.  Typically the
+        function would only modify one or the other of them, though this
+        is not enforced.
+
+        If the user function only accepts one array argument, we warn
+        that this interface has been deprecated.  In Clawpack 6, we will
+        drop backward compatibility.
+
+        For parallel runs, we check whether we're actually on a domain
+        boundary.  If we are just at an inter-patch boundary, nothing needs to
+        be done here.
+        """
 
         import numpy as np
 
@@ -332,20 +347,21 @@ class Solver(object):
             # Check if we are on a true boundary
             if state.grid.on_lower_boundary[idim]:
 
-                methods = []
+                bcs = []
                 if state.num_aux > 0:
-                    methods.append((self.auxbc, 
-                                    self.aux_bc_lower, 
-                                    self.user_aux_bc_lower, 'aux'))
-                methods.append((self.qbc, self.bc_lower, self.user_bc_lower, 'q'))
-                for (i, method) in enumerate(methods):
+                    bcs.append({'array'  : self.auxbc,
+                                'type'   : self.aux_bc_lower,
+                                'custom_fun' : self.user_aux_bc_lower,
+                                'variable' : 'aux'})
+                bcs.append({'array'  : self.qbc,
+                            'type'   : self.bc_lower,
+                            'custom_fun' : self.user_bc_lower,
+                            'variable' : 'q'})
+                for (i, bc) in enumerate(bcs):
 
-                    # Custom boundary condition requested, pass through
-                    # everything relying on the user to NOT change the other 
-                    # array
-                    if method[1][idim] == BC.custom:
+                    if bc['type'][idim] == BC.custom:
                         try:
-                            method[2](state, dim, state.t, self.qbc, self.auxbc,
+                            bc['custom_fun'](state, dim, state.t, self.qbc, self.auxbc,
                                       self.num_ghost)
                         except TypeError:
                             # Custom BC function is using old signature
@@ -356,42 +372,37 @@ class Solver(object):
                                         "Please see http://clawpack.github.io/",
                                         "doc/pyclaw/solvers.html ",
                                         "for more info.")
-                            if method[3] == 'q':
-                                method[2](state, dim, state.t, self.qbc, self.num_ghost)
+                            if bc['variable'] == 'q':
+                                bc['custom_fun'](state, dim, state.t, self.qbc, self.num_ghost)
                             else:
-                                method[2](state, dim, state.t, self.auxbc, self.num_ghost)
+                                bc['custom_fun'](state, dim, state.t, self.auxbc, self.num_ghost)
                     
-                    elif method[1][idim] == BC.periodic:
-                        # Check to see if we own the entire patch, PETSc handles
-                        # this if we do not.
-                        if state.grid.on_upper_boundary[idim]:
-                            self._bc_lower(method[1][idim], state, dim, state.t, 
-                                        np.rollaxis(method[0], idim+1, 1), idim,
-                                        method[3])
-                        else:
-                            pass # Handled by PETSc
+                    elif bc['type'][idim] == BC.periodic \
+                            and not state.grid.on_upper_boundary[idim]:
+                        pass # In a parallel run, # PETSc handles periodic BCs.
 
                     else:
-                        self._bc_lower(method[1][idim], state, dim, state.t,
-                                        np.rollaxis(method[0], idim+1, 1), idim,
-                                        method[3])
+                        self._bc_lower(bc['type'][idim], state, dim, state.t,
+                                        np.rollaxis(bc['array'], idim+1, 1), idim,
+                                        bc['variable'])
 
             if state.grid.on_upper_boundary[idim]:
 
-                methods = []
+                bcs = []
                 if state.num_aux > 0:
-                    methods.append((self.auxbc, 
-                                    self.aux_bc_upper, 
-                                    self.user_aux_bc_upper,'aux'))
-                methods.append((self.qbc, self.bc_upper, self.user_bc_upper,'q'))
-                for (i, method) in enumerate(methods):
+                    bcs.append({'array'  : self.auxbc,
+                                'type'   : self.aux_bc_upper,
+                                'custom_fun' : self.user_aux_bc_upper,
+                                'variable' : 'aux'})
+                bcs.append({'array'  : self.qbc,
+                            'type'   : self.bc_upper,
+                            'custom_fun' : self.user_bc_upper,
+                            'variable' : 'q'})
+                for (i, bc) in enumerate(bcs):
 
-                    # Custom boundary condition requested, pass through
-                    # everything relying on the user to NOT change the other 
-                    # array
-                    if method[1][idim] == BC.custom:
+                    if bc['type'][idim] == BC.custom:
                         try:
-                            method[2](state, dim, state.t, self.qbc, self.auxbc,
+                            bc['custom_fun'](state, dim, state.t, self.qbc, self.auxbc,
                                       self.num_ghost)
                         except TypeError:
                             # Custom BC function is using old signature
@@ -402,28 +413,22 @@ class Solver(object):
                                         "Please see http://clawpack.github.io/",
                                         "doc/pyclaw/solvers.html ",
                                         "for more info.")
-                            if method[3] == 'q':
-                                method[2](state, dim, state.t, self.qbc, self.num_ghost)
+                            if bc['variable'] == 'q':
+                                bc['custom_fun'](state, dim, state.t, self.qbc, self.num_ghost)
                             else:
-                                method[2](state, dim, state.t, self.auxbc, self.num_ghost)
+                                bc['custom_fun'](state, dim, state.t, self.auxbc, self.num_ghost)
                     
-                    elif method[1][idim] == BC.periodic:
-                        # Check to see if we own the entire patch, PETSc handles
-                        # this if we do not.
-                        if state.grid.on_lower_boundary[idim]:
-                            self._bc_upper(method[1][idim], state, dim, state.t, 
-                                        np.rollaxis(method[0], idim+1, 1), idim,
-                                        method[3])
-                        else:
-                            pass # Handled by PETSc
+                    elif bc['type'][idim] == BC.periodic \
+                            and not state.grid.on_lower_boundary[idim]:
+                        pass # In a parallel run, # PETSc handles periodic BCs.
 
                     else:
-                        self._bc_upper(method[1][idim], state, dim, state.t,
-                                        np.rollaxis(method[0], idim+1, 1), idim,
-                                        method[3])
+                        self._bc_upper(bc['type'][idim], state, dim, state.t,
+                                        np.rollaxis(bc['array'], idim+1, 1), idim,
+                                        bc['variable'])
 
 
-    def _bc_lower(self, method, state, dim, t, array, idim, name):
+    def _bc_lower(self, bc_type, state, dim, t, array, idim, name):
         r"""
         Apply lower boundary conditions to array.
         
@@ -442,13 +447,13 @@ class Solver(object):
            will be set in this routines.
         """
 
-        if method == BC.extrap:
+        if bc_type == BC.extrap:
             for i in xrange(self.num_ghost):
                 array[:,i,...] = array[:,self.num_ghost,...]
-        elif method == BC.periodic:
+        elif bc_type == BC.periodic:
             # This process owns the whole patch
             array[:,:self.num_ghost,...] = array[:,-2*self.num_ghost:-self.num_ghost,...]
-        elif method == BC.wall:
+        elif bc_type == BC.wall:
             if name == 'q':
                 for i in xrange(self.num_ghost):
                     array[:,i,...] = array[:,2*self.num_ghost-1-i,...]
@@ -457,10 +462,10 @@ class Solver(object):
                 for i in xrange(self.num_ghost):
                     array[:,i,...] = array[:,2*self.num_ghost-1-i,...]
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % method)
+            raise NotImplementedError("Boundary condition %s not implemented" % bc_type)
 
 
-    def _bc_upper(self, method, state, dim, t, array, idim, name):
+    def _bc_upper(self, bc_type, state, dim, t, array, idim, name):
         r"""
         Apply upper boundary conditions to array
         
@@ -479,13 +484,13 @@ class Solver(object):
            be set in this routines
         """
         
-        if method == BC.extrap:
+        if bc_type == BC.extrap:
             for i in xrange(self.num_ghost):
                 array[:,-i-1,...] = array[:,-self.num_ghost-1,...] 
-        elif method == BC.periodic:
+        elif bc_type == BC.periodic:
             # This process owns the whole patch
             array[:,-self.num_ghost:,...] = array[:,self.num_ghost:2*self.num_ghost,...]
-        elif method == BC.wall:
+        elif bc_type == BC.wall:
             if name == 'q':
                 for i in xrange(self.num_ghost):
                     array[:,-i-1,...] = array[:,-2*self.num_ghost+i,...]
