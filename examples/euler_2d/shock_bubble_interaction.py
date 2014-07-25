@@ -92,7 +92,7 @@ def auxinit(state):
         state.aux[0,:,j] = r
 
 
-def incoming_shock(state,dim,t,qbc,num_ghost):
+def incoming_shock(state,dim,t,qbc,auxbc,num_ghost):
     """
     Incoming shock at left boundary.
     """

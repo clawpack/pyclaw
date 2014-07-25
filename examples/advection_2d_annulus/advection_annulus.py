@@ -58,7 +58,7 @@ def qinit(state):
                    + A2*np.exp(-beta2*(np.square(R-r2) + np.square(Theta-theta2)))
 
 
-def ghost_velocities_upper(state,dim,t,auxbc,num_ghost):
+def ghost_velocities_upper(state,dim,t,qbc,auxbc,num_ghost):
     """
     Set the velocities for the ghost cells outside the outer radius of the annulus.
     In the computational domain, these are the cells at the top of the grid.
@@ -77,7 +77,7 @@ def ghost_velocities_upper(state,dim,t,auxbc,num_ghost):
         raise Exception('Custom BC for this boundary is not appropriate!')
 
 
-def ghost_velocities_lower(state,dim,t,auxbc,num_ghost):
+def ghost_velocities_lower(state,dim,t,qbc,auxbc,num_ghost):
     """
     Set the velocities for the ghost cells outside the inner radius of the annulus.
     In the computational domain, these are the cells at the bottom of the grid.

@@ -636,9 +636,7 @@ class SharpClawSolver1D(SharpClawSolver):
     
         import numpy as np
 
-        self._apply_q_bcs(state)
-        if state.num_aux > 0:
-            self._apply_aux_bcs(state)
+        self._apply_bcs(state)
         q = self.qbc 
 
         grid = state.grid
@@ -766,9 +764,7 @@ class SharpClawSolver2D(SharpClawSolver):
         values are in the cell.
 
         """
-        self._apply_q_bcs(state)
-        if state.num_aux > 0:    
-            self._apply_aux_bcs(state)
+        self._apply_bcs(state)
         q = self.qbc 
 
         grid = state.grid
@@ -846,9 +842,7 @@ class SharpClawSolver3D(SharpClawSolver):
         values are in the cell.
 
         """
-        self._apply_q_bcs(state)
-        if state.num_aux > 0:    
-            self._apply_aux_bcs(state)
+        self._apply_bcs(state)
         q = self.qbc 
 
         grid = state.grid

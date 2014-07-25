@@ -305,7 +305,7 @@ def qinit(state,mx,my):
             state.q[3,i,j] = state.q[0,i,j]*Uout[2] 
 
 
-def qbc_lower_y(state,dim,t,qbc,num_ghost):
+def qbc_lower_y(state,dim,t,qbc,auxbc,num_ghost):
     """
     Impose periodic boundary condition to q at the bottom boundary for the 
     sphere. This function does not work in parallel.
@@ -315,7 +315,7 @@ def qbc_lower_y(state,dim,t,qbc,num_ghost):
         qbc[:,:,j] = qbc1D[:,::-1]
 
 
-def qbc_upper_y(state,dim,t,qbc,num_ghost):
+def qbc_upper_y(state,dim,t,qbc,auxbc,num_ghost):
     """
     Impose periodic boundary condition to q at the top boundary for the sphere.
     This function does not work in parallel.
@@ -326,7 +326,7 @@ def qbc_upper_y(state,dim,t,qbc,num_ghost):
         qbc[:,:,my+num_ghost+j] = qbc1D[:,::-1]
 
 
-def auxbc_lower_y(state,dim,t,auxbc,num_ghost):
+def auxbc_lower_y(state,dim,t,qbc,auxbc,num_ghost):
     """
     Impose periodic boundary condition to aux at the bottom boundary for the 
     sphere.
@@ -344,7 +344,7 @@ def auxbc_lower_y(state,dim,t,auxbc,num_ghost):
     auxtemp = problem.setaux(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
     auxbc[:,:,:num_ghost] = auxtemp[:,:,:num_ghost]
 
-def auxbc_upper_y(state,dim,t,auxbc,num_ghost):
+def auxbc_upper_y(state,dim,t,qbc,auxbc,num_ghost):
     """
     Impose periodic boundary condition to aux at the top boundary for the 
     sphere. 
