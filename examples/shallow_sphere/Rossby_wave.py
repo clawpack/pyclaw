@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
+Shallow water flow on the sphere
+================================
+
 2D shallow water equations on a spherical surface. The approximation of the 
 three-dimensional equations is restricted to the surface of the sphere. 
 Therefore only the solution on the surface is updated. 
