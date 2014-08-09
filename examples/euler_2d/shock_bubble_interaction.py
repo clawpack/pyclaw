@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
+r"""
 Compressible Euler flow in cylindrical symmetry
 ===============================================
 
@@ -185,6 +185,8 @@ def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_langua
         solver.step_source = step_Euler_radial
         solver.source_split = 1
         solver.limiters = [4,4,4,4,2]
+        solver.cfl_max = 0.5
+        solver.cfl_desired = 0.45
 
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
@@ -198,9 +200,6 @@ def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_langua
     qinit(state)
     auxinit(state)
 
-    solver.cfl_max = 0.5
-    solver.cfl_desired = 0.45
-    solver.dt_initial=0.005
     solver.user_bc_lower = incoming_shock
 
     solver.bc_lower[0]=pyclaw.BC.custom
