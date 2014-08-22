@@ -2,7 +2,7 @@
 
 !     ==================================================================
     subroutine flux3(ixyz,maxm,num_eqn,num_waves,num_ghost,mx, &
-                     q1d,dtdx1d,dtdy,dtdz,aux1,aux2,aux3,num_aux, &
+                     q1d,dtdx1d,dtdydc,dtdzdc,aux1,aux2,aux3,num_aux, &
                      method,mthlim,qadd,fadd,gadd,hadd,cfl1d, &
                      wave,s,amdq,apdq,cqxx, &
                      bmamdq,bmapdq,bpamdq,bpapdq, &
@@ -416,45 +416,45 @@
             
 
                 gadd(m,2,0,i) = gadd(m,2,0,i) &
-                + (1.d0/6.d0)*dtdx1d(i)*dtdz &
+                + (1.d0/6.d0)*dtdx1d(i)*dtdzdc &
                 * (bpcpapdq(m,i) - bpcmapdq(m,i))
                 gadd(m,1,0,i) = gadd(m,1,0,i) &
-                + (1.d0/6.d0)*dtdx1d(i)*dtdz &
+                + (1.d0/6.d0)*dtdx1d(i)*dtdzdc &
                 * (bmcpapdq(m,i) - bmcmapdq(m,i))
 
 
                 gadd(m,2,1,i) = gadd(m,2,1,i) &
-                - (1.d0/6.d0)*dtdx1d(i)*dtdz &
+                - (1.d0/6.d0)*dtdx1d(i)*dtdzdc &
                 * bpcpapdq(m,i)
                 gadd(m,1,1,i) = gadd(m,1,1,i) &
-                - (1.d0/6.d0)*dtdx1d(i)*dtdz &
+                - (1.d0/6.d0)*dtdx1d(i)*dtdzdc &
                 * bmcpapdq(m,i)
                 gadd(m,2,-1,i) = gadd(m,2,-1,i) &
-                + (1.d0/6.d0)*dtdx1d(i)*dtdz &
+                + (1.d0/6.d0)*dtdx1d(i)*dtdzdc &
                 * bpcmapdq(m,i)
                 gadd(m,1,-1,i) = gadd(m,1,-1,i) &
-                + (1.d0/6.d0)*dtdx1d(i)*dtdz &
+                + (1.d0/6.d0)*dtdx1d(i)*dtdzdc &
                 * bmcmapdq(m,i)
             
                 gadd(m,2,0,i-1) = gadd(m,2,0,i-1) &
-                + (1.d0/6.d0)*dtdx1d(i-1)*dtdz &
+                + (1.d0/6.d0)*dtdx1d(i-1)*dtdzdc &
                 * (bpcpamdq(m,i) - bpcmamdq(m,i))
                 gadd(m,1,0,i-1) = gadd(m,1,0,i-1) &
-                + (1.d0/6.d0)*dtdx1d(i-1)*dtdz &
+                + (1.d0/6.d0)*dtdx1d(i-1)*dtdzdc &
                 * (bmcpamdq(m,i) - bmcmamdq(m,i))
 
 
                 gadd(m,2,1,i-1) = gadd(m,2,1,i-1) &
-                - (1.d0/6.d0)*dtdx1d(i-1)*dtdz &
+                - (1.d0/6.d0)*dtdx1d(i-1)*dtdzdc &
                 * bpcpamdq(m,i)
                 gadd(m,1,1,i-1) = gadd(m,1,1,i-1) &
-                - (1.d0/6.d0)*dtdx1d(i-1)*dtdz &
+                - (1.d0/6.d0)*dtdx1d(i-1)*dtdzdc &
                 * bmcpamdq(m,i)
                 gadd(m,2,-1,i-1) = gadd(m,2,-1,i-1) &
-                + (1.d0/6.d0)*dtdx1d(i-1)*dtdz &
+                + (1.d0/6.d0)*dtdx1d(i-1)*dtdzdc &
                 * bpcmamdq(m,i)
                 gadd(m,1,-1,i-1) = gadd(m,1,-1,i-1) &
-                + (1.d0/6.d0)*dtdx1d(i-1)*dtdz &
+                + (1.d0/6.d0)*dtdx1d(i-1)*dtdzdc &
                 * bmcmamdq(m,i)
             
             endif
@@ -540,45 +540,45 @@
             if( m4 > 0 )then
             
                 hadd(m,2,0,i)  = hadd(m,2,0,i) &
-                + (1.d0/6.d0)*dtdx1d(i)*dtdy &
+                + (1.d0/6.d0)*dtdx1d(i)*dtdydc &
                 * (bpcpapdq(m,i) - bpcmapdq(m,i))
                 hadd(m,1,0,i)  = hadd(m,1,0,i) &
-                + (1.d0/6.d0)*dtdx1d(i)*dtdy &
+                + (1.d0/6.d0)*dtdx1d(i)*dtdydc &
                 * (bmcpapdq(m,i) - bmcmapdq(m,i))
 
 
                 hadd(m,2,1,i)  = hadd(m,2,1,i) &
-                - (1.d0/6.d0)*dtdx1d(i)*dtdy &
+                - (1.d0/6.d0)*dtdx1d(i)*dtdydc &
                 * bpcpapdq(m,i)
                 hadd(m,1,1,i)  = hadd(m,1,1,i) &
-                - (1.d0/6.d0)*dtdx1d(i)*dtdy &
+                - (1.d0/6.d0)*dtdx1d(i)*dtdydc &
                 * bmcpapdq(m,i)
                 hadd(m,2,-1,i) = hadd(m,2,-1,i) &
-                + (1.d0/6.d0)*dtdx1d(i)*dtdy &
+                + (1.d0/6.d0)*dtdx1d(i)*dtdydc &
                 * bpcmapdq(m,i)
                 hadd(m,1,-1,i) = hadd(m,1,-1,i) &
-                + (1.d0/6.d0)*dtdx1d(i)*dtdy &
+                + (1.d0/6.d0)*dtdx1d(i)*dtdydc &
                 * bmcmapdq(m,i)
             
                 hadd(m,2,0,i-1)  = hadd(m,2,0,i-1) &
-                + (1.d0/6.d0)*dtdx1d(i-1)*dtdy &
+                + (1.d0/6.d0)*dtdx1d(i-1)*dtdydc &
                 * (bpcpamdq(m,i) - bpcmamdq(m,i))
                 hadd(m,1,0,i-1)  = hadd(m,1,0,i-1) &
-                + (1.d0/6.d0)*dtdx1d(i-1)*dtdy &
+                + (1.d0/6.d0)*dtdx1d(i-1)*dtdydc &
                 * (bmcpamdq(m,i) - bmcmamdq(m,i))
 
 
                 hadd(m,2,1,i-1)  = hadd(m,2,1,i-1) &
-                - (1.d0/6.d0)*dtdx1d(i-1)*dtdy &
+                - (1.d0/6.d0)*dtdx1d(i-1)*dtdydc &
                 * bpcpamdq(m,i)
                 hadd(m,1,1,i-1)  = hadd(m,1,1,i-1) &
-                - (1.d0/6.d0)*dtdx1d(i-1)*dtdy &
+                - (1.d0/6.d0)*dtdx1d(i-1)*dtdydc &
                 * bmcpamdq(m,i)
                 hadd(m,2,-1,i-1) = hadd(m,2,-1,i-1) &
-                + (1.d0/6.d0)*dtdx1d(i-1)*dtdy &
+                + (1.d0/6.d0)*dtdx1d(i-1)*dtdydc &
                 * bpcmamdq(m,i)
                 hadd(m,1,-1,i-1) = hadd(m,1,-1,i-1) &
-                + (1.d0/6.d0)*dtdx1d(i-1)*dtdy &
+                + (1.d0/6.d0)*dtdx1d(i-1)*dtdydc &
                 * bmcmamdq(m,i)
             
             endif
