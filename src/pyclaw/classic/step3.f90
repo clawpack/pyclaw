@@ -107,6 +107,9 @@
     dtdx = dt/dx
     dtdy = dt/dy
     dtdz = dt/dz
+    dtdxdc = dtdx
+    dtdydc = dtdy
+    dtdzdc = dtdz
 
     if (index_capa == 0) then
     !        # no capa array:
@@ -133,6 +136,8 @@
             if (index_capa > 0)  then
                 do 23 i = 1-num_ghost, mx+num_ghost
                     dtdx1d(i) = dtdx / aux(index_capa,i,j,k)
+                    dtdydc = dtdy / aux(index_capa,i,j,k)
+                    dtdzdc = dtdz / aux(index_capa,i,j,k)
                 23 END DO
             endif
         
@@ -162,7 +167,7 @@
         !           # this slice:
         
             call flux3(1,maxm,num_eqn,num_waves,num_ghost,mx, &
-            q1d,dtdx1d,dtdy,dtdz,aux1,aux2,aux3,num_aux, &
+            q1d,dtdx1d,dtdydc,dtdzdc,aux1,aux2,aux3,num_aux, &
             method,mthlim,qadd,fadd,gadd,hadd,cfl1d, &
             work(i0wave),work(i0s),work(i0amdq), &
             work(i0apdq),work(i0cqxx), &
@@ -292,7 +297,9 @@
         
             if (index_capa > 0)  then
                 do 71 j = 1-num_ghost, my+num_ghost
+                    dtdxdc = dtdx / aux(index_capa,i,j,k)
                     dtdy1d(j) = dtdy / aux(index_capa,i,j,k)
+                    dtdzdc = dtdz / aux(index_capa,i,j,k)
                 71 END DO
             endif
         
@@ -317,7 +324,7 @@
         !           # slice:
         
             call flux3(2,maxm,num_eqn,num_waves,num_ghost,my, &
-            q1d,dtdy1d,dtdz,dtdx,aux1,aux2,aux3,num_aux, &
+            q1d,dtdy1d,dtdzdc,dtdxdc,aux1,aux2,aux3,num_aux, &
             method,mthlim,qadd,fadd,gadd,hadd,cfl1d, &
             work(i0wave),work(i0s),work(i0amdq), &
             work(i0apdq),work(i0cqxx), &
@@ -448,6 +455,8 @@
         
             if (index_capa > 0)  then
                 do 130 k = 1-num_ghost, mz+num_ghost
+                    dtdxdc = dtdx / aux(index_capa,i,j,k)
+                    dtdydc = dtdy / aux(index_capa,i,j,k)
                     dtdz1d(k) = dtdz / aux(index_capa,i,j,k)
                 130 END DO
             endif
@@ -477,7 +486,7 @@
         !           # slice:
         
             call flux3(3,maxm,num_eqn,num_waves,num_ghost,mz, &
-            q1d,dtdz1d,dtdx,dtdy,aux1,aux2,aux3,num_aux, &
+            q1d,dtdz1d,dtdxdc,dtdydc,aux1,aux2,aux3,num_aux, &
             method,mthlim,qadd,fadd,gadd,hadd,cfl1d, &
             work(i0wave),work(i0s),work(i0amdq), &
             work(i0apdq),work(i0cqxx), &
