@@ -30,7 +30,7 @@ def default_tfluct():
         to learn how to pass tfluct functions to the sharpclaw solver
     """
     if self.tfluct_solver:
-        raise Exception("You set solver.tfluct_solver=True, but solver.tfluct is empty")
+        raise Exception("You set solver.tfluct_solver=True, but solver.tfluct has not been set.")
     pass
 
 class SharpClawSolver(Solver):
