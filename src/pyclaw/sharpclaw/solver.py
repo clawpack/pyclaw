@@ -25,10 +25,12 @@ def before_step(solver,solution):
     """
     pass
 
-def empty_tfluct():
+def default_tfluct():
     r"""This is a dummy routine and should never be called, check Euler1D
         to learn how to pass tfluct functions to the sharpclaw solver
     """
+    if self.tfluct_solver:
+        raise Exception("You set solver.tfluct_solver=True, but solver.tfluct is empty")
     pass
 
 class SharpClawSolver(Solver):
@@ -96,7 +98,7 @@ class SharpClawSolver(Solver):
     .. attribute:: tfluct
 
         Pointer to Fortran routine to calculate total fluctuation
-        ``Default = empty_tfluct (None)``
+        ``Default = default_tfluct (None)``
 
     .. attribute:: aux_time_dep
 
@@ -172,7 +174,7 @@ class SharpClawSolver(Solver):
         self.time_integrator = 'SSP104'
         self.char_decomp = 0
         self.tfluct_solver = False
-        self.tfluct = empty_tfluct
+        self.tfluct = default_tfluct
         self.aux_time_dep = False
         self.kernel_language = 'Fortran'
         self.num_ghost = 3
@@ -660,10 +662,7 @@ class SharpClawSolver1D(SharpClawSolver):
         if self.kernel_language=='Fortran':
             rp1 = self.rp.rp1._cpointer
             if self.tfluct_solver:
-                if self.tfluct.__name__ is not 'empty_tfluct':
-                    tfluct1 = self.tfluct.tfluct1._cpointer
-                else:
-                    raise Exception("You set solver.tfluct_solver=True, but solver.tfluct is empty")
+                tfluct1 = self.tfluct.tfluct1._cpointer
             else:
                 tfluct1 = self.tfluct
 
@@ -798,10 +797,7 @@ class SharpClawSolver2D(SharpClawSolver):
         if self.kernel_language=='Fortran':
             rpn2 = self.rp.rpn2._cpointer
             if self.tfluct_solver:
-                if self.tfluct.__name__ is not 'empty_tfluct':
-                    tfluct2 = self.tfluct.tfluct2._cpointer
-                else:
-                    raise Exception("You set solver.tfluct_solver=True, but solver.tfluct is empty")
+                tfluct2 = self.tfluct.tfluct2._cpointer
             else:
                 tfluct2 = self.tfluct
 
@@ -885,10 +881,7 @@ class SharpClawSolver3D(SharpClawSolver):
         if self.kernel_language=='Fortran':
             rpn3 = self.rp.rpn3._cpointer
             if self.tfluct_solver:            
-                if self.tfluct.__name__ is not 'empty_tfluct':
-                    tfluct3 = self.tfluct.tfluct3._cpointer
-                else:
-                    raise Exception("You set solver.tfluct_solver=True, but solver.tfluct is empty")
+                tfluct3 = self.tfluct.tfluct3._cpointer
             else:
                 tfluct3 = self.tfluct
 
