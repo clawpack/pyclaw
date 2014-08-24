@@ -1,7 +1,6 @@
 ! ============================================================================
-subroutine tfluct(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr,auxl,auxr,adq)
+subroutine tfluct1(maxnx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,adq)
 ! ============================================================================
-!   
 !   "Internal" Riemann solver for the euler equations in 1D.
 !   The riemann problem is solved by assuming a discontinuity at the
 !   center of the i'th cell.
@@ -11,8 +10,8 @@ subroutine tfluct(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr,auxl,auxr,adq)
 !             auxl contains the auxiliary vector at the left edge of each cell
 !             auxr contains the state vector at the right edge of each cell
 !             maxnx is the number of physical points (without ghost cells)
-!             num_ghost is the number of ghost cells
-!             num_eqn is the number of equations
+!             mbc is the number of ghost cells
+!             meqn is the number of equations
 !             ixyz is the dimension index
 !             mx is the size of the patch for the dimension corresponding
 !               to the value of ixyz
@@ -28,16 +27,21 @@ subroutine tfluct(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr,auxl,auxr,adq)
 !             |_  ( gamma*q3 - 0.5(gamma-1)q2^2/q1 ) * q2/g1  _|
 
 
-    implicit double precision (a-h,o-z)
-    integer,          intent(in) :: maxnx, num_eqn, num_waves, num_ghost, mx, ixyz
-    double precision, intent(in) :: ql(num_eqn,1-num_ghost:maxnx+num_ghost)
-    double precision, intent(in) :: qr(num_eqn,1-num_ghost:maxnx+num_ghost)
-    double precision, intent(out) :: adq(num_eqn,1-num_ghost:maxnx+num_ghost)
+    implicit none
+    integer,          intent(in)  :: maxnx, mx, meqn, mwaves, maux, mbc
+    double precision, intent(in)  :: auxl(maux,1-mbc:maxnx+mbc)
+    double precision, intent(in)  :: auxr(maux,1-mbc:maxnx+mbc)
+    double precision, intent(in)  ::   ql(meqn,1-mbc:maxnx+mbc)
+    double precision, intent(in)  ::   qr(meqn,1-mbc:maxnx+mbc)
+
+    double precision, intent(out) :: adq(meqn,1-mbc:maxnx+mbc)
+
+    integer :: i
+    double precision :: gamma, gamma1
 
 !   local storage
 !   ---------------
     common /cparam/  gamma1
-    double precision :: gamma
 
     gamma = gamma1 + 1.d0
 
@@ -50,5 +54,4 @@ subroutine tfluct(ixyz,maxnx,num_eqn,num_waves,num_ghost,mx,ql,qr,auxl,auxr,adq)
     enddo
 
     return
-end subroutine tfluct
-
+end subroutine tfluct1
