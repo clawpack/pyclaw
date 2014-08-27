@@ -12,7 +12,6 @@ import numpy as np
 from clawpack import riemann
 
 gamma = 1.4 # Ratio of Specific Heats
-gamma1 = gamma - 1.
 
 def shocktube(kernel_language='Fortran', solver_type='classic',
               use_petsc=False, outdir='shocktube_output', output_format='hdf5',
@@ -39,7 +38,6 @@ def shocktube(kernel_language='Fortran', solver_type='classic',
 
     state = pyclaw.State(domain,solver.num_eqn)
     state.problem_data['gamma']  = gamma
-    state.problem_data['gamma1'] = gamma1
     
     grid = state.grid
     
@@ -50,7 +48,7 @@ def shocktube(kernel_language='Fortran', solver_type='classic',
     state.q[1,:,:,:] = 0. # x-momentum (rho*u)
     state.q[2,:,:,:] = 0. # y-momentum (rho*v)
     state.q[3,:,:,:] = 0. # z-momentum (rho*w)
-    state.q[4,:,:,:] = p/gamma1 # energy (e)
+    state.q[4,:,:,:] = p/(gamma-1.) # energy (e)
 
     solver.all_bcs = pyclaw.BC.extrap
 
