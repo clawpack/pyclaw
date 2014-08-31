@@ -21,7 +21,8 @@ This example shows how to use VisClaw's Iplot class for simple interactive plott
 """
 from clawpack import pyclaw
 from clawpack import riemann
-from clawpack.riemann.euler_4wave_2D_constants import *
+from clawpack.riemann.euler_4wave_2D_constants import density, x_momentum, y_momentum, \
+        energy, num_eqn
 
 def load_frame(frame_number):
     from clawpack.pyclaw import Solution

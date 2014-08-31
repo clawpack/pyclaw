@@ -24,6 +24,7 @@ This example also demonstrates:
 
 import numpy as np
 from clawpack import riemann
+from clawpack.riemann.euler_with_efix_1D_constants import density, momentum, energy, num_eqn
 
 gamma = 1.4  # Ratio of specific heats
 gamma1 = gamma - 1.
@@ -90,7 +91,7 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     mx = 400;
     x = pyclaw.Dimension('x',-5.0,5.0,mx)
     domain = pyclaw.Domain([x])
-    state = pyclaw.State(domain,solver.num_eqn)
+    state = pyclaw.State(domain,num_eqn)
 
     state.problem_data['gamma']= gamma
     state.problem_data['gamma1']= gamma1
@@ -102,12 +103,9 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     velocity = (xc<-4.)*2.629369
     pressure = (xc<-4.)*10.33333 + (xc>=-4.)*1.
 
-    # Density
-    state.q[0,:] = (xc<-4.)*3.857143 + (xc>=-4.)*(1+epsilon*np.sin(5*xc))
-    # Momentum
-    state.q[1,:] = velocity * state.q[0,:]
-    # Energy
-    state.q[2,:] = pressure/gamma1 + 0.5 * state.q[0,:] * velocity**2
+    state.q[density ,:] = (xc<-4.)*3.857143 + (xc>=-4.)*(1+epsilon*np.sin(5*xc))
+    state.q[momentum,:] = velocity * state.q[density,:]
+    state.q[energy  ,:] = pressure/gamma1 + 0.5 * state.q[density,:] * velocity**2
 
     claw = pyclaw.Controller()
     claw.tfinal = 1.8
@@ -130,7 +128,7 @@ def setplot(plotdata):
     """ 
     plotdata.clearfigures()  # clear any old figures,axes,items data
 
-    # Figure for q[0]
+    # Figure for density
     plotfigure = plotdata.new_plotfigure(name='', figno=0)
 
     plotaxes = plotfigure.new_plotaxes()
@@ -139,7 +137,7 @@ def setplot(plotdata):
     plotaxes.xlimits = (-5.,5.)
 
     plotitem = plotaxes.new_plotitem(plot_type='1d')
-    plotitem.plot_var = 0
+    plotitem.plot_var = density
     plotitem.kwargs = {'linewidth':3}
     
     plotaxes = plotfigure.new_plotaxes()
@@ -147,7 +145,7 @@ def setplot(plotdata):
     plotaxes.axescmd = 'subplot(212)'
 
     plotitem = plotaxes.new_plotitem(plot_type='1d')
-    plotitem.plot_var = 2
+    plotitem.plot_var = energy
     plotitem.kwargs = {'linewidth':3}
     plotaxes.xlimits = (-5.,5.)
     

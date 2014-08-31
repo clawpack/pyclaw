@@ -8,8 +8,9 @@ This script evolves the 3D Euler equations.
 The primary variables are: 
     density (rho), x,y, and z momentum (rho*u,rho*v,rho*w), and energy.
 """
-import numpy as np
 from clawpack import riemann
+from clawpack.riemann.euler_3D_constants import density, x_momentum, \
+                y_momentum, z_momentum, energy, num_eqn
 
 gamma = 1.4 # Ratio of Specific Heats
 gamma1 = gamma - 1.
@@ -37,7 +38,7 @@ def shocktube(kernel_language='Fortran', solver_type='classic',
 
     domain = pyclaw.Domain((-1.,-1.,-1.),(1.,1.,1.),(mx,my,mz))
 
-    state = pyclaw.State(domain,solver.num_eqn)
+    state = pyclaw.State(domain,num_eqn)
     state.problem_data['gamma']  = gamma
     state.problem_data['gamma1'] = gamma1
     
@@ -45,12 +46,12 @@ def shocktube(kernel_language='Fortran', solver_type='classic',
     
     X,Y,Z = grid.p_centers
 
-    p = 3.*(Z<=0) + 1.*(Z>0) # pressure
-    state.q[0,:,:,:] = 3.*(Z<=0) + 1.*(Z>0) # density (rho)
-    state.q[1,:,:,:] = 0. # x-momentum (rho*u)
-    state.q[2,:,:,:] = 0. # y-momentum (rho*v)
-    state.q[3,:,:,:] = 0. # z-momentum (rho*w)
-    state.q[4,:,:,:] = p/gamma1 # energy (e)
+    pressure = 3.*(Z<=0) + 1.*(Z>0)
+    state.q[density   ,:,:,:] = 3.*(Z<=0) + 1.*(Z>0)
+    state.q[x_momentum,:,:,:] = 0.
+    state.q[y_momentum,:,:,:] = 0.
+    state.q[z_momentum,:,:,:] = 0.
+    state.q[energy    ,:,:,:] = pressure/(gamma - 1.)
 
     solver.all_bcs = pyclaw.BC.extrap
 

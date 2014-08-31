@@ -12,6 +12,9 @@ The primary variables are:
 """
 import numpy as np
 from scipy import integrate
+from clawpack import riemann
+from clawpack.riemann.euler_3D_constants import density, x_momentum, \
+                y_momentum, z_momentum, energy, num_eqn
 
 gamma = 1.4 # Ratio of Specific Heats
 gamma1 = gamma - 1.
@@ -39,7 +42,6 @@ def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
           disable_output=False, num_cells=(64,64,64),
           tfinal=0.10, num_output_times=10):
 
-    from clawpack import riemann
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
@@ -60,7 +62,7 @@ def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
     z = pyclaw.Dimension('z', -1.0, 1.0, num_cells[2])
     domain = pyclaw.Domain([x,y,z])
 
-    state = pyclaw.State(domain,solver.num_eqn)
+    state = pyclaw.State(domain,num_eqn)
 
     state.problem_data['gamma']=gamma
     state.problem_data['gamma1']=gamma1
@@ -69,15 +71,15 @@ def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
     X,Y,Z = grid.p_centers
     r = np.sqrt((X-x0)**2 + (Y-y0)**2 + (Z-z0)**2)
 
-    state.q[0,:,:,:] = 1.0 # density (rho)
-    state.q[1,:,:,:] = 0. # x-momentum (rho*u)
-    state.q[2,:,:,:] = 0. # y-momentum (rho*v)
-    state.q[3,:,:,:] = 0. # z-momentum (rho*w)
+    state.q[density,   :,:,:] = 1.0
+    state.q[x_momentum,:,:,:] = 0.
+    state.q[y_momentum,:,:,:] = 0.
+    state.q[z_momentum,:,:,:] = 0.
     
     background_pressure = 1.0e-2
     Eblast = 0.851072
     pressure_in = Eblast*gamma1/(4./3.*np.pi*rmax**3)
-    state.q[4,:,:,:] = background_pressure/gamma1 # energy (e)
+    state.q[energy,:,:,:] = background_pressure/gamma1
 
     # Compute cell fraction inside initial perturbed sphere
     dx, dy, dz = state.grid.delta
@@ -100,7 +102,7 @@ def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
                 infrac=infrac/(dx*dy*dz)
 
                 p = background_pressure + pressure_in*infrac # pressure
-                state.q[4,i,j,k] = p/gamma1 # energy (e)
+                state.q[energy,i,j,k] = p/gamma1
 
     solver.all_bcs = pyclaw.BC.extrap
 
