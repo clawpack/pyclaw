@@ -4,11 +4,13 @@ env:
   - TEST_PACKAGE="petclaw"
 python:
   - 2.7
+virtualenv:
+  system_site_package: true
 before_install:
   - pip install coverage
   - pip install python-coveralls
   - sudo apt-get update -qq
-  - sudo apt-get install -qq gfortran liblapack-pic
+  - sudo apt-get install -qq gfortran liblapack-pic python-scipy
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
       sudo apt-get install pv mpich2 liblapack-dev;
     fi
