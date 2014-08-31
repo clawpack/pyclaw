@@ -26,7 +26,6 @@ import numpy as np
 from clawpack import riemann
 
 gamma = 1.4  # Ratio of specific heats
-gamma1 = gamma - 1.
 
 # Coefficients of Runge-Kutta method
 a = np.array([[0., 0., 0., 0., 0., 0., 0.],
@@ -93,7 +92,7 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     state = pyclaw.State(domain,solver.num_eqn)
 
     state.problem_data['gamma']= gamma
-    state.problem_data['gamma1']= gamma1
+
     if kernel_language =='Python':
         state.problem_data['efix'] = False
 
@@ -107,7 +106,7 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     # Momentum
     state.q[1,:] = velocity * state.q[0,:]
     # Energy
-    state.q[2,:] = pressure/gamma1 + 0.5 * state.q[0,:] * velocity**2
+    state.q[2,:] = pressure/(gamma - 1.) + 0.5 * state.q[0,:] * velocity**2
 
     claw = pyclaw.Controller()
     claw.tfinal = 1.8

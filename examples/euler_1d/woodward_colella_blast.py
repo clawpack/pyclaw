@@ -45,7 +45,6 @@ except ImportError:
         raise
 
 gamma = 1.4 # Ratio of specific heats
-gamma1 = gamma - 1.
 
 def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_language='Fortran',tfluct_solver=True):
 
@@ -97,14 +96,13 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
     state = pyclaw.State(domain,solver.num_eqn)
 
     state.problem_data['gamma'] = gamma
-    state.problem_data['gamma1'] = gamma1
     if kernel_language =='Python':
         state.problem_data['efix'] = False
 
     state.q[0,:] = 1.
     state.q[1,:] = 0.
     x =state.grid.x.centers
-    state.q[2,:] = ( (x<0.1)*1.e3 + (0.1<=x)*(x<0.9)*1.e-2 + (0.9<=x)*1.e2 ) / gamma1
+    state.q[2,:] = ( (x<0.1)*1.e3 + (0.1<=x)*(x<0.9)*1.e-2 + (0.9<=x)*1.e2 ) / (gamma - 1.)
 
     claw = pyclaw.Controller()
     claw.tfinal = 0.038

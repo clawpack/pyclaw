@@ -14,7 +14,7 @@ import numpy as np
 from scipy import integrate
 
 gamma = 1.4 # Ratio of Specific Heats
-gamma1 = gamma - 1.
+
 x0 = 0.0; y0 = 0.0; z0 = 0.0 # Sphere location
 rmax = 0.10 # Radius of Sedov Sphere
 
@@ -63,7 +63,6 @@ def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
     state = pyclaw.State(domain,solver.num_eqn)
 
     state.problem_data['gamma']=gamma
-    state.problem_data['gamma1']=gamma1
     
     grid = state.grid
     X,Y,Z = grid.p_centers
@@ -76,8 +75,8 @@ def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
     
     background_pressure = 1.0e-2
     Eblast = 0.851072
-    pressure_in = Eblast*gamma1/(4./3.*np.pi*rmax**3)
-    state.q[4,:,:,:] = background_pressure/gamma1 # energy (e)
+    pressure_in = Eblast*(gamma-1.)/(4./3.*np.pi*rmax**3)
+    state.q[4,:,:,:] = background_pressure/(gamma-1.) # energy (e)
 
     # Compute cell fraction inside initial perturbed sphere
     dx, dy, dz = state.grid.delta
@@ -100,7 +99,7 @@ def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
                 infrac=infrac/(dx*dy*dz)
 
                 p = background_pressure + pressure_in*infrac # pressure
-                state.q[4,i,j,k] = p/gamma1 # energy (e)
+                state.q[4,i,j,k] = p/(gamma-1.) # energy (e)
 
     solver.all_bcs = pyclaw.BC.extrap
 

@@ -41,9 +41,9 @@ subroutine tfluct1(maxnx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,adq)
 
 !   local storage
 !   ---------------
-    common /cparam/  gamma1
+    common /cparam/  gamma
 
-    gamma = gamma1 + 1.d0
+    gamma1 = gamma - 1.d0
 
     do i = 1,mx
         adq(1,i) = qr(2,i) - ql(2,i)
