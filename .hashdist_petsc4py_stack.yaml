@@ -24,3 +24,4 @@ packages:
       bzip2, openssl
   petsc:
   petsc4py:
+  scipy:
