@@ -161,6 +161,7 @@ class Solver(object):
         self.rp = None
         self.fmod = None
         self._is_set_up = False
+        self._use_old_bc_sig = False
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
@@ -260,6 +261,7 @@ class Solver(object):
             valid = False
             reason = 'One of the boundary conditions has not been set.'
 
+
         if reason is not None:
             self.logger.debug(reason)
         return valid, reason
@@ -306,6 +308,21 @@ class Solver(object):
 
         This is typically called by solver.setup().
         """
+        import inspect
+        for fun in (self.user_bc_lower,self.user_bc_upper,self.user_aux_bc_lower,self.user_aux_bc_upper):
+            if fun is not None:
+                args = inspect.getargspec(fun)[0]
+                if len(args) == 5:
+                    self.logger.warn("""The custom boundary condition
+                                        function signature has been changed.
+                                        The previous signature will not be
+                                        supported in Clawpack 6.0.  Please see 
+                                        http://clawpack.github.io/doc/pyclaw/solvers.html 
+                                        for more information.""")
+                    self._use_old_bc_sig = True
+
+
+
         qbc_dim = [n+2*self.num_ghost for n in state.grid.num_cells]
         qbc_dim.insert(0,state.num_eqn)
         self.qbc = np.zeros(qbc_dim,order='F')
@@ -360,22 +377,11 @@ class Solver(object):
                 for (i, bc) in enumerate(bcs):
 
                     if bc['type'][idim] == BC.custom:
-                        try:
+                        if not self._use_old_bc_sig: 
                             bc['custom_fun'](state, dim, state.t, self.qbc, self.auxbc,
                                       self.num_ghost)
-                        except TypeError:
-                            # Custom BC function is using old signature
-                            logger.warn("The custom boundary condition ",
-                                        "function signature has been changed, ",
-                                        "the previous one will not be ",
-                                        "supported in Clawpack 6.0.  ",
-                                        "Please see http://clawpack.github.io/",
-                                        "doc/pyclaw/solvers.html ",
-                                        "for more info.")
-                            if bc['variable'] == 'q':
-                                bc['custom_fun'](state, dim, state.t, self.qbc, self.num_ghost)
-                            else:
-                                bc['custom_fun'](state, dim, state.t, self.auxbc, self.num_ghost)
+                        else:
+                            bc['custom_fun'](state, dim, state.t, bc['array'], self.num_ghost)
                     
                     elif bc['type'][idim] == BC.periodic \
                             and not state.grid.on_upper_boundary[idim]:
@@ -401,22 +407,11 @@ class Solver(object):
                 for (i, bc) in enumerate(bcs):
 
                     if bc['type'][idim] == BC.custom:
-                        try:
+                        if not self._use_old_bc_sig: 
                             bc['custom_fun'](state, dim, state.t, self.qbc, self.auxbc,
                                       self.num_ghost)
-                        except TypeError:
-                            # Custom BC function is using old signature
-                            logger.warn("The custom boundary condition ",
-                                        "function signature has been changed, ",
-                                        "the previous one will not be ",
-                                        "supported in Clawpack 6.0.  ",
-                                        "Please see http://clawpack.github.io/",
-                                        "doc/pyclaw/solvers.html ",
-                                        "for more info.")
-                            if bc['variable'] == 'q':
-                                bc['custom_fun'](state, dim, state.t, self.qbc, self.num_ghost)
-                            else:
-                                bc['custom_fun'](state, dim, state.t, self.auxbc, self.num_ghost)
+                        else:
+                            bc['custom_fun'](state, dim, state.t, bc['array'], self.num_ghost)
                     
                     elif bc['type'][idim] == BC.periodic \
                             and not state.grid.on_lower_boundary[idim]:

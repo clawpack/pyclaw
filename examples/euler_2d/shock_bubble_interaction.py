@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
+r"""
 Compressible Euler flow in cylindrical symmetry
 ===============================================
 
@@ -30,7 +30,7 @@ import numpy as np
 from clawpack import riemann
 
 gamma = 1.4 # Ratio of specific heats
-gamma1 = gamma - 1.
+
 x0=0.5; y0=0.; r0=0.2
 
 
@@ -42,6 +42,8 @@ def ycirc(x,ymin,ymax):
 
 def qinit(state,rhoin=0.1,pinf=5.):
     from scipy import integrate
+
+    gamma1 = gamma - 1.
 
     grid = state.grid
 
@@ -96,6 +98,8 @@ def incoming_shock(state,dim,t,qbc,auxbc,num_ghost):
     """
     Incoming shock at left boundary.
     """
+    gamma1 = gamma - 1.
+
     pinf=5.
     rinf = (gamma1 + pinf*(gamma+1.))/ ((gamma+1.) + gamma1*pinf)
     vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
@@ -124,7 +128,7 @@ def step_Euler_radial(solver,state,dt):
     rho = q[0,:,:]
     u   = q[1,:,:]/rho
     v   = q[2,:,:]/rho
-    press  = gamma1 * (q[3,:,:] - 0.5*rho*(u**2 + v**2))
+    press  = (gamma - 1.) * (q[3,:,:] - 0.5*rho*(u**2 + v**2))
 
     qstar = np.empty(q.shape)
 
@@ -136,7 +140,7 @@ def step_Euler_radial(solver,state,dt):
     rho = qstar[0,:,:]
     u   = qstar[1,:,:]/rho
     v   = qstar[2,:,:]/rho
-    press  = gamma1 * (qstar[3,:,:] - 0.5*rho*(u**2 + v**2))
+    press  = (gamma - 1.) * (qstar[3,:,:] - 0.5*rho*(u**2 + v**2))
 
     q[0,:,:] = q[0,:,:] - dt/rad * qstar[2,:,:]
     q[1,:,:] = q[1,:,:] - dt/rad * rho*u*v
@@ -156,7 +160,7 @@ def dq_Euler_radial(solver,state,dt):
     rho = q[0,:,:]
     u   = q[1,:,:]/rho
     v   = q[2,:,:]/rho
-    press  = gamma1 * (q[3,:,:] - 0.5*rho*(u**2 + v**2))
+    press  = (gamma - 1.) * (q[3,:,:] - 0.5*rho*(u**2 + v**2))
 
     dq = np.empty(q.shape)
 
@@ -185,6 +189,8 @@ def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_langua
         solver.step_source = step_Euler_radial
         solver.source_split = 1
         solver.limiters = [4,4,4,4,2]
+        solver.cfl_max = 0.5
+        solver.cfl_desired = 0.45
 
     x = pyclaw.Dimension('x',0.0,2.0,mx)
     y = pyclaw.Dimension('y',0.0,0.5,my)
@@ -193,14 +199,10 @@ def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_langua
     num_aux=1
     state = pyclaw.State(domain,solver.num_eqn,num_aux)
     state.problem_data['gamma']= gamma
-    state.problem_data['gamma1']= gamma1
 
     qinit(state)
     auxinit(state)
 
-    solver.cfl_max = 0.5
-    solver.cfl_desired = 0.45
-    solver.dt_initial=0.005
     solver.user_bc_lower = incoming_shock
 
     solver.bc_lower[0]=pyclaw.BC.custom

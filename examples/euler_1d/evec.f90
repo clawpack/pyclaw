@@ -22,10 +22,12 @@ subroutine evec(maxnx,num_eqn,num_ghost,mx,q,auxl,auxr,evl,evr)
 
 !   local storage
 !   ---------------
-    common /cparam/ gamma1
+    common /cparam/ gamma
     integer :: mx2
 
     mx2 = size(q,2)
+
+    gamma1 = gamma - 1.d0
 
     do i=2,mx2
         ! Compute velocity, speed and enthalpy

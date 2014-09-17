@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
+r"""
+2D shallow water: radial dam break
+==================================
 
-"""
 Solve the 2D shallow water equations:
 
 .. :math:
