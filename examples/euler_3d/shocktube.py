@@ -13,7 +13,6 @@ from clawpack.riemann.euler_3D_constants import density, x_momentum, \
                 y_momentum, z_momentum, energy, num_eqn
 
 gamma = 1.4 # Ratio of Specific Heats
-gamma1 = gamma - 1.
 
 def shocktube(kernel_language='Fortran', solver_type='classic',
               use_petsc=False, outdir='shocktube_output', output_format='hdf5',
@@ -40,7 +39,6 @@ def shocktube(kernel_language='Fortran', solver_type='classic',
 
     state = pyclaw.State(domain,num_eqn)
     state.problem_data['gamma']  = gamma
-    state.problem_data['gamma1'] = gamma1
     
     grid = state.grid
     

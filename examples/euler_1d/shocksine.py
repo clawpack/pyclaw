@@ -27,7 +27,6 @@ from clawpack import riemann
 from clawpack.riemann.euler_with_efix_1D_constants import density, momentum, energy, num_eqn
 
 gamma = 1.4  # Ratio of specific heats
-gamma1 = gamma - 1.
 
 # Coefficients of Runge-Kutta method
 a = np.array([[0., 0., 0., 0., 0., 0., 0.],
@@ -94,7 +93,7 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     state = pyclaw.State(domain,num_eqn)
 
     state.problem_data['gamma']= gamma
-    state.problem_data['gamma1']= gamma1
+
     if kernel_language =='Python':
         state.problem_data['efix'] = False
 
@@ -105,7 +104,7 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
 
     state.q[density ,:] = (xc<-4.)*3.857143 + (xc>=-4.)*(1+epsilon*np.sin(5*xc))
     state.q[momentum,:] = velocity * state.q[density,:]
-    state.q[energy  ,:] = pressure/gamma1 + 0.5 * state.q[density,:] * velocity**2
+    state.q[energy  ,:] = pressure/(gamma - 1.) + 0.5 * state.q[density,:] * velocity**2
 
     claw = pyclaw.Controller()
     claw.tfinal = 1.8

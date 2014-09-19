@@ -28,7 +28,6 @@ aligned with the grid.
 """
 
 gamma = 1.4 # Ratio of specific heats
-gamma1 = gamma - 1.
 
 def incoming_shock(state,dim,t,qbc,num_ghost):
     """
@@ -77,7 +76,6 @@ def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_langua
 
     state = pyclaw.State(domain,solver.num_eqn,num_aux)
     state.problem_data['gamma']= gamma
-    state.problem_data['gamma1']= gamma1
 
     solver.user_bc_lower = incoming_shock
 
