@@ -23,6 +23,7 @@ This example also demonstrates:
  - How to use characteristic decomposition with an evec() routine in SharpClaw
 """
 from clawpack import riemann
+from clawpack.riemann.euler_with_efix_1D_constants import *
 
 # Compile Fortran code if not already compiled
 try:
@@ -93,16 +94,17 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
     mx = 800;
     x = pyclaw.Dimension('x',0.0,1.0,mx)
     domain = pyclaw.Domain([x])
-    state = pyclaw.State(domain,solver.num_eqn)
+    state = pyclaw.State(domain,num_eqn)
 
     state.problem_data['gamma'] = gamma
     if kernel_language =='Python':
         state.problem_data['efix'] = False
 
-    state.q[0,:] = 1.
-    state.q[1,:] = 0.
-    x =state.grid.x.centers
-    state.q[2,:] = ( (x<0.1)*1.e3 + (0.1<=x)*(x<0.9)*1.e-2 + (0.9<=x)*1.e2 ) / (gamma - 1.)
+    x = state.grid.x.centers
+
+    state.q[density ,:] = 1.
+    state.q[momentum,:] = 0.
+    state.q[energy  ,:] = ( (x<0.1)*1.e3 + (0.1<=x)*(x<0.9)*1.e-2 + (0.9<=x)*1.e2 ) / (gamma - 1.)
 
     claw = pyclaw.Controller()
     claw.tfinal = 0.038
@@ -125,7 +127,6 @@ def setplot(plotdata):
     """ 
     plotdata.clearfigures()  # clear any old figures,axes,items data
 
-    # Figure for q[0]
     plotfigure = plotdata.new_plotfigure(name='', figno=0)
 
     plotaxes = plotfigure.new_plotaxes()
@@ -133,7 +134,7 @@ def setplot(plotdata):
     plotaxes.title = 'Density'
 
     plotitem = plotaxes.new_plotitem(plot_type='1d')
-    plotitem.plot_var = 0
+    plotitem.plot_var = density
     plotitem.kwargs = {'linewidth':3}
     
     plotaxes = plotfigure.new_plotaxes()
@@ -141,7 +142,7 @@ def setplot(plotdata):
     plotaxes.title = 'Energy'
 
     plotitem = plotaxes.new_plotitem(plot_type='1d')
-    plotitem.plot_var = 2
+    plotitem.plot_var = energy
     plotitem.kwargs = {'linewidth':3}
     
     return plotdata

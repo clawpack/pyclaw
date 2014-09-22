@@ -28,6 +28,8 @@ This problem demonstrates:
 
 import numpy as np
 from clawpack import riemann
+from clawpack.riemann.euler_5wave_2D_constants import density, x_momentum, y_momentum, \
+        energy, num_eqn
 
 gamma = 1.4 # Ratio of specific heats
 
@@ -197,7 +199,7 @@ def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_langua
     domain = pyclaw.Domain([x,y])
 
     num_aux=1
-    state = pyclaw.State(domain,solver.num_eqn,num_aux)
+    state = pyclaw.State(domain,num_eqn,num_aux)
     state.problem_data['gamma']= gamma
 
     qinit(state)

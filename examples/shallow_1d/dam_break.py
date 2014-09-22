@@ -17,6 +17,7 @@ The default initial condition used here models a dam break.
 
 import numpy as np
 from clawpack import riemann
+from clawpack.riemann.shallow_roe_with_efix_1D_constants import depth, momentum, num_eqn
 
 def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_type='classic'):
 
@@ -46,7 +47,6 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
     mx = 500
     x = pyclaw.Dimension('x',xlower,xupper,mx)
     domain = pyclaw.Domain(x)
-    num_eqn = 2
     state = pyclaw.State(domain,num_eqn)
 
     # Gravitational constant
@@ -62,19 +62,19 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
         ul = 0.
         hr = 1.
         ur = 0.
-        state.q[0,:] = hl * (xc <= x0) + hr * (xc > x0)
-        state.q[1,:] = hl*ul * (xc <= x0) + hr*ur * (xc > x0)
+        state.q[depth,:] = hl * (xc <= x0) + hr * (xc > x0)
+        state.q[momentum,:] = hl*ul * (xc <= x0) + hr*ur * (xc > x0)
     elif IC=='2-shock':
         hl = 1.
         ul = 1.
         hr = 1.
         ur = -1.
-        state.q[0,:] = hl * (xc <= x0) + hr * (xc > x0)
-        state.q[1,:] = hl*ul * (xc <= x0) + hr*ur * (xc > x0)
+        state.q[depth,:] = hl * (xc <= x0) + hr * (xc > x0)
+        state.q[momentum,:] = hl*ul * (xc <= x0) + hr*ur * (xc > x0)
     elif IC=='perturbation':
         eps=0.1
-        state.q[0,:] = 1.0 + eps*np.exp(-(xc-x0)**2/0.5)
-        state.q[1,:] = 0.
+        state.q[depth,:] = 1.0 + eps*np.exp(-(xc-x0)**2/0.5)
+        state.q[momentum,:] = 0.
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
@@ -97,7 +97,7 @@ def setplot(plotdata):
     """ 
     plotdata.clearfigures()  # clear any old figures,axes,items data
 
-    # Figure for q[0]
+    # Figure for depth
     plotfigure = plotdata.new_plotfigure(name='Water height', figno=0)
 
     # Set up for axes in this figure:
@@ -108,12 +108,12 @@ def setplot(plotdata):
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='1d')
-    plotitem.plot_var = 0
+    plotitem.plot_var = depth
     plotitem.plotstyle = '-'
     plotitem.color = 'b'
     plotitem.kwargs = {'linewidth':3}
 
-    # Figure for q[1]
+    # Figure for momentum[1]
     #plotfigure = plotdata.new_plotfigure(name='Momentum', figno=1)
 
     # Set up for axes in this figure:
@@ -124,7 +124,7 @@ def setplot(plotdata):
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='1d')
-    plotitem.plot_var = 1
+    plotitem.plot_var = momentum
     plotitem.plotstyle = '-'
     plotitem.color = 'b'
     plotitem.kwargs = {'linewidth':3}
