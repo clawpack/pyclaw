@@ -277,6 +277,7 @@ class ClawSolver1D(ClawSolver):
         See :class:`ClawSolver1D` for more info.
         """   
         self.num_dim = 1
+        self.reflect_index = [1]
 
         super(ClawSolver1D,self).__init__(riemann_solver, claw_package)
 
@@ -448,6 +449,7 @@ class ClawSolver2D(ClawSolver):
         self.transverse_waves = self.trans_inc
 
         self.num_dim = 2
+        self.reflect_index = [1,2]
 
         self.aux1 = None
         self.aux2 = None
@@ -610,6 +612,7 @@ class ClawSolver3D(ClawSolver):
         self.transverse_waves = self.trans_cor
 
         self.num_dim = 3
+        self.reflect_index = [1,2,3]
 
         self.aux1 = None
         self.aux2 = None

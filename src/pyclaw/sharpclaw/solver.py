@@ -619,6 +619,7 @@ class SharpClawSolver1D(SharpClawSolver):
         See :class:`SharpClawSolver1D` for more info.
         """   
         self.num_dim = 1
+        self.reflect_index = [1]
         super(SharpClawSolver1D,self).__init__(riemann_solver,claw_package)
 
 
@@ -755,6 +756,7 @@ class SharpClawSolver2D(SharpClawSolver):
         See :class:`SharpClawSolver2D` for more info.
         """   
         self.num_dim = 2
+        self.reflect_index = [1,2]
 
         super(SharpClawSolver2D,self).__init__(riemann_solver,claw_package)
 
@@ -826,6 +828,7 @@ class SharpClawSolver3D(SharpClawSolver):
         See :class:`SharpClawSolver3D` for more info.
         """   
         self.num_dim = 3
+        self.reflect_index = [1,2,3]
 
         super(SharpClawSolver3D,self).__init__(riemann_solver,claw_package)
 
