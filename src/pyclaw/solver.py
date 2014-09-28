@@ -452,7 +452,7 @@ class Solver(object):
             if name == 'q':
                 for i in xrange(self.num_ghost):
                     array[:,i,...] = array[:,2*self.num_ghost-1-i,...]
-                    array[idim+1,i,...] = -array[idim+1,2*self.num_ghost-1-i,...] # Negate normal velocity
+                    array[self.reflect_index[idim],i,...] = -array[self.reflect_index[idim],2*self.num_ghost-1-i,...] # Negate normal velocity
             else:
                 for i in xrange(self.num_ghost):
                     array[:,i,...] = array[:,2*self.num_ghost-1-i,...]
@@ -489,7 +489,7 @@ class Solver(object):
             if name == 'q':
                 for i in xrange(self.num_ghost):
                     array[:,-i-1,...] = array[:,-2*self.num_ghost+i,...]
-                    array[idim+1,-i-1,...] = -array[idim+1,-2*self.num_ghost+i,...] # Negate normal velocity
+                    array[self.reflect_index[idim],-i-1,...] = -array[self.reflect_index[idim],-2*self.num_ghost+i,...] # Negate normal velocity
             else:
                 for i in xrange(self.num_ghost):
                     array[:,-i-1,...] = array[:,-2*self.num_ghost+i,...]
