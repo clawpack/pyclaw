@@ -277,6 +277,7 @@ class ClawSolver1D(ClawSolver):
         See :class:`ClawSolver1D` for more info.
         """   
         self.num_dim = 1
+        self.reflect_index = [1]
 
         super(ClawSolver1D,self).__init__(riemann_solver, claw_package)
 
@@ -295,9 +296,7 @@ class ClawSolver1D(ClawSolver):
         state = solution.states[0]
         grid = state.grid
 
-        self._apply_q_bcs(state)
-        if state.num_aux > 0:
-            self._apply_aux_bcs(state)
+        self._apply_bcs(state)
             
         num_eqn,num_ghost = state.num_eqn,self.num_ghost
           
@@ -450,6 +449,7 @@ class ClawSolver2D(ClawSolver):
         self.transverse_waves = self.trans_inc
 
         self.num_dim = 2
+        self.reflect_index = [1,2]
 
         self.aux1 = None
         self.aux2 = None
@@ -517,9 +517,7 @@ class ClawSolver2D(ClawSolver):
             mx,my = grid.num_cells
             maxm = max(mx,my)
             
-            self._apply_q_bcs(state)
-            if state.num_aux > 0:
-                self._apply_aux_bcs(state)
+            self._apply_bcs(state)
             qold = self.qbc.copy('F')
             
             rpn2 = self.rp.rpn2._cpointer
@@ -614,6 +612,7 @@ class ClawSolver3D(ClawSolver):
         self.transverse_waves = self.trans_cor
 
         self.num_dim = 3
+        self.reflect_index = [1,2,3]
 
         self.aux1 = None
         self.aux2 = None
@@ -668,9 +667,7 @@ class ClawSolver3D(ClawSolver):
             mx,my,mz = grid.num_cells
             maxm = max(mx,my,mz)
             
-            self._apply_q_bcs(state)
-            if state.num_aux > 0:
-                self._apply_aux_bcs(state)
+            self._apply_bcs(state)
             qnew = self.qbc
             qold = qnew.copy('F')
             

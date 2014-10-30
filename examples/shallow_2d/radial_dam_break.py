@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
+r"""
+2D shallow water: radial dam break
+==================================
 
-"""
 Solve the 2D shallow water equations:
 
 .. :math:
@@ -16,6 +18,7 @@ are outflow.
 
 import numpy as np
 from clawpack import riemann
+from clawpack.riemann.shallow_roe_with_efix_2D_constants import depth, x_momentum, y_momentum, num_eqn
 
 def qinit(state,h_in=2.,h_out=1.,dam_radius=0.5):
     x0=0.
@@ -23,12 +26,9 @@ def qinit(state,h_in=2.,h_out=1.,dam_radius=0.5):
     X, Y = state.p_centers
     r = np.sqrt((X-x0)**2 + (Y-y0)**2)
 
-    # Height
-    state.q[0,:,:] = h_in*(r<=dam_radius) + h_out*(r>dam_radius)
-    # x-momentum
-    state.q[1,:,:] = 0.
-    # y-momentum
-    state.q[2,:,:] = 0.
+    state.q[depth     ,:,:] = h_in*(r<=dam_radius) + h_out*(r>dam_radius)
+    state.q[x_momentum,:,:] = 0.
+    state.q[y_momentum,:,:] = 0.
 
     
 def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
@@ -60,7 +60,7 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     y = pyclaw.Dimension('y',ylower,yupper,my)
     domain = pyclaw.Domain([x,y])
 
-    state = pyclaw.State(domain,solver.num_eqn)
+    state = pyclaw.State(domain,num_eqn)
 
     # Gravitational constant
     state.problem_data['grav'] = 1.0
@@ -90,7 +90,7 @@ def setplot(plotdata):
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
 
-    # Figure for q[0]
+    # Figure for depth
     plotfigure = plotdata.new_plotfigure(name='Water height', figno=0)
 
     # Set up for axes in this figure:
@@ -108,7 +108,7 @@ def setplot(plotdata):
     plotitem.pcolor_cmax = 1.5
     plotitem.add_colorbar = True
     
-    # Scatter plot of q[0]
+    # Scatter plot of depth
     plotfigure = plotdata.new_plotfigure(name='Scatter plot of h', figno=1)
 
     # Set up for axes in this figure:
@@ -119,19 +119,19 @@ def setplot(plotdata):
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='1d_from_2d_data')
-    plotitem.plot_var = 0
+    plotitem.plot_var = depth
     def q_vs_radius(current_data):
         from numpy import sqrt
         x = current_data.x
         y = current_data.y
         r = sqrt(x**2 + y**2)
-        q = current_data.q[0,:,:]
+        q = current_data.q[depth,:,:]
         return r,q
     plotitem.map_2d_to_1d = q_vs_radius
     plotitem.plotstyle = 'o'
 
 
-    # Figure for q[1]
+    # Figure for x-momentum
     plotfigure = plotdata.new_plotfigure(name='Momentum in x direction', figno=2)
 
     # Set up for axes in this figure:
@@ -143,13 +143,13 @@ def setplot(plotdata):
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
-    plotitem.plot_var = 1
+    plotitem.plot_var = x_momentum
     plotitem.pcolor_cmap = colormaps.yellow_red_blue
     plotitem.add_colorbar = True
     plotitem.show = False       # show on plot?
     
 
-    # Figure for q[2]
+    # Figure for y-momentum
     plotfigure = plotdata.new_plotfigure(name='Momentum in y direction', figno=3)
 
     # Set up for axes in this figure:
@@ -161,7 +161,7 @@ def setplot(plotdata):
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
-    plotitem.plot_var = 2
+    plotitem.plot_var = y_momentum
     plotitem.pcolor_cmap = colormaps.yellow_red_blue
     plotitem.add_colorbar = True
     plotitem.show = False       # show on plot?

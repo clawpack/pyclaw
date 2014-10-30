@@ -22,7 +22,7 @@ The left and right halves of the domain consist of different materials.
 import numpy as np
 
 def setup(use_petsc=False,outdir='./_output',solver_type='classic',
-          disable_output=False,problem='heterogeneous',**kwargs):
+          mx=30,my=30,mz=30,disable_output=False,problem='heterogeneous',**kwargs):
     """
     Example python script for solving the 3d acoustics equations.
     """
@@ -68,7 +68,7 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',
 
         solver.limiters = [4]
         
-        mx=256; my=4; mz=4 # Grid resolution
+        mx=mx; my=my; mz=mz # Grid resolution
 
         zr = 1.0  # Impedance in right half
         cr = 1.0  # Sound speed in right half
@@ -84,7 +84,7 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',
         solver.aux_bc_lower[1]=pyclaw.BC.wall
         solver.aux_bc_lower[2]=pyclaw.BC.wall
 
-        mx=30; my=30; mz=30 # Grid resolution
+        mx=mx; my=my; mz=mz # Grid resolution
 
         zr = 2.0  # Impedance in right half
         cr = 2.0  # Sound speed in right half

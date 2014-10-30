@@ -1,4 +1,12 @@
-# Changes since 5.1.0
+#5.2.1 release
+
+- **New 3D Euler examples**: Sedov blast, shock tube, and shock-bubble interaction, with IPython notebooks showing how to visualize.  The Sedov example has a test using HDF5 files.
+- **New interface to boundary condition routines**: the routines for setting q and aux both get both q and aux now.  The old interface is supported for backward compatibility until 5.3.  All examples have been updated to use the new interface.
+- New 2D Euler example: flow over a forward-facing step.  It runs, but the solution blows up with the Roe solvers; this is a known issue.
+- In SharpClaw, the total fluctuation solver can now be specified in a manner similar to how the Riemann solver is specified.  The 1D Euler examples demonstrate this.
+- The Riemann solvers in clawpack.riemann now have defined constants for each conserved quantity.  Many of the PyClaw examples have been updated to use those for indexing into the q array.
+
+# 5.2.0 release
 
 - **Linear multistep methods for timestepping in SharpClaw**: 
   Previously, only Runge-Kutta time stepping was included in SharpClaw.
@@ -9,12 +17,16 @@
   The user must provide a routine that computes the eigenvectors.  See 
   `clawpack/pyclaw/examples/euler_1d/`.
 - **Logging control**: it is now easy to modify the logging levels interactively,
-  without modifying the logger files.
+  without modifying the logger files.  All logging configuration is
+  set by default with `pyclaw/log.config`; the file `petclaw/log.config` is
+  no longer used.
 - It is no longer necessary to compile dummy transverse Riemann solvers when using
   an algorithm with no transverse wave propagation.
 - Add functions to compute cell centers of ghost cells.
 - Tests run in parallel on Travis.
-- Writing of HDF5 and netcdf files now works in serial and parallel.
+- All tests now run in under two minutes on most systems.
+- PyWENO-generated code updated to match latest PyWENO release.
+- Writing and reading of HDF5 and netcdf files now works in serial and parallel.
 - Improvements to examples.
 - Miscellaneous bug fixes.
 

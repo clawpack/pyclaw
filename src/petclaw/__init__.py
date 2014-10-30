@@ -4,7 +4,7 @@ import os
 import logging, logging.config
 
 # Default logging configuration file
-_DEFAULT_LOG_CONFIG_PATH = os.path.join(os.path.dirname(__file__),'log.config')
+_DEFAULT_LOG_CONFIG_PATH = os.path.join(os.path.dirname(__file__),'../pyclaw/log.config')
 del os
 
 # Setup loggers

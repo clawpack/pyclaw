@@ -11,7 +11,7 @@ import pickle
 
 from ..util import read_data_line
 
-logger = logging.getLogger('io')
+logger = logging.getLogger('pyclaw.io')
 
 def write(solution,frame,path,file_prefix='fort',write_aux=False,
                     options={},write_p=False):

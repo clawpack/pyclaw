@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/clawpack/pyclaw.svg?branch=master)](https://travis-ci.org/clawpack/pyclaw)
+[![Coverage Status](https://img.shields.io/coveralls/clawpack/pyclaw.svg)](https://coveralls.io/r/clawpack/pyclaw?branch=master)
+
+
 Quick start:
 
     git clone git@github.com:clawpack/clawpack.git

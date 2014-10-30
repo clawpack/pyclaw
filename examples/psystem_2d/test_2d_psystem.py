@@ -24,12 +24,14 @@ def test_2d_psystem():
                 for i, gauge in enumerate(gauge_files):
                     test_gauge_data_io = np.loadtxt(gauge.name)
                     verify_file = os.path.join(thisdir,'verify_' +
-                                            gauge.name.split('/')[-1])
+                                               gauge.name.split('/')[-1])
                     expected_gauges.append(np.loadtxt(verify_file))
                     return_value_mem = check_diff(expected_gauges[i], 
-                    test_gauge_data_mem[i], reltol=1e-4)
+                                                  test_gauge_data_mem[i], 
+                                                  reltol=1e-4)
                     return_value_io = check_diff(expected_gauges[i], 
-                    test_gauge_data_io, reltol=1e-4)
+                                                 test_gauge_data_io, 
+                                                 reltol=1e-4)
                     
                     if (return_value_mem is not None or
                         return_value_io is not None):
@@ -54,8 +56,8 @@ def test_2d_psystem():
     classic_tests = gen_variants(psystem_2d.setup, verify_data(),
                                  kernel_languages=('Fortran',), 
                                  solver_type='classic', 
-                                 outdir=tempdir, cells_per_layer=10,
-                                 tfinal=40)
+                                 outdir=tempdir, cells_per_layer=6,
+                                 tfinal=1.)
     from itertools import chain
 
     try:
