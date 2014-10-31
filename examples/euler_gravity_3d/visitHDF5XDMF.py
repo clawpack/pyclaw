@@ -10,9 +10,7 @@ import os,sys
 import h5py
 from numpy import *
 
-#-----------------------------------------------------------------------
 # Write a 2D HDF5 File for Rectilinear Mesh
-#-----------------------------------------------------------------------
 def writeHDF52D(x,y,filename,out_dir):
     # Write H5 Grid Data
     h5_fname = out_dir + '/' + filename
@@ -23,9 +21,7 @@ def writeHDF52D(x,y,filename,out_dir):
     dset[...] = y
     f.close()
         
-#-----------------------------------------------------------------------
 # Write a 3D HDF5 File for Rectilinear Mesh
-#-----------------------------------------------------------------------
 def writeHDF53D(x,y,z,filename,out_dir):
     # Write H5 Grid Data
     h5_fname = out_dir + '/' + filename
@@ -38,9 +34,7 @@ def writeHDF53D(x,y,z,filename,out_dir):
     dset[...] = z
     f.close()
 
-#-----------------------------------------------------------------------
 # Write a 3D HDF5 File for Curvilinear Mesh
-#-----------------------------------------------------------------------
 def writeHDF53DS(x,y,z,names,filename,out_dir):
     # Write H5 Grid Data
     h5_fname = out_dir + '/' + filename
@@ -53,9 +47,7 @@ def writeHDF53DS(x,y,z,names,filename,out_dir):
     dset[:] = z
     f.close()
 
-#-----------------------------------------------------------------------
 # Write a XDMF (.xmf) File for 2D Rectilinear Mesh
-#-----------------------------------------------------------------------
 def writeXDMF2D(t0,nx,ny,filename,mesh_name,out_dir,simTime):
     # Write XDMF (.xmf) file
     prefix = filename[:-7]
@@ -89,9 +81,7 @@ def writeXDMF2D(t0,nx,ny,filename,mesh_name,out_dir,simTime):
     f.write('</Xdmf>')
     f.close()
 
-#-----------------------------------------------------------------------
 # Write a XDMF (.xmf) File for 3D Rectilinear Mesh
-#-----------------------------------------------------------------------
 def writeXDMF3D(nx,ny,nz,var_names,filename,mesh_name,out_dir,simTime):
     # Write XDMF (.xmf) file
     xmfname = out_dir + '/' + filename[:-3] + '.xmf'
@@ -128,9 +118,7 @@ def writeXDMF3D(nx,ny,nz,var_names,filename,mesh_name,out_dir,simTime):
     f.write('</Xdmf>')
     f.close()
 
-#-----------------------------------------------------------------------
 # Write a XDMF (.xmf) File for 3D Curvilinear Mesh
-#-----------------------------------------------------------------------
 def writeXDMF3DSMesh(nx,ny,nz,var_names,filename,mesh_name,out_dir,simTime):
     # Write XDMF (.xmf) file
     xmfname = out_dir + '/' + filename[:-3] + '.xmf'
@@ -168,9 +156,7 @@ def writeXDMF3DSMesh(nx,ny,nz,var_names,filename,mesh_name,out_dir,simTime):
     f.write('</Xdmf>')
     f.close()
 
-#-----------------------------------------------------------------------
-# Write a XDMF (.xmf) File for 3D Rectilinear Mesh
-#-----------------------------------------------------------------------
+# Write a XDMF (.xmf) File for 3D Rectilinear Mesh with HyperSlab Data 
 def writeXDMF3DSMeshHyper(nx,ny,nz,var_names,filename,mesh_name,out_dir,simTime):
     # Write XDMF (.xmf) file
     xmfname = out_dir + '/' + filename[:-4] + '.xmf'
