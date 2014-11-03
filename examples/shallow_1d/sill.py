@@ -18,7 +18,7 @@ the bathymetry.
 import numpy
 from clawpack import riemann
 
-def setup(use_petsc=False, outdir='./_output', solver_type='classic'):
+def setup(kernel_language='Python',use_petsc=False, outdir='./_output', solver_type='classic'):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -56,9 +56,14 @@ def setup(use_petsc=False, outdir='./_output', solver_type='classic'):
     claw.tfinal = 1.0
     claw.solution = pyclaw.Solution(state, domain)
     claw.solver = solver
-    claw.outdir = outdir
     claw.setplot = setplot
     claw.write_aux_init = True
+
+    if outdir is not None:
+        claw.outdir = outdir
+    else:
+        claw.output_format = None
+
 
     return claw
 

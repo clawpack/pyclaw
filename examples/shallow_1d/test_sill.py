@@ -28,9 +28,8 @@ def test_1d_sill():
 
     from clawpack.pyclaw.util import gen_variants
 
-    import pdb; pdb.set_trace()
     classic_tests = gen_variants(sill.setup, verify_expected(3.203924e-04), 
-                                             kernel_languages=("Python"),
+                                             kernel_languages=["Python"],
                                              solver_type='classic',
                                              outdir=None)
 
@@ -39,5 +38,4 @@ def test_1d_sill():
         yield test
 
 if __name__=='__main__':
-    import pdb; pdb.set_trace()
     test_1d_sill()
