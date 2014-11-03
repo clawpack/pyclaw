@@ -16,7 +16,7 @@ def test_1d_acoustics():
             qfinal=claw.frames[claw.num_output_times].state.get_q_global()
 
             # and q_global is only returned on process 0
-            if q0 != None and qfinal != None:
+            if q0 is not None and qfinal is not None:
                 q0 = q0.reshape([-1])
                 qfinal = qfinal.reshape([-1])
                 dx=claw.solution.domain.grid.delta[0]
@@ -46,3 +46,8 @@ def test_1d_acoustics():
     from itertools import chain
     for test in chain(classic_tests, sharp_tests_rk, sharp_tests_lmm, weno_tests):
         yield test
+
+if __name__=='__main__':
+    f = test_1d_acoustics()
+    for test in f:
+        test()

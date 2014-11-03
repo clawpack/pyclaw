@@ -10,7 +10,7 @@ def test_shocksine():
 
         test_solution = controller.solution.state.get_q_global()
 
-        if test_solution != None:
+        if test_solution is not None:
             thisdir = os.path.dirname(__file__)
             expected_density = np.loadtxt(os.path.join(thisdir,'shocksine_regression_density.txt'))
             test_density = test_solution[0,:]
@@ -21,4 +21,6 @@ def test_shocksine():
     return test_app(shocksine.setup, verify_shocksine, {})
 
 if __name__=='__main__':
-    test_shocksine()
+    f = test_shocksine()
+    for test in f:
+        test()

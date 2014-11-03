@@ -57,3 +57,9 @@ def test_sedov_and_hdf():
             shutil.rmtree(tempdir )
         except OSError as (errno, strerror):
             print ERROR_STR % {'path' : tempdir, 'error': strerror }
+
+
+if __name__=='__main__':
+    f = test_sedov_and_hdf()
+    for test in f:
+        test()

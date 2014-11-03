@@ -13,7 +13,7 @@ def test_acoustics_2d_variable():
         dx, dy = controller.solution.domain.grid.delta
         test_q = state.get_q_global()
 
-        if test_q != None:
+        if test_q is not None:
             thisdir = os.path.dirname(__file__)
             expected_pressure = np.loadtxt(os.path.join(thisdir,
                                                'pressure_%s.txt' % solver_type))
@@ -48,3 +48,9 @@ def test_acoustics_2d_variable():
     from itertools import chain
     for test in chain(classic_tests, sharp_tests_rk, sharp_tests_lmm):
         yield test
+
+
+if __name__=='__main__':
+    f = test_acoustics_2d_variable()
+    for test in f:
+        test()

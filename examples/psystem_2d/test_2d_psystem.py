@@ -83,3 +83,7 @@ def test_2d_psystem():
             
         
 
+if __name__=='__main__':
+    f = test_2d_psystem()
+    for test in f:
+        test()

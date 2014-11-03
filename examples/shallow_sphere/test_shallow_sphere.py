@@ -24,3 +24,8 @@ def test_shallow_sphere():
                     verify_shallow_sphere,
                     kwargs)
 
+
+if __name__=='__main__':
+    f = test_shallow_sphere()
+    for test in f:
+        test()
