@@ -34,7 +34,6 @@ def test_2d_euler_shockbubble():
         yield test
 
 
-if __name__=='__main__':
-    f = test_2d_euler_shockbubble()
-    for test in f:
-        test()
+if __name__=="__main__":
+    import nose
+    nose.main()

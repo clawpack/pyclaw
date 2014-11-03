@@ -59,7 +59,6 @@ def test_sedov_and_hdf():
             print ERROR_STR % {'path' : tempdir, 'error': strerror }
 
 
-if __name__=='__main__':
-    f = test_sedov_and_hdf()
-    for test in f:
-        test()
+if __name__=="__main__":
+    import nose
+    nose.main()

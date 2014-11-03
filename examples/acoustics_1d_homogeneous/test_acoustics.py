@@ -47,7 +47,7 @@ def test_1d_acoustics():
     for test in chain(classic_tests, sharp_tests_rk, sharp_tests_lmm, weno_tests):
         yield test
 
-if __name__=='__main__':
-    f = test_1d_acoustics()
-    for test in f:
-        test()
+
+if __name__=="__main__":
+    import nose
+    nose.main()

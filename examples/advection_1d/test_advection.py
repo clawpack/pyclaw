@@ -46,7 +46,6 @@ def test_1d_advection():
         yield test
 
 
-if __name__=='__main__':
-    f = test_1d_advection()
-    for test in f:
-        test()
+if __name__=="__main__":
+    import nose
+    nose.main()

@@ -73,7 +73,6 @@ def test_acoustics_2d_variable_io():
             print ERROR_STR % {'path' : tempdir, 'error': strerror }
 
 
-if __name__=='__main__':
-    f = test_acoustics_2d_variable_io()
-    for test in f:
-        test()
+if __name__=="__main__":
+    import nose
+    nose.main()

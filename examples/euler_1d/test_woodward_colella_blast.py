@@ -20,7 +20,7 @@ def test_woodward_colella_blast():
 
     return test_app(woodward_colella_blast.setup, verify_woodward_colella_blast, {})
 
-if __name__=='__main__':
-    f = test_woodward_colella_blast()
-    for test in f:
-        test()
+
+if __name__=="__main__":
+    import nose
+    nose.main()

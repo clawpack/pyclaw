@@ -71,7 +71,6 @@ def test_3d_acoustics():
         yield test
 
 
-if __name__=='__main__':
-    f = test_3d_acoustics()
-    for test in f:
-        test()
+if __name__=="__main__":
+    import nose
+    nose.main()

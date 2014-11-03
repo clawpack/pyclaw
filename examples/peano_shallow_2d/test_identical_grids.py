@@ -1,9 +1,4 @@
 from nose.plugins.attrib import attr
-
-if __name__=="__main__":
-    import nose
-    nose.main()
-    
     
 def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
     import numpy as np
@@ -122,4 +117,6 @@ def test_3x3_grid():
     
     assert(np.max(np.abs(pyclaw_solver.qbc - peanoclaw_solver.qbc)) < 1e-9)
     
-    
+if __name__=="__main__":
+    import nose
+    nose.main()

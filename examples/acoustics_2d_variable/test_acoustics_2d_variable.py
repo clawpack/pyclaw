@@ -50,7 +50,6 @@ def test_acoustics_2d_variable():
         yield test
 
 
-if __name__=='__main__':
-    f = test_acoustics_2d_variable()
-    for test in f:
-        test()
+if __name__=="__main__":
+    import nose
+    nose.main()
