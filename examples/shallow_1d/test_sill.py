@@ -20,15 +20,14 @@ def test_1d_sill():
 
             if q0 != None and qfinal != None:
                 dx = claw.solution.domain.grid.delta[0]
-                test = dx*np.linalg.norm(qfinal-q0,1)
+                test = dx * np.linalg.norm(qfinal - q0, 1)
                 return check_diff(expected, test, reltol=1e-4)
             else:
                 return
         return sill_verify
 
     from clawpack.pyclaw.util import gen_variants
-
-    classic_tests = gen_variants(sill.setup, verify_expected(3.203924e-04), 
+    classic_tests = gen_variants(sill.setup, verify_expected(4.04169269142e-4), 
                                              kernel_languages=["Python"],
                                              solver_type='classic',
                                              outdir=None)
@@ -38,4 +37,5 @@ def test_1d_sill():
         yield test
 
 if __name__=='__main__':
-    test_1d_sill()
+    import nose
+    nose.main()
