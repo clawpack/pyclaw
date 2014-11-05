@@ -226,9 +226,9 @@ class State(clawpack.pyclaw.State):
         """
         shape = [n + 2*num_ghost for n in self.grid.num_cells]
         
-        self.q_da.globalToLocal(self.gqVec, self.lqVec)
+        self.q_da.globalToLocal(self.gqVec, self._q_local_vector)
         shape.insert(0,self.num_eqn)
-        return self.lqVec.getArray().reshape(shape, order = 'F')
+        return self._q_local_vector.getArray().reshape(shape, order = 'F')
             
     def get_auxbc_from_aux(self,num_ghost,auxbc):
         """
@@ -236,9 +236,9 @@ class State(clawpack.pyclaw.State):
         """
         shape = [n + 2*num_ghost for n in self.grid.num_cells]
         
-        self.aux_da.globalToLocal(self.gauxVec, self.lauxVec)
+        self.aux_da.globalToLocal(self.gauxVec, self._aux_local_vector)
         shape.insert(0,self.num_aux)
-        return self.lauxVec.getArray().reshape(shape, order = 'F')
+        return self._aux_local_vector.getArray().reshape(shape, order = 'F')
 
     def set_num_ghost(self,num_ghost):
         r"""
