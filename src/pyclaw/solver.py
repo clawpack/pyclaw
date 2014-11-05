@@ -215,6 +215,8 @@ class Solver(object):
             self.rp = riemann_solver
             rp_name = riemann_solver.__name__.split('.')[-1]
             from clawpack import riemann
+            if "ptwise" in rp_name:
+                rp_name = rp_name.replace("_ptwise", "")
             self.num_eqn   = riemann.static.num_eqn.get(rp_name,None)
             self.num_waves = riemann.static.num_waves.get(rp_name,None)
 

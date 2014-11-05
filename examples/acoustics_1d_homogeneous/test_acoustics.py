@@ -31,6 +31,11 @@ def test_1d_acoustics():
     classic_tests = gen_variants(acoustics_1d.setup, verify_expected(0.00104856594174),
                                  kernel_languages=('Python','Fortran'), solver_type='classic', disable_output=True)
 
+    classic_tests = gen_variants(acoustics_1d.setup, verify_expected(0.00104856594174),
+                                 kernel_languages=('Fortran',), ptwise=True,
+                                 solver_type='classic', disable_output=True)
+
+
     sharp_tests_rk   = gen_variants(acoustics_1d.setup, verify_expected(0.000298879563857),
                                  kernel_languages=('Python','Fortran'), solver_type='sharpclaw',
                                  time_integrator='SSP104', disable_output=True)
