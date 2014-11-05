@@ -14,7 +14,7 @@ def test_1d_advection():
             q0=claw.frames[0].state.get_q_global()
             qfinal=claw.frames[claw.num_output_times].state.get_q_global()
 
-            if q0 != None and qfinal != None:
+            if q0 is not None and qfinal is not None:
                 dx=claw.solution.domain.grid.delta[0]
                 test = dx*np.linalg.norm(qfinal-q0,1)
                 return check_diff(expected, test, reltol=1e-4)
@@ -45,5 +45,7 @@ def test_1d_advection():
     for test in chain(classic_tests, sharp_tests_rk, sharp_tests_lmm, weno_tests):
         yield test
 
-if __name__=='__main__':
-    test_1d_advection()
+
+if __name__=="__main__":
+    import nose
+    nose.main()

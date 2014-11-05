@@ -38,3 +38,8 @@ def test_2d_acoustics():
     from itertools import chain
     for test in chain(classic_tests, sharp_tests_rk, sharp_tests_lmm):
         yield test
+
+
+if __name__=="__main__":
+    import nose
+    nose.main()

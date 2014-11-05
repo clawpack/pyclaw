@@ -71,3 +71,8 @@ def test_acoustics_2d_variable_io():
             shutil.rmtree(tempdir )
         except OSError as (errno, strerror):
             print ERROR_STR % {'path' : tempdir, 'error': strerror }
+
+
+if __name__=="__main__":
+    import nose
+    nose.main()

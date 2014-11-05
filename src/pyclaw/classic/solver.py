@@ -486,7 +486,7 @@ class ClawSolver2D(ClawSolver):
         #with f2py.  It involves wastefully allocating three arrays.
         #f2py seems not able to handle multiple zero-size arrays being passed.
         # it appears the bug is related to f2py/src/fortranobject.c line 841.
-        if(aux == None): num_aux=1
+        if aux is None: num_aux=1
 
         grid  = state.grid
         maxmx,maxmy = grid.num_cells[0],grid.num_cells[1]

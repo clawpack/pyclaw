@@ -82,4 +82,6 @@ def test_2d_psystem():
             print ERROR_STR % {'path' : tempdir, 'error': strerror }
             
         
-
+if __name__=="__main__":
+    import nose
+    nose.main()
