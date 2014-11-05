@@ -31,7 +31,7 @@ def test_1d_acoustics():
     classic_tests = gen_variants(acoustics_1d.setup, verify_expected(0.00104856594174),
                                  kernel_languages=('Python','Fortran'), solver_type='classic', disable_output=True)
 
-    classic_tests = gen_variants(acoustics_1d.setup, verify_expected(0.00104856594174),
+    ptwise_tests = gen_variants(acoustics_1d.setup, verify_expected(0.00104856594174),
                                  kernel_languages=('Fortran',), ptwise=True,
                                  solver_type='classic', disable_output=True)
 
@@ -49,5 +49,5 @@ def test_1d_acoustics():
                                  time_integrator='SSP104', weno_order=17, disable_output=True)
 
     from itertools import chain
-    for test in chain(classic_tests, sharp_tests_rk, sharp_tests_lmm, weno_tests):
+    for test in chain(classic_tests, ptwise_tests, sharp_tests_rk, sharp_tests_lmm, weno_tests):
         yield test
