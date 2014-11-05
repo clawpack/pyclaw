@@ -7,27 +7,39 @@ Module containing all Pyclaw solution objects
     David I. Ketcheson -- Initial version (June 2011)
 """
 
-import numpy as np
 
 class State(object):
     r"""
     A PyClaw State object contains the current state on a particular patch,
     including the unkowns q, the time t, and the auxiliary coefficients aux.
 
-    Both q and aux are initialized to None.  They cannot be accessed until
-    num_eqn and num_aux (respectively) are set.
+    The variables num_eqn and num_aux determine the length of the first
+    dimension of the q and aux arrays.
 
     :State Data:
     
         The arrays :attr:`q`, and :attr:`aux` have variable 
         extents based on the patch dimensions and the values of 
-        :attr:`num_eqn` and :attr:`num_aux`.  Note that these are initialy set to 
-        None and later set to appropriately sized empty numpy arrays when
-        :attr:`num_eqn` and :attr:`num_aux` are set.
+        :attr:`num_eqn` and :attr:`num_aux`.  
  
-    To instantiate a State, we first need a patch:
+    A State object is automatically created upon instantiation of a Solution object
+    from a Domain object:
 
         >>> from clawpack import pyclaw
+        >>> x = pyclaw.Dimension('x',0.0,1.0,100)
+        >>> domain = pyclaw.Domain(x)
+        >>> num_eqn = 1
+        >>> solution = pyclaw.Solution(num_eqn,domain)
+        >>> print solution.state
+        PyClaw State object
+        Patch dimensions: [100]
+        Time  t=0.0
+        Number of conserved quantities: 1
+        <BLANKLINE>
+
+    A State lives on a Patch, and can be instantiated directly
+    by first creating a Patch:
+
         >>> x = pyclaw.Dimension('x',0.,1.,100)
         >>> patch = pyclaw.Patch((x))
 
@@ -80,6 +92,10 @@ class State(object):
         else: return 0
 
     @property
+    def grid(self):
+        return self.patch.grid
+
+    @property
     def mp(self):
         r"""(int) - Number of derived quantities"""
         if self.p is not None: return self.p.shape[0]
@@ -90,10 +106,6 @@ class State(object):
             raise Exception('Cannot change state.mp after aux is initialized.')
         else:
             self.p = self.new_array(mp)
-
-    @property
-    def grid(self):
-        return self.patch.grid
 
     @property
     def mF(self):
@@ -159,8 +171,8 @@ class State(object):
         Checks to see if this state is valid
         
         The state is declared valid based on the following criteria:
-            - :attr:`q` is not None
-            - :attr:`num_eqn` > 0
+            - :attr:`q` is Fortran contiguous
+            - :attr:`aux` is Fortran contiguous
             
         A debug logger message will be sent documenting exactly what was not 
         valid.
@@ -175,6 +187,10 @@ class State(object):
         if not self.q.flags['F_CONTIGUOUS']:
             logger.debug('q array is not Fortran contiguous.')
             valid = False
+        if self.aux is not None:
+            if not self.aux.flags['F_CONTIGUOUS']:
+                logger.debug('q array is not Fortran contiguous.')
+                valid = False
         return valid
  
     def set_cparam(self,fortran_module):
@@ -205,19 +221,18 @@ class State(object):
         """
         pass
 
-
     def set_q_from_qbc(self,num_ghost,qbc):
         """
-        Set the value of q using the array qbc.  This is called after
-        qbc is updated by the solver.
+        Set the value of q using the array qbc. Typically this is called
+        after qbc has been updated by the solver.
         """
         
-        patch = self.patch
-        if patch.num_dim == 1:
+        num_dim = self.patch.num_dim
+        if num_dim == 1:
             self.q = qbc[:,num_ghost:-num_ghost]
-        elif patch.num_dim == 2:
+        elif num_dim == 2:
             self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
-        elif patch.num_dim == 3:
+        elif num_dim == 3:
             self.q = qbc[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost]
         else:
             raise Exception("Assumption (1 <= num_dim <= 3) violated.")
@@ -277,7 +292,6 @@ class State(object):
     def __copy__(self):
         return self.__class__(self)
         
-        
     def __deepcopy__(self,memo={}):
         import copy
         result = self.__class__(copy.deepcopy(self.patch),self.num_eqn,self.num_aux)
@@ -295,9 +309,11 @@ class State(object):
         return result
 
     def sum_F(self,i):
+        import numpy as np
         return np.sum(np.abs(self.F[i,...]))
 
     def new_array(self,dof):
+        import numpy as np
         if dof==0: return None
         shape = [dof]
         shape.extend(self.grid.num_cells)
