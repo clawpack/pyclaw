@@ -21,8 +21,10 @@ crossed the domain exactly once.
 from numpy import sqrt, exp, cos
 from clawpack import riemann
     
-def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',
-          outdir='./_output',weno_order=5,time_integrator='SSP104', disable_output=False):
+def setup(use_petsc=False, kernel_language='Fortran', solver_type='classic',
+              outdir='./_output', ptwise=False, weno_order=5, 
+              time_integrator='SSP104', 
+              disable_output=False):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -30,7 +32,11 @@ def setup(use_petsc=False,kernel_language='Fortran',solver_type='classic',
         from clawpack import pyclaw
 
     if kernel_language == 'Fortran':
-        riemann_solver = riemann.acoustics_1D
+        if ptwise:
+            riemann_solver = riemann.acoustics_1D_ptwise
+        else:
+            riemann_solver = riemann.acoustics_1D
+
     elif kernel_language=='Python': 
         riemann_solver = riemann.acoustics_1D_py.acoustics_1D
 
