@@ -24,9 +24,9 @@ This example also demonstrates:
 
 import numpy as np
 from clawpack import riemann
+from clawpack.riemann.euler_with_efix_1D_constants import density, momentum, energy, num_eqn
 
 gamma = 1.4  # Ratio of specific heats
-gamma1 = gamma - 1.
 
 # Coefficients of Runge-Kutta method
 a = np.array([[0., 0., 0., 0., 0., 0., 0.],
@@ -38,7 +38,7 @@ b = np.array([.206734020864804, .206734020864804, .117097251841844, .18180256012
 c = np.array([0., .3772689153313680, .7545378306627360, .7289856616121880, .6992261359316680])
 
 def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='sharpclaw',
-        kernel_language='Fortran',use_char_decomp=False):
+        kernel_language='Fortran',use_char_decomp=False,tfluct_solver=True):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -60,11 +60,25 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
             try:
                 import sharpclaw1               # Import custom Fortran code
                 solver.fmod = sharpclaw1
-                solver.tfluct_solver = True     # Use total fluctuation solver for efficiency
-                solver.lim_type = 2             # WENO reconstruction 
-                solver.char_decomp = 2          # characteristic-wise reconstruction
+                solver.tfluct_solver = tfluct_solver     # Use total fluctuation solver for efficiency
+                if solver.tfluct_solver:
+                    try:
+                        import euler_tfluct
+                        solver.tfluct = euler_tfluct
+                    except ImportError:
+                        import logging
+                        logger = logging.getLogger()
+                        logger.error('Unable to load tfluct solver, did you run make?')
+                        print 'Unable to load tfluct solver, did you run make?'
+                        raise
             except ImportError:
+                import logging
+                logger = logging.getLogger()
+                logger.error('Unable to load sharpclaw1 solver, did you run make?')
+                print 'Unable to load sharpclaw1 solver, did you run make?'
                 pass
+            solver.lim_type = 2             # WENO reconstruction
+            solver.char_decomp = 2          # characteristic-wise reconstruction
     else:
         solver = pyclaw.ClawSolver1D(rs)
 
@@ -76,10 +90,10 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     mx = 400;
     x = pyclaw.Dimension('x',-5.0,5.0,mx)
     domain = pyclaw.Domain([x])
-    state = pyclaw.State(domain,solver.num_eqn)
+    state = pyclaw.State(domain,num_eqn)
 
     state.problem_data['gamma']= gamma
-    state.problem_data['gamma1']= gamma1
+
     if kernel_language =='Python':
         state.problem_data['efix'] = False
 
@@ -88,12 +102,9 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     velocity = (xc<-4.)*2.629369
     pressure = (xc<-4.)*10.33333 + (xc>=-4.)*1.
 
-    # Density
-    state.q[0,:] = (xc<-4.)*3.857143 + (xc>=-4.)*(1+epsilon*np.sin(5*xc))
-    # Momentum
-    state.q[1,:] = velocity * state.q[0,:]
-    # Energy
-    state.q[2,:] = pressure/gamma1 + 0.5 * state.q[0,:] * velocity**2
+    state.q[density ,:] = (xc<-4.)*3.857143 + (xc>=-4.)*(1+epsilon*np.sin(5*xc))
+    state.q[momentum,:] = velocity * state.q[density,:]
+    state.q[energy  ,:] = pressure/(gamma - 1.) + 0.5 * state.q[density,:] * velocity**2
 
     claw = pyclaw.Controller()
     claw.tfinal = 1.8
@@ -116,7 +127,7 @@ def setplot(plotdata):
     """ 
     plotdata.clearfigures()  # clear any old figures,axes,items data
 
-    # Figure for q[0]
+    # Figure for density
     plotfigure = plotdata.new_plotfigure(name='', figno=0)
 
     plotaxes = plotfigure.new_plotaxes()
@@ -125,7 +136,7 @@ def setplot(plotdata):
     plotaxes.xlimits = (-5.,5.)
 
     plotitem = plotaxes.new_plotitem(plot_type='1d')
-    plotitem.plot_var = 0
+    plotitem.plot_var = density
     plotitem.kwargs = {'linewidth':3}
     
     plotaxes = plotfigure.new_plotaxes()
@@ -133,7 +144,7 @@ def setplot(plotdata):
     plotaxes.axescmd = 'subplot(212)'
 
     plotitem = plotaxes.new_plotitem(plot_type='1d')
-    plotitem.plot_var = 2
+    plotitem.plot_var = energy
     plotitem.kwargs = {'linewidth':3}
     plotaxes.xlimits = (-5.,5.)
     

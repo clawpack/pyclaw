@@ -69,3 +69,8 @@ def test_3d_acoustics():
     for test in chain(classic_homogeneous_tests, classic_heterogeneous_tests, sharp_homogeneous_tests,
                       sharp_heterogeneous_tests):
         yield test
+
+
+if __name__=="__main__":
+    import nose
+    nose.main()

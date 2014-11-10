@@ -10,7 +10,7 @@ def test_2d_euler_shockbubble():
         test_q=controller.solution.state.get_q_global()
 
 
-        if test_q != None:
+        if test_q is not None:
             thisdir = os.path.dirname(__file__)
             expected_density = np.loadtxt(os.path.join(thisdir,'verify_shockbubble_classic.txt'))
             test_density = test_q[0,:,:]
@@ -32,3 +32,8 @@ def test_2d_euler_shockbubble():
                              solver_type='classic', disable_output=True,
                              mx=160, my=40, tfinal=0.2, num_output_times=1):
         yield test
+
+
+if __name__=="__main__":
+    import nose
+    nose.main()

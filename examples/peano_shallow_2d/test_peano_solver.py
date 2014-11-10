@@ -1,10 +1,3 @@
-from nose.plugins.attrib import attr
-
-if __name__=="__main__":
-    import nose
-    nose.main()
-    
-    
 def test_initialization():
     from pyclaw.clawpack.clawpack import ClawSolver2D
     
@@ -21,3 +14,7 @@ def test_initialization():
         if(not member[0].startswith("_") and not inspect.ismethod(member[1])):
             print(member[0])
     
+
+if __name__=="__main__":
+    import nose
+    nose.main()

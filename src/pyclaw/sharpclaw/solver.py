@@ -25,6 +25,14 @@ def before_step(solver,solution):
     """
     pass
 
+def default_tfluct():
+    r"""This is a dummy routine and should never be called, check Euler1D
+        to learn how to pass tfluct functions to the sharpclaw solver
+    """
+    if self.tfluct_solver:
+        raise Exception("You set solver.tfluct_solver=True, but solver.tfluct has not been set.")
+    pass
+
 class SharpClawSolver(Solver):
     r"""
     Superclass for all SharpClawND solvers.
@@ -86,6 +94,11 @@ class SharpClawSolver(Solver):
         Whether a total fluctuation solver have to be used. If True the function
         that calculates the total fluctuation must be provided.
         ``Default = False``
+
+    .. attribute:: tfluct
+
+        Pointer to Fortran routine to calculate total fluctuation
+        ``Default = default_tfluct (None)``
 
     .. attribute:: aux_time_dep
 
@@ -161,6 +174,7 @@ class SharpClawSolver(Solver):
         self.time_integrator = 'SSP104'
         self.char_decomp = 0
         self.tfluct_solver = False
+        self.tfluct = default_tfluct
         self.aux_time_dep = False
         self.kernel_language = 'Fortran'
         self.num_ghost = 3
@@ -193,6 +207,9 @@ class SharpClawSolver(Solver):
         if self.lim_type == 2:
             self.num_ghost = (self.weno_order+1)/2
 
+        if self.lim_type == 2 and self.weno_order != 5 and self.kernel_language == 'Python':
+            raise Exception('Only 5th-order WENO reconstruction is implemented in Python kernels. \
+                             Use Fortran for higher-order WENO.')
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (num_ghost)
         state = solution.state
@@ -218,6 +235,7 @@ class SharpClawSolver(Solver):
                 self.fmod = __import__(so_name,fromlist=['clawpack.pyclaw.sharpclaw'])
             state.set_cparam(self.fmod)
             state.set_cparam(self.rp)
+            state.set_cparam(self.tfluct)
             self._set_fortran_parameters(state,self.fmod.clawparams,self.fmod.workspace,self.fmod.reconstruct)
 
         self._allocate_bc_arrays(state)
@@ -601,6 +619,7 @@ class SharpClawSolver1D(SharpClawSolver):
         See :class:`SharpClawSolver1D` for more info.
         """   
         self.num_dim = 1
+        self.reflect_index = [1]
         super(SharpClawSolver1D,self).__init__(riemann_solver,claw_package)
 
 
@@ -636,9 +655,7 @@ class SharpClawSolver1D(SharpClawSolver):
     
         import numpy as np
 
-        self._apply_q_bcs(state)
-        if state.num_aux > 0:
-            self._apply_aux_bcs(state)
+        self._apply_bcs(state)
         q = self.qbc 
 
         grid = state.grid
@@ -648,7 +665,12 @@ class SharpClawSolver1D(SharpClawSolver):
 
         if self.kernel_language=='Fortran':
             rp1 = self.rp.rp1._cpointer
-            dq,cfl=self.fmod.flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.num_ghost,mx,rp1)
+            if self.tfluct_solver:
+                tfluct1 = self.tfluct.tfluct1._cpointer
+            else:
+                tfluct1 = self.tfluct
+
+            dq,cfl=self.fmod.flux1(q,self.auxbc,self.dt,state.t,ixy,mx,self.num_ghost,mx,rp1,tfluct1)
 
         elif self.kernel_language=='Python':
 
@@ -734,6 +756,7 @@ class SharpClawSolver2D(SharpClawSolver):
         See :class:`SharpClawSolver2D` for more info.
         """   
         self.num_dim = 2
+        self.reflect_index = [1,2]
 
         super(SharpClawSolver2D,self).__init__(riemann_solver,claw_package)
 
@@ -766,9 +789,7 @@ class SharpClawSolver2D(SharpClawSolver):
         values are in the cell.
 
         """
-        self._apply_q_bcs(state)
-        if state.num_aux > 0:    
-            self._apply_aux_bcs(state)
+        self._apply_bcs(state)
         q = self.qbc 
 
         grid = state.grid
@@ -780,7 +801,12 @@ class SharpClawSolver2D(SharpClawSolver):
 
         if self.kernel_language=='Fortran':
             rpn2 = self.rp.rpn2._cpointer
-            dq,cfl=self.fmod.flux2(q,self.auxbc,self.dt,state.t,num_ghost,maxm,mx,my,rpn2)
+            if self.tfluct_solver:
+                tfluct2 = self.tfluct.tfluct2._cpointer
+            else:
+                tfluct2 = self.tfluct
+
+            dq,cfl=self.fmod.flux2(q,self.auxbc,self.dt,state.t,num_ghost,maxm,mx,my,rpn2,tfluct2)
 
         else: raise Exception('Only Fortran kernels are supported in 2D.')
 
@@ -802,6 +828,7 @@ class SharpClawSolver3D(SharpClawSolver):
         See :class:`SharpClawSolver3D` for more info.
         """   
         self.num_dim = 3
+        self.reflect_index = [1,2,3]
 
         super(SharpClawSolver3D,self).__init__(riemann_solver,claw_package)
 
@@ -846,9 +873,7 @@ class SharpClawSolver3D(SharpClawSolver):
         values are in the cell.
 
         """
-        self._apply_q_bcs(state)
-        if state.num_aux > 0:    
-            self._apply_aux_bcs(state)
+        self._apply_bcs(state)
         q = self.qbc 
 
         grid = state.grid
@@ -861,7 +886,12 @@ class SharpClawSolver3D(SharpClawSolver):
 
         if self.kernel_language=='Fortran':
             rpn3 = self.rp.rpn3._cpointer
-            dq,cfl=self.fmod.flux3(q,self.auxbc,self.dt,state.t,num_ghost,maxm,mx,my,mz,rpn3)
+            if self.tfluct_solver:            
+                tfluct3 = self.tfluct.tfluct3._cpointer
+            else:
+                tfluct3 = self.tfluct
+
+            dq,cfl=self.fmod.flux3(q,self.auxbc,self.dt,state.t,num_ghost,maxm,mx,my,mz,rpn3,tfluct3)
 
         else: raise Exception('Only Fortran kernels are supported in 3D.')
 

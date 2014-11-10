@@ -24,7 +24,8 @@ def configuration(parent_package='',top_path=None):
                                                             'reconstruct.f90','flux1.f90']]
 
     config.add_extension('sharpclaw1',
-                         ['evec.f90','tfluct.f90'] + sharpclaw_srcs)
+                         ['evec.f90'] + sharpclaw_srcs)
+    config.add_extension('euler_tfluct','euler_tfluct.f90')
 
     return config
 

@@ -161,6 +161,7 @@ class Solver(object):
         self.rp = None
         self.fmod = None
         self._is_set_up = False
+        self._use_old_bc_sig = False
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
@@ -214,6 +215,8 @@ class Solver(object):
             self.rp = riemann_solver
             rp_name = riemann_solver.__name__.split('.')[-1]
             from clawpack import riemann
+            if "ptwise" in rp_name:
+                rp_name = rp_name.replace("_ptwise", "")
             self.num_eqn   = riemann.static.num_eqn.get(rp_name,None)
             self.num_waves = riemann.static.num_waves.get(rp_name,None)
 
@@ -259,6 +262,7 @@ class Solver(object):
         if (None in self.bc_lower) or (None in self.bc_upper):
             valid = False
             reason = 'One of the boundary conditions has not been set.'
+
 
         if reason is not None:
             self.logger.debug(reason)
@@ -306,6 +310,21 @@ class Solver(object):
 
         This is typically called by solver.setup().
         """
+        import inspect
+        for fun in (self.user_bc_lower,self.user_bc_upper,self.user_aux_bc_lower,self.user_aux_bc_upper):
+            if fun is not None:
+                args = inspect.getargspec(fun)[0]
+                if len(args) == 5:
+                    self.logger.warn("""The custom boundary condition
+                                        function signature has been changed.
+                                        The previous signature will not be
+                                        supported in Clawpack 6.0.  Please see 
+                                        http://clawpack.github.io/doc/pyclaw/solvers.html 
+                                        for more information.""")
+                    self._use_old_bc_sig = True
+
+
+
         qbc_dim = [n+2*self.num_ghost for n in state.grid.num_cells]
         qbc_dim.insert(0,state.num_eqn)
         self.qbc = np.zeros(qbc_dim,order='F')
@@ -313,83 +332,104 @@ class Solver(object):
         auxbc_dim = [n+2*self.num_ghost for n in state.grid.num_cells]
         auxbc_dim.insert(0,state.num_aux)
         self.auxbc = np.empty(auxbc_dim,order='F')
-        if state.num_aux>0:
-            self._apply_aux_bcs(state)
+        
+        self._apply_bcs(state)
 
-    def _apply_q_bcs(self,state):
+
+    def _apply_bcs(self, state):
         r"""
-        Fills in solver.qbc (the local vector), including ghost cell values.
-    
-        This function returns an array of dimension determined by the 
-        :attr:`num_ghost` attribute.  The type of boundary condition set is 
-        determined by :attr:`bc_lower` and :attr:`bc_upper` for the 
-        approprate dimension.  Valid values for :attr:`bc_lower` and 
-        :attr:`bc_upper` include:
+        Apply boundary conditions to both q and aux arrays.
         
-        - 'custom'     or 0: A user defined boundary condition will be used, the appropriate 
-            Dimension method user_bc_lower or user_bc_upper will be called.
-        - 'extrap'    or 1: Zero-order extrapolation.
-        - 'periodic'   or 2: Periodic boundary conditions.
-        - 'wall' or 3: Wall boundary conditions. It is assumed that the second 
-            component of q represents velocity or momentum.
-    
-        :Input:
-         -  *grid* - (:class:`Patch`) The grid being operated on.
-         -  *state* - The state being operated on; this may or may not be the
-                      same as *grid*.  Generally it is the same as *grid* for
-                      the classic algorithms and other one-level algorithms, 
-                      but different for method-of-lines algorithms like SharpClaw.
+        In the case of a user-defined boundary condition, both arrays
+        qbc and auxbc are passed to the user function.  Typically the
+        function would only modify one or the other of them, though this
+        is not enforced.
 
-        :Output:
-         - (ndarray(num_eqn,...)) q array with boundary ghost cells added and set
-         
+        If the user function only accepts one array argument, we warn
+        that this interface has been deprecated.  In Clawpack 6, we will
+        drop backward compatibility.
 
-        .. note:: 
-
-            Note that for user-defined boundary conditions, the array sent to
-            the boundary condition has not been rolled. 
+        For parallel runs, we check whether we're actually on a domain
+        boundary.  If we are just at an inter-patch boundary, nothing needs to
+        be done here.
         """
-        
+
         import numpy as np
+
+        self.qbc = state.get_qbc_from_q(self.num_ghost, self.qbc)
+        if state.num_aux > 0:
+            self.auxbc = state.get_auxbc_from_aux(self.num_ghost, self.auxbc)
         
-        self.qbc = state.get_qbc_from_q(self.num_ghost,self.qbc)
         grid = state.grid
-       
-        for idim,dim in enumerate(grid.dimensions):
-            # First check if we are actually on the boundary
-            # (in case of a parallel run)
+
+        for (idim, dim) in enumerate(grid.dimensions):
+            # Check if we are on a true boundary
             if state.grid.on_lower_boundary[idim]:
-                # If a user defined boundary condition is being used, send it on,
-                # otherwise roll the axis to front position and operate on it
-                if self.bc_lower[idim] == BC.custom:
-                    self._qbc_lower(state,dim,state.t,self.qbc,idim)
-                elif self.bc_lower[idim] == BC.periodic:
-                    if state.grid.on_upper_boundary[idim]:
-                        # This process owns the whole domain
-                        self._qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
+
+                bcs = []
+                if state.num_aux > 0:
+                    bcs.append({'array'  : self.auxbc,
+                                'type'   : self.aux_bc_lower,
+                                'custom_fun' : self.user_aux_bc_lower,
+                                'variable' : 'aux'})
+                bcs.append({'array'  : self.qbc,
+                            'type'   : self.bc_lower,
+                            'custom_fun' : self.user_bc_lower,
+                            'variable' : 'q'})
+                for (i, bc) in enumerate(bcs):
+
+                    if bc['type'][idim] == BC.custom:
+                        if not self._use_old_bc_sig: 
+                            bc['custom_fun'](state, dim, state.t, self.qbc, self.auxbc,
+                                      self.num_ghost)
+                        else:
+                            bc['custom_fun'](state, dim, state.t, bc['array'], self.num_ghost)
+                    
+                    elif bc['type'][idim] == BC.periodic \
+                            and not state.grid.on_upper_boundary[idim]:
+                        pass # In a parallel run, # PETSc handles periodic BCs.
+
                     else:
-                        pass #Handled automatically by PETSc
-                else:
-                    self._qbc_lower(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
+                        self._bc_lower(bc['type'][idim], state, dim, state.t,
+                                        np.rollaxis(bc['array'], idim+1, 1), idim,
+                                        bc['variable'])
 
             if state.grid.on_upper_boundary[idim]:
-                if self.bc_upper[idim] == BC.custom:
-                    self._qbc_upper(state,dim,state.t,self.qbc,idim)
-                elif self.bc_upper[idim] == BC.periodic:
-                    if state.grid.on_lower_boundary[idim]: 
-                        # This process owns the whole domain
-                        self._qbc_upper(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
+
+                bcs = []
+                if state.num_aux > 0:
+                    bcs.append({'array'  : self.auxbc,
+                                'type'   : self.aux_bc_upper,
+                                'custom_fun' : self.user_aux_bc_upper,
+                                'variable' : 'aux'})
+                bcs.append({'array'  : self.qbc,
+                            'type'   : self.bc_upper,
+                            'custom_fun' : self.user_bc_upper,
+                            'variable' : 'q'})
+                for (i, bc) in enumerate(bcs):
+
+                    if bc['type'][idim] == BC.custom:
+                        if not self._use_old_bc_sig: 
+                            bc['custom_fun'](state, dim, state.t, self.qbc, self.auxbc,
+                                      self.num_ghost)
+                        else:
+                            bc['custom_fun'](state, dim, state.t, bc['array'], self.num_ghost)
+                    
+                    elif bc['type'][idim] == BC.periodic \
+                            and not state.grid.on_lower_boundary[idim]:
+                        pass # In a parallel run, # PETSc handles periodic BCs.
+
                     else:
-                        pass #Handled automatically by PETSc
-                else:
-                    self._qbc_upper(state,dim,state.t,np.rollaxis(self.qbc,idim+1,1),idim)
+                        self._bc_upper(bc['type'][idim], state, dim, state.t,
+                                        np.rollaxis(bc['array'], idim+1, 1), idim,
+                                        bc['variable'])
 
 
-    def _qbc_lower(self,state,dim,t,qbc,idim):
+    def _bc_lower(self, bc_type, state, dim, t, array, idim, name):
         r"""
-        Apply lower boundary conditions to qbc
+        Apply lower boundary conditions to array.
         
-        Sets the lower coordinate's ghost cells of *qbc* depending on what 
+        Sets the lower coordinate's ghost cells of *array* depending on what 
         :attr:`bc_lower` is.  If :attr:`bc_lower` = 0 then the user 
         boundary condition specified by :attr:`user_bc_lower` is used.  Note 
         that in this case the function :attr:`user_bc_lower` belongs only to 
@@ -397,33 +437,36 @@ class Solver(object):
         conditions at once with the appropriate calling sequence.
         
         :Input:
-         - *patch* - (:class:`Patch`) Patch that the dimension belongs to
+         - *patch* - (:class:`Patch`) Patch that the dimension belongs to.
          
         :Input/Ouput:
-         - *qbc* - (ndarray(...,num_eqn)) Array with added ghost cells which will
-           be set in this routines
+         - *array* - (ndarray(...,num_eqn)) Array with added ghost cells which 
+           will be set in this routines.
         """
-        if self.bc_lower[idim] == BC.custom: 
-            self.user_bc_lower(state,dim,t,qbc,self.num_ghost)
-        elif self.bc_lower[idim] == BC.extrap:
+
+        if bc_type == BC.extrap:
             for i in xrange(self.num_ghost):
-                qbc[:,i,...] = qbc[:,self.num_ghost,...]
-        elif self.bc_lower[idim] == BC.periodic:
+                array[:,i,...] = array[:,self.num_ghost,...]
+        elif bc_type == BC.periodic:
             # This process owns the whole patch
-            qbc[:,:self.num_ghost,...] = qbc[:,-2*self.num_ghost:-self.num_ghost,...]
-        elif self.bc_lower[idim] == BC.wall:
-            for i in xrange(self.num_ghost):
-                qbc[:,i,...] = qbc[:,2*self.num_ghost-1-i,...]
-                qbc[idim+1,i,...] = -qbc[idim+1,2*self.num_ghost-1-i,...] # Negate normal velocity
+            array[:,:self.num_ghost,...] = array[:,-2*self.num_ghost:-self.num_ghost,...]
+        elif bc_type == BC.wall:
+            if name == 'q':
+                for i in xrange(self.num_ghost):
+                    array[:,i,...] = array[:,2*self.num_ghost-1-i,...]
+                    array[self.reflect_index[idim],i,...] = -array[self.reflect_index[idim],2*self.num_ghost-1-i,...] # Negate normal velocity
+            else:
+                for i in xrange(self.num_ghost):
+                    array[:,i,...] = array[:,2*self.num_ghost-1-i,...]
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % self.bc_lower)
+            raise NotImplementedError("Boundary condition %s not implemented" % bc_type)
 
 
-    def _qbc_upper(self,state,dim,t,qbc,idim):
+    def _bc_upper(self, bc_type, state, dim, t, array, idim, name):
         r"""
-        Apply upper boundary conditions to qbc
+        Apply upper boundary conditions to array
         
-        Sets the upper coordinate's ghost cells of *qbc* depending on what 
+        Sets the upper coordinate's ghost cells of *array* depending on what 
         :attr:`bc_upper` is.  If :attr:`bc_upper` = 0 then the user 
         boundary condition specified by :attr:`user_bc_upper` is used.  Note 
         that in this case the function :attr:`user_bc_upper` belongs only to 
@@ -434,166 +477,26 @@ class Solver(object):
          - *patch* - (:class:`Patch`) Patch that the dimension belongs to
          
         :Input/Ouput:
-         - *qbc* - (ndarray(...,num_eqn)) Array with added ghost cells which will
+         - *array* - (ndarray(...,num_eqn)) Array with added ghost cells which will
            be set in this routines
         """
- 
-        if self.bc_upper[idim] == BC.custom:
-            self.user_bc_upper(state,dim,t,qbc,self.num_ghost)
-        elif self.bc_upper[idim] == BC.extrap:
+        
+        if bc_type == BC.extrap:
             for i in xrange(self.num_ghost):
-                qbc[:,-i-1,...] = qbc[:,-self.num_ghost-1,...] 
-        elif self.bc_upper[idim] == BC.periodic:
+                array[:,-i-1,...] = array[:,-self.num_ghost-1,...] 
+        elif bc_type == BC.periodic:
             # This process owns the whole patch
-            qbc[:,-self.num_ghost:,...] = qbc[:,self.num_ghost:2*self.num_ghost,...]
-        elif self.bc_upper[idim] == BC.wall:
-            for i in xrange(self.num_ghost):
-                qbc[:,-i-1,...] = qbc[:,-2*self.num_ghost+i,...]
-                qbc[idim+1,-i-1,...] = -qbc[idim+1,-2*self.num_ghost+i,...] # Negate normal velocity
+            array[:,-self.num_ghost:,...] = array[:,self.num_ghost:2*self.num_ghost,...]
+        elif bc_type == BC.wall:
+            if name == 'q':
+                for i in xrange(self.num_ghost):
+                    array[:,-i-1,...] = array[:,-2*self.num_ghost+i,...]
+                    array[self.reflect_index[idim],-i-1,...] = -array[self.reflect_index[idim],-2*self.num_ghost+i,...] # Negate normal velocity
+            else:
+                for i in xrange(self.num_ghost):
+                    array[:,-i-1,...] = array[:,-2*self.num_ghost+i,...]
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % self.bc_lower)
-
-
-
-    def _apply_aux_bcs(self,state):
-        r"""
-        Appends boundary cells to aux and fills them with appropriate values.
-    
-        This function returns an array of dimension determined by the 
-        :attr:`num_ghost` attribute.  The type of boundary condition set is 
-        determined by :attr:`aux_bc_lower` and :attr:`aux_bc_upper` for the 
-        approprate dimension.  Valid values for :attr:`aux_bc_lower` and 
-        :attr:`aux_bc_upper` include:
-        
-        - 'custom'     or 0: A user defined boundary condition will be used, the appropriate 
-            Dimension method user_aux_bc_lower or user_aux_bc_upper will be called.
-        - 'extrap'    or 1: Zero-order extrapolation.
-        - 'periodic'   or 2: Periodic boundary conditions.
-        - 'wall' or 3: Wall boundary conditions. It is assumed that the second 
-            component of q represents velocity or momentum.
-    
-        :Input:
-         -  *patch* - (:class:`Patch`) The patch being operated on.
-         -  *state* - The state being operated on; this may or may not be the
-                      same as *patch*.  Generally it is the same as *patch* for
-                      the classic algorithms and other one-level algorithms, 
-                      but different for method-of-lines algorithms like SharpClaw.
-
-        :Output:
-         - (ndarray(num_aux,...)) q array with boundary ghost cells added and set
-         
-
-        .. note:: 
-
-            Note that for user-defined boundary conditions, the array sent to
-            the boundary condition has not been rolled. 
-        """
-        
-        import numpy as np
-
-        self.auxbc = state.get_auxbc_from_aux(self.num_ghost,self.auxbc)
-
-        patch = state.patch
-       
-        for idim,dim in enumerate(patch.dimensions):
-            # First check if we are actually on the boundary
-            # (in case of a parallel run)
-            if state.grid.on_lower_boundary[idim]:
-                # If a user defined boundary condition is being used, send it on,
-                # otherwise roll the axis to front position and operate on it
-                if self.aux_bc_lower[idim] == BC.custom:
-                    self._auxbc_lower(state,dim,state.t,self.auxbc,idim)
-                elif self.aux_bc_lower[idim] == BC.periodic:
-                    if state.grid.on_upper_boundary[idim]:
-                        # This process owns the whole patch
-                        self._auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
-                    else:
-                        pass #Handled automatically by PETSc
-                else:
-                    self._auxbc_lower(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
-
-            if state.grid.on_upper_boundary[idim]:
-                if self.aux_bc_upper[idim] == BC.custom:
-                    self._auxbc_upper(state,dim,state.t,self.auxbc,idim)
-                elif self.aux_bc_upper[idim] == BC.periodic:
-                    if state.grid.on_lower_boundary[idim]:
-                        # This process owns the whole patch
-                        self._auxbc_upper(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
-                    else:
-                        pass #Handled automatically by PETSc
-                else:
-                    self._auxbc_upper(state,dim,state.t,np.rollaxis(self.auxbc,idim+1,1),idim)
-
-
-    def _auxbc_lower(self,state,dim,t,auxbc,idim):
-        r"""
-        Apply lower boundary conditions to auxbc
-        
-        Sets the lower coordinate's ghost cells of *auxbc* depending on what 
-        :attr:`aux_bc_lower` is.  If :attr:`aux_bc_lower` = 0 then the user 
-        boundary condition specified by :attr:`user_aux_bc_lower` is used.  Note 
-        that in this case the function :attr:`user_aux_bc_lower` belongs only to 
-        this dimension but :attr:`user_aux_bc_lower` could set all user boundary 
-        conditions at once with the appropriate calling sequence.
-        
-        :Input:
-         - *patch* - (:class:`Patch`) Patch that the dimension belongs to
-         
-        :Input/Ouput:
-         - *auxbc* - (ndarray(num_aux,...)) Array with added ghost cells which will
-           be set in this routines
-        """
-        if self.aux_bc_lower[idim] == BC.custom: 
-            self.user_aux_bc_lower(state,dim,t,auxbc,self.num_ghost)
-        elif self.aux_bc_lower[idim] == BC.extrap:
-            for i in xrange(self.num_ghost):
-                auxbc[:,i,...] = auxbc[:,self.num_ghost,...]
-        elif self.aux_bc_lower[idim] == BC.periodic:
-            # This process owns the whole patch
-            auxbc[:,:self.num_ghost,...] = auxbc[:,-2*self.num_ghost:-self.num_ghost,...]
-        elif self.aux_bc_lower[idim] == BC.wall:
-            for i in xrange(self.num_ghost):
-                auxbc[:,i,...] = auxbc[:,2*self.num_ghost-1-i,...]
-        elif self.aux_bc_lower[idim] is None:
-            raise Exception("One or more of the aux boundary conditions aux_bc_upper has not been specified.")
-        else:
-            raise NotImplementedError("Boundary condition %s not implemented" % self.aux_bc_lower)
-
-
-    def _auxbc_upper(self,state,dim,t,auxbc,idim):
-        r"""
-        Apply upper boundary conditions to auxbc
-        
-        Sets the upper coordinate's ghost cells of *auxbc* depending on what 
-        :attr:`aux_bc_upper` is.  If :attr:`aux_bc_upper` = 0 then the user 
-        boundary condition specified by :attr:`user_aux_bc_upper` is used.  Note 
-        that in this case the function :attr:`user_aux_bc_upper` belongs only to 
-        this dimension but :attr:`user_aux_bc_upper` could set all user boundary 
-        conditions at once with the appropriate calling sequence.
-        
-        :Input:
-         - *patch* - (:class:`Patch`) Patch that the dimension belongs to
-         
-        :Input/Ouput:
-         - *auxbc* - (ndarray(num_aux,...)) Array with added ghost cells which will
-           be set in this routines
-        """
- 
-        if self.aux_bc_upper[idim] == BC.custom:
-            self.user_aux_bc_upper(state,dim,t,auxbc,self.num_ghost)
-        elif self.aux_bc_upper[idim] == BC.extrap:
-            for i in xrange(self.num_ghost):
-                auxbc[:,-i-1,...] = auxbc[:,-self.num_ghost-1,...] 
-        elif self.aux_bc_upper[idim] == BC.periodic:
-            # This process owns the whole patch
-            auxbc[:,-self.num_ghost:,...] = auxbc[:,self.num_ghost:2*self.num_ghost,...]
-        elif self.aux_bc_upper[idim] == BC.wall:
-            for i in xrange(self.num_ghost):
-                auxbc[:,-i-1,...] = auxbc[:,-2*self.num_ghost+i,...]
-        elif self.aux_bc_lower[idim] is None:
-            raise Exception("One or more of the aux boundary conditions aux_bc_lower has not been specified.")
-        else:
-            raise NotImplementedError("Boundary condition %s not implemented" % self.aux_bc_lower)
 
 
     # ========================================================================

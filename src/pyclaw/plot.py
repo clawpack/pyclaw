@@ -16,6 +16,7 @@ def plot(setplot=None, outdir="./_output", plotdir=None, htmlplot=False,
             plotdir = os.path.join(os.getcwd(),"_plots")
     
     if htmlplot or iplot:
+        setplot_func = None
         # No setplot specified, try to use a local file
         if setplot is None:
             # Grab and import the setplot function

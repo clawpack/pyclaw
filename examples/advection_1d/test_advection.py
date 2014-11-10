@@ -14,7 +14,7 @@ def test_1d_advection():
             q0=claw.frames[0].state.get_q_global()
             qfinal=claw.frames[claw.num_output_times].state.get_q_global()
 
-            if q0 != None and qfinal != None:
+            if q0 is not None and qfinal is not None:
                 dx=claw.solution.domain.grid.delta[0]
                 test = dx*np.linalg.norm(qfinal-q0,1)
                 return check_diff(expected, test, reltol=1e-4)
@@ -37,7 +37,7 @@ def test_1d_advection():
                                  solver_type='sharpclaw',time_integrator='SSPMS32', outdir=None)
 
     weno_tests = gen_variants(advection_1d.setup, verify_expected(7.489618e-06),
-                                 kernel_languages=('Fortran',), solver_type='sharpclaw', 
+                                 kernel_languages=('Fortran',), solver_type='sharpclaw',
                                  time_integrator='SSP104', weno_order=17,
                                  outdir=None)
 
@@ -57,4 +57,3 @@ if __name__=='__main__':
 
     for test in test_1d_advection():
         test()
-
