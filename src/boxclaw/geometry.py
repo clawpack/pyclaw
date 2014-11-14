@@ -4,6 +4,9 @@ r"""
 Module containing BoxClaw geometry.
 """
 
+import fboxlib
+import math
+
 from clawpack import pyclaw
 from clawpack.pyclaw import geometry as pyclaw_geometry
 
@@ -16,35 +19,17 @@ class Patch(pyclaw_geometry.Patch):
     __doc__ += pyclaw.util.add_parent_doc(pyclaw_geometry.Patch)
 
     def __deepcopy__(self,memo):
-        # don't recreate boxarrays
         return self
 
     def __init__(self,dimensions):
 
-        import boxlib
-        import numpy as np
-
         super(Patch,self).__init__(dimensions)
 
-        self._ba, self._gbox = self._create_boxarray()
+        self._la = self._create_layout()
 
-        is_per = np.asarray(self.num_dim * [ 1 ], np.int32)
-        rb     = boxlib.RealBox(boxlib.lo(self._gbox), boxlib.hi(self._gbox))
-        self._geom = boxlib.bl[self.num_dim].Geometry(self._gbox, rb, 0, is_per)
+        bxs = self._la.local_boxes
+        lo, hi = self._la.get_box(bxs[0])
 
-        # XXX: create a multifab from the boxarray to get geometry information
-        tmp = boxlib.MultiFab(self._ba)
-
-        fab = None
-        for i in range(tmp.size()):
-            fab = tmp[i]
-            if fab is not None:
-                break
-
-        assert(fab is not None)
-
-        lo = boxlib.lo(fab.box())
-        hi = boxlib.hi(fab.box())
         grid_dimensions = []
         for i in range(self.num_dim):
             lower = (lo[i]+0) * self.delta[i]
@@ -52,7 +37,7 @@ class Patch(pyclaw_geometry.Patch):
             num_cells = hi[i]-lo[i]+1
 
             grid_dimensions.append(pyclaw_geometry.Dimension(lower,upper,
-                                        num_cells,name=dimensions[i].name))
+                                                             num_cells,name=dimensions[i].name))
 
             if lower == self.lower_global[i]:
                 grid_dimensions[-1].on_lower_boundary = True
@@ -66,17 +51,9 @@ class Patch(pyclaw_geometry.Patch):
 
         self.grid = pyclaw_geometry.Grid(grid_dimensions)
 
-        del tmp
 
-
-    def _create_boxarray(self):
-        """Returns a BoxLib BoxArray."""
-
-        # note that boxlib supports more than one box per processor
-
-        import boxlib
-        import math
-        import numpy as np
+    def _create_layout(self):
+        """Returns a FBoxLib layout."""
 
         dx = self.delta
         lg = self.lower_global
@@ -85,12 +62,8 @@ class Patch(pyclaw_geometry.Patch):
         lo = [ int(lg[d]/dx[d]) for d in range(self.num_dim) ]
         hi = [ lo[d]+nc[d]-1    for d in range(self.num_dim) ]
 
-        box = boxlib.Box(lo, hi)
-        ba  = boxlib.BoxArray([box])
-
         max_sizes = self.num_dim * [ 1 ]
-
-        nprocs = boxlib.size()
+        nprocs = fboxlib.mpi_size()
         if (self.num_dim > 1) and (nprocs % 2**self.num_dim == 0):
             # divide domain into cubes
             nproc_per_dim = nprocs / 2**self.num_dim + 1
@@ -102,14 +75,10 @@ class Patch(pyclaw_geometry.Patch):
             for d in range(1, self.num_dim):
                 max_sizes[d] = hi[d] - lo[d] + 1
 
-        max_sizes = boxlib.bl[self.num_dim].IntVect(*max_sizes)
-        ba.maxSize(max_sizes)
-
-        if boxlib.rank() == 0:
-            logger.info("max_sizes: " + str(max_sizes))
-            logger.info("boxarray:  " + str(ba))
-
-        return ba, box
+        ba = fboxlib.boxarray(boxes=[[lo, hi]])
+        ba.maxsize(max_sizes)
+        la = fboxlib.layout(ba)
+        return la
 
 
 class Domain(pyclaw_geometry.Domain):

@@ -3,6 +3,9 @@
 import os
 import logging, logging.config
 
+import fboxlib
+fboxlib.open()
+
 # Default logging configuration file
 _DEFAULT_LOG_CONFIG_PATH = os.path.join(os.path.dirname(__file__),'log.config')
 del os

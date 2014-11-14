@@ -1,4 +1,5 @@
 
+import fboxlib
 import clawpack.pyclaw
 import numpy as np
 
@@ -19,20 +20,15 @@ class State(clawpack.pyclaw.State):
     def _fill_boundary(self, ncomp, nghost, q, qbc):
         mf = self._create_multifab(ncomp, nghost)
         self._copy_into_multifab(mf, nghost, q)
-        mf.FillBoundary()
-        self.patch._geom.FillPeriodicBoundary(mf)
+        mf.fill_boundary()
         self._copy_outof_multifab(mf, qbc)
         del mf
 
     def _create_multifab(self, ncomp, nghost):
-        import boxlib
-        return boxlib.MultiFab(self.patch._ba, ncomp, nghost)
+        return fboxlib.multifab(self.patch._la, ncomp, nghost)
 
     def _get_array(self, mf):
-        for i in range(mf.size()):
-            if mf[i] is not None:
-                return mf[i].get_array()
-        return None
+        return mf.fab(1).array
 
     def _copy_into_multifab(self, mf, ng, q):
 
@@ -51,12 +47,5 @@ class State(clawpack.pyclaw.State):
             raise Exception("Assumption (1 <= num_dim <= 3) violated.")
 
     def _copy_outof_multifab(self, mf, q):
-        num_dim = self.patch.num_dim
-        fab     = self._get_array(mf)
+        fab = self._get_array(mf)
         q[...] = np.rollaxis(fab, self.q.ndim-1)
-
-
-
-
-
-

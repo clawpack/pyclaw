@@ -5,9 +5,9 @@ BoxClaw related utilities.
 def boxlib_build_variant_arg_dicts(kernel_languages=('Fortran',)):
     import itertools
 
-    # test petsc4py only if it is available
+    # test fboxlib only if it is available
     try:
-        import boxlib
+        import fboxlib
     except ImportError:
         return []
 

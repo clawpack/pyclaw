@@ -8,7 +8,7 @@ PETSc's parallel i/o capabilities to allow for parallel reads and writes of
 frame data.
 """
 
-import boxlib
+import fboxlib
 import pickle
 import numpy as np
 
@@ -56,7 +56,7 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
             if os.path.exists(f):
                 raise IOError('Cowardly refusing to clobber %s!' % f)
 
-    rank = boxlib.rank()
+    rank = fboxlib.mpi_rank()
     if rank==0:
         pickle_file = open(pickle_filename,'wb')
         # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
@@ -119,27 +119,25 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
 
                 if finest_level == 0:
                     write('')
-                write(solution.state.patch._gbox)       # grid domain
+                lo, hi = solution.domain.patch._la.get_box(1)
+                write(str(lo) + " " + str(hi))          # grid domain XXX
+                write('')
                 write(frame)                            # time step number
                 write(' '.join(map(str, dx)))           # dx
                 write('0')                              # cartesian coords
                 write('0')                              # boundary data? (0=no)
 
                 # now write info for each amr level (only one in this case)
-                write('0 %d %f' % (mf.size(), solution.state.t))
+                write('0 %d %f' % (mf.nboxes, solution.state.t))
                 write(frame)
-                for i in range(mf.size()):
-                    bx = solution.state.patch._ba.get(i)
-                    lo = bx.smallEnd()
-                    hi = bx.bigEnd()
+                for i in range(1, mf.nboxes+1):
+                    lo, hi = solution.state.patch._la.get_box(i)
                     for d in range(solution.state.num_dim):
                         write("%lf %lf" % (lo[d]*dx[d], (hi[d]+1)*dx[d]))
                 write("Level_0/Cell")
 
         # write cell data
-        mf.writeOut(plt_filename + '/Level_0/Cell')
+        mf.write(plt_filename, 'Level_0/Cell')
 
     if rank==0:
         pickle_file.close()
-
-
