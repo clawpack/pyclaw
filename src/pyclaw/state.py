@@ -7,6 +7,25 @@ Module containing all Pyclaw solution objects
     David I. Ketcheson -- Initial version (June 2011)
 """
 
+class functionSpace(object):
+    r"""
+    A PyClaw functionSpace object lives on a patch but also has a concept of
+    the number of degrees of freedom.  Typically, a State object has a functionSpace
+    for q and another function space for aux, if aux variables are present. 
+
+    For now, this class exists mainly to match the DMDA abstraction in PETSc.
+    It will also be useful in implementing DG finite element methods .
+    """
+    def __init__(self,patch,num_dof):
+        self.patch = patch
+        self.num_dof = num_dof
+
+    def set_num_ghost(self,num_ghost):
+        """
+        Virtual routine (does nothing).  Overridden in the petclaw.state class.
+        """
+        pass
+
 
 class State(object):
     r"""
@@ -14,7 +33,8 @@ class State(object):
     including the unkowns q, the time t, and the auxiliary coefficients aux.
 
     The variables num_eqn and num_aux determine the length of the first
-    dimension of the q and aux arrays.
+    dimension of the q and aux arrays.  The arguments num_eqn and num_aux
+    to the initialization routine may alternatively be functionSpace objects.
 
     :State Data:
     
@@ -151,9 +171,23 @@ class State(object):
         stores the values of the corresponding gauge if ``keep_gauges`` is set
         to ``True``"""
         
-
-        self.q   = self.new_array(num_eqn)
         self.aux = self.new_array(num_aux)
+        if type(num_eqn) is int:
+            self.q_space = functionSpace(self.patch,num_eqn)
+            self.q   = self.new_array(num_eqn)
+        else:
+            self.q_space = num_eqn
+            self.q   = self.new_array(self.q_space.num_dof)
+
+        if type(num_aux) is int and num_aux>0:
+            self.aux_space = functionSpace(self.patch,num_eqn)
+            self.aux = self.new_array(num_aux)
+        elif num_aux != 0:
+            self.aux_space = num_aux
+            self.aux = self.new_array(self.aux_space.num_dof)
+        else:
+            self.aux_space = None
+
 
     def __str__(self):
         output = "PyClaw State object\n"

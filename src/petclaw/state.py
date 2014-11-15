@@ -1,5 +1,53 @@
 import clawpack.pyclaw
 
+class functionSpace(clawpack.pyclaw.state.functionSpace):
+
+    def __init__(self,patch,num_dof):
+        self.patch = patch
+        self.num_dof = num_dof
+        self.da = self._create_DA()
+
+    def set_num_ghost(self,num_ghost):
+        self.da = self._create_DA(num_ghost)
+
+    def _create_DA(self,num_ghost=0):
+        r"""Returns a PETSc DA and associated global Vec.
+        Note that no local vector is returned.
+        """
+        from petsc4py import PETSc
+
+        #Due to the way PETSc works, we just make the patch always periodic,
+        #regardless of the boundary conditions actually selected.
+        #This works because in solver.qbc() we first call globalToLocal()
+        #and then impose the real boundary conditions (if non-periodic).
+
+        if hasattr(PETSc.DA, 'PeriodicType'):
+            if self.num_dim == 1:
+                periodic_type = PETSc.DA.PeriodicType.X
+            elif self.num_dim == 2:
+                periodic_type = PETSc.DA.PeriodicType.XY
+            elif self.num_dim == 3:
+                periodic_type = PETSc.DA.PeriodicType.XYZ
+            else:
+                raise Exception("Invalid number of dimensions")
+
+            DA = PETSc.DA().create(dim=self.patch.num_dim,
+                                          dof=self.num_dof,
+                                          sizes=self.patch.num_cells_global,
+                                          periodic_type = periodic_type,
+                                          stencil_width=num_ghost,
+                                          comm=PETSc.COMM_WORLD)
+        else:
+            DA = PETSc.DA().create(dim=self.patch.num_dim,
+                                          dof=self.num_dof,
+                                          sizes=self.patch.num_cells_global,
+                                          boundary_type = PETSc.DA.BoundaryType.PERIODIC,
+                                          stencil_width=num_ghost,
+                                          comm=PETSc.COMM_WORLD)
+
+        return DA
+
+
 class State(clawpack.pyclaw.State):
     """Parallel State class"""
 
@@ -8,15 +56,15 @@ class State(clawpack.pyclaw.State):
     @property
     def num_eqn(self):
         r"""(int) - Number of unknowns (components of q)"""
-        if self.q_da is None:
+        if self.q_space is None:
             raise Exception('state.num_eqn has not been set.')
-        else: return self.q_da.dof
+        else: return self.q_space.num_dof
 
     @property
     def num_aux(self):
         r"""(int) - Number of auxiliary fields"""
-        if self.aux_da is None: return 0
-        else: return self.aux_da.dof
+        if self.aux_space is None: return 0
+        else: return self.aux_space.num_dof
 
     @property
     def mp(self):
@@ -53,10 +101,10 @@ class State(clawpack.pyclaw.State):
         """
         shape = self.grid.num_cells
         shape.insert(0,self.num_eqn)
-        return self.gqVec.getArray().reshape(shape, order = 'F')
+        return self._q_global_vector.getArray().reshape(shape, order = 'F')
     @q.setter
     def q(self,val):
-        self.gqVec.setArray(val.reshape([-1], order = 'F'))
+        self._q_global_vector.setArray(val.reshape([-1], order = 'F'))
 
     @property
     def p(self):
@@ -98,19 +146,19 @@ class State(clawpack.pyclaw.State):
         values for the aux array.  The global aux vector is used only for outputting
         the aux values to file; everywhere else we use the local vector.
         """
-        if self.aux_da is None: return None
+        if self.aux_space is None: return None
         shape = self.grid.num_cells
         shape.insert(0,self.num_aux)
-        aux=self.gauxVec.getArray().reshape(shape, order = 'F')
+        aux=self._aux_global_vector.getArray().reshape(shape, order = 'F')
         return aux
     @aux.setter
     def aux(self,val):
         # It would be nice to make this work also for parallel
         # loading from a file.
-        if self.aux_da is None: 
+        if self.aux_space is None: 
             num_aux=val.shape[0]
-            self._init_aux_da(num_aux)
-        self.gauxVec.setArray(val.reshape([-1], order = 'F'))
+            self.aux_space = functionSpace(num_aux)
+        self._aux_global_vector.setArray(val.reshape([-1], order = 'F'))
     @property
     def num_dim(self):
         return self.patch.num_dim
@@ -120,6 +168,11 @@ class State(clawpack.pyclaw.State):
         r"""
         Here we don't call super because q and aux must be properties in PetClaw
         but should not be properties in PyClaw.
+
+        The arguments num_eqn and num_aux can be integers, in which case
+        a new DA with that many DOFs is created.  Alternatively, they
+        can be functionSpaces, in which case the existing function space is
+        just attached to the state.
 
         :attributes:
         patch - The patch this state lives on
@@ -134,8 +187,8 @@ class State(clawpack.pyclaw.State):
             raise Exception("""A PetClaw State object must be initialized with
                              a PetClaw Patch or Domain object.""")
 
-        self.aux_da = None
-        self.q_da = None
+        self.aux_space = None
+        self.q_space = None
 
         self._p_da = None
         self.gpVec = None
@@ -159,66 +212,37 @@ class State(clawpack.pyclaw.State):
         stores the values of the corresponding gauge if ``keep_gauges`` is set
         to ``True``"""
 
-        self._init_q_da(num_eqn)
-        if num_aux>0: self._init_aux_da(num_aux)
-
-    def _init_aux_da(self,num_aux,num_ghost=0):
-        r"""
-        Initializes PETSc DA and global & local Vectors for handling the
-        auxiliary array, aux. 
-        
-        Initializes aux_da, gauxVec and _aux_local_vector.
-        """
-        self.aux_da = self._create_DA(num_aux,num_ghost)
-        self.gauxVec = self.aux_da.createGlobalVector()
-        self._aux_local_vector = self.aux_da.createLocalVector()
- 
-    def _init_q_da(self,num_eqn,num_ghost=0):
-        r"""
-        Initializes PETSc DA and Vecs for handling the solution, q. 
-        
-        Initializes q_da, gqVec and _q_local_vector.
-        """
-        self.q_da = self._create_DA(num_eqn,num_ghost)
-        self.gqVec = self.q_da.createGlobalVector()
-        self._q_local_vector = self.q_da.createLocalVector()
-
-    def _create_DA(self,dof,num_ghost=0):
-        r"""Returns a PETSc DA and associated global Vec.
-        Note that no local vector is returned.
-        """
-        from petsc4py import PETSc
-
-        #Due to the way PETSc works, we just make the patch always periodic,
-        #regardless of the boundary conditions actually selected.
-        #This works because in solver.qbc() we first call globalToLocal()
-        #and then impose the real boundary conditions (if non-periodic).
-
-        if hasattr(PETSc.DA, 'PeriodicType'):
-            if self.num_dim == 1:
-                periodic_type = PETSc.DA.PeriodicType.X
-            elif self.num_dim == 2:
-                periodic_type = PETSc.DA.PeriodicType.XY
-            elif self.num_dim == 3:
-                periodic_type = PETSc.DA.PeriodicType.XYZ
-            else:
-                raise Exception("Invalid number of dimensions")
-
-            DA = PETSc.DA().create(dim=self.num_dim,
-                                          dof=dof,
-                                          sizes=self.patch.num_cells_global,
-                                          periodic_type = periodic_type,
-                                          stencil_width=num_ghost,
-                                          comm=PETSc.COMM_WORLD)
+        if type(num_eqn) is int:
+            self.q_space = functionSpace(self.patch,num_eqn)
         else:
-            DA = PETSc.DA().create(dim=self.num_dim,
-                                          dof=dof,
-                                          sizes=self.patch.num_cells_global,
-                                          boundary_type = PETSc.DA.BoundaryType.PERIODIC,
-                                          stencil_width=num_ghost,
-                                          comm=PETSc.COMM_WORLD)
+            self.function_space = num_eqn
 
-        return DA
+        if (type(num_aux) is int) and num_aux>0: 
+            self.aux_space = functionSpace(self.patch,num_aux)
+            self._aux_global_vector = self.aux_space.da.createGlobalVector()
+        elif num_aux != 0:
+            self.aux_space = num_aux
+        else: # num_aux==0
+            self.aux_space = None
+
+        self._init_global_vecs()
+
+    def _init_global_vecs(self):
+        r"""
+        Initializes PETSc global Vectors.
+        """
+        self._q_global_vector = self.q_space.da.createGlobalVector()
+        if self.num_aux > 0:
+            self._aux_global_vector = self.aux_space.da.createGlobalVector()
+            
+    def _init_local_vecs(self):
+        r"""
+        Initializes PETSc local Vectors.
+        """
+        self._q_local_vector = self.q_space.da.createLocalVector()
+        if self.num_aux > 0:
+            self._aux_local_vector = self.aux_space.da.createLocalVector()
+ 
 
     def get_qbc_from_q(self,num_ghost,qbc):
         """
@@ -226,7 +250,7 @@ class State(clawpack.pyclaw.State):
         """
         shape = [n + 2*num_ghost for n in self.grid.num_cells]
         
-        self.q_da.globalToLocal(self.gqVec, self._q_local_vector)
+        self.q_space.da.globalToLocal(self._q_global_vector, self._q_local_vector)
         shape.insert(0,self.num_eqn)
         return self._q_local_vector.getArray().reshape(shape, order = 'F')
             
@@ -236,7 +260,7 @@ class State(clawpack.pyclaw.State):
         """
         shape = [n + 2*num_ghost for n in self.grid.num_cells]
         
-        self.aux_da.globalToLocal(self.gauxVec, self._aux_local_vector)
+        self.aux_space.da.globalToLocal(self._aux_global_vector, self._aux_local_vector)
         shape.insert(0,self.num_aux)
         return self._aux_local_vector.getArray().reshape(shape, order = 'F')
 
@@ -253,12 +277,16 @@ class State(clawpack.pyclaw.State):
         but it only happens once so it seems not to be worth it.
         """
         q0 = self.q.copy()
-        self._init_q_da(self.num_eqn,num_ghost)
+        self.q_space.set_num_ghost(num_ghost)
+        if self.num_aux > 0:
+            self.aux_space.set_num_ghost(num_ghost)
+        self._init_global_vecs()
+        self._init_local_vecs()
         self.q = q0
 
         if self.aux is not None:
             aux0 = self.aux.copy()
-            self._init_aux_da(self.num_aux,num_ghost)
+            self.aux_space.set_num_ghost(num_ghost)
             self.aux = aux0
 
     def sum_F(self,i):
@@ -269,8 +297,8 @@ class State(clawpack.pyclaw.State):
         Returns a copy of the global q array on process 0, otherwise returns None
         """
         from petsc4py import PETSc
-        q_natural = self.q_da.createNaturalVec()
-        self.q_da.globalToNatural(self.gqVec, q_natural)
+        q_natural = self.q_space.da.createNaturalVec()
+        self.q_space.da.globalToNatural(self._q_global_vector, q_natural)
         scatter, q0Vec = PETSc.Scatter.toZero(q_natural)
         scatter.scatter(q_natural, q0Vec, False, PETSc.Scatter.Mode.FORWARD)
         rank = PETSc.COMM_WORLD.getRank()
@@ -292,7 +320,7 @@ class State(clawpack.pyclaw.State):
         """
         from petsc4py import PETSc
         aux_natural = self.aux_da.createNaturalVec()
-        self.aux_da.globalToNatural(self.gauxVec, aux_natural)
+        self.aux_da.globalToNatural(self._aux_global_vector, aux_natural)
         scatter, aux0Vec = PETSc.Scatter.toZero(aux_natural)
         scatter.scatter(aux_natural, aux0Vec, False, PETSc.Scatter.Mode.FORWARD)
         rank = PETSc.COMM_WORLD.getRank()
