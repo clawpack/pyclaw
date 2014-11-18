@@ -565,7 +565,6 @@ class SharpClawSolver(Solver):
             else:
                 self._registers.append(State(state.patch,state.q_space))
             self._registers[-1].problem_data                = state.problem_data
-            self._registers[-1].set_num_ghost(self.num_ghost)
             self._registers[-1].t                           = state.t
 
 

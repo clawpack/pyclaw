@@ -7,10 +7,10 @@ Module containing all Pyclaw solution objects
     David I. Ketcheson -- Initial version (June 2011)
 """
 
-class functionSpace(object):
+class FunctionSpace(object):
     r"""
-    A PyClaw functionSpace object lives on a patch but also has a concept of
-    the number of degrees of freedom.  Typically, a State object has a functionSpace
+    A PyClaw FunctionSpace object lives on a patch but also has a concept of
+    the number of degrees of freedom.  Typically, a State object has a FunctionSpace
     for q and another function space for aux, if aux variables are present. 
 
     For now, this class exists mainly to match the DMDA abstraction in PETSc.
@@ -19,6 +19,8 @@ class functionSpace(object):
     def __init__(self,patch,num_dof):
         self.patch = patch
         self.num_dof = num_dof
+
+        super(FunctionSpace,self).__init__()
 
     def set_num_ghost(self,num_ghost):
         """
@@ -34,7 +36,7 @@ class State(object):
 
     The variables num_eqn and num_aux determine the length of the first
     dimension of the q and aux arrays.  The arguments num_eqn and num_aux
-    to the initialization routine may alternatively be functionSpace objects.
+    to the initialization routine may alternatively be FunctionSpace objects.
 
     :State Data:
     
@@ -118,25 +120,27 @@ class State(object):
     @property
     def mp(self):
         r"""(int) - Number of derived quantities"""
-        if self.p is not None: return self.p.shape[0]
+        if hasattr(self,'p'): return self.p.shape[0]
         else: return 0
     @mp.setter
     def mp(self,mp):
-        if self.p is not None:
-            raise Exception('Cannot change state.mp after aux is initialized.')
+        if hasattr(self,'p'):
+            raise Exception('Cannot change state.mp after it is initialized.')
         else:
+            self.p_space = FunctionSpace(self.patch,mp)
             self.p = self.new_array(mp)
 
     @property
     def mF(self):
         r"""(int) - Number of output functionals"""
-        if self.F is not None: return self.F.shape[0]
+        if hasattr(self,'F'): return self.F.shape[0]
         else: return 0
     @mF.setter
     def mF(self,mF):
-        if self.F is not None:
+        if hasattr(self,'F'):
             raise Exception('Cannot change state.mF after aux is initialized.')
         else:
+            self.F_space = FunctionSpace(self.patch,mF)
             self.F = self.new_array(mF)
 
     # ========== Class Methods ===============================================
@@ -150,12 +154,6 @@ class State(object):
             raise Exception("""A PyClaw State object must be initialized with
                              a PyClaw Patch object.""")
 
-        # ========== Attribute Definitions ===================================
-        r"""pyclaw.Patch.patch - The patch this state lives on"""
-        self.p   = None
-        r"""(ndarray(mp,...)) - Cell averages of derived quantities."""
-        self.F   = None
-        r"""(ndarray(mF,...)) - Cell averages of output functional densities."""
         self.problem_data = {}
         r"""(dict) - Dictionary of global values for this patch, 
             ``default = {}``"""
@@ -171,22 +169,22 @@ class State(object):
         stores the values of the corresponding gauge if ``keep_gauges`` is set
         to ``True``"""
         
-        self.aux = self.new_array(num_aux)
-        if type(num_eqn) is int:
-            self.q_space = functionSpace(self.patch,num_eqn)
-            self.q   = self.new_array(num_eqn)
-        else:
+        if type(num_eqn) is FunctionSpace:
             self.q_space = num_eqn
             self.q   = self.new_array(self.q_space.num_dof)
+        else:
+            self.q_space = FunctionSpace(self.patch,num_eqn)
+            self.q   = self.new_array(num_eqn)
 
-        if type(num_aux) is int and num_aux>0:
-            self.aux_space = functionSpace(self.patch,num_eqn)
-            self.aux = self.new_array(num_aux)
-        elif num_aux != 0:
+        if type(num_aux) is FunctionSpace:
             self.aux_space = num_aux
             self.aux = self.new_array(self.aux_space.num_dof)
+        elif num_aux>0:
+            self.aux_space = FunctionSpace(self.patch,num_eqn)
+            self.aux = self.new_array(num_aux)
         else:
             self.aux_space = None
+            self.aux = None
 
 
     def __str__(self):

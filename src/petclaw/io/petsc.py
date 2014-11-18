@@ -88,7 +88,7 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
 #       we will reenable this bad boy when we switch over to petsc-dev
 #        state.q_da.view(q_viewer)
         if write_p:
-            state.gpVec.view(q_viewer)
+            state._p_global_vector.view(q_viewer)
         else:
             state._q_global_vector.view(q_viewer)
         

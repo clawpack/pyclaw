@@ -1,14 +1,11 @@
 import clawpack.pyclaw
 
-class functionSpace(clawpack.pyclaw.state.functionSpace):
+class FunctionSpace(clawpack.pyclaw.state.FunctionSpace):
 
     def __init__(self,patch,num_dof):
-        self.patch = patch
-        self.num_dof = num_dof
+        super(FunctionSpace,self).__init__(patch,num_dof)
         self.da = self._create_DA()
 
-    def set_num_ghost(self,num_ghost):
-        self.da = self._create_DA(num_ghost)
 
     def _create_DA(self,num_ghost=0):
         r"""Returns a PETSc DA and associated global Vec.
@@ -69,30 +66,30 @@ class State(clawpack.pyclaw.State):
     @property
     def mp(self):
         r"""(int) - Number of derived quantities (components of p)"""
-        if self._p_da is None:
+        if not hasattr(self,'p_space'):
             raise Exception('state.mp has not been set.')
-        else: return self._p_da.dof
+        else: return self.p_space.num_dof
     @mp.setter
     def mp(self,mp):
-        if self._p_da is not None:
+        if hasattr(self,'p_space'):
             raise Exception('You cannot change state.mp after p is initialized.')
         else:
-            self._p_da = self._create_DA(mp)
-            self.gpVec = self._p_da.createGlobalVector()
+            self.p_space = FunctionSpace(self.patch,mp)
+            self._p_global_vector = self.p_space.da.createGlobalVector()
 
     @property
     def mF(self):
         r"""(int) - Number of derived quantities (components of p)"""
-        if self._F_da is None:
+        if not hasattr(self,'F_space'):
             raise Exception('state.mF has not been set.')
-        else: return self._F_da.dof
+        else: return self.F_space.num_dof
     @mF.setter
     def mF(self,mF):
-        if self._F_da is not None:
-            raise Exception('You cannot change state.mp after p is initialized.')
+        if hasattr(self,'F_space'):
+            raise Exception('You cannot change state.mF after F is initialized.')
         else:
-            self._F_da = self._create_DA(mF)
-            self.gFVec = self._F_da.createGlobalVector()
+            self.F_space = FunctionSpace(self.patch,mF)
+            self._F_global_vector = self.F_space.da.createGlobalVector()
 
     @property
     def q(self):
@@ -111,16 +108,16 @@ class State(clawpack.pyclaw.State):
         r"""
         Array containing values of derived quantities for output.
         """
-        if self._p_da is None: return 0
+        if not hasattr(self,'p_space'): return 0
         shape = self.grid.num_cells
         shape.insert(0,self.mp)
-        p=self.gpVec.getArray().reshape(shape, order = 'F')
+        p=self._p_global_vector.getArray().reshape(shape, order = 'F')
         return p
     @p.setter
     def p(self,val):
         mp = val.shape[0]
-        if self.gpVec is None: self.init_p_da(mp)
-        self.gpVec.setArray(val.reshape([-1], order = 'F'))
+        if not hasattr(self,'_p_global_vector'): self.mp = mp
+        self._p_global_vector.setArray(val.reshape([-1], order = 'F'))
 
     @property
     def F(self):
@@ -128,16 +125,16 @@ class State(clawpack.pyclaw.State):
         Array containing pointwise values (densities) of output functionals.
         This is just used as temporary workspace before summing.
         """
-        if self._F_da is None: return 0
+        if not hasattr(self,'F_space'): return 0
         shape = self.grid.num_cells
         shape.insert(0,self.mF)
-        F=self.gFVec.getArray().reshape(shape, order = 'F')
+        F=self._F_global_vector.getArray().reshape(shape, order = 'F')
         return F
     @F.setter
     def fset(self,val):
         mF = val.shape[0]
-        if self.gFVec is None: self.init_F_da(mF)
-        self.gFVec.setArray(val.reshape([-1], order = 'F'))
+        if not hasattr(self,'_F_global_vector'): self.mF = mF
+        self._F_global_vector.setArray(val.reshape([-1], order = 'F'))
 
     @property
     def aux(self):
@@ -157,7 +154,7 @@ class State(clawpack.pyclaw.State):
         # loading from a file.
         if self.aux_space is None: 
             num_aux=val.shape[0]
-            self.aux_space = functionSpace(num_aux)
+            self.aux_space = FunctionSpace(num_aux)
         self._aux_global_vector.setArray(val.reshape([-1], order = 'F'))
     @property
     def num_dim(self):
@@ -190,12 +187,6 @@ class State(clawpack.pyclaw.State):
         self.aux_space = None
         self.q_space = None
 
-        self._p_da = None
-        self.gpVec = None
-
-        self._F_da = None
-        self.gFVec = None
-
         # ========== Attribute Definitions ===================================
         self.problem_data = {}
         r"""(dict) - Dictionary of global values for this patch, 
@@ -213,12 +204,12 @@ class State(clawpack.pyclaw.State):
         to ``True``"""
 
         if type(num_eqn) is int:
-            self.q_space = functionSpace(self.patch,num_eqn)
+            self.q_space = FunctionSpace(self.patch,num_eqn)
         else:
-            self.function_space = num_eqn
+            self.q_space = num_eqn
 
         if (type(num_aux) is int) and num_aux>0: 
-            self.aux_space = functionSpace(self.patch,num_aux)
+            self.aux_space = FunctionSpace(self.patch,num_aux)
             self._aux_global_vector = self.aux_space.da.createGlobalVector()
         elif num_aux != 0:
             self.aux_space = num_aux
@@ -226,6 +217,7 @@ class State(clawpack.pyclaw.State):
             self.aux_space = None
 
         self._init_global_vecs()
+        self._init_local_vecs()
 
     def _init_global_vecs(self):
         r"""
@@ -277,20 +269,23 @@ class State(clawpack.pyclaw.State):
         but it only happens once so it seems not to be worth it.
         """
         q0 = self.q.copy()
-        self.q_space.set_num_ghost(num_ghost)
+        self.q_space.da = self.q_space._create_DA(num_ghost)
+
         if self.num_aux > 0:
-            self.aux_space.set_num_ghost(num_ghost)
+            aux0 = self.aux.copy()
+            self.aux_space.da = self.aux_space._create_DA(num_ghost)
+
+        # Need new vecs because we have new DAs
         self._init_global_vecs()
         self._init_local_vecs()
-        self.q = q0
 
-        if self.aux is not None:
-            aux0 = self.aux.copy()
-            self.aux_space.set_num_ghost(num_ghost)
+        # Copy old state into new vecs
+        self.q = q0
+        if self.num_aux > 0:
             self.aux = aux0
 
     def sum_F(self,i):
-        return self.gFVec.strideNorm(i,0)
+        return self._F_global_vector.strideNorm(i,0)
 
     def get_q_global(self):
         r"""
@@ -319,8 +314,8 @@ class State(clawpack.pyclaw.State):
         Returns a copy of the global aux array on process 0, otherwise returns None
         """
         from petsc4py import PETSc
-        aux_natural = self.aux_da.createNaturalVec()
-        self.aux_da.globalToNatural(self._aux_global_vector, aux_natural)
+        aux_natural = self.aux_space.da.createNaturalVec()
+        self.aux_space.da.globalToNatural(self._aux_global_vector, aux_natural)
         scatter, aux0Vec = PETSc.Scatter.toZero(aux_natural)
         scatter.scatter(aux_natural, aux0Vec, False, PETSc.Scatter.Mode.FORWARD)
         rank = PETSc.COMM_WORLD.getRank()
