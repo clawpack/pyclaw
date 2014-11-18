@@ -110,7 +110,7 @@ def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
     r0 = np.sqrt((X-x0)**2 + (Y-y0)**2 + (Z-z0)**2)
 
     state.q[0,:,:,:] = rho_shock*(X<xshock) + rhoout*(X>=xshock) # density (rho)
-    state.q[1,:,:,:] = 0. # x-momentum (rho*u)
+    state.q[1,:,:,:] = rho_shock*v_shock*(X<xshock) # x-momentum (rho*u)
     state.q[2,:,:,:] = 0. # y-momentum (rho*v)
     state.q[3,:,:,:] = 0. # z-momentum (rho*w)
     state.q[4,:,:,:] = e_shock*(X<xshock) + pout/gamma1*(X>=xshock) # energy (e)
