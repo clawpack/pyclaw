@@ -88,12 +88,12 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
 #       we will reenable this bad boy when we switch over to petsc-dev
 #        state.q_da.view(q_viewer)
         if write_p:
-            state.gpVec.view(q_viewer)
+            state._p_global_vector.view(q_viewer)
         else:
-            state.gqVec.view(q_viewer)
+            state._q_global_vector.view(q_viewer)
         
         if write_aux:
-            state.gauxVec.view(aux_viewer)
+            state._aux_global_vector.view(aux_viewer)
     
     q_viewer.flush()
     if write_aux:
@@ -188,10 +188,10 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
 
 #       DA View/Load is broken in Petsc-3.1.8, we can load/view the DA if needed in petsc-3.2
 #       state.q_da.load(q_viewer)
-        state.gqVec.load(q_viewer)
+        state._q_global_vector.load(q_viewer)
         
         if read_aux:
-            state.gauxVec.load(aux_viewer)
+            state._aux_global_vector.load(aux_viewer)
         
         solution.states.append(state)
         patches.append(state.patch)

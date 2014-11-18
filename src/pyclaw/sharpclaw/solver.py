@@ -559,11 +559,13 @@ class SharpClawSolver(Solver):
         self._registers = []
         for i in xrange(nregisters):
             #Maybe should use State.copy() here?
-            self._registers.append(State(state.patch,state.num_eqn,state.num_aux))
+            if state.num_aux > 0: 
+                self._registers.append(State(state.patch,state.q_space,state.aux_space))
+                self._registers[-1].aux   = state.aux
+            else:
+                self._registers.append(State(state.patch,state.q_space))
             self._registers[-1].problem_data                = state.problem_data
-            self._registers[-1].set_num_ghost(self.num_ghost)
             self._registers[-1].t                           = state.t
-            if state.num_aux > 0: self._registers[-1].aux   = state.aux
 
 
     def get_cfl_max(self):
