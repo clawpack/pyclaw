@@ -351,7 +351,6 @@ class SharpClawSolver(Solver):
                     # Use SSP22 method for starting values
                     import copy
                     s1 = copy.deepcopy(state)
-                    s1.set_num_ghost(self.num_ghost)
 
                     deltaq=self.dq(state)
                     s1.q = state.q + deltaq
@@ -424,7 +423,6 @@ class SharpClawSolver(Solver):
         elif self.time_integrator == 'LMM':
             import copy
             s1 = copy.deepcopy(state)
-            s1.set_num_ghost(self.num_ghost)
             s2 = copy.deepcopy(s1)
 
         deltaq=self.dq(state)

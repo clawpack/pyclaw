@@ -293,6 +293,9 @@ class State(object):
         return self.__class__(self)
         
     def __deepcopy__(self,memo={}):
+        return self.copy_pyclaw(memo={})
+        
+    def copy_pyclaw(self,memo):
         import copy
         result = self.__class__(copy.deepcopy(self.patch),self.num_eqn,self.num_aux)
         result.__init__(copy.deepcopy(self.patch),self.num_eqn,self.num_aux)
