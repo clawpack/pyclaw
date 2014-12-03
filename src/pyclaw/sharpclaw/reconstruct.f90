@@ -120,7 +120,7 @@ contains
         case (17)
            call weno17(q,ql,qr,num_eqn,maxnx,num_ghost)           
         case default
-           print *, 'ERROR: interpolation_order must be an odd number between 5 and 17 (inclusive).'
+           print *, 'ERROR: reconstruction_order in WENO must be an odd number between 5 and 17 (inclusive).'
            stop
         end select
 
@@ -839,11 +839,13 @@ contains
         case (6)
             call poly6(q,ql,qr,num_eqn,maxnx,num_ghost)           
         case (8)
+            print *, 'Warning: 8th reconstruction order is not fully tested'
             call poly8(q,ql,qr,num_eqn,maxnx,num_ghost)
         case(10)
+            print *, 'Warning: 10th reconstruction order is not fully tested'
             call poly10(q,ql,qr,num_eqn,maxnx,num_ghost)          
         case default
-           print *, 'ERROR: poly_order must be an even number between 4 and 8.'
+           print *, 'ERROR: reconstruction_order for polynomial must be either 4 or 6'
            stop
         end select
 
