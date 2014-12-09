@@ -156,8 +156,8 @@ class SharpClawSolver(Solver):
 
     _cfl_default = {
         'SSP104':   [2.45, 2.5],
-        'SSPMS32':  [0.16, 0.2],
-        'SSPMS43':  [0.14, 0.16]
+        'SSPMS32':  [0.24, 0.25],
+        'SSPMS43':  [0.15, 1./6.]
         }
 
     # ========================================================================
@@ -194,6 +194,7 @@ class SharpClawSolver(Solver):
 
         # Used only if time integrator is a multistep method
         self.step_index = 1
+        self.sspcoeff0 = None
         self.alpha = None
         self.beta = None
 
@@ -310,56 +311,77 @@ class SharpClawSolver(Solver):
 
 
             elif self.time_integrator == 'SSPMS32':
-                # Store initial solution
                 if self.step_index == 1:
-                    for i in range(2):
-                        self._registers[-2+i].dt = self.dt
+                    # Store initial solution, function evaluation, dt and forward Euler dt                    
                     self._registers[-1].q = state.q.copy()
+                    self._registers[-1].dq = self.dq(state)
+                    self._registers[-1].dt = self.dt
+                    self._registers[-1].dtFE = self.dt * self.cfl_max / self.cfl.get_cached_max()
+                    # initialize dt and dtFE history
+                    for i in range(2):
+                        self._registers[-3+i].dt = 0.
+                        self._registers[-3+i].dtFE = 0.
 
                 if self.step_index < 3:
                     # Use Euler method for starting values
-                    deltaq = self.dq(state)
+                    deltaq = self._registers[-1].dq
                     state.q += deltaq
+                    self.sspcoeff0 = self._sspcoeff['Euler']
+
                     self.step_index += 1
-                
+                    if self.step_index == 3:
+                        self.sspcoeff0 = self._sspcoeff[self.time_integrator]
+
                 else:
                     omega = (self._registers[-2].dt + self._registers[-1].dt)/self.dt
                     # ssp coefficient
                     r = (omega-1.)/omega
-                    # method coefficients 
+                    # method coefficients
                     delta = 1./omega**2
                     beta = (omega+1.)/omega
-                    deltaq = self.dq(state)
+
+                    deltaq = self._registers[-1].dq
                     state.q = beta*(r*state.q + deltaq) + delta*self._registers[-3].q
 
-                # Update stored solutions
+                # Update stored information
                 for i in range(2):
                     self._registers[-3+i].q = self._registers[-2+i].q.copy()
                     self._registers[-3+i].dt = self._registers[-2+i].dt
+                    self._registers[-3+i].dtFE = self._registers[-2+i].dtFE
                 self._registers[-1].q = state.q.copy()
                 self._registers[-1].dt = self.dt
+                self._registers[-1].dq = self.dq(state) # call self.dq once more to update cfl number
+                self._registers[-1].dtFE = self.dt / self.sspcoeff0 * self.cfl_max / self.cfl.get_cached_max()
 
 
             elif self.time_integrator == 'SSPMS43':
-                # Store initial solution
                 if self.step_index == 1:
-                    for i in range(3):
-                        self._registers[-3+i].dt = self.dt
+                    # Store initial solution, function evaluation, dt and forward Euler dt
                     self._registers[-1].q = state.q.copy()
+                    self._registers[-1].dq = self.dq(state)
+                    self._registers[-1].dt = self.dt
+                    self._registers[-1].dtFE = self.dt * self.cfl_max / self.cfl.get_cached_max()
+                    # initialize dt and dtFE history
+                    for i in range(3):
+                        self._registers[-4+i].dt = 0.
+                        self._registers[-4+i].dtFE = 0.
 
                 if self.step_index < 4:
                     # Use SSP22 method for starting values
                     import copy
                     s1 = copy.deepcopy(state)
 
-                    deltaq=self.dq(state)
+                    deltaq = self._registers[-1].dq
                     s1.q = state.q + deltaq
                     s1.t = state.t + self.dt
                     deltaq = self.dq(s1)
                     state.q = 0.5*(state.q + s1.q + deltaq)
+                    self.sspcoeff0 = 1. # SSP coefficient for SSP22
 
                     self.step_index += 1
-                
+                    if self.step_index == 4:
+                        self.sspcoeff0 = self._sspcoeff[self.time_integrator]
+
                 else:
                     H = self._registers[-3].dt + self._registers[-2].dt + self._registers[-1].dt
                     omega3 = H/self.dt
@@ -370,17 +392,21 @@ class SharpClawSolver(Solver):
                     delta0 = (4*omega4 - omega3**2)/omega3**3
                     beta0 = omega4/omega3**2
                     beta3 = omega4**2/omega3**2
-                    deltaq = self.dq(state)
+                    
+                    deltaq = self._registers[-1].dq
                     deltaqm4 = self.dq(self._registers[-4]) 
                     state.q = beta3*(r*state.q + deltaq) + \
-                            (r*beta0+delta0)*self._registers[-4].q + beta0*deltaqm4
+                            (r*beta0 + delta0)*self._registers[-4].q + beta0*deltaqm4
 
                 # Update stored solutions
                 for i in range(3):
                     self._registers[-4+i].q = self._registers[-3+i].q.copy()
                     self._registers[-4+i].dt = self._registers[-3+i].dt
+                    self._registers[-4+i].dtFE = self._registers[-3+i].dtFE
                 self._registers[-1].q = state.q.copy()
                 self._registers[-1].dt = self.dt
+                self._registers[-1].dq = self.dq(state) # call self.dq once more to update cfl number
+                self._registers[-1].dtFE = self.dt / self.sspcoeff0 * self.cfl_max / self.cfl.get_cached_max()
 
 
             elif self.time_integrator == 'LMM':
