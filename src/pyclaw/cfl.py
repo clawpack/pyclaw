@@ -23,5 +23,4 @@ class CFL(object):
         self._global_max = new_local_max
 
     def update_global_max(self,new_local_max):
-        self._global_max = new_local_max
-
+        self._global_max = max(self._global_max,new_local_max)
