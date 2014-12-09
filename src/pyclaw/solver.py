@@ -505,10 +505,6 @@ class Solver(object):
     def get_cfl_max(self):
         return self.cfl_max
 
-    def get_dt_new(self):
-        cfl = self.cfl.get_cached_max()
-        return min(self.dt_max,self.dt * self.cfl_desired / cfl)
-
     def evolve_to_time(self,solution,tend=None):
         r"""
         Evolve solution from solution.t to tend.  If tend is not specified,
@@ -571,13 +567,15 @@ class Solver(object):
             if self.dt_variable:
                 q_backup = state.q.copy('F')
                 told = solution.t
+                if self.time_integrator[:-2] == 'SSPMS':
+                    step_index_old = self.step_index
             
             self.step(solution)
 
             # Check to make sure that the Courant number was not too large
             cfl = self.cfl.get_cached_max()
-            cfl_max = self.get_cfl_max()
-            if cfl <= cfl_max:
+            accept_step = self.accept_reject_step(cfl)
+            if accept_step:
                 # Accept this step
                 self.status['cflmax'] = max(cfl, self.status['cflmax'])
                 if self.dt_variable==True:
@@ -594,12 +592,15 @@ class Solver(object):
                 # Increment number of time steps completed
                 num_steps += 1
                 self.status['numsteps'] += 1
+                
             else:
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
                 if self.dt_variable:
                     state.q = q_backup
                     solution.t = told
+                    if self.time_integrator[:-2] == 'SSPMS':
+                        self.step_index = step_index_old
                 else:
                     # Give up, we cannot adapt, abort
                     self.status['cflmax'] = \
@@ -609,7 +610,7 @@ class Solver(object):
             # Choose new time step
             if self.dt_variable:
                 if cfl > 0.0:
-                    self.dt = self.get_dt_new()
+                    self.dt = self.get_dt_new(cfl,accept_step)
                     self.status['dtmin'] = min(self.dt, self.status['dtmin'])
                     self.status['dtmax'] = max(self.dt, self.status['dtmax'])
                 else:
