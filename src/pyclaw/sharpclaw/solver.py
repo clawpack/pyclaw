@@ -586,39 +586,67 @@ class SharpClawSolver(Solver):
             self._registers.append(copy.deepcopy(state))
 
 
-    def get_cfl_max(self):
+    def accept_reject_step(self,cfl):
+        r"""
+        Decide whether to accept or not the current step.
+        For Runge-Kutta methods the step is accepted if cfl <= cfl_max.
+        For SSPMS32 the choice of step-size guarantees the cfl condition is satisfied.
+        For SSPMS43 additional checks on previous forward Euler step-sizes are required.
         """
-        Set maximum CFL number for current step depending on time integrator
-        """
-        if self.time_integrator[:-2] == 'SSPMS' and self.step_index >= len(self._registers):
-            s = len(self._registers)-2
-            H = self._registers[-2].dt
-            for i in range(s):
-                H += self._registers[-3-i].dt
-            r = (H - s*self._registers[-1].dt)/H # ssp coefficient at the current step
-            sigma = r/self._sspcoeff[self.time_integrator]
+        accept_step = True
+
+        if self.time_integrator == 'SSPMS43':
+            if self.step_index < len(self._registers):
+                # condition for starting solutions
+                rho = 3./5.
+                if self.step_index == 1:
+                    self._registers[-1].dtFE = self.dt * self.cfl_max / cfl
+                if cfl > self.cfl_max or self.dt > rho * self._registers[-1].dtFE:
+                    accept_step = False
+            else:
+                # condition for solution calculated by SSPMS43
+                rhoFE = 9./10.
+                dtFE = self._registers[-1].dtFE
+                dtFEm1 = self._registers[-2].dtFE
+                if rhoFE * dtFEm1 > dtFE or dtFE > dtFEm1 / rhoFE:
+                    accept_step = False
+
+        elif self.time_integrator == 'SSPMS32' and self.step_index >= len(self._registers):
+            pass
+
         else:
-            sigma = 1.0
+            # check cfl condition for Runge-Kutta methods
+            if cfl > self.cfl_max:
+                accept_step = False
 
-        return sigma * self.cfl_max
+        return accept_step
 
-    def get_dt_new(self):
+
+    def get_dt_new(self,cfl,accept_step):
+        r"""
+        Set time-step for next step depending on the time integrator
         """
-        Set time-step for next step depending on time integrator
-        """
-        # desired time-step 
-        dt_des = self.dt * self.cfl_desired / self.cfl.get_cached_max()
-
-        if self.time_integrator[:-2] == 'SSPMS' and self.step_index >= len(self._registers):
-            s = len(self._registers)-2
-            H = self._registers[-1].dt
-            for i in range(s):
-                H += self._registers[-2-i].dt
-            sigma = H / (self._sspcoeff[self.time_integrator]*H + s*dt_des)
+        if accept_step:
+            if self.time_integrator[:-2] == 'SSPMS' and self.step_index >= len(self._registers):
+                s = len(self._registers)
+                p = int(self.time_integrator[-2])
+                mu = min([self._registers[-1-i].dtFE for i in range(s)])
+                H = sum([self._registers[-1-i].dt for i in range(s-1)])
+                self.dt = H * mu / (H + (p-2)*mu)
+            else:
+                self.dt = self.dt * self.cfl_desired / cfl
         else:
-            sigma = 1.0
+            self.logger.debug("Step rejected.")
+            if self.time_integrator == 'SSPMS43':
+                if self.step_index < len(self._registers):
+                    rho = 3./5.
+                    self.dt = min(rho * self._registers[-1].dtFE, self.dt * self.cfl_desired / cfl)
+                else:
+                    self.dt /= 2.
+            else:
+                self.dt = self.dt * self.cfl_desired / cfl
 
-        return sigma * dt_des
+        return min(self.dt_max,self.dt)
 
 
 
