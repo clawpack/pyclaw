@@ -592,6 +592,9 @@ class SharpClawSolver(Solver):
                 # additional condition for SSPMS43
                 if self.time_integrator == 'SSPMS43' and self.dt > 3./5. * self._registers[-1].dtFE:
                     accept_step = False
+                # apply LMM at the next step if last RK step is accepted
+                if accept_step == True and self.step_index == len(self._registers)-1:
+                    self.step_index += 1
             # only need to check conditions for SSPMS43 for the steps LMM is active
             elif self.time_integrator == 'SSPMS43':
                 rhoFE = 9./10.
@@ -612,7 +615,7 @@ class SharpClawSolver(Solver):
         """
         if self.time_integrator[:-2] == 'SSPMS':
             # step-size update for SSP LMM methods
-            if accept_step == True:
+            if accept_step:
                 if self.step_index == len(self._registers):
                     s = len(self._registers)
                     p = int(self.time_integrator[-2])
@@ -623,9 +626,9 @@ class SharpClawSolver(Solver):
                     # step-size update for starting methods
                     self.dt = self.dt * self.cfl_desired / cfl
                     self.step_index += 1
-                    if self.step_index == 4:
+                    if self.step_index == len(self._registers)-1:
                         self.sspcoeff0 = self._sspcoeff[self.time_integrator]
-            elif accept_step == False:
+            else:
                 if self.step_index < len(self._registers):
                     self.dt = self.dt * self.cfl_desired / cfl
                     # additional conditions for SSPMS43
