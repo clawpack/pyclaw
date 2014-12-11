@@ -502,9 +502,15 @@ class Solver(object):
     # ========================================================================
     #  Evolution routines
     # ========================================================================
-    def get_cfl_max(self):
-        return self.cfl_max
+    def accept_reject_step(self,cfl):
+        accept_step = True
+        if cfl > self.cfl_max:
+            accept_step = False
+        return accept_step
 
+    def get_dt_new(self,cfl,accept_step):
+        return min(self.dt_max,self.dt * self.cfl_desired / cfl)
+    
     def evolve_to_time(self,solution,tend=None):
         r"""
         Evolve solution from solution.t to tend.  If tend is not specified,
@@ -567,8 +573,6 @@ class Solver(object):
             if self.dt_variable:
                 q_backup = state.q.copy('F')
                 told = solution.t
-                if self.time_integrator[:-2] == 'SSPMS':
-                    step_index_old = self.step_index
             
             self.step(solution)
 
@@ -599,8 +603,6 @@ class Solver(object):
                 if self.dt_variable:
                     state.q = q_backup
                     solution.t = told
-                    if self.time_integrator[:-2] == 'SSPMS':
-                        self.step_index = step_index_old
                 else:
                     # Give up, we cannot adapt, abort
                     self.status['cflmax'] = \
