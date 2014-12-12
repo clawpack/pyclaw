@@ -18,7 +18,7 @@ def test_1d_sill():
             q0 = claw.frames[0].state.get_q_global()
             qfinal = claw.frames[claw.num_output_times].state.get_q_global()
 
-            if q0 != None and qfinal != None:
+            if q0 is not None and qfinal is not None:
                 dx = claw.solution.domain.grid.delta[0]
                 test = dx * np.linalg.norm(qfinal - q0, 1)
                 return check_diff(expected, test, reltol=1e-4)
