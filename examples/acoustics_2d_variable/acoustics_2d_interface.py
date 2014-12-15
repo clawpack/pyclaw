@@ -40,7 +40,7 @@ def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output',
     elif solver_type=='sharpclaw':
         solver=pyclaw.SharpClawSolver2D(riemann.vc_acoustics_2D)
         solver.time_integrator=time_integrator
-        if time_integrator=='SSPMS32':
+        if time_integrator=='SSPLMM32':
             solver.cfl_max = 0.25
             solver.cfl_desired = 0.24
 

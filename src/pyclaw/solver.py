@@ -571,7 +571,11 @@ class Solver(object):
 
             # Keep a backup in case we need to retake a time step
             if self.dt_variable:
-                q_backup = state.q.copy('F')
+                if 'LMM' in getattr(self,'time_integrator',''):
+                    import copy
+                    backup = copy.deepcopy(self._registers[0])
+                else:
+                    q_backup = state.q.copy('F')
                 told = solution.t
             
             self.step(solution)
@@ -601,7 +605,11 @@ class Solver(object):
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
                 if self.dt_variable:
-                    state.q = q_backup
+                    if 'LMM' in getattr(self,'time_integrator',''):
+                        self._registers.insert(0,backup)
+                        self._registers = self._registers[:-1]
+                    else:
+                        state.q = q_backup
                     solution.t = told
                 else:
                     # Give up, we cannot adapt, abort

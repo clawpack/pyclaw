@@ -69,9 +69,9 @@ class SharpClawSolver(Solver):
         'Euler'  : 1st-order Forward Euler integration
         'SSP33'  : 3rd-order strong stability preserving method of Shu & Osher
         'SSP104' : 4th-order strong stability preserving method Ketcheson
-        'SSPMS32': 2nd-order strong stability preserving 3-step linear multistep method,
+        'SSPLMM32': 2nd-order strong stability preserving 3-step linear multistep method,
                    using Euler for starting values
-        'SSPMS43': 3rd-order strong stability preserving 4-step linear multistep method
+        'SSPLMM43': 3rd-order strong stability preserving 4-step linear multistep method
                    using SSPRK22 for starting values
         'RK'     : Arbitrary Runge-Kutta method, specified by setting `solver.a`
                    and `solver.b` to the Butcher arrays of the method.
@@ -148,16 +148,16 @@ class SharpClawSolver(Solver):
        'Euler' :    1.0,
        'SSP33':     1.0,
        'SSP104' :   6.0,
-       'SSPMS32' :  0.5,
-       'SSPMS43' :  1./3.,
+       'SSPLMM32' :  0.5,
+       'SSPLMM43' :  1./3.,
        'RK':        None,
        'LMM':       None
        }
 
     _cfl_default = {
         'SSP104':   [2.45, 2.5],
-        'SSPMS32':  [0.24, 0.25],
-        'SSPMS43':  [0.15, 1./6.]
+        'SSPLMM32':  [0.24, 0.25],
+        'SSPLMM43':  [0.15, 1./6.]
         }
 
     # ========================================================================
@@ -308,7 +308,7 @@ class SharpClawSolver(Solver):
                 for j in range(num_stages):
                     state.q += self.b[j]*self._registers[j].q
 
-            elif self.time_integrator == 'SSPMS32':
+            elif self.time_integrator == 'SSPLMM32':
                 if self.step_index <= 1:
                     # Store initial solution, function evaluation, dt and forward Euler dt                    
                     self._registers[-1].dq = self.dq(state)
@@ -340,7 +340,7 @@ class SharpClawSolver(Solver):
                 self._registers[-1].dq = self.dq(state) # call self.dq once more to update cfl number
                 self._registers[-1].dtFE = self.dt / self.sspcoeff0 * self.cfl_max / self.cfl.get_cached_max()
 
-            elif self.time_integrator == 'SSPMS43':
+            elif self.time_integrator == 'SSPLMM43':
                 if self.step_index <= 1:
                     # Store initial solution, function evaluation, dt and forward Euler dt
                     self._registers[-1].q = state.q.copy()
@@ -544,13 +544,13 @@ class SharpClawSolver(Solver):
         elif self.time_integrator == 'SSP33':   nregisters=1
         elif self.time_integrator == 'SSP104':  nregisters=2
         elif self.time_integrator == 'RK':      nregisters=len(self.b)+1
-        elif self.time_integrator == 'SSPMS32': nregisters=3
-        elif self.time_integrator == 'SSPMS43': nregisters=4
+        elif self.time_integrator == 'SSPLMM32': nregisters=3
+        elif self.time_integrator == 'SSPLMM43': nregisters=4
         elif self.time_integrator == 'LMM':
             nregisters=len(self.alpha)
             self.dt_variable = False
         else:
-            raise Exception('Unrecognized time intergrator')
+            raise Exception('Unrecognized time integrator: '+self.time_integrator)
         
         state = solution.states[0]
         # use the same class constructor as the solution for the Runge Kutta stages
@@ -565,13 +565,13 @@ class SharpClawSolver(Solver):
         r"""
         Decide whether to accept or not the current step.
         For Runge-Kutta methods the step is accepted if cfl <= cfl_max.
-        For SSPMS32 the choice of step-size guarantees the cfl condition is satisfied.
-        For SSPMS43 additional checks on previous forward Euler step-sizes are required.
+        For SSPLMM32 the choice of step-size guarantees the cfl condition is satisfied.
+        For SSPLMM43 additional checks on previous forward Euler step-sizes are required.
         """
         accept_step = True
 
         # check cfl condition for SSP LMM methods 
-        if self.time_integrator[:-2] == 'SSPMS':
+        if self.time_integrator[:-2] == 'SSPLMM':
             # condition for starting RK methods
             if self.step_index < len(self._registers):
                 # first step is always rejected because CFL condition is violated in dq()
@@ -580,14 +580,14 @@ class SharpClawSolver(Solver):
                     self.step_index += 1
                 if cfl > self.cfl_max:
                     accept_step = False
-                # additional condition for SSPMS43
-                if self.time_integrator == 'SSPMS43' and self.dt > 3./5. * self._registers[-1].dtFE:
+                # additional condition for SSPLMM43
+                if self.time_integrator == 'SSPLMM43' and self.dt > 3./5. * self._registers[-1].dtFE:
                     accept_step = False
                 # apply LMM at the next step if last RK step is accepted
                 if accept_step == True and self.step_index == len(self._registers)-1:
                     self.step_index += 1
-            # only need to check conditions for SSPMS43 for the steps LMM is active
-            elif self.time_integrator == 'SSPMS43':
+            # only need to check conditions for SSPLMM43 for the steps LMM is active
+            elif self.time_integrator == 'SSPLMM43':
                 rhoFE = 9./10.
                 dtFE = self._registers[-1].dtFE
                 dtFEm1 = self._registers[-2].dtFE
@@ -604,7 +604,7 @@ class SharpClawSolver(Solver):
         r"""
         Set time-step for next step depending on the time integrator and whether or not the step is accepted
         """
-        if self.time_integrator[:-2] == 'SSPMS':
+        if self.time_integrator[:-2] == 'SSPLMM':
             # step-size update for SSP LMM methods
             if accept_step:
                 if self.step_index == len(self._registers):
@@ -622,12 +622,12 @@ class SharpClawSolver(Solver):
             else:
                 if self.step_index < len(self._registers):
                     self.dt = self.dt * self.cfl_desired / cfl
-                    # additional conditions for SSPMS43
-                    if self.time_integrator == 'SSPMS43':
+                    # additional conditions for SSPLMM43
+                    if self.time_integrator == 'SSPLMM43':
                         self.dt = min(3./5. * self._registers[-1].dtFE, self.dt)
-                elif self.time_integrator == 'SSPMS43':
-                    # cruel step-size reduction if step-size assumptions for SSPMS43 are violated
-                    # no such assumptions are needed for SSPMS32
+                elif self.time_integrator == 'SSPLMM43':
+                    # cruel step-size reduction if step-size assumptions for SSPLMM43 are violated
+                    # no such assumptions are needed for SSPLMM32
                     self.dt /= 2.
         else:
             # step-size update for Runge-Kutta methods

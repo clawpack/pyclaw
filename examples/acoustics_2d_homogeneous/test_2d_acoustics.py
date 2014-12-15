@@ -16,7 +16,8 @@ def test_2d_acoustics():
                 test_pressure = test_q[0,:,:]
                 thisdir = os.path.dirname(__file__)
                 expected_pressure = np.loadtxt(os.path.join(thisdir,data_filename))
-                return check_diff(expected_pressure, test_pressure, reltol=1e-3)
+                return check_diff(expected_pressure, test_pressure, reltol=1e-3, 
+                                    delta=claw.solution.grid.delta)
             else:
                 return
         return verify
@@ -36,7 +37,7 @@ def test_2d_acoustics():
 
     sharp_tests_lmm   = gen_variants(acoustics_2d.setup, verify_data('verify_sharpclaw_lmm.txt'),
                                  kernel_languages=('Fortran',), solver_type='sharpclaw', 
-                                 time_integrator='SSPMS32', disable_output=True)
+                                 time_integrator='SSPLMM32', disable_output=True)
 
     from itertools import chain
     for test in chain(classic_tests, ptwise_tests, sharp_tests_rk, sharp_tests_lmm):

@@ -41,7 +41,7 @@ def test_acoustics_2d_variable():
     sharp_tests_lmm   = gen_variants(acoustics_2d_interface.setup, 
                                      verify_func, lim_type=1,
                                      solver_type='sharpclaw', 
-                                     time_integrator='SSPMS32', 
+                                     time_integrator='SSPLMM32', 
                                      disable_output=True,
                                      num_cells=(50, 50))
 
