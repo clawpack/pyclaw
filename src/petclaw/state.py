@@ -307,3 +307,12 @@ class State(clawpack.pyclaw.State):
         aux0Vec.destroy()
 
         return aux0
+
+    def __deepcopy__(self,memo={}):
+        r"""
+        Calls the pyclaw deepcopy function, but also copies the number of ghost cells   
+        """
+        result = super(State,self).__deepcopy__(memo)
+        result.set_num_ghost(self.q_da.stencil_width) 
+        
+        return result

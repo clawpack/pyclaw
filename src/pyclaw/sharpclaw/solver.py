@@ -351,7 +351,6 @@ class SharpClawSolver(Solver):
                     # Use SSP22 method for starting values
                     import copy
                     s1 = copy.deepcopy(state)
-                    s1.set_num_ghost(self.num_ghost)
 
                     deltaq=self.dq(state)
                     s1.q = state.q + deltaq
@@ -424,7 +423,6 @@ class SharpClawSolver(Solver):
         elif self.time_integrator == 'LMM':
             import copy
             s1 = copy.deepcopy(state)
-            s1.set_num_ghost(self.num_ghost)
             s2 = copy.deepcopy(s1)
 
         deltaq=self.dq(state)
@@ -558,12 +556,8 @@ class SharpClawSolver(Solver):
         State = type(state)
         self._registers = []
         for i in xrange(nregisters):
-            #Maybe should use State.copy() here?
-            self._registers.append(State(state.patch,state.num_eqn,state.num_aux))
-            self._registers[-1].problem_data                = state.problem_data
-            self._registers[-1].set_num_ghost(self.num_ghost)
-            self._registers[-1].t                           = state.t
-            if state.num_aux > 0: self._registers[-1].aux   = state.aux
+            import copy
+            self._registers.append(copy.deepcopy(state))
 
 
     def get_cfl_max(self):
