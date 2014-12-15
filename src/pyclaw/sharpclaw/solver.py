@@ -311,14 +311,10 @@ class SharpClawSolver(Solver):
             elif self.time_integrator == 'SSPMS32':
                 if self.step_index <= 1:
                     # Store initial solution, function evaluation, dt and forward Euler dt                    
-                    self._registers[-1].q = state.q.copy()
                     self._registers[-1].dq = self.dq(state)
+                    self._registers[-1].q = state.q.copy()
                     self._registers[-1].dt = self.dt
                     self._registers[-1].dtFE = self.dt * self.cfl_max / self.cfl.get_cached_max()
-                    # initialize dt and dtFE history
-                    for i in range(2):
-                        self._registers[-3+i].dt = 0.
-                        self._registers[-3+i].dtFE = 0.
                 if self.step_index < 3:
                     # Use Euler method for starting values
                     deltaq = self._registers[-1].dq
@@ -336,10 +332,9 @@ class SharpClawSolver(Solver):
                     state.q = beta*(r*state.q + deltaq) + delta*self._registers[-3].q
 
                 # Update stored information
-                for i in range(2):
-                    self._registers[-3+i].q = self._registers[-2+i].q.copy()
-                    self._registers[-3+i].dt = self._registers[-2+i].dt
-                    self._registers[-3+i].dtFE = self._registers[-2+i].dtFE
+                register = type(state)
+                self._registers.append(register(state.patch,state.num_eqn,state.num_aux))
+                self._registers = self._registers[1:]
                 self._registers[-1].q = state.q.copy()
                 self._registers[-1].dt = self.dt
                 self._registers[-1].dq = self.dq(state) # call self.dq once more to update cfl number
@@ -352,10 +347,6 @@ class SharpClawSolver(Solver):
                     self._registers[-1].dq = self.dq(state)
                     self._registers[-1].dt = self.dt
                     self._registers[-1].dtFE = self.dt * self.cfl_max / self.cfl.get_cached_max()
-                    # initialize dt and dtFE history
-                    for i in range(3):
-                        self._registers[-4+i].dt = 0.
-                        self._registers[-4+i].dtFE = 0.
                 if self.step_index < 4:
                     # Use SSP22 method for starting values
                     import copy
@@ -383,11 +374,10 @@ class SharpClawSolver(Solver):
                     state.q = beta3*(r*state.q + deltaq) + \
                             (r*beta0 + delta0)*self._registers[-4].q + beta0*deltaqm4
 
-                # Update stored solutions
-                for i in range(3):
-                    self._registers[-4+i].q = self._registers[-3+i].q.copy()
-                    self._registers[-4+i].dt = self._registers[-3+i].dt
-                    self._registers[-4+i].dtFE = self._registers[-3+i].dtFE
+                # Update stored information
+                register = type(state)
+                self._registers.append(register(state.patch,state.num_eqn,state.num_aux))
+                self._registers = self._registers[1:]
                 self._registers[-1].q = state.q.copy()
                 self._registers[-1].dt = self.dt
                 self._registers[-1].dq = self.dq(state) # call self.dq once more to update cfl number
@@ -535,6 +525,7 @@ class SharpClawSolver(Solver):
         workspace.alloc_workspace(maxnx,self.num_ghost,state.num_eqn,self.num_waves,self.char_decomp)
         reconstruct.alloc_recon_workspace(maxnx,self.num_ghost,state.num_eqn,self.num_waves,
                                             clawparams.lim_type,clawparams.char_decomp)
+
 
     def _allocate_registers(self,solution):
         r"""
