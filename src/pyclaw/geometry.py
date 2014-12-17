@@ -11,18 +11,18 @@ import numpy as np
 # ============================================================================
 
 # Default mapc2p function
-def default_mapc2p(patch,x):
+def identity_map(x):
     r"""
-    Returns the physical coordinate of the point x
+    Returns the physical coordinate of the point x.
     
-    This is the stub function which simply returns the identity
+    This is the default mapping, which is simply the identity.
     """
     return x
 
 
 class Grid(object):
     r"""
-    Basic representation of a single grid in Pyclaw
+    Representation of a single grid.
     
     :Dimension information:
     
@@ -44,15 +44,20 @@ class Grid(object):
         Output:
          - (:class:`grid`) Initialized grid object
 
-    A PyClaw grid is usually constructed from a tuple of PyClaw Dimension objects:
+    A PyClaw grid is usually constructed from a tuple of PyClaw Dimension objects::
 
 	>>> from clawpack.pyclaw.geometry import Dimension, Grid      
 	>>> x = Dimension('x',0.,1.,10)
         >>> y = Dimension('y',-1.,1.,25)
         >>> grid = Grid((x,y))
         >>> print grid
-        Dimension x:  (num_cells,delta,[lower,upper]) = (10,0.1,[0.0,1.0])
-        Dimension y:  (num_cells,delta,[lower,upper]) = (25,0.08,[-1.0,1.0])
+        2-dimensional domain (x,y)
+        No mapping
+        Extent:  [0.0, 1.0] x [-1.0, 1.0]
+        Cells:  10 x 25
+
+    We can query various properties of the grid:
+
         >>> grid.num_dim
         2
         >>> grid.num_cells
@@ -70,18 +75,56 @@ class Grid(object):
         3
         >>> grid.num_cells
         [10, 25, 21]
-        >>> grid.c_edges[0][0,0,0]
+
+    Coordinates
+    ===========
+    We can get the x, y, and z-coordinate arrays of cell edges and centers from the grid.
+    Properties beginning with 'c' refer to the computational (unmapped) domain, while
+    properties beginning with 'p' refer to the physical (mapped) domain.  For grids with
+    no mapping, the two are identical.  Notice also the difference between 'center' and
+    'centers':
+
+        >>> grid.p_center([1,2,3])
+        [0.15000000000000002, -0.80000000000000004, -1.3333333333333335]
+        >>> grid.p_edges[0][0,0,0]
         0.0
-        >>> grid.c_edges[1][0,0,0]
+        >>> grid.p_edges[1][0,0,0]
         -1.0
-        >>> grid.c_edges[2][0,0,0]
+        >>> grid.p_edges[2][0,0,0]
         -2.0
+
+    It's also possible to get coordinates for ghost cell arrays:
+
+	>>> x = Dimension('x',0.,1.,5)
+        >>> grid1d = Grid([x])
+        >>> grid1d.c_centers
+        [array([ 0.1,  0.3,  0.5,  0.7,  0.9])]
+        >>> grid1d.c_centers_with_ghost(2)
+        [array([-0.3, -0.1,  0.1,  0.3,  0.5,  0.7,  0.9,  1.1,  1.3])]
+        
+    Mappings
+    ========
+    A grid mapping can be used to solve in a domain that is not rectangular,
+    or to adjust the local spacing of grid cells.  For instance, we can
+    use smaller cells on the left and larger cells on the right by doing:
+
+        >>> double = lambda x : x[0]**2
+        >>> grid1d.mapc2p = double
+        >>> grid1d.p_centers
+        array([ 0.01,  0.09,  0.25,  0.49,  0.81])
+
+    Note that the 'edges' (or nodes) of the mapped grid are the mapped values
+    of the computational edges.  In general, they are not the midpoints between
+    mapped centers:
+
+        >>> grid1d.p_edges
+        array([ 0.  ,  0.04,  0.16,  0.36,  0.64,  1.  ])
     """
 
     def __getattr__(self,key):
         # Provide dimension attribute lists when requested from Grid object.
         # Note that this only gets called when one requests an attribute
-        # that the grid doesn't possess.
+        # that the grid itself doesn't possess.
         if key in ['num_cells','lower','upper','delta','units','centers','edges',
                     'on_lower_boundary','on_upper_boundary']:
             return self.get_dim_attribute(key)
@@ -99,53 +142,35 @@ class Grid(object):
                 grid's extent and resolution"""
         return [getattr(self,name) for name in self._dimensions]
     @property
-    def p_centers(self):
-        r"""(list of ndarray(...)) - List containing the arrays locating
-                  the physical locations of cell centers, see 
-                  :meth:`compute_p_centers` for more info."""
-        self.compute_p_centers(self)
-        return self._p_centers
-    _p_centers = None
-    @property
-    def p_edges(self):
-        r"""(list of ndarray(...)) - List containing the arrays locating
-                  the physical locations of cell edges, see 
-                  :meth:`compute_p_edges` for more info."""
-        self.compute_p_edges(self)
-        return self._p_edges
-    _p_edges = None
-    @property
     def c_centers(self):
         r"""(list of ndarray(...)) - List containing the arrays locating
                   the computational locations of cell centers, see 
-                  :meth:`compute_c_centers` for more info."""
-        self.compute_c_centers(self)
+                  :meth:`_compute_c_centers` for more info."""
+        self._compute_c_centers()
         return self._c_centers
-    _c_centers = None
-    def c_centers_with_ghost(self,num_ghost):
-        r"""(list of ndarray(...)) - List containing the arrays locating
-                the computational locations of cell centers, see 
-                :meth:`compute_c_centers` for more info."""
-        self.compute_c_centers_with_ghost(num_ghost)
-        return self._c_centers_with_ghost
-    _c_centers_with_ghost = None
     @property
     def c_edges(self):
         r"""(list of ndarray(...)) - List containing the arrays locating
                   the computational locations of cell edges, see 
-                  :meth:`compute_c_edges` for more info."""
-        self.compute_c_edges(self)
+                  :meth:`_compute_c_edges` for more info."""
+        self._compute_c_edges()
         return self._c_edges
-    _c_edges = None
-    def c_edges_with_ghost(self,num_ghost):
+    @property
+    def p_centers(self):
         r"""(list of ndarray(...)) - List containing the arrays locating
-                  the computational locations of cell edges, see 
-                  :meth:`compute_c_edges` for more info."""
-        self.compute_c_edges_with_ghost(num_ghost)
-        return self._c_edges_with_ghost
-    _c_edges_with_ghost = None
-       
-    
+                  the physical locations of cell centers, see
+                  :meth:`_compute_p_centers` for more info."""
+        self._compute_p_centers()
+        return self._p_centers
+    @property
+    def p_edges(self):
+        r"""(list of ndarray(...)) - List containing the arrays locating
+                  the physical locations of cell edges, see
+                  :meth:`_compute_p_edges` for more info."""
+        self._compute_p_edges()
+        return self._p_edges
+
+
     # ========== Class Methods ===============================================
     def __init__(self,dimensions):
         r"""
@@ -155,7 +180,7 @@ class Grid(object):
         """
         
         # ========== Attribute Definitions ===================================
-        self.mapc2p = default_mapc2p
+        self.mapc2p = identity_map
         r"""(func) - Coordinate mapping function"""
         self.gauges = []
         r"""(list) - List of gauges' indices to be filled by add_gauges
@@ -170,7 +195,10 @@ class Grid(object):
         `Controller` class is used to run the application, this directory by
         default will be created under the `Controller` `outdir` directory.
         """
-        self.num_ghost = None
+        self._p_centers = None
+        self._p_edges = None
+        self._c_centers = None
+        self._c_edges = None
 
         # Dimension parsing
         if isinstance(dimensions,Dimension):
@@ -181,13 +209,12 @@ class Grid(object):
 
         super(Grid,self).__init__()
     
-    
-    def __str__(self):
-	output = ''
-        output += '\n'.join((str(getattr(self,dim)) for dim in self._dimensions))
-        return output
-    
-    
+    def _clear_cached_values(self):
+        self._p_centers = None
+        self._p_edges = None
+        self._c_centers = None
+        self._c_edges = None
+
     # ========== Dimension Manipulation ======================================
     def add_dimension(self,dimension):
         r"""
@@ -205,6 +232,7 @@ class Grid(object):
 
         self._dimensions.append(dimension.name)
         setattr(self,dimension.name,dimension)
+        self._clear_cached_values()
         
         
     def get_dim_attribute(self,attr):
@@ -213,201 +241,120 @@ class Grid(object):
         """
         return [getattr(dim,attr) for dim in self.dimensions]
     
-    
-    # ========== Copy functionality ==========================================
     def __copy__(self):
         return self.__class__(self)
-        
-    # ========== Grid Operations =============================================
-    def compute_p_centers(self, recompute=False):
-        r"""Calculates the :attr:`p_centers` array, which contains the physical
-        coordinates of the cell centers when a mapping is used.
 
-        grid._p_centers is a list of numpy arrays.  Each array has shape equal
-        to the shape of the grid; the number of arrays is equal to the 
-        dimension of the embedding space for the mapping.
-        
-        This array is computed only when requested and then stored for later 
-        use unless the recompute flag is set to True (you may want to do this
-        for time-dependent mappings).
-        
-        Access the resulting physical coordinate array via the corresponding
-        dimensions or via the computational grid properties :attr:`p_centers`.
+    def __str__(self):
+        output = "%s-dimensional domain " % str(self.num_dim)
+        output += "("+",".join([dim.name for dim in self.dimensions])+")\n"
+        if self.mapc2p == identity_map:
+            output += "No mapping\n"
+            output += "Extent:  "
+        else:
+            output += "Mapping function: "+self.mapc2p.__name__+"\n"
+            output += "Computational domain: "
+        output += " x ".join(["[{:.2}, {:.2}]".format(dim.lower, dim.upper) \
+                                            for dim in self.dimensions])
+        output += "\n"
+        output += "Cells:  "
+        output += " x ".join(["{}".format(dim.num_cells) for dim in self.dimensions])
+        return output
+
+
+    # ========== Coordinates =============================================
+    def _compute_c_centers(self, recompute=False):
+        r"""Calculate the coordinates of the centers in the computational domain.
         
         :Input:
          - *recompute* - (bool) Whether to force a recompute of the arrays
         """
-        
-        if recompute or not len(self._p_centers) == len(self._dimensions):
-            # Initialize array
-            self._p_centers = [None]*self.num_dim
+        if recompute or (self._c_centers is None) or \
+           any([c is None for c in self.get_dim_attribute('_centers')]):
+            index = np.indices(self.num_cells)
+            self._c_centers = []
+            for i,center_array in enumerate(self.get_dim_attribute('centers')):
+                self._c_centers.append(center_array[index[i,...]])
 
-            # Special case
-            if self.num_dim == 1:
-                self._p_centers[0] = self.mapc2p(self,self.dimensions[0].centers)
-            # Higer dimensional calculate center arrays
-            else:
-                index = np.indices(self.num_cells)
-                array_list = []
-                for i,center_array in enumerate(self.get_dim_attribute('centers')):
-                    #We could just use indices directly and deal with
-                    #numpy arrays instead of lists of numpy arrays
-                    array_list.append(center_array[index[i,...]])
-            
-                self._p_centers = self.mapc2p(self,array_list)
+    def _compute_c_edges(self, recompute=False):
+        r"""Calculate the coordinates of the edges in the computational domain.
+        
+        :Input:
+         - *recompute* - (bool) Whether to force a recompute of the arrays
+        """
+        if recompute or (self._c_edges is None) or \
+           any([c is None for c in self.get_dim_attribute('_edges')]):
+            index = np.indices(n+1 for n in self.num_cells)
+            self._c_edges = []
+            for i,edge_array in enumerate(self.get_dim_attribute('edges')):
+                self._c_edges.append(edge_array[index[i,...]])
+
+    def _compute_p_centers(self, recompute=False):
+        r"""Calculate the coordinates of the centers in the physical domain.
+        
+        :Input:
+         - *recompute* - (bool) Whether to force a recompute of the arrays
+        """
+        if recompute or (self._p_centers is None) or \
+           any([c is None for c in self.get_dim_attribute('_centers')]):
+            self._compute_c_centers(recompute=recompute)
+            self._p_centers = self.mapc2p(self._c_centers)
  
-
-    def compute_p_edges(self, recompute=False):
-        r"""Calculates the :attr:`p_edges` array
-        
-        This array is computed only when requested and then stored for later 
-        use unless the recompute flag is set to True (you may want to do this
-        for time dependent mappings).
-        
-        Access the resulting physical coordinate array via the corresponding
-        dimensions or via the computational grid properties :attr:`p_edges`.
+    def _compute_p_edges(self, recompute=False):
+        r"""Calculate the coordinates of the edges (corners) in the physical domain.
         
         :Input:
          - *recompute* - (bool) Whether to force a recompute of the arrays
         """
-        
-        if recompute or not len(self._p_edges) == len(self._dimensions):
-            # Initialize array
-            self._p_edges = [None for i in xrange(self.num_dim)]
+        if recompute or (self._p_edges is None) or \
+           any([c is None for c in self.get_dim_attribute('_edges')]):
+            self._compute_c_edges(recompute=recompute)
+            self._p_edges = self.mapc2p(self._c_edges)
 
-            if self.num_dim == 1:        
-                self._p_edges[0] = self.mapc2p(self,self.dimensions[0].edges)
-            else:
-                index = np.indices([n+1 for n in self.num_cells])
-                array_list = []
-                for i,edge_array in enumerate(self.get_dim_attribute('edges')):
-                    #We could just use indices directly and deal with
-                    #numpy arrays instead of lists of numpy arrays
-                    array_list.append(edge_array[index[i,...]])
-            
-                self._p_edges = self.mapc2p(self,array_list)
-            
+    def c_center(self,ind):
+        r"""Compute center of computational cell with index ind."""
 
-    def compute_c_centers(self, recompute=False):
+        index = [np.array(i) for i in ind]
+        return [self.c_centers[i][index] for i in range(self.num_dim)]
+
+    def p_center(self,ind):
+        r"""Compute center of physical cell with index ind."""
+        return self.mapc2p(self.c_center(ind))
+      
+    def c_centers_with_ghost(self, num_ghost):
         r"""
-        Calculate the :attr:`c_centers` array
-        
-        This array is computed only when requested and then stored for later
-        use unless the recompute flag is set to True.
-        
-        Access the resulting computational coodinate array via the
-        corresponding dimensions or via the computational grid properties
-        :attr:`c_centers`.
+        Calculate the coordinates of the cell centers, including
+        ghost cells, in the computational domain.
         
         :Input:
-         - *recompute* - (bool) Whether to force a recompute of the arrays
+         - *num_ghost* - (int) Number of ghost cell layers
         """
-        
-        if recompute or (self._c_centers is None):
-            self._c_centers = [None]*self.num_dim
-            
-            # For one dimension, the center and edge arrays are equivalent
-            if self.num_dim == 1:
-                self._c_centers[0] = self.dimensions[0].centers
-            else:
-                index = np.indices(self.num_cells)
-                self._c_centers = []
-                for i,center_array in enumerate(self.get_dim_attribute('centers')):
-                    #We could just use indices directly and deal with
-                    #numpy arrays instead of lists of numpy arrays
-                    self._c_centers.append(center_array[index[i,...]])
+        index = np.indices(n+2*num_ghost for n in self.num_cells)
+        centers = []
+        for i,dim in enumerate(self.dimensions):
+            center_array = dim.centers_with_ghost(num_ghost)
+            centers.append(center_array[index[i,...]])
+        return centers
 
-    def compute_c_centers_with_ghost(self, num_ghost,recompute=False):
+    def c_edges_with_ghost(self, num_ghost):
         r"""
-        Calculate the :attr:`c_centers_with_ghost` array
-        
-        This array is computed only when requested and then stored for later
-        use unless the recompute flag is set to True.
-        
-        Access the resulting computational coodinate array via the
-        corresponding dimensions or via the computational grid properties
-        :attr:`c_centers_with_ghost`.
-        
+        Calculate the coordinates of the cell edges (corners), including
+        ghost cells, in the computational domain.
+
         :Input:
-         - *recompute* - (bool) Whether to force a recompute of the arrays
+         - *num_ghost* - (int) Number of ghost cell layers
         """
-        if recompute or (self._c_centers_with_ghost is None):
-            self._c_centers_with_ghost = [None]*self.num_dim
-            
-            for i in xrange(0,self.num_dim):
-                self.dimensions[i]._centers_with_ghost = None
-                self.dimensions[i]._c_centers_with_ghost = None
-                self.dimensions[i].num_ghost = num_ghost
+        index = np.indices(n+2*num_ghost+1 for n in self.num_cells)
+        edges = []
+        for i,dim in enumerate(self.dimensions):
+            edge_array = dim.edges_with_ghost(num_ghost)
+            edges.append(edge_array[index[i,...]])
+        return edges
 
-            # For one dimension, the center and edge arrays are equivalent
-            if self.num_dim == 1:
-                self._c_centers_with_ghost[0] = self.dimensions[0].centers_with_ghost
-            else:
-                index = np.indices(n+2*num_ghost for n in self.num_cells)
-                self._c_centers_with_ghost = []
-                for i,center_array in enumerate(self.get_dim_attribute('centers_with_ghost')):
-                    #We could just use indices directly and deal with
-                    #numpy arrays instead of lists of numpy arrays
-                    self._c_centers_with_ghost.append(center_array[index[i,...]])
+    def p_centers_with_ghost(self,num_ghost):
+        return self.mapc2p(self.c_centers_with_ghost(num_ghost))
 
-    def compute_c_edges(self, recompute=False):
-        r"""
-        Calculate the :attr:`c_edges` array
-        
-        This array is computed only when requested and then stored for later
-        use unless the recompute flag is set to True.
-        
-        Access the resulting computational coodinate array via the
-        corresponding dimensions or via the computational grid properties
-        :attr:`c_edges`.
-        
-        :Input:
-         - *recompute* - (bool) Whether to force a recompute of the arrays
-        """
-        if recompute or (self._c_edges is None):
-            self._c_edges = [None]*self.num_dim
-
-            if self.num_dim == 1:
-                self._c_edges[0] = self.dimensions[0].edges
-            else:
-                index = np.indices(n+1 for n in self.num_cells)
-                self._c_edges = []
-                for i,edge_array in enumerate(self.get_dim_attribute('edges')):
-                    #We could just use indices directly and deal with
-                    #numpy arrays instead of lists of numpy arrays
-                    self._c_edges.append(edge_array[index[i,...]])
-            
-    def compute_c_edges_with_ghost(self, num_ghost,recompute=False):
-        r"""
-        Calculate the :attr:`c_centers_with_ghost` array
-        
-        This array is computed only when requested and then stored for later
-        use unless the recompute flag is set to True.
-        
-        Access the resulting computational coodinate array via the
-        corresponding dimensions or via the computational grid properties
-        :attr:`c_centers_with_ghost`.
-        
-        :Input:
-         - *recompute* - (bool) Whether to force a recompute of the arrays
-        """
-        if recompute or (self._c_edges_with_ghost is None):
-            self._c_edges_with_ghost = [None]*self.num_dim
-
-            # For one dimension, the center and edge arrays are equivalent
-            for i in xrange(0,self.num_dim):
-                self.dimensions[i]._edges_with_ghost = None
-                self.dimensions[i].num_ghost = num_ghost
-
-            if self.num_dim == 1:
-                self._c_edges_with_ghost[0] = self.dimensions[0].edges_with_ghost
-            else:
-                index = np.indices(n+2*num_ghost+1 for n in self.num_cells)
-                self._c_edges_with_ghost = []
-                for i,center_array in enumerate(self.get_dim_attribute('edges_with_ghost')):
-                    #We could just use indices directly and dneal with
-                    #numpy arrays instead of lists of numpy arrays
-                    self._c_edges_with_ghost.append(center_array[index[i,...]])
+    def p_edges_with_ghost(self,num_ghost):
+        return self.mapc2p(self.c_edges_with_ghost(num_ghost))
 
     # ========================================================================
     #  Gauges
@@ -447,6 +394,43 @@ class Grid(object):
                  os.remove(gauge_file)
             self.gauge_files.append(open(gauge_file,'a'))
 
+    def plot(self,num_ghost=0,mapped=True,mark_nodes=False,mark_centers=False):
+        r"""Make a plot of the grid.
+
+        By default the plot uses the mapping
+        grid.mapc2p and does not show any ghost cells.  This can be modified
+        via the arguments `mapped` and `num_ghost`.
+
+        Returns a handle to the plot axis object.
+        """
+        import matplotlib.pyplot as plt
+        if self.num_dim == 2:
+            fig, ax = plt.subplots(1,1)
+            if num_ghost>0:
+                if mapped:
+                    xe, ye = self.p_edges_with_ghost(num_ghost)
+                else:
+                    xe, ye = self.c_edges_with_ghost(num_ghost)
+                p = ax.pcolormesh(xe,ye,0*xe,edgecolors='k',cmap='bwr',alpha=0.2)
+                p.set_clim(-1,1)
+            if mapped:
+                xe, ye = self.p_edges
+                xc, yc = self.p_centers
+            else:
+                xe, ye = self.c_edges
+                xc, yc = self.c_centers
+            p = ax.pcolormesh(xe,ye,0*xe,edgecolors='k',cmap='bwr')
+            p.set_clim(-1,1)
+            if mark_nodes:
+                ax.plot(xe,ye,'or')
+            if mark_centers:
+                ax.plot(xc,yc,'ob')
+            ax.axis('equal');
+            ax.set_xlabel(self.dimensions[0].name)
+            ax.set_ylabel(self.dimensions[1].name)
+            return ax
+        else:
+            raise Exception('Grid plotting implemented for 2D grids only.')
 
    
 # ============================================================================
@@ -494,11 +478,12 @@ class Dimension(object):
     101
     """
     
-    # ========== Property Definitions ========================================
     @property
     def delta(self):
         r"""(float) - Size of an individual, computational cell"""
         return (self.upper-self.lower) / float(self.num_cells)
+
+    # ========== Centers and edges ========================================
     @property
     def edges(self):
         r"""(ndarrary(:)) - Location of all cell edge coordinates
@@ -508,7 +493,6 @@ class Dimension(object):
             for i in xrange(0,self.num_cells+1):
                 self._edges[i] = self.lower + i*self.delta
         return self._edges
-    _edges = None
     @property
     def centers(self):
         r"""(ndarrary(:)) - Location of all cell center coordinates
@@ -518,33 +502,53 @@ class Dimension(object):
             for i in xrange(0,self.num_cells):
                 self._centers[i] = self.lower + (i+0.5)*self.delta
         return self._centers
-    _centers = None
-    @property
-    def centers_with_ghost(self):
+    @property 
+    def lower(self):
+        return self._lower
+    @lower.setter
+    def lower(self,lower):
+        self._lower = lower
+        self._centers = None  # Reset cached arrays
+        self._edges = None
+        self._check_validity()
+    @property 
+    def upper(self):
+        return self._upper
+    @upper.setter
+    def upper(self,upper):
+        self._upper = upper
+        self._centers = None  # Reset cached arrays
+        self._edges = None
+        self._check_validity()
+    @property 
+    def num_cells(self):
+        return self._num_cells
+    @num_cells.setter
+    def num_cells(self,num_cells):
+        self._num_cells = num_cells
+        self._centers = None  # Reset cached arrays
+        self._edges = None
+        self._check_validity()
+
+
+    def centers_with_ghost(self,num_ghost):
         r"""(ndarrary(:)) - Location of all cell center coordinates
         for this dimension, including centers of ghost cells."""
         centers = self.centers
-        num_ghost  = self.num_ghost
-        if self._centers_with_ghost is None:
-            pre = self.lower+(np.arange(-num_ghost,0)+0.5)*self.delta
-            post = self.upper + self.delta * (np.arange(num_ghost) + 0.5)
-            self._centers_with_ghost = np.hstack((pre,centers,post))
-        return self._centers_with_ghost
-    _centers_with_ghost = None
-    @property
-    def edges_with_ghost(self):
+        pre = self.lower+(np.arange(-num_ghost,0)+0.5)*self.delta
+        post = self.upper + self.delta * (np.arange(num_ghost) + 0.5)
+        return np.hstack((pre,centers,post))
+
+    def edges_with_ghost(self,num_ghost):
         edges   = self.edges
-        num_ghost  = self.num_ghost
-        if self._edges_with_ghost is None:
-            pre  = np.linspace(self.lower-(num_ghost)*self.delta,self.lower-self.delta,num_ghost)
-            post = np.linspace(self.upper+self.delta, self.upper+(num_ghost)*self.delta,num_ghost)
-            self._edges_with_ghost = np.hstack((pre,edges,post))
-        return self._edges_with_ghost
-    _edges_with_ghost = None
+        pre  = np.linspace(self.lower-num_ghost*self.delta,self.lower-self.delta,num_ghost)
+        post = np.linspace(self.upper+self.delta, self.upper+num_ghost*self.delta,num_ghost)
+        return np.hstack((pre,edges,post))
+
     
     def __init__(self, *args, **kargs):
         r"""
-        Creates a Dimension object
+        Create a Dimension object.
         
         See :class:`Dimension` for full documentation
         """
@@ -552,36 +556,43 @@ class Dimension(object):
         # ========== Class Data Attributes ===================================
         self.name = 'x'
         r"""(string) Name of this coordinate dimension (e.g. 'x')"""
-        self.num_cells = None
-        r"""(int) - Number of cells in this dimension :attr:`units`"""
-        self.lower = 0.0
-        r"""(float) - Lower computational dimension extent"""
-        self.upper = 1.0
-        r"""(float) - Upper computational dimension extent"""
         self.on_lower_boundary = None
-        r"""(bool) - Whether the dimension is crossing a lower boundary."""
+        r"""(bool) - Whether the dimension is touching a lower boundary."""
         self.on_upper_boundary = None
-        r"""(bool) - Whether the dimension is crossing an upper boundary."""
+        r"""(bool) - Whether the dimension is touching an upper boundary."""
         self.units = None
         r"""(string) Corresponding physical units of this dimension (e.g. 
         'm/s'), ``default = None``"""
-        self.num_ghost = None
+
+        self._edges = None
+        self._centers = None
+        self._centers_with_ghost = None
+        self._edges_with_ghost = None
 
         # Parse args
         if isinstance(args[0],float):
-            self.lower = float(args[0])
-            self.upper = float(args[1])
-            self.num_cells = int(args[2])
+            self._lower = float(args[0])
+            self._upper = float(args[1])
+            self._num_cells = int(args[2])
         elif isinstance(args[0],basestring):
             self.name = args[0]
-            self.lower = float(args[1])
-            self.upper = float(args[2])
-            self.num_cells = int(args[3])
+            self._lower = float(args[1])
+            self._upper = float(args[2])
+            self._num_cells = int(args[3])
         else:
             raise Exception("Invalid initializer for Dimension.")
         
         for (k,v) in kargs.iteritems():
             setattr(self,k,v)
+
+        self._check_validity()
+
+    def _check_validity(self):
+        assert type(self.num_cells) is int, 'Dimension.num_cells must be an integer'
+        assert type(self.lower) is float, 'Dimension.lower must be a float'
+        assert type(self.upper) is float, 'Dimension.upper must be a float'
+        assert self.num_cells>0, 'Dimension.num_cells must be positive'
+        assert self.upper > self.lower, 'Dimension.upper must be greater than lower'
 
     def __str__(self):
         output = "Dimension %s" % self.name
@@ -590,6 +601,9 @@ class Dimension(object):
         output += ":  (num_cells,delta,[lower,upper]) = (%s,%s,[%s,%s])" \
             % (self.num_cells,self.delta,self.lower,self.upper)
         return output
+
+    def __len__(self):
+        return self.num_cells
         
 
 # ============================================================================
