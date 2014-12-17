@@ -45,8 +45,8 @@ script:
        mpirun -n 4 ${CLAWPACK}/petsc4py_stack/bin/nosetests -v;
     fi
   # Run doctests
-  - cd ../../src/pyclaw
-  - nosetests --first-pkg-wins --with-doctest --exclude=example
+  - cd ../src/pyclaw
+  - nosetests --first-pkg-wins --with-doctest --exclude=example --exclude=limiters --exclude=sharpclaw --exclude=io
 
 after_success:
   - coveralls
