@@ -1,7 +1,5 @@
-#!/usr/bin/env python
-# encoding: utf-8
 r"""
-Module containing all Pyclaw solution objects
+Module defining Pyclaw geometry objects.
 """
 
 import numpy as np
@@ -44,10 +42,10 @@ class Grid(object):
         Output:
          - (:class:`grid`) Initialized grid object
 
-    A PyClaw grid is usually constructed from a tuple of PyClaw Dimension objects::
+    A PyClaw grid is usually constructed from a tuple of PyClaw Dimension objects:
 
-	>>> from clawpack.pyclaw.geometry import Dimension, Grid      
-	>>> x = Dimension('x',0.,1.,10)
+        >>> from clawpack.pyclaw.geometry import Dimension, Grid      
+        >>> x = Dimension('x',0.,1.,10)
         >>> y = Dimension('y',-1.,1.,25)
         >>> grid = Grid((x,y))
         >>> print grid
@@ -95,7 +93,7 @@ class Grid(object):
 
     It's also possible to get coordinates for ghost cell arrays:
 
-	>>> x = Dimension('x',0.,1.,5)
+        >>> x = Dimension('x',0.,1.,5)
         >>> grid1d = Grid([x])
         >>> grid1d.c_centers
         [array([ 0.1,  0.3,  0.5,  0.7,  0.9])]
