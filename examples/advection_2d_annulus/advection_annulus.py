@@ -18,7 +18,7 @@ This is the simplest example that shows how to use a mapped grid in PyClaw.
 """
 import numpy as np
 
-def mapc2p_annulus(c_centers):
+def mapc2p_annulus(xc, yc):
     """
     Specifies the mapping to curvilinear coordinates.
 
@@ -31,8 +31,8 @@ def mapc2p_annulus(c_centers):
     p_centers = []
 
     # Polar coordinates (first coordinate = radius,  second coordinate = theta)
-    p_centers.append(c_centers[0][:]*np.cos(c_centers[1][:]))
-    p_centers.append(c_centers[0][:]*np.sin(c_centers[1][:]))
+    p_centers.append(xc[:]*np.cos(yc[:]))
+    p_centers.append(xc[:]*np.sin(yc[:]))
     
     return p_centers
 

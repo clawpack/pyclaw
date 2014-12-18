@@ -8,15 +8,19 @@ import numpy as np
 #  Default function definitions
 # ============================================================================
 
-# Default mapc2p function
-def identity_map(x):
-    r"""
-    Returns the physical coordinate of the point x.
-    
-    This is the default mapping, which is simply the identity.
-    """
+# Default mapc2p functions
+def identity_map_1d(x):
     return x
 
+def identity_map_2d(x,y):
+    return x,y
+
+def identity_map_3d(x,y,z):
+    return x,y,z
+
+identity_map={'1' : identity_map_1d,
+              '2' : identity_map_2d,
+              '3' : identity_map_3d}
 
 class Grid(object):
     r"""
@@ -178,7 +182,6 @@ class Grid(object):
         """
         
         # ========== Attribute Definitions ===================================
-        self.mapc2p = identity_map
         r"""(func) - Coordinate mapping function"""
         self.gauges = []
         r"""(list) - List of gauges' indices to be filled by add_gauges
@@ -204,6 +207,8 @@ class Grid(object):
         self._dimensions = []
         for dim in dimensions:
             self.add_dimension(dim)
+
+        self.mapc2p = identity_map[str(self.num_dim)]
 
         super(Grid,self).__init__()
     
@@ -295,7 +300,7 @@ class Grid(object):
         if recompute or (self._p_centers is None) or \
            any([c is None for c in self.get_dim_attribute('_centers')]):
             self._compute_c_centers(recompute=recompute)
-            self._p_centers = self.mapc2p(self._c_centers)
+            self._p_centers = self.mapc2p(*self._c_centers)
  
     def _compute_p_edges(self, recompute=False):
         r"""Calculate the coordinates of the edges (corners) in the physical domain.
@@ -306,7 +311,7 @@ class Grid(object):
         if recompute or (self._p_edges is None) or \
            any([c is None for c in self.get_dim_attribute('_edges')]):
             self._compute_c_edges(recompute=recompute)
-            self._p_edges = self.mapc2p(self._c_edges)
+            self._p_edges = self.mapc2p(*self._c_edges)
 
     def c_center(self,ind):
         r"""Compute center of computational cell with index ind."""
@@ -316,7 +321,7 @@ class Grid(object):
 
     def p_center(self,ind):
         r"""Compute center of physical cell with index ind."""
-        return self.mapc2p(self.c_center(ind))
+        return self.mapc2p(*self.c_center(ind))
       
     def c_centers_with_ghost(self, num_ghost):
         r"""
@@ -349,10 +354,10 @@ class Grid(object):
         return edges
 
     def p_centers_with_ghost(self,num_ghost):
-        return self.mapc2p(self.c_centers_with_ghost(num_ghost))
+        return self.mapc2p(*self.c_centers_with_ghost(num_ghost))
 
     def p_edges_with_ghost(self,num_ghost):
-        return self.mapc2p(self.c_edges_with_ghost(num_ghost))
+        return self.mapc2p(*self.c_edges_with_ghost(num_ghost))
 
     # ========================================================================
     #  Gauges
