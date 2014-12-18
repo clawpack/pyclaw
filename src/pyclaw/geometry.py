@@ -171,6 +171,14 @@ class Grid(object):
                   :meth:`_compute_p_edges` for more info."""
         self._compute_p_edges()
         return self._p_edges
+    @property
+    def mapc2p(self):
+        return self._mapc2p
+    @mapc2p.setter
+    def mapc2p(self,mapc2p):
+        self._mapc2p = mapc2p
+        self._clear_cached_values()
+
 
 
     # ========== Class Methods ===============================================
