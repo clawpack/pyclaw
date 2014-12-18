@@ -430,7 +430,16 @@ class Grid(object):
         else:
             raise Exception('Grid plotting implemented for 2D grids only.')
 
-   
+    def _check_validity(self):
+        for dim in self.dimensions:
+            dim._check_validity()
+        assert type(self.num_cells) is int, 'Dimension.num_cells must be an integer'
+        assert type(self.lower) is float, 'Dimension.lower must be a float'
+        assert type(self.upper) is float, 'Dimension.upper must be a float'
+        assert self.num_cells>0, 'Dimension.num_cells must be positive'
+        assert self.upper > self.lower, 'Dimension.upper must be greater than lower'
+
+  
 # ============================================================================
 #  Dimension Object
 # ============================================================================
@@ -538,6 +547,8 @@ class Dimension(object):
         return np.hstack((pre,centers,post))
 
     def edges_with_ghost(self,num_ghost):
+        r"""(ndarrary(:)) - Location of all edge coordinates
+        for this dimension, including edges of ghost cells."""
         edges   = self.edges
         pre  = np.linspace(self.lower-num_ghost*self.delta,self.lower-self.delta,num_ghost)
         post = np.linspace(self.upper+self.delta, self.upper+num_ghost*self.delta,num_ghost)
@@ -659,7 +670,6 @@ class Patch(object):
             self.add_dimension(dim)
 
         self.grid = Grid(dimensions)
-
 
         super(Patch,self).__init__()
 
