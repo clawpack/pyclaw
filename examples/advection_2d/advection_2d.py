@@ -50,8 +50,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
 
     # Domain:
     mx = 50; my = 50
-    x = pyclaw.Dimension('x',0.0,1.0,mx)
-    y = pyclaw.Dimension('y',0.0,1.0,my)
+    x = pyclaw.Dimension(0.0,1.0,mx,name='x')
+    y = pyclaw.Dimension(0.0,1.0,my,name='y')
     domain = pyclaw.Domain([x,y])
 
     num_eqn = 1

@@ -42,7 +42,7 @@ def setup(use_petsc=0,kernel_language='Fortran',outdir='./_output',solver_type='
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
 
-    x = pyclaw.Dimension('x',0.0,1.0,500)
+    x = pyclaw.Dimension(0.0,1.0,500,name='x')
     domain = pyclaw.Domain(x)
     num_eqn = 1
     state = pyclaw.State(domain,num_eqn)

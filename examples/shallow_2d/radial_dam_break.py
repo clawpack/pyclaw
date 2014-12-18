@@ -56,8 +56,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     ylower = -2.5
     yupper = 2.5
     my = 150
-    x = pyclaw.Dimension('x',xlower,xupper,mx)
-    y = pyclaw.Dimension('y',ylower,yupper,my)
+    x = pyclaw.Dimension(xlower,xupper,mx,name='x')
+    y = pyclaw.Dimension(ylower,yupper,my,name='y')
     domain = pyclaw.Domain([x,y])
 
     state = pyclaw.State(domain,num_eqn)

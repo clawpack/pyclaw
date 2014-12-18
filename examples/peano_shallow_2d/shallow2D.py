@@ -83,8 +83,8 @@ def shallow2D(use_petsc=False,outdir='./_output',solver_type='classic', disable_
     ylower = 0.0
     yupper = 1.0
     my = subdivisionFactor
-    x = pyclaw.Dimension('x',xlower,xupper,mx)
-    y = pyclaw.Dimension('y',ylower,yupper,my)
+    x = pyclaw.Dimension(xlower,xupper,mx,name='x')
+    y = pyclaw.Dimension(ylower,yupper,my,name='y')
     domain = geometry.Domain([x,y])
 
     num_eqn = 3  # Number of equations

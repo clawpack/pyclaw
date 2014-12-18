@@ -194,8 +194,8 @@ def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_langua
         solver.cfl_max = 0.5
         solver.cfl_desired = 0.45
 
-    x = pyclaw.Dimension('x',0.0,2.0,mx)
-    y = pyclaw.Dimension('y',0.0,0.5,my)
+    x = pyclaw.Dimension(0.0,2.0,mx,name='x')
+    y = pyclaw.Dimension(0.0,0.5,my,name='y')
     domain = pyclaw.Domain([x,y])
 
     num_aux=1

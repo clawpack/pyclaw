@@ -28,7 +28,7 @@ def setup(use_petsc=0,outdir='./_output',solver_type='classic'):
     solver.bc_lower[0] = pyclaw.BC.extrap
     solver.bc_upper[0] = pyclaw.BC.extrap
 
-    x = pyclaw.Dimension('x',-1.0,1.0,500)
+    x = pyclaw.Dimension(-1.0,1.0,500,name='x')
     domain = pyclaw.Domain(x)
     num_eqn = 1
     state = pyclaw.State(domain,num_eqn)

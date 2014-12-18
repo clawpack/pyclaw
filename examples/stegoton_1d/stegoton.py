@@ -114,7 +114,7 @@ def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./
 
     xlower=0.0; xupper=300.0
     cells_per_layer=12; mx=int(round(xupper-xlower))*cells_per_layer
-    x = pyclaw.Dimension('x',xlower,xupper,mx)
+    x = pyclaw.Dimension(xlower,xupper,mx,name='x')
     domain = pyclaw.Domain(x)
     state = pyclaw.State(domain,solver.num_eqn)
 

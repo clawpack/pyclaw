@@ -88,7 +88,7 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
     solver.bc_upper[0]=pyclaw.BC.extrap
 
     mx = 400;
-    x = pyclaw.Dimension('x',-5.0,5.0,mx)
+    x = pyclaw.Dimension(-5.0,5.0,mx,name='x')
     domain = pyclaw.Domain([x])
     state = pyclaw.State(domain,num_eqn)
 

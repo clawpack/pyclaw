@@ -458,11 +458,13 @@ class Dimension(object):
     
     :Initialization:
     
-    Input:
-     - *name* - (string) string Name of dimension
+    Required arguments, order:
      - *lower* - (float) Lower extent of dimension
      - *upper* - (float) Upper extent of dimension
-     - *n* - (int) Number of cells
+     - *num_cells* - (int) Number of cells
+
+    Optional (keyword) arguments:
+     - *name* - (string) string Name of dimension
      - *units* - (string) Type of units, used for informational purposes only
        
     Output:
@@ -471,7 +473,7 @@ class Dimension(object):
     Example:
 
     >>> from clawpack.pyclaw.geometry import Dimension
-    >>> x = Dimension('x',0.,1.,100)
+    >>> x = Dimension(0.,1.,100,name='x')
     >>> print x
     Dimension x:  (num_cells,delta,[lower,upper]) = (100,0.01,[0.0,1.0])
     >>> x.name
@@ -573,6 +575,9 @@ class Dimension(object):
             self.upper = float(args[1])
             self.num_cells = int(args[2])
         elif isinstance(args[0],basestring):
+            import warnings
+            warnings.warn('Passing dimension name as first argument is deprecated. \
+                           Pass it as a keyword argument instead.')
             self.name = args[0]
             self.lower = float(args[1])
             self.upper = float(args[2])
