@@ -92,9 +92,9 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',
     solver.limiters = pyclaw.limiters.tvd.MC
 
     # Initialize domain
-    x = pyclaw.Dimension('x',-1.0,1.0,mx)
-    y = pyclaw.Dimension('y',-1.0,1.0,my)
-    z = pyclaw.Dimension('z',-1.0,1.0,mz)
+    x = pyclaw.Dimension(-1.0,1.0,mx,name='x')
+    y = pyclaw.Dimension(-1.0,1.0,my,name='y')
+    z = pyclaw.Dimension(-1.0,1.0,mz,name='z')
     domain = pyclaw.Domain([x,y,z])
 
     num_eqn = 4

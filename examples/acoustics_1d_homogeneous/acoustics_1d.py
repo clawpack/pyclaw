@@ -51,7 +51,7 @@ def setup(use_petsc=False, kernel_language='Fortran', solver_type='classic',
 
     solver.kernel_language=kernel_language
 
-    x = pyclaw.Dimension('x',0.0,1.0,100)
+    x = pyclaw.Dimension(0.0,1.0,100,name='x')
     domain = pyclaw.Domain(x)
     num_eqn = 2
     state = pyclaw.State(domain,num_eqn)

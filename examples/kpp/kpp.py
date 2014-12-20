@@ -38,8 +38,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
 
     # Initialize domain
     mx=200; my=200
-    x = pyclaw.Dimension('x',-2.0,2.0,mx)
-    y = pyclaw.Dimension('y',-2.0,2.0,my)
+    x = pyclaw.Dimension(-2.0,2.0,mx,name='x')
+    y = pyclaw.Dimension(-2.0,2.0,my,name='y')
     domain = pyclaw.Domain([x,y])
     state = pyclaw.State(domain,solver.num_eqn)
 

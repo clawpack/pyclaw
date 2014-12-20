@@ -92,7 +92,7 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
     solver.bc_upper[0]=pyclaw.BC.wall
 
     mx = 800;
-    x = pyclaw.Dimension('x',0.0,1.0,mx)
+    x = pyclaw.Dimension(0.0,1.0,mx,name='x')
     domain = pyclaw.Domain([x])
     state = pyclaw.State(domain,num_eqn)
 

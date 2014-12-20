@@ -57,9 +57,9 @@ def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
     else:
         raise Exception('Unrecognized solver_type.')
 
-    x = pyclaw.Dimension('x', -1.0, 1.0, num_cells[0])
-    y = pyclaw.Dimension('y', -1.0, 1.0, num_cells[1])
-    z = pyclaw.Dimension('z', -1.0, 1.0, num_cells[2])
+    x = pyclaw.Dimension(-1.0, 1.0, num_cells[0], name='x')
+    y = pyclaw.Dimension(-1.0, 1.0, num_cells[1], name='y')
+    z = pyclaw.Dimension(-1.0, 1.0, num_cells[2], name='z')
     domain = pyclaw.Domain([x,y,z])
 
     state = pyclaw.State(domain,num_eqn)

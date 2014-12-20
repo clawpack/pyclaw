@@ -441,8 +441,8 @@ def setup(use_petsc=False,solver_type='classic',outdir='./_output', disable_outp
         raise ValueError(message)
 
 
-    x = pyclaw.Dimension('x',xlower,xupper,mx)
-    y = pyclaw.Dimension('y',ylower,yupper,my)
+    x = pyclaw.Dimension(xlower,xupper,mx,name='x')
+    y = pyclaw.Dimension(ylower,yupper,my,name='y')
     domain = pyclaw.Domain([x,y])
     dx = domain.grid.delta[0]
     dy = domain.grid.delta[1]
@@ -584,8 +584,8 @@ def plot_on_sphere():
         xupper = xlower + mx * dx
         yupper = ylower + my * dy
 
-        x = pyclaw.Dimension('x',xlower,xupper,mx)
-        y = pyclaw.Dimension('y',ylower,yupper,my)
+        x = pyclaw.Dimension(xlower,xupper,mx,name='x')
+        y = pyclaw.Dimension(ylower,yupper,my,name='y')
         patch = pyclaw.Patch([x,y])
 
 

@@ -45,7 +45,7 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
 
-    x = pyclaw.Dimension('x',0.0,1.0,nx)
+    x = pyclaw.Dimension(0.0,1.0,nx,name='x')
     domain = pyclaw.Domain(x)
     state = pyclaw.State(domain,solver.num_eqn)
 

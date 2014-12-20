@@ -45,7 +45,7 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
     xlower = -5.0
     xupper = 5.0
     mx = 500
-    x = pyclaw.Dimension('x',xlower,xupper,mx)
+    x = pyclaw.Dimension(xlower,xupper,mx,name='x')
     domain = pyclaw.Domain(x)
     state = pyclaw.State(domain,num_eqn)
 

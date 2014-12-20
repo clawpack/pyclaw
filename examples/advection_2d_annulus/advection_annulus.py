@@ -189,8 +189,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     theta_upper = np.pi*2.0
     m_theta = 120
 
-    r     = pyclaw.Dimension('r',    r_lower,r_upper,m_r)
-    theta = pyclaw.Dimension('theta',theta_lower,theta_upper,m_theta)
+    r     = pyclaw.Dimension(r_lower,r_upper,m_r,name='r')
+    theta = pyclaw.Dimension(theta_lower,theta_upper,m_theta,name='theta')
     domain = pyclaw.Domain([r,theta])
     domain.grid.mapc2p = mapc2p_annulus
 

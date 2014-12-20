@@ -79,7 +79,7 @@ def setup(use_petsc=False,solver_type='classic',kernel_language='Python',outdir=
     solver.aux_bc_upper[0] = 2
 
     xlower=0.0; xupper=1.0; mx=100
-    x    = pyclaw.Dimension('x',xlower,xupper,mx)
+    x    = pyclaw.Dimension(xlower,xupper,mx,name='x')
     domain = pyclaw.Domain(x)
     num_aux=1
     num_eqn = 1

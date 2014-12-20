@@ -38,7 +38,7 @@ def setup(kernel_language='Python',use_petsc=False, outdir='./_output', solver_t
 
     xlower = -1.0
     xupper = 1.0
-    x = pyclaw.Dimension('x', xlower, xupper, 500)
+    x = pyclaw.Dimension( xlower, xupper, 500, name='x')
     domain = pyclaw.Domain(x)
     state = pyclaw.State(domain, 2, 1)
 

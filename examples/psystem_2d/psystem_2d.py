@@ -186,8 +186,8 @@ def setup(kernel_language='Fortran',
     restart_from_frame = None
 
     if restart_from_frame is None:
-        x = pyclaw.Dimension('x',x_lower,x_upper,mx)
-        y = pyclaw.Dimension('y',y_lower,y_upper,my)
+        x = pyclaw.Dimension(x_lower,x_upper,mx,name='x')
+        y = pyclaw.Dimension(y_lower,y_upper,my,name='y')
         domain = pyclaw.Domain([x,y])
         num_eqn = 3
         num_aux = 4

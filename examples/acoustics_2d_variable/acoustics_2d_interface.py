@@ -53,8 +53,8 @@ def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output',
     solver.aux_bc_lower[1]=pyclaw.BC.wall
     solver.aux_bc_upper[1]=pyclaw.BC.extrap
 
-    x = pyclaw.Dimension('x',-1.0,1.0,num_cells[0])
-    y = pyclaw.Dimension('y',-1.0,1.0,num_cells[1])
+    x = pyclaw.Dimension(-1.0,1.0,num_cells[0],name='x')
+    y = pyclaw.Dimension(-1.0,1.0,num_cells[1],name='y')
     domain = pyclaw.Domain([x,y])
 
     num_eqn = 3
