@@ -225,7 +225,8 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         names = ['x','y','z']
         import clawpack.pyclaw as pyclaw
         Dim = pyclaw.Dimension
-        dimensions = [Dim(names[i],lower[i],lower[i] + n[i]*d[i],n[i]) for i in xrange(num_dim)]
+        dimensions = [Dim(lower[i],lower[i] + n[i]*d[i],n[i],name=names[i]) \
+                for i in xrange(num_dim)]
         patch = pyclaw.geometry.Patch(dimensions)
         state= pyclaw.state.State(patch,num_eqn,num_aux)
         state.t = t

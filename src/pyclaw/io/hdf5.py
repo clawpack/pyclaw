@@ -210,10 +210,11 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
             dim_names = patch.attrs['dimensions']
             for dim_name in dim_names:
                 # Create dimension
-                dim = pyclaw.solution.Dimension(dim_name,
+                dim = pyclaw.solution.Dimension(
                                     patch.attrs["%s.lower" % dim_name],
                                     patch.attrs["%s.upper" % dim_name],
-                                    patch.attrs["%s.num_cells" % dim_name])                    
+                                    patch.attrs["%s.num_cells" % dim_name],
+                                    name = dim_name)
                 # Optional attributes
                 for attr in ['bc_lower','bc_upper','units']:
                     attr_name = "%s.%s" % (dim_name,attr)
