@@ -176,6 +176,12 @@ class Grid(object):
         return self._mapc2p
     @mapc2p.setter
     def mapc2p(self,mapc2p):
+        import inspect
+        first_arg_name = inspect.getargspec(mapc2p)[0][0]
+        if first_arg_name.lower() == 'grid':
+            import warnings
+            warnings.warn("""The required signature for the mapc2p function has recently changed:
+                             It is `mapc2p(x,y,z)` rather than `mapc2p(grid,X)`.""")
         self._mapc2p = mapc2p
         self._clear_cached_values()
 
