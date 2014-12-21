@@ -18,7 +18,7 @@ This is the simplest example that shows how to use a mapped grid in PyClaw.
 """
 import numpy as np
 
-def mapc2p_annulus(grid,c_centers):
+def mapc2p_annulus(xc, yc):
     """
     Specifies the mapping to curvilinear coordinates.
 
@@ -31,8 +31,8 @@ def mapc2p_annulus(grid,c_centers):
     p_centers = []
 
     # Polar coordinates (first coordinate = radius,  second coordinate = theta)
-    p_centers.append(c_centers[0][:]*np.cos(c_centers[1][:]))
-    p_centers.append(c_centers[0][:]*np.sin(c_centers[1][:]))
+    p_centers.append(xc[:]*np.cos(yc[:]))
+    p_centers.append(xc[:]*np.sin(yc[:]))
     
     return p_centers
 
@@ -63,13 +63,10 @@ def ghost_velocities_upper(state,dim,t,qbc,auxbc,num_ghost):
     Set the velocities for the ghost cells outside the outer radius of the annulus.
     In the computational domain, these are the cells at the top of the grid.
     """
-    from mapc2p import mapc2p
-
     grid=state.grid
     if dim == grid.dimensions[0]:
         dx, dy = grid.delta
-        X_edges, Y_edges = grid.c_edges_with_ghost(num_ghost=2)
-        R_edges,Theta_edges = mapc2p(X_edges,Y_edges)  # Compute edge coordinates in physical domain
+        R_edges,Theta_edges = grid.p_edges_with_ghost(num_ghost=2)
 
         auxbc[:,-num_ghost:,:] = edge_velocities_and_area(R_edges[-num_ghost-1:,:],Theta_edges[-num_ghost-1:,:],dx,dy)
 
@@ -82,13 +79,10 @@ def ghost_velocities_lower(state,dim,t,qbc,auxbc,num_ghost):
     Set the velocities for the ghost cells outside the inner radius of the annulus.
     In the computational domain, these are the cells at the bottom of the grid.
     """
-    from mapc2p import mapc2p
-
     grid=state.grid
     if dim == grid.dimensions[0]:
         dx, dy = grid.delta
-        X_edges, Y_edges = grid.c_edges_with_ghost(num_ghost=2)
-        R_edges,Theta_edges = mapc2p(X_edges,Y_edges)
+        R_edges,Theta_edges = grid.p_edges_with_ghost(num_ghost=2)
 
         auxbc[:,0:num_ghost,:] = edge_velocities_and_area(R_edges[0:num_ghost+1,:],Theta_edges[0:num_ghost+1,:],dx,dy)
 
@@ -193,6 +187,7 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     theta = pyclaw.Dimension(theta_lower,theta_upper,m_theta,name='theta')
     domain = pyclaw.Domain([r,theta])
     domain.grid.mapc2p = mapc2p_annulus
+    domain.grid.num_ghost = solver.num_ghost
 
     num_eqn = 1
     state = pyclaw.State(domain,num_eqn)

@@ -69,35 +69,27 @@ def fortran_src_wrapper(solver,state,dt):
     state.q = problem.src2(mx,my,num_ghost,xlower,ylower,dx,dy,q,aux,t,dt,Rsphere)
 
 
-def mapc2p_sphere_nonvectorized(grid,mC):
+def mapc2p_sphere_nonvectorized(X,Y):
     """
     Maps to points on a sphere of radius Rsphere. Nonvectorized version (slow).
     
-    Takes as input: array_list made by x_coordinates, y_ccordinates in the map 
-                    space.
+    Inputs: x-coordinates, y-coordinates in the computational space.
 
-    Returns as output: array_list made by x_coordinates, y_ccordinates in the 
-                       physical space.
-
-    Inputs: mC = list composed by two arrays
-                 [array ([xc1, xc2, ...]), array([yc1, yc2, ...])]
-
-    Output: pC = list composed by three arrays
-                 [array ([xp1, xp2, ...]), array([yp1, yp2, ...]), array([zp1, zp2, ...])]
+    Output: list of x-, y- and z-coordinates in the physical space.
 
     NOTE: this function is not used in the standard script.
     """
 
     # Get number of cells in both directions
-    mx, my = grid.num_cells[0], grid.num_cells[1]
+    mx, my = X.shape
 
     # Define new list of numpy array, pC = physical coordinates
     pC = []
 
     for i in range(mx):
         for j in range(my):
-            xc = mC[0][i][j]
-            yc = mC[1][i][j]
+            xc = X[i][j]
+            yc = Y[i][j]
 
             # Ghost cell values outside of [-3,1]x[-1,1] get mapped to other
             # hemisphere:
@@ -150,34 +142,26 @@ def mapc2p_sphere_nonvectorized(grid,mC):
     return pC
 
 
-def mapc2p_sphere_vectorized(grid,mC):
+def mapc2p_sphere_vectorized(X,Y):
     """
     Maps to points on a sphere of radius Rsphere. Vectorized version (fast).  
 
-    Takes as input: array_list made by x_coordinates, y_ccordinates in the map 
-                    space.
+    Inputs: x-coordinates, y-coordinates in the computational space.
 
-    Returns as output: array_list made by x_coordinates, y_ccordinates in the 
-                       physical space.
-
-    Inputs: mC = list composed by two arrays
-                 [array ([xc1, xc2, ...]), array([yc1, yc2, ...])]
-
-    Output: pC = list composed by three arrays
-                 [array ([xp1, xp2, ...]), array([yp1, yp2, ...]), array([zp1, zp2, ...])]
+    Output: list of x-, y- and z-coordinates in the physical space.
 
     NOTE: this function is used in the standard script.
     """
 
     # Get number of cells in both directions
-    mx, my = grid.num_cells[0], grid.num_cells[1]
+    mx, my = X.shape
     
     # 2D array useful for the vectorization of the function
     sgnz = np.ones((mx,my))
 
     # 2D coordinates in the computational domain
-    xc = mC[0][:][:]
-    yc = mC[1][:][:]
+    xc = X[:][:]
+    yc = Y[:][:]
 
     # Compute 3D coordinates in the physical domain
     # =============================================
