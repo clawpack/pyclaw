@@ -97,7 +97,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         dimensions = []
         for i in xrange(num_dim):
             dimensions.append(
-                pyclaw.geometry.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
+                pyclaw.geometry.Dimension(lower[i],lower[i] + n[i]*d[i],n[i]),name=names[i])
         patch = pyclaw.geometry.Patch(dimensions)
         state= pyclaw.state.State(patch,num_eqn,num_aux)
         state.t = t
