@@ -42,13 +42,14 @@ class SharpClawSolver(Solver):
             - 0: No limiting.
             - 1: TVD reconstruction.
             - 2: WENO reconstruction.
+            - 3: Polynomial reconstruction.
 
         ``Default = 2``
 
     .. attribute:: reconstruction_order
 
-        Order of the WENO reconstruction. From 1st to 17th order (PyWENO)
-
+        Order of the reconstruction. From 1st to 17th order (PyWENO), and from
+        4 to 10 (even) in Poly
         ``Default = 5``
 
     .. attribute:: time_integrator
@@ -207,6 +208,9 @@ class SharpClawSolver(Solver):
         """
         if self.lim_type == 2:
             self.num_ghost = (self.reconstruction_order+1)/2
+
+        if self.lim_type == 3:
+            self.num_ghost = 1 + self.reconstruction_order/2
 
         if self.lim_type == 2 and self.reconstruction_order != 5 and self.kernel_language == 'Python':
             raise Exception('Only 5th-order WENO reconstruction is implemented in Python kernels. \
