@@ -49,8 +49,8 @@ class Grid(object):
     A PyClaw grid is usually constructed from a tuple of PyClaw Dimension objects:
 
         >>> from clawpack.pyclaw.geometry import Dimension, Grid      
-        >>> x = Dimension('x',0.,1.,10)
-        >>> y = Dimension('y',-1.,1.,25)
+        >>> x = Dimension(0.,1.,10,name='x')
+        >>> y = Dimension(-1.,1.,25,name='y')
         >>> grid = Grid((x,y))
         >>> print grid
         2-dimensional domain (x,y)
@@ -71,7 +71,7 @@ class Grid(object):
 
     A grid can be extended to higher dimensions using the add_dimension() method:
 
-        >>> z=Dimension('z',-2.0,2.0,21)
+        >>> z=Dimension(-2.0,2.0,21,name='z')
         >>> grid.add_dimension(z)
         >>> grid.num_dim
         3
@@ -99,7 +99,7 @@ class Grid(object):
 
     It's also possible to get coordinates for ghost cell arrays:
 
-        >>> x = Dimension('x',0.,1.,5)
+        >>> x = Dimension(0.,1.,5,name='x')
         >>> grid1d = Grid([x])
         >>> grid1d.c_centers
         [array([ 0.1,  0.3,  0.5,  0.7,  0.9])]
