@@ -10,7 +10,7 @@ import numpy as np
 
 # Default mapc2p functions
 def identity_map_1d(x):
-    return x
+    return x,
 
 def identity_map_2d(x,y):
     return x,y
