@@ -83,11 +83,13 @@ class Grid(object):
     We can get the x, y, and z-coordinate arrays of cell edges and centers from the grid.
     Properties beginning with 'c' refer to the computational (unmapped) domain, while
     properties beginning with 'p' refer to the physical (mapped) domain.  For grids with
-    no mapping, the two are identical.  Notice also the difference between 'center' and
-    'centers':
+    no mapping, the two are identical.  Also note the difference between 'center' and
+    'centers'.
 
-        >>> grid.p_center([1,2,3])
-        [0.15000000000000002, -0.80000000000000004, -1.3333333333333335]
+        >>> import numpy as np
+        >>> np.set_printoptions(precision=2)  # avoid doctest issues with roundoff
+        >>> grid.c_center([1,2,3])
+        array([ 0.15, -0.8 , -1.33])
         >>> grid.p_edges[0][0,0,0]
         0.0
         >>> grid.p_edges[1][0,0,0]
@@ -110,7 +112,7 @@ class Grid(object):
     or to adjust the local spacing of grid cells.  For instance, we can
     use smaller cells on the left and larger cells on the right by doing:
 
-        >>> double = lambda x : x[0]**2
+        >>> double = lambda xarr : np.array([x**2 for x in xarr])
         >>> grid1d.mapc2p = double
         >>> grid1d.p_centers
         array([ 0.01,  0.09,  0.25,  0.49,  0.81])
@@ -222,8 +224,6 @@ class Grid(object):
         for dim in dimensions:
             self.add_dimension(dim)
 
-        self.mapc2p = identity_map[str(self.num_dim)]
-
         super(Grid,self).__init__()
     
     def _clear_cached_values(self):
@@ -250,6 +250,8 @@ class Grid(object):
         self._dimensions.append(dimension.name)
         setattr(self,dimension.name,dimension)
         self._clear_cached_values()
+        # Reset mapping as it presumably makes no sense now
+        self.mapc2p = identity_map[str(self.num_dim)]
         
         
     def get_dim_attribute(self,attr):
@@ -264,7 +266,7 @@ class Grid(object):
     def __str__(self):
         output = "%s-dimensional domain " % str(self.num_dim)
         output += "("+",".join([dim.name for dim in self.dimensions])+")\n"
-        if self.mapc2p == identity_map:
+        if self.mapc2p in identity_map.values():
             output += "No mapping\n"
             output += "Extent:  "
         else:
@@ -331,7 +333,7 @@ class Grid(object):
         r"""Compute center of computational cell with index ind."""
 
         index = [np.array(i) for i in ind]
-        return [self.c_centers[i][index] for i in range(self.num_dim)]
+        return np.array([self.c_centers[i][index] for i in range(self.num_dim)])
 
     def p_center(self,ind):
         r"""Compute center of physical cell with index ind."""
