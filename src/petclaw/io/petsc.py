@@ -176,7 +176,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
         dimensions = []
         for i in xrange(num_dim):
             dimensions.append(
-                petclaw.Dimension(names[i],lower[i],lower[i] + n[i]*d[i],n[i]))
+                petclaw.Dimension(lower[i],lower[i] + n[i]*d[i],n[i],name=names[i]))
         patch = petclaw.Patch(dimensions)
         patch.level = level 
         state = petclaw.State(patch,num_eqn,num_aux)

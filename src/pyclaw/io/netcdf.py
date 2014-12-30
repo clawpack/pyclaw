@@ -280,10 +280,11 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
             # Read in dimension attribute to keep dimension order
             dim_names = getattr(subgroup,'dim_names')
             for dim_name in dim_names:
-                dim = pyclaw.solution.Dimension(dim_name, 
+                dim = pyclaw.solution.Dimension(
                                       getattr(subgroup,'%s.lower' % dim_name),
                                       getattr(subgroup,'%s.upper' % dim_name),
-                                      getattr(subgroup,'%s.n' % dim_name))
+                                      getattr(subgroup,'%s.n' % dim_name),
+                                      name = dim_name)
                  # Optional attributes
                 for attr in ['bc_lower','bc_upper','units']:
                     attr_name = "%s.%s" % (dim_name,attr)
