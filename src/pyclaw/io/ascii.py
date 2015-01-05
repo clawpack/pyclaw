@@ -37,6 +37,8 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
      - *options* - (dict) Dictionary of optional arguments dependent on 
        the format being written.  ``default = {}``
     """
+    output_fields = options.get('output_fields',range(solution.num_eqn))
+
     try:
         # Create file name
         file_name = '%s.t%s' % (file_prefix,str(frame).zfill(4))
@@ -69,7 +71,7 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
             else:
                 q = state.q
 
-            write_array(q_file, patch, q)
+            write_array(q_file, patch, q, output_fields)
 
             if state.num_aux > 0 and write_aux:
                 write_patch_header(aux_file,state.patch)
@@ -115,23 +117,25 @@ def write_patch_header(f,patch):
     f.write("\n")
 
 
-def write_array(f,patch,q):
+def write_array(f,patch,q,fields=None):
     """
     Write a single array to output file f as ASCII text.
 
     The variable q here may in fact refer to q or to aux.
     """
+    if fields is None:
+        fields = xrange(q.shape[0])  # Output all fields by default
 
     dims = patch.dimensions
     if patch.num_dim == 1:
         for k in xrange(dims[0].num_cells):
-            for m in xrange(q.shape[0]):
+            for m in fields:
                 f.write("%18.8e" % q[m,k])
             f.write('\n')
     elif patch.num_dim == 2:
         for j in xrange(dims[1].num_cells):
             for k in xrange(dims[0].num_cells):
-                for m in xrange(q.shape[0]):
+                for m in fields:
                     f.write("%18.8e" % q[m,k,j])
                 f.write('\n')    
             f.write('\n')
@@ -139,7 +143,7 @@ def write_array(f,patch,q):
         for l in xrange(dims[2].num_cells):
             for j in xrange(dims[1].num_cells):
                 for k in xrange(dims[0].num_cells):
-                    for m in xrange(q.shape[0]):
+                    for m in fields:
                         f.write("%18.8e" % q[m,k,j,l])
                     f.write('\n')
                 f.write('\n')    
