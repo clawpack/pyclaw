@@ -725,6 +725,7 @@ class Patch(object):
         import copy
         result = self.__class__(copy.deepcopy(self.dimensions))
         result.__init__(copy.deepcopy(self.dimensions))
+        result.grid.mapc2p = self.grid.mapc2p
         
         for attr in ('level','patch_index'):
             setattr(result,attr,copy.deepcopy(getattr(self,attr)))
