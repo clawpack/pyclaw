@@ -269,7 +269,7 @@ class SharpClawSolver(Solver):
         `solver.time_integrator`.
         """
         state = solution.states[0]
-        self.cfl.set_global_max(0.)
+        self.cfl.__init__(0.)
 
         self.before_step(self,state)
 

@@ -29,9 +29,6 @@ class CFL(object):
     def set_local_max(self,new_local_max):
         self._local_max = new_local_max
 
-    def set_global_max(self,new_global_max):
-        self._global_max = new_global_max
-
     def update_global_max(self,new_local_max):
         self._reduce_vec.array = new_local_max
         self._global_max = max(self._global_max,self._reduce_vec.max()[1])
