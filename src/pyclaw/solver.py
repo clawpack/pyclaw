@@ -574,9 +574,6 @@ class Solver(object):
                 if 'LMM' in getattr(self,'time_integrator',''):
                     import copy
                     backup = copy.deepcopy(self._registers[0])
-                    if self.step_index > 1:
-                        dt_backup = self.dt_list[0]
-                        dtFE_backup = self.dtFE_list[0]
                 else:
                     q_backup = state.q.copy('F')
                 told = solution.t
@@ -611,20 +608,6 @@ class Solver(object):
                     if 'LMM' in getattr(self,'time_integrator',''):
                         self._registers[-1] = backup
                         self._registers = self._registers[-1:] + self._registers[:-1]
-                        # initialize dt and dtFE in case first step is rejected
-                        if self.step_index == 1:
-                            self.dt_list.append(self.dt)
-                            self.dtFE_list.append(self.dt * self.cfl_max / cfl)
-                        else:
-                            # remove last dt and dtFE if a RK step is rejected
-                            if self.step_index < len(self._registers):
-                                self.dt_list = self.dt_list[:-1]
-                                self.dtFE_list = self.dtFE_list[:-1]
-                            else:
-                                self.dt_list[-1] = dt_backup
-                                self.dtFE_list[-1] = dtFE_backup
-                                self.dt_list = self.dt_list[-1:] + self.dt_list[:-1]
-                                self.dtFE_list = self.dtFE_list[-1:] + self.dtFE_list[:-1]
                     else:
                         state.q = q_backup
                     solution.t = told
