@@ -312,18 +312,18 @@ class SharpClawSolver(Solver):
 
         elif self.time_integrator == 'SSPLMM32':
             if self._step_index == 1:
+                self.sspcoeff0 = self._sspcoeff['Euler']
                 # Store initial solution, function evaluation, dt and forward Euler dt
                 self._registers[-1].q = state.q.copy()
                 self.dq_stored = self.dq(state)
-                self.dt_list.append(0)
-                self.dtFE_list.append(self.dt * self.cfl_max / self.cfl.get_cached_max())
             if self._step_index < 3:
                 # Use Euler method for starting values
                 state.q += self.dq_stored
 
-                self.sspcoeff0 = self._sspcoeff['Euler']
                 self.dq_stored = self.dq(state) # call self.dq once more to update cfl number
             else:
+                if self._step_index == 3:
+                    self.sspcoeff0 = self._sspcoeff[self.time_integrator]
                 omega = (self.dt_list[-2] + self.dt_list[-1])/self.dt
                 # ssp coefficient
                 r = (omega-1.)/omega
@@ -335,8 +335,8 @@ class SharpClawSolver(Solver):
                 state.q = beta*(r*state.q + deltaq) + delta*self._registers[-3].q
 
                 self.dq_stored = self.dq(state) # call self.dq once more to update cfl number
-                            # Update stored information
-            self._registers = self._registers[1:] + self._registers[:1]
+
+            # Update stored information
             self._registers[-1].q = state.q.copy()
 
         elif self.time_integrator == 'SSPLMM43':
@@ -346,6 +346,7 @@ class SharpClawSolver(Solver):
                 self.dq_stored = self.dq(state)
                 self.dt_list.append(0)
                 self.dtFE_list.append(self.dt * self.cfl_max / self.cfl.get_cached_max())
+                self.sspcoeff0 = 1. # SSP coefficient for SSP22
             if self._step_index < 4:
                 # Use SSP22 method for starting values
                 import copy
@@ -358,9 +359,10 @@ class SharpClawSolver(Solver):
                 deltaq = self.dq(s1)
                 state.q = 0.5*(state.q + s1.q + deltaq)
 
-                self.sspcoeff0 = 1. # SSP coefficient for SSP22
                 self.dq_stored = self.dq(state) # call self.dq once more to update cfl number
             else:
+                if self._step_index == 4:
+                    self.sspcoeff0 = self._sspcoeff[self.time_integrator]
                 omega3 = sum(self.dt_list[-3:])/self.dt
                 omega4 = omega3 + 1.
                 # SSP coefficient
@@ -378,7 +380,6 @@ class SharpClawSolver(Solver):
                 self.dq_stored = self.dq(state) # call self.dq once more to update cfl number
 
             # Update stored information
-            self._registers = self._registers[1:] + self._registers[:1]
             self._registers[-1].q = state.q.copy()
 
         elif self.time_integrator == 'LMM':
@@ -583,6 +584,9 @@ class SharpClawSolver(Solver):
 
             # update dt_list, dtFE_list
             if accept_step:
+                if self._step_index == 1:
+                    self.dt_list.append(0)
+                    self.dtFE_list.append(self.dt * self.cfl_max / self.cfl.get_cached_max())
                 if self._step_index < len(self._registers):
                     self.dt_list.append(self.dt)
                     self.dtFE_list.append(self.dt * self.cfl_max / self.cfl.get_cached_max())
@@ -591,6 +595,7 @@ class SharpClawSolver(Solver):
                     self.dt_list[-1] = self.dt
                     self.dtFE_list = self.dtFE_list[1:] + self.dtFE_list[:1]
                     self.dtFE_list[-1] = self.dt / self.sspcoeff0 * self.cfl_max / self.cfl.get_cached_max()
+                self._registers = self._registers[1:] + self._registers[:1]
                 self._step_index += 1
 
 
@@ -617,14 +622,9 @@ class SharpClawSolver(Solver):
                 else:
                     # step-size update for starting methods
                     self.dt = self.dt * self.cfl_desired / cfl
-                    #self._step_index += 1
-                    if self._step_index == len(self._registers)-1:
-                        self.sspcoeff0 = self._sspcoeff[self.time_integrator]
             else:
                 if self._step_index < len(self._registers):
                     self.dt = self.dt * self.cfl_desired / cfl
-                    if self._step_index == 1:
-                        self.dtFE_list.append(self.dt * self.cfl_max / self.cfl.get_cached_max())
                     # additional conditions for SSPLMM43
                     if self.time_integrator == 'SSPLMM43':
                         self.dt = min(3./5. * self.dtFE_list[-1], self.dt)
