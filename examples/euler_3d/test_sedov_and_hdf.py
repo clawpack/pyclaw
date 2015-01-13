@@ -21,6 +21,7 @@ def test_sedov_and_hdf():
         # Expected solution
         sol_expected = Solution()
         sol_expected.read(1,path=verify_dir,file_format='hdf',read_aux=False)
+        assert sol_expected.t == 0.1
         expected_q = sol_expected.state.q
 
         # Test solution
