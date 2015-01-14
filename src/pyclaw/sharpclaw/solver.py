@@ -6,7 +6,7 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 #  Author:      David Ketcheson
 """
 # Solver superclass
-from clawpack.pyclaw.solver import Solver, CFLError
+from clawpack.pyclaw.solver import Solver
 from clawpack.pyclaw.util import add_parent_doc
 
 # Reconstructor
@@ -146,6 +146,7 @@ class SharpClawSolver(Solver):
     """
     _sspcoeff = {
        'Euler' :    1.0,
+       'SSP22':     1.0,
        'SSP33':     1.0,
        'SSP104' :   6.0,
        'SSPLMM32' :  0.5,
@@ -313,14 +314,12 @@ class SharpClawSolver(Solver):
         elif self.time_integrator == 'SSPLMM32':
             if self._step_index == 1:
                 self.sspcoeff0 = self._sspcoeff['Euler']
-                # Store initial solution, function evaluation, dt and forward Euler dt
+                # Store initial solution and function evaluation
                 self._registers[-1].q = state.q.copy()
                 self.dq_stored = self.dq(state)
             if self._step_index < 3:
                 # Use Euler method for starting values
                 state.q += self.dq_stored
-
-                self.dq_stored = self.dq(state) # call self.dq once more to update cfl number
             else:
                 if self._step_index == 3:
                     self.sspcoeff0 = self._sspcoeff[self.time_integrator]
@@ -333,25 +332,18 @@ class SharpClawSolver(Solver):
 
                 deltaq = self.dq_stored
                 state.q = beta*(r*state.q + deltaq) + delta*self._registers[-3].q
-
-                self.dq_stored = self.dq(state) # call self.dq once more to update cfl number
-
-            # Update stored information
-            self._registers[-1].q = state.q.copy()
+ 
 
         elif self.time_integrator == 'SSPLMM43':
             if self._step_index == 1:
-                # Store initial solution, function evaluation, dt and forward Euler dt
+                self.sspcoeff0 = self._sspcoeff['SSP22']
+                # Store initial solution and function evaluation
                 self._registers[-1].q = state.q.copy()
                 self.dq_stored = self.dq(state)
-                self.dt_list.append(0)
-                self.dtFE_list.append(self.dt * self.cfl_max / self.cfl.get_cached_max())
-                self.sspcoeff0 = 1. # SSP coefficient for SSP22
             if self._step_index < 4:
                 # Use SSP22 method for starting values
                 import copy
                 s1 = copy.deepcopy(state)
-                s1.set_num_ghost(self.num_ghost) ### depreciated by deepcopy fix ###
 
                 deltaq = self.dq_stored
                 s1.q = state.q + deltaq
@@ -377,20 +369,19 @@ class SharpClawSolver(Solver):
                 state.q = beta3*(r*state.q + deltaq) + \
                         (r*beta0 + delta0)*self._registers[-4].q + beta0*deltaqm4
 
-                self.dq_stored = self.dq(state) # call self.dq once more to update cfl number
-
             # Update stored information
+            self._registers = self._registers[1:] + self._registers[:1]            
             self._registers[-1].q = state.q.copy()
+            self.dq_stored = self.dq(state) # call self.dq once more to update cfl number
 
         elif self.time_integrator == 'LMM':
-            num_steps = len(self.alpha)
-
+            num_steps = len(self._registers)
             # Store initial solution
             if self._step_index == 1:
                 self._registers[-num_steps].q  = state.q.copy()
                 self._registers[-num_steps].dq = self.dq(state)
 
-            if self._step_index < num_steps:
+            if self._step_index < len(self._registers):
                 # Using SSP104 for previous step values
                 state.q = self.ssp104(state)
                 self._registers[-num_steps+self._step_index].q = state.q.copy()
@@ -546,14 +537,13 @@ class SharpClawSolver(Solver):
         
         state = solution.states[0]
         # use the same class constructor as the solution for the Runge Kutta stages
-        State = type(state)
         self._registers = []
         for i in xrange(nregisters):
             import copy
             self._registers.append(copy.deepcopy(state))
 
 
-    def accept_reject_step(self,cfl):
+    def accept_reject_step(self,state):
         r"""
         Decide whether to accept or not the current step.
         For Runge-Kutta methods the step is accepted if cfl <= cfl_max.
@@ -562,6 +552,10 @@ class SharpClawSolver(Solver):
         """
         accept_step = True
 
+        # call self.dq once more to update cfl number
+        self.dq_stored = self.dq(state)
+        cfl = self.cfl.get_cached_max()
+        
         # check cfl condition for SSP LMM methods
         if self.time_integrator[:-2] == 'SSPLMM':
             # condition for starting RK methods
@@ -571,9 +565,6 @@ class SharpClawSolver(Solver):
                 # additional condition for SSPLMM43
                 elif self.time_integrator == 'SSPLMM43' and self.dt > 3./5. * self.dtFE_list[-1]:
                     accept_step = False
-                # apply LMM at the next step if last RK step is accepted
-                #if accept_step == True and self._step_index == len(self._registers)-1:
-                #    self._step_index += 1
             # only need to check conditions for SSPLMM43 for the steps LMM is active
             elif self.time_integrator == 'SSPLMM43':
                 rhoFE = 9./10.
@@ -584,20 +575,24 @@ class SharpClawSolver(Solver):
 
             # update dt_list, dtFE_list
             if accept_step:
+                dtFE = self.dt / self.sspcoeff0 * self.cfl_max / self.cfl.get_cached_max()
                 if self._step_index == 1:
                     self.dt_list.append(0)
-                    self.dtFE_list.append(self.dt * self.cfl_max / self.cfl.get_cached_max())
+                    self.dtFE_list.append(dtFE)
                 if self._step_index < len(self._registers):
                     self.dt_list.append(self.dt)
-                    self.dtFE_list.append(self.dt * self.cfl_max / self.cfl.get_cached_max())
+                    self.dtFE_list.append(dtFE)
                 else:
                     self.dt_list = self.dt_list[1:] + self.dt_list[:1]
                     self.dt_list[-1] = self.dt
                     self.dtFE_list = self.dtFE_list[1:] + self.dtFE_list[:1]
-                    self.dtFE_list[-1] = self.dt / self.sspcoeff0 * self.cfl_max / self.cfl.get_cached_max()
-                self._registers = self._registers[1:] + self._registers[:1]
-                self._step_index += 1
+                    self.dtFE_list[-1] = dtFE
+                
+                # Update stored information
+                self._registers = self._registers[1:] + self._registers[:1]            
+                self._registers[-1].q = state.q.copy()
 
+                self._step_index += 1
 
         # check cfl condition for Runge-Kutta methods
         elif cfl > self.cfl_max:
