@@ -4,10 +4,11 @@ r"""
 Routines for reading and writing an ascii output file
 """
 
-import os,sys
+import os
 import logging
 import numpy as np
 import pickle
+import clawpack.pyclaw as pyclaw
 
 from ..util import read_data_line
 
@@ -37,59 +38,35 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
      - *options* - (dict) Dictionary of optional arguments dependent on 
        the format being written.  ``default = {}``
     """
-    try:
-        # Create file name
-        file_name = '%s.t%s' % (file_prefix,str(frame).zfill(4))
-        f = open(os.path.join(path,file_name),'w')
-        
-        # Header for fort.txxxx file
+    # Write fort.txxxx file
+    file_name = '%s.t%s' % (file_prefix,str(frame).zfill(4))
+    with open(os.path.join(path,file_name),'w') as f:
         f.write("%18.8e     time\n" % solution.t)
         f.write("%5i                  num_eqn\n" % solution.num_eqn)
         f.write("%5i                  nstates\n" % len(solution.states))
         f.write("%5i                  num_aux\n" % solution.num_aux)
         f.write("%5i                  num_dim\n" % solution.domain.num_dim)
-        f.close()
-        
-        # Open fort.qxxxx for writing
-        file_name = 'fort.q%s' % str(frame).zfill(4)
-        q_file = open(os.path.join(path,file_name),'w')
-        
-        # If num_aux != 0 then we open up a file to write it out as well
-        if solution.num_aux > 0 and write_aux:
-            file_name = 'fort.a%s' % str(frame).zfill(4)
-            aux_file = open(os.path.join(path,file_name),'w')
-        
-        for state in solution.states:
-            patch = state.patch
 
-            write_patch_header(q_file,patch)
-            
+    # Write fort.qxxxx file
+    file_name = 'fort.q%s' % str(frame).zfill(4)
+    with open(os.path.join(path,file_name),'w') as q_file:
+        for state in solution.states:
+            write_patch_header(q_file,state.patch)
             if write_p:
                 q = state.p
             else:
                 q = state.q
+            write_array(q_file, state.patch, q)
 
-            write_array(q_file, patch, q)
-
-            if state.num_aux > 0 and write_aux:
+    # Write fort.auxxxxx file if required
+    if solution.num_aux > 0 and write_aux:
+        file_name = 'fort.a%s' % str(frame).zfill(4)
+        with open(os.path.join(path,file_name),'w') as aux_file:
+            for state in solution.states:
                 write_patch_header(aux_file,state.patch)
-                write_array(aux_file,patch,state.aux)
+                write_array(aux_file,state.patch,state.aux)
 
-        q_file.close()
-
-        if state.num_aux > 0 and write_aux:
-            aux_file.close()
-
-    except IOError, (errno, strerror):
-        logger.error("Error writing file: %s" % os.path.join(path,file_name))
-        logger.error("I/O error(%s): %s" % (errno, strerror))
-        raise 
-    except:
-        logger.error("Unexpected error:", sys.exc_info()[0])
-        raise
-
-    pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
-    pickle_file = open(pickle_filename,'wb')
+    # Write fort.pklxxxx file
     sol_dict = {'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
                      'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,
                      'write_aux':write_aux,
@@ -97,9 +74,9 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
                      'mapc2p': solution.state.grid.mapc2p}
     if write_p:
         sol_dict['num_eqn'] = solution.mp
-
-    pickle.dump(sol_dict, pickle_file)
-    pickle_file.close()
+    pickle_filename = os.path.join(path, '%s.pkl' % file_prefix) + str(frame).zfill(4)
+    with open(pickle_filename,'wb') as pickle_file:
+        pickle.dump(sol_dict, pickle_file)
 
 
 def write_patch_header(f,patch):
@@ -121,7 +98,6 @@ def write_array(f,patch,q):
 
     The variable q here may in fact refer to q or to aux.
     """
-
     dims = patch.dimensions
     if patch.num_dim == 1:
         for k in xrange(dims[0].num_cells):
@@ -176,8 +152,8 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     mapc2p = None
     try:
         if os.path.exists(pickle_filename):
-            pickle_file = open(pickle_filename,'rb')
-            value_dict = pickle.load(pickle_file)
+            with open(pickle_filename,'rb') as pickle_file:
+                value_dict = pickle.load(pickle_file)
             problem_data = value_dict.get('problem_data',None)
             mapc2p       = value_dict.get('mapc2p',None)
     except IOError:
@@ -192,64 +168,56 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     [t,num_eqn,nstates,num_aux,num_dim] = read_t(frame,path,file_prefix)
 
     patches = []
-    
-    # Read in values from fort.q file:
-    try:
-        f = open(q_fname,'r')
-    except IOError:
-        print "Error: file " + q_fname + " does not exist or is unreadable."
-        raise
-    
     n = np.zeros((num_dim))
     d = np.zeros((num_dim))
     lower = np.zeros((num_dim))
+    # Since we do not have names here, we will construct each patch with
+    # dimension names x,y,z
+    names = ['x','y','z']
 
-    # Loop through every patch setting the appropriate information
-    for m in xrange(nstates):
-    
-        # Read in base header for this patch
-        patch_index = read_data_line(f,data_type=int)
-        level       = read_data_line(f,data_type=int)
-        for i in xrange(num_dim):
-            n[i] = read_data_line(f,data_type=int)
-        for i in xrange(num_dim):
-            lower[i] = read_data_line(f)
-        for i in xrange(num_dim):
-            d[i] = read_data_line(f)
-    
-        blank = f.readline()
-    
-        # Construct the patch
-        # Since we do not have names here, we will construct the patch with
-        # dimension names x,y,z
-        names = ['x','y','z']
-        import clawpack.pyclaw as pyclaw
-        Dim = pyclaw.Dimension
-        dimensions = [Dim(lower[i],lower[i] + n[i]*d[i],n[i],name=names[i]) \
-                for i in xrange(num_dim)]
-        patch = pyclaw.geometry.Patch(dimensions)
-        state= pyclaw.state.State(patch,num_eqn,num_aux)
-        state.t = t
-        state.problem_data = problem_data
-        if mapc2p is not None:
-            # If no mapc2p the default in the identity map in grid will be used
-            state.grid.mapc2p = mapc2p
-
-        if num_aux > 0:   
-            state.aux[:]=0.
+    # Read in values from fort.q file:
+    with open(q_fname,'r') as f:
+        # Loop through every patch setting the appropriate information
+        for m in xrange(nstates):
+            # Read header for this patch
+            patch_index = read_data_line(f,data_type=int)
+            level       = read_data_line(f,data_type=int)
+            for i in xrange(num_dim):
+                n[i] = read_data_line(f,data_type=int)
+            for i in xrange(num_dim):
+                lower[i] = read_data_line(f)
+            for i in xrange(num_dim):
+                d[i] = read_data_line(f)
         
-        # Fill in q values
-        state.q = read_array(f, state, num_eqn)
+            blank = f.readline()
 
-        # Add AMR attributes:
-        patch.patch_index = patch_index
-        patch.level = level
+            # Construct the patch
+            dimensions = [pyclaw.Dimension(lower[i],lower[i]+n[i]*d[i],\
+                          n[i],name=names[i]) for i in xrange(num_dim)]
+            patch = pyclaw.geometry.Patch(dimensions)
+            state= pyclaw.state.State(patch,num_eqn,num_aux)
+            state.t = t
+            state.problem_data = problem_data
+            if mapc2p is not None:
+                # If no mapc2p the default identity map in grid will be used
+                state.grid.mapc2p = mapc2p
 
-        # Add new patch to solution
-        solution.states.append(state)
-        patches.append(state.patch)
+            if num_aux > 0:
+                # Write NaNs for now to indicate this is uninitialized
+                state.aux[:] = np.nan
+
+            # Fill in q values
+            state.q = read_array(f, state, num_eqn)
+
+            # Add AMR attributes:
+            patch.patch_index = patch_index
+            patch.level = level
+
+            # Add new patch to solution
+            solution.states.append(state)
+            patches.append(state.patch)
+
     solution.domain = pyclaw.geometry.Domain(patches)
-    f.close()
 
     # Read auxillary file if available and requested
     # Matching dimension parameter tolerances
@@ -266,47 +234,35 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
             # Assume that aux data from initial time is valid for all frames:
             fname = fname2
             # Note that this is generally not true when AMR is used.
-            # Should give a better warning message in line below where
-            # IOError exception is raised.
         else:
             logger.debug("Unable to open auxillary file %s or %s" % (fname1,fname2))
             return
             
-        # Found a valid path, try to open and read it
-        try:
-            f = open(fname,'r')
-        except IOError:
-            logger.error("File %s was not able to be read." % fname)
-            raise
-            
-        # Read in aux file
-        for state in solution.states:
-            patch = state.patch
-            # Fetch correct patch
-            patch_index = read_data_line(f,data_type=int)
-    
-            # These should match this patch already, raise exception otherwise
-            if not (patch.level == read_data_line(f,data_type=int)):
-                raise IOError("Patch level in aux file header did not match patch no %s." % patch.patch_index)
-            for dim in patch.dimensions:
-                num_cells = read_data_line(f,data_type=int)
-                if not dim.num_cells == num_cells:
-                    raise Exception("Dimension %s's num_cells in aux file header did not match patch no %s." % (dim.name,patch.patch_index))
-            for dim in patch.dimensions:
-                lower = read_data_line(f,data_type=float)
-                if np.abs(lower - dim.lower) > ABS_TOL + REL_TOL * np.abs(dim.lower):
-                    raise Exception('Value of lower in aux file does not match.')
-            for dim in patch.dimensions:
-                delta = read_data_line(f,data_type=float)
-                if np.abs(delta - dim.delta) > ABS_TOL + REL_TOL * np.abs(dim.delta):
-                    raise Exception('Value of delta in aux file does not match.')
+        # Read in fort.auxxxxx file
+        with open(fname,'r') as f:
+            for state in solution.states:
+                patch = state.patch
+                patch_index = read_data_line(f,data_type=int)
 
-            blank = f.readline()
-    
-            state.aux = read_array(f, state, num_aux)
+                # Read patch header and check that it matches that from fort.qxxxx
+                assert patch.level == read_data_line(f,data_type=int), \
+                        "Patch level in aux file header did not match patch no %s." % patch.patch_index
+                for dim in patch.dimensions:
+                    num_cells = read_data_line(f,data_type=int)
+                    assert dim.num_cells == num_cells, \
+                        "Dimension %s's num_cells in aux file header did not match patch no %s." % (dim.name,patch.patch_index)
+                for dim in patch.dimensions:
+                    lower = read_data_line(f,data_type=float)
+                    assert np.abs(lower - dim.lower) <= ABS_TOL + REL_TOL * np.abs(dim.lower), \
+                            'Value of lower in aux file does not match.'
+                for dim in patch.dimensions:
+                    delta = read_data_line(f,data_type=float)
+                    assert np.abs(delta - dim.delta) <= ABS_TOL + REL_TOL * np.abs(dim.delta), \
+                            'Value of delta in aux file does not match.'
 
-        f.close()
-        
+                blank = f.readline()
+                state.aux = read_array(f, state, num_aux)
+
             
 def read_t(frame,path='./',file_prefix='fort'):
     r"""Read only the fort.t file and return the data
@@ -330,20 +286,13 @@ def read_t(frame,path='./',file_prefix='fort'):
     base_path = os.path.join(path,)
     path = os.path.join(base_path, '%s.t' % file_prefix) + str(frame).zfill(4)
     logger.debug("Opening %s file." % path)
-    try:
-        f = open(path,'r')
-    except(IOError):
-        print "Error: file " + path + " does not exist or is unreadable."
-        raise
-        
-    t = read_data_line(f)
-    num_eqn = read_data_line(f,data_type=int)
-    nstates = read_data_line(f,data_type=int)
-    num_aux = read_data_line(f,data_type=int)
-    num_dim = read_data_line(f,data_type=int)
+    with open(path,'r') as f:
+        t = read_data_line(f)
+        num_eqn = read_data_line(f,data_type=int)
+        nstates = read_data_line(f,data_type=int)
+        num_aux = read_data_line(f,data_type=int)
+        num_dim = read_data_line(f,data_type=int)
     
-    f.close()
-        
     return t,num_eqn,nstates,num_aux,num_dim
 
 
@@ -400,4 +349,3 @@ def read_array(f, state, num_var):
         raise Exception(msg)
 
     return q
-
