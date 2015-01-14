@@ -502,8 +502,9 @@ class Solver(object):
     # ========================================================================
     #  Evolution routines
     # ========================================================================
-    def accept_reject_step(self,cfl):
+    def accept_reject_step(self,state):
         accept_step = True
+        cfl = self.cfl.get_cached_max()
         if cfl > self.cfl_max:
             accept_step = False
         return accept_step
@@ -571,18 +572,14 @@ class Solver(object):
 
             # Keep a backup in case we need to retake a time step
             if self.dt_variable:
-                if 'LMM' in getattr(self,'time_integrator',''):
-                    import copy
-                    backup = copy.deepcopy(self._registers[0])
-                else:
-                    q_backup = state.q.copy('F')
+                q_backup = state.q.copy('F')
                 told = solution.t
 
             self.step(solution)
 
             # Check to make sure that the Courant number was not too large
+            accept_step = self.accept_reject_step(state)
             cfl = self.cfl.get_cached_max()
-            accept_step = self.accept_reject_step(cfl)
             if accept_step:
                 # Accept this step
                 self.status['cflmax'] = max(cfl, self.status['cflmax'])
@@ -605,11 +602,7 @@ class Solver(object):
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
                 if self.dt_variable:
-                    if 'LMM' in getattr(self,'time_integrator',''):
-                        self._registers[-1] = backup
-                        self._registers = self._registers[-1:] + self._registers[:-1]
-                    else:
-                        state.q = q_backup
+                    state.q = q_backup
                     solution.t = told
                 else:
                     # Give up, we cannot adapt, abort
