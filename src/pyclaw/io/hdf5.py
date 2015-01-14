@@ -230,6 +230,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
                 setattr(pyclaw_patch,attr,patch.attrs[attr])
 
             state= pyclaw.state.State(pyclaw_patch,patch.attrs['num_eqn'],patch.attrs['num_aux'])
+            state.t = patch.attrs['t']
             # Read in q
             index_str = ','.join( [':' for i in xrange(len(patch['q'].shape))] )
             exec("state.q = patch['q'][%s]" % index_str)
