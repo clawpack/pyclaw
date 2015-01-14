@@ -503,11 +503,11 @@ class Solver(object):
     #  Evolution routines
     # ========================================================================
     def accept_reject_step(self,state):
-        accept_step = True
         cfl = self.cfl.get_cached_max()
         if cfl > self.cfl_max:
-            accept_step = False
-        return accept_step
+            return False
+        else:
+            return True
 
     def get_dt_new(self,cfl,accept_step):
         return min(self.dt_max,self.dt * self.cfl_desired / cfl)
@@ -541,7 +541,6 @@ class Solver(object):
         # Parameters for time-stepping
         tstart = solution.t
 
-        # Reset status dictionary
         num_steps = 0
 
         # Setup for the run
