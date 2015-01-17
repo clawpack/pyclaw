@@ -85,7 +85,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
             dimensions = []
             for i in xrange(num_dim):
                 dimensions.append(
-                    pyclaw.geometry.Dimension(lower[i],lower[i] + n[i]*d[i],n[i]),name=names[i])
+                    pyclaw.geometry.Dimension(lower[i],lower[i] + n[i]*d[i],n[i],name=names[i]))
             patch = pyclaw.geometry.Patch(dimensions)
             state = pyclaw.state.State(patch,num_eqn,num_aux)
             state.t = t
@@ -98,10 +98,12 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
             meqn = state.num_eqn
             mbc = num_ghost
             # For some reason, this file format includes the ghost cell values!
-            grid_size_with_bc = np.prod([m+2*mbc for m in patch.num_cells])
-            i_end_patch = i_start_patch + meqn*grid_size_with_bc
+            q_shape = [m+2*mbc for m in patch.grid.num_cells]
+            q_shape.insert(0,meqn)
+            q_size = np.prod(q_shape)
+            i_end_patch = i_start_patch + q_size
             qpatch = qdata[i_start_patch:i_end_patch]
-            qpatch = np.reshape(qpatch, grid_size_with_bc, order='F')
+            qpatch = np.reshape(qpatch, q_shape, order='F')
 
             if patch.num_dim == 1:
                 ##  NOT YET TESTED ##
@@ -149,13 +151,15 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         i_start_patch = 0  # index into auxdata for start of next patch
         for state in solution.states:
             patch = state.patch
-
-            grid_size_with_bc = np.prod([m+2*mbc for m in patch.num_cells])
             maux = state.num_aux
             mbc = num_ghost
-            i_end_patch = i_start_patch + meqn*grid_size_with_bc
+
+            aux_shape = [m+2*mbc for m in patch.grid.num_cells]
+            aux_shape.insert(0,maux)
+            aux_size = np.prod(aux_shape)
+            i_end_patch = i_start_patch + aux_size
             auxpatch = auxdata[i_start_patch:i_end_patch]
-            auxpatch = np.reshape(auxpatch, grid_size_with_bc, order='F')
+            auxpatch = np.reshape(auxpatch, aux_shape, order='F')
 
             # Fill in aux values
             if patch.num_dim == 1:
