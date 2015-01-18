@@ -8,9 +8,12 @@ packages:
   launcher:
   blas:
     use: host-blas
+  h5py:
+  matplotlib:
   mpi:
     use: mpich
   nose:
   python:
   petsc:
   petsc4py:
+  scipy:
