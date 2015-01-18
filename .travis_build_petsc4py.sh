@@ -14,7 +14,7 @@ mv ../.hashdist_petsc4py_stack.yaml petsc4py_stack.yaml
 
 # 75 MB, shouldn't take too long to download
 wget https://dl.dropboxusercontent.com/u/65439/pyclaw_hashdist_bld.tar.gz
-tar -zxvf pyclaw_hashdist_bld.tar.gz -C ~/.hashdist
+tar -zxf pyclaw_hashdist_bld.tar.gz -C ~/.hashdist
 
 # This should now be very fast
 set -o pipefail
