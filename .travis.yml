@@ -19,6 +19,7 @@ install:
   - bash ../.travis_build_stack.sh;
   - export PATH=${CLAWPACK}/stack/bin:${PATH};
 # it would be better to get coverage/python-coveralls into hashstack eventually, but this works
+  - easy_install pip
   - pip install coverage
   - pip install python-coveralls
   - python setup.py install;
