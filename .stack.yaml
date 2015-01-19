@@ -1,0 +1,19 @@
+extends:
+ - name: hashstack
+   urls: ['https://github.com/hashdist/hashstack.git']
+   key: 'git:3481f56e977d682412a9f52ad80f948ca24355f2'
+   file: linux.yaml
+
+packages:
+  launcher:
+  blas:
+    use: host-blas
+  h5py:
+  matplotlib:
+  mpi:
+    use: mpich
+  nose:
+  python:
+  petsc:
+  petsc4py:
+  scipy:
