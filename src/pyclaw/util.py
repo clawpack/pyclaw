@@ -140,7 +140,7 @@ def run_app_from_main(application,setplot=None):
 class VerifyError(Exception):
     pass
 
-def gen_variants(application, verifier, kernel_languages=('Fortran',), **kwargs):
+def gen_variants(application, verifier, kernel_languages=('Fortran',), disable_petsc=False, **kwargs):
     r"""
     Generator of runnable variants of a test application given a verifier
 
@@ -157,7 +157,7 @@ def gen_variants(application, verifier, kernel_languages=('Fortran',), **kwargs)
     All unrecognized keyword arguments are passed through to the application.
     """
 
-    arg_dicts = build_variant_arg_dicts(kernel_languages)
+    arg_dicts = build_variant_arg_dicts(kernel_languages, disable_petsc)
 
     for test_kwargs in arg_dicts:
         test_kwargs.update(kwargs)
@@ -174,15 +174,17 @@ def gen_variants(application, verifier, kernel_languages=('Fortran',), **kwargs)
         yield test
     return
 
-def build_variant_arg_dicts(kernel_languages=('Fortran',)):
+def build_variant_arg_dicts(kernel_languages=('Fortran',), disable_petsc=False):
     import itertools
 
     # test petsc4py only if it is available
-    try:
-        import petsc4py
-        use_petsc_opts=(True,False)
-    except ImportError:
-        use_petsc_opts = (False,)
+    use_petsc_opts = (False,)
+    if not disable_petsc:
+        try:
+            import petsc4py
+            use_petsc_opts=(True,False)
+        except ImportError:
+            pass # petsc starts disabled
 
     opt_names = 'use_petsc','kernel_language'
     opt_product = itertools.product(use_petsc_opts,kernel_languages)

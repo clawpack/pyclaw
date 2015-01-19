@@ -17,7 +17,7 @@ def test_sedov_and_hdf():
         
         thisdir = os.path.dirname(__file__)
         verify_dir = os.path.join(thisdir,'./Sedov_regression')
-        
+
         # Expected solution
         sol_expected = Solution()
         sol_expected.read(1,path=verify_dir,file_format='hdf',read_aux=False)
@@ -43,7 +43,8 @@ def test_sedov_and_hdf():
     from clawpack.pyclaw.util import gen_variants
     tempdir = './_sedov_test_results'
     classic_tests = gen_variants(Sedov.setup, 
-                                 verify_sedov, solver_type='classic', 
+                                 verify_sedov, solver_type='classic',
+                                 disable_petsc=True,
                                  outdir=tempdir, num_cells=(16, 16, 16),
                                  num_output_times=1)
 
