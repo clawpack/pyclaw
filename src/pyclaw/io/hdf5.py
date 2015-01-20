@@ -124,7 +124,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
                     for attr in ['num_cells','lower','delta','upper',
                                  'units']:
                         if hasattr(dim,attr):
-                            if getattr(dim,attr):
+                            if getattr(dim,attr) is not None:
                                 attr_name = '%s.%s' % (dim.name,attr)
                                 subgroup.attrs[attr_name] = getattr(dim,attr)
 
@@ -168,7 +168,6 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
         with h5py.File(filename,'r') as f:
         
             for patch in f.itervalues():
-
                 # Construct each dimension
                 dimensions = []
                 dim_names = patch.attrs['dimensions']
