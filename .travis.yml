@@ -25,17 +25,14 @@ install:
   - python setup.py install;
 
 script:
-  - cd pyclaw/examples
+  - cd pyclaw/src/pyclaw
+  - nosetests --first-pkg-wins --with-doctest --exclude=limiters --exclude=sharpclaw --exclude=io --exclude=example
   - if [[ "${TEST_PACKAGE}" == "pyclaw" ]]; then
-       nosetests -v --with-coverage --cover-package=clawpack.pyclaw;
+        nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --exclude=io --with-coverage --cover-package=clawpack.pyclaw;
     fi
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
-       mpirun -n 4 nosetests -v;
+       mpirun -n 4 nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --exclude=io;
     fi
-  # Run doctests
-  - cd ../src/pyclaw
-  - nosetests --first-pkg-wins --with-doctest --exclude=example --exclude=limiters --exclude=sharpclaw --exclude=io
-
 
 after_success:
   - coveralls

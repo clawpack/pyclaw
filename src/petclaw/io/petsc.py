@@ -38,17 +38,9 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
      format   : one of 'ascii' or 'binary'
      clobber  : if True (Default), files will be overwritten
     """    
-    # Option parsing
-    option_defaults = {'format':'binary','clobber':True}
-  
-    for k in option_defaults.iterkeys():
-        if options.has_key(k):
-            pass
-        else:
-            options[k] = option_defaults[k]
- 
-    clobber = options['clobber']
-    file_format = options['format']
+    # Use defaults for options not passed in 
+    clobber     = options.get('clobber', True)
+    file_format = options.get('format', 'binary')
 
     if solution.num_aux == 0:
         write_aux = False
@@ -62,31 +54,37 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
 
     rank =  PETSc.Comm.getRank(PETSc.COMM_WORLD)
     if rank==0:
-        metadata_file = open(filenames['metadata'],'wb')
-        # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
-        sol_dict = {'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
-                         'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,
-                         'write_aux':write_aux,
-                         'problem_data' : solution.problem_data,
-                         'mapc2p': solution.state.grid.mapc2p,
-                         'file_format':file_format}
-        if write_p:
-            sol_dict['num_eqn'] = solution.mp
+        # Write metadata
+        with open(filenames['metadata'],'wb') as metadata_file:
+            # explicitly dumping a dictionary here to help out anybody trying to read the pickle file
+            sol_dict = {'t':solution.t,'num_eqn':solution.num_eqn,'nstates':len(solution.states),
+                             'num_aux':solution.num_aux,'num_dim':solution.domain.num_dim,
+                             'write_aux':write_aux,
+                             'problem_data' : solution.problem_data,
+                             'mapc2p': solution.state.grid.mapc2p,
+                             'file_format':file_format}
+            if write_p:
+                sol_dict['num_eqn'] = solution.mp
 
-        pickle.dump(sol_dict, metadata_file)
+            pickle.dump(sol_dict, metadata_file)
 
+            for state in solution.states:
+                patch = state.patch
+                pickle.dump({'level':patch.level,'names':patch.name,
+                             'lower':patch.lower_global,
+                             'num_cells':patch.num_cells_global,
+                             'delta':patch.delta}, metadata_file)
+
+
+    # Now write data
     q_viewer = set_up_viewers(filenames['q'],file_format.lower(),PETSc.Viewer.Mode.WRITE)
     if write_aux:
         aux_viewer = set_up_viewers(filenames['aux'],file_format.lower(),PETSc.Viewer.Mode.WRITE)
     
     for state in solution.states:
         patch = state.patch
-        if rank==0:
-            pickle.dump({'level':patch.level,
-                         'names':patch.name,'lower':patch.lower_global,
-                         'num_cells':patch.num_cells_global,'delta':patch.delta}, metadata_file)
-#       we will reenable this bad boy when we switch over to petsc-dev
-#        state.q_da.view(q_viewer)
+        # we will reenable this bad boy when we switch over to petsc-dev:
+        # state.q_da.view(q_viewer)
         if write_p:
             state.gpVec.view(q_viewer)
         else:
@@ -99,8 +97,6 @@ def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
     if write_aux:
         aux_viewer.flush()
     q_viewer.destroy() # Destroys aux_viewer also
-    if rank==0:
-        metadata_file.close()
 
 
 def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
@@ -124,11 +120,8 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
     format   : one of 'ascii' or 'binary'
      
     """
-
-    if options.has_key('format'):
-        file_format = options['format']
-    else:
-        file_format = 'binary'
+    # Default format is binary
+    file_format = options.get('format', 'binary')
 
     filenames = set_filenames(frame,path,file_format,file_prefix,read_aux)
 
