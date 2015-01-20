@@ -29,7 +29,7 @@ class Controller(object):
     :Examples:
 
         >>> import clawpack.pyclaw as pyclaw
-        >>> x = pyclaw.Dimension('x',0.,1.,100)
+        >>> x = pyclaw.Dimension(0.,1.,100,name='x')
         >>> domain = pyclaw.Domain((x))
         >>> state = pyclaw.State(domain,3,2)
         >>> claw = pyclaw.Controller()
