@@ -25,7 +25,7 @@ def before_step(solver,solution):
     """
     pass
 
-def default_tfluct():
+def default_tfluct(self):
     r"""This is a dummy routine and should never be called, check Euler1D
         to learn how to pass tfluct functions to the sharpclaw solver
     """
@@ -319,6 +319,7 @@ class SharpClawSolver(Solver):
                 self.sspcoeff0 = self._sspcoeff['Euler']
                 # Store initial solution and function evaluation
                 self._registers[-1].q = state.q.copy()
+                self._registers[-1].t = state.t
                 self.dq_stored = self.dq(state)
             if step_index < 3:
                 # Use Euler method for starting values
@@ -597,6 +598,7 @@ class SharpClawSolver(Solver):
                 # Update stored information
                 self._registers = self._registers[1:] + self._registers[:1]            
                 self._registers[-1].q = state.q.copy()
+                self._registers[-1].t = state.t
 
         # check cfl condition for Runge-Kutta methods
         elif cfl > self.cfl_max:
