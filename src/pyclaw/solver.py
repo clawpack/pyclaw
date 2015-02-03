@@ -319,7 +319,7 @@ class Solver(object):
                                         function signature has been changed.
                                         The previous signature will not be
                                         supported in Clawpack 6.0.  Please see 
-                                        http://clawpack.github.io/doc/pyclaw/solvers.html 
+                                        http://www.clawpack.org/pyclaw/solvers.html#change-to-custom-bc-function-signatures
                                         for more information.""")
                     self._use_old_bc_sig = True
 
