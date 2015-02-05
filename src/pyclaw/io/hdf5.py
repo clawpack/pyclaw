@@ -133,8 +133,8 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
                 else:
                     q = state.q
                 subgroup.create_dataset('q',data=q,**options)
-                if write_aux and patch.num_aux > 0:
-                    subgroup.create_dataset('aux',data=patch.aux,**options)
+                if write_aux and state.num_aux > 0:
+                    subgroup.create_dataset('aux',data=state.aux,**options)
         
     elif use_PyTables:
         # f = tables.openFile(filename, mode = "w", title = options['title'])
