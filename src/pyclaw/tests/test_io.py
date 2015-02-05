@@ -1,6 +1,7 @@
 import os
 from clawpack import pyclaw
 from clawpack.pyclaw import examples
+import numpy as np
 
 thisdir = os.path.dirname(__file__)
 file_formats = ['hdf5','ascii']
@@ -14,7 +15,13 @@ def test_io_from_hdf5():
     regression_dir = os.path.join(thisdir,'./test_data/Sedov_regression_hdf')
     read_write_and_compare(file_formats,regression_dir,'hdf5',1)
 
-def read_write_and_compare(file_formats,regression_dir,regression_format,frame_num):
+def test_io_from_hdf5_with_aux():
+    regression_dir = os.path.join(thisdir,'./test_data/advection_2d_with_aux')
+    read_write_and_compare(file_formats,regression_dir,'hdf5',0,aux=True)
+
+
+
+def read_write_and_compare(file_formats,regression_dir,regression_format,frame_num,aux=False):
     r"""Test IO file formats:
         - Reading in an HDF file
         - Writing  files in all formats (for now just ASCII, HDF5)
@@ -22,18 +29,20 @@ def read_write_and_compare(file_formats,regression_dir,regression_format,frame_n
         - Checking that all the resulting Solution objects are identical
     """
     ref_sol = pyclaw.Solution()
-    ref_sol.read(frame_num,path=regression_dir,file_format=regression_format)
+    ref_sol.read(frame_num,path=regression_dir,file_format=regression_format,read_aux=aux)
+    if aux:
+        assert (ref_sol.state.aux is not None)
 
     # Write solution file in each format
     io_test_dir = os.path.join(thisdir,'./io_test')
     for fmt in file_formats:
-        ref_sol.write(frame_num,path=io_test_dir,file_format=fmt)
+        ref_sol.write(frame_num,path=io_test_dir,file_format=fmt,write_aux=aux)
 
     # Read solutions back in
     s = {}
     for fmt in file_formats:
         s[fmt] = pyclaw.Solution()
-        s[fmt].read(frame_num,path=io_test_dir,file_format=fmt)
+        s[fmt].read(frame_num,path=io_test_dir,file_format=fmt,write_aux=aux)
 
     # Compare solutions
     # Probably better to do this by defining __eq__ for each class
@@ -44,12 +53,15 @@ def read_write_and_compare(file_formats,regression_dir,regression_format,frame_n
 def check_solutions_are_same(sol_a,sol_b):
     assert len(sol_a.states) == len(sol_b.states)
     assert sol_a.t == sol_b.t
-    for i,state in enumerate(sol_a.states):
-        for j, ref_state in enumerate(sol_b.states):
+    for state in sol_a.states:
+        for ref_state in sol_b.states:
             if ref_state.patch.patch_index == state.patch.patch_index:
                 break
 
         # Required state attributes
+        assert np.linalg.norm(state.q - ref_state.q) < 1.e-6 # Not sure why this can be so large
+        if ref_state.aux is not None:
+            assert np.linalg.norm(state.aux - ref_state.aux) < 1.e-16
         for attr in ['t', 'num_eqn', 'num_aux']:
             assert getattr(state,attr) == getattr(ref_state,attr)
         # Optional state attributes
