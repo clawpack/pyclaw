@@ -537,7 +537,7 @@ class Dimension(object):
         return self._lower
     @lower.setter
     def lower(self,lower):
-        self._lower = lower
+        self._lower = float(lower)
         self._centers = None  # Reset cached arrays
         self._edges = None
         self._check_validity()
@@ -546,7 +546,7 @@ class Dimension(object):
         return self._upper
     @upper.setter
     def upper(self,upper):
-        self._upper = upper
+        self._upper = float(upper)
         self._centers = None  # Reset cached arrays
         self._edges = None
         self._check_validity()
@@ -555,7 +555,7 @@ class Dimension(object):
         return self._num_cells
     @num_cells.setter
     def num_cells(self,num_cells):
-        self._num_cells = num_cells
+        self._num_cells = int(num_cells)
         self._centers = None  # Reset cached arrays
         self._edges = None
         self._check_validity()
@@ -602,11 +602,7 @@ class Dimension(object):
         self._edges_with_ghost = None
 
         # Parse args
-        if isinstance(args[0],float):
-            self._lower = float(args[0])
-            self._upper = float(args[1])
-            self._num_cells = int(args[2])
-        elif isinstance(args[0],basestring):
+        if isinstance(args[0],basestring):
             import warnings
             warnings.warn('Passing dimension name as first argument is deprecated. \
                            Pass it as a keyword argument instead.')
@@ -615,7 +611,9 @@ class Dimension(object):
             self._upper = float(args[2])
             self._num_cells = int(args[3])
         else:
-            raise Exception("Invalid initializer for Dimension.")
+            self._lower = float(args[0])
+            self._upper = float(args[1])
+            self._num_cells = int(args[2])
         
         for (k,v) in kargs.iteritems():
             setattr(self,k,v)
