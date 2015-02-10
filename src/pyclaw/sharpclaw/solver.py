@@ -402,8 +402,8 @@ class SharpClawSolver(Solver):
             return False
 
         # store function evaluation in case we reject step
-        self.dq_backup = self.deltaq 
-        # call again and save self.dq(state) to update CFL number 
+        self.dq_backup = self.deltaq
+        # call again and save self.dq(state) to update CFL number
         self.deltaq = self.dq(state)
 
 
@@ -551,42 +551,52 @@ class SharpClawSolver(Solver):
         """
         accept_step = True
 
-        # store function evaluation in case we reject step
-        dq_backup = self.dq_stored 
-
-        # update stored function evaluation and CFL number
-        self.dq_stored = self.dq(state)
         cfl = self.cfl.get_cached_max()
         
-        # check cfl condition for SSP LMM methods
+        # Check cfl condition for SSP LMM methods
         if self.time_integrator[:6] == 'SSPLMM':
             step_index = self.status['numsteps'] + 1
 
-            # condition for starting RK methods
+            # Here we actually need to check cfl violation only for the starting methods of SSPLMM32
+            # Step-size choice for SSPLMM43 guarantees that the above condition are always fulfilled.
+
+            # Condition for starting RK methods
             if step_index < len(self._registers):
                 if cfl > self.cfl_max:
                     accept_step = False
-                    self.dq_stored = dq_backup
-                # additional condition for SSPLMM43
-                elif self.time_integrator == 'SSPLMM43' and self.dt > 3./5. * self.dtFE_list[-1]:
-                    accept_step = False
-                    self.dq_stored = dq_backup
-            # only need to check conditions for SSPLMM43 for the steps LMM is active
-            elif self.time_integrator == 'SSPLMM43':
-                rhoFE = 9./10.
-                dtFE = self.dtFE_list[-1]
-                dtFEm1 = self.dtFE_list[-2]
-                if rhoFE * dtFEm1 > dtFE or dtFE > dtFEm1 / rhoFE:
-                    accept_step = False
-                    self.dq_stored = dq_backup
+                    self.deltaq = self.dq_backup
+                # Additional condition for SSPLMM43
+                if self.time_integrator == 'SSPLMM43':
+                    # the above condition is equivalent to self.dt > 0.6 * dtFE (up to machine precision),
+                    # where dtFE = self.dt / self.sspcoeff0 * self.cfl_max / cfl is the FE step-size
+                    # of the current solution.
+                    if cfl > 0.6 * self.cfl_max / self.sspcoeff0:
+                        accept_step = False
+                        self.deltaq = self.dq_backup
 
-            # update dt_list, dtFE_list
+            # Check conditions for SSPLMM43 for the steps LMM is active
+            elif self.time_integrator == 'SSPLMM43':
+                if step_index == 4:
+                    if cfl > 0.6 * self.cfl_max / self.sspcoeff0:
+                        accept_step = False
+                        self.deltaq = self.dq_backup
+                else:
+                    # In principle we only need to check the ratio of FE step-sizes after the second LMM43
+                    # is applied
+                    rhoFE = 0.9
+                    dtFE = self.dt / self.sspcoeff0 * self.cfl_max / cfl
+                    dtFEm1 = self.dtFE_list[-1]
+                    if rhoFE * dtFEm1 > dtFE or dtFE > dtFEm1 / rhoFE:
+                        accept_step = False
+                        self.deltaq = self.dq_backup
+
+            # Update dt_list, dtFE_list
             if accept_step:
                 dtFE = self.dt / self.sspcoeff0 * self.cfl_max / cfl
 
                 if step_index == 1:
+                    # Here we use dtFE(u1) for dtFE(u0) since max wave speed is not returned by self.dq
                     self.dtFE_list.append(dtFE)
-
                 if step_index < len(self._registers):
                     self.dt_list.append(self.dt)
                     self.dtFE_list.append(dtFE)
@@ -601,10 +611,14 @@ class SharpClawSolver(Solver):
                 self._registers[-1].q = state.q.copy()
                 self._registers[-1].t = state.t
 
-        # check cfl condition for Runge-Kutta methods
-        elif cfl > self.cfl_max:
-            accept_step = False
-            self.dq_stored = dq_backup
+        # Check cfl condition for Runge-Kutta methods
+        else:
+            if cfl > self.cfl_max:
+                accept_step = False
+                self.deltaq = self.dq_backup
+            else:
+                # Update dt_list
+                self.dt_list[-1] = self.dt
 
         return accept_step
 
@@ -614,32 +628,46 @@ class SharpClawSolver(Solver):
         Set time-step for next step depending on the time integrator and whether or not the step is accepted.
         """
         if self.time_integrator[:6] == 'SSPLMM':
-            # step-size update for SSP LMM methods            
-            step_index = self.status['numsteps'] + 1            
+            # Step-size update for SSP LMM methods
+            step_index = self.status['numsteps'] + 1
+
             if accept_step:
-                if step_index >= len(self._registers):
+                if self.time_integrator == 'SSPLMM43' and step_index <= len(self._registers):
+                    # Step-size for SSPLMM43 when first LMM is applied
+                    # We can replace self.cfl_desired with self.cfl_max to choose the maximum allowed step-size
+                    self.dt = 0.6 * self.dt * self.cfl_desired / (self.sspcoeff0 * cfl)
+                elif step_index < len(self._registers):
+                    # Step-size update of starting methods for SSPLMM32
+                    self.dt = self.dt * self.cfl_desired / cfl
+                else:
                     s = len(self._registers)
                     p = int(self.time_integrator[-1])
                     mu = min([self.dtFE_list[i] for i in range(s)])
-                    H = sum(self.dt_list)
+                    H = sum(self.dt_list[1:])
                     self.dt = H * mu / (H + (p-1)*mu)
-                else:
-                    # step-size update for starting methods
-                    self.dt = self.dt * self.cfl_desired / cfl
             else:
-                if step_index < len(self._registers):
-                    self.dt = self.dt * self.cfl_desired / cfl
-                    # additional conditions for SSPLMM43
-                    if self.time_integrator == 'SSPLMM43':
-                        self.dt = min(3./5. * self.dtFE_list[-1], self.dt)
-                elif self.time_integrator == 'SSPLMM43':
-                    # crude step-size reduction if step-size assumptions for SSPLMM43 are violated
-                    # no such assumptions are needed for SSPLMM32
-                    self.dt /= 2.
+                # Pick new step-size for SSPLMM43 if current step is rejected
+                if self.time_integrator == 'SSPLMM43':
+                    if step_index <= len(self._registers):
+                        dt1 =  0.6 * self.dt * self.cfl_desired / (self.sspcoeff0 * cfl)
+                        dt2 = self.dt * self.cfl_desired
+                        self.dt = min(dt1,dt2)
+                    else:
+                        # Choose step-size in order to satisfy the dtFE ratio condition if violated
+                        A = self.dtFE_list[-2] * self.sspcoeff0 * cfl / self.cfl_max
+                        self.dt = 181/180*A
+                else:
+                    # Note that steps for SSPLMM32 are always accepted when LMM is active
+                    if step_index < len(self._registers):
+                        self.dt = self.dt * self.cfl_desired / cfl
         else:
-            # step-size update for Runge-Kutta methods
-            self.dt_old = self.dt
+            # Step-size update for Runge-Kutta methods
             self.dt = self.dt * self.cfl_desired / cfl
+
+        #print step_index
+        #print accept_step
+        #print self.dt
+        #raw_input()
 
         return self.dt
 
