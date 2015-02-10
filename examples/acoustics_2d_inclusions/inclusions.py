@@ -24,8 +24,8 @@ import numpy as np
 circles = ( ((0.15,0.204),( 0.45,0.3)),
             ((0.15,0.204),( 0.7, 0.75)))
 
-impedance = (12.,0.3)
-sound_speed = (10.,1.5)
+impedance = (12.,10.)
+sound_speed = (0.3,1.5)
 
 def inclusion_mapping(xc, yc):
     """Apply mapping from square to circle for each circle specified.
@@ -126,10 +126,30 @@ def compute_geometry(grid):
 
     return a_x, a_y, length_ratio_left, b_x, b_y, length_ratio_bottom, area
 
+def incoming_square_wave(state,dim,t,qbc,auxbc,num_ghost):
+    """
+    Incoming square wave at left boundary.
+    """
+    if t<0.05:
+        s = 1.0
+    else:
+        s = 0.0
+
+    for i in xrange(num_ghost):
+        reflect_ind = 2*num_ghost - i - 1
+        alpha = auxbc[0,i,:]
+        beta  = auxbc[1,i,:]
+        u_normal = alpha*qbc[1,reflect_ind,:] + beta*qbc[2,reflect_ind,:]
+        u_tangential = -beta*qbc[1,reflect_ind,:] + alpha*qbc[2,reflect_ind,:]
+        u_normal = 2.0*s - u_normal
+        qbc[0,i,:] = qbc[0,reflect_ind,:]
+        qbc[1,i,:] = alpha*u_normal - beta*u_tangential
+        qbc[2,i,:] = beta*u_normal + alpha*u_tangential
+
 
 def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output', 
           solver_type='classic', time_integrator='SSP104', lim_type=2, 
-          disable_output=False, num_cells=(200, 200)):
+          disable_output=False, num_cells=200):
     from clawpack import riemann
 
     if use_petsc:
@@ -141,13 +161,14 @@ def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output',
 
     if solver_type=='classic':
         solver=pyclaw.ClawSolver2D(riemann_solver)
-        solver.dimensional_split=True
+        solver.dimensional_split=False
         solver.limiters = pyclaw.limiters.tvd.MC
     elif solver_type=='sharpclaw':
         solver=pyclaw.SharpClawSolver2D(riemann_solver)
         solver.time_integrator=time_integrator
 
-    solver.bc_lower[0]=pyclaw.BC.extrap
+    solver.bc_lower[0]=pyclaw.BC.custom
+    solver.user_bc_lower = incoming_square_wave
     solver.bc_upper[0]=pyclaw.BC.extrap
     solver.bc_lower[1]=pyclaw.BC.extrap
     solver.bc_upper[1]=pyclaw.BC.extrap
@@ -157,8 +178,8 @@ def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output',
     solver.aux_bc_lower[1]=pyclaw.BC.extrap
     solver.aux_bc_upper[1]=pyclaw.BC.extrap
 
-    x = pyclaw.Dimension(0.,1.0,num_cells[0],name='x')
-    y = pyclaw.Dimension(0.,1.0,num_cells[1],name='y')
+    x = pyclaw.Dimension(0.,1.0,num_cells,name='x')
+    y = pyclaw.Dimension(0.,1.0,num_cells,name='y')
     domain = pyclaw.Domain([x,y])
 
     num_eqn = 3
@@ -192,8 +213,7 @@ def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output',
         state.aux[8][in_circle] = sound_speed[i]
 
     # Set initial condition
-    x0 = -0.5
-    state.q[0,:,:] = np.abs(xp-0.1)<0.025#np.exp(-1000*(xp-x0)**2)
+    state.q[0,:,:] = 0.
     state.q[1,:,:] = 0.
     state.q[2,:,:] = 0.
 
@@ -236,13 +256,11 @@ def setplot(plotdata):
     plotaxes.afteraxes = plot_circles
 
     # Set up for item on these axes:
-    plotitem = plotaxes.new_plotitem(plot_type='2d_schlieren')
-    #plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
+    plotitem = plotaxes.new_plotitem(plot_type='2d_contour')
+    plotitem.contour_nlevels = 100
+    plotitem.contour_min = -2.51
+    plotitem.contour_max = 2.51
     plotitem.plot_var = 0
-    #plotitem.pcolor_cmap = colormaps.yellow_red_blue
-    #plotitem.add_colorbar = True
-    #plotitem.pcolor_cmin = 0.0
-    #plotitem.pcolor_cmax=1.0
     
     # Figure for x-velocity plot
     plotfigure = plotdata.new_plotfigure(name='x-Velocity', figno=1)
