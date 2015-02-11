@@ -149,7 +149,7 @@ def incoming_square_wave(state,dim,t,qbc,auxbc,num_ghost):
 
 def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output', 
           solver_type='classic', time_integrator='SSP104', lim_type=2, 
-          disable_output=False, num_cells=200):
+          num_output_times=20, disable_output=False, num_cells=200):
     from clawpack import riemann
 
     if use_petsc:
@@ -224,8 +224,8 @@ def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output',
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
-    claw.tfinal = 1.0
-    claw.num_output_times = 20
+    claw.tfinal = 0.9
+    claw.num_output_times = num_output_times
     claw.write_aux_init = True
     claw.setplot = setplot
     if use_petsc:
