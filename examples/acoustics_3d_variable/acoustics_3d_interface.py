@@ -18,10 +18,10 @@ and :math:`\rho(x,y,z)` is the density.
 This example shows how to solve a problem with variable coefficients.
 The left and right halves of the domain consist of different materials.
 """
- 
+
 import numpy as np
 
-def setup(use_petsc=False,outdir='./_output',solver_type='classic',
+def setup(use_petsc=False,use_boxlib=False,outdir='./_output',solver_type='classic',
           mx=30,my=30,mz=30,disable_output=False,problem='heterogeneous',**kwargs):
     """
     Example python script for solving the 3d acoustics equations.
@@ -30,6 +30,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
+    elif use_boxlib:
+        import clawpack.boxclaw as pyclaw
     else:
         from clawpack import pyclaw
 

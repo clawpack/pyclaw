@@ -283,12 +283,14 @@ class Solution(object):
         elif isinstance(file_format,list):
             format_list = file_format
 
-
         # Loop over list of formats requested
         for form in format_list:
             if 'petsc' in form:
                 from clawpack.petclaw import io
                 write_func = io.petsc.write
+            elif 'multifab' in form:
+                from clawpack.boxclaw import io
+                write_func = io.multifab.write
             else:
                 from clawpack.pyclaw import io
                 write_func = getattr(getattr(io,form),'write')

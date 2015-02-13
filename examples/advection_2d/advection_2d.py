@@ -24,12 +24,14 @@ def qinit(state):
     """
     X, Y = state.grid.p_centers
     state.q[0,:,:] = 0.9*(0.1<X)*(X<0.6)*(0.1<Y)*(Y<0.6) + 0.1
-                
 
-def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
+
+def setup(use_petsc=False,use_boxlib=False,outdir='./_output',solver_type='classic'):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
+    elif use_boxlib:
+        import clawpack.boxclaw as pyclaw
     else:
         from clawpack import pyclaw
 

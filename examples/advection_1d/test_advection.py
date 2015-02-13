@@ -37,7 +37,7 @@ def test_1d_advection():
                                  solver_type='sharpclaw',time_integrator='SSPMS32', outdir=None)
 
     weno_tests = gen_variants(advection_1d.setup, verify_expected(7.489618e-06),
-                                 kernel_languages=('Fortran',), solver_type='sharpclaw', 
+                                 kernel_languages=('Fortran',), solver_type='sharpclaw',
                                  time_integrator='SSP104', weno_order=17,
                                  outdir=None)
 
@@ -46,6 +46,14 @@ def test_1d_advection():
         yield test
 
 
-if __name__=="__main__":
-    import nose
-    nose.main()
+if __name__=='__main__':
+    for test in test_1d_advection():
+        test()
+
+    # monkey patch util.build_variant_arg_dicts and rerun tests
+    import clawpack.pyclaw.util
+    import clawpack.boxclaw.util
+    clawpack.pyclaw.util.build_variant_arg_dicts = clawpack.boxclaw.util.boxlib_build_variant_arg_dicts
+
+    for test in test_1d_advection():
+        test()
