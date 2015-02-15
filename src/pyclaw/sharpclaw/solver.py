@@ -183,7 +183,7 @@ class SharpClawSolver(Solver):
         self.cfl_desired = None
         self.cfl_max = None
         self.dq_src = None
-        self.deltaq = None
+        self.deltaq = []
         self.dq_backup = None
         self.prev_dt_values = []
         self.call_before_step_each_stage = False
@@ -281,15 +281,15 @@ class SharpClawSolver(Solver):
 
         if not self.prev_dt_values:
             # Compute function evaluation for initial condition
-            self.deltaq = self.dq(state)
+            self.deltaq.append(self.dq(state))
             self.prev_dt_values.append(self.dt)
-        self.deltaq = (self.dt/self.prev_dt_values[-1]) * self.deltaq
+        self.deltaq[-1] = (self.dt/self.prev_dt_values[-1]) * self.deltaq[-1]
 
         if self.time_integrator == 'Euler':
-            state.q += self.deltaq
+            state.q += self.deltaq[-1]
                 
         elif self.time_integrator == 'SSP33':
-            self._registers[0].q = state.q + self.deltaq
+            self._registers[0].q = state.q + self.deltaq[-1]
             self._registers[0].t = state.t + self.dt
 
             if self.call_before_step_each_stage:
@@ -326,7 +326,7 @@ class SharpClawSolver(Solver):
                 self._registers[-1].t = state.t
             if step_index < 3:
                 # Use Euler method for starting values
-                state.q += self.deltaq
+                state.q += self.deltaq[-1]
             else:
                 if step_index == 3:
                     self.sspcoeff0 = self._sspcoeff[self.time_integrator]
@@ -338,7 +338,7 @@ class SharpClawSolver(Solver):
                 delta = 1./omega2**2
                 beta = (omega2+1.)/omega2
 
-                state.q = beta*(r*state.q + self.deltaq) + delta*self._registers[-3].q
+                state.q = beta*(r*state.q + self.deltaq[-1]) + delta*self._registers[-3].q
 
         elif self.time_integrator == 'SSPLMM43':
             if step_index == 1:
@@ -348,7 +348,7 @@ class SharpClawSolver(Solver):
                 self._registers[-1].t = state.t
             if step_index < 4:
                 # Use SSP22 method for starting values
-                self._registers[0].q = state.q + self.deltaq
+                self._registers[0].q = state.q + self.deltaq[-1]
                 self._registers[0].t = state.t + self.dt
                 state.q = 0.5*(state.q + self._registers[0].q + self.dq(self._registers[0]))
             else:
@@ -367,7 +367,7 @@ class SharpClawSolver(Solver):
                 beta0 = omega4/omega3**2
                 beta3 = omega4**2/omega3**2
 
-                state.q = beta3*(r*state.q + self.deltaq) + \
+                state.q = beta3*(r*state.q + self.deltaq[-1]) + \
                         (r*beta0 + delta0)*self._registers[-4].q + beta0*self.dq(self._registers[-4])
 
         elif self.time_integrator == 'LMM':
@@ -375,32 +375,29 @@ class SharpClawSolver(Solver):
             # Store initial solution
             if step_index == 1:
                 self._registers[-num_steps].q  = state.q.copy()
-                self._registers[-num_steps].dq = self.dq(state)
+                self._registers[-num_steps].t = state.t
             if step_index < len(self._registers):
                 # Using SSP104 for previous step values
                 state.q = self.ssp104(state)
-                self._registers[-num_steps+step_index].q = state.q.copy()
-                self._registers[-num_steps+step_index].dq = self.dq(state)
-                step_index += 1
+
             else:
                 # Update solution: alpha[-1] and beta[-1] correspond to solution at the previous step
-                state.q = self.alpha[-1]*self._registers[-1].q + self.beta[-1]*self._registers[-1].dq
+                state.q = self.alpha[-1]*self._registers[-1].q + self.beta[-1]*self.deltaq[-1]
                 for i in range(-num_steps,-1):
-                    state.q += self.alpha[i]*self._registers[i].q + self.beta[i]*self._registers[i].dq
-                    self._registers[i].q = self._registers[i+1].q.copy()
-                    self._registers[i].dq = self._registers[i+1].dq.copy()
-                # Store current solution and function evaluation
-                self._registers[-1].q = state.q.copy()
-                self._registers[-1].dq = self.dq(state)
+                    state.q += self.alpha[i]*self._registers[i].q + self.beta[i]*self.deltaq[i]
 
         else:
             raise Exception('Unrecognized time integrator')
             return False
 
         # store function evaluation in case we reject step
-        self.dq_backup = self.deltaq
+        self.dq_backup = self.deltaq[-1]
+
         # call again and save self.dq(state) to update CFL number
-        self.deltaq = self.dq(state)
+        if self.time_integrator == 'LMM':
+            self.deltaq.append(self.dq(state))
+        else:
+            self.deltaq[-1] = self.dq(state)
 
 
     def ssp104(self,state):
@@ -414,7 +411,7 @@ class SharpClawSolver(Solver):
             s1 = copy.deepcopy(state)
             s2 = copy.deepcopy(s1)
 
-        s1.q = state.q + self.deltaq/6.
+        s1.q = state.q + self.deltaq[-1]/6.
         s1.t = state.t + self.dt/6.
 
         for i in xrange(4):
@@ -550,7 +547,8 @@ class SharpClawSolver(Solver):
         cfl = self.cfl.get_cached_max()
         
         # Check cfl condition for SSP LMM methods
-        if self.time_integrator[:6] == 'SSPLMM':
+        #if self.time_integrator[:6] == 'SSPLMM':
+        if 'LMM' in self.time_integrator:
             step_index = self.status['numsteps'] + 1
 
             # Here we actually need to check cfl violation only for the starting methods of SSPLMM32
@@ -560,7 +558,7 @@ class SharpClawSolver(Solver):
             if step_index < len(self._registers):
                 if cfl > self.cfl_max:
                     accept_step = False
-                    self.deltaq = self.dq_backup
+                    self.deltaq[-1] = self.dq_backup
                 # Additional condition for SSPLMM43
                 if self.time_integrator == 'SSPLMM43':
                     # the above condition is equivalent to self.dt > 0.6 * dtFE (up to machine precision),
@@ -568,14 +566,14 @@ class SharpClawSolver(Solver):
                     # of the current solution.
                     if cfl > 0.6 * self.cfl_max / self.sspcoeff0:
                         accept_step = False
-                        self.deltaq = self.dq_backup
+                        self.deltaq[-1] = self.dq_backup
 
             # Check conditions for SSPLMM43 for the steps LMM is active
             elif self.time_integrator == 'SSPLMM43':
                 if step_index == 4:
                     if cfl > 0.6 * self.cfl_max / self.sspcoeff0:
                         accept_step = False
-                        self.deltaq = self.dq_backup
+                        self.deltaq[-1] = self.dq_backup
                 else:
                     # In principle we only need to check the ratio of FE step-sizes after the second LMM
                     # is applied
@@ -584,23 +582,24 @@ class SharpClawSolver(Solver):
                     dtFEm1 = self.prev_dtFE_values[-1]
                     if rhoFE * dtFEm1 > dtFE or dtFE > dtFEm1 / rhoFE:
                         accept_step = False
-                        self.deltaq = self.dq_backup
+                        self.deltaq[-1] = self.dq_backup
 
             # Update prev_dt_values, prev_dtFE_values
             if accept_step:
-                dtFE = self.dt / self.sspcoeff0 * self.cfl_max / cfl
+                if self.time_integrator[:6] == 'SSPLMM':
+                    dtFE = self.dt / self.sspcoeff0 * self.cfl_max / cfl
 
-                if step_index == 1:
-                    # Here we use dtFE(u1) for dtFE(u0) since max wave speed is not returned by self.dq
-                    self.prev_dtFE_values.append(dtFE)
-                if step_index < len(self._registers):
-                    self.prev_dt_values.append(self.dt)
-                    self.prev_dtFE_values.append(dtFE)
-                else:
-                    self.prev_dt_values = self.prev_dt_values[1:] + self.prev_dt_values[:1]
-                    self.prev_dt_values[-1] = self.dt
-                    self.prev_dtFE_values = self.prev_dtFE_values[1:] + self.prev_dtFE_values[:1]
-                    self.prev_dtFE_values[-1] = dtFE
+                    if step_index == 1:
+                        # Here we use dtFE(u1) for dtFE(u0) since max wave speed is not returned by self.dq
+                        self.prev_dtFE_values.append(dtFE)
+                    if step_index < len(self._registers):
+                        self.prev_dt_values.append(self.dt)
+                        self.prev_dtFE_values.append(dtFE)
+                    else:
+                        self.prev_dt_values = self.prev_dt_values[1:] + self.prev_dt_values[:1]
+                        self.prev_dt_values[-1] = self.dt
+                        self.prev_dtFE_values = self.prev_dtFE_values[1:] + self.prev_dtFE_values[:1]
+                        self.prev_dtFE_values[-1] = dtFE
                 
                 # Update stored information
                 self._registers = self._registers[1:] + self._registers[:1]            
@@ -611,7 +610,7 @@ class SharpClawSolver(Solver):
         else:
             if cfl > self.cfl_max:
                 accept_step = False
-                self.deltaq = self.dq_backup
+                self.deltaq[-1] = self.dq_backup
             else:
                 # Update prev_dt_values
                 self.prev_dt_values[-1] = self.dt
@@ -656,6 +655,10 @@ class SharpClawSolver(Solver):
                         rhoFE = 0.9
                         A = self.prev_dtFE_values[-2] * self.sspcoeff0 * cfl / self.cfl_max
                         self.dt = A/2 * (1 + rhoFE**2) / rhoFE
+                else:
+                    # Note that steps for SSPLMM32 are always accepted when LMM is active
+                    if step_index < len(self._registers):
+                        self.dt = self.dt * self.cfl_desired / cfl     
         else:
             # Step-size update for Runge-Kutta methods
             self.dt = self.dt * self.cfl_desired / cfl
