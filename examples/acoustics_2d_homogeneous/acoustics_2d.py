@@ -44,7 +44,7 @@ def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output',
             solver.cfl_max = 0.5
             solver.cfl_desired = 0.45
         elif solver.time_integrator=='SSPLMM32':
-            solver.lim_type = 1
+            solver.lim_type = 2
             solver.cfl_max = 0.25
             solver.cfl_desired = 0.24
         else:
@@ -150,6 +150,5 @@ def setplot(plotdata):
 
     
 if __name__=="__main__":
-    import sys
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(setup,setplot)
