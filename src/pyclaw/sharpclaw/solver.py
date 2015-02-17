@@ -281,9 +281,9 @@ class SharpClawSolver(Solver):
 
         if not self.prev_dt_values:
             # Compute function evaluation for initial condition
-            self.deltaq.append(self.dq(state))
+            self.deltaq.append(self.dq(state)/self.dt)
             self.prev_dt_values.append(self.dt)
-        self.deltaq[-1] = (self.dt/self.prev_dt_values[-1]) * self.deltaq[-1]
+        self.deltaq[-1] = self.dt * self.deltaq[-1]
 
         if self.time_integrator == 'Euler':
             state.q += self.deltaq[-1]
@@ -367,8 +367,9 @@ class SharpClawSolver(Solver):
                 beta0 = omega4/omega3**2
                 beta3 = omega4**2/omega3**2
 
+                self.deltaq[-4] = self.dt * self.deltaq[-4]
                 state.q = beta3*(r*state.q + self.deltaq[-1]) + \
-                        (r*beta0 + delta0)*self._registers[-4].q + beta0*self.dq(self._registers[-4])
+                        (r*beta0 + delta0)*self._registers[-4].q + beta0*self.deltaq[-4]
 
         elif self.time_integrator == 'LMM':
             num_steps = len(self._registers)
@@ -384,20 +385,26 @@ class SharpClawSolver(Solver):
                 # Update solution: alpha[-1] and beta[-1] correspond to solution at the previous step
                 state.q = self.alpha[-1]*self._registers[-1].q + self.beta[-1]*self.deltaq[-1]
                 for i in range(-num_steps,-1):
-                    state.q += self.alpha[i]*self._registers[i].q + self.beta[i]*self.deltaq[i]
+                    state.q += self.alpha[i]*self._registers[i].q + self.beta[i]*self.dq(self._registers[i])
 
         else:
             raise Exception('Unrecognized time integrator')
             return False
 
         # store function evaluation in case we reject step
-        self.dq_backup = self.deltaq[-1]
+        self.dq_backup = self.deltaq[-1] / self.dt
 
         # call again and save self.dq(state) to update CFL number
-        if self.time_integrator == 'LMM':
-            self.deltaq.append(self.dq(state))
+        deltaq = self.dq(state) / self.dt
+        if self.time_integrator in ['LMM','SSPLMM43']:
+            self.deltaq[-1] = self.deltaq[-1]/self.dt
+            if step_index < len(self._registers):
+                self.deltaq.append(deltaq)
+            else:
+                self.deltaq = self.deltaq[1:] + self.deltaq[:1]
+                self.deltaq[-1] = deltaq
         else:
-            self.deltaq[-1] = self.dq(state)
+            self.deltaq[-1] = deltaq
 
 
     def ssp104(self,state):
@@ -961,3 +968,4 @@ class SharpClawSolver3D(SharpClawSolver):
 
         self.cfl.update_global_max(cfl)
         return dq[:,num_ghost:-num_ghost,num_ghost:-num_ghost,num_ghost:-num_ghost]
+
