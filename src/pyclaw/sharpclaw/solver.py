@@ -183,7 +183,7 @@ class SharpClawSolver(Solver):
         self.cfl_desired = None
         self.cfl_max = None
         self.dq_src = None
-        self.deltaq = []
+        self.dq_dt = []
         self.dq_backup = None
         self.prev_dt_values = []
         self.call_before_step_each_stage = False
@@ -279,17 +279,20 @@ class SharpClawSolver(Solver):
 
         self.before_step(self,state)
 
-        if not self.prev_dt_values:
+        if self.prev_dt_values == []:
             # Compute function evaluation for initial condition
-            self.deltaq.append(self.dq(state)/self.dt)
+            self.dq_dt.append(self.dq(state)/self.dt)
             self.prev_dt_values.append(self.dt)
-        self.deltaq[-1] = self.dt * self.deltaq[-1]
+            if self.time_integrator in ['SSPLMM32','SSPLMM43']:
+                # Compute forward Euler step-size for initial condition 
+                dtFE = self.dt / self.cfl.get_cached_max() * self.cfl_max / self._sspcoeff[self.time_integrator]
+                self.prev_dtFE_values.append(dtFE)
 
         if self.time_integrator == 'Euler':
-            state.q += self.deltaq[-1]
+            state.q += self.dt*self.dq_dt[-1]
                 
         elif self.time_integrator == 'SSP33':
-            self._registers[0].q = state.q + self.deltaq[-1]
+            self._registers[0].q = state.q + self.dt*self.dq_dt[-1]
             self._registers[0].t = state.t + self.dt
 
             if self.call_before_step_each_stage:
@@ -321,12 +324,12 @@ class SharpClawSolver(Solver):
         elif self.time_integrator == 'SSPLMM32':
             if step_index == 1:
                 self.sspcoeff0 = self._sspcoeff['Euler']
-                # Save initial solution
+                # Save initial condition
                 self._registers[-1].q = state.q.copy()
                 self._registers[-1].t = state.t
             if step_index < 3:
                 # Use Euler method for starting values
-                state.q += self.deltaq[-1]
+                state.q += self.dt*self.dq_dt[-1]
             else:
                 if step_index == 3:
                     self.sspcoeff0 = self._sspcoeff[self.time_integrator]
@@ -338,23 +341,23 @@ class SharpClawSolver(Solver):
                 delta = 1./omega2**2
                 beta = (omega2+1.)/omega2
 
-                state.q = beta*(r*state.q + self.deltaq[-1]) + delta*self._registers[-3].q
+                state.q = beta*(r*state.q + self.dt*self.dq_dt[-1]) + delta*self._registers[-3].q
 
         elif self.time_integrator == 'SSPLMM43':
             if step_index == 1:
                 self.sspcoeff0 = self._sspcoeff['SSP22']
-                # Store initial solution
+                # Store initial condition
                 self._registers[-1].q = state.q.copy()
                 self._registers[-1].t = state.t
             if step_index < 4:
                 # Use SSP22 method for starting values
-                self._registers[0].q = state.q + self.deltaq[-1]
+                self._registers[0].q = state.q + self.dt*self.dq_dt[-1]
                 self._registers[0].t = state.t + self.dt
+
+                if self.call_before_step_each_stage:
+                    self.before_step(self,self._registers[0])
                 state.q = 0.5*(state.q + self._registers[0].q + self.dq(self._registers[0]))
             else:
-                # This part can be impoved by saving function evaluations of previous solutions in a list
-                # Thus self.dq(self._registers[-4] wont be calculated at the current step, but use already
-                # saved values.
                 if step_index == 4:
                     self.sspcoeff0 = self._sspcoeff[self.time_integrator]
 
@@ -367,9 +370,8 @@ class SharpClawSolver(Solver):
                 beta0 = omega4/omega3**2
                 beta3 = omega4**2/omega3**2
 
-                self.deltaq[-4] = self.dt * self.deltaq[-4]
-                state.q = beta3*(r*state.q + self.deltaq[-1]) + \
-                        (r*beta0 + delta0)*self._registers[-4].q + beta0*self.deltaq[-4]
+                state.q = beta3*(r*state.q + self.dt*self.dq_dt[-1]) + \
+                        (r*beta0 + delta0)*self._registers[-4].q + beta0*self.dt*self.dq_dt[-4]
 
         elif self.time_integrator == 'LMM':
             num_steps = len(self._registers)
@@ -380,31 +382,32 @@ class SharpClawSolver(Solver):
             if step_index < len(self._registers):
                 # Using SSP104 for previous step values
                 state.q = self.ssp104(state)
-
             else:
                 # Update solution: alpha[-1] and beta[-1] correspond to solution at the previous step
-                state.q = self.alpha[-1]*self._registers[-1].q + self.beta[-1]*self.deltaq[-1]
+                state.q = self.alpha[-1]*self._registers[-1].q + self.beta[-1]*self.dt*self.dq_dt[-1]
                 for i in range(-num_steps,-1):
-                    state.q += self.alpha[i]*self._registers[i].q + self.beta[i]*self.dq(self._registers[i])
+                    state.q += self.alpha[i]*self._registers[i].q + self.beta[i]*self.dt*self.dq_dt[i]
 
         else:
             raise Exception('Unrecognized time integrator')
             return False
 
         # store function evaluation in case we reject step
-        self.dq_backup = self.deltaq[-1] / self.dt
+        self.dq_backup = self.dq_dt[-1]
 
         # call again and save self.dq(state) to update CFL number
-        deltaq = self.dq(state) / self.dt
+        state.t += self.dt
+        self.before_step(self,state)
+        state.t -= self.dt
+        dq_dt = self.dq(state) / self.dt
         if self.time_integrator in ['LMM','SSPLMM43']:
-            self.deltaq[-1] = self.deltaq[-1]/self.dt
             if step_index < len(self._registers):
-                self.deltaq.append(deltaq)
+                self.dq_dt.append(dq_dt)
             else:
-                self.deltaq = self.deltaq[1:] + self.deltaq[:1]
-                self.deltaq[-1] = deltaq
+                self.dq_dt = self.dq_dt[1:] + self.dq_dt[:1]
+                self.dq_dt[-1] = dq_dt
         else:
-            self.deltaq[-1] = deltaq
+            self.dq_dt[-1] = dq_dt
 
 
     def ssp104(self,state):
@@ -418,7 +421,7 @@ class SharpClawSolver(Solver):
             s1 = copy.deepcopy(state)
             s2 = copy.deepcopy(s1)
 
-        s1.q = state.q + self.deltaq[-1]/6.
+        s1.q = state.q + self.dt*self.dq_dt[-1]/6.
         s1.t = state.t + self.dt/6.
 
         for i in xrange(4):
@@ -546,70 +549,65 @@ class SharpClawSolver(Solver):
         r"""
         Decide whether to accept or not the current step.
         For Runge-Kutta methods the step is accepted if cfl <= cfl_max.
-        For SSPLMM32 the choice of step-size guarantees the cfl condition is satisfied.
-        For SSPLMM43 additional checks on the cfl number and ratio of forward Euler step-sizes are required.
+        For SSPLMM32 the choice of step-size guarantees the cfl condition is satisfied for the steps the LMM
+        is used. Hence, we need to check the cfl condition only for the starting steps. 
+        Note that for SSPLMM43 a special condition applies for the starting methodss and in addition a condition
+        on the ratio of forward Euler step-sizes is required when the LMM is used.
         """
         accept_step = True
 
         cfl = self.cfl.get_cached_max()
         
         # Check cfl condition for SSP LMM methods
-        #if self.time_integrator[:6] == 'SSPLMM':
         if 'LMM' in self.time_integrator:
             step_index = self.status['numsteps'] + 1
 
-            # Here we actually need to check cfl violation only for the starting methods of SSPLMM32
-            # Step-size choice for SSPLMM43 guarantees that the above condition are always fulfilled.
-
             # Condition for starting RK methods
             if step_index < len(self._registers):
-                if cfl > self.cfl_max:
+                if self.time_integrator == 'LMM':
+                    sspcoeff_ratio = 1.
+                else:
+                    sspcoeff_ratio = self.sspcoeff0/self._sspcoeff[self.time_integrator]
+
+                if cfl > sspcoeff_ratio * self.cfl_max:
                     accept_step = False
-                    self.deltaq[-1] = self.dq_backup
+                    self.dq_dt[-1] = self.dq_backup
                 # Additional condition for SSPLMM43
                 if self.time_integrator == 'SSPLMM43':
-                    # the above condition is equivalent to self.dt > 0.6 * dtFE (up to machine precision),
-                    # where dtFE = self.dt / self.sspcoeff0 * self.cfl_max / cfl is the FE step-size
-                    # of the current solution.
-                    if cfl > 0.6 * self.cfl_max / self.sspcoeff0:
+                    # The condition below is equivalent to self.dt > 0.6 * dtFE (up to machine precision),
+                    # where dtFE = (self.dt / cfl) * (self.cfl_max / self._sspcoeff[self.time_integrator])
+                    # is the forward Euler step-size of the current solution.
+                    if cfl > 0.6 * self.cfl_max / self._sspcoeff[self.time_integrator]:
                         accept_step = False
-                        self.deltaq[-1] = self.dq_backup
+                        self.dq_dt[-1] = self.dq_backup
 
-            # Check conditions for SSPLMM43 for the steps LMM is active
+            # Check conditions for SSPLMM43 when the LMM is used
             elif self.time_integrator == 'SSPLMM43':
-                if step_index == 4:
-                    if cfl > 0.6 * self.cfl_max / self.sspcoeff0:
-                        accept_step = False
-                        self.deltaq[-1] = self.dq_backup
-                else:
-                    # In principle we only need to check the ratio of FE step-sizes after the second LMM
-                    # is applied
-                    rhoFE = 0.9
-                    dtFE = self.dt / self.sspcoeff0 * self.cfl_max / cfl
-                    dtFEm1 = self.prev_dtFE_values[-1]
-                    if rhoFE * dtFEm1 > dtFE or dtFE > dtFEm1 / rhoFE:
-                        accept_step = False
-                        self.deltaq[-1] = self.dq_backup
+                rhoFE = 0.9
+                dtFE = self.dt / self.sspcoeff0 * self.cfl_max / cfl
+                dtFEm1 = self.prev_dtFE_values[-1]
+                if rhoFE * dtFEm1 > dtFE or dtFE > dtFEm1 / rhoFE:
+                    accept_step = False
+                    self.dq_dt[-1] = self.dq_backup
 
-            # Update prev_dt_values, prev_dtFE_values
             if accept_step:
-                if self.time_integrator[:6] == 'SSPLMM':
-                    dtFE = self.dt / self.sspcoeff0 * self.cfl_max / cfl
+                if 'SSPLMM' in self.time_integrator:
+                    # Compute current forward Euler step-size
+                    dtFE = self.dt / cfl * self.cfl_max / self._sspcoeff[self.time_integrator]
 
-                    if step_index == 1:
-                        # Here we use dtFE(u1) for dtFE(u0) since max wave speed is not returned by self.dq
-                        self.prev_dtFE_values.append(dtFE)
                     if step_index < len(self._registers):
+                        # Save dt and  dtFE
                         self.prev_dt_values.append(self.dt)
                         self.prev_dtFE_values.append(dtFE)
                     else:
+                        # Update prev_dt_values, prev_dtFE_values
                         self.prev_dt_values = self.prev_dt_values[1:] + self.prev_dt_values[:1]
                         self.prev_dt_values[-1] = self.dt
                         self.prev_dtFE_values = self.prev_dtFE_values[1:] + self.prev_dtFE_values[:1]
                         self.prev_dtFE_values[-1] = dtFE
-                
-                # Update stored information
-                self._registers = self._registers[1:] + self._registers[:1]            
+
+                # Update saved soluton
+                self._registers = self._registers[1:] + self._registers[:1]
                 self._registers[-1].q = state.q.copy()
                 self._registers[-1].t = state.t
 
@@ -617,7 +615,7 @@ class SharpClawSolver(Solver):
         else:
             if cfl > self.cfl_max:
                 accept_step = False
-                self.deltaq[-1] = self.dq_backup
+                self.dq_dt[-1] = self.dq_backup
             else:
                 # Update prev_dt_values
                 self.prev_dt_values[-1] = self.dt
@@ -628,46 +626,39 @@ class SharpClawSolver(Solver):
     def get_dt_new(self,cfl,accept_step):
         r"""
         Set time-step for next step depending on the time integrator and whether or not the step is accepted.
-        Currently, a new step-size is chosen if a step is rejected, although this is not neccesary since the
-        step-size control guarantees that steps are always accepted.
-        Essentially we only need to pick a new step-size if the dtFE ratio condition for SSPLMM43 is violated.
+        Note that for SSPLMM the step-size choice guarantees that no LMM steps are rejected, hence we need to 
+        pick a new step-size only when SSPLMM43 is used and the step is rejected.
         """
-        if self.time_integrator[:6] == 'SSPLMM':
-            # Step-size update for SSP LMM methods
+
+        if 'SSPLMM' in self.time_integrator:
             step_index = self.status['numsteps'] + 1
 
-            if accept_step:
-                if self.time_integrator == 'SSPLMM43' and step_index <= len(self._registers):
-                    # Step-size for SSPLMM43 when first LMM is applied
-                    # We can replace self.cfl_desired with self.cfl_max to choose the maximum allowed step-size
-                    self.dt = 0.6 * self.dt * self.cfl_desired / (self.sspcoeff0 * cfl)
-                elif step_index < len(self._registers):
-                    # Step-size update of starting methods for SSPLMM32
-                    self.dt = self.dt * self.cfl_desired / cfl
+            if step_index < len(self._registers):
+                # Step-size update of starting methods
+                sspcoeff_ratio = self.sspcoeff0/self._sspcoeff[self.time_integrator]
+                dt = sspcoeff_ratio * self.dt * self.cfl_desired / cfl
+                if self.time_integrator == 'SSPLMM43':
+                    dt2 = 0.6 * self.dt / cfl * self.cfl_desired / self._sspcoeff[self.time_integrator]
+                    self.dt = min(dt,dt2)
                 else:
+                    self.dt = dt
+            else:
+                # Step-size update for the steps LMM is used
+                if accept_step:
                     s = len(self._registers)
                     p = int(self.time_integrator[-1])
                     mu = min([self.prev_dtFE_values[i] for i in range(s)])
                     H = sum(self.prev_dt_values[1:])
                     self.dt = H * mu / (H + (p-1)*mu)
-            else:
-                # Pick new step-size for SSPLMM43 if current step is rejected
-                if self.time_integrator == 'SSPLMM43':
-                    if step_index <= len(self._registers):
-                        dt1 =  0.6 * self.dt * self.cfl_desired / (self.sspcoeff0 * cfl)
-                        dt2 = self.dt * self.cfl_desired
-                        self.dt = min(dt1,dt2)
-                    else:
-                        # Choose step-size in order to satisfy the dtFE ratio condition if violated
+                else:
+                    if self.time_integrator == 'SSPLMM43':
+                        # Choose a new step-size if the dtFE ratio condition is violated
                         rhoFE = 0.9
                         A = self.prev_dtFE_values[-2] * self.sspcoeff0 * cfl / self.cfl_max
                         self.dt = A/2 * (1 + rhoFE**2) / rhoFE
-                else:
-                    # Note that steps for SSPLMM32 are always accepted when LMM is active
-                    if step_index < len(self._registers):
-                        self.dt = self.dt * self.cfl_desired / cfl     
+
+        # Step-size update for RK methods
         else:
-            # Step-size update for Runge-Kutta methods
             self.dt = self.dt * self.cfl_desired / cfl
 
         return self.dt
