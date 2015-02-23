@@ -454,11 +454,11 @@ class OutputController(object):
     def file_format(self, value):
         if value.lower() == 'petsc':
             self._io_module = __import__("clawpack.petclaw.io.petsc", 
-                                   fromlist=["clawpack.petclaw.io"])
+                                         fromlist=["clawpack.petclaw.io"])
             self._file_format = value
         else:
             self._io_module = __import__("clawpack.pyclaw.io.%s" % value, 
-                                   fromlist=['clawpack.pyclaw.io'])
+                                         fromlist=['clawpack.pyclaw.io'])
             self._file_format = value
 
         
