@@ -574,6 +574,7 @@ class Solver(object):
                 q_backup = state.q.copy('F')
                 told = solution.t
 
+            # Note that the solver may alter dt during the step() routine
             self.step(solution)
 
             # Check to make sure that the Courant number was not too large
