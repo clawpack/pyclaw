@@ -190,7 +190,7 @@ class SharpClawSolver(Solver):
         self._mthlim = self.limiters
         self._method = None
         self._registers = None
-        self._last_step_rejected = False
+        self._keep_this_dt = False
 
         # Used only if time integrator is 'RK'
         self.a = None
@@ -268,7 +268,7 @@ class SharpClawSolver(Solver):
 
 
     # ========== Time stepping routines ======================================
-    def step(self,solution):
+    def step(self,solution,tmax):
         """Evolve q over one time step.
 
         Take one step with a Runge-Kutta or multistep method as specified by
@@ -334,7 +334,7 @@ class SharpClawSolver(Solver):
                 state.q += self.dt * dq_dt
             else:
                 self.sspcoeff0 = self._sspcoeff[self.time_integrator]
-                self.set_dt()
+                self.set_dt(state.t,tmax)
 
                 omega2 = sum(self.prev_dt_values[1:])/self.dt
                 # SSP coefficient
@@ -361,7 +361,7 @@ class SharpClawSolver(Solver):
                 state.q = 0.5*(state.q + self._registers[0].q + self.dq(self._registers[0]))
             else:
                 self.sspcoeff0 = self._sspcoeff[self.time_integrator]
-                self.set_dt()
+                self.set_dt(state.t,tmax)
 
                 omega3 = sum(self.prev_dt_values[-3:])/self.dt
                 omega4 = omega3 + 1.
@@ -612,20 +612,23 @@ class SharpClawSolver(Solver):
             if cfl > self.cfl_max:
                 accept_step = False
 
-        self._last_step_rejected = not accept_step
+        self._keep_this_dt = not accept_step
 
         return accept_step
 
 
-    def set_dt(self):
+    def set_dt(self,t,tmax):
         r"""This should only be called for SSPLMM methods."""
-        if self._last_step_rejected == False:
+        if self._keep_this_dt == False:
             s = len(self._registers)
             p = int(self.time_integrator[-1])
             mu = min([self.prev_dtFE_values[i] for i in range(s)])
             H = sum(self.prev_dt_values[1:])
             self.dt = H * mu / (H + (p-1)*mu)
         
+        # Adjust dt so that we hit tmax exactly if we are near tmax
+        if t + self.dt > tmax:
+            self.dt = tmax - t
 
     def get_dt_new(self,cfl,accept_step):
         r"""

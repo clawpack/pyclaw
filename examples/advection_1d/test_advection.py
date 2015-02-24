@@ -32,7 +32,7 @@ def test_1d_advection():
                                  kernel_languages=('Python','Fortran'),
                                  solver_type='sharpclaw',time_integrator='SSP104', outdir=None)
 
-    sharp_tests_lmm = gen_variants(advection_1d.setup, verify_expected(9.224735e-05),
+    sharp_tests_lmm = gen_variants(advection_1d.setup, verify_expected(9.130139e-05),
                                  kernel_languages=('Python','Fortran'),
                                  solver_type='sharpclaw',time_integrator='SSPLMM32', outdir=None)
 

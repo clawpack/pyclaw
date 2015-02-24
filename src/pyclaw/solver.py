@@ -575,7 +575,7 @@ class Solver(object):
                 told = solution.t
 
             # Note that the solver may alter dt during the step() routine
-            self.step(solution)
+            self.step(solution,tend)
 
             # Check to make sure that the Courant number was not too large
             accept_step = self.accept_reject_step(state)

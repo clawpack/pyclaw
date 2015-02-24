@@ -99,7 +99,7 @@ class ClawSolver(Solver):
         super(ClawSolver,self).__init__(riemann_solver,claw_package)
     
     # ========== Time stepping routines ======================================
-    def step(self,solution):
+    def step(self,solution,tmax):
         r"""
         Evolve solution one time step
 
