@@ -503,7 +503,8 @@ class Solver(object):
     # ========================================================================
     #  Evolution routines
     # ========================================================================
-    def accept_reject_step(self,state,cfl):
+    def accept_reject_step(self,state):
+        cfl = self.cfl.get_cached_max()
         if cfl > self.cfl_max:
             return False
         else:
@@ -579,7 +580,7 @@ class Solver(object):
 
             # Check to make sure that the Courant number was not too large
             cfl = self.cfl.get_cached_max()
-            self.accept_step = self.accept_reject_step(state,cfl)
+            self.accept_step = self.accept_reject_step(state)
             if self.accept_step:
                 # Accept this step
                 self.status['cflmax'] = max(cfl, self.status['cflmax'])
