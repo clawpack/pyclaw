@@ -162,6 +162,7 @@ class Solver(object):
         self.fmod = None
         self._is_set_up = False
         self._use_old_bc_sig = False
+        self.accept_step = False
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
@@ -502,14 +503,13 @@ class Solver(object):
     # ========================================================================
     #  Evolution routines
     # ========================================================================
-    def accept_reject_step(self,state):
-        cfl = self.cfl.get_cached_max()
+    def accept_reject_step(self,state,cfl):
         if cfl > self.cfl_max:
             return False
         else:
             return True
 
-    def get_dt_new(self,cfl,accept_step):
+    def get_dt_new(self,cfl):
         return min(self.dt_max,self.dt * self.cfl_desired / cfl)
     
     def evolve_to_time(self,solution,tend=None):
@@ -578,9 +578,9 @@ class Solver(object):
             self.step(solution,tend)
 
             # Check to make sure that the Courant number was not too large
-            accept_step = self.accept_reject_step(state)
             cfl = self.cfl.get_cached_max()
-            if accept_step:
+            self.accept_step = self.accept_reject_step(state,cfl)
+            if self.accept_step:
                 # Accept this step
                 self.status['cflmax'] = max(cfl, self.status['cflmax'])
                 if self.dt_variable==True:
@@ -613,7 +613,7 @@ class Solver(object):
             # Choose new time step
             if self.dt_variable:
                 if cfl > 0.0:
-                    self.dt = self.get_dt_new(cfl,accept_step)
+                    self.dt = self.get_dt_new(cfl)
                     self.status['dtmin'] = min(self.dt, self.status['dtmin'])
                     self.status['dtmax'] = max(self.dt, self.status['dtmax'])
                 else:
