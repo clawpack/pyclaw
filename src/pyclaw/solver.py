@@ -613,7 +613,7 @@ class Solver(object):
             # Choose new time step
             if self.dt_variable:
                 if cfl > 0.0:
-                    self.dt = self.get_dt_new(cfl)
+                    self.dt = self.get_dt_new()
                     self.status['dtmin'] = min(self.dt, self.status['dtmin'])
                     self.status['dtmax'] = max(self.dt, self.status['dtmax'])
                 else:
