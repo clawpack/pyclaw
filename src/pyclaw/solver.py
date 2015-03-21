@@ -162,6 +162,8 @@ class Solver(object):
         self.fmod = None
         self._is_set_up = False
         self._use_old_bc_sig = False
+        self.accept_step = False
+        self.adjust_dt = False
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
@@ -509,35 +511,36 @@ class Solver(object):
         else:
             return True
 
-    def get_dt_new(self,cfl):
+    def get_dt_new(self):
+        cfl = self.cfl.get_cached_max()
         return min(self.dt_max,self.dt * self.cfl_desired / cfl)
     
     def evolve_to_time(self,solution,tend=None):
         r"""
         Evolve solution from solution.t to tend.  If tend is not specified,
         take a single step.
-        
+ 
         This method contains the machinery to evolve the solution object in
         ``solution`` to the requested end time tend if given, or one 
-        step if not.          
+        step if not. 
 
         :Input:
          - *solution* - (:class:`Solution`) Solution to be evolved
-         - *tend* - (float) The end time to evolve to, if not provided then 
+         - *tend* - (float) The end time to evolve to, if not provided then
            the method will take a single time step.
-            
+ 
         :Output:
          - (dict) - Returns the status dictionary of the solver
         """
 
         if not self._is_set_up:
             self.setup(solution)
-        
+ 
         if tend == None:
             take_one_step = True
         else:
             take_one_step = False
-            
+ 
         # Parameters for time-stepping
         tstart = solution.t
 
@@ -556,18 +559,24 @@ class Solver(object):
         if tend <= tstart and not take_one_step:
             self.logger.info("Already at or beyond end time: no evolution required.")
             self.max_steps = 0
-                
+ 
         # Main time-stepping loop
         for n in xrange(self.max_steps):
-            
+ 
             state = solution.state
-            
+ 
             # Adjust dt so that we hit tend exactly if we are near tend
             if not take_one_step:
                 if solution.t + self.dt > tend and tstart < tend:
                     self.dt = tend - solution.t
+                    self.adjust_dt = True
+                else:
+                    self.adjust_dt = False
                 if tend - solution.t - self.dt < 1.e-14*solution.t:
                     self.dt = tend - solution.t
+                    self.adjust_dt = True
+                else:
+                    self.adjust_dt = False
 
             # Keep a backup in case we need to retake a time step
             if self.dt_variable:
@@ -575,7 +584,7 @@ class Solver(object):
                 told = solution.t
 
             # Note that the solver may alter dt during the step() routine
-            self.step(solution,tend)
+            self.step(solution)
 
             # Check to make sure that the Courant number was not too large
             cfl = self.cfl.get_cached_max()
@@ -592,12 +601,12 @@ class Solver(object):
                 # Verbose messaging
                 self.logger.debug("Step %i  CFL = %f   dt = %f   t = %f"
                     % (n,cfl,self.dt,solution.t))
-                    
+ 
                 self.write_gauge_values(solution)
                 # Increment number of time steps completed
                 num_steps += 1
                 self.status['numsteps'] += 1
-                
+ 
             else:
                 # Reject this step
                 self.logger.debug("Rejecting time step, CFL number too large")
@@ -609,7 +618,7 @@ class Solver(object):
                     self.status['cflmax'] = \
                         max(cfl, self.status['cflmax'])
                     raise Exception('CFL too large, giving up!')
-                    
+ 
             # Choose new time step
             if self.dt_variable:
                 if cfl > 0.0:
