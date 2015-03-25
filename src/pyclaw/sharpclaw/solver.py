@@ -442,7 +442,11 @@ class SharpClawSolver(Solver):
 
                 if (self.time_integrator in ['SSPLMM43','SSPLMM53']) and self.check_lmm_cond:
                     self.accept_step = self.check_3rd_ord_cond(state,step_index,dtFE)
-                    if not self.accept_step: return
+                    if not self.accept_step:
+                        state.q[:] = self._registers[-1].q
+                        state.t = self._registers[-1].t
+                        self.status['numsteps'] -= 1
+                        return
 
                 if step_index <= len(self._registers):  # Startup
                     if (self.time_integrator in ['SSPLMM43','SSPLMM53']):
@@ -487,17 +491,11 @@ class SharpClawSolver(Solver):
             rho = 0.6 if self.time_integrator == 'SSPLMM43' else 0.57
             if self.dt > rho * dtFE:
                 accept_step = False
-                state.q[:] = self._registers[-1].q
-                state.t = self._registers[-1].t
-                self.status['numsteps'] -= 1
 
         rhoFE = 0.9 if self.time_integrator == 'SSPLMM43' else 0.962
         dtFEm1 = self.prev_dtFE_values[-1]
         if rhoFE * dtFEm1 > dtFE or dtFE > dtFEm1 / rhoFE:
             accept_step = False
-            state.q[:] = self._registers[-1].q
-            state.t = self._registers[-1].t
-            self.status['numsteps'] -= 1
 
         return accept_step
 
