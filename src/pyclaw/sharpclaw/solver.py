@@ -286,6 +286,8 @@ class SharpClawSolver(Solver):
 
         if 'LMM' in self.time_integrator:
             self.update_saved_values(state,dq_dt,step_index)
+            if step_index == 1:
+                self.save_init_sol(state)
 
         ### Runge-Kutta methods ###
         if self.time_integrator == 'Euler':
@@ -310,7 +312,7 @@ class SharpClawSolver(Solver):
         elif self.time_integrator == 'RK':
             # General explicit RK with specified coefficients
 
-            # This is pulled out of the loop to use dq_dt
+            # This is pulled out of the loop in order to use dq_dt
             self._registers[0].q = self.dt*dq_dt
             self._registers[0].t = state.t
 
@@ -330,9 +332,6 @@ class SharpClawSolver(Solver):
         ### Linear multistep methods ###
         elif self.time_integrator in ['SSPLMM32', 'SSPLMM43', 'SSPLMM53']:
             num_steps = int(self.time_integrator[-2])
-            if step_index == 1:
-                # Save initial condition
-                self.save_init_sol(state)
             if step_index < num_steps:
                 # Use SSP22 Runge-Kutta method for starting values
                 self.sspcoeff0 = self._sspcoeff['SSP22']
@@ -350,19 +349,16 @@ class SharpClawSolver(Solver):
 
                 if self.time_integrator == 'SSPLMM32':
                     omega2 = sum(self.prev_dt_values[1:])/self.dt
-                    # SSP coefficient
-                    r = (omega2-1.)/omega2
-                    # Method coefficients
+                    r = (omega2-1.)/omega2 # SSP coefficient
+
                     delta = 1./omega2**2
                     beta = (omega2+1.)/omega2
-
                     state.q = beta*(r*state.q + self.dt*dq_dt) + delta*self._registers[-3].q
                 else:
                     omega_k_minus_1 = sum(self.prev_dt_values[1:])/self.dt
                     omega_k = omega_k_minus_1 + 1.
-                    # SSP coefficient
-                    r = (omega_k_minus_1-2.)/omega_k_minus_1
-                    # Method coefficients
+                    r = (omega_k_minus_1-2.)/omega_k_minus_1 # SSP coefficient
+
                     delta0 = (4*omega_k - omega_k_minus_1**2)/omega_k_minus_1**3
                     beta0 = omega_k/omega_k_minus_1**2
                     beta_k_minus_1 = omega_k**2/omega_k_minus_1**2
@@ -374,12 +370,8 @@ class SharpClawSolver(Solver):
 
         elif self.time_integrator == 'LMM':
             assert self.dt_variable == False
-            if step_index == 1:
-                # Save initial solution
-                self.save_init_sol(state)
             if step_index < len(self._registers):
-                # Using SSP104 for previous step values
-                state.q = self.ssp104(state,dq_dt)
+                state.q = self.ssp104(state,dq_dt) # Use SSP104 for starting values
             else:
                 # Update solution: alpha[-1] and beta[-1] correspond to solution at the previous step
                 state.q = self.alpha[-1]*self._registers[-1].q + self.beta[-1]*self.dt*dq_dt
@@ -433,7 +425,7 @@ class SharpClawSolver(Solver):
         r""" 
         Updates lists of saved function evaluations, solution values, dt and dtFE for LMMs.
         For 3rd-order SSPLMM additional conditions are checked if self.check_lmm_cond is set to True.
-        In such case, if the conditions are violated the solution is discarded and the previous step is repeated.
+        If these conditions are violated, the step is rejected.
         """
         if (self.prev_dt_values == []):
             # This only happens at the very beginning of the computation
@@ -443,24 +435,22 @@ class SharpClawSolver(Solver):
                 cfl = self.cfl.get_cached_max()
                 dtFE = self.dt / cfl * self.cfl_max / self._sspcoeff[self.time_integrator]
                 self.prev_dtFE_values.append(dtFE)
-        elif self.accept_step == True:
+        elif self.accept_step == True: # Previous step was accepted
             if 'SSPLMM' in self.time_integrator:
                 cfl = self.cfl.get_cached_max()
                 dtFE = self.dt / cfl * self.cfl_max / self._sspcoeff[self.time_integrator]
 
-                if step_index <= len(self._registers):
+                if (self.time_integrator in ['SSPLMM43','SSPLMM53']) and self.check_lmm_cond:
+                    self.accept_step = self.check_3rd_ord_cond(state,step_index,dtFE)
+                    if not self.accept_step: return
+
+                if step_index <= len(self._registers):  # Startup
                     if (self.time_integrator in ['SSPLMM43','SSPLMM53']):
-                        if self.check_lmm_cond:
-                            self.accept_step = self.check_3rd_ord_cond(state,step_index,dtFE)
-                            if not self.accept_step: return 
                         self.dq_dt.append(dq_dt)
                     self.prev_dt_values.append(self.dt_old)
                     self.prev_dtFE_values.append(dtFE)
                 else:
                     if (self.time_integrator in ['SSPLMM43','SSPLMM53']):
-                        if self.check_lmm_cond:
-                            self.accept_step = self.check_3rd_ord_cond(state,step_index,dtFE)
-                            if not self.accept_step: return
                         self.dq_dt = self.dq_dt[1:] + self.dq_dt[:1]
                         self.dq_dt[-1] = dq_dt
 
