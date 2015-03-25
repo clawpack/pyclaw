@@ -16,7 +16,7 @@ def test_2d_acoustics():
                 test_pressure = test_q[0,:,:]
                 thisdir = os.path.dirname(__file__)
                 expected_pressure = np.loadtxt(os.path.join(thisdir,data_filename))
-                return check_diff(expected_pressure, test_pressure, reltol=3e-3, 
+                return check_diff(expected_pressure, test_pressure, reltol=1e-3,
                                     delta=claw.solution.grid.delta)
             else:
                 return

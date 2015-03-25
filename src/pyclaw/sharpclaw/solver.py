@@ -328,38 +328,13 @@ class SharpClawSolver(Solver):
                 state.q += self.b[j]*self._registers[j].q
 
         ### Linear multistep methods ###
-        elif self.time_integrator == 'SSPLMM32':
-            if step_index == 1:
-                # Save initial condition
-                self.save_init_sol(state)
-            if step_index < 3:
-                # Use Euler method for starting values
-                self.sspcoeff0 = self._sspcoeff['Euler']
-                state.q += self.dt*dq_dt
-            else:
-                self.sspcoeff0 = self._sspcoeff[self.time_integrator]
-                self.set_dt()
-                # Compute cfl number based on the current step size.
-                cfl = self.cfl.get_cached_max()
-                self.cfl.set_global_max(self.dt / self.dt_old * cfl)
-
-                omega2 = sum(self.prev_dt_values[1:])/self.dt
-                # SSP coefficient
-                r = (omega2-1.)/omega2
-                # Method coefficients
-                delta = 1./omega2**2
-                beta = (omega2+1.)/omega2
-
-                state.q = beta*(r*state.q + self.dt*dq_dt) + delta*self._registers[-3].q
-            self.dt_old = self.dt
-
-        elif self.time_integrator in ['SSPLMM43', 'SSPLMM53']:
-            num_steps = self.time_integrator[-2]
+        elif self.time_integrator in ['SSPLMM32', 'SSPLMM43', 'SSPLMM53']:
+            num_steps = int(self.time_integrator[-2])
             if step_index == 1:
                 # Save initial condition
                 self.save_init_sol(state)
             if step_index < num_steps:
-                # Use SSP22 method for starting values
+                # Use SSP22 Runge-Kutta method for starting values
                 self.sspcoeff0 = self._sspcoeff['SSP22']
                 self._registers[0].q = state.q + self.dt*self.dq_dt[-1]
                 self._registers[0].t = state.t + self.dt
@@ -370,21 +345,30 @@ class SharpClawSolver(Solver):
             else:
                 self.sspcoeff0 = self._sspcoeff[self.time_integrator]
                 self.set_dt()
-                # Compute cfl number based on the current step size.
                 cfl = self.cfl.get_cached_max()
                 self.cfl.set_global_max(self.dt / self.dt_old * cfl)
 
-                omega_k_minus_1 = sum(self.prev_dt_values[1:])/self.dt
-                omega_k = omega_k_minus_1 + 1.
-                # SSP coefficient
-                r = (omega_k_minus_1-2.)/omega_k_minus_1
-                # Method coefficients
-                delta0 = (4*omega_k - omega_k_minus_1**2)/omega_k_minus_1**3
-                beta0 = omega_k/omega_k_minus_1**2
-                beta_k_minus_1 = omega_k**2/omega_k_minus_1**2
- 
-                state.q = beta_k_minus_1*(r*state.q + self.dt*self.dq_dt[-1]) + \
-                        (r*beta0 + delta0)*self._registers[-num_steps].q + beta0*self.dt*self.dq_dt[-num_steps]
+                if self.time_integrator == 'SSPLMM32':
+                    omega2 = sum(self.prev_dt_values[1:])/self.dt
+                    # SSP coefficient
+                    r = (omega2-1.)/omega2
+                    # Method coefficients
+                    delta = 1./omega2**2
+                    beta = (omega2+1.)/omega2
+
+                    state.q = beta*(r*state.q + self.dt*dq_dt) + delta*self._registers[-3].q
+                else:
+                    omega_k_minus_1 = sum(self.prev_dt_values[1:])/self.dt
+                    omega_k = omega_k_minus_1 + 1.
+                    # SSP coefficient
+                    r = (omega_k_minus_1-2.)/omega_k_minus_1
+                    # Method coefficients
+                    delta0 = (4*omega_k - omega_k_minus_1**2)/omega_k_minus_1**3
+                    beta0 = omega_k/omega_k_minus_1**2
+                    beta_k_minus_1 = omega_k**2/omega_k_minus_1**2
+
+                    state.q = beta_k_minus_1*(r*state.q + self.dt*self.dq_dt[-1]) + \
+                            (r*beta0 + delta0)*self._registers[-num_steps].q + beta0*self.dt*self.dq_dt[-num_steps]
             self.dt_old = self.dt
 
 
