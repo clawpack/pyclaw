@@ -353,11 +353,12 @@ class SharpClawSolver(Solver):
                 state.q = beta*(r*state.q + self.dt*dq_dt) + delta*self._registers[-3].q
             self.dt_old = self.dt
 
-        elif self.time_integrator == 'SSPLMM43':
+        elif self.time_integrator in ['SSPLMM43', 'SSPLMM53']:
+            num_steps = self.time_integrator[-2]
             if step_index == 1:
                 # Save initial condition
                 self.save_init_sol(state)
-            if step_index < 4:
+            if step_index < num_steps:
                 # Use SSP22 method for starting values
                 self.sspcoeff0 = self._sspcoeff['SSP22']
                 self._registers[0].q = state.q + self.dt*self.dq_dt[-1]
@@ -373,53 +374,22 @@ class SharpClawSolver(Solver):
                 cfl = self.cfl.get_cached_max()
                 self.cfl.set_global_max(self.dt / self.dt_old * cfl)
 
-                omega3 = sum(self.prev_dt_values[1:])/self.dt
-                omega4 = omega3 + 1.
+                omega_k_minus_1 = sum(self.prev_dt_values[1:])/self.dt
+                omega_k = omega_k_minus_1 + 1.
                 # SSP coefficient
-                r = (omega3-2.)/omega3
+                r = (omega_k_minus_1-2.)/omega_k_minus_1
                 # Method coefficients
-                delta0 = (4*omega4 - omega3**2)/omega3**3
-                beta0 = omega4/omega3**2
-                beta3 = omega4**2/omega3**2
+                delta0 = (4*omega_k - omega_k_minus_1**2)/omega_k_minus_1**3
+                beta0 = omega_k/omega_k_minus_1**2
+                beta_k_minus_1 = omega_k**2/omega_k_minus_1**2
  
-                state.q = beta3*(r*state.q + self.dt*self.dq_dt[-1]) + \
-                        (r*beta0 + delta0)*self._registers[0].q + beta0*self.dt*self.dq_dt[0]
+                state.q = beta_k_minus_1*(r*state.q + self.dt*self.dq_dt[-1]) + \
+                        (r*beta0 + delta0)*self._registers[-num_steps].q + beta0*self.dt*self.dq_dt[-num_steps]
             self.dt_old = self.dt
 
-        elif self.time_integrator == 'SSPLMM53':
-            if step_index == 1:
-                # Store initial condition
-                self.save_init_sol(state)
-            if step_index < 5:
-                # Use SSP22 method for starting values
-                self.sspcoeff0 = self._sspcoeff['SSP22']
-                self._registers[0].q = state.q + self.dt*self.dq_dt[-1]
-                self._registers[0].t = state.t + self.dt
-
-                if self.call_before_step_each_stage:
-                    self.before_step(self,self._registers[0])
-                state.q = 0.5*(state.q + self._registers[0].q + self.dq(self._registers[0]))
-            else:
-                self.sspcoeff0 = self._sspcoeff[self.time_integrator]
-                self.set_dt()
-                # Correct cfl number based on the current step size.
-                cfl = self.cfl.get_cached_max()
-                self.cfl.set_global_max(self.dt / self.dt_old * cfl)
-
-                omega4 = sum(self.prev_dt_values[1:])/self.dt
-                omega5 = omega4 + 1.
-                # SSP coefficient
-                r = (omega4-2.)/omega4
-                # Method coefficients
-                delta0 = (4*omega5 - omega4**2)/omega4**3
-                beta0 = omega5/omega4**2
-                beta4 = omega5**2/omega4**2
-
-                state.q = beta4*(r*state.q + self.dt*self.dq_dt[-1]) + \
-                        (r*beta0 + delta0)*self._registers[-5].q + beta0*self.dt*self.dq_dt[-5]
-            self.dt_old = self.dt
 
         elif self.time_integrator == 'LMM':
+            assert self.dt_variable == False
             if step_index == 1:
                 # Save initial solution
                 self.save_init_sol(state)
