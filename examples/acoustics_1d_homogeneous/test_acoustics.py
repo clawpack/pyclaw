@@ -40,9 +40,9 @@ def test_1d_acoustics():
                                  kernel_languages=('Python','Fortran'), solver_type='sharpclaw',
                                  time_integrator='SSP104', disable_output=True)
 
-    sharp_tests_lmm   = gen_variants(acoustics_1d.setup, verify_expected(0.00169),
+    sharp_tests_lmm   = gen_variants(acoustics_1d.setup, verify_expected(0.000231),
                                  kernel_languages=('Python','Fortran'), solver_type='sharpclaw',
-                                 time_integrator='SSPLMM32', disable_output=True)
+                                 time_integrator='SSPLMMk3', disable_output=True)
 
     weno_tests    = gen_variants(acoustics_1d.setup, verify_expected(0.000153),
                                  kernel_languages=('Fortran',), solver_type='sharpclaw',

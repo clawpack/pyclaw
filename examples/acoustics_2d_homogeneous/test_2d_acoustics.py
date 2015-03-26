@@ -37,7 +37,7 @@ def test_2d_acoustics():
 
     sharp_tests_lmm   = gen_variants(acoustics_2d.setup, verify_data('verify_sharpclaw_lmm.txt'),
                                  kernel_languages=('Fortran',), solver_type='sharpclaw', 
-                                 time_integrator='SSPLMM32', disable_output=True)
+                                 time_integrator='SSPLMMk2', disable_output=True)
 
     from itertools import chain
     for test in chain(classic_tests, ptwise_tests, sharp_tests_rk, sharp_tests_lmm):

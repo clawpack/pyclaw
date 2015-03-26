@@ -43,7 +43,8 @@ def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output',
         if solver.time_integrator=='SSP104':
             solver.cfl_max = 0.5
             solver.cfl_desired = 0.45
-        elif solver.time_integrator=='SSPLMM32':
+        elif solver.time_integrator=='SSPLMMk2':
+            solver.lmm_steps = 3
             solver.lim_type = 2
             solver.cfl_max = 0.25
             solver.cfl_desired = 0.24

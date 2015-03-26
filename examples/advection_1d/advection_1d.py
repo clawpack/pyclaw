@@ -38,6 +38,9 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
         solver = pyclaw.SharpClawSolver1D(riemann_solver)
         solver.weno_order = weno_order
         solver.time_integrator = time_integrator
+        if time_integrator == 'SSPLMMk3':
+            solver.lmm_steps = 5
+            solver.check_lmm_cond = True
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language
