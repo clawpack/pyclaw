@@ -21,10 +21,8 @@ crossed the domain exactly once.
 from numpy import sqrt, exp, cos
 from clawpack import riemann
     
-def setup(use_petsc=False, kernel_language='Fortran', solver_type='classic',
-              outdir='./_output', ptwise=False, weno_order=5, 
-              time_integrator='SSP104', 
-              disable_output=False):
+def setup(use_petsc=False, kernel_language='Fortran', solver_type='classic', outdir='./_output', ptwise=False, \
+        weno_order=5, time_integrator='SSP104', disable_output=False):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -47,6 +45,8 @@ def setup(use_petsc=False, kernel_language='Fortran', solver_type='classic',
         solver = pyclaw.SharpClawSolver1D(riemann_solver)
         solver.weno_order=weno_order
         solver.time_integrator=time_integrator
+        if time_integrator == 'SSPLMMk3':
+            solver.lmm_steps = 4
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language=kernel_language

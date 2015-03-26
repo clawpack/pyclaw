@@ -14,9 +14,7 @@ def test_woodward_colella_blast():
             thisdir = os.path.dirname(__file__)
             expected_density = np.loadtxt(os.path.join(thisdir,'blast_regression_density.txt'))
             test_density = test_solution[0,:]
-            test_err = np.linalg.norm(expected_density-test_density)
-            return check_diff(0, test_err, abstol=1.e-4)
-
+            return check_diff(expected_density, test_density, reltol=1.e-5,delta=controller.solution.grid.delta)
 
     return test_app(woodward_colella_blast.setup, verify_woodward_colella_blast, {})
 

@@ -28,23 +28,23 @@ def test_1d_acoustics():
 
     from clawpack.pyclaw.util import gen_variants
 
-    classic_tests = gen_variants(acoustics_1d.setup, verify_expected(0.00104856594174),
+    classic_tests = gen_variants(acoustics_1d.setup, verify_expected(0.001049),
                                  kernel_languages=('Python','Fortran'), solver_type='classic', disable_output=True)
 
-    ptwise_tests = gen_variants(acoustics_1d.setup, verify_expected(0.00104856594174),
+    ptwise_tests = gen_variants(acoustics_1d.setup, verify_expected(0.001049),
                                  kernel_languages=('Fortran',), ptwise=True,
                                  solver_type='classic', disable_output=True)
 
 
-    sharp_tests_rk   = gen_variants(acoustics_1d.setup, verify_expected(0.000298879563857),
+    sharp_tests_rk   = gen_variants(acoustics_1d.setup, verify_expected(0.000299),
                                  kernel_languages=('Python','Fortran'), solver_type='sharpclaw',
                                  time_integrator='SSP104', disable_output=True)
 
-    sharp_tests_lmm   = gen_variants(acoustics_1d.setup, verify_expected(0.00227996627104),
+    sharp_tests_lmm   = gen_variants(acoustics_1d.setup, verify_expected(0.000231),
                                  kernel_languages=('Python','Fortran'), solver_type='sharpclaw',
-                                 time_integrator='SSPMS32', disable_output=True)
+                                 time_integrator='SSPLMMk3', disable_output=True)
 
-    weno_tests    = gen_variants(acoustics_1d.setup, verify_expected(0.000153070447918),
+    weno_tests    = gen_variants(acoustics_1d.setup, verify_expected(0.000153),
                                  kernel_languages=('Fortran',), solver_type='sharpclaw',
                                  time_integrator='SSP104', weno_order=17, disable_output=True)
 

@@ -126,6 +126,8 @@ class ClawSolver(Solver):
         :Output: 
          - (bool) - True if full step succeeded, False otherwise
         """
+        
+        self.cfl.set_global_max(0.)
 
         if self.before_step is not None:
             self.before_step(self,solution.states[0])

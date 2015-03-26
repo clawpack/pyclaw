@@ -266,9 +266,13 @@ def check_diff(expected, test, **kwargs):
 
     This function expects either the keyword argument 'abstol' or 'reltol'.
     """
-    err_norm = np.linalg.norm(expected - test)
-    expected_norm = np.linalg.norm(expected)
-    test_norm = np.linalg.norm(test)
+    if kwargs.has_key('delta'):
+        d = np.prod(kwargs['delta'])
+    else:
+        d = 1.0
+    err_norm = d*np.linalg.norm(expected - test)
+    expected_norm = d*np.linalg.norm(expected)
+    test_norm = d*np.linalg.norm(test)
     if 'abstol' in kwargs:
         if err_norm < kwargs['abstol']: return None
         else: return (expected_norm, test_norm, err_norm,
