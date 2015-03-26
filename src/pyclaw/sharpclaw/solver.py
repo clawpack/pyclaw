@@ -347,7 +347,7 @@ class SharpClawSolver(Solver):
 
         ### Linear multistep methods ###
         elif self.time_integrator in ['SSPLMMk2', 'SSPLMMk3']:
-            num_steps = len(self._registers)
+            num_steps = self.lmm_steps
             if step_index < num_steps:
                 # Use SSP22 Runge-Kutta method for starting values
                 self.sspcoeff0 = self._sspcoeff['SSP22']
@@ -389,8 +389,7 @@ class SharpClawSolver(Solver):
             else:
                 # Update solution: alpha[-1] and beta[-1] correspond to solution at the previous step
                 state.q = self.alpha[-1]*self._registers[-1].q + self.beta[-1]*self.dt*dq_dt
-                num_steps = len(self._registers)
-                for i in range(num_steps-1):
+                for i in range(self.lmm_steps-1):
                     state.q += self.alpha[i]*self._registers[i].q + self.beta[i]*self.dt*self.dq_dt[i]
 
         else:
