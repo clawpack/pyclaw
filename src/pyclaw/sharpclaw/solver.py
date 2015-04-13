@@ -236,21 +236,25 @@ class SharpClawSolver(Solver):
                     assert 3 <= self.lmm_steps, \
                         'Must set solver.lmm_steps greater than 2 for 2nd order SSPLMM integrator.'
                     self.sspcoeff = (self.lmm_steps - 2.)/(self.lmm_steps - 1.)
+                    # The choice of cfl_desired and cfl_max is intended for LMM with many steps (up to 20).
+                    # If more steps are chosen the solution may not be accurate enough.
+                    # For a smaller number of steps, higher values of cfl_desired and cfl_max can be used.
+                    if self.cfl_max is None:
+                        self.cfl_desired = 0.14*self.sspcoeff
+                        self.cfl_max = 0.15*self.sspcoeff
                 elif self.time_integrator == 'SSPLMMk3':
                     assert 4 <= self.lmm_steps <= 5, \
                         'Must set solver.lmm_steps equal to 4 or 5 for 3rd order SSPLMM integrator.'
                     self.sspcoeff = (self.lmm_steps - 3.)/(self.lmm_steps - 1.)
-                if self.cfl_max is None:
-                    self.cfl_desired  = 0.48*self.sspcoeff 
-                    self.cfl_max  =  0.5*self.sspcoeff 
-                if self.cfl_desired is None:
-                    self.cfl_desired = 0.9*self.cfl_max
+                    if self.cfl_max is None:
+                        self.cfl_desired = 0.48*self.sspcoeff
+                        self.cfl_max = 0.5*self.sspcoeff
             else:
                 if self.cfl_max is None:
-                    self.cfl_desired  = self._cfl_default[self.time_integrator][0]
-                    self.cfl_max  = self._cfl_default[self.time_integrator][1]
-                if self.cfl_desired is None:
-                    self.cfl_desired = 0.9*self.cfl_max
+                    self.cfl_desired = self._cfl_default[self.time_integrator][0]
+                    self.cfl_max = self._cfl_default[self.time_integrator][1]
+            if self.cfl_desired is None:
+                self.cfl_desired = 0.9*self.cfl_max
         except KeyError:
             raise KeyError('Maximum CFL number is not provided.')
 
