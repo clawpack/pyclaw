@@ -312,7 +312,10 @@ class SharpClawSolver(Solver):
         ### Runge-Kutta methods ###
         if self.time_integrator == 'Euler':
             state.q += self.dt*dq_dt
- 
+
+        elif self.time_integrator == 'SSP22':
+            state.q = self.ssp22(state,dq_dt)
+
         elif self.time_integrator == 'SSP33':
             self._registers[0].q = state.q + self.dt*dq_dt
             self._registers[0].t = state.t + self.dt
@@ -355,24 +358,20 @@ class SharpClawSolver(Solver):
             if step_index < num_steps:
                 # Use SSP22 Runge-Kutta method for starting values
                 self.sspcoeff0 = self._sspcoeff['SSP22']
-                self._registers[0].q = state.q + self.dt*self.dq_dt[-1]
-                self._registers[0].t = state.t + self.dt
-
-                if self.call_before_step_each_stage:
-                    self.before_step(self,self._registers[0])
-                state.q = 0.5*(state.q + self._registers[0].q + self.dq(self._registers[0]))
+                state.q = self.ssp22(state,dq_dt)
             else:
                 self.sspcoeff0 = self.sspcoeff
                 self.set_dt()
+                # Recompute cfl number based on current step-size
                 cfl = self.cfl.get_cached_max()
                 self.cfl.set_global_max(self.dt / self.dt_old * cfl)
 
                 if self.time_integrator == 'SSPLMMk2':
-                    omega2 = sum(self.prev_dt_values[1:])/self.dt
-                    r = (omega2-1.)/omega2 # SSP coefficient
+                    omega_k_minus_1 = sum(self.prev_dt_values[1:])/self.dt
+                    r = (omega_k_minus_1-1.)/omega_k_minus_1 # SSP coefficient
 
-                    delta = 1./omega2**2
-                    beta = (omega2+1.)/omega2
+                    delta = 1./omega_k_minus_1**2
+                    beta = (omega_k_minus_1+1.)/omega_k_minus_1
                     state.q = beta*(r*state.q + self.dt*dq_dt) + delta*self._registers[-num_steps].q
                 else:
                     omega_k_minus_1 = sum(self.prev_dt_values[1:])/self.dt
@@ -384,7 +383,7 @@ class SharpClawSolver(Solver):
                     beta_k_minus_1 = omega_k**2/omega_k_minus_1**2
 
                     state.q = beta_k_minus_1*(r*state.q + self.dt*self.dq_dt[-1]) + \
-                            (r*beta0 + delta0)*self._registers[-num_steps].q + beta0*self.dt*self.dq_dt[-num_steps]
+                        (r*beta0 + delta0)*self._registers[-num_steps].q + beta0*self.dt*self.dq_dt[-num_steps]
             self.dt_old = self.dt
 
         elif self.time_integrator == 'LMM':
@@ -399,6 +398,17 @@ class SharpClawSolver(Solver):
         else:
             raise Exception('Unrecognized time integrator')
             return False
+
+
+    def ssp22(self,state,dq_dt):
+        self._registers[0].q = state.q + self.dt*dq_dt
+        self._registers[0].t = state.t + self.dt
+
+        if self.call_before_step_each_stage:
+            self.before_step(self,self._registers[0])
+        state.q = 0.5*(state.q + self._registers[0].q + self.dq(self._registers[0]))
+
+        return state.q
 
 
     def ssp104(self,state,dq_dt):
