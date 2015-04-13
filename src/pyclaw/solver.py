@@ -163,7 +163,6 @@ class Solver(object):
         self._is_set_up = False
         self._use_old_bc_sig = False
         self.accept_step = False
-        self.adjust_dt = False
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
@@ -511,10 +510,6 @@ class Solver(object):
         else:
             return True
 
-    def get_dt_new(self):
-        cfl = self.cfl.get_cached_max()
-        return min(self.dt_max,self.dt * self.cfl_desired / cfl)
-    
     def evolve_to_time(self,solution,tend=None):
         r"""
         Evolve solution from solution.t to tend.  If tend is not specified,
@@ -565,26 +560,13 @@ class Solver(object):
  
             state = solution.state
  
-            # Adjust dt so that we hit tend exactly if we are near tend
-            if not take_one_step:
-                if solution.t + self.dt > tend and tstart < tend:
-                    self.dt = tend - solution.t
-                    self.adjust_dt = True
-                else:
-                    self.adjust_dt = False
-                if tend - solution.t - self.dt < 1.e-14*solution.t:
-                    self.dt = tend - solution.t
-                    self.adjust_dt = True
-                else:
-                    self.adjust_dt = False
-
             # Keep a backup in case we need to retake a time step
             if self.dt_variable:
                 q_backup = state.q.copy('F')
                 told = solution.t
 
             # Note that the solver may alter dt during the step() routine
-            self.step(solution)
+            self.step(solution,take_one_step,tstart,tend)
 
             # Check to make sure that the Courant number was not too large
             cfl = self.cfl.get_cached_max()
@@ -619,19 +601,10 @@ class Solver(object):
                         max(cfl, self.status['cflmax'])
                     raise Exception('CFL too large, giving up!')
  
-            # Choose new time step
-            if self.dt_variable:
-                if cfl > 0.0:
-                    self.dt = self.get_dt_new()
-                    self.status['dtmin'] = min(self.dt, self.status['dtmin'])
-                    self.status['dtmax'] = max(self.dt, self.status['dtmax'])
-                else:
-                    self.dt = self.dt_max
-
             # See if we are finished yet
             if solution.t >= tend or take_one_step:
                 break
-      
+
         # End of main time-stepping loop -------------------------------------
 
         if self.dt_variable and solution.t < tend \

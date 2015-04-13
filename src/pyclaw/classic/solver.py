@@ -99,7 +99,7 @@ class ClawSolver(Solver):
         super(ClawSolver,self).__init__(riemann_solver,claw_package)
     
     # ========== Time stepping routines ======================================
-    def step(self,solution):
+    def step(self,solution,take_one_step,tstart,tend):
         r"""
         Evolve solution one time step
 
@@ -127,14 +127,32 @@ class ClawSolver(Solver):
          - (bool) - True if full step succeeded, False otherwise
         """
         
-        self.cfl.set_global_max(0.)
-
         if self.before_step is not None:
             self.before_step(self,solution.states[0])
 
+        # Choose new time step
+        cfl = self.cfl.get_cached_max()
+        if self.dt_variable:
+            if cfl > 0.0:
+                self.dt = min(self.dt_max,self.dt * self.cfl_desired / cfl)
+
+                # Adjust dt so that we hit tend exactly if we are near tend
+                if not take_one_step:
+                    if solution.t + self.dt > tend and tstart < tend:
+                        self.dt = tend - solution.t
+                    if tend - solution.t - self.dt < 1.e-14*solution.t:
+                        self.dt = tend - solution.t
+
+                self.status['dtmin'] = min(self.dt, self.status['dtmin'])
+                self.status['dtmax'] = max(self.dt, self.status['dtmax'])
+            else:
+                self.dt = self.dt_max
+
+        self.cfl.set_global_max(0.)
+
         if self.source_split == 2 and self.step_source is not None:
             self.step_source(self,solution.states[0],self.dt/2.0)
-    
+
         self.step_hyperbolic(solution)
 
         # Check here if the CFL condition is satisfied. 
@@ -153,7 +171,7 @@ class ClawSolver(Solver):
                 self.step_source(self,solution.states[0],self.dt)
                 
         return True
-            
+
     def _check_cfl_settings(self):
         pass
 
