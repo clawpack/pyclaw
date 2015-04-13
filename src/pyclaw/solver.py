@@ -178,7 +178,8 @@ class Solver(object):
         self._is_set_up = False
         self._use_old_bc_sig = False
         self.accept_step = False
-        self.before_step = before_step        
+        self.get_dt = False
+        self.before_step = before_step
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class

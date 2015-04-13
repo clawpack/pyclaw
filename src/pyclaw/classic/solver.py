@@ -120,21 +120,21 @@ class ClawSolver(Solver):
 
         # Choose new time step
         cfl = self.cfl.get_cached_max()
-        if self.dt_variable:
+        if self.dt_variable and self.get_dt == True:
             if cfl > 0.0:
                 self.dt = min(self.dt_max,self.dt * self.cfl_desired / cfl)
-
-                # Adjust dt so that we hit tend exactly if we are near tend
-                if not take_one_step:
-                    if solution.t + self.dt > tend and tstart < tend:
-                        self.dt = tend - solution.t
-                    if tend - solution.t - self.dt < 1.e-14*solution.t:
-                        self.dt = tend - solution.t
-
                 self.status['dtmin'] = min(self.dt, self.status['dtmin'])
                 self.status['dtmax'] = max(self.dt, self.status['dtmax'])
             else:
                 self.dt = self.dt_max
+        self.get_dt = True
+
+        # Adjust dt so that we hit tend exactly if we are near tend
+        if not take_one_step:
+            if solution.t + self.dt > tend and tstart < tend:
+                self.dt = tend - solution.t
+            if tend - solution.t - self.dt < 1.e-14*solution.t:
+                self.dt = tend - solution.t
 
         self.cfl.set_global_max(0.)
 

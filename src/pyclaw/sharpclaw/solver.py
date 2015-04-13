@@ -295,13 +295,14 @@ class SharpClawSolver(Solver):
         # Choose new time step
         self.dt_old = self.dt
         cfl = self.cfl.get_cached_max()
-        if self.dt_variable:
+        if self.dt_variable and self.get_dt == True:
             if cfl > 0.0:
                 self.get_dt_new(solution.t,tstart,tend,take_one_step)
                 self.status['dtmin'] = min(self.dt, self.status['dtmin'])
                 self.status['dtmax'] = max(self.dt, self.status['dtmax'])
             else:
                 self.dt = self.dt_max
+        self.get_dt = True
 
         # Recompute cfl number based on current step-size
         self.cfl.set_global_max(self.dt / self.dt_old * cfl)
