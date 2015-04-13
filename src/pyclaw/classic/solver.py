@@ -53,13 +53,6 @@ class ClawSolver(Solver):
         The required signature for this function is:
 
         def step_source(solver,state,dt)
-    
-    .. attribute:: before_step
-    
-        Function called before each time step is taken.
-        The required signature for this function is:
-        
-        def before_step(solver,solution)
 
     .. attribute:: kernel_language
 
@@ -105,14 +98,12 @@ class ClawSolver(Solver):
 
         The elements of the algorithm for taking one step are:
         
-        1. The :meth:`before_step` function is called
-        
-        2. A half step on the source term :func:`step_source` if Strang splitting is 
+        1. A half step on the source term :func:`step_source` if Strang splitting is 
            being used (:attr:`source_split` = 2)
         
-        3. A step on the homogeneous problem :math:`q_t + f(q)_x = 0` is taken
+        2. A step on the homogeneous problem :math:`q_t + f(q)_x = 0` is taken
         
-        4. A second half step or a full step is taken on the source term
+        3. A second half step or a full step is taken on the source term
            :func:`step_source` depending on whether Strang splitting was used 
            (:attr:`source_split` = 2) or Godunov splitting 
            (:attr:`source_split` = 1)
@@ -126,9 +117,6 @@ class ClawSolver(Solver):
         :Output: 
          - (bool) - True if full step succeeded, False otherwise
         """
-        
-        if self.before_step is not None:
-            self.before_step(self,solution.states[0])
 
         # Choose new time step
         cfl = self.cfl.get_cached_max()

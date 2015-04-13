@@ -24,6 +24,14 @@ def default_compute_gauge_values(q,aux):
     """
     return q
 
+def before_step(solver,solution):
+    r"""
+    Dummy routine called before each step
+    
+    Replace this routine if you want to do something before each time step.
+    """
+    pass
+
 class Solver(object):
     r"""
     Pyclaw solver superclass.
@@ -69,7 +77,14 @@ class Solver(object):
          - ``numsteps`` = Total number of time steps that have been taken
 
         solver.status is returned by solver.evolve_to_time.
+
+    .. attribute:: before_step
     
+        Function called before each time step is taken.
+        The required signature for this function is:
+        
+        def before_step(solver,solution)
+
     .. attribute:: dt_variable
     
         Whether to allow the time step to vary, ``default = True``.
@@ -163,6 +178,7 @@ class Solver(object):
         self._is_set_up = False
         self._use_old_bc_sig = False
         self.accept_step = False
+        self.before_step = before_step        
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
@@ -564,6 +580,9 @@ class Solver(object):
             if self.dt_variable:
                 q_backup = state.q.copy('F')
                 told = solution.t
+
+            if self.before_step is not None:
+                self.before_step(self,solution.states[0])
 
             # Note that the solver may alter dt during the step() routine
             self.step(solution,take_one_step,tstart,tend)

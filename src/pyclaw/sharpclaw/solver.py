@@ -17,14 +17,6 @@ except ImportError:
     # load old WENO5 reconstructor
     from clawpack.pyclaw.limiters import recon
 
-def before_step(solver,solution):
-    r"""
-    Dummy routine called before each step
-    
-    Replace this routine if you want to do something before each time step.
-    """
-    pass
-
 def default_tfluct(self):
     r"""This is a dummy routine and should never be called, check Euler1D
         to learn how to pass tfluct functions to the sharpclaw solver
@@ -41,13 +33,6 @@ class SharpClawSolver(Solver):
     semi-discrete step (the dq() function).  If another method-of-lines
     solver is implemented in the future, it should be based on this class,
     which then ought to be renamed to something like "MOLSolver".
-
-    .. attribute:: before_step
-    
-        Function called before each time step is taken.
-        The required signature for this function is:
-        
-        def before_step(solver,solution)
 
     .. attribute:: lim_type
 
@@ -171,7 +156,6 @@ class SharpClawSolver(Solver):
         Set default options for SharpClawSolvers and call the super's __init__().
         """
         self.limiters = [1]
-        self.before_step = before_step
         self.lim_type = 2
         self.weno_order = 5
         self.time_integrator = 'SSP104'
@@ -302,8 +286,6 @@ class SharpClawSolver(Solver):
         if self.accept_step == True:
             self.cfl.set_global_max(0.)
         step_index = self.status['numsteps'] + 1
-
-        self.before_step(self,state) # This should be moved up into evolve_to_time
 
         dq_dt = self.dq(state) / self.dt
 
