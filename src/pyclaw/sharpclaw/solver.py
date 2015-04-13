@@ -404,13 +404,11 @@ class SharpClawSolver(Solver):
     def ssp104(self,state,dq_dt):
         if self.time_integrator == 'SSP104':
             s1 = self._registers[0]
-            s2 = self._registers[1]
             s1.q[:] = state.q
         elif self.time_integrator == 'LMM':
             # Okay to copy state objects here since this only happens a few times
             import copy
             s1 = copy.deepcopy(state)
-            s2 = copy.deepcopy(s1)
 
         s1.q = state.q + self.dt*dq_dt/6.
         s1.t = state.t + self.dt/6.
@@ -421,8 +419,8 @@ class SharpClawSolver(Solver):
             s1.q = s1.q + self.dq(s1)/6.
             s1.t = s1.t + self.dt/6.
 
-        s2.q = state.q/25. + 0.36 * s1.q
-        s1.q = 15. * s2.q - 5. * s1.q
+        state.q = state.q/25. + 0.36 * s1.q
+        s1.q = 15. * state.q - 5. * s1.q
         s1.t = state.t + self.dt/3.
 
         for i in xrange(4):
@@ -433,7 +431,7 @@ class SharpClawSolver(Solver):
 
         if self.call_before_step_each_stage:
             self.before_step(self,s1)
-        state.q = s2.q + 0.6 * s1.q + 0.1 * self.dq(s1)
+        state.q += 0.6 * s1.q + 0.1 * self.dq(s1)
 
         return state.q
 
@@ -601,7 +599,7 @@ class SharpClawSolver(Solver):
         # equal to the number of registers of the LMM
         if self.time_integrator   == 'Euler':   nregisters=0
         elif self.time_integrator == 'SSP33':   nregisters=1
-        elif self.time_integrator == 'SSP104':  nregisters=2
+        elif self.time_integrator == 'SSP104':  nregisters=1
         elif self.time_integrator == 'RK':      nregisters=len(self.b)+1
         elif self.time_integrator == 'SSPLMMk2': nregisters=self.lmm_steps
         elif self.time_integrator == 'SSPLMMk3': nregisters=self.lmm_steps
