@@ -80,13 +80,13 @@ class ClawSolver(Solver):
         self.source_split = 1
         self.fwave = False
         self.step_source = None
-        self.before_step = None
         self.kernel_language = 'Fortran'
         self.verbosity = 0
         self.cfl_max = 1.0
         self.cfl_desired = 0.9
         self._mthlim = self.limiters
         self._method = None
+        self.dt_old = None
 
         # Call general initialization function
         super(ClawSolver,self).__init__(riemann_solver,claw_package)
@@ -97,13 +97,15 @@ class ClawSolver(Solver):
         Evolve solution one time step
 
         The elements of the algorithm for taking one step are:
+
+        1. Pick a step size as specified by the base solver attribute :func:`get_dt`
         
-        1. A half step on the source term :func:`step_source` if Strang splitting is 
+        2. A half step on the source term :func:`step_source` if Strang splitting is 
            being used (:attr:`source_split` = 2)
         
-        2. A step on the homogeneous problem :math:`q_t + f(q)_x = 0` is taken
+        3. A step on the homogeneous problem :math:`q_t + f(q)_x = 0` is taken
         
-        3. A second half step or a full step is taken on the source term
+        4. A second half step or a full step is taken on the source term
            :func:`step_source` depending on whether Strang splitting was used 
            (:attr:`source_split` = 2) or Godunov splitting 
            (:attr:`source_split` = 1)
@@ -117,25 +119,7 @@ class ClawSolver(Solver):
         :Output: 
          - (bool) - True if full step succeeded, False otherwise
         """
-
-        # Choose new time step
-        cfl = self.cfl.get_cached_max()
-        if self.dt_variable and self.get_dt == True:
-            if cfl > 0.0:
-                self.dt = min(self.dt_max,self.dt * self.cfl_desired / cfl)
-                self.status['dtmin'] = min(self.dt, self.status['dtmin'])
-                self.status['dtmax'] = max(self.dt, self.status['dtmax'])
-            else:
-                self.dt = self.dt_max
-        self.get_dt = True
-
-        # Adjust dt so that we hit tend exactly if we are near tend
-        if not take_one_step:
-            if solution.t + self.dt > tend and tstart < tend:
-                self.dt = tend - solution.t
-            if tend - solution.t - self.dt < 1.e-14*solution.t:
-                self.dt = tend - solution.t
-
+        self.get_dt(solution.t,tstart,tend,take_one_step)
         self.cfl.set_global_max(0.)
 
         if self.source_split == 2 and self.step_source is not None:

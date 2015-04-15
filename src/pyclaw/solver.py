@@ -177,9 +177,8 @@ class Solver(object):
         self.fmod = None
         self._is_set_up = False
         self._use_old_bc_sig = False
-        self.accept_step = False
-        self.get_dt = False
-        self.before_step = before_step
+        self.accept_step = True
+        self.before_step = None
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
@@ -526,6 +525,29 @@ class Solver(object):
             return False
         else:
             return True
+
+    def get_dt_new(self):
+        cfl = self.cfl.get_cached_max()
+        self.dt = min(self.dt_max,self.dt * self.cfl_desired / cfl)
+
+    def get_dt(self,t,tstart,tend,take_one_step):
+        cfl = self.cfl.get_cached_max()
+        if self.dt_variable and self.dt_old is not None:
+            if cfl > 0.0:
+                self.get_dt_new()
+                self.status['dtmin'] = min(self.dt, self.status['dtmin'])
+                self.status['dtmax'] = max(self.dt, self.status['dtmax'])
+            else:
+                self.dt = self.dt_max
+        else:
+            self.dt_old = self.dt
+
+        # Adjust dt so that we hit tend exactly if we are near tend
+        if not take_one_step:
+            if t + self.dt > tend and tstart < tend:
+                self.dt = tend - t
+            if tend - t - self.dt < 1.e-14*t:
+                self.dt = tend - t
 
     def evolve_to_time(self,solution,tend=None):
         r"""
