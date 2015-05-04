@@ -148,7 +148,7 @@ def customAuxBCUpperZ(state,dim,t,qbc,auxbc,mbc):
 #-----------------------------------------------------------------------
 def euler3d(kernel_language='Fortran',solver_type='classic',\
             use_petsc=False,outdir='./_output',\
-            output_format='ascii',file_prefix='equil',disable_output=False,\
+            output_format='hdf5',file_prefix='equil',disable_output=False,\
             mx=mxyz[0],my=mxyz[1],mz=mxyz[2],\
             tfinal=64.0,num_output_times=1):
 
@@ -183,9 +183,9 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
     solver.max_steps = 10000
 
     # Initialize Domain
-    x = pyclaw.Dimension('x',0.0,1.0,mx)
-    y = pyclaw.Dimension('y',0.0,1.0,my)
-    z = pyclaw.Dimension('z',0.0,1.0,mz)
+    x = pyclaw.Dimension(0.0,1.0,mx,name='x')
+    y = pyclaw.Dimension(0.0,1.0,my,name='y')
+    z = pyclaw.Dimension(0.0,1.0,mz,name='z')
     domain = pyclaw.Domain([x,y,z])
 
     num_aux = 15
@@ -262,7 +262,7 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
     global auxtmp
     auxtmp = np.zeros([num_aux,pmx+2*mbc,pmy+2*mbc,pmz+2*mbc],dtype='float',order='F')
     auxtmp = mg.setauxiliaryvariables(num_aux,mbc,pmx,pmy,pmz,xlower,ylower,zlower,dxc,dyc,dzc,xyzMin,xyzMax,mapType)
-    state.aux = auxtmp[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
+    state.aux[:,:,:,:] = auxtmp[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
 
     # Set Index for Capcaity Function in state.aux (Python 0-based)
     state.index_capa = 12 
