@@ -11,7 +11,7 @@ The primary variables are:
    density (rho), x,y, and z momentum (rho*u,rho*v,rho*w), and energy.
 """
 import numpy as np
-from mappedGrid import *
+from mappedGrid import euler3d_mappedgrid as mg
 
 # Test for MPI, and set sizes accordingly
 try:

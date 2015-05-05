@@ -3,8 +3,8 @@ F2PY = f2py
 RIEMANN_SOURCE = ../../../riemann/src/
 
 all:
-	make euler_3d_gmap.so
-	make mappedGrid.so
+	$(MAKE) euler_3d_gmap.so
+	$(MAKE) mappedGrid.so
 
 euler_3d_gmap.so: $(RIEMANN_SOURCE)/rpn3_euler_mapgrid.f90 $(RIEMANN_SOURCE)/rpt3_euler_mapgrid.f90 $(RIEMANN_SOURCE)/rptt3_euler_mapgrid.f90
 	f2py -m $(basename $(notdir $@)) -c $^
