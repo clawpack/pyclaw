@@ -686,6 +686,8 @@ class Solver(object):
                     aux = solution.state.aux[:,ix,iy]
                 q=solution.state.q[:,ix,iy]
             p=self.compute_gauge_values(q,aux)
+            if not hasattr(p,'__iter__'):
+                p = [p]
             t=solution.t
             if solution.state.keep_gauges:
                 gauge_data = solution.state.gauge_data
@@ -697,7 +699,7 @@ class Solver(object):
             try:
                 solution.state.grid.gauge_files[i].write(str(t)+' '+' '.join(str(j) 
                                                          for j in p)+'\n')  
-            except:
+            except IOError:
                 raise Exception("Gauge files are not set up correctly. You should call \
                        \nthe method `setup_gauge_files` of the Grid class object \
                        \nbefore any call for `write_gauge_values` from the Solver class.")
