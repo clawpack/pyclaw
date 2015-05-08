@@ -40,9 +40,9 @@ rSphere = 40.e5 # Radius of Sphere [cm]
 TSphere = 2.7e4 # Temperature of Sphere Perturbation
 
 # Grid Parameters
-mxyz = [160,160,80] # Number of Grid Cells
-xyzMin = [0.      , 0.      , 80.0e5  ] # Domain limits (min) [cm]
-xyzMax = [2000.0e5, 2000.0e5, 950.0e5] # Domain limits (max) [cm]
+mxyz = [80,80,80] # Number of Grid Cells
+xyzMin = [500.e5  , 500.e5  , 80.0e5 ] # Domain limits (min) [cm]
+xyzMax = [1500.0e5, 1500.0e5, 950.0e5] # Domain limits (max) [cm]
 mapType = "ZeroToOne"
 z0 = xyzMin[2]
 zN = xyzMax[2]
