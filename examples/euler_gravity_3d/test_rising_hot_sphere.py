@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# encoding: utf-8
-
 def test_euler_3d_rising_hot_sphere():
     """test_euler_3d_rising_hot_sphere"""
     def verify_classic_rising_hot_sphere(controller):
@@ -15,12 +12,13 @@ def test_euler_3d_rising_hot_sphere():
         if test_q != None:
             thisdir = os.path.dirname(__file__)
             expected_density = np.loadtxt(os.path.join(thisdir,'verify_rising_hot_sphere_classic_1.txt'))
-            test_density = np.reshape(test_q[0,:,:,:],np.size(test_q[0,:,:,:]),order='F')
+            nx = np.size(test_q,1)
+            test_density = np.reshape(test_q[0,nx/2,:,:],np.size(test_q[0,nx/2,:,:]),order='F')
             test_err = np.linalg.norm(expected_density-test_density)
             expected_err = 0
             return check_diff(expected_err, test_err, abstol=1e-12)
 
-    """ main code """
+    #main code
     try:
         import scipy
     except ImportError:

@@ -54,6 +54,19 @@ gFlux = 0
 if gravityEflux: gFlux = 1
 
 #-----------------------------------------------------------------------
+# Name: outputDensity(state)
+#
+# Description:
+#   Using derived quantities function, output 2D slice of density
+#   for use in regression testing.
+#-----------------------------------------------------------------------
+def outputDensity(state):
+    state.p[0,:,:,:] = state.q[0,:,:,:]
+    nx = np.size(state.q,1)
+    x = np.reshape(state.q[0,nx/2,:,:],np.size(state.q[0,nx/2,:,:]),order='F')
+    np.savetxt('verify_rising_hot_sphere_classic_1.txt',x,fmt='%18.8e',delimiter=' ')
+
+#-----------------------------------------------------------------------
 # Description:
 #   Equilibrium atmosphere
 #
@@ -333,6 +346,8 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
     claw.tfinal = tfinal
     claw.num_output_times = num_output_times
     claw.outdir = outdir
+    #state.mp = 1
+    #claw.compute_p = outputDensity
 
     return claw
 
