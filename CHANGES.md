@@ -3,7 +3,10 @@
 - HDF5 file I/O now works.
 - Capability to use pointwise Riemann solvers.  Examples in pyclaw/examples/acoustics_1d_homogeneous
   and pyclaw/examples/acoustics_2d_homogeneous.
-- New examples: shallow water flow over a sill; 2D acoustics on mapped grid with inclusions.
+- New examples:
+  - shallow water flow over a sill
+  - 2D acoustics on mapped grid with inclusions
+  - 3D atmospheric Euler with gravity
 - Better enforcement of SSP timestep restriction for Runge-Kutta methods (SharpClaw).
 - Improvements to geometry:
     - physical coordinates with ghost cells
