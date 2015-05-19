@@ -470,7 +470,7 @@ class Dimension(object):
     
     :Initialization:
     
-    Required arguments, order:
+    Required arguments, in order:
      - *lower* - (float) Lower extent of dimension
      - *upper* - (float) Upper extent of dimension
      - *num_cells* - (int) Number of cells
@@ -578,52 +578,36 @@ class Dimension(object):
         return np.hstack((pre,edges,post))
 
     
-    def __init__(self, *args, **kargs):
+    def __init__(self, lower, upper, num_cells, name='x',
+                 on_lower_boundary=None,on_upper_boundary=None, units=None):
         r"""
         Create a Dimension object.
-        
+
         See :class:`Dimension` for full documentation
         """
-        
-        # ========== Class Data Attributes ===================================
-        self.name = 'x'
-        r"""(string) Name of this coordinate dimension (e.g. 'x')"""
-        self.on_lower_boundary = None
-        r"""(bool) - Whether the dimension is touching a lower boundary."""
-        self.on_upper_boundary = None
-        r"""(bool) - Whether the dimension is touching an upper boundary."""
-        self.units = None
-        r"""(string) Corresponding physical units of this dimension (e.g. 
-        'm/s'), ``default = None``"""
+        if isinstance(lower,basestring):
+            raise Exception('Passing dimension name as first argument is deprecated. \
+                             Pass it as a keyword argument instead.')
 
         self._edges = None
         self._centers = None
         self._centers_with_ghost = None
         self._edges_with_ghost = None
 
-        # Parse args
-        if isinstance(args[0],basestring):
-            import warnings
-            warnings.warn('Passing dimension name as first argument is deprecated. \
-                           Pass it as a keyword argument instead.')
-            self.name = args[0]
-            self._lower = float(args[1])
-            self._upper = float(args[2])
-            self._num_cells = int(args[3])
-        else:
-            self._lower = float(args[0])
-            self._upper = float(args[1])
-            self._num_cells = int(args[2])
-        
-        for (k,v) in kargs.iteritems():
-            setattr(self,k,v)
+        self._lower = float(lower)
+        self._upper = float(upper)
+        self._num_cells = int(num_cells)
+        self.name = name
+        self.on_lower_boundary = on_lower_boundary
+        self.on_upper_boundary = on_upper_boundary
+        self.units = units
 
         self._check_validity()
 
     def _check_validity(self):
-        assert type(self.num_cells) is int, 'Dimension.num_cells must be an integer'
-        assert type(self.lower) is float, 'Dimension.lower must be a float'
-        assert type(self.upper) is float, 'Dimension.upper must be a float'
+        assert isinstance(self.num_cells,int), 'Dimension.num_cells must be an integer; got %s' % type(self.num_cells)
+        assert isinstance(self.lower,float), 'Dimension.lower must be a float'
+        assert isinstance(self.upper,float), 'Dimension.upper must be a float'
         assert self.num_cells>0, 'Dimension.num_cells must be positive'
         assert self.upper > self.lower, 'Dimension.upper must be greater than lower'
 

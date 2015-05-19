@@ -536,12 +536,12 @@ def read_data_line(inputfile,num_entries=1,data_type=float):
     while  l==[]:  # skip over blank lines
         line = inputfile.readline()
         l = line.split()
+    if num_entries == 1:  # This is a convenience for calling functions
+        return data_type(l[0])
     val = np.empty(num_entries,data_type)
     if num_entries > len(l):
         print 'Error in read_data_line: num_entries = ', num_entries
         print '  is larger than length of l = ',l
-    if num_entries == 1:  # This is a convenience for calling functions
-        return data_type(l[0])
     val = [data_type(entry) for entry in l[:num_entries]]
     return val
 

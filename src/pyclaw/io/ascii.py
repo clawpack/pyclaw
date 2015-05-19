@@ -168,7 +168,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     [t,num_eqn,nstates,num_aux,num_dim] = read_t(frame,path,file_prefix)
 
     patches = []
-    n = np.zeros((num_dim))
+    n = np.zeros((num_dim),dtype=int)
     d = np.zeros((num_dim))
     lower = np.zeros((num_dim))
     # Since we do not have names here, we will construct each patch with

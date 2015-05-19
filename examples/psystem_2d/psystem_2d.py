@@ -141,8 +141,8 @@ def setup(kernel_language='Fortran',
     x_lower=0.25; x_upper=20.25
     y_lower=0.25; y_upper=20.25
     # cells per layer
-    mx=(x_upper-x_lower)*cells_per_layer; 
-    my=(y_upper-y_lower)*cells_per_layer
+    mx=int((x_upper-x_lower)*cells_per_layer)
+    my=int((y_upper-y_lower)*cells_per_layer)
     # Initial condition parameters
     initial_amplitude=10.
     x0=0.25 # Center of initial perturbation
