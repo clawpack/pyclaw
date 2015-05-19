@@ -58,7 +58,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         qdata = np.fromfile(file=b_file, dtype=np.float64)
 
     i_start_patch = 0  # index into qdata for start of next patch
-    n     = np.zeros((num_dim))
+    n     = np.zeros((num_dim),dtype=int)
     lower = np.zeros((num_dim))
     d     = np.zeros((num_dim))
     # Since we do not have dimension names here, we will construct
