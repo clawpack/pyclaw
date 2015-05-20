@@ -4,6 +4,8 @@ Module defining Pyclaw geometry objects.
 
 import numpy as np
 
+import warnings
+deprec_message = "'edges' has been deprecated; please use 'nodes' instead."
 # ============================================================================
 #  Default function definitions
 # ============================================================================
@@ -181,7 +183,6 @@ class Grid(object):
         import inspect
         first_arg_name = inspect.getargspec(mapc2p)[0][0]
         if first_arg_name.lower() == 'grid':
-            import warnings
             warnings.warn("""The required signature for the mapc2p function has recently changed:
                              It is `mapc2p(x,y,z)` rather than `mapc2p(grid,X)`.""")
         self._mapc2p = mapc2p
@@ -376,6 +377,17 @@ class Grid(object):
         return self.mapc2p(*self.c_nodes_with_ghost(num_ghost))
 
     # ========================================================================
+    # Edges: deprecated; will be removed in 6.0
+    def p_edges_with_ghost(self,num_ghost):
+        warnings.warn(deprec_message)
+        return self.p_nodes_with_ghost(num_ghost)
+    def c_edges_with_ghost(self, num_ghost):
+        warnings.warn(deprec_message)
+        return self.c_nodes_with_ghost(num_ghost)
+    # ========================================================================
+
+
+    # ========================================================================
     #  Gauges
     # ========================================================================
     def add_gauges(self,gauge_coords):
@@ -383,8 +395,6 @@ class Grid(object):
         Determine the cell indices of each gauge and make a list of all gauges
         with their cell indices.  
         """
-        from numpy import floor
-        
         for gauge in gauge_coords: 
             # Check if gauge belongs to this grid:
             if all(self.lower[n]<=gauge[n]<self.upper[n] for n in range(self.num_dim)):
@@ -512,6 +522,18 @@ class Dimension(object):
     def delta(self):
         r"""(float) - Size of an individual, computational cell"""
         return (self.upper-self.lower) / float(self.num_cells)
+
+    # ========== Edges: deprecated; will be removed in 6.0 =======
+    @property
+    def edges(self):
+        warnings.warn(deprec_message)
+        return self.nodes
+
+    def edges_with_ghost(self,num_ghost):
+        warnings.warn(deprec_message)
+        return self.nodes_with_ghost(num_ghost)
+    # ========================================================================
+
 
     # ========== Centers and nodes ========================================
     @property
