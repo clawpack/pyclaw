@@ -378,6 +378,14 @@ class Grid(object):
 
     # ========================================================================
     # Edges: deprecated; will be removed in 6.0
+    @property
+    def c_edges(self):
+        warnings.warn(deprec_message)
+        return self.c_nodes
+    @property
+    def p_edges(self):
+        warnings.warn(deprec_message)
+        return self.p_nodes
     def p_edges_with_ghost(self,num_ghost):
         warnings.warn(deprec_message)
         return self.p_nodes_with_ghost(num_ghost)
