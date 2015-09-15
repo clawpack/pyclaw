@@ -147,9 +147,9 @@ def minmod_limiter(r,cfl):
     
     a[1,:] = r
     
-    b[1,:] = np.min(a,axis=0)
+    b[1,:] = np.minimum(a[0],a[1])
     
-    return np.max(b,axis=0)
+    return np.maximum(b[0],b[1])
     
 
 def superbee_limiter(r,cfl):
@@ -164,8 +164,8 @@ def superbee_limiter(r,cfl):
     
     b[1,:] = r
 
-    c[1,:] = np.min(a,axis=0)
-    c[2,:] = np.min(b,axis=0)
+    c[1,:] = np.minimum(a[0], a[1])
+    c[2,:] = np.minimum(b[0], b[1])
 
     return np.max(c,axis=0)
     
@@ -182,7 +182,7 @@ def mc_limiter(r,cfl):
     
     b[1,:] = np.min(a,axis=0)
 
-    return np.max(b,axis=0)
+    return np.maximum(b[0], b[1])
     
 def van_leer_klein_sharpening_limiter(r,cfl):
     r"""
@@ -191,9 +191,9 @@ def van_leer_klein_sharpening_limiter(r,cfl):
     a = np.ones((2,len(r))) * 1.e-5
     a[0,:] = r
     
-    rcorr = np.max(a,axis=0)
+    rcorr = np.maximum(a[0],a[1])
     a[1,:] = 1/rcorr
-    sharg = np.min(a,axis=0)
+    sharg = np.minimum(a[0],a[1])
     sharp = 1.0 + sharg * (1.0 - sharg) * (1.0 - sharg**2)
     
     return (r+np.abs(r)) / (1.0 + np.abs(r)) * sharp
@@ -216,7 +216,7 @@ def arora_roe(r,cfl):
     a[2,:] = phimax
     b[1,:] = np.min(a,axis=0)
     
-    return np.max(b,axis=0)
+    return np.maximum(b[0],b[1])
 
 def theta_limiter(r,cfl,theta=0.95):
     r"""
@@ -239,10 +239,10 @@ def theta_limiter(r,cfl,theta=0.95):
     
     a[0,:] = (1.0 - theta) * s1
     a[1,:] = 1.0 + s2 * (r - 1.0)
-    left = np.max(a,axis=0)
+    left = np.maximum(a[0],a[1])
     a[0,:] = (1.0 - theta) * phimax * r
     a[1,:] = theta * s1 * r
-    middle = np.max(a,axis=0)
+    middle = np.maximum(a[0],a[1])
     
     b[0,:] = left
     b[1,:] = middle
@@ -259,16 +259,16 @@ def cfl_superbee(r,cfl):
     
     a[0,:] = 0.001
     a[1,:] = cfl
-    cfmod1 = np.max(a,axis=0)
+    cfmod1 = np.maximum(a[0],a[1])
     a[0,:] = 0.999
-    cfmod2 = np.min(a,axis=0)
+    cfmod2 = np.minimum(a[0],a[1])
     
     a[0,:] = 1.0
     a[1,:] = 2.0 * r / cfmod1
-    b[1,:] = np.min(a,axis=0)
+    b[1,:] = np.minimum(a[0],a[1])
     a[0,:] = 2.0/(1-cfmod2)
     a[1,:] = r
-    b[2,:] = np.min(a,axis=0)
+    b[2,:] = np.minimum(a[0],a[1])
     
     return np.max(b,axis=0)
 
@@ -282,22 +282,22 @@ def cfl_superbee_theta(r,cfl,theta=0.95):
     
     a[0,:] = 0.001
     a[1,:] = cfl
-    cfmod1 = np.max(a,axis=0)
+    cfmod1 = np.maximum(a[0],a[1])
     a[0,:] = 0.999
-    cfmod2 = np.min(a,axis=0)
+    cfmod2 = np.minimum(a[0],a[1])
 
     s1 = theta * 2.0 / cfmod1
     phimax = theta * 2.0 / (1.0 - cfmod2)
 
     a[0,:] = s1*r
     a[1,:] = phimax
-    b[1,:] = np.min(a,axis=0)
-    ultra = np.max(b,axis=0)
+    b[1,:] = np.minimum(a[0],a[1])
+    ultra = np.maximum(b[0],b[1])
     
     a[0,:] = ultra
     b[0,:] = 1.0
     b[1,:] = r
-    a[1,:] = np.max(b,axis=0)
+    a[1,:] = np.maximum(b[0],b[1])
     return np.min(a,axis=0)
 
 def beta_limiter(r,cfl,theta=0.95,beta=0.66666666666666666):
@@ -313,9 +313,9 @@ def beta_limiter(r,cfl,theta=0.95,beta=0.66666666666666666):
     
     a[0,:] = 0.001
     a[1,:] = cfl
-    cfmod1 = np.max(a,axis=0)
+    cfmod1 = np.maximum(a[0],a[1])
     a[0,:] = 0.999
-    cfmod2 = np.min(a,axis=0)
+    cfmod2 = np.minimum(a[0],a[1])
     
     s1 = theta * 2.0 / cfmod1
     s2 = (1.0 + cfl) / 3.0
@@ -342,9 +342,9 @@ def hyperbee_limiter(r,cfl):
     
     a[0,:] = 0.001
     a[1,:] = cfl
-    cfmod1 = np.max(a,axis=0)
+    cfmod1 = np.maximum(a[0],a[1])
     a[0,:] = 0.999
-    cfmod2 = np.min(a,axis=0)
+    cfmod2 = np.minimum(a[0],a[1])
     
     index1 = r < 0.0
     index2 = np.abs(r-1.0) < 1.0e-6
@@ -430,9 +430,9 @@ def upper_bound_limiter(r,cfl,theta=1.0):
     
     a[0,:] = 0.001
     a[1,:] = cfl
-    cfmod1 = np.max(a,axis=0)
+    cfmod1 = np.maximum(a[0],a[1])
     a[0,:] = 0.999
-    cfmod2 = np.min(a,axis=0)
+    cfmod2 = np.minimum(a[0],a[1])
     
     s1 = theta * 2.0 / cfmod1
     phimax = theta * 2.0 / (1.0 - cfmod2)
