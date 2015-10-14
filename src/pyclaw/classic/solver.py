@@ -53,13 +53,6 @@ class ClawSolver(Solver):
         The required signature for this function is:
 
         def step_source(solver,state,dt)
-    
-    .. attribute:: before_step
-    
-        Function called before each time step is taken.
-        The required signature for this function is:
-        
-        def before_step(solver,solution)
 
     .. attribute:: kernel_language
 
@@ -87,25 +80,25 @@ class ClawSolver(Solver):
         self.source_split = 1
         self.fwave = False
         self.step_source = None
-        self.before_step = None
         self.kernel_language = 'Fortran'
         self.verbosity = 0
         self.cfl_max = 1.0
         self.cfl_desired = 0.9
         self._mthlim = self.limiters
         self._method = None
+        self.dt_old = None
 
         # Call general initialization function
         super(ClawSolver,self).__init__(riemann_solver,claw_package)
     
     # ========== Time stepping routines ======================================
-    def step(self,solution):
+    def step(self,solution,take_one_step,tstart,tend):
         r"""
         Evolve solution one time step
 
         The elements of the algorithm for taking one step are:
-        
-        1. The :meth:`before_step` function is called
+
+        1. Pick a step size as specified by the base solver attribute :func:`get_dt`
         
         2. A half step on the source term :func:`step_source` if Strang splitting is 
            being used (:attr:`source_split` = 2)
@@ -126,13 +119,12 @@ class ClawSolver(Solver):
         :Output: 
          - (bool) - True if full step succeeded, False otherwise
         """
-
-        if self.before_step is not None:
-            self.before_step(self,solution.states[0])
+        self.get_dt(solution.t,tstart,tend,take_one_step)
+        self.cfl.set_global_max(0.)
 
         if self.source_split == 2 and self.step_source is not None:
             self.step_source(self,solution.states[0],self.dt/2.0)
-    
+
         self.step_hyperbolic(solution)
 
         # Check here if the CFL condition is satisfied. 
@@ -151,7 +143,7 @@ class ClawSolver(Solver):
                 self.step_source(self,solution.states[0],self.dt)
                 
         return True
-            
+
     def _check_cfl_settings(self):
         pass
 

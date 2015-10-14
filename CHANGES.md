@@ -1,3 +1,24 @@
+# 5.3.0 release
+- New time integration methods in SharpClaw: variable-step-size linear multistep methods.  See http://arxiv.org/abs/1504.04107.
+- HDF5 file I/O now works.
+- Capability to use pointwise Riemann solvers.  Examples in pyclaw/examples/acoustics_1d_homogeneous
+  and pyclaw/examples/acoustics_2d_homogeneous.
+- New examples:
+  - shallow water flow over a sill
+  - 2D acoustics on mapped grid with inclusions
+  - 3D atmospheric Euler with gravity
+- Better enforcement of SSP timestep restriction for Runge-Kutta methods (SharpClaw).
+- Improvements to geometry:
+    - physical coordinates with ghost cells
+    - all grid attributes update automatically when grid is modified
+    - better output from `print grid`
+    - grid mappings can be modified on the fly
+    - grid.c_center and grid.p_center methods give coordinates of a single cell center
+    - grid.mapc2p functions the same way it does in visclaw
+    - Several new doctests.
+- Testing: more doctests, I/O tests; doctests are run on Travis; scipy and hdf5 tests run on Travis.
+- Various bug fixes (10 issues closed).
+
 #5.2.1 release
 
 - **New 3D Euler examples**: Sedov blast, shock tube, and shock-bubble interaction, with IPython notebooks showing how to visualize.  The Sedov example has a test using HDF5 files.

@@ -40,7 +40,8 @@ def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output',
     elif solver_type=='sharpclaw':
         solver=pyclaw.SharpClawSolver2D(riemann.vc_acoustics_2D)
         solver.time_integrator=time_integrator
-        if time_integrator=='SSPMS32':
+        if time_integrator=='SSPLMMk2':
+            solver.lmm_steps = 3
             solver.cfl_max = 0.25
             solver.cfl_desired = 0.24
 
@@ -149,6 +150,5 @@ def mark_interface(current_data):
 
 
 if __name__=="__main__":
-    import sys
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(setup,setplot)

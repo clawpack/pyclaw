@@ -1,6 +1,8 @@
 [![Build Status](https://travis-ci.org/clawpack/pyclaw.svg?branch=master)](https://travis-ci.org/clawpack/pyclaw)
 [![Coverage Status](https://img.shields.io/coveralls/clawpack/pyclaw.svg)](https://coveralls.io/r/clawpack/pyclaw?branch=master)
 
+[![version status](https://pypip.in/v/clawpack/badge.png)](https://pypi.python.org/pypi/clawpack)
+[![downloads](https://pypip.in/d/clawpack/badge.png)](https://pypi.python.org/pypi/clawpack)
 
 Quick start:
 

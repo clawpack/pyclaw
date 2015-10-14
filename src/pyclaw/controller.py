@@ -415,6 +415,85 @@ class Controller(object):
     def log_info(self, str):
         self.logger.info(str)
 
+
+
+
+class OutputController(object):
+    r"""Output controller object providing an interface to the io package.
+
+    This controller is meant to provide a uniform interface to the IO 
+    capabilities in PyClaw.
+
+    :Note: This object is meant to be a test bed for restructuring the way
+    PyClaw does IO and should be used at one's own risk as rapid changes could
+    occur that will break backwards compatibility.
+            
+    :Initialization:
+    
+        Input: 
+            - *output_path* - (path) Path to output both for reading and writing.
+            - *file_format* - (string) String indicating type of file format 
+              to be used.  Default is `ascii`.
+    
+    .. attribute:: output_path
+
+        Path to output directory either for writing or reading.
+
+    .. attribute:: file_format
+
+        Format used for reading and writing.  Should be one of the modules in
+        the io package.  Changing this attribute will automatically load the 
+        new backend io package.
+
+    """
+
+    @property
+    def file_format(self):
+        return self._file_format
+    @file_format.setter
+    def file_format(self, value):
+        if value.lower() == 'petsc':
+            self._io_module = __import__("clawpack.petclaw.io.petsc", 
+                                         fromlist=["clawpack.petclaw.io"])
+            self._file_format = value
+        else:
+            self._io_module = __import__("clawpack.pyclaw.io.%s" % value, 
+                                         fromlist=['clawpack.pyclaw.io'])
+            self._file_format = value
+
+        
+
+    def __init__(self, output_path, file_format='ascii'):
+        r"""
+        Initialization routine for an OutputController object.
+        
+        See :class:`OutputController` for full documentation.
+        """
+
+        self._io_module = None
+        self.file_format = file_format
+        self.output_path = output_path
+
+
+    def get_time(self, frame_num):
+        r"""Get the time for the specified frame number.
+
+        :Input:
+            - *frame_num* - (int) Frame number of solution to fetch.
+
+        :Output:
+            - (float or None) Returns either the time from the specified
+              *frame_num* if the io format allows for it or returns None.
+
+        """
+
+        if "read_t" in dir(self._io_module):
+            return self._io_module.read_t(frame_num, path=self.output_path)[0]
+        else:
+            return None
+
+
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
