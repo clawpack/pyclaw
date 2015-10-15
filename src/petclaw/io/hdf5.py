@@ -98,6 +98,11 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
     
     filename = os.path.join(path,'%s%s.hdf' % 
                                 (file_prefix,str(frame).zfill(4)))
+
+    if options['compression'] is not None:
+        err_msg = "Compression (filters) are not available for parallel h5py yet."
+        logging.critical(err_msg)
+        raise Exception(err_msg)
     
     if use_h5py:
         with h5py.File(filename,'w',driver='mpio',comm=MPI.COMM_WORLD) as f:
