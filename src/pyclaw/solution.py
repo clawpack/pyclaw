@@ -289,6 +289,9 @@ class Solution(object):
             if 'petsc' in form:
                 from clawpack.petclaw import io
                 write_func = io.petsc.write
+            elif 'hdf5p' in form:
+                from clawpack.petclaw import io
+                write_func = io.hdf5.write
             else:
                 from clawpack.pyclaw import io
                 write_func = getattr(getattr(io,form),'write')
