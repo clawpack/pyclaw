@@ -611,6 +611,12 @@ class ClawSolver3D(ClawSolver):
         self.aux3 = None
         self.work = None
 
+        import os
+        if os.environ['OMP_NUM_THREADS'] == None:
+            self.nthreads = 1
+        else:
+            self.nthreads = int(os.environ['OMP_NUM_THREADS'])
+
         super(ClawSolver3D,self).__init__(riemann_solver, claw_package)
 
     # ========== Setup routine =============================   
@@ -636,10 +642,12 @@ class ClawSolver3D(ClawSolver):
 
         # These work arrays really ought to live inside a fortran module
         # as is done for sharpclaw
-        self.aux1 = np.empty((num_aux,maxm+2*num_ghost,3),order='F')
-        self.aux2 = np.empty((num_aux,maxm+2*num_ghost,3),order='F')
-        self.aux3 = np.empty((num_aux,maxm+2*num_ghost,3),order='F')
-        mwork = (maxm+2*num_ghost) * (31*num_eqn + num_waves + num_eqn*num_waves)
+        print "nthreads:",self.nthreads
+        self.aux1 = np.empty((num_aux,maxm+2*num_ghost,3,self.nthreads),order='F')
+        self.aux2 = np.empty((num_aux,maxm+2*num_ghost,3,self.nthreads),order='F')
+        self.aux3 = np.empty((num_aux,maxm+2*num_ghost,3,self.nthreads),order='F')
+        mwork = (maxm+2*num_ghost)\
+                *(31*num_eqn + num_waves + num_eqn*num_waves)*self.nthreads
         self.work = np.empty((mwork),order='F')
 
 
@@ -676,17 +684,20 @@ class ClawSolver3D(ClawSolver):
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp3.f in Clawpack.
 
-                q, cfl_x = self.fmod.step3ds(maxm,self.num_ghost,mx,my,mz, \
-                      qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,1,self.fwave,rpn3,rpt3,rptt3)
+                q, cfl_x = self.fmod.step3ds(maxm,self.nthreads,self.num_ghost,\
+                    mx,my,mz,qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,\
+                    self._mthlim,self.aux1,self.aux2,self.aux3,self.work,1,\
+                    self.fwave,rpn3,rpt3,rptt3)
 
-                q, cfl_y = self.fmod.step3ds(maxm,self.num_ghost,mx,my,mz, \
-                      q,q,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,2,self.fwave,rpn3,rpt3,rptt3)
+                q, cfl_y = self.fmod.step3ds(maxm,self.nthreads,self.num_ghost,\
+                    mx,my,mz,q,q,self.auxbc,dx,dy,dz,self.dt,self._method,\
+                    self._mthlim,self.aux1,self.aux2,self.aux3,self.work,2,\
+                    self.fwave,rpn3,rpt3,rptt3)
 
-                q, cfl_z = self.fmod.step3ds(maxm,self.num_ghost,mx,my,mz, \
-                      q,q,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,3,self.fwave,rpn3,rpt3,rptt3)
+                q, cfl_z = self.fmod.step3ds(maxm,self.nthreads,self.num_ghost,\
+                    mx,my,mz,q,q,self.auxbc,dx,dy,dz,self.dt,self._method,\
+                    self._mthlim,self.aux1,self.aux2,self.aux3,self.work,3,\
+                    self.fwave,rpn3,rpt3,rptt3)
 
                 cfl = max(cfl_x,cfl_y,cfl_z)
 
