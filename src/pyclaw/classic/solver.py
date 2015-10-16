@@ -612,10 +612,7 @@ class ClawSolver3D(ClawSolver):
         self.work = None
 
         import os
-        if os.environ['OMP_NUM_THREADS'] == None:
-            self.nthreads = 1
-        else:
-            self.nthreads = int(os.environ['OMP_NUM_THREADS'])
+        self.nthreads = int(os.environ.get('OMP_NUM_THREADS',1))
 
         super(ClawSolver3D,self).__init__(riemann_solver, claw_package)
 
