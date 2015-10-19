@@ -639,7 +639,6 @@ class ClawSolver3D(ClawSolver):
 
         # These work arrays really ought to live inside a fortran module
         # as is done for sharpclaw
-        print "nthreads:",self.nthreads
         self.aux1 = np.empty((num_aux,maxm+2*num_ghost,3,self.nthreads),order='F')
         self.aux2 = np.empty((num_aux,maxm+2*num_ghost,3,self.nthreads),order='F')
         self.aux3 = np.empty((num_aux,maxm+2*num_ghost,3,self.nthreads),order='F')
