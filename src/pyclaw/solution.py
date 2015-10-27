@@ -352,6 +352,9 @@ class Solution(object):
         elif file_format in ('hdf','hdf5'): 
             from clawpack.pyclaw import io
             read_func = io.hdf5.read
+        elif file_format == 'hdf5p':
+            from clawpack.petclaw import io
+            read_func = io.hdf5.read
         else:
             raise ValueError("File format %s not supported." % file_format)
 
