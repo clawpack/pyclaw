@@ -612,7 +612,9 @@ class ClawSolver3D(ClawSolver):
         self.work = None
 
         import os
-        self.nthreads = int(os.environ.get('OMP_NUM_THREADS',1))
+        import multiprocessing
+        self.nthreads = int(os.environ.get('OMP_NUM_THREADS',\
+                                           multiprocessing.cpu_count()))
 
         super(ClawSolver3D,self).__init__(riemann_solver, claw_package)
 
@@ -699,9 +701,10 @@ class ClawSolver3D(ClawSolver):
 
             else:
 
-                q, cfl = self.fmod.step3(maxm,self.num_ghost,mx,my,mz, \
-                      qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,self.fwave,rpn3,rpt3,rptt3)
+                q, cfl = self.fmod.step3(maxm,self.nthreads,self.num_ghost,\
+                    mx,my,mz,qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,\
+                    self._mthlim,self.aux1,self.aux2,self.aux3,self.work,\
+                    self.fwave,rpn3,rpt3,rptt3)
 
             self.cfl.update_global_max(cfl)
             state.set_q_from_qbc(self.num_ghost,self.qbc)

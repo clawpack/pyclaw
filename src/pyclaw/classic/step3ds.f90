@@ -118,8 +118,9 @@ subroutine step3ds(maxm,nthreads,num_eqn,num_waves,num_ghost,mx,my, &
 
   if (iused > mwork) then
      ! This shouldn't happen due to checks in claw3
-     write(6,*) '*** not enough work space in step3'
+     write(6,*) '*** not enough work space in step3ds()'
      write(6,*) '*** iused = ', iused, '   mwork =',mwork
+     write(6,*) '*** nthreads = ',nthreads
      stop
   endif
 
