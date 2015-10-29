@@ -6,7 +6,7 @@ thisdir = os.path.dirname(__file__)
 file_formats = ['hdf5p']
 
 def test_io_from_hdf5():
-    regression_dir = os.path.join(thisdir,'./test_data/shock_bubble_interaction_hdf')
+    regression_dir = os.path.join(thisdir,'./test_data/Sedov_hdf')
     read_write_and_compare(file_formats,regression_dir,'hdf5p',1)
 
 def test_io_from_hdf5_with_aux():

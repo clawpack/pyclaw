@@ -20,7 +20,7 @@ import os
 import logging
 
 from clawpack import pyclaw
-from clawpack.pyclaw.io.hdf5 import read
+from clawpack import petclaw
 
 logger = logging.getLogger('pyclaw.io')
 
@@ -43,7 +43,6 @@ except:
 
 def write(solution,frame,path,file_prefix='claw',write_aux=False,
                 options={},write_p=False):
-
     r"""
     Write out a Solution to a HDF5 file.
     
@@ -108,7 +107,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
     
     if use_h5py:
         with h5py.File(filename,'w',driver='mpio',comm=MPI.COMM_WORLD) as f:
-        
+
             # For each patch, write out attributes
             for state in solution.states:
                 patch = state.patch
@@ -173,3 +172,89 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
         logging.critical(err_msg)
         raise Exception(err_msg)
 
+def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
+                options={}):
+    r"""
+    Read in a HDF5 file into a Solution
+
+    :Input:
+     - *solution* - (:class:`~pyclaw.solution.Solution`) Pyclaw object to be
+       output
+     - *frame* - (int) Frame number
+     - *path* - (string) Root path
+     - *file_prefix* - (string) Prefix for the file name.  ``default = 'claw'``
+     - *write_aux* - (bool) Boolean controlling whether the associated
+       auxiliary array should be written out.  ``default = False``
+     - *options* - (dict) Optional argument dictionary, not used for reading.
+    """
+    filename = os.path.join(path,'%s%s.hdf' %
+                                (file_prefix,str(frame).zfill(4)))
+    patches = []
+
+    if use_h5py:
+        with h5py.File(filename,'r',driver='mpio',comm=MPI.COMM_WORLD) as f:
+            for patch in f.itervalues():
+                # Construct each dimension
+                dimensions = []
+                dim_names = patch.attrs['dimensions']
+                for dim_name in dim_names:
+                    dim = pyclaw.solution.Dimension(
+                                        patch.attrs["%s.lower" % dim_name],
+                                        patch.attrs["%s.upper" % dim_name],
+                                        patch.attrs["%s.num_cells" % dim_name],
+                                        name = dim_name)
+                    # Optional attributes
+                    for attr in ['units']:
+                        attr_name = "%s.%s" % (dim_name,attr)
+                        if patch.attrs.get(attr_name, None):
+                            setattr(dim,attr,patch.attrs["%s.%s" % (dim_name,attr)])
+                    dimensions.append(dim)
+
+                pyclaw_patch = petclaw.Patch(dimensions)
+
+                # Fetch general patch properties
+                for attr in ['t','num_eqn','patch_index','level']:
+                    setattr(pyclaw_patch,attr,patch.attrs[attr])
+
+                state = pyclaw.state.State(pyclaw_patch, \
+                         patch.attrs['num_eqn'],patch.attrs['num_aux'])
+                state.t = patch.attrs['t']
+
+                globalSize = []
+                globalSize.append(state.q.shape[0])
+                globalSize.extend(pyclaw_patch.num_cells_global)
+                r = pyclaw_patch._da.getRanges()
+
+                dset = patch['q'][:].reshape(globalSize,order='F')
+
+                if len(pyclaw_patch.name) == 1:
+                    state.q = dset[:,r[0][0]:r[0][1]].reshape(state.q.shape,order='F')
+                elif len(pyclaw_patch.name) == 2:
+                    state.q = dset[:,r[0][0]:r[0][1],r[1][0]:r[1][1]].reshape(state.q.shape,order='F')
+                elif len(pyclaw_patch.name) == 3:
+                    state.q = dset[:,r[0][0]:r[0][1],r[1][0]:r[1][1],r[2][0]:r[2][1]].reshape(state.q.shape,order='F')
+
+                # Read in aux if applicable
+                if read_aux and patch.get('aux',None) is not None:
+                    #state.aux = patch['aux'][:].reshape(state.aux.shape,order='F')
+                    dset = patch['aux'][:]
+                    if len(pyclaw_patch.name) == 1:
+                        state.aux = dset[:,r[0][0]:r[0][1]]
+                    elif len(pyclaw_patch.name) == 2:
+                        state.aux = dset[:,r[0][0]:r[0][1],r[1][0]:r[1][1]]
+                    elif len(pyclaw_patch.name) == 3:
+                        state.aux = dset[:,r[0][0]:r[0][1],r[1][0]:r[1][1],r[2][0]:r[2][1]]
+
+                solution.states.append(state)
+                patches.append(pyclaw_patch)
+
+            solution.domain = pyclaw.geometry.Domain(patches)
+
+    elif use_PyTables:
+        # f = tables.openFile(filename, mode = "r", title = options['title'])
+        logging.critical("PyTables has not been implemented yet.")
+        raise IOError("PyTables has not been implemented yet.")
+    else:
+        err_msg = "No hdf5 python modules available."
+        logging.critical(err_msg)
+        raise Exception(err_msg)
