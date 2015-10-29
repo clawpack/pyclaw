@@ -38,7 +38,7 @@ subroutine step3ds(maxm,nthreads,num_eqn,num_waves,num_ghost,mx,my, &
        1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
   dimension qnew(num_eqn, 1-num_ghost:mx+num_ghost, &
        1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
-  dimension  q1d(num_eqn,1-num_ghost:maxm+num_ghost,mx+nthreads-mx) ! Adding and subtracting mx is a hack to trick f2py, so it does not make nthreads optional.
+  dimension  q1d(num_eqn,1-num_ghost:maxm+num_ghost,mx+nthreads-mx)
   dimension qadd(num_eqn,1-num_ghost:maxm+num_ghost,mx+nthreads-mx)
   dimension fadd(num_eqn,1-num_ghost:maxm+num_ghost,mx+nthreads-mx)
   dimension gadd(num_eqn,2,-1:1,1-num_ghost:maxm+num_ghost,mx+nthreads-mx)
@@ -118,8 +118,9 @@ subroutine step3ds(maxm,nthreads,num_eqn,num_waves,num_ghost,mx,my, &
 
   if (iused > mwork) then
      ! This shouldn't happen due to checks in claw3
-     write(6,*) '*** not enough work space in step3'
+     write(6,*) '*** not enough work space in step3ds()'
      write(6,*) '*** iused = ', iused, '   mwork =',mwork
+     write(6,*) '*** nthreads = ',nthreads
      stop
   endif
 
