@@ -29,10 +29,10 @@ script:
   - nosetests --first-pkg-wins --with-doctest --exclude=limiters --exclude=sharpclaw --exclude=io --exclude=example --with-coverage --cover-package=clawpack.pyclaw
   - mv .coverage temp
   - if [[ "${TEST_PACKAGE}" == "pyclaw" ]]; then
-        nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --exclude=io --with-coverage --cover-package=clawpack.pyclaw;
+        nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --with-coverage --cover-package=clawpack.pyclaw;
     fi
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
-       mpirun -n 4 nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --exclude=io;
+       mpirun -n 4 nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw;
     fi
   - mv temp .coverage.doctest
   - coverage combine
