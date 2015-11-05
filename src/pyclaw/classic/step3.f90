@@ -40,6 +40,7 @@ subroutine step3(maxm,nthreads,num_eqn,num_waves,num_ghost,mx,my, &
   dimension method(7),mthlim(num_waves)
   dimension work(mwork)
   logical :: use_fwave
+  character :: env_value
 
   ! These block sizes must be at least 2 to avoid multiple threads
   ! trying to update the same grid cell
@@ -61,6 +62,10 @@ subroutine step3(maxm,nthreads,num_eqn,num_waves,num_ghost,mx,my, &
   ! flux3 routine.  Find starting index of each piece:
 
   nthreads=1    ! Serial
+  CALL GET_ENVIRONMENT_VARIABLE('OMP_NUM_THREADS',env_value,nlen,nstat)
+  IF(nstat >= 1)THEN
+     !$ call omp_set_num_threads(1) ! set default to 1 thread
+  END IF
   !$omp parallel
   !$omp single
   !$ nthreads = omp_get_num_threads()
