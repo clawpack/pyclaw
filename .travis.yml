@@ -35,10 +35,10 @@ script:
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
        mpirun -n 4 nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --exclude=io;
        cd ../petclaw/tests;
-       pwd
+       pwd;
        mpirun -n 4 nosetests -v --first-pkg-wins;
        cd ../../pyclaw;
-       pwd
+       pwd;
     fi
   - mv temp .coverage.doctest
   - coverage combine
