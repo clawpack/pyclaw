@@ -26,6 +26,7 @@ install:
 
 script:
   - cd pyclaw/src/pyclaw
+  - pwd
   - nosetests --first-pkg-wins --with-doctest --exclude=limiters --exclude=sharpclaw --exclude=io --exclude=example --with-coverage --cover-package=clawpack.pyclaw
   - mv .coverage temp
   - if [[ "${TEST_PACKAGE}" == "pyclaw" ]]; then
@@ -34,8 +35,10 @@ script:
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
        mpirun -n 4 nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --exclude=io;
        cd ../petclaw/tests;
+       pwd
        mpirun -n 4 nosetests -v --first-pkg-wins;
        cd ../../pyclaw;
+       pwd
     fi
   - mv temp .coverage.doctest
   - coverage combine
