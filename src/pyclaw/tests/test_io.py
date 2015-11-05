@@ -14,22 +14,24 @@ class TestIO():
 
     @property
     def this_dir(self):
-        return os.path.dirname(os.path.realpath(__file__))
+        return os.path.dirname(os.path.abspath(__file__))
+
+    @property
+    def test_data_dir(self):
+        return os.path.join(self.this_dir, './test_data')
 
     def test_io_from_binary(self):
         # Read regression data
-        regression_dir = os.path.join(self.this_dir,'./test_data/advection_2d_binary')
+        regression_dir = os.path.join(self.test_data_dir,'./advection_2d_binary')
         self.read_write_and_compare(self.file_formats,regression_dir,'binary',0)
 
     def test_io_from_hdf5(self):
-        regression_dir = os.path.join(self.this_dir,'./test_data/Sedov_regression_hdf')
-        raise ValueError("TRACE:" + regression_dir)
+        regression_dir = os.path.join(self.test_data_dir,'./Sedov_regression_hdf')
         self.read_write_and_compare(self.file_formats,regression_dir,'hdf5',1)
 
     def test_io_from_hdf5_with_aux(self):
-        regression_dir = os.path.join(self.this_dir,'./test_data/advection_2d_with_aux')
+        regression_dir = os.path.join(self.test_data_dir,'./advection_2d_with_aux')
         self.read_write_and_compare(self.file_formats,regression_dir,'hdf5',0,aux=True)
-
 
     def read_write_and_compare(self, file_formats,regression_dir,regression_format,frame_num,aux=False):
         r"""Test IO file formats:
