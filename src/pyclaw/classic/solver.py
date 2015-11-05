@@ -612,9 +612,12 @@ class ClawSolver3D(ClawSolver):
         self.work = None
 
         import os
-        import multiprocessing
-        self.nthreads = int(os.environ.get('OMP_NUM_THREADS',\
-                                           multiprocessing.cpu_count()))
+        import warnings
+        if 'OMP_NUM_THREADS' in os.environ:
+            pass # Using OpenMP
+        else:
+            warnings.warn("The environment variable 'OMP_NUM_THREADS' is unset.  Set this variable to use OpenMP with more than 1 thread (i.e. export OMP_NUM_THREADS=4).")
+        self.nthreads = int(os.environ.get('OMP_NUM_THREADS',1))
 
         super(ClawSolver3D,self).__init__(riemann_solver, claw_package)
 
