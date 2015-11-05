@@ -32,7 +32,10 @@ script:
         nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --with-coverage --cover-package=clawpack.pyclaw;
     fi
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
-       mpirun -n 4 nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw;
+       mpirun -n 4 nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --exclude=io;
+       cd ../petclaw/tests;
+       mpirun -n 4 nosetests -v --first-pkg-wins;
+       cd ../../pyclaw;
     fi
   - mv temp .coverage.doctest
   - coverage combine

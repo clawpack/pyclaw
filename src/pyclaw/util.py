@@ -174,16 +174,6 @@ def gen_variants(application, verifier, kernel_languages=('Fortran',), disable_p
         yield test
     return
 
-def gen_io_variants(verifier, file_formats,regression_format, **kwargs):
-
-    arg_dicts = build_io_variant_arg_dicts(file_formats, regression_format)
-
-    for test_kwargs in arg_dicts:
-        test_kwargs.update(kwargs)
-        test = lambda: test_io(verifier, test_kwargs)
-        yield test
-    return
-
 def build_variant_arg_dicts(kernel_languages=('Fortran',), disable_petsc=False):
     import itertools
 
@@ -199,15 +189,6 @@ def build_variant_arg_dicts(kernel_languages=('Fortran',), disable_petsc=False):
     opt_names = 'use_petsc','kernel_language'
     opt_product = itertools.product(use_petsc_opts,kernel_languages)
     arg_dicts = [dict(zip(opt_names,argset)) for argset in opt_product]
-
-    return arg_dicts
-
-def build_io_variant_arg_dicts(file_formats=('hdf5','ascii'), regression_format='hdf5'):
-    opt_names = 'file_formats', 'regression_format'
-    opt_values = [(file_formats, regression_format)]
-    if regression_format=='hdf5':
-        opt_values.append((('hdf5p',), 'hdf5p'))
-    arg_dicts = [dict(zip(opt_names,argset)) for argset in opt_values]
 
     return arg_dicts
 
@@ -278,20 +259,6 @@ test error           : %s
          check_values[3])
         raise VerifyError(err)
     return
-
-def test_io(verifier, kwargs):
-    print kwargs
-
-    if 'regression_format' in kwargs and kwargs['regression_format'] != 'hdf5p':
-        try:
-            # don't duplicate serial test runs
-            from petsc4py import PETSc
-            rank = PETSc.COMM_WORLD.getRank()
-            if rank != 0:
-                return
-        except ImportError, e:
-            pass
-    return verifier(**kwargs)
 
 def check_diff(expected, test, **kwargs):
     r"""
