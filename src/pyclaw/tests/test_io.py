@@ -14,7 +14,7 @@ class TestIO():
 
     @property
     def this_dir(self):
-        return os.path.dirname(__file__)
+        return os.path.dirname(os.path.abspath(__file__))
 
     def test_io_from_binary(self):
         # Read regression data
