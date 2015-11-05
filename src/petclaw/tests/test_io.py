@@ -1,8 +1,8 @@
-from clawpack.pyclaw import TestIO
+from clawpack import pyclaw
 from clawpack import petclaw
 import os
 
-class TestParallelIO(TestIO):
+class TestParallelIO(pyclaw.TestIO):
     @property
     def solution(self):
         return petclaw.Solution()
