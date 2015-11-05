@@ -613,9 +613,7 @@ class ClawSolver3D(ClawSolver):
 
         import os
         import warnings
-        if 'OMP_NUM_THREADS' in os.environ:
-            pass # Using OpenMP
-        else:
+        if 'OMP_NUM_THREADS' not in os.environ:
             warnings.warn("The environment variable 'OMP_NUM_THREADS' is unset.  Set this variable to use OpenMP with more than 1 thread (i.e. export OMP_NUM_THREADS=4).")
         self.nthreads = int(os.environ.get('OMP_NUM_THREADS',1))
 
