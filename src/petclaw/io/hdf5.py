@@ -19,7 +19,7 @@ from mpi4py import MPI
 import os
 import logging
 
-from clawpack import pyclaw
+from clawpack.petclaw import geometry
 from clawpack import petclaw
 
 logger = logging.getLogger('pyclaw.io')
@@ -198,11 +198,11 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
                 dimensions = []
                 dim_names = patch.attrs['dimensions']
                 for dim_name in dim_names:
-                    dim = pyclaw.solution.Dimension(
-                                        patch.attrs["%s.lower" % dim_name],
-                                        patch.attrs["%s.upper" % dim_name],
-                                        patch.attrs["%s.num_cells" % dim_name],
-                                        name = dim_name)
+                    dim = geometry.Dimension(
+                                    patch.attrs["%s.lower" % dim_name],
+                                    patch.attrs["%s.upper" % dim_name],
+                                    patch.attrs["%s.num_cells" % dim_name],
+                                    name = dim_name)
                     # Optional attributes
                     for attr in ['units']:
                         attr_name = "%s.%s" % (dim_name,attr)
@@ -216,7 +216,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
                 for attr in ['t','num_eqn','patch_index','level']:
                     setattr(pyclaw_patch,attr,patch.attrs[attr])
 
-                state = pyclaw.state.State(pyclaw_patch, \
+                state = petclaw.state.State(pyclaw_patch, \
                          patch.attrs['num_eqn'],patch.attrs['num_aux'])
                 state.t = patch.attrs['t']
 
@@ -248,7 +248,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
                 solution.states.append(state)
                 patches.append(pyclaw_patch)
 
-            solution.domain = pyclaw.geometry.Domain(patches)
+            solution.domain = geometry.Domain(patches)
 
     elif use_PyTables:
         # f = tables.openFile(filename, mode = "r", title = options['title'])
