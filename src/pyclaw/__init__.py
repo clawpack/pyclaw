@@ -34,3 +34,5 @@ __all__.extend(limiters.__all__)
 
 __all__.append('BC')
 from .solver import BC
+__all__.extend('TestIO')
+from .tests.test_io import TestIO
