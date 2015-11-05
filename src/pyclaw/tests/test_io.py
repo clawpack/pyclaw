@@ -22,8 +22,8 @@ class TestIO():
         self.read_write_and_compare(self.file_formats,regression_dir,'binary',0)
 
     def test_io_from_hdf5(self):
-        print "HDF5 DIR:", self.this_dir
         regression_dir = os.path.join(self.this_dir,'./test_data/Sedov_regression_hdf')
+        raise ValueError("TRACE:" + regression_dir)
         self.read_write_and_compare(self.file_formats,regression_dir,'hdf5',1)
 
     def test_io_from_hdf5_with_aux(self):
