@@ -610,14 +610,16 @@ class ClawSolver3D(ClawSolver):
         self.aux2 = None
         self.aux3 = None
         self.work = None
-
-        import os
-        import warnings
-        if 'OMP_NUM_THREADS' not in os.environ:
-            warnings.warn("The environment variable 'OMP_NUM_THREADS' is unset.  Set this variable to use OpenMP with more than 1 thread (i.e. export OMP_NUM_THREADS=4).")
-        self.nthreads = int(os.environ.get('OMP_NUM_THREADS',1))
+        self.nthreads = None
 
         super(ClawSolver3D,self).__init__(riemann_solver, claw_package)
+
+        import os
+        if 'OMP_NUM_THREADS' not in os.environ:
+            self.logger.warn(""""The env variable 'OMP_NUM_THREADS' is unset.
+                                       Set this variable to use OpenMP with more 
+                                       than 1 thread (i.e. export OMP_NUM_THREADS=4).""")
+        self.nthreads = int(os.environ.get('OMP_NUM_THREADS',1))
 
     # ========== Setup routine =============================   
     def _allocate_workspace(self,solution):
