@@ -3,15 +3,10 @@
 r"""
 Routines for reading and writing a HDF5 output file
 
-This module reads and writes hdf5 files via either of the following modules:
+This module reads and writes hdf5 files via the following module:
     h5py - http://code.google.com/p/h5py/
-    PyTables - http://www.pytables.org/moin
 
-It will first try h5py and then PyTables and use the correct calls
-according to whichever is present on the system.  We recommend that you use
-h5py as it is a minimal wrapper to the HDF5 library.
-
-To install either, you must also install the hdf5 library from the website:
+To install h5py, you must also install the hdf5 library from the website:
     http://www.hdfgroup.org/HDF5/release/obtain5.html
 """
 
@@ -24,22 +19,14 @@ from clawpack import petclaw
 
 logger = logging.getLogger('pyclaw.io')
 
-# Import appropriate hdf5 package
-use_h5py = False
-use_PyTables = False
 try:
     import h5py
-    use_h5py = True
 except:
-    try:
-        import tables
-        use_PyTables = True
-    except:
-        logging.critical("Could not import h5py or PyTables!")
-        error_msg = ("Could not import h5py or PyTables, please install " +
-            "either h5py or PyTables.  See the doc_string for more " +
-            "information.")
-        raise Exception(error_msg)
+    logging.critical("Could not import h5py!")
+    error_msg = ("Could not import h5py, please install " +
+                 "either h5py.  See the doc_string for more " +
+                 "information.")
+    raise Exception(error_msg)
 
 def write(solution,frame,path,file_prefix='claw',write_aux=False,
                 options={},write_p=False):
@@ -104,73 +91,53 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
         err_msg = "Compression (filters) are not available for parallel h5py yet."
         logging.critical(err_msg)
         raise Exception(err_msg)
-    
-    if use_h5py:
-        with h5py.File(filename,'w',driver='mpio',comm=MPI.COMM_WORLD) as f:
 
-            # For each patch, write out attributes
-            for state in solution.states:
-                patch = state.patch
-                # Create group for this patch
-                subgroup = f.create_group('patch%s' % patch.patch_index)
+    with h5py.File(filename,'w',driver='mpio',comm=MPI.COMM_WORLD) as f:
+        # For each patch, write out attributes
+        for state in solution.states:
+            patch = state.patch
+            # Create group for this patch
+            subgroup = f.create_group('patch%s' % patch.patch_index)
 
-                # General patch properties
-                subgroup.attrs['t'] = state.t
-                subgroup.attrs['num_eqn'] = state.num_eqn
-                subgroup.attrs['num_aux'] = state.num_aux
-                for attr in ['num_ghost','patch_index','level']:
-                    if hasattr(patch,attr):
-                        if getattr(patch,attr) is not None:
-                            subgroup.attrs[attr] = getattr(patch,attr)
+            # General patch properties
+            subgroup.attrs['t'] = state.t
+            subgroup.attrs['num_eqn'] = state.num_eqn
+            subgroup.attrs['num_aux'] = state.num_aux
+            for attr in ['num_ghost','patch_index','level']:
+                if hasattr(patch,attr):
+                    if getattr(patch,attr) is not None:
+                        subgroup.attrs[attr] = getattr(patch,attr)
 
-                # Add the dimension names as a attribute
-                subgroup.attrs['dimensions'] = patch.get_dim_attribute('name')
-                # Dimension properties
-                for dim in patch.dimensions:
-                    for attr in ['num_cells','lower','delta','upper',
-                                 'units']:
-                        if hasattr(dim,attr):
-                            if getattr(dim,attr) is not None:
-                                attr_name = '%s.%s' % (dim.name,attr)
-                                subgroup.attrs[attr_name] = getattr(dim,attr)
+            # Add the dimension names as a attribute
+            subgroup.attrs['dimensions'] = patch.get_dim_attribute('name')
+            # Dimension properties
+            for dim in patch.dimensions:
+                for attr in ['num_cells','lower','delta','upper',
+                             'units']:
+                    if hasattr(dim,attr):
+                        if getattr(dim,attr) is not None:
+                            attr_name = '%s.%s' % (dim.name,attr)
+                            subgroup.attrs[attr_name] = getattr(dim,attr)
 
-                if write_p:
-                    q = state.p
-                else:
-                    q = state.q
+            if write_p:
+                q = state.p
+            else:
+                q = state.q
+            r = patch._da.getRanges()
+            globalSize = []
+            globalSize.append(q.shape[0])
+            globalSize.extend(patch.num_cells_global)
+            dset = subgroup.create_dataset('q',globalSize,dtype='float',**options)
+            to_hdf5_dataset(q, dset, len(patch.dimensions), r)
+
+            if write_aux and state.num_aux > 0:
                 r = patch._da.getRanges()
                 globalSize = []
-                globalSize.append(q.shape[0])
+                globalSize.append(state.num_aux)
                 globalSize.extend(patch.num_cells_global)
-                dset = subgroup.create_dataset('q',globalSize,dtype='float',**options)
-                if len(patch.name) == 1:
-                    dset[:,r[0][0]:r[0][1]] = q
-                elif len(patch.name) == 2:
-                    dset[:,r[0][0]:r[0][1],r[1][0]:r[1][1]] = q
-                elif len(patch.name) == 3:
-                    dset[:,r[0][0]:r[0][1],r[1][0]:r[1][1],r[2][0]:r[2][1]] = q
+                dset = subgroup.create_dataset('aux',globalSize,dtype='float',**options)
+                to_hdf5_dataset(state.aux, dset, len(patch.dimensions), r)
 
-                if write_aux and state.num_aux > 0:
-                    r = patch._da.getRanges()
-                    globalSize = []
-                    globalSize.append(state.num_aux)
-                    globalSize.extend(patch.num_cells_global)
-                    dset = subgroup.create_dataset('aux',globalSize,dtype='float',**options)
-                    if len(patch.name) == 1:
-                        dset[:,r[0][0]:r[0][1]] = state.aux
-                    elif len(patch.name) == 2:
-                        dset[:,r[0][0]:r[0][1],r[1][0]:r[1][1]] = state.aux
-                    elif len(patch.name) == 3:
-                        dset[:,r[0][0]:r[0][1],r[1][0]:r[1][1],r[2][0]:r[2][1]] = state.aux
-        
-    elif use_PyTables:
-        # f = tables.openFile(filename, mode = "w", title = options['title'])
-        logging.critical("PyTables has not been implemented yet.")
-        raise IOError("PyTables has not been implemented yet.")
-    else:
-        err_msg = "No hdf5 python modules available."
-        logging.critical(err_msg)
-        raise Exception(err_msg)
 
 def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
                 options={}):
@@ -191,70 +158,64 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
                                 (file_prefix,str(frame).zfill(4)))
     patches = []
 
-    if use_h5py:
-        with h5py.File(filename,'r',driver='mpio',comm=MPI.COMM_WORLD) as f:
-            for patch in f.itervalues():
-                # Construct each dimension
-                dimensions = []
-                dim_names = patch.attrs['dimensions']
-                for dim_name in dim_names:
-                    dim = geometry.Dimension(
-                                    patch.attrs["%s.lower" % dim_name],
-                                    patch.attrs["%s.upper" % dim_name],
-                                    patch.attrs["%s.num_cells" % dim_name],
-                                    name = dim_name)
-                    # Optional attributes
-                    for attr in ['units']:
-                        attr_name = "%s.%s" % (dim_name,attr)
-                        if patch.attrs.get(attr_name, None):
-                            setattr(dim,attr,patch.attrs["%s.%s" % (dim_name,attr)])
-                    dimensions.append(dim)
+    with h5py.File(filename,'r',driver='mpio',comm=MPI.COMM_WORLD) as f:
+        for patch in f.itervalues():
+            # Construct each dimension
+            dimensions = []
+            dim_names = patch.attrs['dimensions']
+            for dim_name in dim_names:
+                dim = geometry.Dimension(
+                    patch.attrs["%s.lower" % dim_name],
+                    patch.attrs["%s.upper" % dim_name],
+                    patch.attrs["%s.num_cells" % dim_name],
+                    name = dim_name)
+                # Optional attributes
+                for attr in ['units']:
+                    attr_name = "%s.%s" % (dim_name,attr)
+                    if patch.attrs.get(attr_name, None):
+                        setattr(dim,attr,patch.attrs["%s.%s" % (dim_name,attr)])
+                dimensions.append(dim)
 
-                pyclaw_patch = petclaw.Patch(dimensions)
+            pyclaw_patch = petclaw.Patch(dimensions)
 
-                # Fetch general patch properties
-                for attr in ['t','num_eqn','patch_index','level']:
-                    setattr(pyclaw_patch,attr,patch.attrs[attr])
+            # Fetch general patch properties
+            for attr in ['t','num_eqn','patch_index','level']:
+                setattr(pyclaw_patch,attr,patch.attrs[attr])
 
-                state = petclaw.state.State(pyclaw_patch, \
-                         patch.attrs['num_eqn'],patch.attrs['num_aux'])
-                state.t = patch.attrs['t']
+            state = petclaw.state.State(pyclaw_patch, \
+                                        patch.attrs['num_eqn'],patch.attrs['num_aux'])
+            state.t = patch.attrs['t']
 
-                globalSize = []
-                globalSize.append(state.q.shape[0])
-                globalSize.extend(pyclaw_patch.num_cells_global)
-                r = pyclaw_patch._da.getRanges()
+            globalSize = []
+            globalSize.append(state.q.shape[0])
+            globalSize.extend(pyclaw_patch.num_cells_global)
+            r = pyclaw_patch._da.getRanges()
 
-                dset = patch['q'][:].reshape(globalSize,order='F')
+            dset = patch['q'][:].reshape(globalSize)
+            state.q = from_hdf5_dataset(dset, len(pyclaw_patch.dimensions), r, state.q.shape)
 
-                if len(pyclaw_patch.name) == 1:
-                    state.q = dset[:,r[0][0]:r[0][1]].reshape(state.q.shape,order='F')
-                elif len(pyclaw_patch.name) == 2:
-                    state.q = dset[:,r[0][0]:r[0][1],r[1][0]:r[1][1]].reshape(state.q.shape,order='F')
-                elif len(pyclaw_patch.name) == 3:
-                    state.q = dset[:,r[0][0]:r[0][1],r[1][0]:r[1][1],r[2][0]:r[2][1]].reshape(state.q.shape,order='F')
+            # Read in aux if applicable
+            if read_aux and patch.get('aux',None) is not None:
+                dset = patch['aux'][:]
+                state.aux = from_hdf5_dataset(dset, len(pyclaw_patch.dimensions), r, state.aux.shape)
 
-                # Read in aux if applicable
-                if read_aux and patch.get('aux',None) is not None:
-                    #state.aux = patch['aux'][:].reshape(state.aux.shape,order='F')
-                    dset = patch['aux'][:]
-                    if len(pyclaw_patch.name) == 1:
-                        state.aux = dset[:,r[0][0]:r[0][1]]
-                    elif len(pyclaw_patch.name) == 2:
-                        state.aux = dset[:,r[0][0]:r[0][1],r[1][0]:r[1][1]]
-                    elif len(pyclaw_patch.name) == 3:
-                        state.aux = dset[:,r[0][0]:r[0][1],r[1][0]:r[1][1],r[2][0]:r[2][1]]
+            solution.states.append(state)
+            patches.append(pyclaw_patch)
 
-                solution.states.append(state)
-                patches.append(pyclaw_patch)
+        solution.domain = geometry.Domain(patches)
 
-            solution.domain = geometry.Domain(patches)
+def to_hdf5_dataset(arr, dset, ndim, ranges):
+    if ndim == 1:
+        dset[:,ranges[0][0]:ranges[0][1]] = arr
+    elif ndim == 2:
+        dset[:,ranges[0][0]:ranges[0][1],ranges[1][0]:ranges[1][1]] = arr
+    elif ndim == 3:
+        dset[:,ranges[0][0]:ranges[0][1],ranges[1][0]:ranges[1][1],ranges[2][0]:ranges[2][1]] = arr
 
-    elif use_PyTables:
-        # f = tables.openFile(filename, mode = "r", title = options['title'])
-        logging.critical("PyTables has not been implemented yet.")
-        raise IOError("PyTables has not been implemented yet.")
-    else:
-        err_msg = "No hdf5 python modules available."
-        logging.critical(err_msg)
-        raise Exception(err_msg)
+def from_hdf5_dataset(dset, ndim, ranges, shape):
+    if ndim == 1:
+        return dset[:,ranges[0][0]:ranges[0][1]].reshape(shape,order='F')
+    elif ndim == 2:
+        return dset[:,ranges[0][0]:ranges[0][1],ranges[1][0]:ranges[1][1]].reshape(shape,order='F')
+    elif ndim == 3:
+        return dset[:,ranges[0][0]:ranges[0][1],ranges[1][0]:ranges[1][1],ranges[2][0]:ranges[2][1]].reshape(shape,order='F')
