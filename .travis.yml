@@ -38,6 +38,8 @@ script:
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
        cd ../petclaw/tests;
        mpirun -n 4 nosetests -v --first-pkg-wins;
+    fi
+  - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
        cd ../../pyclaw;
     fi
   - mv temp .coverage.doctest
