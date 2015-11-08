@@ -17,7 +17,7 @@ class TestParallelIO(pyclaw.TestIO):
 
     @property
     def test_data_dir(self):
-        return os.path.join(self.this_dir, '../../pyclaw/tests/test_data')
+        return os.path.join(self.this_dir, '../../pyclaw/tests/ttest_data')
 
     def test_io_from_binary(self):
         return
