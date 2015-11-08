@@ -90,4 +90,10 @@ class Domain(pyclaw_geometry.Domain):
         elif isinstance(geom[0],pyclaw_geometry.Dimension):
             self.patches = [Patch(geom)]
 
+class Dimension(pyclaw_geometry.Dimension):
+    def __init__(self, lower, upper, num_cells, name='x',
+                 on_lower_boundary=None,on_upper_boundary=None, units=None):
+        super(Dimension, self).__init__(lower, upper, num_cells, name,
+                 on_lower_boundary,on_upper_boundary, units)
+
 
