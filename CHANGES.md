@@ -1,3 +1,12 @@
+# 5.3.1 release
+- Added a new example that shows how to use a custom Riemann solver.
+  It solves a two-species advection-reaction problem in 2D and is in 
+  examples/advection_reaction_2d/.
+- Added parallel HDF5 file reading and writing (requires installation of parallel HDF library).
+- Changed some Python limiter code to give better performance.
+- Fixed a test that was mistakenly not being run (euler_1d/shocksine).
+
+
 # 5.3.0 release
 - New time integration methods in SharpClaw: variable-step-size linear multistep methods.  See http://arxiv.org/abs/1504.04107.
 - HDF5 file I/O now works.
