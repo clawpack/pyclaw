@@ -99,7 +99,7 @@ class Solution(object):
         object is initialized by loading frame from file"""
         return self._start_frame
     _start_frame = 0
-       
+
 
     # ========== Class Methods ===============================================
     def __init__(self,*arg,**kargs):
@@ -286,13 +286,7 @@ class Solution(object):
 
         # Loop over list of formats requested
         for form in format_list:
-            if 'petsc' in form:
-                from clawpack.petclaw import io
-                write_func = io.petsc.write
-            else:
-                from clawpack.pyclaw import io
-                write_func = getattr(getattr(io,form),'write')
-
+            write_func = self.get_write_func(form)
 
             if file_prefix is None:
                 write_func(self,frame,path,write_aux=write_aux,
@@ -337,20 +331,7 @@ class Solution(object):
          - (bool) - True if read was successful, False otherwise
         """
         
-        if file_format == 'petsc':
-            from clawpack.petclaw import io
-            read_func = io.petsc.read
-        elif file_format == 'binary':
-            from clawpack.pyclaw import io 
-            read_func = io.binary.read
-        elif file_format == 'ascii': 
-            from clawpack.pyclaw import io
-            read_func = io.ascii.read
-        elif file_format in ('hdf','hdf5'): 
-            from clawpack.pyclaw import io
-            read_func = io.hdf5.read
-        else:
-            raise ValueError("File format %s not supported." % file_format)
+        read_func = self.get_read_func(file_format)
 
         path = os.path.expandvars(os.path.expanduser(path))
         if file_prefix is None:
@@ -359,7 +340,22 @@ class Solution(object):
             read_func(self,frame,path,file_prefix=file_prefix,
                                     read_aux=read_aux,options=options)
         logging.getLogger('pyclaw.io').info("Read in solution for time t=%s" % self.t)
-        
+
+    def get_read_func(self, file_format):
+        from clawpack.pyclaw import io
+        if file_format == 'binary':
+            return  io.binary.read
+        elif file_format == 'ascii':
+            return io.ascii.read
+        elif file_format in ('hdf','hdf5'):
+            return io.hdf5.read
+        else:
+            raise ValueError("File format %s not supported." % file_format)
+
+    def get_write_func(self, file_format):
+        from clawpack.pyclaw import io
+        return getattr(getattr(io,file_format),'write')
+
         
     def plot(self):
         r"""

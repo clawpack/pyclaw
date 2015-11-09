@@ -10,6 +10,7 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('io')
     config.add_subpackage('limiters')
     config.add_subpackage('examples')
+    config.add_subpackage('tests')
     return config
 
 if __name__ == '__main__':

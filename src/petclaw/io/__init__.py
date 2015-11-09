@@ -15,7 +15,7 @@ __all__ = ['ascii.read','ascii.write']
 # Check for HDF 5 support
 try:
     import h5py
-    from clawpack.pyclaw.io import hdf5
+    import hdf5
     __all__ += ['hdf5.read','hdf5.write']
 except:
     logging.debug("No hdf5 support found.")

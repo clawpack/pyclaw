@@ -58,7 +58,7 @@ def test_acoustics_2d_variable_io():
     tempdir = './_io_test_results'
     classic_tests = gen_variants(acoustics_2d_interface.setup, 
                                  verify_acoustics_io, solver_type='classic', 
-                                 outdir=tempdir, num_cells=(50, 50))
+                                 outdir=tempdir, num_cells=(50, 50), disable_petsc=True)
 
     import shutil
     from itertools import chain
