@@ -205,7 +205,8 @@ class SharpClawSolver(Solver):
             self.num_ghost = (self.weno_order+1)/2
 
         if self.lim_type == 2 and self.weno_order != 5 and self.kernel_language == 'Python':
-            raise Exception('Only 5th-order WENO reconstruction is implemented in Python kernels. Use Fortran for higher-order WENO.')
+            raise Exception('Only 5th-order WENO reconstruction is implemented in Python kernels. \
+                             Use Fortran for higher-order WENO.')
         # This is a hack to deal with the fact that petsc4py
         # doesn't allow us to change the stencil_width (num_ghost)
         state = solution.state
