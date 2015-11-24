@@ -191,6 +191,7 @@ class SharpClawSolver(Solver):
         self.prev_dt_values = []
         self.prev_dtFE_values = []
         self.check_lmm_cond = False
+        self.lmm_cond = True
 
         # Call general initialization function
         super(SharpClawSolver,self).__init__(riemann_solver,claw_package)
@@ -290,7 +291,7 @@ class SharpClawSolver(Solver):
             self.dq_dt = self.dq(state) / self.dt
 
         if 'LMM' in self.time_integrator:
-            self.update_saved_values(state,step_index)
+            step_index = self.update_saved_values(state,step_index)
 
         self.get_dt(solution.t,tstart,tend,take_one_step)
 
@@ -448,12 +449,14 @@ class SharpClawSolver(Solver):
                 dtFE = self.dt / cfl * self.cfl_max / self.sspcoeff
 
                 if self.time_integrator == 'SSPLMMk3' and self.check_lmm_cond:
-                    self.accept_step = self.check_3rd_ord_cond(state,step_index,dtFE)
-                    if not self.accept_step:
+                    self.lmm_cond = self.check_3rd_ord_cond(state,step_index,dtFE)
+                    if not self.lmm_cond:
+                        self.accept_step = False
                         state.q[:] = self._registers[-1].q
+                        self.dq_dt = self.prev_dq_dt_values[-1]
                         state.t = self._registers[-1].t
                         self.status['numsteps'] -= 1
-                        return
+                        return self.status['numsteps'] + 1
 
                 if step_index <= len(self._registers):  # Startup
                     if self.time_integrator == 'SSPLMMk3':
@@ -461,7 +464,6 @@ class SharpClawSolver(Solver):
                     self.prev_dt_values.append(self.dt_old)
                     self.prev_dtFE_values.append(dtFE)
                 else:
-                    self.sspcoeff0 = self.sspcoeff 
                     if self.time_integrator == 'SSPLMMk3':
                         self.prev_dq_dt_values = self.prev_dq_dt_values[1:] + self.prev_dq_dt_values[:1]
                         self.prev_dq_dt_values[-1] = self.dq_dt
@@ -483,6 +485,8 @@ class SharpClawSolver(Solver):
             self._registers[-1].q[:] = state.q
             self._registers[-1].t = state.t
 
+        return step_index
+
 
     def check_3rd_ord_cond(self,state,step_index,dtFE):
         r"""
@@ -493,19 +497,19 @@ class SharpClawSolver(Solver):
         If the conditions are violated we muct retrieve the previous solution and discard
         that step; otherwise the step is accepted.
         """
-        accept_step = True
+        lmm_cond = True
 
         if step_index <= len(self._registers):
             rho = 0.6 if len(self._registers) == 4 else 0.57
             if self.dt > rho * dtFE:
-                accept_step = False
+                lmm_cond = False
 
         rhoFE = 0.9 if len(self._registers) == 4 else 0.962
         dtFEm1 = self.prev_dtFE_values[-1]
         if rhoFE * dtFEm1 > dtFE or dtFE > dtFEm1 / rhoFE:
-            accept_step = False
+            lmm_cond = False
 
-        return accept_step
+        return lmm_cond
 
 
     def _set_mthlim(self):
@@ -652,10 +656,12 @@ class SharpClawSolver(Solver):
                 # Step-size update of starting methods
                 sspcoeff_ratio = self.sspcoeff0/self.sspcoeff
                 self.dt = sspcoeff_ratio * self.dt * self.cfl_desired / cfl
-                if self.time_integrator == 'SSPLMMk3' and self.check_lmm_cond:
+                if self.time_integrator == 'SSPLMMk3' and self.check_lmm_cond and not self.lmm_cond:
                     rho = 0.6 if len(self._registers)== 4 else 0.57
                     self.dt = rho * self.dt
             else:
+                # Step size selection guarantees CFL condition is satified.
+                # Only need to check 3rd-order LMM's condition
                 if self.accept_step:
                     s = len(self._registers)
                     p = int(self.time_integrator[-1])
@@ -663,7 +669,7 @@ class SharpClawSolver(Solver):
                     H = sum(self.prev_dt_values[1:])
                     self.dt = H * mu / (H + (p-1)*mu)
                 elif self.time_integrator == 'SSPLMMk3' and self.check_lmm_cond:
-                    self.dt = 0.5*self.dt
+                    self.dt = 0.5 * self.dt
 
         # Step-size update for RK methods
         else:
