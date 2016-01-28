@@ -19,7 +19,8 @@ import numpy as np
 from clawpack import riemann
 from clawpack.riemann.shallow_roe_with_efix_1D_constants import depth, momentum, num_eqn
 
-def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_type='classic'):
+def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',
+            solver_type='classic',disable_output=False):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -27,7 +28,7 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
         from clawpack import pyclaw
 
     if kernel_language =='Python':
-        rs = riemann.shallow_1D_py.shallow_1D
+        rs = riemann.shallow_1D_py.shallow_roe_1D
     elif kernel_language =='Fortran':
         rs = riemann.shallow_roe_with_efix_1D
  
@@ -51,6 +52,8 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
 
     # Gravitational constant
     state.problem_data['grav'] = 1.0
+    if kernel_language =='Python':
+        state.problem_data['efix'] = True # Turn on entropy fix
     
     xc = state.grid.x.centers
 
@@ -83,6 +86,8 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
     claw.solver = solver
     claw.outdir = outdir
     claw.setplot = setplot
+    if disable_output:
+        claw.output_format = None
 
     return claw
 
