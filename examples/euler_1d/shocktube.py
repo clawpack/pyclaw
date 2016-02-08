@@ -41,8 +41,8 @@ def setup(use_petsc=False, outdir='./_output', solver_type='classic',
 
     solver.kernel_language = kernel_language
 
-    solver.bc_lower[0]=pyclaw.BC.wall
-    solver.bc_upper[0]=pyclaw.BC.wall
+    solver.bc_lower[0]=pyclaw.BC.extrap
+    solver.bc_upper[0]=pyclaw.BC.extrap
 
     mx = 800;
     x = pyclaw.Dimension(-1.0,1.0,mx,name='x')
@@ -54,10 +54,12 @@ def setup(use_petsc=False, outdir='./_output', solver_type='classic',
 
     x = state.grid.x.centers
 
-    state.q[density ,:] = (x<0.)*1. + (x>=0.)*1./8
+    rho_l = 1.; rho_r = 1./8
+    p_l = 1.; p_r = 0.1
+    state.q[density ,:] = (x<0.)*rho_l + (x>=0.)*rho_r
     state.q[momentum,:] = 0.
     velocity = state.q[momentum,:]/state.q[density,:]
-    pressure = (x<0.)*1. + (x>=0.)*1./8
+    pressure = (x<0.)*p_l + (x>=0.)*p_r
     state.q[energy  ,:] = pressure/(gamma - 1.) + 0.5 * state.q[density,:] * velocity**2
 
     claw = pyclaw.Controller()
