@@ -107,7 +107,7 @@ class State(clawpack.pyclaw.State):
     def aux(self,val):
         # It would be nice to make this work also for parallel
         # loading from a file.
-        if self.aux_da is None: 
+        if self.aux_da is None:
             num_aux=val.shape[0]
             self._init_aux_da(num_aux)
         self.gauxVec.setArray(val.reshape([-1], order = 'F'))
@@ -136,6 +136,8 @@ class State(clawpack.pyclaw.State):
 
         self.aux_da = None
         self.q_da = None
+        self._q_da_for_ds = None
+        self._aux_da_for_ds = None
 
         self._p_da = None
         self.gpVec = None
@@ -145,14 +147,14 @@ class State(clawpack.pyclaw.State):
 
         # ========== Attribute Definitions ===================================
         self.problem_data = {}
-        r"""(dict) - Dictionary of global values for this patch, 
+        r"""(dict) - Dictionary of global values for this patch,
             ``default = {}``"""
         self.t=0.
-        r"""(float) - Current time represented on this patch, 
+        r"""(float) - Current time represented on this patch,
             ``default = 0.0``"""
         self.index_capa = -1
         self.keep_gauges = False
-        r"""(bool) - Keep gauge values in memory for every time step, 
+        r"""(bool) - Keep gauge values in memory for every time step,
         ``default = False``"""
         self.gauge_data = []
         r"""(list) - List of numpy.ndarray objects. Each element of the list
@@ -165,18 +167,18 @@ class State(clawpack.pyclaw.State):
     def _init_aux_da(self,num_aux,num_ghost=0):
         r"""
         Initializes PETSc DA and global & local Vectors for handling the
-        auxiliary array, aux. 
-        
+        auxiliary array, aux.
+
         Initializes aux_da, gauxVec and _aux_local_vector.
         """
         self.aux_da = self._create_DA(num_aux,num_ghost)
         self.gauxVec = self.aux_da.createGlobalVector()
         self._aux_local_vector = self.aux_da.createLocalVector()
- 
+
     def _init_q_da(self,num_eqn,num_ghost=0):
         r"""
-        Initializes PETSc DA and Vecs for handling the solution, q. 
-        
+        Initializes PETSc DA and Vecs for handling the solution, q.
+
         Initializes q_da, gqVec and _q_local_vector.
         """
         self.q_da = self._create_DA(num_eqn,num_ghost)
@@ -225,7 +227,7 @@ class State(clawpack.pyclaw.State):
         Returns q with ghost cells attached, by accessing the local vector.
         """
         shape = [n + 2*num_ghost for n in self.grid.num_cells]
-        
+
         self.q_da.globalToLocal(self.gqVec, self._q_local_vector)
         shape.insert(0,self.num_eqn)
         return self._q_local_vector.getArray().reshape(shape, order = 'F')
@@ -235,7 +237,7 @@ class State(clawpack.pyclaw.State):
         Returns aux with ghost cells attached, by accessing the local vector.
         """
         shape = [n + 2*num_ghost for n in self.grid.num_cells]
-        
+
         self.aux_da.globalToLocal(self.gauxVec, self._aux_local_vector)
         shape.insert(0,self.num_aux)
         return self._aux_local_vector.getArray().reshape(shape, order = 'F')
@@ -316,3 +318,27 @@ class State(clawpack.pyclaw.State):
         result.set_num_ghost(self.q_da.stencil_width) 
         
         return result
+
+    def get_q_da_for_ds(self, ds_stencil_width):
+        """
+        Returns a q_da object with an adjusted width if needed in order to compute local averages for downsampling
+        """
+        if self._q_da_for_ds is None:
+            if self.q_da.getStencilWidth() < ds_stencil_width:
+                self._q_da_for_ds = self.q_da.duplicate(stencil_width=ds_stencil_width)
+            else:
+                self._q_da_for_ds = self.q_da
+
+        return self._q_da_for_ds
+
+    def get_aux_da_for_ds(self, ds_stencil_width):
+        """
+        Returns an aux_da object with an adjusted width if needed in order to compute local averages for downsampling
+        """
+        if self._aux_da_for_ds is None:
+            if self.aux_da.getStencilWidth() < ds_stencil_width:
+                self._aux_da_for_ds = self.aux_da.duplicate(stencil_width=ds_stencil_width)
+            else:
+                self._aux_da_for_ds = self.aux_da
+
+        return self._aux_da_for_ds

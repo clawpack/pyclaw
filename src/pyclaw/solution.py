@@ -8,6 +8,8 @@ import os
 import logging
 
 from .geometry import Patch, Dimension, Domain
+from .state import State
+import numpy as np
 
 # ============================================================================
 #  Solution Class
@@ -82,7 +84,7 @@ class Solution(object):
             self.__dict__[key] = value
 
     # ========== Attributes ==================================================
-    
+
     # ========== Properties ==================================================
     @property
     def state(self):
@@ -100,17 +102,25 @@ class Solution(object):
         return self._start_frame
     _start_frame = 0
 
+    @property
+    def ds_solution(self):
+        """
+        Lazily instantiates and returns a downsampled version of the solution
+        """
+        if self._ds_solution is None and not (self.downsampling_factors is None):
+            self._init_ds_solution()
+        return self._ds_solution
 
     # ========== Class Methods ===============================================
     def __init__(self,*arg,**kargs):
         r"""Solution Initiatlization Routine
-        
+
         See :class:`Solution` for more info.
         """
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
-        # for example, if Solution is implemented in 'clawpack.petclaw.solution', then 
+        # for example, if Solution is implemented in 'clawpack.petclaw.solution', then
         # the computed claw_package will be 'clawpack.petclaw'
 
         import sys
@@ -179,16 +189,17 @@ class Solution(object):
                 self.states.append(State(self.domain,arg[0]))
             if self.states == [] or self.domain is None:
                 raise Exception("Invalid argument list")
-                
-                
+
+        self.downsampling_factors = None
+        self._ds_solution = None
     def is_valid(self):
         r"""
         Checks to see if this solution is valid
-        
+
         The Solution checks to make sure it is valid by checking each of its
         states.  If an invalid state is found, a message is logged what
         specifically made this solution invalid.
-       
+
         :Output:
          - (bool) - True if valid, false otherwise
         """
@@ -201,51 +212,51 @@ class Solution(object):
         for state in self.states:
             output = output + str(state)
         return str(output)
-    
-    
+
+
     def set_all_states(self,attr,value,overwrite=True):
         r"""
         Sets all member states attribute 'attr' to value
-        
+
         :Input:
          - *attr* - (string) Attribute name to be set
          - *value* - (id) Value for attribute
-         - *overwrite* - (bool) Whether to overwrite the attribute if it 
+         - *overwrite* - (bool) Whether to overwrite the attribute if it
            already exists.  ``default = True``
         """
         for state in self.states:
             if getattr(state,attr) is None or overwrite:
-                setattr(state,attr,value) 
-    
-                    
+                setattr(state,attr,value)
+
+
     def _get_base_state_attribute(self, name):
         r"""
         Return base state attribute
-        
+
         :Output:
          - (id) - Value of attribute from ``states[0]``
         """
         return getattr(self.states[0],name)
-    
-    
+
+
     def __copy__(self):
         return self.__class__(self)
-    
-    
+
+
     def __deepcopy__(self,memo={}):
         import copy
         # Create basic container
         result = self.__class__()
         result.__init__()
-        
+
         # Populate the states
         for state in self.states:
             result.states.append(copy.deepcopy(state))
         result.domain = copy.deepcopy(self.domain)
-        
+
         return result
-    
-    
+
+
     # ========== IO Functions ================================================
     def write(self,frame,path='./',file_format='ascii',file_prefix=None,
                 write_aux=False,options={},write_p=False):
@@ -258,15 +269,15 @@ class Solution(object):
 
         :Input:
          - *frame* - (int) Frame number to append to the file output
-         - *path* - (string) Root path, will try and create the path if it 
+         - *path* - (string) Root path, will try and create the path if it
            does not already exist. ``default = './'``
-         - *format* - (string or list of strings) a string or list of strings 
+         - *format* - (string or list of strings) a string or list of strings
            containing the desired output formats. ``default = 'ascii'``
          - *file_prefix* - (string) Prefix for the file name.  Defaults to
            the particular io modules default.
-         - *write_aux* - (book) Write the auxillary array out as well if 
+         - *write_aux* - (book) Write the auxillary array out as well if
            present. ``default = False``
-         - *options* - (dict) Dictionary of optional arguments dependent on 
+         - *options* - (dict) Dictionary of optional arguments dependent on
            which format is being used. ``default = {}``
         """
         # Determine if we need to create the path
@@ -275,7 +286,7 @@ class Solution(object):
             try:
                 os.makedirs(path)
             except OSError:
-                print "directory already exists, ignoring"  
+                print "directory already exists, ignoring"
 
         # Call the correct write function based on the output format
         if isinstance(file_format,str):
@@ -283,54 +294,59 @@ class Solution(object):
         elif isinstance(file_format,list):
             format_list = file_format
 
+        # Downsample the solution if needed
+        if self.downsampling_factors is None:
+            solution = self
+        else:
+            solution = self.downsample(write_aux,write_p)
 
         # Loop over list of formats requested
         for form in format_list:
             write_func = self.get_write_func(form)
 
             if file_prefix is None:
-                write_func(self,frame,path,write_aux=write_aux,
+                write_func(solution,frame,path,write_aux=write_aux,
                             options=options,write_p=write_p)
             else:
-                write_func(self,frame,path,file_prefix=file_prefix,
+                write_func(solution,frame,path,file_prefix=file_prefix,
                                 write_aux=write_aux,options=options,
                            write_p=write_p)
             msg = "Wrote out solution in format %s for time t=%s" % (form,self.t)
             logging.getLogger('pyclaw.io').info(msg)
 
-        
-    def read(self, frame, path='./_output', file_format='ascii', 
+
+    def read(self, frame, path='./_output', file_format='ascii',
                           file_prefix=None, read_aux=True, options={}, **kargs):
         r"""
         Reads in a Solution object from a file
-        
-        Reads in and initializes this Solution with the data specified.  This 
-        function will raise an IOError if it was unsuccessful.  
+
+        Reads in and initializes this Solution with the data specified.  This
+        function will raise an IOError if it was unsuccessful.
 
         Any format must conform to the following call signiture and return
         True if the file has been successfully read into the given solution or
         False otherwise.  Options is a dictionary of parameters that each
         format can specify.  See the ascii module for an example.::
-        
+
             read_<format>(solution,path,frame,file_prefix,options={})
-            
+
         ``<format>`` is the name of the format in question.
-        
+
         :Input:
          - *frame* - (int) Frame number to be read in
-         - *path* - (string) Base path to the files to be read. 
+         - *path* - (string) Base path to the files to be read.
            ``default = './_output'``
-         - *file_format* - (string) Format of the file, should match on of the 
+         - *file_format* - (string) Format of the file, should match on of the
            modules inside of the io package.  ``default = 'ascii'``
-         - *file_prefix* - (string) Name prefix in front of all the files, 
+         - *file_prefix* - (string) Name prefix in front of all the files,
            defaults to whatever the format defaults to, e.g. fort for ascii
-         - *options* - (dict) Dictionary of optional arguments dependent on 
+         - *options* - (dict) Dictionary of optional arguments dependent on
            the format being read in.  ``default = {}``
-            
+
         :Output:
          - (bool) - True if read was successful, False otherwise
         """
-        
+
         read_func = self.get_read_func(file_format)
 
         path = os.path.expandvars(os.path.expanduser(path))
@@ -356,7 +372,7 @@ class Solution(object):
         from clawpack.pyclaw import io
         return getattr(getattr(io,file_format),'write')
 
-        
+
     def plot(self):
         r"""
         Plot the solution
@@ -364,6 +380,47 @@ class Solution(object):
         raise NotImplementedError("Direct solution plotting has not been " +
             "implemented as of yet, please refer to the plotting module for" +
             " how to plot solutions.")
+
+    def _init_ds_solution(self):
+        """
+        Initializes a downsampled version of the solution
+        """
+        domain = Domain(self.domain.grid.lower,self.domain.grid.upper,self.domain.grid.num_cells/np.array(self.downsampling_factors))
+        state = State(domain,self.state.num_eqn,self.state.num_aux)
+        self._ds_solution = Solution(state, domain)
+
+    def _init_ds_state(self, state):
+        """
+        Returns a downsampled version of the given state object
+        """
+        ds_domain = Domain(self.domain.grid.lower,self.domain.grid.upper,self.domain.grid.num_cells/np.array(self.downsampling_factors))
+        ds_state = State(ds_domain,self.state.num_eqn,self.state.num_aux)
+
+        return ds_state
+
+    def downsample(self, write_aux,write_p):
+        """
+        Returns a downsampled version of the solution by local averaging over the downsampling factors
+        """
+        from skimage.transform import downscale_local_mean
+
+        for i  in range(len(self.states)):
+            state = self.states[i]
+            if i > 0:
+                self.ds_solution.states.append(self._init_ds_state(self.downsample_factors, state))
+            ds_state = self.ds_solution.states[i]
+
+            # Downsample q
+            if write_p:
+                ds_state.p = downscale_local_mean(state.p, (1,) + self.downsampling_factors)
+            else:
+                ds_state.q = downscale_local_mean(state.q, (1,) + self.downsampling_factors)
+
+            # Dowsample aux
+            if write_aux:
+                ds_state.aux = downscale_local_mean(state.aux, (1,) + self.downsampling_factors)
+
+        return self.ds_solution
 
 if __name__ == "__main__":
     import doctest

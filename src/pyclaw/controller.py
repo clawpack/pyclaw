@@ -193,6 +193,7 @@ class Controller(object):
         r"""(function) - Function that computes density of functional F"""
         self.F_file_name = 'F'
         r"""(string) - Name of text file containing functionals"""
+        self.downsampling_factors = None
 
     # ========== Access methods ===============================================
     def __str__(self):        
@@ -326,11 +327,20 @@ class Controller(object):
             if self.t == self.tfinal:
                 print "Simulation has already reached tfinal."
             return None
-         
+
+        self.solution.downsampling_factors = self.downsampling_factors
+
         # Output and save initial frame
         if self.keep_copy:
             self.frames.append(copy.deepcopy(self.solution))
         if self.output_format is not None:
+            if not (self.downsampling_factors is None):
+                if self.solution.domain.num_dim != len(self.downsampling_factors):
+                    raise ValueError("Invalid number of downsampling factors. The number of downsampling factors should match the number of dimensions.")
+                for i, factor in enumerate(self.downsampling_factors):
+                    if self.solution.domain.patch.dimensions[i].num_cells % factor != 0:
+                        raise ValueError("Invalid downsampling factors. The downsampling factors should evenly divide the grid in each dimension.")
+
             if os.path.exists(self.outdir) and self.overwrite==False:
                 raise Exception("Refusing to overwrite existing output data. \
                  \nEither delete/move the directory or set controller.overwrite=True.")
@@ -341,7 +351,7 @@ class Controller(object):
                                         self.file_prefix_p,
                                         write_aux = False,
                                         options = self.output_options,
-                                        write_p = True) 
+                                        write_p = True)
 
             write_aux = (self.write_aux_always or self.write_aux_init)
             self.solution.write(frame,self.outdir,
@@ -374,7 +384,7 @@ class Controller(object):
                                             self.file_prefix_p,
                                             write_aux = False, 
                                             options = self.output_options,
-                                            write_p = True) 
+                                            write_p = True)
                 
                 self.solution.write(frame,self.outdir,
                                             self.output_format,
