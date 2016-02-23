@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from clawpack.pyclaw import Solution
-from clawpack.pyclaw.util import check_solutions_are_same
+from clawpack.pyclaw.util import check_solutions_are_same, check_ds_sol_is_downsampled_from_a_sol
 
 class IOTest():
     @property
@@ -33,6 +33,14 @@ class IOTest():
         regression_dir = os.path.join(self.test_data_dir,'./advection_2d_with_aux')
         self.read_write_and_compare(self.file_formats,regression_dir,'hdf5',0,aux=True)
 
+    def test_ds_from_hdf5(self):
+        regression_dir = os.path.join(self.test_data_dir,'./Sedov_regression_hdf')
+        self.read_downsample_and_compare(self.file_formats,regression_dir,'hdf5',1,(2,2,2))
+
+    def test_ds_from_hdf5_with_aux(self):
+        regression_dir = os.path.join(self.test_data_dir,'./advection_2d_with_aux')
+        self.read_downsample_and_compare(self.file_formats,regression_dir,'hdf5',0,(2,2),aux=True)
+
     def read_write_and_compare(self, file_formats,regression_dir,regression_format,frame_num,aux=False):
         r"""Test IO file formats:
             - Reading in an HDF file
@@ -60,3 +68,30 @@ class IOTest():
         # Probably better to do this by defining __eq__ for each class
         for fmt, sol in s.iteritems():
             check_solutions_are_same(sol,ref_sol)
+
+    def read_downsample_and_compare(self, file_formats,regression_dir,regression_format,frame_num,downsampling_factors,aux=False):
+        r"""Test downsampling:
+            - Read in a solution from file
+            - Downsample the solution
+            - Check that q & aux arrays are correctly downsampled
+        """
+        a_sol = self.solution
+        a_sol.read(frame_num,path=regression_dir,file_format=regression_format,read_aux=aux)
+        if aux:
+            assert (a_sol.state.aux is not None)
+
+        # Write solution file in each format
+        io_test_dir = os.path.join(self.this_dir,'./io_test')
+        for fmt in file_formats:
+            a_sol.downsampling_factors = downsampling_factors
+            a_sol.downsample(aux, False).write(frame_num,path=io_test_dir,file_format=fmt,write_aux=aux)
+
+        # Read solutions back in
+        s = {}
+        for fmt in file_formats:
+            s[fmt] = self.solution
+            s[fmt].read(frame_num,path=io_test_dir,file_format=fmt,write_aux=aux)
+
+        # Compare solutions
+        for fmt, ds_sol in s.iteritems():
+            check_ds_sol_is_downsampled_from_a_sol(ds_sol, a_sol)

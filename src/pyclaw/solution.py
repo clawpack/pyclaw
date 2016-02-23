@@ -388,6 +388,7 @@ class Solution(object):
         domain = Domain(self.domain.grid.lower,self.domain.grid.upper,self.domain.grid.num_cells/np.array(self.downsampling_factors))
         state = State(domain,self.state.num_eqn,self.state.num_aux)
         self._ds_solution = Solution(state, domain)
+        self._ds_solution.t = self.t
 
     def _init_ds_state(self, state):
         """
@@ -402,7 +403,24 @@ class Solution(object):
         """
         Returns a downsampled version of the solution by local averaging over the downsampling factors
         """
+
         from skimage.transform import downscale_local_mean
+        """
+        downscale_local_mean downsamples n-dimensional array by local averaging.
+        First, it views the array as blocks of the downsampling factors, then it computes the local average of each block.
+
+        Examples
+        --------
+        >>> a = np.arange(15).reshape(3, 5)
+        >>> a
+        array([[ 0,  1,  2,  3,  4],
+               [ 5,  6,  7,  8,  9],
+               [10, 11, 12, 13, 14]])
+        >>> downscale_local_mean(a, (2, 3))
+        array([[ 3.5,  4. ],
+               [ 5.5,  4.5]])
+
+        """
 
         for i  in range(len(self.states)):
             state = self.states[i]
@@ -416,7 +434,7 @@ class Solution(object):
             else:
                 ds_state.q = downscale_local_mean(state.q, (1,) + self.downsampling_factors)
 
-            # Dowsample aux
+            # Downsample aux
             if write_aux:
                 ds_state.aux = downscale_local_mean(state.aux, (1,) + self.downsampling_factors)
 

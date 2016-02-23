@@ -38,6 +38,7 @@ class Solution(Solution):
                                        for i in range(self.domain.num_dim)], proc_sizes=self.state.q_da.getProcSizes())
         ds_state = self._init_ds_state(self.state)
         self._ds_solution = pyclaw.Solution(ds_state, ds_domain)
+        self._ds_solution.t = self.t
 
     def _init_ds_state(self, state):
         """
@@ -92,6 +93,22 @@ class Solution(Solution):
         """
 
         from skimage.transform import downscale_local_mean
+        """
+        downscale_local_mean downsamples n-dimensional array by local averaging.
+        First, it views the array as blocks of the downsampling factors, then it computes the local average of each block.
+
+        Examples
+        --------
+        >>> a = np.arange(15).reshape(3, 5)
+        >>> a
+        array([[ 0,  1,  2,  3,  4],
+               [ 5,  6,  7,  8,  9],
+               [10, 11, 12, 13, 14]])
+        >>> downscale_local_mean(a, (2, 3))
+        array([[ 3.5,  4. ],
+               [ 5.5,  4.5]])
+
+        """
 
         # Create local array with ghost cells
         q_local_vec = da_for_ds.createLocalVec()

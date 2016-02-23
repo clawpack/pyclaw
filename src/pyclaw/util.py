@@ -319,6 +319,28 @@ def check_solutions_are_same(sol_a,sol_b):
             for attr in ['units','on_lower_boundary','on_upper_boundary']:
                 if hasattr(ref_dim,attr):
                     assert getattr(dim,attr) == getattr(ref_dim,attr)
+
+def check_ds_sol_is_downsampled_from_a_sol(sol_ds, sol_a):
+    from skimage.transform import downscale_local_mean
+
+    assert len(sol_a.states) == len(sol_ds.states)
+    assert sol_a.t == sol_ds.t
+    for state in sol_a.states:
+        for ds_state in sol_ds.states:
+            if ds_state.patch.patch_index == state.patch.patch_index:
+                break
+
+        # Required state attributes
+        assert np.linalg.norm(downscale_local_mean(state.q, (1,) + sol_a.downsampling_factors) - ds_state.q) < 1.e-6 # Not sure why this can be so large
+        if state.aux is not None:
+            assert np.linalg.norm(downscale_local_mean(state.aux, (1,) + sol_a.downsampling_factors) - ds_state.aux) < 1.e-16
+        for attr in ['t', 'num_eqn', 'num_aux']:
+            assert getattr(state,attr) == getattr(ds_state,attr)
+        # Optional state attributes
+        for attr in ['patch_index', 'level']:
+            if hasattr(ds_state,attr):
+                assert getattr(state,attr) == getattr(ds_state,attr)
+
 # ============================================================================
 #  F2PY Utility Functions
 # ============================================================================

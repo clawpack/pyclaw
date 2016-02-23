@@ -194,6 +194,7 @@ class Controller(object):
         self.F_file_name = 'F'
         r"""(string) - Name of text file containing functionals"""
         self.downsampling_factors = None
+        r"""(tuple) - A tuple of factors in each grid dimension that will be used in downsampling the solution by local averaging"""
 
     # ========== Access methods ===============================================
     def __str__(self):        
