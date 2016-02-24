@@ -194,7 +194,8 @@ class Controller(object):
         self.F_file_name = 'F'
         r"""(string) - Name of text file containing functionals"""
         self.downsampling_factors = None
-        r"""(tuple) - A tuple of factors in each grid dimension that will be used in downsampling the solution by local averaging"""
+        r"""(tuple) - A tuple of factors in each grid dimension that will be
+        used in downsampling the solution by local averaging"""
 
     # ========== Access methods ===============================================
     def __str__(self):        
@@ -336,11 +337,19 @@ class Controller(object):
             self.frames.append(copy.deepcopy(self.solution))
         if self.output_format is not None:
             if not (self.downsampling_factors is None):
-                if self.solution.domain.num_dim != len(self.downsampling_factors):
-                    raise ValueError("Invalid number of downsampling factors. The number of downsampling factors should match the number of dimensions.")
+                if self.solution.domain.num_dim != len(
+                        self.downsampling_factors):
+                    raise ValueError(
+                        "Invalid number of downsampling factors. The number of "
+                        "downsampling factors should match the number of "
+                        "dimensions.")
                 for i, factor in enumerate(self.downsampling_factors):
-                    if self.solution.domain.patch.dimensions[i].num_cells % factor != 0:
-                        raise ValueError("Invalid downsampling factors. The downsampling factors should evenly divide the grid in each dimension.")
+                    if self.solution.domain.patch.dimensions[
+                        i].num_cells % factor != 0:
+                        raise ValueError(
+                            "Invalid downsampling factors. The downsampling "
+                            "factors should evenly divide the grid in each "
+                            "dimension.")
 
             if os.path.exists(self.outdir) and self.overwrite==False:
                 raise Exception("Refusing to overwrite existing output data. \

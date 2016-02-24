@@ -320,6 +320,7 @@ def check_solutions_are_same(sol_a,sol_b):
                 if hasattr(ref_dim,attr):
                     assert getattr(dim,attr) == getattr(ref_dim,attr)
 
+
 def check_ds_sol_is_downsampled_from_a_sol(sol_ds, sol_a):
     from skimage.transform import downscale_local_mean
 
@@ -331,15 +332,17 @@ def check_ds_sol_is_downsampled_from_a_sol(sol_ds, sol_a):
                 break
 
         # Required state attributes
-        assert np.linalg.norm(downscale_local_mean(state.q, (1,) + sol_a.downsampling_factors) - ds_state.q) < 1.e-6 # Not sure why this can be so large
+        assert np.linalg.norm(downscale_local_mean(state.q, (
+        1,) + sol_a.downsampling_factors) - ds_state.q) < 1.e-6
         if state.aux is not None:
-            assert np.linalg.norm(downscale_local_mean(state.aux, (1,) + sol_a.downsampling_factors) - ds_state.aux) < 1.e-16
+            assert np.linalg.norm(downscale_local_mean(state.aux, (
+            1,) + sol_a.downsampling_factors) - ds_state.aux) < 1.e-16
         for attr in ['t', 'num_eqn', 'num_aux']:
-            assert getattr(state,attr) == getattr(ds_state,attr)
+            assert getattr(state, attr) == getattr(ds_state, attr)
         # Optional state attributes
         for attr in ['patch_index', 'level']:
-            if hasattr(ds_state,attr):
-                assert getattr(state,attr) == getattr(ds_state,attr)
+            if hasattr(ds_state, attr):
+                assert getattr(state, attr) == getattr(ds_state, attr)
 
 # ============================================================================
 #  F2PY Utility Functions

@@ -385,8 +385,10 @@ class Solution(object):
         """
         Initializes a downsampled version of the solution
         """
-        domain = Domain(self.domain.grid.lower,self.domain.grid.upper,self.domain.grid.num_cells/np.array(self.downsampling_factors))
-        state = State(domain,self.state.num_eqn,self.state.num_aux)
+        domain = Domain(self.domain.grid.lower, self.domain.grid.upper,
+                        self.domain.grid.num_cells / np.array(
+                            self.downsampling_factors))
+        state = State(domain, self.state.num_eqn, self.state.num_aux)
         self._ds_solution = Solution(state, domain)
         self._ds_solution.t = self.t
 
@@ -394,20 +396,24 @@ class Solution(object):
         """
         Returns a downsampled version of the given state object
         """
-        ds_domain = Domain(self.domain.grid.lower,self.domain.grid.upper,self.domain.grid.num_cells/np.array(self.downsampling_factors))
-        ds_state = State(ds_domain,self.state.num_eqn,self.state.num_aux)
+        ds_domain = Domain(self.domain.grid.lower, self.domain.grid.upper,
+                           self.domain.grid.num_cells / np.array(
+                               self.downsampling_factors))
+        ds_state = State(ds_domain, self.state.num_eqn, self.state.num_aux)
 
         return ds_state
 
-    def downsample(self, write_aux,write_p):
+    def downsample(self, write_aux, write_p):
         """
-        Returns a downsampled version of the solution by local averaging over the downsampling factors
+        Returns a downsampled version of the solution by local averaging over
+        the downsampling factors
         """
 
         from skimage.transform import downscale_local_mean
         """
         downscale_local_mean downsamples n-dimensional array by local averaging.
-        First, it views the array as blocks of the downsampling factors, then it computes the local average of each block.
+        First, it views the array as blocks of the downsampling factors, then
+        it computes the local average of each block.
 
         Examples
         --------
@@ -422,21 +428,28 @@ class Solution(object):
 
         """
 
-        for i  in range(len(self.states)):
+        for i in range(len(self.states)):
             state = self.states[i]
             if i > 0:
-                self.ds_solution.states.append(self._init_ds_state(self.downsample_factors, state))
+                self.ds_solution.states.append(
+                    self._init_ds_state(self.downsample_factors, state))
             ds_state = self.ds_solution.states[i]
 
             # Downsample q
             if write_p:
-                ds_state.p = downscale_local_mean(state.p, (1,) + self.downsampling_factors)
+                ds_state.p = downscale_local_mean(
+                    state.p, (1,) + self.downsampling_factors
+                )
             else:
-                ds_state.q = downscale_local_mean(state.q, (1,) + self.downsampling_factors)
+                ds_state.q = downscale_local_mean(
+                    state.q, (1,) + self.downsampling_factors
+                )
 
             # Downsample aux
             if write_aux:
-                ds_state.aux = downscale_local_mean(state.aux, (1,) + self.downsampling_factors)
+                ds_state.aux = downscale_local_mean(
+                    state.aux, (1,) + self.downsampling_factors
+                )
 
         return self.ds_solution
 
