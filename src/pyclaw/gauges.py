@@ -96,8 +96,14 @@ class GaugeSolution(object):
             # First line
             data = gauge_file.readline().split()
             self.id = int(data[2])
-            self.location = (float(data[4]), float(data[5]))
-            num_eqn = int(data[8])
+            if len(data) == 9:
+                # 2d
+                self.location = (float(data[4]), float(data[5]))
+                num_eqn = int(data[8])
+            elif len(data) == 10:
+                # 3d
+                self.location = (float(data[4]), float(data[5]), float(data[6]))
+                num_eqn = int(data[9])
 
             # Read in one more line to check to make sure there's actually data
             # in here
