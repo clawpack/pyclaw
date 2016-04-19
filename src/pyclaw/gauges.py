@@ -299,6 +299,44 @@ def compare_gauges(old_path, new_path, gauge_id, plot=False, abs_tol=1e-14,
     return numpy.allclose(q, gauge.q.transpose(), rtol=rel_tol, atol=abs_tol)
 
 
+def check_old_gauge_data(path, gauge_id, new_gauge_path="./regression_data"):
+    """Compare old gauge data to new gauge format
+
+    Function is meant to check discrepencies between versions of the gauge
+    files.  Note that this function also directly prints out some info.
+
+    :Input:
+     - *path* (string) - Path to old gauge data file
+     - *gauge_id* (int) - Gauge id to compare
+     - *new_gauge_path* (path) - Path to directory containing new gauge files, 
+       defaults to './regression_data'.
+
+    :Output:
+     - (figure) Returns a matplotlib figure object plotting the differences in 
+       time.
+    """
+
+    # Load old gauge data
+    data = numpy.loadtxt(path)
+    old_ids = numpy.asarray(data[:, 0], dtype=int)
+    gauge_indices = numpy.nonzero(old_ids == gauge_id)[0]
+    q = data[gauge_indices, 3:]
+
+    # Load new data
+    gauge = gauges.GaugeSolution(gauge_id, new_gauge_path)
+
+    print(numpy.linalg.norm(q - gauge.q.transpose(), ord=2))
+    print(numpy.argmax(q - gauge.q.transpose()))
+
+    fig = plt.figure()
+    for i in xrange(gauge.q.shape[0]):
+        axes = fig.add_subplot(1, gauge.q.shape[0], i + 1)
+        axes.plot(q[:, i] - gauge.q[i, :])
+        axes.set_title("q[%s, :] comparison" % i)
+
+    return fig
+
+
 if __name__ == "__main__":
 
     if len(sys.argv) > 1:
