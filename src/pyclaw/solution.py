@@ -349,6 +349,9 @@ class Solution(object):
             return io.ascii.read
         elif file_format in ('hdf','hdf5'):
             return io.hdf5.read
+        elif file_format == 'petsc':
+            from clawpack.petclaw import io
+            return io.petsc.read
         else:
             raise ValueError("File format %s not supported." % file_format)
 
