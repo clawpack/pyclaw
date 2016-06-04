@@ -162,9 +162,12 @@ class GaugeSolution(object):
                  (self.id, self.location[0], self.location[1], self.q.shape[0]))
             gauge_file.write("# Columns: level time q(1 ... num_eqn)\n")
 
+            # print(self.q.shape)
             for i in xrange(self.q.shape[1]):
-                gauge_file.write("%s %s %s\n" % (self.level[i], self.t[i],
-                              " ".join([str(value) for value in self.q[:, i]])))
+                gauge_file.write("%02i %+.15e " % (self.level[i], self.t[i]))
+                gauge_file.write(" ".join(["%+.15e" % value for value in self.q[:, i]]))
+                gauge_file.write("\n")
+                # gauge_file.write("{} {}\n".format((self.level[i], self.t[i])))
 
 
     def is_valid(self):
@@ -231,6 +234,7 @@ def convert_gauges(path, output_path=None):
         gauge_indices = numpy.nonzero(old_ids == gauge_id)[0]
         new_gauge = GaugeSolution()
         new_gauge.id = gauge_id
+        new_gauge.location = (numpy.nan, numpy.nan)
         new_gauge.level = numpy.asarray(data[gauge_indices, 1], dtype=int)
         new_gauge.t = data[gauge_indices, 2]
         new_gauge.q = data[gauge_indices, 3:].transpose()
@@ -316,6 +320,8 @@ def check_old_gauge_data(path, gauge_id, new_gauge_path="./regression_data"):
        time.
     """
 
+    import matplotlib.pyplot as plt
+
     # Load old gauge data
     data = numpy.loadtxt(path)
     old_ids = numpy.asarray(data[:, 0], dtype=int)
@@ -323,7 +329,7 @@ def check_old_gauge_data(path, gauge_id, new_gauge_path="./regression_data"):
     q = data[gauge_indices, 3:]
 
     # Load new data
-    gauge = gauges.GaugeSolution(gauge_id, new_gauge_path)
+    gauge = GaugeSolution(gauge_id, new_gauge_path)
 
     print(numpy.linalg.norm(q - gauge.q.transpose(), ord=2))
     print(numpy.argmax(q - gauge.q.transpose()))
