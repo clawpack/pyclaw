@@ -13,11 +13,11 @@ class Patch(pyclaw_geometry.Patch):
 
     __doc__ += pyclaw.util.add_parent_doc(pyclaw_geometry.Patch)
     
-    def __init__(self,dimensions):
+    def __init__(self,dimensions,proc_sizes=None):
         
         super(Patch,self).__init__(dimensions)
 
-        self._da = self._create_DA()
+        self._da = self._create_DA(proc_sizes)
         ranges = self._da.getRanges()
         grid_dimensions = []
         for i,nrange in enumerate(ranges):
@@ -41,7 +41,7 @@ class Patch(pyclaw_geometry.Patch):
 
         self.grid = pyclaw_geometry.Grid(grid_dimensions)
 
-    def _create_DA(self):
+    def _create_DA(self,proc_sizes=None):
         r"""Returns a PETSc DA and associated global Vec.
         Note that no local vector is returned.
         """
@@ -62,14 +62,16 @@ class Patch(pyclaw_geometry.Patch):
                                           sizes=self.num_cells_global,
                                           periodic_type = periodic_type,
                                           stencil_width=0,
-                                          comm=PETSc.COMM_WORLD)
+                                          comm=PETSc.COMM_WORLD,
+                                          proc_sizes=proc_sizes)
         else:
             DA = PETSc.DA().create(dim=self.num_dim,
                                           dof=1,
                                           sizes=self.num_cells_global,
                                           boundary_type = PETSc.DA.BoundaryType.PERIODIC,
                                           stencil_width=0,
-                                          comm=PETSc.COMM_WORLD)
+                                          comm=PETSc.COMM_WORLD,
+                                          proc_sizes=proc_sizes)
 
         return DA
 
@@ -82,13 +84,13 @@ class Domain(pyclaw_geometry.Domain):
     
     __doc__ += pyclaw.util.add_parent_doc(pyclaw.ClawSolver2D)
 
-    def __init__(self,geom):
+    def __init__(self,geom,proc_sizes=None):
         if not isinstance(geom,list):
             geom = [geom]
         if isinstance(geom[0],Patch):
             self.patches = geom
         elif isinstance(geom[0],pyclaw_geometry.Dimension):
-            self.patches = [Patch(geom)]
+            self.patches = [Patch(geom, proc_sizes)]
 
 class Dimension(pyclaw_geometry.Dimension):
     def __init__(self, lower, upper, num_cells, name='x',
