@@ -1,5 +1,5 @@
 ! ==========================================================
-subroutine flux3(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,mz,rpn3,tfluct3)
+subroutine flux3(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,mz,rpn3,tfluct3,downwind)
 ! ==========================================================
 
     ! Evaluate (delta t) *dq/dt
@@ -20,6 +20,7 @@ subroutine flux3(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,mz,rpn3
     double precision, target, intent(in) :: aux(num_aux,1-num_ghost:mx+num_ghost,1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
     double precision, intent(inout) :: dq(num_eqn,1-num_ghost:mx+num_ghost,1-num_ghost:my+num_ghost,1-num_ghost:mz+num_ghost)
     double precision, intent(out) :: cfl
+    logical, intent(in) :: downwind
 
 !f2py intent(in,out) dq  
 !f2py intent(out) cfl  
@@ -49,7 +50,7 @@ subroutine flux3(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,mz,rpn3
             aux1d => aux(:,:,j,k)
 
             ! compute modification dq1d along this slice:
-            call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,1,num_aux,num_eqn,mx,num_ghost,maxnx,rpn3,tfluct3)
+            call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,1,num_aux,num_eqn,mx,num_ghost,maxnx,rpn3,tfluct3,downwind)
             cfl = dmax1(cfl,cfl1d)
 
             forall(i=1:mx, m=1:num_eqn)
@@ -68,7 +69,7 @@ subroutine flux3(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,mz,rpn3
             q1d => q(:,i,:,k)
             aux1d => aux(:,i,:,k)
 
-            call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,2,num_aux,num_eqn,my,num_ghost,maxnx,rpn3,tfluct3)
+            call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,2,num_aux,num_eqn,my,num_ghost,maxnx,rpn3,tfluct3,downwind)
             cfl = dmax1(cfl,cfl1d)
 
             forall(j=1:my,m=1:num_eqn)
@@ -86,7 +87,7 @@ subroutine flux3(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,mz,rpn3
             q1d => q(:,i,j,:)
             aux1d => aux(:,i,j,:)
 
-            call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,3,num_aux,num_eqn,mz,num_ghost,maxnx,rpn3,tfluct3)
+            call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,3,num_aux,num_eqn,mz,num_ghost,maxnx,rpn3,tfluct3,downwind)
             cfl = dmax1(cfl,cfl1d)
 
             forall(k=1:mz,m=1:num_eqn)

@@ -7,7 +7,7 @@ module workspace
     double precision, allocatable  :: dtdx(:)
     double precision, target, allocatable  :: ql(:,:), qr(:,:)
     double precision, allocatable  :: evl(:,:,:), evr(:,:,:)
-    double precision, allocatable  :: amdq(:,:), apdq(:,:), amdq2(:,:), apdq2(:,:)
+    double precision, target, allocatable  :: amdq(:,:), apdq(:,:), amdq2(:,:), apdq2(:,:)
     double precision, allocatable  :: wave(:,:,:), s(:,:)
     logical :: work_alloc = .False.
 
