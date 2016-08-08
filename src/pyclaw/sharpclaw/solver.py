@@ -188,7 +188,7 @@ class SharpClawSolver(Solver):
         self.c = None
 
         # Used only if time integrator is 'DWRK'
-        # self.a, self.at, and self.v are the Shu-Osher matrices/vector
+        # self.a, self.at, and self.v are the Shu-Osher arrays
         self.at = None
         self.v = None
         self.fun_eval = []
