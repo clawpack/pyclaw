@@ -1,5 +1,5 @@
 ! ==========================================================
-subroutine flux2(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn2,tfluct2)
+subroutine flux2(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn2,tfluct2,downwind)
 ! ==========================================================
 !    Evaluate (delta t) *dq/dt
 !    On entry, q should give the initial data for this step
@@ -17,6 +17,7 @@ subroutine flux2(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn2,tf
     double precision, target, intent(in) :: aux(num_aux, 1-num_ghost:mx+num_ghost, 1-num_ghost:my+num_ghost)
     double precision, intent(inout) :: dq(num_eqn, 1-num_ghost:mx+num_ghost, 1-num_ghost:my+num_ghost)
     double precision, intent(out) :: cfl
+    logical, intent(in) :: downwind
 
 !f2py intent(in,out) dq  
 !f2py intent(out) cfl  
@@ -46,7 +47,7 @@ subroutine flux2(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn2,tf
         aux1d => aux(:,:,j)
 
         ! compute modification dq1d along this slice:
-        call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,1,num_aux,num_eqn,mx,num_ghost,maxnx,rpn2,tfluct2)
+        call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,1,num_aux,num_eqn,mx,num_ghost,maxnx,rpn2,tfluct2,downwind)
         cfl = dmax1(cfl,cfl1d)
 
         forall(i=1:mx, m=1:num_eqn)
@@ -63,7 +64,7 @@ subroutine flux2(q,dq,aux,dt,cfl,t,num_aux,num_eqn,num_ghost,maxnx,mx,my,rpn2,tf
         q1d => q(:,i,:)
         aux1d => aux(:,i,:)
 
-        call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,2,num_aux,num_eqn,my,num_ghost,maxnx,rpn2,tfluct2)
+        call flux1(q1d,dq1d,aux1d,dt,cfl1d,t,2,num_aux,num_eqn,my,num_ghost,maxnx,rpn2,tfluct2,downwind)
         cfl = dmax1(cfl,cfl1d)
 
         forall(j=1:my, m=1:num_eqn)

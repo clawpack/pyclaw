@@ -1,5 +1,5 @@
 ! ===================================================================
-subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,rp,tfluct)
+subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,rp,tfluct,downwind)
 ! ===================================================================
 !
 !     # Evaluate (delta t) * dq(t)/dt
@@ -43,6 +43,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
     double precision, target, intent(in) :: aux(num_aux,1-num_ghost:mx+num_ghost)
     double precision, intent(out) :: cfl
     double precision, intent(in) :: t, dt
+    logical, intent(in) :: downwind
 
 !f2py intent(in,out) dq1d  
 !f2py intent(out) cfl  
@@ -50,6 +51,7 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
 
     ! Local variables
     double precision, pointer :: auxl(:,:), auxr(:,:), qr_shift(:,:), ql_shift(:,:)
+    double precision, pointer :: p_amdq(:,:), p_apdq(:,:)
     integer :: m, mw, i
 
 ! ===================================================================
@@ -142,6 +144,14 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
         enddo
     enddo
 
+    p_amdq => amdq
+    p_apdq => apdq
+    if (downwind .eqv. .True.) then
+        ! swap pointers
+        p_apdq => amdq
+        p_amdq => apdq
+    endif
+
     ! Find total fluctuation within each cell
     if (tfluct_solver .eqv. .True.) then
         ! tfluct should be a special solver that uses the parameters aux(i)
@@ -163,8 +173,8 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
         ! adq = f(qr(i)) - f(ql(i)).
 
         forall (i=1:mx, m=1:num_eqn)
-            dq1d(m,i) = dq1d(m,i) - dtdx(i)*(apdq(m,i) + &
-                            amdq2(m,i) + amdq(m,i+1))
+            dq1d(m,i) = dq1d(m,i) - dtdx(i)*(p_apdq(m,i) + &
+                            amdq2(m,i) + p_amdq(m,i+1))
         end forall
 
     else
@@ -186,9 +196,10 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
         endif
 
         forall(i=1:mx, m=1:num_eqn)
-            dq1d(m,i) = dq1d(m,i)-dtdx(i)*(amdq(m,i+1)+ &
-                        apdq(m,i)+amdq2(m,i)+apdq2(m,i))
+            dq1d(m,i) = dq1d(m,i)-dtdx(i)*(p_amdq(m,i+1) + &
+                    p_apdq(m,i) + amdq2(m,i) + apdq2(m,i))
         end forall
+
     endif
 
 end subroutine flux1
