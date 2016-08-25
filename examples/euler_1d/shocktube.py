@@ -15,14 +15,37 @@ The fluid is an ideal gas, with pressure given by :math:`p=\rho (\gamma-1)e` whe
 e is internal energy.
 
 This script runs a shock-tube problem.
+
+This example also demonstrates:
+
+ - how to use an arbitrary downwind Runge-Kutta method by providing the
+   Shu-Osher array coefficients and the SSP coefficient of the method.
+ - How to use a 2nd-order, two-stage downwind Runge-Kutta method.
 """
+
+import numpy as np
 from clawpack import riemann
 from clawpack.riemann.euler_with_efix_1D_constants import *
 
 gamma = 1.4 # Ratio of specific heats
 
-def setup(use_petsc=False, outdir='./_output', solver_type='classic',
-          kernel_language='Python',disable_output=False):
+# Coefficients of Downwind Runge-Kutta(4,4) method
+sspcoeff = 0.6850160627358832
+v = np.array([1., 0., 0., 0., 0.])
+a = np.array([[0., 0., 0., 0., 0.],
+              [0.671254015683971, 0., 0., 0., 0.],
+              [0.270090108540258, 0.342508031367942, 0., 0., 0.],
+              [2.71491162884274e-13, 0., 0.685016062735883, 0., 0.],
+              [0.306177880587856, 0.176917664597762, 0.150130853210932, 0.114169343789314, 0.]])
+a_tilde = np.array([[ 0., 0., 0., 0., 0.],
+                    [0.328745984316029, 0., 0., 0., 0.],
+                    [0.387401860091801, 0., 0., 0., 0.],
+                    [0.0803604341607595, 0.234623503103086 , 0., 0., 0.],
+                    [0.252604257814136, 0., 0., 0., 0.]])
+c = np.array([0., 0.5, 0.5, 1.])
+
+def setup(use_petsc=False, outdir='./_output', solver_type='sharpclaw',
+          kernel_language='Fortran',time_integrator='DWRK',disable_output=False):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -36,6 +59,12 @@ def setup(use_petsc=False, outdir='./_output', solver_type='classic',
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(rs)
+        solver.time_integrator = time_integrator
+        solver.cfl_desired = 0.6
+        solver.cfl_max = 0.7
+        if solver.time_integrator == 'DWRK':
+            solver.v, solver.a, solver.a_tilde, solver.c = v, a, a_tilde, c
+            solver.sspcoeff = sspcoeff
     elif solver_type=='classic':
         solver = pyclaw.ClawSolver1D(rs)
 
