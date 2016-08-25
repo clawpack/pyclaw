@@ -54,14 +54,18 @@ class SharpClawSolver(Solver):
         Time integrator to be used. Currently implemented methods:
 
         'Euler'  : 1st-order Forward Euler integration
+        'SSP22'  : 2nd-order optimal strong stability preserving method
         'SSP33'  : 3rd-order strong stability preserving method of Shu & Osher
         'SSP104' : 4th-order strong stability preserving method Ketcheson
         'SSPLMM32': 2nd-order strong stability preserving 3-step linear multistep method,
-                   using Euler for starting values
+                    using SSPRK22 for starting values
         'SSPLMM43': 3rd-order strong stability preserving 4-step linear multistep method
-                   using SSPRK22 for starting values
+                    using SSPRK22 for starting values
         'RK'     : Arbitrary Runge-Kutta method, specified by setting `solver.a`
                    and `solver.b` to the Butcher arrays of the method.
+        'DWSSP22': Downwind version of 2nd-order, 2-stage Runge-Kutta method with minimal truncation error.
+        'DWRK'   : Arbitrary Downdind Runge-Kutta method, specified by setting `solver.v`,
+                   `solver.a` and `solver.a_tilde` to the Shu-Osher arrays of the method.
         'LMM'    : Arbitrary linear multistep method, specified by setting the
                    coefficient arrays `solver.alpha` and `solver.beta`.
 
@@ -134,6 +138,7 @@ class SharpClawSolver(Solver):
     _sspcoeff = {
        'Euler' :    1.0,
        'SSP22':     1.0,
+       'DWSSP22':   1.0,
        'SSP33':     1.0,
        'SSP104':    6.0,
        'SSPLMM32':  0.5,
@@ -179,7 +184,7 @@ class SharpClawSolver(Solver):
         self._method = None
         self._registers = None
         self.dq_dt = None
-        self.dwdq_dt = None
+        self.dq_dt_downwind = None
         self.dt_old = None
 
         # Used only if time integrator is 'RK'
@@ -188,11 +193,12 @@ class SharpClawSolver(Solver):
         self.c = None
 
         # Used only if time integrator is 'DWRK'
-        # self.a, self.at, and self.v are the Shu-Osher arrays
-        self.at = None
+        # self.a, self.a_tilde, and self.v are the Shu-Osher arrays
+        # References: Higueras2005,Ketcheson2010,Higueras/Ketcheson/Kocsis2016
+        self.a_tilde = None
         self.v = None
-        self.fun_eval = []
-        self.funt_eval = []
+        self.a_nonzero_cols = []
+        self.a_tilde_nonzero_cols = []
 
         # Used only if time integrator is a multistep method
         self.sspcoeff0 = None
@@ -258,10 +264,10 @@ class SharpClawSolver(Solver):
             raise KeyError('Maximum CFL number is not provided.')
 
         # Find which function evaluations need to be computed for 'DWRK' time integrators
-        # Lists self.fun_eval and self.funt_eval store the indices of non-zero columns of Shu-Osher arrays
+        # Lists self.a_nonzero_cols and self.a_tilde_nonzero_cols store the indices of non-zero columns of Shu-Osher arrays
         if self.time_integrator == 'DWRK':
-            [self.fun_eval.append(i) for i in xrange(1,self.a.shape[0]) if any(abs(self.a[:,i]))>0]
-            [self.funt_eval.append(i) for i in xrange(self.at.shape[0]) if any(abs(self.at[:,i]))>0]
+            self.a_nonzero_cols = [i for i in xrange(1,self.a.shape[0]) if any(abs(self.a[:,i]))>0]
+            self.a_tilde_nonzero_cols = [i for i in xrange(self.a_tilde.shape[0]) if any(abs(self.a_tilde[:,i]))>0]
 
         self._allocate_registers(solution)
         self._set_mthlim()
@@ -307,9 +313,9 @@ class SharpClawSolver(Solver):
         step_index = self.status['numsteps'] + 1
         if self.accept_step == True:
             self.cfl.set_global_max(0.)
+            if 'DW' in self.time_integrator[:2]:
+                self.dq_dt_downwind = self.dq(state,downwind=True) / self.dt
             self.dq_dt = self.dq(state) / self.dt
-            if 'DW' in self.time_integrator:
-                self.dwdq_dt = self.dq(state,downwind=True) / self.dt
 
         if 'LMM' in self.time_integrator:
             step_index = self.update_saved_values(state,step_index)
@@ -322,6 +328,9 @@ class SharpClawSolver(Solver):
         self.dt_old = self.dt
 
         ### Runge-Kutta methods ###
+        # All time integrators are implemented is in the Shu-Osher form, except 'RK' which uses
+        # Butcher coefficients
+
         if self.time_integrator == 'Euler':
             state.q += self.dt*self.dq_dt
 
@@ -329,14 +338,13 @@ class SharpClawSolver(Solver):
             self.ssp22(state)
 
         elif self.time_integrator == 'DWSSP22':
-            # Implementation is in the Shu-Osher form
-            dw_euler_step = state.q - self.dt*self.dwdq_dt
-            self._registers[0].q = 5./6.*(state.q + self.dt*self.dq_dt) + 1./6.*dw_euler_step
-            self._registers[0].t = state.t + 2./3.*self.dt
+            self._registers[0].q = state.q - self.dt*self.dq_dt_downwind
+            self._registers[1].q = 5./6.*(state.q + self.dt*self.dq_dt) + 1./6.*self._registers[0].q
+            self._registers[1].t = state.t + 2./3.*self.dt
 
             if self.call_before_step_each_stage:
-                self.before_step(self,self._registers[0])
-            state.q = 0.75*(self._registers[0].q + self.dq(self._registers[0])) + 0.25*dw_euler_step
+                self.before_step(self,self._registers[1])
+            state.q = 0.75*(self._registers[1].q + self.dq(self._registers[1])) + 0.25*self._registers[0].q
 
         elif self.time_integrator == 'SSP33':
             self._registers[0].q = state.q + self.dt*self.dq_dt
@@ -361,7 +369,7 @@ class SharpClawSolver(Solver):
             self._registers[0].q = self.dt*self.dq_dt
             self._registers[0].t = state.t
 
-            num_stages = len(self.b)
+            num_stages = len(self.c)
             for i in xrange(1,num_stages):
                 if self.call_before_step_each_stage:
                     self.before_step(self,self._registers[i])
@@ -379,37 +387,40 @@ class SharpClawSolver(Solver):
 
         elif self.time_integrator == 'DWRK':
             # General explicit downwind RK with specified coefficients
-            # Implementation is in the Shu-Osher form
+            # Method is
+            #
+            #       y = v * u_n  +  a * (y + dt/r * f(y))  +  a_tilde * (y - dt/r * f_tilde(y))
+            #
+            # where y are the stages of an s-stage Runge-Kutta and u_(n+1) = y_(s+1).
 
-            # This is pulled out of the loop in order to use dq_dt and dwdq_dt
-            num_stages = len(self.v)
-            self._registers[0].q[:] = self.v[0]*state.q
+            # This is pulled out of the loop in order to use dq_dt and dq_dt_downwind
+            num_stages = len(self.v)-1
+            if 0 in self.a_tilde_nonzero_cols:
+                self._registers[num_stages].q = state.q - self.dt*self.dq_dt_downwind/self.sspcoeff
+            self._registers[0].q = state.q + self.dt*self.dq_dt/self.sspcoeff
             self._registers[0].t = state.t
-            if 0 in self.funt_eval:
-                self._registers[num_stages].q = self._registers[0].q - self.dt*self.dwdq_dt/self.sspcoeff
-            self._registers[0].q += self.dt*self.dq_dt/self.sspcoeff
 
             for i in range(1,num_stages):
                 if self.call_before_step_each_stage:
                     self.before_step(self,self._registers[i])
 
-                self._registers[i].q[:] = self.v[i]*state.q
+                self._registers[i].q = self.v[i]*state.q
                 for j in range(i):
-                    self._registers[i].q += self.a[i,j]*self._registers[j].q + self.at[i,j]*self._registers[j+num_stages].q
+                    self._registers[i].q += self.a[i,j]*self._registers[j].q + self.a_tilde[i,j]*self._registers[j+num_stages].q
+                self._registers[i].t = state.t + self.dt*self.c[i]
 
                 # self._registers[i].q eventually stores Euler steps y_i + dt*f(y_i) and
-                # y_i - dt*ft(y_i) after stage solution y_i is computed
+                # y_i - dt*f_tilde(y_i) after stage solution y_i is computed.
                 # Only necessary Euler steps are computed based on the indices of non-zero columns
-                # of Shu-Osher matrices stored in the self.fun_eval and self.funt_eval lists.
-                if i < num_stages-1:
-                    if i in self.funt_eval:
-                        self._registers[i+num_stages].q = self._registers[i].q - self.dq(self._registers[i],downwind=True)/self.sspcoeff
-                    if i in self.fun_eval:
-                        self._registers[i].q += self.dq(self._registers[i])/self.sspcoeff
-                    self._registers[i].t = state.t + self.dt*self.c[i]
-            self._registers[num_stages-1].t = state.t + self.dt*self.c[-1]
+                # of Shu-Osher matrices stored in the self.a_nonzero_cols and self.a_tilde_nonzero_cols lists.
+                if i in self.a_tilde_nonzero_cols:
+                    self._registers[i+num_stages].q = self._registers[i].q - self.dq(self._registers[i],downwind=True)/self.sspcoeff
+                if i in self.a_nonzero_cols:
+                    self._registers[i].q += self.dq(self._registers[i])/self.sspcoeff
 
-            state.q[:] = self._registers[num_stages-1].q
+            state.q = self.v[-1]*state.q
+            for j in range(num_stages):
+                state.q += self.a[-1,j]*self._registers[j].q + self.a_tilde[-1,j]*self._registers[j+num_stages].q
 
         ### Linear multistep methods ###
         elif self.time_integrator in ['SSPLMMk2', 'SSPLMMk3']:
@@ -665,8 +676,8 @@ class SharpClawSolver(Solver):
         elif self.time_integrator == 'SSP33':   nregisters=1
         elif self.time_integrator == 'SSP104':  nregisters=1
         elif self.time_integrator == 'RK':      nregisters=len(self.c)
-        elif self.time_integrator == 'DWSSP22': nregisters=1
-        elif self.time_integrator == 'DWRK':    nregisters=2*(len(self.v))
+        elif self.time_integrator == 'DWSSP22': nregisters=2
+        elif self.time_integrator == 'DWRK':    nregisters=2*(len(self.v)-1)
         elif self.time_integrator == 'SSPLMMk2':nregisters=self.lmm_steps
         elif self.time_integrator == 'SSPLMMk3':nregisters=self.lmm_steps
         elif self.time_integrator == 'LMM':     nregisters=len(self.alpha)
