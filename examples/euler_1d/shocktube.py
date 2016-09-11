@@ -79,7 +79,10 @@ def setup(use_petsc=False, outdir='./_output', solver_type='sharpclaw',
     domain = pyclaw.Domain([x])
     state = pyclaw.State(domain,num_eqn)
 
-    state.problem_data['gamma'] = gamma
+    if kernel_language =='Python':
+        state.problem_data['gamma1'] = gamma - 1.
+    else:
+        state.problem_data['gamma'] = gamma
 
     x = state.grid.x.centers
 
