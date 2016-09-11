@@ -96,6 +96,9 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
 
     if kernel_language =='Python':
         state.problem_data['efix'] = False
+        state.problem_data['gamma1'] = gamma - 1.
+    else:
+        state.problem_data['gamma'] = gamma
 
     xc = state.grid.p_centers[0]
     epsilon = 0.2
