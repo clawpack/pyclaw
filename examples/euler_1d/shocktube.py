@@ -79,7 +79,6 @@ def setup(use_petsc=False, outdir='./_output', solver_type='sharpclaw',
     state = pyclaw.State(domain,num_eqn)
 
     state.problem_data['gamma'] = gamma
-    state.problem_data['gamma1'] = gamma - 1.
 
     x = state.grid.x.centers
 

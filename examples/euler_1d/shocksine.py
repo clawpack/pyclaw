@@ -38,7 +38,7 @@ b = np.array([.206734020864804, .206734020864804, .117097251841844, .18180256012
 c = np.array([0., .3772689153313680, .7545378306627360, .7289856616121880, .6992261359316680])
 
 def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_type='sharpclaw',
-        kernel_language='Fortran',use_char_decomp=False,tfluct_solver=True):
+        kernel_language='Fortran',use_char_decomp=True,tfluct_solver=True):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
