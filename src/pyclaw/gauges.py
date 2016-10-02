@@ -3,8 +3,6 @@
 """Module contains class definitions related to dealing with gauge data"""
 
 from __future__ import print_function
-
-
 from __future__ import absolute_import
 import os
 import sys
@@ -61,7 +59,9 @@ class GaugeSolution(object):
         self.t = None
         r"""(ndarray(:) - float) - The time the given observation was made at"""
         self.q = None
-        r"""(ndarray(num_eqn, :) - float) - Observed data"""
+        r"""(ndarray(*, :) - float) - Observed data"""
+        self.aux = None
+        r"""(ndarray(*, :) - float) - Auxiliary data"""
 
         # Read in gauge data from file
         if gauge_id is not None:
@@ -144,12 +144,13 @@ class GaugeSolution(object):
                              "recorded number in header.")
 
 
-    def write(self, path=None):
+    def write(self, path=None, format="%+.15e"):
         r"""Write the data from this gauge to a file in `path`
 
         :Input:
-         - *path* - (path) Path to write the gauge file to.  Defaults to
+         - *path* (path) Path to write the gauge file to.  Defaults to
            `path = os.getcwd()`.
+         - *format* (str) Format string used for the field values.
 
         :Output:
          None
@@ -171,9 +172,8 @@ class GaugeSolution(object):
             # print(self.q.shape)
             for i in range(self.q.shape[1]):
                 gauge_file.write("%02i %+.15e " % (self.level[i], self.t[i]))
-                gauge_file.write(" ".join(["%+.15e" % value for value in self.q[:, i]]))
+                gauge_file.write(" ".join([format % value for value in self.q[:, i]]))
                 gauge_file.write("\n")
-                # gauge_file.write("{} {}\n".format((self.level[i], self.t[i])))
 
 
     def is_valid(self):
@@ -213,7 +213,57 @@ class GaugeSolution(object):
                                      self.t[0], self.t[-1]))
 
 
+# ==============================
+#  Utility Functions for Gauges
+# ==============================
+def compare_gauges(paths, gauge_id, fields='all'):
+    r"""Make plots comparing gauges in different directories
 
+    :Input:
+     - *paths* (list) List of paths of length 2 pointing to the directories that
+       the gauge files are to be taken from.
+     - *gauge_id* (int) Gauge id to compare.
+     - *fields* (int or list) Fields to be plotted.  If fields == 'all' then all
+       available fields will be plotted.  Default is 'all'.
+
+    :Output:
+     - (matplotlib.figure.Figure) Figure object created by comparison
+    """
+
+    import matplotlib.pyplot as plt
+
+    if len(path) != 2:
+        raise ValueError("Provide two paths to gauge files for comparison.")
+
+    for path in paths:
+        gauges = GaugeSolution(path=path, gauge_id=gauge_id)
+
+    if fields.lower() == 'all':
+        fields = range(gauges[0].q.shape[0])
+
+    fig = plt.figure()
+    fig.suptitle("Gauge %s" % gauges[0].gauge_id)
+    for (i, n) in enumerate(fields):
+        axes = fig.add_subplot(len(fields), 2, 2 * i + 1)
+        axes.plot(gauges[0].t, gauges[0].q[n, :], 'ko', label="%s" % paths[0])
+        axes.plot(gauges[0].t, gauges[1].q[n, :], 'rx', label="%s" % paths[1])
+        axes.set_xlabel("t")
+        axes.set_ylabel("q[%s, :]" % n)
+        axes.legend()
+
+        axes = fig.add_subplot(len(fields), 2, 2 * i + 1)
+        axes.plot(gauges[0].t, 
+                  numpy.abs(gauges[0].q[n, :] - gauges[1].q[n, :]), 'r')
+        axes.set_xlabel("t")
+        axes.set_ylabel("$|q_{old}[%s, :] - q_{new}[%s, :]|$" % (n, n))
+
+    return fig
+
+
+
+# =============================================================
+#  Utility Functions to Help Transition to the New Gauge Files
+# =============================================================
 def convert_gauges(path, output_path=None):
     r"""Convert gauge output data from fort.gauge file to new format
 
@@ -253,8 +303,9 @@ def convert_gauges(path, output_path=None):
 
 
 
-def compare_gauges(old_path, new_path, gauge_id, plot=False, abs_tol=1e-14,
-                                                 rel_tol=0.0, verbose=False):
+def compare_old_gauges(old_path, new_path, gauge_id, plot=False, abs_tol=1e-14,
+                                                     rel_tol=0.0, 
+                                                     verbose=False):
     r"""Compare old gauge data at `path` to new gauge data at same path
 
     Provided as a quick check to see if the function `convert_gauges` has
@@ -351,27 +402,31 @@ def check_old_gauge_data(path, gauge_id, new_gauge_path="./regression_data"):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) > 1:
-        path = sys.argv[1]
-        output_dir = os.getcwd()
+    import matplotlib.pyplot as plt
 
-    if len(sys.argv) == 3:
-        output_dir = sys.argv[2]
+    help_msg = \
+"""gauges.py path1 path2 [gauge_id] [fields...]
 
-    if len(sys.argv) == 1:
-        print(
+Plots a comparison between the gauges at path1 and path2 with gauge_id and the 
+fields specified.  Only one gauge_id can be specified at a time but a number of 
+fields can be specfied including 'all'.
 """
-Gauge Module - Module contains definitions for the GaugeSolution class.  From
-the command line this module will convert an old formatted gauge file to a
-collection of the new formats.
 
-  gauges.py old_file_location [new_gauge_data_path]
-
-   - old_file_location - Path to the old, monolithic file (e.g. ./fort.gauge)
-   - new_gauge_data_location - Path to the directory where the new gauge files
-     should be placed.  Defaults to the current directory.
-
-""")
+    fields = [0]
+    gauge_id = 1
+    if len(sys.argv) < 3:
+        print(help_msg)
         sys.exit(0)
+    elif len(sys.argv) >= 3:
+        paths = [str(sys.argv[1]), str(sys.argv[2])]
+        if len(sys.argv) > 3:
+            gauge_id = int(sys.argv[3])
+            if len(sys.argv) > 4:
+                if sys.argv[4].lower() == 'all':
+                    fields = 'all'
+                else:
+                    fields = [int(field for field in sys.argv[4:])]
 
-    convert_gauges(path, output_path=output_dir)
+
+    fig = compare_gauges(paths, gauge_id, fields)
+    plt.show()
