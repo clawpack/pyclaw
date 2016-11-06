@@ -341,10 +341,11 @@ class Solution(object):
                                     read_aux=read_aux,options=options)
         logging.getLogger('pyclaw.io').info("Read in solution for time t=%s" % self.t)
 
+
     def get_read_func(self, file_format):
         from clawpack.pyclaw import io
         if file_format == 'binary':
-            return  io.binary.read
+            return io.binary.read
         elif file_format == 'ascii':
             return io.ascii.read
         elif file_format in ('hdf','hdf5'):
@@ -352,12 +353,15 @@ class Solution(object):
         elif file_format == 'petsc':
             from clawpack.petclaw import io
             return io.petsc.read
+        elif file_format == 'forestclaw':
+            return io.forestclaw.read
         else:
             raise ValueError("File format %s not supported." % file_format)
 
+
     def get_write_func(self, file_format):
         from clawpack.pyclaw import io
-        return getattr(getattr(io,file_format),'write')
+        return getattr(getattr(io, file_format), 'write')
 
         
     def plot(self):
@@ -367,6 +371,7 @@ class Solution(object):
         raise NotImplementedError("Direct solution plotting has not been " +
             "implemented as of yet, please refer to the plotting module for" +
             " how to plot solutions.")
+
 
 if __name__ == "__main__":
     import doctest

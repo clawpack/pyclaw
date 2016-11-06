@@ -14,8 +14,8 @@ from ..util import read_data_line
 
 logger = logging.getLogger('pyclaw.io')
 
-def write(solution,frame,path,file_prefix='fort',write_aux=False,
-                    options={},write_p=False):
+def write(solution, frame, path, file_prefix='fort', write_aux=False,
+                    options={}, write_p=False):
     r"""
     Write out ascii data file
     
@@ -168,33 +168,15 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     [t,num_eqn,nstates,num_aux,num_dim] = read_t(frame,path,file_prefix)
 
     patches = []
-    n = np.zeros((num_dim),dtype=int)
-    d = np.zeros((num_dim))
-    lower = np.zeros((num_dim))
-    # Since we do not have names here, we will construct each patch with
-    # dimension names x,y,z
-    names = ['x','y','z']
 
     # Read in values from fort.q file:
     with open(q_fname,'r') as f:
         # Loop through every patch setting the appropriate information
         for m in xrange(nstates):
             # Read header for this patch
-            patch_index = read_data_line(f,data_type=int)
-            level       = read_data_line(f,data_type=int)
-            for i in xrange(num_dim):
-                n[i] = read_data_line(f,data_type=int)
-            for i in xrange(num_dim):
-                lower[i] = read_data_line(f)
-            for i in xrange(num_dim):
-                d[i] = read_data_line(f)
-        
-            blank = f.readline()
+            patch = read_patch_header(f, num_dim)
 
-            # Construct the patch
-            dimensions = [pyclaw.Dimension(lower[i],lower[i]+n[i]*d[i],\
-                          n[i],name=names[i]) for i in xrange(num_dim)]
-            patch = pyclaw.geometry.Patch(dimensions)
+            # Construct state
             state= pyclaw.state.State(patch,num_eqn,num_aux)
             state.t = t
             state.problem_data = problem_data
@@ -208,10 +190,6 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
 
             # Fill in q values
             state.q = read_array(f, state, num_eqn)
-
-            # Add AMR attributes:
-            patch.patch_index = patch_index
-            patch.level = level
 
             # Add new patch to solution
             solution.states.append(state)
@@ -242,25 +220,19 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         with open(fname,'r') as f:
             for state in solution.states:
                 patch = state.patch
-                patch_index = read_data_line(f,data_type=int)
+                aux_patch = read_patch_header(f, num_dim)
 
                 # Read patch header and check that it matches that from fort.qxxxx
-                assert patch.level == read_data_line(f,data_type=int), \
+                assert patch.level == aux_patch.level, \
                         "Patch level in aux file header did not match patch no %s." % patch.patch_index
-                for dim in patch.dimensions:
-                    num_cells = read_data_line(f,data_type=int)
-                    assert dim.num_cells == num_cells, \
-                        "Dimension %s's num_cells in aux file header did not match patch no %s." % (dim.name,patch.patch_index)
-                for dim in patch.dimensions:
-                    lower = read_data_line(f,data_type=float)
-                    assert np.abs(lower - dim.lower) <= ABS_TOL + REL_TOL * np.abs(dim.lower), \
+                for i in xrange(len(patch.dimensions)):
+                    assert patch.dimensions[i].num_cells == aux_patch.dimensions[i].num_cells, \
+                        "Dimension %s's num_cells in aux file header did not match patch no %s." % (patch.dimensions[i].name, patch.patch_index)
+                    assert np.abs(patch.dimensions[i].lower - aux_patch.dimensions[i].lower) <= ABS_TOL + REL_TOL * np.abs(patch.dimensions[i].lower), \
                             'Value of lower in aux file does not match.'
-                for dim in patch.dimensions:
-                    delta = read_data_line(f,data_type=float)
-                    assert np.abs(delta - dim.delta) <= ABS_TOL + REL_TOL * np.abs(dim.delta), \
+                    assert np.abs(patch.dimensions[i].delta - aux_patch.dimensions[i].delta) <= ABS_TOL + REL_TOL * np.abs(patch.dimensions[i].delta), \
                             'Value of delta in aux file does not match.'
 
-                blank = f.readline()
                 state.aux = read_array(f, state, num_aux)
 
             
@@ -293,7 +265,49 @@ def read_t(frame,path='./',file_prefix='fort'):
         num_aux = read_data_line(f,data_type=int)
         num_dim = read_data_line(f,data_type=int)
     
-    return t,num_eqn,nstates,num_aux,num_dim
+    return t, num_eqn, nstates, num_aux, num_dim
+
+
+def read_patch_header(f, num_dim):
+    r"""Read header describing the next patch
+    
+    :Input:
+     - *f* - (file) Handle to open file
+     - *num_dim* - (int) Number of dimensions
+     
+    :Output:
+     - *patch* - (clawpack.pyclaw.geometry.Patch) Initialized patch represented
+       by the header data.
+    
+    """
+
+    n = np.zeros((num_dim), dtype=int)
+    d = np.zeros((num_dim))
+    lower = np.zeros((num_dim))
+    patch_index = read_data_line(f, data_type=int)
+    level       = read_data_line(f, data_type=int)
+    for i in xrange(num_dim):
+        n[i] = read_data_line(f, data_type=int)
+    for i in xrange(num_dim):
+        lower[i] = read_data_line(f)
+    for i in xrange(num_dim):
+        d[i] = read_data_line(f)
+
+    blank = f.readline()
+
+    # Construct the patch
+    # Since we do not have names here, we will construct each patch with
+    # dimension names x,y,z
+    names = ['x', 'y', 'z']
+    dimensions = [pyclaw.Dimension(lower[i], lower[i] + n[i] * d[i],
+                                  n[i], name=names[i]) for i in xrange(num_dim)]
+    patch = pyclaw.geometry.Patch(dimensions)
+
+    # Add AMR attributes:
+    patch.patch_index = patch_index
+    patch.level = level
+
+    return patch
 
 
 def read_array(f, state, num_var):
