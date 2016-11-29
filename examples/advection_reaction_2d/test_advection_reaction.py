@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 def test_advection_reaction():
     """ tests against expected sharpclaw results """
     import advection_reaction

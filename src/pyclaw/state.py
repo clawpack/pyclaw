@@ -8,6 +8,8 @@ Module containing all Pyclaw solution objects
 """
 
 
+from __future__ import absolute_import
+import six
 class State(object):
     r"""
     A PyClaw State object contains the current state on a particular patch,
@@ -212,7 +214,7 @@ class State(object):
                 raise Exception("""Some required value(s) in the cparam common 
                                    block in the Riemann solver have not been 
                                    set in problem_data.""")
-            for global_var_name,global_var_value in self.problem_data.iteritems(): 
+            for global_var_name,global_var_value in six.iteritems(self.problem_data): 
                 setattr(fortran_module.cparam,global_var_name,global_var_value)
 
     def set_num_ghost(self,num_ghost):

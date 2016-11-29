@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 from itertools import chain
 
@@ -6,7 +7,7 @@ import numpy as np
 from clawpack.pyclaw.util import gen_variants
 from clawpack.pyclaw.util import check_diff
 
-import acoustics_3d_interface
+from . import acoustics_3d_interface
 
 
 def test_3d_acoustics():

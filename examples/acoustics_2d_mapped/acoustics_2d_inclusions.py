@@ -17,7 +17,9 @@ and :math:`\rho(x,y)` is the density.
 This example shows how to solve a problem with variable coefficients on a mapped grid.
 The domain contains circular inclusions with different acoustic properties.
 """
+from __future__ import absolute_import
 import numpy as np
+from six.moves import range
 
 # Circle radius, square radius, circle center:
 # ((r1, r2), (x0, y0))
@@ -135,7 +137,7 @@ def incoming_square_wave(state,dim,t,qbc,auxbc,num_ghost):
     else:
         s = 0.0
 
-    for i in xrange(num_ghost):
+    for i in range(num_ghost):
         reflect_ind = 2*num_ghost - i - 1
         alpha = auxbc[0,i,:]
         beta  = auxbc[1,i,:]

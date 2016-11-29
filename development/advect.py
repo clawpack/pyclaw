@@ -1,5 +1,8 @@
 #!/usr/bin/env python
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
+from six.moves import range
 
 try:
     import numpy as np
@@ -40,7 +43,7 @@ class PetCLAW:
 
         fg.view()
         
-        for n in xrange(N+1):
+        for n in range(N+1):
             q = fl.getArray()
             q[1:]=q[1:]-cfl*(q[1:]-q[:-1])
             fl.setArray(q)
@@ -54,7 +57,7 @@ class PetCLAW:
         cfl = OptDB.getReal('cfl',0.95)
         T = OptDB.getReal('T',2.)
         self.advection1D(M, cfl, T)
-        print 'Done'
+        print('Done')
         return
           
 if __name__ == '__main__':

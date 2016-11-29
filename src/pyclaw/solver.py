@@ -1,8 +1,11 @@
 r"""
 Module specifying the interface to every solver in PyClaw.
 """
+from __future__ import absolute_import
 import logging
 import numpy as np
+import six
+from six.moves import range
 
 class CFLError(Exception):
     """Error raised when cfl_max is exceeded.  Is this a
@@ -312,7 +315,7 @@ class Solver(object):
 
     def __str__(self):
         output = "Solver Status:\n"
-        for (k,v) in self.status.iteritems():
+        for (k,v) in six.iteritems(self.status):
             output = "\n".join((output,"%s = %s" % (k.rjust(25),v)))
         return output
 
@@ -462,18 +465,18 @@ class Solver(object):
         """
 
         if bc_type == BC.extrap:
-            for i in xrange(self.num_ghost):
+            for i in range(self.num_ghost):
                 array[:,i,...] = array[:,self.num_ghost,...]
         elif bc_type == BC.periodic:
             # This process owns the whole patch
             array[:,:self.num_ghost,...] = array[:,-2*self.num_ghost:-self.num_ghost,...]
         elif bc_type == BC.wall:
             if name == 'q':
-                for i in xrange(self.num_ghost):
+                for i in range(self.num_ghost):
                     array[:,i,...] = array[:,2*self.num_ghost-1-i,...]
                     array[self.reflect_index[idim],i,...] = -array[self.reflect_index[idim],2*self.num_ghost-1-i,...] # Negate normal velocity
             else:
-                for i in xrange(self.num_ghost):
+                for i in range(self.num_ghost):
                     array[:,i,...] = array[:,2*self.num_ghost-1-i,...]
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % bc_type)
@@ -499,18 +502,18 @@ class Solver(object):
         """
         
         if bc_type == BC.extrap:
-            for i in xrange(self.num_ghost):
+            for i in range(self.num_ghost):
                 array[:,-i-1,...] = array[:,-self.num_ghost-1,...] 
         elif bc_type == BC.periodic:
             # This process owns the whole patch
             array[:,-self.num_ghost:,...] = array[:,self.num_ghost:2*self.num_ghost,...]
         elif bc_type == BC.wall:
             if name == 'q':
-                for i in xrange(self.num_ghost):
+                for i in range(self.num_ghost):
                     array[:,-i-1,...] = array[:,-2*self.num_ghost+i,...]
                     array[self.reflect_index[idim],-i-1,...] = -array[self.reflect_index[idim],-2*self.num_ghost+i,...] # Negate normal velocity
             else:
-                for i in xrange(self.num_ghost):
+                for i in range(self.num_ghost):
                     array[:,-i-1,...] = array[:,-2*self.num_ghost+i,...]
         else:
             raise NotImplementedError("Boundary condition %s not implemented" % self.bc_lower)
@@ -595,7 +598,7 @@ class Solver(object):
             self.max_steps = 0
  
         # Main time-stepping loop
-        for n in xrange(self.max_steps):
+        for n in range(self.max_steps):
  
             state = solution.state
  

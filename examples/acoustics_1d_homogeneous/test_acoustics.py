@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 def test_1d_acoustics():
     """test_1d_acoustics
 
     tests against known classic, sharpclaw, and high-order weno results """
 
-    import acoustics_1d
+    from . import acoustics_1d
 
     def verify_expected(expected):
         """ binds the expected value to the acoustics_verify methods """

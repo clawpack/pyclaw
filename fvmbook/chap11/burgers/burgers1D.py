@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+from __future__ import absolute_import
 def burgers(iplot=1,htmlplot=0,outdir='./_output'):
     """
     Example from Chapter 11 of LeVeque, Figure 11.8.

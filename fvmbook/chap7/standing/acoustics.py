@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
+from __future__ import absolute_import
 def acoustics(use_petsc=False,kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False,outdir='./_output',weno_order=5):
     """
     This example solves the 1-dimensional acoustics equations in a homogeneous

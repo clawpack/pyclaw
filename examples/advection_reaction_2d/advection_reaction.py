@@ -16,6 +16,7 @@ at cell edges.
 This example also shows how to use your own Riemann solver.
 """
 
+from __future__ import absolute_import
 import numpy as np
 
 t_period = 4.0

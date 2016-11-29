@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from nose.plugins.attrib import attr
     
 def qinit(state,hl,ul,vl,hr,ur,vr,radDam):

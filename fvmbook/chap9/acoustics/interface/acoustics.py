@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
+from __future__ import absolute_import
 def acoustics(solver_type='classic',iplot=True,htmlplot=False,outdir='./_output',problem='figure 9.4'):
     """
     This example solves the 1-dimensional variable-coefficient acoustics

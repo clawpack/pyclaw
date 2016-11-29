@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 def test_shocksine():
     """ tests against expected sharpclaw results """
-    import shocksine
+    from . import shocksine
     from clawpack.pyclaw.util import test_app, check_diff
 
     def verify_shocksine(controller):

@@ -1,8 +1,11 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from numpy import random, empty,zeros
 #from numpy import *
 from FRS import vec_rp, pw_rp
 from time import clock
 from pylab import plot,  figure
+from six.moves import range
 
 
 
@@ -25,7 +28,7 @@ class RiemannSolver:
     def solveVectorized(self, timer = None):
        
         if timer is not None:
-            print "Solving... vectorized"
+            print("Solving... vectorized")
             start = clock()
 
         for counter in range(self.timeSteps):
@@ -34,7 +37,7 @@ class RiemannSolver:
         if timer is not None:
             end = clock()
             self.elapsedTime = end-start
-            print "elapsed time: ", self.elapsedTime, " seconds"
+            print("elapsed time: ", self.elapsedTime, " seconds")
 
         return waves, s
 
@@ -47,7 +50,7 @@ class RiemannSolver:
         waves = zeros((meqn, mwaves, mx))
         s = zeros((mwaves, mx))
         if timer is not None:
-            print "Solving... point-wize"
+            print("Solving... point-wize")
             start = clock()
 
         for counter in range(timeSteps):
@@ -58,7 +61,7 @@ class RiemannSolver:
         if timer is not None:
             end = clock()
             self.elapsedTime = end-start
-            print "elapsed time: ", self.elapsedTime, " seconds"
+            print("elapsed time: ", self.elapsedTime, " seconds")
 
         return waves, s
         

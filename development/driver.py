@@ -1,5 +1,8 @@
 #!/usr/bin/env python
+from __future__ import absolute_import
+from __future__ import print_function
 from petsc4py import PETSc
+from six.moves import range
 
 class PetCLAW:
   def advection1D(self, N):
@@ -16,7 +19,7 @@ class PetCLAW:
 
   def run(self):
     self.advection1D(10)
-    print 'Done'
+    print('Done')
     return
 
 if __name__ == '__main__':

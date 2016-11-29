@@ -5,10 +5,12 @@
 from __future__ import print_function
 
 
+from __future__ import absolute_import
 import os
 import sys
 
 import numpy
+from six.moves import range
 
 # See if pandas is available
 try:
@@ -163,7 +165,7 @@ class GaugeSolution(object):
             gauge_file.write("# Columns: level time q(1 ... num_eqn)\n")
 
             # print(self.q.shape)
-            for i in xrange(self.q.shape[1]):
+            for i in range(self.q.shape[1]):
                 gauge_file.write("%02i %+.15e " % (self.level[i], self.t[i]))
                 gauge_file.write(" ".join(["%+.15e" % value for value in self.q[:, i]]))
                 gauge_file.write("\n")
@@ -293,7 +295,7 @@ def compare_gauges(old_path, new_path, gauge_id, plot=False, abs_tol=1e-14,
     if plot:
         import matplotlib.pyplot as plt
         fig = plt.figure()
-        for i in xrange(gauge.q.shape[0]):
+        for i in range(gauge.q.shape[0]):
             axes = fig.add_subplot(1, 3, i + 1)
             axes.plot(q[:, i] - gauge.q[i, :])
             axes.set_title("q[%s, :] comparison" % i)
@@ -335,7 +337,7 @@ def check_old_gauge_data(path, gauge_id, new_gauge_path="./regression_data"):
     print(numpy.argmax(q - gauge.q.transpose()))
 
     fig = plt.figure()
-    for i in xrange(gauge.q.shape[0]):
+    for i in range(gauge.q.shape[0]):
         axes = fig.add_subplot(1, gauge.q.shape[0], i + 1)
         axes.plot(q[:, i] - gauge.q[i, :])
         axes.set_title("q[%s, :] comparison" % i)

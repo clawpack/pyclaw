@@ -12,6 +12,7 @@ Solve the KPP equation:
 first proposed by Kurganov, Petrova, and Popov.  It is challenging for schemes
 with low numerical viscosity to capture the solution accurately.
 """
+from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 

@@ -12,6 +12,7 @@ Solve the two-dimensional advection equation
 Here q is a conserved quantity, and (u,v) is the velocity vector.
 """
 
+from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 

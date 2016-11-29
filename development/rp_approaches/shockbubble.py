@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+from __future__ import absolute_import
 import numpy as np
 from scipy import integrate
+from six.moves import range
 
 gamma = 1.4
 gamma1 = gamma - 1.
@@ -50,8 +52,8 @@ def qinit(state,rhoin=0.1):
     dy = state.grid.d[1]
     dx2 = state.grid.d[0]/2.
     dy2 = state.grid.d[1]/2.
-    for i in xrange(state.q.shape[1]):
-        for j in xrange(state.q.shape[2]):
+    for i in range(state.q.shape[1]):
+        for j in range(state.q.shape[2]):
             ydown = y[j]-dy2
             yup   = y[j]+dy2
             if abs(r[i,j]-r0)<d2:
@@ -81,7 +83,7 @@ def shockbc(state,dim,t,qbc,mbc):
         vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
         einf = 0.5*rinf*vinf**2 + pinf/gamma1
 
-        for i in xrange(mbc):
+        for i in range(mbc):
             qbc[0,i,...] = rinf
             qbc[1,i,...] = rinf*vinf
             qbc[2,i,...] = 0.

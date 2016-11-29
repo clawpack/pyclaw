@@ -6,6 +6,7 @@ This module is imported by the plotting routines and then the
 function setplot is called to set the plot parameters.
     
 """ 
+from __future__ import absolute_import
 from advection import beta, x0, IC
 
 #--------------------------

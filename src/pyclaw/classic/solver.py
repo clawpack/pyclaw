@@ -8,9 +8,11 @@ are both pure virtual classes; the only solver classes that should be instantiat
 are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`.
 """
 
+from __future__ import absolute_import
 from clawpack.pyclaw.util import add_parent_doc
 from clawpack.pyclaw.solver import Solver
 from clawpack.pyclaw.limiters import tvd
+from six.moves import range
 
 # ============================================================================
 #  Generic Clawpack solver class
@@ -338,13 +340,13 @@ class ClawSolver1D(ClawSolver):
             UL = self.num_ghost + grid.num_cells[0] + 1 
 
             # Update q for Godunov update
-            for m in xrange(num_eqn):
+            for m in range(num_eqn):
                 q[m,LL:UL] -= dtdx[LL:UL]*apdq[m,LL-1:UL-1]
                 q[m,LL-1:UL-1] -= dtdx[LL-1:UL-1]*amdq[m,LL-1:UL-1]
         
             # Compute maximum wave speed
             cfl = 0.0
-            for mw in xrange(wave.shape[1]):
+            for mw in range(wave.shape[1]):
                 smax1 = np.max(dtdx[LL:UL]*s[mw,LL-1:UL-1])
                 smax2 = np.max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
                 cfl = max(cfl,smax1,smax2)
@@ -361,21 +363,21 @@ class ClawSolver1D(ClawSolver):
                 # Compute correction fluxes for second order q_{xx} terms
                 dtdxave = 0.5 * (dtdx[LL-1:UL-1] + dtdx[LL:UL])
                 if self.fwave:
-                    for mw in xrange(wave.shape[1]):
+                    for mw in range(wave.shape[1]):
                         sabs = np.abs(s[mw,LL-1:UL-1])
                         om = 1.0 - sabs*dtdxave[:UL-LL]
                         ssign = np.sign(s[mw,LL-1:UL-1])
-                        for m in xrange(num_eqn):
+                        for m in range(num_eqn):
                             f[m,LL:UL] += 0.5 * ssign * om * wave[m,mw,LL-1:UL-1]
                 else:
-                    for mw in xrange(wave.shape[1]):
+                    for mw in range(wave.shape[1]):
                         sabs = np.abs(s[mw,LL-1:UL-1])
                         om = 1.0 - sabs*dtdxave[:UL-LL]
-                        for m in xrange(num_eqn):
+                        for m in range(num_eqn):
                             f[m,LL:UL] += 0.5 * sabs * om * wave[m,mw,LL-1:UL-1]
 
                 # Update q by differencing correction fluxes
-                for m in xrange(num_eqn):
+                for m in range(num_eqn):
                     q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1]) 
 
         else: raise Exception("Unrecognized kernel_language; choose 'Fortran' or 'Python'")

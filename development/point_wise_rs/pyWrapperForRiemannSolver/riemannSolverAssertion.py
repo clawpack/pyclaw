@@ -1,10 +1,12 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import RiemannSolver
 from RiemannSolver import *
 from numpy import load, absolute
 
 
 tolerance = 0.00005
-print "This script asserts the results for input read from data files q.npy and aux.npy with tolerance =", tolerance
+print("This script asserts the results for input read from data files q.npy and aux.npy with tolerance =", tolerance)
 
 
 

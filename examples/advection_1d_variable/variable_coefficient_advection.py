@@ -19,6 +19,7 @@ fast and slow parts of the velocity field.
 """
 
 
+from __future__ import absolute_import
 import numpy as np
 
 def qinit(state):

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from clawpack import pyclaw
 from clawpack import petclaw
 import os

@@ -19,6 +19,7 @@ Liska and Wendroff.
 
 This example shows how to use VisClaw's Iplot class for simple interactive plotting.
 """
+from __future__ import absolute_import
 from clawpack import pyclaw
 from clawpack import riemann
 from clawpack.riemann.euler_4wave_2D_constants import density, x_momentum, y_momentum, \

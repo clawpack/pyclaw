@@ -4,6 +4,8 @@ r"""
 Module containing all Pyclaw solution objects
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import logging
 
@@ -114,7 +116,7 @@ class Solution(object):
         # the computed claw_package will be 'clawpack.petclaw'
 
         import sys
-        if 'claw_package' in kargs.keys():
+        if 'claw_package' in list(kargs.keys()):
             claw_package = kargs['claw_package']
         else:
             claw_package = None
@@ -138,7 +140,7 @@ class Solution(object):
             frame = arg[0]
             if not isinstance(frame,int):
                 raise Exception('Invalid pyclaw.Solution object initialization')
-            if 'count_from_zero' in kargs.keys() and\
+            if 'count_from_zero' in list(kargs.keys()) and\
               kargs['count_from_zero'] == True:
                 self._start_frame = 0
             else:
@@ -275,7 +277,7 @@ class Solution(object):
             try:
                 os.makedirs(path)
             except OSError:
-                print "directory already exists, ignoring"  
+                print("directory already exists, ignoring")  
 
         # Call the correct write function based on the output format
         if isinstance(file_format,str):

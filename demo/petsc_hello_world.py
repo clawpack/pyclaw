@@ -14,9 +14,11 @@ Then the expected output should look like the following: ::
     Hello World! From process 2 out of 4 process(es).
 
 """
+from __future__ import absolute_import
+from __future__ import print_function
 from petsc4py import PETSc
 
 rank = PETSc.COMM_WORLD.getRank()
 size = PETSc.COMM_WORLD.getSize()
 
-print 'Hello World! From process {rank} out of {size} process(es).'.format(rank=rank,size=size)
+print('Hello World! From process {rank} out of {size} process(es).'.format(rank=rank,size=size))
