@@ -21,7 +21,7 @@ from .geometry import Dimension, Patch, Domain
 from .state import State
 from .cfl import CFL
 
-from . import plot
+from clawpack.pyclaw import plot
 
 __all__.extend(['ClawSolver1D','ClawSolver2D','ClawSolver3D','SharpClawSolver1D','SharpClawSolver2D','SharpClawSolver3D'])
 from .classic.solver import ClawSolver1D, ClawSolver2D, ClawSolver3D

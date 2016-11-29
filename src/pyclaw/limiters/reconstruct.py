@@ -10,7 +10,7 @@ PyClaw solver.
 """
 
 from __future__ import absolute_import
-from . import weno.reconstruct as recon
+import pyclaw.limiters.weno.reconstruct as recon
 from six.moves import range
 
 def weno(k, q):
