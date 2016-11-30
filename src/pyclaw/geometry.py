@@ -59,7 +59,7 @@ class Grid(object):
         >>> x = Dimension(0.,1.,10,name='x')
         >>> y = Dimension(-1.,1.,25,name='y')
         >>> grid = Grid((x,y))
-        >>> print grid
+        >>> print(grid)
         2-dimensional domain (x,y)
         No mapping
         Extent:  [0.0, 1.0] x [-1.0, 1.0]
@@ -509,7 +509,7 @@ class Dimension(object):
 
     >>> from clawpack.pyclaw.geometry import Dimension
     >>> x = Dimension(0.,1.,100,name='x')
-    >>> print x
+    >>> print(x)
     Dimension x:  (num_cells,delta,[lower,upper]) = (100,0.01,[0.0,1.0])
     >>> x.name
     'x'
@@ -776,9 +776,9 @@ class Domain(object):
 
         >>> from clawpack import pyclaw
         >>> domain = pyclaw.Domain( (0.,0.), (1.,1.), (100,100))
-        >>> print domain.num_dim
+        >>> print(domain.num_dim)
         2
-        >>> print domain.grid.num_cells
+        >>> print(domain.grid.num_cells)
         [100, 100]
     """
     @property
