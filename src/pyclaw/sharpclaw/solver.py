@@ -204,7 +204,7 @@ class SharpClawSolver(Solver):
         Allocate RK stage arrays or previous step solutions and fortran routine work arrays.
         """
         if self.lim_type == 2:
-            self.num_ghost = (self.weno_order+1)/2
+            self.num_ghost = (self.weno_order+1)//2
 
         if self.lim_type == 2 and self.weno_order != 5 and self.kernel_language == 'Python':
             raise Exception('Only 5th-order WENO reconstruction is implemented in Python kernels. \

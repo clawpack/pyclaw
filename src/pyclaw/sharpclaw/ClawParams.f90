@@ -26,10 +26,21 @@ contains
 
     subroutine dealloc_clawparams()
 
-        deallocate(xlower)
-        deallocate(xupper)
-        deallocate(dx)
-        deallocate(mthlim)
+        if (allocated(xlower)) then
+            deallocate(xlower)
+        endif
+
+        if (allocated(xupper)) then
+            deallocate(xupper)
+        endif
+
+        if (allocated(dx)) then
+            deallocate(dx)
+        endif
+
+        if (allocated(mthlim)) then
+            deallocate(mthlim)
+        endif
 
     end subroutine dealloc_clawparams
 
