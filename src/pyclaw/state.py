@@ -210,7 +210,12 @@ class State(object):
         all appear in problem_data.
         """
         if hasattr(fortran_module,'cparam'):
-            if not set(dir(fortran_module.cparam)) <= set(self.problem_data.keys()):
+            try:
+                paramlist = [parm for parm in fortran_module.cparam.__dir__()
+                             if '__' not in parm]
+            except AttributeError: # Python 2
+                paramlist = dir(fortran_module.cparam)
+            if not set(paramlist) <= set(self.problem_data.keys()):
                 raise Exception("""Some required value(s) in the cparam common 
                                    block in the Riemann solver have not been 
                                    set in problem_data.""")

@@ -13,6 +13,7 @@ from clawpack.pyclaw.util import add_parent_doc
 from clawpack.pyclaw.solver import Solver
 from clawpack.pyclaw.limiters import tvd
 from six.moves import range
+from imp import reload
 
 # ============================================================================
 #  Generic Clawpack solver class
