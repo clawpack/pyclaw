@@ -23,6 +23,7 @@ install:
   - easy_install pip
   - pip install coverage
   - pip install python-coveralls
+  - pip install h5py
   - python setup.py install;
 
 script:
