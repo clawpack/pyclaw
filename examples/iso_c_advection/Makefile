@@ -1,7 +1,7 @@
 all: _iso_c_advection.so iso_c_classic1.so
 
-FCFLAGS:=$(shell python -c "import numpy.distutils.fcompiler as fc; fc.log.set_verbosity(-1); f = fc.new_fcompiler(); f.customize(); print ' '.join(f.get_flags_f90())")
-LDFLAGS:=$(shell python -c "import numpy.distutils.fcompiler as fc; fc.log.set_verbosity(-1); f = fc.new_fcompiler(); f.customize(); print ' '.join(f.get_flags_linker_so())")
+FCFLAGS:=$(shell python -c "import numpy.distutils.fcompiler as fc; fc.log.set_verbosity(-1); f = fc.new_fcompiler(); f.customize(); print(' '.join(f.get_flags_f90()))")
+LDFLAGS:=$(shell python -c "import numpy.distutils.fcompiler as fc; fc.log.set_verbosity(-1); f = fc.new_fcompiler(); f.customize(); print(' '.join(f.get_flags_linker_so()))")
 
 build/f90:
 	mkdir -p build/f90
