@@ -26,6 +26,8 @@ install:
   - python setup.py install;
 
 script:
+  - python -c "import h5py"
+  - python -c "from clawpack.pyclaw import io; io.hdf5"
   - cd pyclaw/src/pyclaw
   - nosetests --first-pkg-wins --with-doctest --exclude=limiters --exclude=sharpclaw --exclude=io --exclude=example --with-coverage --cover-package=clawpack.pyclaw
   - mv .coverage temp
