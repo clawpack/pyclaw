@@ -1,11 +1,14 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import RiemannSolver
 from RiemannSolver import *
 from numpy import empty
 from pylab import plot,  figure, suptitle
+from six.moves import range
 
 
 
-print "Testing for different number of time steps ..."
+print("Testing for different number of time steps ...")
 noOfTestSamples = 10
 max_mx = 101 
 max_timeSteps = 101 
@@ -30,9 +33,9 @@ j = 0
 for i in range(max_timeSteps/noOfTestSamples, max_timeSteps, max_timeSteps/noOfTestSamples):
 	timesStepsValues[j] = i
 	rs.timeSteps = i
-	print
-	print "Iteration",j+1,"of", noOfTestSamples
-	print "Number of time steps is", i
+	print()
+	print("Iteration",j+1,"of", noOfTestSamples)
+	print("Number of time steps is", i)
 	
 	waves1, s1  = rs.solveVectorized(timer = True)
 	timeResultsVectorized[j] = rs.elapsedTime
@@ -60,7 +63,7 @@ plot(timesStepsValues, timeResultsPointwise, "bo-")
 
 
 
-print "Testing for different sizes of mx ..."
+print("Testing for different sizes of mx ...")
 noOfTestSamples = 10
 max_mx = 101 
 max_timeSteps = 101 
@@ -94,9 +97,9 @@ j = 0
 for i in range(max_mx/noOfTestSamples, max_mx,max_mx/noOfTestSamples):
 	mxValues[j] = i
 	rs.mx = i
-	print
-	print "Iteration",j+1,"of", noOfTestSamples
-	print "mx is", i
+	print()
+	print("Iteration",j+1,"of", noOfTestSamples)
+	print("mx is", i)
 	
 	rs.q = random.random((rs.meqn,rs.mx))
 	rs.aux = random.random((rs.maux,rs.mx))

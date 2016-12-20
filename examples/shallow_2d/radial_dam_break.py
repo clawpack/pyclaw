@@ -16,6 +16,7 @@ The top and right boundary conditions reflect, while the bottom and left boundar
 are outflow.
 """
 
+from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 from clawpack.riemann.shallow_roe_with_efix_2D_constants import depth, x_momentum, y_momentum, num_eqn

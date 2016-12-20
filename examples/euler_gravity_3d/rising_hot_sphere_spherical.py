@@ -10,8 +10,11 @@ This problem evolves the 3D Euler equations using an F-wave
 The primary variables are: 
    density (rho), x,y, and z momentum (rho*u,rho*v,rho*w), and energy.
 """
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 from mappedGrid import euler3d_mappedgrid as mg
+from six.moves import range
 
 # Test for MPI, and set sizes accordingly
 try:
@@ -237,7 +240,7 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
     xcpZ,ycpZ,zcpZ = mg.mapc2pwrapper(xccZ,yccZ,zccZ,pmz,xyzMin,xyzMax,mapType)
  
     if np.sqrt(xepZ[0]**2+yepZ[0]**2+zepZ[0]**2)-rEarth <= 0:
-        print "WARNING: z may go below Earth's surface"," zepZ: ",zepZ[0:10]
+        print("WARNING: z may go below Earth's surface"," zepZ: ",zepZ[0:10])
 
     #-----------------------------------------------------------------------
     # Create vectors for 1D pressure and density column with boundary cells

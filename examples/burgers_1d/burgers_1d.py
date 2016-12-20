@@ -16,6 +16,7 @@ model for fluid dynamics.
 The initial condition is sinusoidal, but after a short time a shock forms
 (due to the nonlinearity).
 """
+from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 

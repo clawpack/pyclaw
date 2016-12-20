@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 def test_2d_euler_shockbubble():
     """test_2d_euler_shockbubble"""
     def verify_classic_shockbubble(controller):
@@ -24,7 +25,7 @@ def test_2d_euler_shockbubble():
         from nose import SkipTest
         raise SkipTest("Unable to import scipy, is it installed?")
 
-    import shock_bubble_interaction
+    from . import shock_bubble_interaction
     
     from clawpack.pyclaw.util import gen_variants
     for test in gen_variants(shock_bubble_interaction.setup, verify_classic_shockbubble, 

@@ -71,6 +71,8 @@ in review.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
+from __future__ import absolute_import
+from six.moves import range
 minmod = 1
 superbee = 2
 vanleer = 3
@@ -125,11 +127,11 @@ def limit(num_eqn,wave,s,limiter,dtdx):
     r.fill_value = 0
     r = r.filled()
     
-    for mw in xrange(wave.shape[1]):
+    for mw in range(wave.shape[1]):
         # skip waves that are marked as not needing a limiter
         limit_func = limiter_functions.get(limiter[mw])
         if limit_func is not None:
-            for m in xrange(num_eqn):
+            for m in range(num_eqn):
                 cfl = np.abs(s[mw,1:-1]*(dtdx[1:-2]*spos[mw,:] 
                                         + (1-spos[mw,:])*dtdx[2:-1]))
                 wlimitr = limit_func(r[mw,:],cfl)

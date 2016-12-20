@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
     
+from __future__ import absolute_import
 def fig_31_38(kernel_language='Fortran',solver_type='classic',iplot=False,htmlplot=False,outdir='./_output'):
     r"""Produces the output shown in Figures 3.1 and 3.8 of the FVM book.
     These involve simple waves in the acoustics system."""

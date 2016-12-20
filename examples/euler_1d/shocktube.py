@@ -16,6 +16,7 @@ e is internal energy.
 
 This script runs a shock-tube problem.
 """
+from __future__ import absolute_import
 from clawpack import riemann
 from clawpack.riemann.euler_with_efix_1D_constants import *
 

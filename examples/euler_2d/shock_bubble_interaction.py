@@ -26,10 +26,12 @@ This problem demonstrates:
     - how to use the auxiliary array for spatially-varying coefficients
 """
 
+from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 from clawpack.riemann.euler_5wave_2D_constants import density, x_momentum, y_momentum, \
         energy, num_eqn
+from six.moves import range
 
 gamma = 1.4 # Ratio of specific heats
 
@@ -75,8 +77,8 @@ def qinit(state,rhoin=0.1,pinf=5.):
     dy = state.grid.delta[1]
     dx2 = state.grid.delta[0]/2.
     dy2 = state.grid.delta[1]/2.
-    for i in xrange(state.q.shape[1]):
-        for j in xrange(state.q.shape[2]):
+    for i in range(state.q.shape[1]):
+        for j in range(state.q.shape[2]):
             ydown = Y[i,j]-dy2
             yup   = Y[i,j]+dy2
             if abs(r[i,j]-r0)<d2:
@@ -107,7 +109,7 @@ def incoming_shock(state,dim,t,qbc,auxbc,num_ghost):
     vinf = 1./np.sqrt(gamma) * (pinf - 1.) / np.sqrt(0.5*((gamma+1.)/gamma) * pinf+0.5*gamma1/gamma)
     einf = 0.5*rinf*vinf**2 + pinf/gamma1
 
-    for i in xrange(num_ghost):
+    for i in range(num_ghost):
         qbc[0,i,...] = rinf
         qbc[1,i,...] = rinf*vinf
         qbc[2,i,...] = 0.

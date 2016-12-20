@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 def test_acoustics_2d_variable():
     """Test variable-coefficient 2D acoustics on mapped grids"""
 

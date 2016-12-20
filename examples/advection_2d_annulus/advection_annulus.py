@@ -16,6 +16,7 @@ field.  We take a rotational velocity field: :math:`u = \cos(\theta), v = \sin(\
 
 This is the simplest example that shows how to use a mapped grid in PyClaw.
 """
+from __future__ import absolute_import
 import numpy as np
 
 def mapc2p_annulus(xc, yc):
@@ -214,7 +215,7 @@ def setplot(plotdata):
     """ 
     Plot solution using VisClaw.
     """
-    from mapc2p import mapc2p
+    from .mapc2p import mapc2p
     import numpy as np
     from clawpack.visclaw import colormaps
 

@@ -16,8 +16,10 @@ This problem involves the 3D Euler equations:
 The conserved quantities are: 
     density (rho), x-,y-, and z-momentum (rho*u,rho*v,rho*w), and energy.
 """
+from __future__ import absolute_import
 import numpy as np
 from scipy import integrate
+from six.moves import range
 
 gamma = 1.4 # Ratio of Specific Heats
 gamma1 = gamma - 1.
@@ -65,7 +67,7 @@ def incoming_shock(state,dim,t,qbc,auxbc,num_ghost):
     """
     Incoming shock at x=0 boundary.
     """
-    for i in xrange(num_ghost):
+    for i in range(num_ghost):
         qbc[0,i,...] = rho_shock
         qbc[1,i,...] = rho_shock*v_shock
         qbc[2,i,...] = 0.
@@ -120,9 +122,9 @@ def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
     dx2, dy2, dz2 = [d/2. for d in state.grid.delta]
     dmax = max(state.grid.delta)
 
-    for i in xrange(state.q.shape[1]):
-        for j in xrange(state.q.shape[2]):
-            for k in xrange(state.q.shape[3]):
+    for i in range(state.q.shape[1]):
+        for j in range(state.q.shape[2]):
+            for k in range(state.q.shape[3]):
                 if (r0[i,j,k] - dmax > r_bubble):
                     continue
                 xdown = X[i,j,k] - dx2

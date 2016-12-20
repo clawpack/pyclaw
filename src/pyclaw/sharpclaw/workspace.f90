@@ -39,19 +39,21 @@ contains
 
         integer :: char_decomp
 
-        deallocate(ql)
-        deallocate(qr)
-        deallocate(amdq)
-        deallocate(apdq)
-        deallocate(amdq2)
-        deallocate(apdq2)
-        deallocate(wave)
-        deallocate(s)
-        deallocate(dtdx)
+        if (allocated(ql)) then
+            deallocate(ql)
+            deallocate(qr)
+            deallocate(amdq)
+            deallocate(apdq)
+            deallocate(amdq2)
+            deallocate(apdq2)
+            deallocate(wave)
+            deallocate(s)
+            deallocate(dtdx)
 
-        if (char_decomp>1) then
-            deallocate(evl)
-            deallocate(evr)
+            if (char_decomp>1) then
+                deallocate(evl)
+                deallocate(evr)
+            endif
         endif
 
         work_alloc = .False.

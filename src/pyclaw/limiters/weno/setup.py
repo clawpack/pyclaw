@@ -1,5 +1,6 @@
 r"""Distutils script to build the WENO reconstructor."""
 
+from __future__ import absolute_import
 def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration, get_numpy_include_dirs
     config = Configuration('weno', parent_package, top_path)

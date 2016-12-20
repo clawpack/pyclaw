@@ -1,6 +1,7 @@
 r"""
 Module for the CFL object.
 """
+from __future__ import absolute_import
 class CFL(object):
     """ Parallel CFL object, responsible for computing the
     Courant-Friedrichs-Lewy condition across all processes.

@@ -1,6 +1,9 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from petsc4py import PETSc
 import numpy as np
 import DMPFOR
+from six.moves import range
 
 
 
@@ -45,30 +48,30 @@ gVec.array = q
 
 q = gVec.array.reshape((dof, nx, ny), order='F')
 
-print "da array from python"
-print q
+print("da array from python")
+print(q)
 
 
-print "da array from fortran"
+print("da array from fortran")
 DMPFOR.dmpfor(q,dof,nx,ny)
 
 
-print "da array from python after rolling axises using rollaxis"
+print("da array from python after rolling axises using rollaxis")
 rolled_q_1 = np.rollaxis(q,0,3)
 rolled_q_1 = np.reshape(rolled_q_1,(nx,ny,dof),order='F')
-print rolled_q_1
-print "da array from fortran after rolling axises using rollaxis"
+print(rolled_q_1)
+print("da array from fortran after rolling axises using rollaxis")
 DMPFOR.dmpfor(rolled_q_1,nx,ny,dof)
 
 
-print "da array from python after rolling axises using element by element copy"
+print("da array from python after rolling axises using element by element copy")
 rolled_q_2 = np.empty((nx,ny,dof),order='F')
 for i in range(0,nx):
     for j in range(0,ny):
         for k in range(0,dof):
             rolled_q_2[i,j,k] = q[k,i,j]
-print rolled_q_2
-print "da array from fortran after rolling axises using element by element copy"
+print(rolled_q_2)
+print("da array from fortran after rolling axises using element by element copy")
 DMPFOR.dmpfor(rolled_q_2,nx,ny,dof)
 
 

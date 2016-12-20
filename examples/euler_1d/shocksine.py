@@ -22,6 +22,8 @@ This example also demonstrates:
  - How to use characteristic decomposition with an evec() routine in SharpClaw
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 from clawpack import riemann
 from clawpack.riemann.euler_with_efix_1D_constants import density, momentum, energy, num_eqn
@@ -58,24 +60,24 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
         solver.cfl_max = 0.7
         if use_char_decomp:
             try:
-                import sharpclaw1               # Import custom Fortran code
+                from . import sharpclaw1               # Import custom Fortran code
                 solver.fmod = sharpclaw1
                 solver.tfluct_solver = tfluct_solver     # Use total fluctuation solver for efficiency
                 if solver.tfluct_solver:
                     try:
-                        import euler_tfluct
+                        from . import euler_tfluct
                         solver.tfluct = euler_tfluct
                     except ImportError:
                         import logging
                         logger = logging.getLogger()
                         logger.error('Unable to load tfluct solver, did you run make?')
-                        print 'Unable to load tfluct solver, did you run make?'
+                        print('Unable to load tfluct solver, did you run make?')
                         raise
             except ImportError:
                 import logging
                 logger = logging.getLogger()
                 logger.error('Unable to load sharpclaw1 solver, did you run make?')
-                print 'Unable to load sharpclaw1 solver, did you run make?'
+                print('Unable to load sharpclaw1 solver, did you run make?')
                 pass
             solver.lim_type = 2             # WENO reconstruction
             solver.char_decomp = 2          # characteristic-wise reconstruction

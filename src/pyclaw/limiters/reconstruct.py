@@ -9,7 +9,9 @@ PyClaw solver.
 
 """
 
-import weno.reconstruct as recon
+from __future__ import absolute_import
+import pyclaw.limiters.weno.reconstruct as recon
+from six.moves import range
 
 def weno(k, q):
     r"""Return the *k* order WENO based reconstruction of *q*.
@@ -23,7 +25,7 @@ def weno(k, q):
     # once instead of every call
 
     if (k % 2) == 0:
-        raise ValueError, 'even order WENO reconstructions are not supported'
+        raise ValueError('even order WENO reconstructions are not supported')
 
     k = (k+1)/2
     sigma = np.zeros((q.shape[1], k))
@@ -39,7 +41,7 @@ def weno(k, q):
         reconstruct_l = getattr(recon, 'reconstruct_left_k' + str(k))
         reconstruct_r = getattr(recon, 'reconstruct_right_k' + str(k))
     except:
-        raise ValueError, '%d order WENO reconstructions are not supported' % (2*k-1)
+        raise ValueError('%d order WENO reconstructions are not supported' % (2*k-1))
 
 
     for m in range(q.shape[0]):

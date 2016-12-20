@@ -14,6 +14,7 @@ Solve the (linear) acoustics equations:
 Here p is the pressure, (u,v) is the velocity, K is the bulk modulus,
 and :math:`\rho` is the density.
 """
+from __future__ import absolute_import
 from clawpack import riemann
 import numpy as np
 

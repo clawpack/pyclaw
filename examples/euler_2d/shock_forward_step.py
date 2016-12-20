@@ -27,6 +27,8 @@ to handle other internal boundary geometries, as long as they are
 aligned with the grid.
 """
 
+from __future__ import absolute_import
+from six.moves import range
 gamma = 1.4 # Ratio of specific heats
 
 def incoming_shock(state,dim,t,qbc,num_ghost):
@@ -39,7 +41,7 @@ def incoming_shock(state,dim,t,qbc,num_ghost):
     p   = 1.0;
     T   = 2*p/rho;
 
-    for i in xrange(num_ghost):
+    for i in range(num_ghost):
         qbc[0,i,...] = rho
         qbc[1,i,...] = rho*u
         qbc[2,i,...] = rho*v

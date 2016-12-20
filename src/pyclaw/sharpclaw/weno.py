@@ -27,8 +27,11 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 import pyweno
+from six.moves import range
 
 kernel = pyweno.kernels.KernelGenerator('fortran')
 
@@ -80,7 +83,7 @@ contains
 
 for k in range(3, 3):
 
-  print 'generating reconstruction for k: %02d' % k
+  print('generating reconstruction for k: %02d' % k)
 
   # smoothness
   beta = pyweno.symbolic.jiang_shu_smoothness_coefficients(k)

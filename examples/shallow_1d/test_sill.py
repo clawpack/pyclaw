@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+from __future__ import absolute_import
 def test_1d_sill():
     """test_1d_sill
 
     tests against expected classic solution of shallow water equations over
     a sill."""
 
-    import sill
+    from . import sill
 
     def verify_expected(expected):
         """ given an expected value, returns a verification function """

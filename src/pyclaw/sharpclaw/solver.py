@@ -6,8 +6,10 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 #  Author:      David Ketcheson
 """
 # Solver superclass
+from __future__ import absolute_import
 from clawpack.pyclaw.solver import Solver
 from clawpack.pyclaw.util import add_parent_doc
+from six.moves import range
 
 # Reconstructor
 try:
@@ -202,7 +204,7 @@ class SharpClawSolver(Solver):
         Allocate RK stage arrays or previous step solutions and fortran routine work arrays.
         """
         if self.lim_type == 2:
-            self.num_ghost = (self.weno_order+1)/2
+            self.num_ghost = (self.weno_order+1)//2
 
         if self.lim_type == 2 and self.weno_order != 5 and self.kernel_language == 'Python':
             raise Exception('Only 5th-order WENO reconstruction is implemented in Python kernels. \
@@ -405,7 +407,7 @@ class SharpClawSolver(Solver):
         s1.q = state.q + self.dt*self.dq_dt/6.
         s1.t = state.t + self.dt/6.
 
-        for i in xrange(4):
+        for i in range(4):
             if self.call_before_step_each_stage:
                 self.before_step(self,s1)
             s1.q = s1.q + self.dq(s1)/6.
@@ -415,7 +417,7 @@ class SharpClawSolver(Solver):
         s1.q = 15. * state.q - 5. * s1.q
         s1.t = state.t + self.dt/3.
 
-        for i in xrange(4):
+        for i in range(4):
             if self.call_before_step_each_stage:
                 self.before_step(self,s1)
             s1.q = s1.q + self.dq(s1)/6.
@@ -605,7 +607,7 @@ class SharpClawSolver(Solver):
         state = solution.states[0]
         # Use the same class constructor as the solution for the Runge Kutta stages
         self._registers = []
-        for i in xrange(nregisters):
+        for i in range(nregisters):
             import copy
             self._registers.append(copy.deepcopy(state))
 
@@ -796,7 +798,7 @@ class SharpClawSolver1D(SharpClawSolver):
 
             # Compute maximum wave speed
             cfl = 0.0
-            for mw in xrange(self.num_waves):
+            for mw in range(self.num_waves):
                 smax1 = np.max( dtdx[LL  :UL]  *s[mw,LL-1:UL-1])
                 smax2 = np.max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
                 cfl = max(cfl,smax1,smax2)
@@ -805,7 +807,7 @@ class SharpClawSolver1D(SharpClawSolver):
             wave,s,amdq2,apdq2 = self.rp(ql,qr,aux,aux,state.problem_data)
 
             # Compute dq
-            for m in xrange(state.num_eqn):
+            for m in range(state.num_eqn):
                 dq[m,LL:UL] = -dtdx[LL:UL]*(amdq[m,LL:UL] + apdq[m,LL-1:UL-1] \
                                 + apdq2[m,LL:UL] + amdq2[m,LL:UL])
 

@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 def test_1d_advection():
     """test_1d_advection
 
     tests against expected classic, sharpclaw, and high-order weno results """
 
-    import advection_1d
+    from . import advection_1d
 
     def verify_expected(expected):
         """ given an expected value, returns a verification function """
