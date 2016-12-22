@@ -266,8 +266,8 @@ class SharpClawSolver(Solver):
         # Find which function evaluations need to be computed for 'DWRK' time integrators
         # Lists self.a_nonzero_cols and self.a_tilde_nonzero_cols store the indices of non-zero columns of Shu-Osher arrays
         if self.time_integrator == 'DWRK':
-            self.a_nonzero_cols = [i for i in xrange(1,self.a.shape[0]) if any(abs(self.a[:,i]))>0]
-            self.a_tilde_nonzero_cols = [i for i in xrange(self.a_tilde.shape[0]) if any(abs(self.a_tilde[:,i]))>0]
+            self.a_nonzero_cols = [i for i in range(1,self.a.shape[0]) if any(abs(self.a[:,i]))>0]
+            self.a_tilde_nonzero_cols = [i for i in range(self.a_tilde.shape[0]) if any(abs(self.a_tilde[:,i]))>0]
 
         self._allocate_registers(solution)
         self._set_mthlim()
@@ -370,12 +370,12 @@ class SharpClawSolver(Solver):
             self._registers[0].t = state.t
 
             num_stages = len(self.c)
-            for i in xrange(1,num_stages):
+            for i in range(1,num_stages):
                 if self.call_before_step_each_stage:
                     self.before_step(self,self._registers[i])
 
                 self._registers[i].q[:] = state.q
-                for j in xrange(i):
+                for j in range(i):
                     self._registers[i].q += self.a[i,j]*self._registers[j].q
                 self._registers[i].t = state.t + self.dt*self.c[i]
 

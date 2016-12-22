@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 def test_1d_euler():
     """test_1d_euler
 
@@ -15,7 +16,7 @@ def test_1d_euler():
 
     """
 
-    import shocktube, shocksine, woodward_colella_blast
+    from . import shocktube, shocksine, woodward_colella_blast
 
     def verify_expected(expected):
         """ binds the expected results to the verify_shocktube methods """
