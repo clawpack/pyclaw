@@ -8,7 +8,7 @@ packages:
   launcher:
   blas:
     use: host-blas
-  h5py:
+  hdf5:
   matplotlib:
   mpi:
     use: mpich
