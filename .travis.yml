@@ -16,14 +16,32 @@ before_install:
   - rm -rf pyclaw
   - ln -s ../ pyclaw
 install:
-  - export CLAWPACK=`pwd`
-  - bash ../.travis_build_stack.sh;
-  - export PATH=${CLAWPACK}/stack/bin:${PATH};
-# it would be better to get coverage/python-coveralls into hashstack eventually, but this works
-  - easy_install pip
-  - pip install coverage
-  - pip install python-coveralls
-  - python setup.py install;
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION mpi4py 
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION matplotlib nose scipy coverage
+  - conda install -c mikaem/label/ubuntu1604-host-gcc h5py
+  - conda install --channel https://conda.anaconda.org/mikaem h5py
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      conda install --yes -c dan_blanchard python-coveralls;
+      conda install --yes -c minrk petsc4py;
+    else
+      conda install --yes -c BjornFjohansson python-coveralls;
+      conda install --yes -c conda-forge petsc4py;
+    fi
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION scipy=0.17.1
+  - python -c "import scipy; print(scipy.__version__)"
+  - python setup.py install
 
 script:
   - cd pyclaw/src/pyclaw
