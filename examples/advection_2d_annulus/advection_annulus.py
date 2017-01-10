@@ -215,7 +215,7 @@ def setplot(plotdata):
     """ 
     Plot solution using VisClaw.
     """
-    from .mapc2p import mapc2p
+    from clawpack.pyclaw.examples.advection_2d_annulus.mapc2p import mapc2p
     import numpy as np
     from clawpack.visclaw import colormaps
 

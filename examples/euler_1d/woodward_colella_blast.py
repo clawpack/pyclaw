@@ -29,7 +29,7 @@ from clawpack.riemann.euler_with_efix_1D_constants import *
 
 # Compile Fortran code if not already compiled
 try:
-    from . import sharpclaw1
+    from clawpack.pyclaw.examples.euler_1d import sharpclaw1
 except ImportError:
     import os
     from clawpack.pyclaw.util import inplace_build
@@ -39,7 +39,7 @@ except ImportError:
     inplace_build(this_dir)
     try:
         # Now try to import again
-        from . import sharpclaw1
+        from clawpack.pyclaw.examples.euler_1d import sharpclaw1
     except ImportError:
         import logging
         logger = logging.getLogger()
@@ -69,7 +69,7 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
         solver.tfluct_solver = tfluct_solver
         if solver.tfluct_solver:
             try:
-                from . import euler_tfluct
+                from clawpack.pyclaw.examples.euler_1d import euler_tfluct
                 solver.tfluct = euler_tfluct
             except ImportError:
                 import logging
@@ -80,7 +80,7 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
         solver.lim_type = 1
         solver.char_decomp = 2
         try:
-            from . import sharpclaw1
+            from clawpack.pyclaw.examples.euler_1d import sharpclaw1
             solver.fmod = sharpclaw1
         except ImportError:
             pass

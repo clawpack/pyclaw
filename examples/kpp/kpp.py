@@ -76,7 +76,7 @@ def setplot(plotdata):
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.title = 'q[0]'
-    plotaxes.afteraxes = "pylab.axis('scaled')" 
+    plotaxes.afteraxes = "plt.axis('scaled')"
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
@@ -92,7 +92,7 @@ def setplot(plotdata):
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.title = 'q[0]'
-    plotaxes.afteraxes = "pylab.axis('scaled')" 
+    plotaxes.afteraxes = "plt.axis('scaled')"
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_contour')

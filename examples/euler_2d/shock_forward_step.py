@@ -29,7 +29,26 @@ aligned with the grid.
 
 from __future__ import absolute_import
 from six.moves import range
+import os
+
 gamma = 1.4 # Ratio of specific heats
+
+try:
+    from clawpack.pyclaw.examples.euler_2d import euler_with_boundaries
+except ImportError:
+    this_dir = os.path.dirname(__file__)
+    if this_dir == '':
+        this_dir = os.path.abspath('.')
+    import subprocess
+    cmd = "make -C "+this_dir
+    proc = subprocess.Popen("make -C "+this_dir+"/", shell=True, stdout = subprocess.PIPE)#, stdout=subprocess.PIPE)
+    proc.wait()
+    try:
+        # Now try to import again
+        from clawpack.pyclaw.examples.euler_2d import euler_with_boundaries
+    except ImportError:
+        raise
+
 
 def incoming_shock(state,dim,t,qbc,num_ghost):
     """
@@ -56,10 +75,7 @@ def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_langua
     else:
         from clawpack import pyclaw
 
-    try:
-        import euler_with_boundaries
-    except ImportError:
-        raise Exception("Please run make in this directory to compile the Riemann solver.")
+    import euler_with_boundaries
 
     if solver_type=='sharpclaw':
         #solver = pyclaw.SharpClawSolver2D(euler_with_boundaries)
