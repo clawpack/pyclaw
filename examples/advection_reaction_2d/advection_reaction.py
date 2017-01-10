@@ -36,7 +36,7 @@ def psi(x,y):
 def set_velocities(solver,state):
     "Update velocity field for current time."
     v_t = np.cos(2 * np.pi * (state.t + solver.dt/2) / t_period)
-    X, Y = state.grid.p_edges
+    X, Y = state.grid.p_nodes
     dx, dy = state.grid.delta
     # u(x_(i-1/2),y_j)
     state.aux[0,:,:] = - ( psi(X[:-1,1:],Y[:-1,1:]) - psi(X[:-1,:-1],Y[:-1,:-1]) ) / dy
@@ -65,7 +65,7 @@ def setup():
     num_aux = 2
     state = pyclaw.State(domain, solver.num_eqn, num_aux)
 
-    Xe, Ye = domain.grid.p_edges
+    Xe, Ye = domain.grid.p_nodes
     Xc, Yc = domain.grid.p_centers
     dx, dy = domain.grid.delta
 

@@ -98,7 +98,7 @@ def compute_geometry(grid):
     area_min = 1.e6
     area_max = 0.0
 
-    x_corners, y_corners = grid.p_edges
+    x_corners, y_corners = grid.p_nodes
 
     lower_left_y, lower_left_x = y_corners[:-1,:-1], x_corners[:-1,:-1]
     upper_left_y, upper_left_x = y_corners[:-1,1: ], x_corners[:-1,1: ]
