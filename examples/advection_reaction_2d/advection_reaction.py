@@ -18,6 +18,25 @@ This example also shows how to use your own Riemann solver.
 
 from __future__ import absolute_import
 import numpy as np
+import os
+
+try:
+    from clawpack.pyclaw.examples.advection_reaction_2d import advection_2d
+except ImportError:
+    this_dir = os.path.dirname(__file__)
+    if this_dir == '':
+        this_dir = os.path.abspath('.')
+    import subprocess
+    cmd = "make -C "+this_dir
+    proc = subprocess.Popen("make -C "+this_dir+"/", shell=True, stdout = subprocess.PIPE)
+    proc.wait()
+    try:
+        # Now try to import again
+        from clawpack.pyclaw.examples.advection_reaction_2d import advection_2d
+    except ImportError:
+        raise
+
+
 
 t_period = 4.0
 epsilon = 0.1
@@ -47,7 +66,7 @@ def set_velocities(solver,state):
 
 def setup():
     from clawpack import pyclaw
-    import advection_2d
+    from clawpack.pyclaw.examples.advection_reaction_2d import advection_2d
 
     solver = pyclaw.ClawSolver2D(advection_2d)
     # Use dimensional splitting since no transverse solver is defined

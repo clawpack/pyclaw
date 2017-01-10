@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 def test_advection_reaction():
     """ tests against expected sharpclaw results """
-    import advection_reaction
+    from clawpack.pyclaw.examples.advection_reaction_2d import advection_reaction
     from clawpack.pyclaw.util import test_app, check_diff
 
     def verify_advection_reaction(controller):

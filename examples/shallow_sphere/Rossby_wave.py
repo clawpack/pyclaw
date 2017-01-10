@@ -28,8 +28,8 @@ from clawpack.pyclaw.util import inplace_build
 from six.moves import range
 
 try:
-    from . import problem
-    from . import classic2
+    from clawpack.pyclaw.examples.shallow_sphere import problem
+    from clawpack.pyclaw.examples.shallow_sphere import classic2
 
 except ImportError:
     this_dir = os.path.dirname(__file__)
@@ -39,8 +39,8 @@ except ImportError:
 
     try:
         # Now try to import again
-        from . import problem
-        from . import classic2
+        from clawpack.pyclaw.examples.shallow_sphere import problem
+        from clawpack.pyclaw.examples.shallow_sphere import classic2
     except ImportError:
         print("***\nUnable to import problem module or automatically build, try running (in the directory of this file):\n python setup.py build_ext -i\n***", file=sys.stderr)
         raise
