@@ -30,7 +30,7 @@ install:
   - conda info -a
   - conda install -c conda-forge mpich mpi4py
   - conda install matplotlib nose coverage
-  - conda install -c mikaem/label/ubuntu1604-host-gcc h5py
+  - conda install -c mikaem/label/ubuntu1604-host-gcc h5py-parallel
   - conda install -c conda-forge petsc4py
   - conda install -c conda-forge scipy=0.17.1
   - conda install -c conda-forge python-coveralls
