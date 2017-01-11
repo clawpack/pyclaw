@@ -18,13 +18,9 @@ __all__ = ['ascii.read','ascii.write']
 from . import binary
 __all__ += ['binary.read']
 
-# Check for HDF 5 support
-try:
-    import h5py
-    from . import hdf5
-    __all__ += ['hdf5.read','hdf5.write']
-except ImportError:
-    logger.debug("No hdf5 support found.")
+import h5py
+from . import hdf5
+__all__ += ['hdf5.read','hdf5.write']
     
 # Check for netcdf support
 try:
