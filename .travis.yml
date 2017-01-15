@@ -1,4 +1,7 @@
 language: python
+os:
+  - linux
+  - osx
 env:
   - TEST_PACKAGE="pyclaw"
   - TEST_PACKAGE="petclaw"
@@ -37,7 +40,6 @@ install:
   - conda install -c conda-forge python-coveralls
   - python -c "import scipy; print(scipy.__version__)"
   - python setup.py install
-  - python -c "import h5py; print(h5py.__version__)"
 
 script:
   - cd pyclaw/src/pyclaw
