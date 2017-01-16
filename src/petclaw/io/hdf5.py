@@ -111,7 +111,8 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
                         subgroup.attrs[attr] = getattr(patch,attr)
 
             # Add the dimension names as a attribute
-            subgroup.attrs['dimensions'] = patch.get_dim_attribute('name')
+            subgroup.attrs['dimensions'] = [ name.encode('utf-8')
+                        for name in patch.get_dim_attribute('name') ]
             # Dimension properties
             for dim in patch.dimensions:
                 for attr in ['num_cells','lower','delta','upper',
@@ -164,7 +165,8 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
         for patch in six.itervalues(f):
             # Construct each dimension
             dimensions = []
-            dim_names = patch.attrs['dimensions']
+            dim_names = [ name.decode('ascii')
+                          for name in patch.attrs['dimensions'] ]
             for dim_name in dim_names:
                 dim = geometry.Dimension(
                     patch.attrs["%s.lower" % dim_name],
