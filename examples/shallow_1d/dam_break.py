@@ -27,9 +27,9 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
     else:
         from clawpack import pyclaw
 
-    if kernel_language =='Python':
+    if kernel_language == 'Python':
         rs = riemann.shallow_1D_py.shallow_1D
-    elif kernel_language =='Fortran':
+    elif kernel_language == 'Fortran':
         rs = riemann.shallow_roe_with_efix_1D
  
     if solver_type == 'classic':
@@ -38,7 +38,7 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver1D(rs)
 
-    solver.kernel_language=kernel_language
+    solver.kernel_language = kernel_language
 
     solver.bc_lower[0] = pyclaw.BC.extrap
     solver.bc_upper[0] = pyclaw.BC.extrap
@@ -52,6 +52,8 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
 
     # Gravitational constant
     state.problem_data['grav'] = 1.0
+    state.problem_data['dry_tolerance'] = 1e-3
+    state.problem_data['sea_level'] = 0.0
     
     xc = state.grid.x.centers
 

@@ -19,7 +19,8 @@ from __future__ import absolute_import
 import numpy
 from clawpack import riemann
 
-def setup(kernel_language='Fortran',use_petsc=False, outdir='./_output'):
+def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False, 
+          outdir='./_output'):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -48,6 +49,7 @@ def setup(kernel_language='Fortran',use_petsc=False, outdir='./_output'):
 
     # Gravitational constant
     state.problem_data['grav'] = 9.8
+    state.problem_data['dry_tolerance'] = 1e-3
     state.problem_data['sea_level'] = 0.0
     
     xc = state.grid.x.centers
