@@ -22,14 +22,14 @@ def test_1d_sill():
             if q0 is not None and qfinal is not None:
                 dx = claw.solution.domain.grid.delta[0]
                 test = dx * np.linalg.norm(qfinal - q0, 1)
-                return check_diff(expected, test, reltol=1e-4)
+                return check_diff(expected, test, reltol=1e-3)
             else:
                 return
         return sill_verify
 
     from clawpack.pyclaw.util import gen_variants
     classic_tests = gen_variants(sill.setup, verify_expected(4.04169269142e-4), 
-                                             kernel_languages=["Python"],
+                                             kernel_languages=["Fortran", "Python"],
                                              solver_type='classic',
                                              outdir=None)
 
