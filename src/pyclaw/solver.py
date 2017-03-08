@@ -479,7 +479,10 @@ class Solver(object):
                 for i in range(self.num_ghost):
                     array[:,i,...] = array[:,2*self.num_ghost-1-i,...]
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % bc_type)
+            if bc_type is None:
+                raise Exception('Lower boundary condition not specified for either q or aux.')
+            else:
+                raise NotImplementedError("Boundary condition %s not implemented" % bc_type)
 
 
     def _bc_upper(self, bc_type, state, dim, t, array, idim, name):
@@ -516,7 +519,10 @@ class Solver(object):
                 for i in range(self.num_ghost):
                     array[:,-i-1,...] = array[:,-2*self.num_ghost+i,...]
         else:
-            raise NotImplementedError("Boundary condition %s not implemented" % self.bc_lower)
+            if bc_type is None:
+                raise Exception('Upper boundary condition not specified for either q or aux.')
+            else:
+                raise NotImplementedError("Boundary condition %s not implemented" % bc_type)
 
 
     # ========================================================================
