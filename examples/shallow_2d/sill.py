@@ -74,6 +74,8 @@ def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
     state.q[y_momentum,:,:] = 0.
 
     state.problem_data['grav'] = 1.0
+    state.problem_data['dry_tolerance'] = 1.e-3
+    state.problem_data['sea_level'] = 0.
 
     claw = pyclaw.Controller()
     claw.tfinal = 10
