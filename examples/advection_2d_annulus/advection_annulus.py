@@ -6,8 +6,8 @@ Advection in an annular domain
 
 Solve the linear advection equation:
 
-.. math:: 
-    q_t + (u(x,y) q)_x + (v(x,y) q)_y & = 0
+.. math::
+    q_t + (u(x,y) q)_x + (v(x,y) q)_y = 0
 
 in an annular domain, using a mapped grid.
 

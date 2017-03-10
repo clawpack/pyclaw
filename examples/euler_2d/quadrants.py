@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
+r"""
 Euler 2D Quadrants example
 ==========================
 

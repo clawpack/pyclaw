@@ -6,8 +6,8 @@ Advection-reaction in 2D
 Solve the 2D advection-reaction problem
 
 .. math::
-    p_t + u(x,y,t) p_x + v(x,y,t) p_y & = \epsilon q
-    q_t + u(x,y,t) q_x + v(x,y,t) q_y & = \epsilon p
+    p_t + u(x,y,t) p_x + v(x,y,t) p_y = \epsilon q \\
+    q_t + u(x,y,t) q_x + v(x,y,t) q_y = \epsilon p
 
 Note that the left hand side of this system is the non-conservative transport
 equation for p and q.  The Riemann solver assumes that velocities are specified

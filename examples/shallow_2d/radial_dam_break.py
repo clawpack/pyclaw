@@ -6,10 +6,10 @@ r"""
 
 Solve the 2D shallow water equations:
 
-.. :math:
-    h_t + (hu)_x + (hv)_y & = 0 \\
-    (hu)_t + (hu^2 + \frac{1}{2}gh^2)_x + (huv)_y & = 0 \\
-    (hv)_t + (huv)_x + (hv^2 + \frac{1}{2}gh^2)_y & = 0.
+.. math::
+    h_t + (hu)_x + (hv)_y = 0 \\
+    (hu)_t + (hu^2 + \frac{1}{2}gh^2)_x + (huv)_y = 0 \\
+    (hv)_t + (huv)_x + (hv^2 + \frac{1}{2}gh^2)_y = 0.
 
 The initial condition is a circular area with high depth surrounded by lower-depth water.
 The top and right boundary conditions reflect, while the bottom and left boundaries

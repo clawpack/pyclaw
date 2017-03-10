@@ -8,7 +8,7 @@ One-dimensional advection
 Solve the linear advection equation:
 
 .. math:: 
-    q_t + u q_x & = 0.
+    q_t + u q_x = 0.
 
 Here q is the density of some conserved quantity and u is the velocity.
 

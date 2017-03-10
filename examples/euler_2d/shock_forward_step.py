@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
+r"""
 Compressible Euler flow over a forward-facing step
 ==================================================
 
 Solve the Euler equations of compressible fluid dynamics in 2D:
 
 .. math::
-    \rho_t + (\rho u)_x + (\rho v)_y & = 0 \\
-    (\rho u)_t + (\rho u^2 + p)_x + (\rho uv)_y & = 0 \\
-    (\rho v)_t + (\rho uv)_x + (\rho v^2 + p)_y & = 0 \\
-    E_t + (u (E + p) )_x + (v (E + p))_y & = 0.
+    \rho_t + (\rho u)_x + (\rho v)_y = 0 \\
+    (\rho u)_t + (\rho u^2 + p)_x + (\rho uv)_y = 0 \\
+    (\rho v)_t + (\rho uv)_x + (\rho v^2 + p)_y = 0 \\
+    E_t + (u (E + p) )_x + (v (E + p))_y = 0.
 
 
 Here :math:`\rho` is the density, (u,v) is the velocity, and E is the total energy.
