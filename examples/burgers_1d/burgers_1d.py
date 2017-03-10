@@ -8,7 +8,7 @@ Burgers' equation
 Solve the inviscid Burgers' equation:
 
 .. math:: 
-    q_t + \frac{1}{2} (q^2)_x & = 0.
+    q_t + \frac{1}{2} (q^2)_x = 0.
 
 This is a nonlinear PDE often used as a very simple
 model for fluid dynamics.

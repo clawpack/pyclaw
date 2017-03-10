@@ -6,8 +6,8 @@ A non-convex flux scalar model
 
 Solve the KPP equation:
 
-.. math:: 
-    q_t + (\sin(q))_x + (\cos(q))_y & = 0
+.. math::
+    q_t + (\sin(q))_x + (\cos(q))_y = 0
 
 first proposed by Kurganov, Petrova, and Popov.  It is challenging for schemes
 with low numerical viscosity to capture the solution accurately.
