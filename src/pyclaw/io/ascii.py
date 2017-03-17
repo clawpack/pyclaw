@@ -11,7 +11,7 @@ import numpy as np
 import pickle
 import clawpack.pyclaw as pyclaw
 
-from ..util import read_data_line
+from clawpack.pyclaw.util import read_data_line
 from six.moves import range
 
 logger = logging.getLogger('pyclaw.io')
