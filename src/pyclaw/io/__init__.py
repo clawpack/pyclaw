@@ -7,14 +7,11 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger('pyclaw.io')
 
-from . import ascii 
+from clawpack.pyclaw.io import ascii
 __all__ = ['ascii.read','ascii.write']
 
-from . import binary
+from clawpack.pyclaw.io import binary
 __all__ += ['binary.read']
-
-import forestclaw
-__all__ += ['forestclaw.read', 'forestclaw.write']
 
 # Check for HDF 5 support
 try:
@@ -28,6 +25,6 @@ except ImportError:
 try:
     import netCDF4
     import netcdf
-    __all__ += ['netcdf.read', 'netcdf.write']\
+    __all__ += ['netcdf.read', 'netcdf.write']
 except(ImportError):
     logger.debug("No netcdf4 support found.")
