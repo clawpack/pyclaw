@@ -10,11 +10,13 @@ This problem evolves the 3D Euler equations.
 The primary variables are: 
     density (rho), x,y, and z momentum (rho*u,rho*v,rho*w), and energy.
 """
+from __future__ import absolute_import
 import numpy as np
 from scipy import integrate
 from clawpack import riemann
 from clawpack.riemann.euler_3D_constants import density, x_momentum, \
                 y_momentum, z_momentum, energy, num_eqn
+from six.moves import range
 
 gamma = 1.4 # Ratio of Specific Heats
 
@@ -85,9 +87,9 @@ def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
     dx2, dy2, dz2 = [d/2. for d in state.grid.delta]
     dmax = max(state.grid.delta)
 
-    for i in xrange(state.q.shape[1]):
-        for j in xrange(state.q.shape[2]):
-            for k in xrange(state.q.shape[3]):
+    for i in range(state.q.shape[1]):
+        for j in range(state.q.shape[2]):
+            for k in range(state.q.shape[3]):
                 if r[i,j,k] - dmax > rmax:
                     continue
                 xdown = X[i,j,k] - dx2

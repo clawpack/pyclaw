@@ -21,8 +21,10 @@ use gauges, compute output functionals, and restart a simulation
 from a checkpoint.
 """
 
+from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
+from six.moves import range
 
 def qinit(state,A,x0,y0,varx,vary):
     r""" Set initial conditions:
@@ -77,9 +79,9 @@ def setaux(x,y, KA=1, KB=4, rhoA=1, rhoB=4, stress_rel=2):
         else:
             sharpness=10
             fun_x=xx*0; fun_y=yy*0
-            for i in xrange(0,1+int(np.ceil((x[-1]-x[0])/(deltax*0.5)))):
+            for i in range(0,1+int(np.ceil((x[-1]-x[0])/(deltax*0.5)))):
                 fun_x=fun_x+(-1)**i*np.tanh(sharpness*(xx-deltax*i*0.5))
-            for i in xrange(0,1+int(np.ceil((y[-1]-y[0])/(deltay*0.5)))):
+            for i in range(0,1+int(np.ceil((y[-1]-y[0])/(deltay*0.5)))):
                 fun_y=fun_y+(-1)**i*np.tanh(sharpness*(yy-deltay*i*0.5))
             fun=fun_x*fun_y
         aux[0,:,:]=Amp_rho*fun+offset_p
@@ -258,7 +260,6 @@ def setplot(plotdata):
 
 def stress(current_data):    
     import numpy as np
-    from psystem_2d import setaux
     aux = setaux(current_data.x[:,0],current_data.y[0,:])
     q = current_data.q
     return np.exp(aux[1,...]*q[0,...])-1.

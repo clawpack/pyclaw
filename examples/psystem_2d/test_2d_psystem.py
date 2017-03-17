@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 def test_2d_psystem():
     """test_2d_psystem"""
 
@@ -50,7 +52,7 @@ def test_2d_psystem():
         return verify
 
     from clawpack.pyclaw.util import gen_variants
-    import psystem_2d
+    from . import psystem_2d
     import shutil
     tempdir = './_for_temp_pyclaw_test'
     classic_tests = gen_variants(psystem_2d.setup, verify_data(),
@@ -70,16 +72,17 @@ def test_2d_psystem():
             from petsc4py import PETSc
             PETSc.COMM_WORLD.Barrier()
         except ImportError:
-            print """Unable to import petsc4py.
+            print("""Unable to import petsc4py.
                    This should not be a problem unless you
-                   are trying to run in parallel."""
+                   are trying to run in parallel.""")
         
         
         ERROR_STR= """Error removing %(path)s, %(error)s """
         try:         
             shutil.rmtree(tempdir )
-        except OSError as (errno, strerror):
-            print ERROR_STR % {'path' : tempdir, 'error': strerror }
+        except OSError as xxx_todo_changeme:
+            (errno, strerror) = xxx_todo_changeme.args
+            print(ERROR_STR % {'path' : tempdir, 'error': strerror })
             
         
 if __name__=="__main__":

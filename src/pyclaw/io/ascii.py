@@ -4,6 +4,7 @@ r"""
 Routines for reading and writing an ascii output file
 """
 
+from __future__ import absolute_import
 import os
 import logging
 import numpy as np
@@ -11,6 +12,7 @@ import pickle
 import clawpack.pyclaw as pyclaw
 
 from ..util import read_data_line
+from six.moves import range
 
 logger = logging.getLogger('pyclaw.io')
 
@@ -100,22 +102,22 @@ def write_array(f,patch,q):
     """
     dims = patch.dimensions
     if patch.num_dim == 1:
-        for k in xrange(dims[0].num_cells):
-            for m in xrange(q.shape[0]):
+        for k in range(dims[0].num_cells):
+            for m in range(q.shape[0]):
                 f.write("%18.8e" % q[m,k])
             f.write('\n')
     elif patch.num_dim == 2:
-        for j in xrange(dims[1].num_cells):
-            for k in xrange(dims[0].num_cells):
-                for m in xrange(q.shape[0]):
+        for j in range(dims[1].num_cells):
+            for k in range(dims[0].num_cells):
+                for m in range(q.shape[0]):
                     f.write("%18.8e" % q[m,k,j])
                 f.write('\n')    
             f.write('\n')
     elif patch.num_dim == 3:
-        for l in xrange(dims[2].num_cells):
-            for j in xrange(dims[1].num_cells):
-                for k in xrange(dims[0].num_cells):
-                    for m in xrange(q.shape[0]):
+        for l in range(dims[2].num_cells):
+            for j in range(dims[1].num_cells):
+                for k in range(dims[0].num_cells):
+                    for m in range(q.shape[0]):
                         f.write("%18.8e" % q[m,k,j,l])
                     f.write('\n')
                 f.write('\n')    
@@ -172,7 +174,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     # Read in values from fort.q file:
     with open(q_fname,'r') as f:
         # Loop through every patch setting the appropriate information
-        for m in xrange(nstates):
+        for m in range(nstates):
             # Read header for this patch
             patch = read_patch_header(f, num_dim)
 
@@ -328,32 +330,32 @@ def read_array(f, state, num_var):
 
 
     if patch.num_dim == 1:
-        for i in xrange(patch.dimensions[0].num_cells):
+        for i in range(patch.dimensions[0].num_cells):
             l = []
             while len(l)<num_var:
                 line = f.readline()
                 l = l + line.split()
-            for m in xrange(num_var):
+            for m in range(num_var):
                 q[m,i] = float(l[m])
     elif patch.num_dim == 2:
-        for j in xrange(patch.dimensions[1].num_cells):
-            for i in xrange(patch.dimensions[0].num_cells):
+        for j in range(patch.dimensions[1].num_cells):
+            for i in range(patch.dimensions[0].num_cells):
                 l = []
                 while len(l)<num_var:
                     line = f.readline()
                     l = l + line.split()
-                for m in xrange(num_var):
+                for m in range(num_var):
                     q[m,i,j] = float(l[m])
             blank = f.readline()
     elif patch.num_dim == 3:
-        for k in xrange(patch.dimensions[2].num_cells):
-            for j in xrange(patch.dimensions[1].num_cells):
-                for i in xrange(patch.dimensions[0].num_cells):
+        for k in range(patch.dimensions[2].num_cells):
+            for j in range(patch.dimensions[1].num_cells):
+                for i in range(patch.dimensions[0].num_cells):
                     l=[]
                     while len(l) < num_var:
                         line = f.readline()
                         l = l + line.split()
-                    for m in xrange(num_var):
+                    for m in range(num_var):
                         q[m,i,j,k] = float(l[m])
                 blank = f.readline()
             blank = f.readline()

@@ -15,11 +15,13 @@
 # PyClaw-specific files to ignore
 _output
 _plots
+_plots*
 petclaw.log
 pyclaw.log
 .noseids
 _build
 build
+*.dSYM
 
 # symlink to examples directory
 src/pyclaw/examples

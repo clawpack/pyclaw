@@ -8,6 +8,7 @@
 #  ======================================================================
 """Output package for Pyclaw"""
 
+from __future__ import absolute_import
 import logging
 from clawpack.pyclaw.io import ascii
 __all__ = ['ascii.read','ascii.write']
@@ -15,7 +16,7 @@ __all__ = ['ascii.read','ascii.write']
 # Check for HDF 5 support
 try:
     import h5py
-    import hdf5
+    from . import hdf5
     __all__ += ['hdf5.read','hdf5.write']
 except:
     logging.debug("No hdf5 support found.")
@@ -30,7 +31,7 @@ except(ImportError):
 
 # Check for petsc4py support
 try:
-    import petsc
+    from . import petsc
     __all__ += ['petsc.read','petsc.write']
 except(ImportError):
     logging.debug("No petsc support found.")

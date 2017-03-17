@@ -6,8 +6,8 @@ Advection-reaction in 2D
 Solve the 2D advection-reaction problem
 
 .. math::
-    p_t + u(x,y,t) p_x + v(x,y,t) p_y & = \epsilon q
-    q_t + u(x,y,t) q_x + v(x,y,t) q_y & = \epsilon p
+    p_t + u(x,y,t) p_x + v(x,y,t) p_y = \epsilon q \\
+    q_t + u(x,y,t) q_x + v(x,y,t) q_y = \epsilon p
 
 Note that the left hand side of this system is the non-conservative transport
 equation for p and q.  The Riemann solver assumes that velocities are specified
@@ -16,7 +16,27 @@ at cell edges.
 This example also shows how to use your own Riemann solver.
 """
 
+from __future__ import absolute_import
 import numpy as np
+import os
+
+try:
+    from clawpack.pyclaw.examples.advection_reaction_2d import advection_2d
+except ImportError:
+    this_dir = os.path.dirname(__file__)
+    if this_dir == '':
+        this_dir = os.path.abspath('.')
+    import subprocess
+    cmd = "make -C "+this_dir
+    proc = subprocess.Popen("make -C "+this_dir+"/", shell=True, stdout = subprocess.PIPE)
+    proc.wait()
+    try:
+        # Now try to import again
+        from clawpack.pyclaw.examples.advection_reaction_2d import advection_2d
+    except ImportError:
+        raise
+
+
 
 t_period = 4.0
 epsilon = 0.1
@@ -35,7 +55,7 @@ def psi(x,y):
 def set_velocities(solver,state):
     "Update velocity field for current time."
     v_t = np.cos(2 * np.pi * (state.t + solver.dt/2) / t_period)
-    X, Y = state.grid.p_edges
+    X, Y = state.grid.p_nodes
     dx, dy = state.grid.delta
     # u(x_(i-1/2),y_j)
     state.aux[0,:,:] = - ( psi(X[:-1,1:],Y[:-1,1:]) - psi(X[:-1,:-1],Y[:-1,:-1]) ) / dy
@@ -46,7 +66,7 @@ def set_velocities(solver,state):
 
 def setup():
     from clawpack import pyclaw
-    import advection_2d
+    from clawpack.pyclaw.examples.advection_reaction_2d import advection_2d
 
     solver = pyclaw.ClawSolver2D(advection_2d)
     # Use dimensional splitting since no transverse solver is defined
@@ -64,7 +84,7 @@ def setup():
     num_aux = 2
     state = pyclaw.State(domain, solver.num_eqn, num_aux)
 
-    Xe, Ye = domain.grid.p_edges
+    Xe, Ye = domain.grid.p_nodes
     Xc, Yc = domain.grid.p_centers
     dx, dy = domain.grid.delta
 

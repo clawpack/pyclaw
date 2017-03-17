@@ -6,6 +6,8 @@
 !   files for use visualizing within VisIt (https://visit.llnl.gov).
 !-----------------------------------------------------------------------
 """
+from __future__ import absolute_import
+from __future__ import print_function
 import os,sys
 import h5py
 from numpy import *
@@ -41,7 +43,7 @@ os.chdir(cwd)
 
 # Read First File Attributes
 filename = out_dir + '/' + files[0]
-print filename
+print(filename)
 file0 = h5py.File(filename,'r')
 dset0 = file0['/patch1']
 coord_names = []
@@ -57,5 +59,5 @@ for fname in files:
     f = h5py.File(out_dir+'/'+fname,'r')
     dset = f['/patch1']
     time = float(dset.attrs['t'])
-    print "Writing: ",fname[:-4] + '.xmf'
+    print("Writing: ",fname[:-4] + '.xmf')
     writeXDMF3DSMeshHyper(mx,my,mz,var_names,fname,mesh_name,out_dir,time)

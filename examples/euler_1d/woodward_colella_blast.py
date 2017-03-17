@@ -22,12 +22,14 @@ This example also demonstrates:
  - How to use a total fluctuation solver in SharpClaw
  - How to use characteristic decomposition with an evec() routine in SharpClaw
 """
+from __future__ import absolute_import
+from __future__ import print_function
 from clawpack import riemann
 from clawpack.riemann.euler_with_efix_1D_constants import *
 
 # Compile Fortran code if not already compiled
 try:
-    import sharpclaw1
+    from clawpack.pyclaw.examples.euler_1d import sharpclaw1
 except ImportError:
     import os
     from clawpack.pyclaw.util import inplace_build
@@ -37,12 +39,12 @@ except ImportError:
     inplace_build(this_dir)
     try:
         # Now try to import again
-        import sharpclaw1
+        from clawpack.pyclaw.examples.euler_1d import sharpclaw1
     except ImportError:
         import logging
         logger = logging.getLogger()
         logger.warn('unable to compile Fortran modules; some SharpClaw options will not be available for this example')
-        print 'unable to compile Fortran modules; some SharpClaw options will not be available for this example'
+        print('unable to compile Fortran modules; some SharpClaw options will not be available for this example')
         raise
 
 gamma = 1.4 # Ratio of specific heats
@@ -67,18 +69,18 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
         solver.tfluct_solver = tfluct_solver
         if solver.tfluct_solver:
             try:
-                import euler_tfluct
+                from clawpack.pyclaw.examples.euler_1d import euler_tfluct
                 solver.tfluct = euler_tfluct
             except ImportError:
                 import logging
                 logger = logging.getLogger()
                 logger.error('Unable to load tfluct solver, did you run make?')
-                print 'Unable to load tfluct solver, did you run make?'
+                print('Unable to load tfluct solver, did you run make?')
                 raise
         solver.lim_type = 1
         solver.char_decomp = 2
         try:
-            import sharpclaw1
+            from clawpack.pyclaw.examples.euler_1d import sharpclaw1
             solver.fmod = sharpclaw1
         except ImportError:
             pass

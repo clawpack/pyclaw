@@ -8,7 +8,7 @@ Burgers' equation
 Solve the inviscid Burgers' equation:
 
 .. math:: 
-    q_t + \frac{1}{2} (q^2)_x & = 0.
+    q_t + \frac{1}{2} (q^2)_x = 0.
 
 This is a nonlinear PDE often used as a very simple
 model for fluid dynamics.
@@ -16,6 +16,7 @@ model for fluid dynamics.
 The initial condition is sinusoidal, but after a short time a shock forms
 (due to the nonlinearity).
 """
+from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 

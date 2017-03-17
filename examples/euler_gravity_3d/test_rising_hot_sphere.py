@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 def test_euler_3d_rising_hot_sphere():
     """test_euler_3d_rising_hot_sphere"""
     def verify_classic_rising_hot_sphere(controller):

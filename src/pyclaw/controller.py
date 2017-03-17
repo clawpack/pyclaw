@@ -10,6 +10,8 @@ output time specification.  It also can be used to set up easy plotting and
 running of compiled fortran binaries.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import logging
 import sys
 import os
@@ -18,6 +20,7 @@ import copy
 from .solver import Solver
 from .util import FrameCounter
 from .util import LOGGING_LEVELS
+from six.moves import range
 
 class Controller(object):
     r"""Controller for pyclaw simulation runs and plotting
@@ -247,7 +250,7 @@ class Controller(object):
         try: 
             return self.frames[frame_number]
         except IndexError:
-            print "Cannot plot frame %s; only %s frames available" % (frame_number, len(self.frames))
+            print("Cannot plot frame %s; only %s frames available" % (frame_number, len(self.frames)))
 
     def plot_frame(self, frame):
         if self.plotdata is None:
@@ -261,7 +264,7 @@ class Controller(object):
     def plot(self):
         """Plot from memory."""
         if len(self.frames) == 0:  # No frames to plot
-            print "No frames to plot.  Did you forget to run, or to set keep_copy=True?"
+            print("No frames to plot.  Did you forget to run, or to set keep_copy=True?")
             return
 
         from clawpack.visclaw import iplot
@@ -322,9 +325,9 @@ class Controller(object):
             raise Exception("Invalid output style %s" % self.output_style)  
 
         if len(output_times) == 0:
-            print "No valid output times; halting."
+            print("No valid output times; halting.")
             if self.t == self.tfinal:
-                print "Simulation has already reached tfinal."
+                print("Simulation has already reached tfinal.")
             return None
          
         # Output and save initial frame
@@ -360,7 +363,7 @@ class Controller(object):
                 status = self.solver.evolve_to_time(self.solution,t)
             else:
                 # Take nstepout steps and output
-                for n in xrange(self.nstepout):
+                for n in range(self.nstepout):
                     status = self.solver.evolve_to_time(self.solution)
             frame.increment()
             if self.keep_copy:
@@ -401,7 +404,7 @@ class Controller(object):
         if self.compute_F is not None:
             self.compute_F(self.solution.state)
             F = [0]*self.solution.state.mF
-            for i in xrange(self.solution.state.mF):
+            for i in range(self.solution.state.mF):
                 F[i] = self.solution.state.sum_F(i)
             if self.is_proc_0():
                 t=self.solution.t

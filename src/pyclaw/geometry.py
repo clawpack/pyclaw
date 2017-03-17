@@ -2,9 +2,14 @@ r"""
 Module defining Pyclaw geometry objects.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 
 import warnings
+import six
+from six.moves import range
+from six.moves import zip
 deprec_message = "'edges' has been deprecated; please use 'nodes' instead."
 # ============================================================================
 #  Default function definitions
@@ -54,7 +59,7 @@ class Grid(object):
         >>> x = Dimension(0.,1.,10,name='x')
         >>> y = Dimension(-1.,1.,25,name='y')
         >>> grid = Grid((x,y))
-        >>> print grid
+        >>> print(grid)
         2-dimensional domain (x,y)
         No mapping
         Extent:  [0.0, 1.0] x [-1.0, 1.0]
@@ -267,7 +272,7 @@ class Grid(object):
     def __str__(self):
         output = "%s-dimensional domain " % str(self.num_dim)
         output += "("+",".join([dim.name for dim in self.dimensions])+")\n"
-        if self.mapc2p in identity_map.values():
+        if self.mapc2p in list(identity_map.values()):
             output += "No mapping\n"
             output += "Extent:  "
         else:
@@ -408,7 +413,7 @@ class Grid(object):
             if all(self.lower[n]<=gauge[n]<self.upper[n] for n in range(self.num_dim)):
                 # Set indices relative to this grid
                 gauge_index = [int(round((gauge[n]-self.lower[n])/self.delta[n])) 
-                               for n in xrange(self.num_dim)]
+                               for n in range(self.num_dim)]
                 gauge_file_name = 'gauge'+'_'.join(str(coord) for coord in gauge)+'.txt'
                 self.gauge_file_names.append(gauge_file_name)
                 self.gauges.append(gauge_index)
@@ -423,7 +428,7 @@ class Grid(object):
             try:
                 os.makedirs(gauge_path)
             except OSError:
-                print "gauge directory already exists, ignoring"
+                print("gauge directory already exists, ignoring")
         
         for gauge in self.gauge_file_names: 
             gauge_file = os.path.join(gauge_path,gauge)
@@ -504,7 +509,7 @@ class Dimension(object):
 
     >>> from clawpack.pyclaw.geometry import Dimension
     >>> x = Dimension(0.,1.,100,name='x')
-    >>> print x
+    >>> print(x)
     Dimension x:  (num_cells,delta,[lower,upper]) = (100,0.01,[0.0,1.0])
     >>> x.name
     'x'
@@ -550,7 +555,7 @@ class Dimension(object):
         for this dimension"""
         if self._nodes is None:
             self._nodes = np.empty(self.num_cells+1)
-            for i in xrange(0,self.num_cells+1):
+            for i in range(0,self.num_cells+1):
                 self._nodes[i] = self.lower + i*self.delta
         return self._nodes
     @property
@@ -559,7 +564,7 @@ class Dimension(object):
         for this dimension"""
         if self._centers is None:
             self._centers = np.empty(self.num_cells)
-            for i in xrange(0,self.num_cells):
+            for i in range(0,self.num_cells):
                 self._centers[i] = self.lower + (i+0.5)*self.delta
         return self._centers
     @property 
@@ -615,7 +620,7 @@ class Dimension(object):
 
         See :class:`Dimension` for full documentation
         """
-        if isinstance(lower,basestring):
+        if isinstance(lower,six.string_types):
             raise Exception('Passing dimension name as first argument is deprecated. \
                              Pass it as a keyword argument instead.')
 
@@ -771,9 +776,9 @@ class Domain(object):
 
         >>> from clawpack import pyclaw
         >>> domain = pyclaw.Domain( (0.,0.), (1.,1.), (100,100))
-        >>> print domain.num_dim
+        >>> print(domain.num_dim)
         2
-        >>> print domain.grid.num_cells
+        >>> print(domain.grid.num_cells)
         [100, 100]
     """
     @property

@@ -4,6 +4,7 @@ r"""
 Module containing petclaw.geometry.
 """
 
+from __future__ import absolute_import
 from clawpack import pyclaw
 from clawpack.pyclaw import geometry as pyclaw_geometry
 

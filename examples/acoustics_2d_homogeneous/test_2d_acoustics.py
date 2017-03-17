@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 def test_2d_acoustics():
     """test_2d_acoustics"""
 
@@ -23,7 +24,7 @@ def test_2d_acoustics():
         return verify
 
     from clawpack.pyclaw.util import gen_variants
-    import acoustics_2d
+    from . import acoustics_2d
 
     classic_tests = gen_variants(acoustics_2d.setup, verify_data('verify_classic.txt'),
                                  kernel_languages=('Fortran',), solver_type='classic', disable_output=True)

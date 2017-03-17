@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 def configuration(parent_package='',top_path=None):
     import os
 
@@ -5,7 +7,7 @@ def configuration(parent_package='',top_path=None):
 
     config = Configuration('iso_c_advection', parent_package, top_path)
 
-    print "You will probably want to run make manually here"
+    print("You will probably want to run make manually here")
 
     return config
 

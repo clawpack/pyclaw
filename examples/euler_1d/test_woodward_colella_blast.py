@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 def test_woodward_colella_blast():
     """ tests against expected sharpclaw results """
-    import woodward_colella_blast
+    from . import woodward_colella_blast
     from clawpack.pyclaw.util import test_app, check_diff
 
     def verify_woodward_colella_blast(controller):

@@ -6,12 +6,13 @@ A non-convex flux scalar model
 
 Solve the KPP equation:
 
-.. math:: 
-    q_t + (\sin(q))_x + (\cos(q))_y & = 0
+.. math::
+    q_t + (\sin(q))_x + (\cos(q))_y = 0
 
 first proposed by Kurganov, Petrova, and Popov.  It is challenging for schemes
 with low numerical viscosity to capture the solution accurately.
 """
+from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 
@@ -75,7 +76,7 @@ def setplot(plotdata):
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.title = 'q[0]'
-    plotaxes.afteraxes = "pylab.axis('scaled')" 
+    plotaxes.afteraxes = "plt.axis('scaled')"
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
@@ -91,7 +92,7 @@ def setplot(plotdata):
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.title = 'q[0]'
-    plotaxes.afteraxes = "pylab.axis('scaled')" 
+    plotaxes.afteraxes = "plt.axis('scaled')"
 
     # Set up for item on these axes:
     plotitem = plotaxes.new_plotitem(plot_type='2d_contour')

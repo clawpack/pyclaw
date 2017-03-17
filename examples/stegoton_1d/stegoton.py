@@ -20,7 +20,10 @@ The problem solved here is based on [LeVYon03]_.  An initial hump
 evolves into two trains of solitary waves.
 
 """
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
+from six.moves import range
 
 
 def qinit(state,ic=2,a2=1.0,xupper=600.):
@@ -55,8 +58,8 @@ def b4step(solver,state):
         state.q=state.q
         state.problem_data['trdone']=True
         if state.t>state.problem_data['trtime']:
-            print 'WARNING: trtime is '+str(state.problem_data['trtime'])+\
-                ' but velocities reversed at time '+str(state.t)
+            print('WARNING: trtime is '+str(state.problem_data['trtime'])+\
+                ' but velocities reversed at time '+str(state.t))
     #Change to periodic BCs after initial pulse 
     if state.t>5*state.problem_data['tw1'] and solver.bc_lower[0]==0:
         solver.bc_lower[0]=2
@@ -79,7 +82,7 @@ def moving_wall_bc(state,dim,t,qbc,auxbc,num_ghost):
         t0 = (t-t1)/tw1
         if abs(t0)<=1.: vwall = -a1*(1.+np.cos(t0*np.pi))
         else: vwall=0.
-        for ibc in xrange(num_ghost-1):
+        for ibc in range(num_ghost-1):
             qbc[1,num_ghost-ibc-1] = 2*vwall*state.aux[1,ibc] - qbc[1,num_ghost+ibc]
 
 
@@ -116,7 +119,8 @@ def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./
     cells_per_layer=12; mx=int(round(xupper-xlower))*cells_per_layer
     x = pyclaw.Dimension(xlower,xupper,mx,name='x')
     domain = pyclaw.Domain(x)
-    state = pyclaw.State(domain,solver.num_eqn)
+    state = pyclaw.State(domain,solver.num_eqn,num_aux=3)
+    state.problem_data['stress_relation'] = 'exponential'
 
     #Set global parameters
     alpha = 0.5
@@ -138,7 +142,7 @@ def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./
 
     #Initialize q and aux
     xc=state.grid.x.centers
-    state.aux=setaux(xc,rhoB,KB,rhoA,KA,alpha,xlower=xlower,xupper=xupper)
+    state.aux[:,:] = setaux(xc,rhoB,KB,rhoA,KA,alpha,xlower=xlower,xupper=xupper)
     qinit(state,ic=1,a2=1.0,xupper=xupper)
 
     tfinal=500.; num_output_times = 20;
@@ -203,18 +207,16 @@ def setplot(plotdata):
  
 def velocity(current_data):
     """Compute velocity from strain and momentum"""
-    from stegoton import setaux
     aux=setaux(current_data.x,rhoB=4,KB=4)
     velocity = current_data.q[1,:]/aux[0,:]
     return velocity
 
 def stress(current_data):
     """Compute stress from strain and momentum"""
-    from stegoton import setaux
     from clawpack.riemann.nonlinear_elasticity_1D_py import sigma 
     aux=setaux(current_data.x)
     epsilon = current_data.q[0,:]
-    stress = sigma(epsilon,aux[1,:])
+    stress = sigma(current_data.q,aux,{'stress_relation':'exponential'})
     return stress
 
 if __name__=="__main__":

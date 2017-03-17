@@ -1,7 +1,9 @@
+from __future__ import absolute_import
+from __future__ import print_function
 def test_acoustics_2d_variable_io():
     """Test I/O on variable-coefficient 2D acoustics application"""
 
-    import acoustics_2d_interface
+    from . import acoustics_2d_interface
 
     def verify_acoustics_io(controller):
         """ Verifies I/O on 2d variable-coefficient acoustics application"""
@@ -69,8 +71,9 @@ def test_acoustics_2d_variable_io():
         ERROR_STR= """Error removing %(path)s, %(error)s """
         try:
             shutil.rmtree(tempdir )
-        except OSError as (errno, strerror):
-            print ERROR_STR % {'path' : tempdir, 'error': strerror }
+        except OSError as xxx_todo_changeme:
+            (errno, strerror) = xxx_todo_changeme.args
+            print(ERROR_STR % {'path' : tempdir, 'error': strerror })
 
 
 if __name__=="__main__":

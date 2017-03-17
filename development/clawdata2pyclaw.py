@@ -8,14 +8,17 @@ needed for any other custom Fortan code, such as setaux, b4step, etc.
 If you try this out, please raise issues in the PyClaw tracker for 
 anything that doesn't work.
 """
+from __future__ import absolute_import
+from __future__ import print_function
 import setrun
+import six
 
 rundata=setrun.setrun()
 clawdata=rundata.clawdata
 probdata=rundata.probdata
 ndim = clawdata.ndim
 
-print "Writing run.py..."
+print("Writing run.py...")
 outfile = 'pyclaw/run.py'
 output=open(outfile,'w')
 
@@ -68,7 +71,7 @@ import pyclaw
 exec("solver = pyclaw.ClawSolver%sD()" % ndim)
 output.write("#Set all solver attributes\n")
 solver_attrs = clawdata.__dict__
-for key,value in solver_attrs.iteritems():
+for key,value in six.iteritems(solver_attrs):
     if hasattr(solver,key):
         output.write("solver.%s = %s\n" % (key,value))
 output.write("\n")
@@ -126,7 +129,7 @@ output.write("state = pyclaw.State(domain,num_eqn,num_aux)\n")
 output.write("state.capa_index = %s" % clawdata.mcapa)
 
 output.write("# Set problem data\n")
-for param,value in probdata.iteritems():
+for param,value in six.iteritems(probdata):
     output.write("state.problem_data['%s']=%s\n" % (param,value))
 
 output.write("\n")
@@ -147,7 +150,7 @@ output.close()
 
 
 # Write Makefile
-print "Writing Makefile..."
+print("Writing Makefile...")
 makefile = 'pyclaw/Makefile' # To avoid stomping existing Makefile
 outmake=open(makefile,'w')
 
@@ -161,8 +164,8 @@ outmake.write(r"""include $(PYCLAW)/Makefile.common""")
 outmake.write("\n\n")
 outmake.close()
 
-print """Don't forget to do the following manually:\n\
+print("""Don't forget to do the following manually:\n\
          1. interleave your Fortran code \n\
          2. Fill in the Riemann solver in run.py\n\
          3. Add 'cf2py intent(out) q' to your qinit.f\n\
-         3. write any code needed to replicate setprob.f functionality."""
+         3. write any code needed to replicate setprob.f functionality.""")

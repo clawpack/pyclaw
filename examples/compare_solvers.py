@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+from __future__ import absolute_import
+from __future__ import print_function
 from clawpack import pyclaw
 import numpy as np
 import logging
+import six
 
 def debug_loggers():
     """
@@ -61,7 +64,7 @@ try:
     new_solvers_1D['iso_c'] = iso_c_solver
 
 except (ImportError, OSError) as err:
-    print "Unable to import ISO C variant", err
+    print("Unable to import ISO C variant", err)
 
 solvers_1D.update(new_solvers_1D)
 
@@ -81,14 +84,14 @@ def compare_1D(nx=1000):
     Tests a variety of Riemann solver ideas on 1D advection
     """
 
-    import compare_solvers
+    from . import compare_solvers
     import time
 
     solvers = compare_solvers.solvers_1D
 
     times, tests = {}, {}
 
-    for name, solver in solvers.iteritems():
+    for name, solver in six.iteritems(solvers):
         solver.bc_lower[0] = pyclaw.BC.periodic
         solver.bc_upper[0] = pyclaw.BC.periodic
 
@@ -117,14 +120,14 @@ def compare_2D(nx=(250,250)):
     """
     Tests a variety of Riemann solver ideas on 2D shallow water equation
     """
-    import compare_solvers
+    from . import compare_solvers
     import time
 
     solvers = compare_solvers.solvers_2D
 
     times, tests = {}, {}
 
-    for name, solver in solvers.iteritems():
+    for name, solver in six.iteritems(solvers):
         solver.num_waves = 3
         solver.bc_lower[0] = pyclaw.BC.extrap
         solver.bc_upper[0] = pyclaw.BC.wall
@@ -153,7 +156,7 @@ def compare_2D(nx=(250,250)):
     return times, tests
 
 if __name__=="__main__":
-    import compare_solvers
+    from . import compare_solvers
     disable_loggers()
 #    debug_loggers()
 
@@ -178,25 +181,25 @@ if __name__=="__main__":
         nx_2D = 100,100
 
     def print_time_accuracy(times, tests, solvers):
-        print "\n=====TIME====="
+        print("\n=====TIME=====")
         for name in solvers.keys():
-            print "%-25s: %g" % (name, times[name])
+            print("%-25s: %g" % (name, times[name]))
 
-        print "\n===ACCURACY==="
+        print("\n===ACCURACY===")
         for name in solvers.keys():
-            print "%-25s: %g" % (name, tests[name])
+            print("%-25s: %g" % (name, tests[name]))
 
     compare_solvers.tfinal = 1.0
-    print "\nRiemann comparison on 1D advection to t=%g with %d grid points" % \
-        (compare_solvers.tfinal, nx_1D)
+    print("\nRiemann comparison on 1D advection to t=%g with %d grid points" % \
+        (compare_solvers.tfinal, nx_1D))
 
     times, tests = compare_1D(nx=nx_1D)
 
     print_time_accuracy(times, tests, compare_solvers.solvers_1D)
 
     compare_solvers.tfinal = 2.5
-    print ("\nRiemann comparison on 2D shallow water equation to t=%g" + \
-               " with %dx%d grid points") % ((compare_solvers.tfinal,) + nx_2D)
+    print(("\nRiemann comparison on 2D shallow water equation to t=%g" + \
+               " with %dx%d grid points") % ((compare_solvers.tfinal,) + nx_2D))
 
     times, tests = compare_2D(nx=nx_2D)
 

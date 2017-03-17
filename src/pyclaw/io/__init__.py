@@ -3,13 +3,14 @@
 
 """Output package for Pyclaw"""
 
+from __future__ import absolute_import
 import logging
 logger = logging.getLogger('pyclaw.io')
 
-import ascii 
+from . import ascii 
 __all__ = ['ascii.read','ascii.write']
 
-import binary
+from . import binary
 __all__ += ['binary.read']
 
 import forestclaw
@@ -27,6 +28,6 @@ except ImportError:
 try:
     import netCDF4
     import netcdf
-    __all__ += ['netcdf.read', 'netcdf.write']
+    __all__ += ['netcdf.read', 'netcdf.write']\
 except(ImportError):
     logger.debug("No netcdf4 support found.")

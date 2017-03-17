@@ -28,10 +28,14 @@ To install the netCDF 4 library, please see:
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os,sys
 import logging
 
 import clawpack.pyclaw.solution
+import six
+from six.moves import range
 
 logger = logging.getLogger('pyclaw.io')
 
@@ -52,7 +56,7 @@ if not use_netcdf4:
             "one of the available modules for netcdf files.  Refer to this " +
             "modules doc_string for more information.")
         #raise Exception(error_msg)
-        print error_msg
+        print(error_msg)
 
 def write(solution,frame,path,file_prefix='claw',write_aux=False,
                     options={},write_p=False):
@@ -164,8 +168,8 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
                        'chunksizes':None,'endian':'native',
                        'least_significant_digit':None,'fill_value':None,
                        'clobber':True,'description':{}}
-    for (k,v) in option_defaults.iteritems():
-        if options.has_key(k):
+    for (k,v) in six.iteritems(option_defaults):
+        if k in options:
             exec("%s = options['%s']" % (k,k))
         else:
             exec('%s = v' % k)
@@ -179,7 +183,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
         
         # Loop through description dictionary and add the attributes to the
         # root group
-        for (k,v) in description.iteritems():
+        for (k,v) in six.iteritems(description):
             exec('f.%s = %s' % (k,v))
         
         # For each patch, write out attributes
@@ -258,8 +262,8 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
     
     # Option parsing
     option_defaults = {}
-    for (k,v) in option_defaults.iteritems():
-        if options.has_key(k):
+    for (k,v) in six.iteritems(option_defaults):
+        if k in options:
             exec("%s = options['%s']" % (k,k))
         else:
             exec('%s = v' % k)
@@ -273,7 +277,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
         
         # We only expect subgroups of patches, otherwise we need to put some
         # sort of conditional here
-        for subgroup in f.groups.itervalues():
+        for subgroup in six.itervalues(f.groups):
             # Construct each dimension
             dimensions = []
             
@@ -300,11 +304,11 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
                 setattr(patch,attr,getattr(subgroup,attr))
                 
             # Read in q
-            index_str = ','.join( [':' for i in xrange(patch.num_dim+1)] )
+            index_str = ','.join( [':' for i in range(patch.num_dim+1)] )
             exec("patch.q = subgroup.variables['q'][%s]" % index_str)
             
             # Read in aux if applicable
-            if read_aux and subgroup.dimensions.has_key('num_aux'):
+            if read_aux and 'num_aux' in subgroup.dimensions:
                 exec("patch.aux = subgroup.variables['aux'][%s]" % index_str)
         
             solution.patches.append(patch)
