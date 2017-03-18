@@ -82,8 +82,3 @@ ascii.read_patch_header = read_patch_header
 ascii.write_patch_header = write_patch_header
 read = ascii.read
 write = ascii.write
-
-def test_forestclaw_input():
-    """Simple test to read in a ForestClaw ASCII file"""
-
-    raise Exception("Test not implemented!")
