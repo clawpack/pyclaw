@@ -227,7 +227,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 # Read patch header and check that it matches that from fort.qxxxx
                 assert patch.level == aux_patch.level, \
                         "Patch level in aux file header did not match patch no %s." % patch.patch_index
-                for i in xrange(len(patch.dimensions)):
+                for i in range(len(patch.dimensions)):
                     assert patch.dimensions[i].num_cells == aux_patch.dimensions[i].num_cells, \
                         "Dimension %s's num_cells in aux file header did not match patch no %s." % (patch.dimensions[i].name, patch.patch_index)
                     assert np.abs(patch.dimensions[i].lower - aux_patch.dimensions[i].lower) <= ABS_TOL + REL_TOL * np.abs(patch.dimensions[i].lower), \
@@ -288,11 +288,11 @@ def read_patch_header(f, num_dim):
     lower = np.zeros((num_dim))
     patch_index = read_data_line(f, data_type=int)
     level       = read_data_line(f, data_type=int)
-    for i in xrange(num_dim):
+    for i in range(num_dim):
         n[i] = read_data_line(f, data_type=int)
-    for i in xrange(num_dim):
+    for i in range(num_dim):
         lower[i] = read_data_line(f)
-    for i in xrange(num_dim):
+    for i in range(num_dim):
         d[i] = read_data_line(f)
 
     blank = f.readline()
@@ -302,7 +302,7 @@ def read_patch_header(f, num_dim):
     # dimension names x,y,z
     names = ['x', 'y', 'z']
     dimensions = [pyclaw.Dimension(lower[i], lower[i] + n[i] * d[i],
-                                  n[i], name=names[i]) for i in xrange(num_dim)]
+                                  n[i], name=names[i]) for i in range(num_dim)]
     patch = pyclaw.geometry.Patch(dimensions)
 
     # Add AMR attributes:

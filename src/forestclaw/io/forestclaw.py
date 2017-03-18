@@ -49,11 +49,11 @@ def read_patch_header(f, num_dim):
     level = read_data_line(f, data_type=int)
     block_number = read_data_line(f, data_type=int)
     mpi_rank = read_data_line(f, data_type=int)
-    for i in xrange(num_dim):
+    for i in range(num_dim):
         n[i] = read_data_line(f, data_type=int)
-    for i in xrange(num_dim):
+    for i in range(num_dim):
         lower[i] = read_data_line(f)
-    for i in xrange(num_dim):
+    for i in range(num_dim):
         d[i] = read_data_line(f)
 
     blank = f.readline()
@@ -63,7 +63,7 @@ def read_patch_header(f, num_dim):
     # dimension names x,y,z
     names = ['x', 'y', 'z']
     dimensions = [pyclaw.geometry.Dimension(lower[i], lower[i] + n[i] * d[i],
-                                  n[i], name=names[i]) for i in xrange(num_dim)]
+                                  n[i], name=names[i]) for i in range(num_dim)]
     patch = pyclaw.geometry.Patch(dimensions)
 
 
