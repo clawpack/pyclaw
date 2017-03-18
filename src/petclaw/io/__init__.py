@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""Output package for Pyclaw"""
+"""Output package for PetClaw"""
 
 from __future__ import absolute_import
 import logging
