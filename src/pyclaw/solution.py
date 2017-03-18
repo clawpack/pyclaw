@@ -363,7 +363,14 @@ class Solution(object):
 
     def get_write_func(self, file_format):
         from clawpack.pyclaw import io
-        return getattr(getattr(io, file_format), 'write')
+        if file_format == "forestclaw":
+            from clawpack.forestclaw import io
+            return io.forestclaw.write
+        else:
+            try:
+                return getattr(getattr(io, file_format), 'write')
+            except:
+                raise ValueError("File format %s not found." % file_format)
 
         
     def plot(self):
