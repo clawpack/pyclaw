@@ -4,6 +4,8 @@ r"""
 Routines for reading and writing an ascii output file from ForestClaw
 """
 
+from __future__ import absolute_import
+
 import logging
 import numpy as np
 
@@ -13,32 +15,32 @@ from clawpack.pyclaw.util import read_data_line
 
 logger = logging.getLogger('pyclaw.io')
 
+
 def write_patch_header(f, patch):
     f.write("%5i                  patch_number\n" % patch.patch_index)
     f.write("%5i                  AMR_level\n" % patch.level)
     f.write("%5i                  block_number\n" % patch.block_number)
     f.write("%5i                  mpi_rank\n" % patch.mpi_rank)
     for dim in patch.dimensions:
-        f.write("%5i                  m%s\n" % (dim.num_cells,dim.name))
+        f.write("%5i                  m%s\n" % (dim.num_cells, dim.name))
     for dim in patch.dimensions:
-        f.write("%18.8e     %slow\n" % (dim.lower,dim.name))
+        f.write("%18.8e     %slow\n" % (dim.lower, dim.name))
     for dim in patch.dimensions:
-        f.write("%18.8e     d%s\n" % (dim.delta,dim.name))
-    
+        f.write("%18.8e     d%s\n" % (dim.delta, dim.name))
+
     f.write("\n")
 
 
 def read_patch_header(f, num_dim):
     r"""Read header describing the next patch
-    
+
     :Input:
      - *f* - (file) Handle to open file
      - *num_dim* - (int) Number of dimensions
-     
+
     :Output:
      - *patch* - (clawpack.pyclaw.geometry.Patch) Initialized patch represented
        by the header data.
-    
     """
 
     n = np.zeros((num_dim))
@@ -63,9 +65,8 @@ def read_patch_header(f, num_dim):
     # dimension names x,y,z
     names = ['x', 'y', 'z']
     dimensions = [pyclaw.geometry.Dimension(lower[i], lower[i] + n[i] * d[i],
-                                  n[i], name=names[i]) for i in range(num_dim)]
+                  n[i], name=names[i]) for i in range(num_dim)]
     patch = pyclaw.geometry.Patch(dimensions)
-
 
     # Add AMR attributes:
     patch.patch_index = patch_index
@@ -78,7 +79,7 @@ def read_patch_header(f, num_dim):
     return patch
 
 # Replace the ascii module functions with those defined above
-ascii.read_patch_header = read_patch_header
-ascii.write_patch_header = write_patch_header
+# ascii.read_patch_header = read_patch_header
+# ascii.write_patch_header = write_patch_header
 read = ascii.read
 write = ascii.write

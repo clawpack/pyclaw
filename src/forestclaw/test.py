@@ -4,11 +4,15 @@ r"""
 Test suite for forestclaw
 """
 
+from __future__ import absolute_import
+
+from .geometry import Patch, Dimension
+
 
 def test_forestclaw_patch():
     """Test the simple extension of the pyclaw.Patch class"""
 
-    patch = Patch(pyclaw.geometry.Dimension(0.0, 1.0, 10))
+    patch = Patch(Dimension(0.0, 1.0, 10))
     patch.block_number = 2
     patch.mpi_rank = 3
 

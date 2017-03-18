@@ -5,5 +5,5 @@
 from __future__ import absolute_import
 import logging
 
-from . import forestclaw
-__all__ = ["forestclaw.read", "forestclaw.write"]
+from . import ascii
+__all__ = ["ascii.read", "ascii.write"]
