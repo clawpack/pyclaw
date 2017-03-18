@@ -8,7 +8,7 @@ import logging
 import numpy as np
 
 import clawpack.pyclaw as pyclaw
-import ascii
+import clawpack.pyclaw.io.ascii as ascii
 from clawpack.pyclaw.util import read_data_line
 
 logger = logging.getLogger('pyclaw.io')
@@ -77,9 +77,13 @@ def read_patch_header(f, num_dim):
 
     return patch
 
-
 # Replace the ascii module functions with those defined above
 ascii.read_patch_header = read_patch_header
 ascii.write_patch_header = write_patch_header
 read = ascii.read
 write = ascii.write
+
+def test_forestclaw_input():
+    """Simple test to read in a ForestClaw ASCII file"""
+
+    raise Exception("Test not implemented!")

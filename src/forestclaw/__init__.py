@@ -17,4 +17,4 @@ __all__ = []
 
 # Module imports
 __all__.extend(['Patch'])
-from clawpack.forestclaw.geometry import Patch
+from .geometry import Patch
