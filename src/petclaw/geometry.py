@@ -27,8 +27,7 @@ class Patch(pyclaw_geometry.Patch):
             num_cells   = nrange[1]-nrange[0]
 
             grid_dimensions.append(pyclaw_geometry.Dimension(lower,upper,
-                                        num_cells,name=dimensions[i].name))
-
+                                   num_cells,name=self.dimensions[i].name))
 
             if nrange[0] == 0:
                 grid_dimensions[-1].on_lower_boundary = True
