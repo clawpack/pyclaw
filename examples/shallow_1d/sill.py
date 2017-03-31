@@ -19,7 +19,7 @@ from __future__ import absolute_import
 import numpy
 from clawpack import riemann
 
-def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False, 
+def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
           outdir='./_output'):
 
     if use_petsc:
@@ -51,7 +51,7 @@ def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
     state.problem_data['grav'] = 9.8
     state.problem_data['dry_tolerance'] = 1e-3
     state.problem_data['sea_level'] = 0.0
-    
+
     xc = state.grid.x.centers
     state.aux[0, :] = 0.8 * numpy.exp(-xc**2 / 0.2**2) - 1.0
     state.q[0, :] = 0.1 * numpy.exp(-(xc + 0.4)**2 / 0.2**2) - state.aux[0, :]

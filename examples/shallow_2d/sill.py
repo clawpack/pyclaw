@@ -38,7 +38,7 @@ def wave_maker_bc(state,dim,t,qbc,auxbc,num_ghost):
             vwall = amplitude*(np.sin(t*np.pi/1.5))
         else:
             vwall=0.
-        for ibc in xrange(num_ghost-1):
+        for ibc in range(num_ghost-1):
             qbc[1,num_ghost-ibc-1,:] = 2*vwall - qbc[1,num_ghost+ibc,:]
 
 
