@@ -3,9 +3,10 @@ language: python
 os: linux
 
 env:
-  - TEST_PACKAGE="pyclaw"
-  - TEST_PACKAGE="petclaw"
-  - TEST_PACKAGE="forestclaw"
+  matrix: 
+    - TEST_PACKAGE="pyclaw"
+    - TEST_PACKAGE="petclaw"
+    - TEST_PACKAGE="forestclaw"
 
 python:
   - 2.7
