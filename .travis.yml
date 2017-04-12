@@ -76,7 +76,7 @@ script:
     fi
   - if [[ "${TEST_PACKAGE}" == "forestclaw" ]]; then
        cd pyclaw/src/forestclaw ;
-       nosetests --first-pkg-wins --with-doctest ;
+       nosetests --first-pkg-wins --exclude=limiters --exclude=sharpclaw --with-coverage --cover-package=clawpack.forestclaw;
        cd ../../pyclaw ;
     fi
   - mv temp .coverage.doctest
