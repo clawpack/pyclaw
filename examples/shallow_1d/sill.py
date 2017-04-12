@@ -19,16 +19,20 @@ from __future__ import absolute_import
 import numpy
 from clawpack import riemann
 
-def setup(kernel_language='Python',use_petsc=False, outdir='./_output', solver_type='classic'):
+def setup(kernel_language='Fortran', solver_type='classic', use_petsc=False,
+          outdir='./_output'):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
         from clawpack import pyclaw
 
-    solver = pyclaw.ClawSolver1D(riemann.shallow_1D_py.shallow_fwave_1d)
+    if kernel_language == 'Fortran':
+        solver = pyclaw.ClawSolver1D(riemann.shallow_bathymetry_fwave_1D)
+    elif kernel_language == 'Python':
+        solver = pyclaw.ClawSolver1D(riemann.shallow_1D_py.shallow_fwave_1d)
+        solver.kernel_language = 'Python'
     solver.limiters = pyclaw.limiters.tvd.vanleer
-    solver.kernel_language = "Python"
     solver.fwave = True
     solver.num_waves = 2
     solver.num_eqn = 2
@@ -45,8 +49,9 @@ def setup(kernel_language='Python',use_petsc=False, outdir='./_output', solver_t
 
     # Gravitational constant
     state.problem_data['grav'] = 9.8
+    state.problem_data['dry_tolerance'] = 1e-3
     state.problem_data['sea_level'] = 0.0
-    
+
     xc = state.grid.x.centers
     state.aux[0, :] = 0.8 * numpy.exp(-xc**2 / 0.2**2) - 1.0
     state.q[0, :] = 0.1 * numpy.exp(-(xc + 0.4)**2 / 0.2**2) - state.aux[0, :]

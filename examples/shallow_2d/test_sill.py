@@ -2,16 +2,15 @@
 # encoding: utf-8
 
 from __future__ import absolute_import
-def test_1d_sill():
-    """test_1d_sill
+def test_2d_sill():
+    """test_2d_sill
 
-    tests against expected classic solution of shallow water equations over
+    Tests against expected classic solution of shallow water equations over
     a sill."""
 
     from . import sill
 
     def verify_expected(expected):
-        """ given an expected value, returns a verification function """
         def sill_verify(claw):
             from clawpack.pyclaw.util import check_diff
             import numpy as np
@@ -20,22 +19,22 @@ def test_1d_sill():
             qfinal = claw.frames[claw.num_output_times].state.get_q_global()
 
             if q0 is not None and qfinal is not None:
-                dx = claw.solution.domain.grid.delta[0]
-                test = dx * np.linalg.norm(qfinal - q0, 1)
-                return check_diff(expected, test, reltol=1e-3)
+                dx, dy = claw.solution.domain.grid.delta
+                total_mass = dx * dy * np.linalg.norm(qfinal[0,:,:].reshape(-1), 1)
+                return check_diff(expected, total_mass, reltol=1e-3)
             else:
                 return
         return sill_verify
 
     from clawpack.pyclaw.util import gen_variants
-    classic_tests = gen_variants(sill.setup, verify_expected(4.04169269142e-4), 
-                                             kernel_languages=["Fortran", "Python"],
-                                             solver_type='classic',
-                                             outdir=None)
+    classic_tests = gen_variants(sill.setup, verify_expected(3.7439),
+                                 kernel_languages=["Fortran"],
+                                 solver_type='classic', outdir=None)
 
     from itertools import chain
     for test in chain(classic_tests):
         yield test
+
 
 if __name__=='__main__':
     import nose
