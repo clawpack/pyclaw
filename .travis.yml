@@ -50,23 +50,24 @@ install:
   - python -c "import scipy; print(scipy.__version__)"
   - python setup.py install
 
+# The test commands below go in the following order:
+#  1. pyclaw doc-tests
+#  2. pyclaw examples and io tests
+#  3. petclaw examples
+#  4. forestclaw tests
 script:
   - cd pyclaw/src/pyclaw
-  # Runs pyclaw doc-tests
   - nosetests --first-pkg-wins --with-doctest --exclude=limiters --exclude=sharpclaw --exclude=io --exclude=example --with-coverage --cover-package=clawpack.pyclaw
   - mv .coverage temp
   - if [[ "${TEST_PACKAGE}" == "pyclaw" ]]; then
-        # Runs pyclaw Examples and io tests
         nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --with-coverage --cover-package=clawpack.pyclaw --include=IOTest;
     fi
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
-       # Runs petclaw examples
        mpirun -n 4 nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --exclude=io;
-       rm awesome_non_existant_file
+       rm awesome_non_existant_file ;
        echo "Stuff"
     fi
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
-       # Runs petclaw io tests
        cd ../petclaw/tests;
        mpirun -n 4 nosetests -v --first-pkg-wins --include=IOTest;
     fi
@@ -75,7 +76,6 @@ script:
     fi
   - if [[ "${TEST_PACKAGE}" == "forestclaw" ]]; then
        cd pyclaw/src/forestclaw ;
-       # Run forestclaw tests
        nosetests --first-pkg-wins --with-doctest ;
        cd ../../pyclaw ;
     fi
