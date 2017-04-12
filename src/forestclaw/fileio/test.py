@@ -4,12 +4,16 @@ r"""
 Test suite for forestclaw.io
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
+
 import os
 import tempfile
 
 import nose
 
 import clawpack.forestclaw as forestclaw
+
 
 def test_forestclaw_input():
     """Simple test to read in a ForestClaw ASCII file"""
