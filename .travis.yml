@@ -5,6 +5,7 @@ os: linux
 env:
   - TEST_PACKAGE="pyclaw"
   - TEST_PACKAGE="petclaw"
+  - TEST_PACKAGE="forestclaw"
 
 python:
   - 2.7
@@ -64,6 +65,11 @@ script:
     fi
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
        cd ../../pyclaw;
+    fi
+  - if [[ "${TEST_PACKAGE}" == "forestclaw" ]]; then
+       cd pyclaw/src/forestclaw
+       nosetests --first-pkg-wins --with-doctest 
+       cd ../../pyclaw
     fi
   - mv temp .coverage.doctest
   - coverage combine
