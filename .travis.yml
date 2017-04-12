@@ -65,7 +65,7 @@ script:
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
        mpirun -n 4 nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --exclude=io;
        rm awesome_non_existant_file ;
-       echo "Stuff"
+       echo "Stuff" ;
     fi
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
        cd ../petclaw/tests;
