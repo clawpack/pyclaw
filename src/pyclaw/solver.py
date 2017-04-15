@@ -644,7 +644,7 @@ class Solver(object):
                     raise Exception('CFL too large, giving up!')
 
             # See if we are finished yet
-            if solution.t >= tend or take_one_step:
+            if (solution.t >= tend and not take_one_step) or (take_one_step and solution.t > tstart):
                 break
 
         # End of main time-stepping loop -------------------------------------
