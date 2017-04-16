@@ -54,11 +54,15 @@ def write(solution,frame,path,file_prefix='fort',write_aux=False,
     with open(os.path.join(path,file_name),'w') as q_file:
         for state in solution.states:
             write_patch_header(q_file,state.patch)
-            if write_p:
-                q = state.p
-            else:
-                q = state.q
-            write_array(q_file, state.patch, q)
+            write_array(q_file, state.patch, state.q)
+
+    # Write fort.pxxxx file if required
+    if write_p:
+        file_name = 'fort.p%s' % str(frame).zfill(4)
+        with open(os.path.join(path,file_name),'w') as p_file:
+            for state in solution.states:
+                write_patch_header(p_file,state.patch)
+                write_array(p_file, state.patch, state.p)
 
     # Write fort.auxxxxx file if required
     if solution.num_aux > 0 and write_aux:

@@ -74,10 +74,6 @@ class Controller(object):
         self.logger.handlers[1].setLevel(LOGGING_LEVELS[value])
 
     @property
-    def outdir_p(self):
-        r"""(string) - Directory to use for writing derived quantity files"""
-        return os.path.join(self.outdir,'_p')
-    @property
     def F_path(self):
         r"""(string) - Full path to output file for functionals"""
         return os.path.join(self.outdir,self.F_file_name+'.txt')
@@ -337,21 +333,18 @@ class Controller(object):
             if os.path.exists(self.outdir) and self.overwrite==False:
                 raise Exception("Refusing to overwrite existing output data. \
                  \nEither delete/move the directory or set controller.overwrite=True.")
-            if self.compute_p is not None:
+            write_p = False
+            if self.compute_p is not None and self.solution.state.mp > 0:
                 self.compute_p(self.solution.state)
-                self.solution.write(frame,self.outdir_p,
-                                        self.output_format,
-                                        self.file_prefix_p,
-                                        write_aux = False,
-                                        options = self.output_options,
-                                        write_p = True) 
+                write_p = True
 
             write_aux = (self.write_aux_always or self.write_aux_init)
             self.solution.write(frame,self.outdir,
                                         self.output_format,
                                         self.output_file_prefix,
                                         write_aux,
-                                        self.output_options)
+                                        self.output_options,
+                                        write_p)
 
         self.write_F('w')
 
@@ -370,20 +363,17 @@ class Controller(object):
                 # Save current solution to dictionary with frame as key
                 self.frames.append(copy.deepcopy(self.solution))
             if self.output_format is not None:
-                if self.compute_p is not None:
+                write_p = False
+                if self.compute_p is not None and self.solution.state.mp > 0:
                     self.compute_p(self.solution.state)
-                    self.solution.write(frame,self.outdir_p,
-                                            self.output_format,
-                                            self.file_prefix_p,
-                                            write_aux = False, 
-                                            options = self.output_options,
-                                            write_p = True) 
+                    write_p = True
                 
                 self.solution.write(frame,self.outdir,
                                             self.output_format,
                                             self.output_file_prefix,
                                             self.write_aux_always,
-                                            self.output_options)
+                                            self.output_options,
+                                            write_p)
             self.write_F()
 
             self.log_info("Solution %s computed for time t=%f"

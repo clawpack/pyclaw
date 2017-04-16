@@ -131,11 +131,10 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
                                 attr_name = '%s.%s' % (dim.name,attr)
                                 subgroup.attrs[attr_name] = getattr(dim,attr)
 
-                if write_p:
-                    q = state.p
-                else:
-                    q = state.q
+                q = state.q
                 subgroup.create_dataset('q',data=q,**options)
+                if write_p:
+                    subgroup.create_dataset('p',data=state.p,**options)
                 if write_aux and state.num_aux > 0:
                     subgroup.create_dataset('aux',data=state.aux,**options)
         
