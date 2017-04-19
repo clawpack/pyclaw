@@ -9,7 +9,9 @@ from __future__ import print_function
 
 import os
 import tempfile
+import shutil
 
+import numpy
 import nose
 
 import clawpack.forestclaw as forestclaw
@@ -20,13 +22,14 @@ def test_forestclaw_input():
 
     # Create test solution
     x = forestclaw.geometry.Dimension(0.0, 1.0, 100, name='x')
-    state = forestclaw.state(1, 1)
+    domain = forestclaw.geometry.Domain(x)
+    state = forestclaw.state.State(domain, 1)
     state.q = numpy.zeros(x.num_cells)
-    sol = forestclaw.Solution(forestclaw.geometry.Domain(x), state)
+    sol = forestclaw.solution.Solution(state, domain)
 
     # Test specific extensions to Patch
-    sol.patches[0].block_number = 2
-    sol.patches[0].mpi_rank = 2
+    sol.domain.patches[0].block_number = 2
+    sol.domain.patches[0].mpi_rank = 2
 
     # Create temporary directory to write to and read from
     try:
@@ -38,9 +41,10 @@ def test_forestclaw_input():
         nose.tools.assert_equal(sol, read_sol,
                                 "ForestClaw IO read/write test failed, " +
                                 "solutions are not equal.")
-    except:
-        shutil.copytree(self.temp_path, os.getcwd())
-    shutil.rmtree(self.temp_path)
+    # except:
+        # shutil.copytree(temp_path, os.getcwd())
+    finally:
+        shutil.rmtree(temp_path)
 
 if __name__ == '__main__':
     import nose
