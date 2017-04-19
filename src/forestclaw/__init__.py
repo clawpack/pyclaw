@@ -24,13 +24,13 @@ from clawpack.forestclaw.geometry import Dimension, Patch, Domain
 from clawpack.forestclaw.state import State
 from clawpack.forestclaw.cfl import CFL
 
-from clawpack.pyclaw import plot
+# from clawpack.pyclaw import plot
 
-__all__.extend(['ClawSolver1D', 'ClawSolver2D', 'ClawSolver3D',
-                'SharpClawSolver1D', 'SharpClawSolver2D', 'SharpClawSolver3D'])
-from .classic.solver import ClawSolver1D, ClawSolver2D, ClawSolver3D
-from .sharpclaw.solver import SharpClawSolver1D, SharpClawSolver2D
-from .sharpclaw.solver import SharpClawSolver2D, SharpClawSolver3D
+# __all__.extend(['ClawSolver1D', 'ClawSolver2D', 'ClawSolver3D',
+#                 'SharpClawSolver1D', 'SharpClawSolver2D', 'SharpClawSolver3D'])
+# from .classic.solver import ClawSolver1D, ClawSolver2D, ClawSolver3D
+# from .sharpclaw.solver import SharpClawSolver1D, SharpClawSolver2D
+# from .sharpclaw.solver import SharpClawSolver2D, SharpClawSolver3D
 
 
 # Sub-packages
