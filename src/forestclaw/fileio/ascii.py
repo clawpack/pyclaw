@@ -9,8 +9,9 @@ from __future__ import absolute_import
 import logging
 import numpy as np
 
-import clawpack.pyclaw as pyclaw
-import clawpack.pyclaw.fileio.ascii as ascii
+import clawpack.forestclaw as forestclaw
+from clawpack.pyclaw.fileio.ascii import write
+from clawpack.pyclaw.fileio.ascii import read
 from clawpack.pyclaw.util import read_data_line
 
 logger = logging.getLogger('pyclaw.io')
@@ -64,9 +65,9 @@ def read_patch_header(f, num_dim):
     # Since we do not have names here, we will construct the patch with
     # dimension names x,y,z
     names = ['x', 'y', 'z']
-    dimensions = [pyclaw.geometry.Dimension(lower[i], lower[i] + n[i] * d[i],
+    dimensions = [forestclaw.geometry.Dimension(lower[i], lower[i] + n[i] * d[i],
                   n[i], name=names[i]) for i in range(num_dim)]
-    patch = pyclaw.geometry.Patch(dimensions)
+    patch = forestclaw.geometry.Patch(dimensions)
 
     # Add AMR attributes:
     patch.patch_index = patch_index
@@ -78,8 +79,8 @@ def read_patch_header(f, num_dim):
 
     return patch
 
-# Replace the ascii module functions with those defined above
-# ascii.read_patch_header = read_patch_header
-# ascii.write_patch_header = write_patch_header
-read = ascii.read
-write = ascii.write
+# # Replace the ascii module functions with those defined above
+# # ascii.read_patch_header = read_patch_header
+# # ascii.write_patch_header = write_patch_header
+# read = ascii.read
+# write = ascii.write

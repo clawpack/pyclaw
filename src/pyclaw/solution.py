@@ -341,7 +341,7 @@ class Solution(object):
         else:
             read_func(self,frame,path,file_prefix=file_prefix,
                                     read_aux=read_aux,options=options)
-        logging.getLogger('pyclaw.io').info("Read in solution for time t=%s" % self.t)
+        logging.getLogger('pyclaw.fileio').info("Read in solution for time t=%s" % self.t)
 
 
     def get_read_func(self, file_format):
@@ -353,10 +353,11 @@ class Solution(object):
         elif file_format in ('hdf','hdf5'):
             return fileio.hdf5.read
         elif file_format == 'petsc':
-            from clawpack.petclaw import fileio
-            return fileio.petsc.read
+            import clawpack.petclaw.fileio
+            return clawpack.petclaw.fileio.petsc.read
         elif file_format == 'forestclaw':
-            return fileio.forestclaw.read
+            import clawpack.forestclaw.fileio.ascii
+            return clawpack.forestclaw.fileio.ascii.read
         else:
             raise ValueError("File format %s not supported." % file_format)
 
@@ -364,8 +365,8 @@ class Solution(object):
     def get_write_func(self, file_format):
         from clawpack.pyclaw import fileio
         if file_format == "forestclaw":
-            from clawpack.forestclaw import fileio
-            return fileio.forestclaw.write
+            import clawpack.forestclaw.fileio.ascii
+            return clawpack.forestclaw.fileio.ascii.write
         else:
             try:
                 return getattr(getattr(fileio, file_format), 'write')

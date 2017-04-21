@@ -8,6 +8,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import os
+import shutil
 import tempfile
 import shutil
 
@@ -22,10 +23,9 @@ def test_forestclaw_input():
 
     # Create test solution
     x = forestclaw.geometry.Dimension(0.0, 1.0, 100, name='x')
-    domain = forestclaw.geometry.Domain(x)
-    state = forestclaw.state.State(domain, 1)
-    state.q = numpy.zeros(x.num_cells)
-    sol = forestclaw.solution.Solution(state, domain)
+    state = forestclaw.State(forestclaw.Patch(x), 1)
+    state.q = numpy.zeros((1, x.num_cells))
+    sol = forestclaw.Solution(state, forestclaw.geometry.Domain(x))
 
     # Test specific extensions to Patch
     sol.domain.patches[0].block_number = 2
@@ -37,15 +37,15 @@ def test_forestclaw_input():
 
         # Real test
         sol.write(0, path=temp_path)
-        read_sol = forestclaw.Solution(0, path=temp_path)
+        read_sol = forestclaw.Solution(0, path=temp_path,
+                                       file_format='forestclaw')
         nose.tools.assert_equal(sol, read_sol,
                                 "ForestClaw IO read/write test failed, " +
                                 "solutions are not equal.")
-    # except:
-        # shutil.copytree(temp_path, os.getcwd())
+    except:
+        shutil.copy(os.path.join(temp_path, 'fort.q0000'), os.getcwd())
     finally:
         shutil.rmtree(temp_path)
 
 if __name__ == '__main__':
-    import nose
     nose.main()

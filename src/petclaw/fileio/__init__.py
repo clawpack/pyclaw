@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 import logging
-from clawpack.pyclaw.io import ascii
+from clawpack.pyclaw.fileio import ascii
 __all__ = ['ascii.read','ascii.write']
 
 # Check for HDF 5 support
@@ -18,7 +18,7 @@ except:
 # Check for netcdf support
 try:
     import netCDF4
-    from clawpack.pyclaw.io import netcdf 
+    from clawpack.pyclaw.fileio import netcdf 
     __all__ += ['netcdf.read','netcdf.write']
 except(ImportError):
     logging.debug("No netcdf4 support found.")
