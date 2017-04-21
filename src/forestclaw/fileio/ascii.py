@@ -10,7 +10,7 @@ import logging
 import numpy as np
 
 import clawpack.pyclaw as pyclaw
-import clawpack.pyclaw.io.ascii as ascii
+import clawpack.pyclaw.fileio.ascii as ascii
 from clawpack.pyclaw.util import read_data_line
 
 logger = logging.getLogger('pyclaw.io')
