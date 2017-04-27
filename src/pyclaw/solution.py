@@ -345,13 +345,15 @@ class Solution(object):
 
 
     def get_read_func(self, file_format):
-        from clawpack.pyclaw import fileio
         if file_format == 'binary':
-            return fileio.binary.read
+            import clawpack.pyclaw.fileio.binary
+            return clawpack.pyclaw.fileio.binary.read
         elif file_format == 'ascii':
-            return fileio.ascii.read
+            import clawpack.pyclaw.fileio.binary
+            return clawpack.pyclaw.fileio.ascii.read
         elif file_format in ('hdf','hdf5'):
-            return fileio.hdf5.read
+            import clawpack.pyclaw.fileio.hdf5
+            return clawpack.pyclaw.fileio.hdf5.read
         elif file_format == 'petsc':
             import clawpack.petclaw.fileio
             return clawpack.petclaw.fileio.petsc.read
@@ -363,13 +365,14 @@ class Solution(object):
 
 
     def get_write_func(self, file_format):
-        from clawpack.pyclaw import fileio
         if file_format == "forestclaw":
             import clawpack.forestclaw.fileio.ascii
             return clawpack.forestclaw.fileio.ascii.write
         else:
             try:
-                return getattr(getattr(fileio, file_format), 'write')
+                import importlib
+                return importlib.import_module("clawpack.pyclaw.fileio.%s"
+                                               % file_format).write
             except:
                 raise ValueError("File format %s not found." % file_format)
 
