@@ -298,7 +298,7 @@ class Solution(object):
                                 write_aux=write_aux,options=options,
                            write_p=write_p)
             msg = "Wrote out solution in format %s for time t=%s" % (form,self.t)
-            logging.getLogger('pyclaw.io').info(msg)
+            logging.getLogger('pyclaw.fileio').info(msg)
 
         
     def read(self, frame, path='./_output', file_format='ascii', 

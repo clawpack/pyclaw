@@ -5,7 +5,7 @@
 
 from __future__ import absolute_import
 import logging
-logger = logging.getLogger('pyclaw.io')
+logger = logging.getLogger('pyclaw.fileio')
 
 from . import ascii
 __all__ = ['ascii.read', 'ascii.write']

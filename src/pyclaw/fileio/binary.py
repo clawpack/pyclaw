@@ -16,7 +16,7 @@ import numpy as np
 import clawpack.pyclaw as pyclaw
 from six.moves import range
 
-logger = logging.getLogger('pyclaw.io')
+logger = logging.getLogger('pyclaw.fileio')
 
 
 def read(solution,frame,path='./',file_prefix='fort',read_aux=False,

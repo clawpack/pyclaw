@@ -14,7 +14,7 @@ import clawpack.pyclaw as pyclaw
 from clawpack.pyclaw.util import read_data_line
 from six.moves import range
 
-logger = logging.getLogger('pyclaw.io')
+logger = logging.getLogger('pyclaw.fileio')
 
 def write(solution, frame, path, file_prefix='fort', write_aux=False,
                     options={}, write_p=False):
