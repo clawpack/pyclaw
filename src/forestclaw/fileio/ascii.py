@@ -15,7 +15,7 @@ from clawpack.pyclaw.fileio.ascii import write
 from clawpack.pyclaw.fileio.ascii import read
 from clawpack.pyclaw.util import read_data_line
 
-logger = logging.getLogger('pyclaw.io')
+logger = logging.getLogger('pyclaw.fileio')
 
 
 def write_patch_header(f, patch):
