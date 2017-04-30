@@ -98,6 +98,10 @@ class GaugeSolution(object):
             # First line
             data = gauge_file.readline().split()
             self.id = int(data[2])
+            if len(data) == 8:
+                # 1d
+                self.location = (float(data[4]),)
+                num_eqn = int(data[7])
             if len(data) == 9:
                 # 2d
                 self.location = (float(data[4]), float(data[5]))
