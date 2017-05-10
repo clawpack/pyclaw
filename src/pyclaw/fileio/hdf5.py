@@ -22,7 +22,7 @@ import logging
 from clawpack import pyclaw
 import six
 
-logger = logging.getLogger('pyclaw.io')
+logger = logging.getLogger('pyclaw.fileio')
 
 # Import appropriate hdf5 package
 use_h5py = False

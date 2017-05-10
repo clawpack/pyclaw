@@ -298,7 +298,7 @@ class Solution(object):
                                 write_aux=write_aux,options=options,
                            write_p=write_p)
             msg = "Wrote out solution in format %s for time t=%s" % (form,self.t)
-            logging.getLogger('pyclaw.io').info(msg)
+            logging.getLogger('pyclaw.fileio').info(msg)
 
         
     def read(self, frame, path='./_output', file_format='ascii', 
@@ -341,25 +341,40 @@ class Solution(object):
         else:
             read_func(self,frame,path,file_prefix=file_prefix,
                                     read_aux=read_aux,options=options)
-        logging.getLogger('pyclaw.io').info("Read in solution for time t=%s" % self.t)
+        logging.getLogger('pyclaw.fileio').info("Read in solution for time t=%s" % self.t)
+
 
     def get_read_func(self, file_format):
-        from clawpack.pyclaw import io
         if file_format == 'binary':
-            return  io.binary.read
+            import clawpack.pyclaw.fileio.binary
+            return clawpack.pyclaw.fileio.binary.read
         elif file_format == 'ascii':
-            return io.ascii.read
+            import clawpack.pyclaw.fileio.binary
+            return clawpack.pyclaw.fileio.ascii.read
         elif file_format in ('hdf','hdf5'):
-            return io.hdf5.read
+            import clawpack.pyclaw.fileio.hdf5
+            return clawpack.pyclaw.fileio.hdf5.read
         elif file_format == 'petsc':
-            from clawpack.petclaw import io
-            return io.petsc.read
+            import clawpack.petclaw.fileio
+            return clawpack.petclaw.fileio.petsc.read
+        elif file_format == 'forestclaw':
+            import clawpack.forestclaw.fileio.ascii
+            return clawpack.forestclaw.fileio.ascii.read
         else:
             raise ValueError("File format %s not supported." % file_format)
 
+
     def get_write_func(self, file_format):
-        from clawpack.pyclaw import io
-        return getattr(getattr(io,file_format),'write')
+        if file_format == "forestclaw":
+            import clawpack.forestclaw.fileio.ascii
+            return clawpack.forestclaw.fileio.ascii.write
+        else:
+            try:
+                import importlib
+                return importlib.import_module("clawpack.pyclaw.fileio.%s"
+                                               % file_format).write
+            except:
+                raise ValueError("File format %s not found." % file_format)
 
         
     def plot(self):
@@ -369,6 +384,7 @@ class Solution(object):
         raise NotImplementedError("Direct solution plotting has not been " +
             "implemented as of yet, please refer to the plotting module for" +
             " how to plot solutions.")
+
 
 if __name__ == "__main__":
     import doctest

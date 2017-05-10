@@ -456,12 +456,12 @@ class OutputController(object):
     @file_format.setter
     def file_format(self, value):
         if value.lower() == 'petsc':
-            self._io_module = __import__("clawpack.petclaw.io.petsc", 
-                                         fromlist=["clawpack.petclaw.io"])
+            self._io_module = __import__("clawpack.petclaw.fileio.petsc", 
+                                         fromlist=["clawpack.petclaw.fileio"])
             self._file_format = value
         else:
-            self._io_module = __import__("clawpack.pyclaw.io.%s" % value, 
-                                         fromlist=['clawpack.pyclaw.io'])
+            self._io_module = __import__("clawpack.pyclaw.fileio.%s" % value, 
+                                         fromlist=['clawpack.pyclaw.fileio'])
             self._file_format = value
 
         

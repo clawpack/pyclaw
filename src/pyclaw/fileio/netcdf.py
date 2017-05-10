@@ -37,7 +37,7 @@ import clawpack.pyclaw.solution
 import six
 from six.moves import range
 
-logger = logging.getLogger('pyclaw.io')
+logger = logging.getLogger('pyclaw.fileio')
 
 # Import appropriate netcdf package
 use_netcdf4 = False

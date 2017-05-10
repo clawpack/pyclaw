@@ -9,7 +9,7 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('classic')
     config.add_subpackage('sharpclaw')
     config.add_subpackage('limiters')
-    config.add_subpackage('io')
+    config.add_subpackage('fileio')
     return config
 
 if __name__ == '__main__':

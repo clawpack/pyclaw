@@ -19,7 +19,7 @@ from clawpack.petclaw import geometry
 from clawpack import petclaw
 import six
 
-logger = logging.getLogger('pyclaw.io')
+logger = logging.getLogger('pyclaw.fileio')
 
 try:
     import h5py

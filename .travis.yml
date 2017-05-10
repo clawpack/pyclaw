@@ -3,8 +3,10 @@ language: python
 os: linux
 
 env:
-  - TEST_PACKAGE="pyclaw"
-  - TEST_PACKAGE="petclaw"
+  matrix: 
+    - TEST_PACKAGE="pyclaw"
+    - TEST_PACKAGE="petclaw"
+    - TEST_PACKAGE="forestclaw"
 
 python:
   - 2.7
@@ -48,15 +50,20 @@ install:
   - python -c "import scipy; print(scipy.__version__)"
   - python setup.py install
 
+# The test commands below go in the following order:
+#  1. pyclaw doc-tests
+#  2. pyclaw examples and io tests
+#  3. petclaw examples
+#  4. forestclaw tests
 script:
   - cd pyclaw/src/pyclaw
-  - nosetests --first-pkg-wins --with-doctest --exclude=limiters --exclude=sharpclaw --exclude=io --exclude=example --with-coverage --cover-package=clawpack.pyclaw
+  - nosetests --first-pkg-wins --with-doctest --exclude=limiters --exclude=sharpclaw --exclude=fileio --exclude=example --with-coverage --cover-package=clawpack.pyclaw
   - mv .coverage temp
   - if [[ "${TEST_PACKAGE}" == "pyclaw" ]]; then
         nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --with-coverage --cover-package=clawpack.pyclaw --include=IOTest;
     fi
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
-       mpirun -n 4 nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --exclude=io;
+       mpirun -n 4 nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --exclude=fileio;
     fi
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
        cd ../petclaw/tests;
@@ -64,6 +71,13 @@ script:
     fi
   - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
        cd ../../pyclaw;
+    fi
+  - if [[ "${TEST_PACKAGE}" == "forestclaw" ]]; then
+       cd ../forestclaw ;
+       nosetests --first-pkg-wins --exclude=limiters --exclude=sharpclaw --with-coverage --cover-package=clawpack.forestclaw;
+    fi
+  - if [[ "${TEST_PACKAGE}" == "forestclaw" ]]; then
+         cd ../../pyclaw ;
     fi
   - mv temp .coverage.doctest
   - coverage combine
