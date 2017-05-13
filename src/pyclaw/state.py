@@ -131,6 +131,10 @@ class State(object):
         else:
             raise Exception("""A PyClaw State object must be initialized with
                              a PyClaw Patch object.""")
+        if not isinstance(num_eqn,int):
+            raise Exception("State must be initialized with num_eqn set to a positive integer")
+        if not isinstance(num_aux,int):
+            raise Exception("State must be initialized with num_aux set to a non-negative integer")
 
         # ========== Attribute Definitions ===================================
         r"""pyclaw.Patch.patch - The patch this state lives on"""
