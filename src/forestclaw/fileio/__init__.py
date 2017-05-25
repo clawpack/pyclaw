@@ -7,5 +7,10 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger('pyclaw.fileio')
 
-from . import ascii
+from . import ascii as forestascii
+from clawpack.pyclaw.fileio import ascii
+
+ascii.read_patch_header = forestascii.read_patch_header
+ascii.write_patch_header = forestascii.write_patch_header
+
 __all__ = ["ascii.read", "ascii.write"]
