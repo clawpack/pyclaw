@@ -17,14 +17,14 @@ __all__ = []
 
 # Module imports - Note the only difference here is the geometry module
 __all__.extend(['Controller', 'Dimension', 'Patch', 'Domain', 'Solution',
-                'State', 'CFL'])#, 'plot'])
-from clawpack.forestclaw.controller import Controller
-from clawpack.forestclaw.solution import Solution
-from clawpack.forestclaw.geometry import Dimension, Patch, Domain
-from clawpack.forestclaw.state import State
-from clawpack.forestclaw.cfl import CFL
-
-# from clawpack.pyclaw import plot
+                'State', 'CFL'])
+from clawpack.pyclaw.controller import Controller
+from clawpack.pyclaw.solution import Solution
+from clawpack.pyclaw.state import State
+from clawpack.pyclaw.cfl import CFL
+from clawpack.pyclaw.geometry import Dimension
+from clawpack.pyclaw.geometry import Domain
+from .geometry import Patch
 
 # The below are not yet needed
 # __all__.extend(['ClawSolver1D', 'ClawSolver2D', 'ClawSolver3D',
