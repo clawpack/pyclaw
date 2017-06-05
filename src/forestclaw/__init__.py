@@ -22,20 +22,6 @@ from clawpack.pyclaw.controller import Controller
 from clawpack.pyclaw.solution import Solution
 from clawpack.pyclaw.state import State
 from clawpack.pyclaw.cfl import CFL
-from clawpack.forestclaw.geometry import Dimension, Patch, Domain
-
-# The below are not yet needed
-# __all__.extend(['ClawSolver1D', 'ClawSolver2D', 'ClawSolver3D',
-#                 'SharpClawSolver1D', 'SharpClawSolver2D', 'SharpClawSolver3D'])
-# from clawpack.pyclaw.classic.solver import ClawSolver1D, ClawSolver2D, ClawSolver3D
-# from clawpack.pyclaw.sharpclaw.solver import SharpClawSolver1D, SharpClawSolver2D
-# from clawpack.pyclaw.sharpclaw.solver import SharpClawSolver2D, SharpClawSolver3D
-
-
-# Sub-packages
-# from clawpack.pyclaw import limiters
-# from clawpack.pyclaw.limiters import *
-# __all__.extend(limiters.__all__)
-
-# __all__.append('BC')
-# from clawpack.pyclaw.solver import BC
+from clawpack.pyclaw.geometry import Dimension
+from clawpack.pyclaw.geometry import Domain
+from .geometry import Patch

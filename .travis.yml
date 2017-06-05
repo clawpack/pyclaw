@@ -49,6 +49,7 @@ install:
   - conda install -c conda-forge python-coveralls
   - python -c "import scipy; print(scipy.__version__)"
   - python setup.py install
+  - python -c "import clawpack.forestclaw.geometry as geometry; print(geometry)"
 
 # The test commands below go in the following order:
 #  1. pyclaw doc-tests

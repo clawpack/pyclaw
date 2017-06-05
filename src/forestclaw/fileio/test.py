@@ -15,17 +15,19 @@ import shutil
 import numpy
 import nose
 
-import clawpack.forestclaw as forestclaw
+from .. import geometry
+from clawpack.pyclaw.solution import Solution
+from clawpack.pyclaw.state import State
 
 
 def test_forestclaw_input():
     """Simple test to read in a ForestClaw ASCII file"""
 
     # Create test solution
-    x = forestclaw.geometry.Dimension(0.0, 1.0, 100, name='x')
-    state = forestclaw.State(forestclaw.Patch(x), 1)
+    x = geometry.Dimension(0.0, 1.0, 100, name='x')
+    state = State(geometry.Patch(x), 1)
     state.q = numpy.zeros((1, x.num_cells))
-    sol = forestclaw.Solution(state, forestclaw.geometry.Domain(x))
+    sol = Solution(state, geometry.Domain(x))
 
     # Test specific extensions to Patch
     sol.domain.patches[0].block_number = 2
@@ -37,7 +39,7 @@ def test_forestclaw_input():
 
         # Real test
         sol.write(0, path=temp_path)
-        read_sol = forestclaw.Solution(0, path=temp_path,
+        read_sol = Solution(0, path=temp_path,
                                        file_format='forestclaw')
         nose.tools.assert_equal(sol, read_sol,
                                 "ForestClaw IO read/write test failed, " +
