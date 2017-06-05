@@ -8,6 +8,9 @@ from __future__ import absolute_import
 
 from clawpack import pyclaw
 from clawpack.pyclaw import geometry as pyclaw_geometry
+from clawpack.pyclaw.geometry import Dimension
+from clawpack.pyclaw.geometry import Domain
+
 
 class Patch(pyclaw_geometry.Patch):
     """Patch class with specific ForestClaw attributes.

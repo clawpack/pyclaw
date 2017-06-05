@@ -22,9 +22,7 @@ from clawpack.pyclaw.controller import Controller
 from clawpack.pyclaw.solution import Solution
 from clawpack.pyclaw.state import State
 from clawpack.pyclaw.cfl import CFL
-from clawpack.pyclaw.geometry import Dimension
-from clawpack.pyclaw.geometry import Domain
-from .geometry import Patch
+from clawpack.forestclaw.geometry import Dimension, Patch, Domain
 
 # The below are not yet needed
 # __all__.extend(['ClawSolver1D', 'ClawSolver2D', 'ClawSolver3D',
