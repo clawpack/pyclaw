@@ -49,39 +49,10 @@ install:
   - conda install -c conda-forge python-coveralls
   - python -c "import scipy; print(scipy.__version__)"
   - python setup.py install
-  - python -c "import clawpack.forestclaw.geometry as geometry; print(geometry)"
 
-# The test commands below go in the following order:
-#  1. pyclaw doc-tests
-#  2. pyclaw examples and io tests
-#  3. petclaw examples
-#  4. forestclaw tests
 script:
-  - cd pyclaw/src/pyclaw
-  - nosetests --first-pkg-wins --with-doctest --exclude=limiters --exclude=sharpclaw --exclude=fileio --exclude=example --with-coverage --cover-package=clawpack.pyclaw
-  - mv .coverage temp
-  - if [[ "${TEST_PACKAGE}" == "pyclaw" ]]; then
-        nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --with-coverage --cover-package=clawpack.pyclaw --include=IOTest;
-    fi
-  - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
-       mpirun -n 4 nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --exclude=fileio;
-    fi
-  - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
-       cd ../petclaw/tests;
-       mpirun -n 4 nosetests -v --first-pkg-wins --include=IOTest;
-    fi
-  - if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
-       cd ../../pyclaw;
-    fi
-  - if [[ "${TEST_PACKAGE}" == "forestclaw" ]]; then
-       cd ../forestclaw ;
-       nosetests --first-pkg-wins --exclude=limiters --exclude=sharpclaw --with-coverage --cover-package=clawpack.forestclaw;
-    fi
-  - if [[ "${TEST_PACKAGE}" == "forestclaw" ]]; then
-         cd ../../pyclaw ;
-    fi
-  - mv temp .coverage.doctest
-  - coverage combine
+  - cd pyclaw
+  - bash ./run_tests_on_travis.sh
 
 after_success:
   - coveralls
