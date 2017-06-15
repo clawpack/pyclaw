@@ -13,7 +13,7 @@ def plot(setplot=None, outdir="./_output", plotdir=None, htmlplot=False,
     # Construct a plot directory if not provided
     if plotdir is None:
         try: 
-            plotdir = os.path.join(os.path.split(outdir)[:-2],"_plots")
+            plotdir = os.path.join(outdir,"../_plots")
         except AttributeError:
             plotdir = os.path.join(os.getcwd(),"_plots")
     
