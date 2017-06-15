@@ -50,7 +50,7 @@ except ImportError:
         raise
 
 
-def incoming_shock(state,dim,t,qbc,num_ghost):
+def incoming_shock(state,dim,t,qbc,auxbc,num_ghost):
     """
     Incoming shock at left boundary.
     """
