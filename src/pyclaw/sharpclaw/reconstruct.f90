@@ -97,14 +97,14 @@ contains
     !   It does no characteristic decomposition
 
         use weno
-        use clawparams, only: interpolation_order
+        use clawparams, only: reconstruction_order
         implicit none
 
         integer,          intent(in) :: num_eqn, maxnx, num_ghost
         double precision, intent(in) :: q(num_eqn,maxnx+2*num_ghost)
         double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost),qr(num_eqn,maxnx+2*num_ghost)
 
-        select case(interpolation_order)
+        select case(reconstruction_order)
         case (5)
            call weno5(q,ql,qr,num_eqn,maxnx,num_ghost)
         case (7)
@@ -826,14 +826,14 @@ contains
     ! ===================================================================
 
         use poly
-        use clawparams, only: interpolation_order
+        use clawparams, only: reconstruction_order
         implicit none
 
         integer,          intent(in) :: num_eqn, maxnx, num_ghost
         double precision, intent(in) :: q(num_eqn,maxnx+2*num_ghost)
         double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost),qr(num_eqn,maxnx+2*num_ghost)
 
-        select case(interpolation_order)
+        select case(reconstruction_order)
         case (4)
             call poly4(q,ql,qr,num_eqn,maxnx,num_ghost)
         case (6)

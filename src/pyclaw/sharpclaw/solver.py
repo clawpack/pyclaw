@@ -45,7 +45,7 @@ class SharpClawSolver(Solver):
 
         ``Default = 2``
 
-    .. attribute:: interpolation_order
+    .. attribute:: reconstruction_order
 
         Order of the WENO reconstruction. From 1st to 17th order (PyWENO)
 
@@ -161,7 +161,7 @@ class SharpClawSolver(Solver):
         """
         self.limiters = [1]
         self.lim_type = 2
-        self.interpolation_order = 5
+        self.reconstruction_order = 5
         self.time_integrator = 'SSP104'
         self.char_decomp = 0
         self.tfluct_solver = False
@@ -206,9 +206,9 @@ class SharpClawSolver(Solver):
         Allocate RK stage arrays or previous step solutions and fortran routine work arrays.
         """
         if self.lim_type == 2:
-            self.num_ghost = (self.interpolation_order+1)/2
+            self.num_ghost = (self.reconstruction_order+1)/2
 
-        if self.lim_type == 2 and self.interpolation_order != 5 and self.kernel_language == 'Python':
+        if self.lim_type == 2 and self.reconstruction_order != 5 and self.kernel_language == 'Python':
             raise Exception('Only 5th-order WENO reconstruction is implemented in Python kernels. \
                              Use Fortran for higher-order WENO.')
         # This is a hack to deal with the fact that petsc4py
@@ -563,7 +563,7 @@ class SharpClawSolver(Solver):
         grid = state.grid
         clawparams.num_dim       = grid.num_dim
         clawparams.lim_type      = self.lim_type
-        clawparams.interpolation_order    = self.interpolation_order
+        clawparams.reconstruction_order    = self.reconstruction_order
         clawparams.char_decomp   = self.char_decomp
         clawparams.tfluct_solver = self.tfluct_solver
         clawparams.fwave         = self.fwave
