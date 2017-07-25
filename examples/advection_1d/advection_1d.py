@@ -20,7 +20,7 @@ from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 
-def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5, 
+def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', interpolation_order=5, 
           time_integrator='SSP104', outdir='./_output'):
 
     if use_petsc:
@@ -37,7 +37,7 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
         solver = pyclaw.ClawSolver1D(riemann_solver)
     elif solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(riemann_solver)
-        solver.weno_order = weno_order
+        solver.interpolation_order = interpolation_order
         solver.time_integrator = time_integrator
         if time_integrator == 'SSPLMMk3':
             solver.lmm_steps = 5

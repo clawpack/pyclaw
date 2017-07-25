@@ -186,7 +186,7 @@ def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_langua
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver2D(riemann.euler_5wave_2D)
         solver.dq_src = dq_Euler_radial
-        solver.weno_order = 5
+        solver.interpolation_order = 5
         solver.lim_type   = 2
     else:
         solver = pyclaw.ClawSolver2D(riemann.euler_5wave_2D)

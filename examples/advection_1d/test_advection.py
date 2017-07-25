@@ -39,7 +39,7 @@ def test_1d_advection():
 
     weno_tests = gen_variants(advection_1d.setup, verify_expected(7.489618e-06),
                                  kernel_languages=('Fortran',), solver_type='sharpclaw', 
-                                 time_integrator='SSP104', weno_order=17,
+                                 time_integrator='SSP104', interpolation_order=17,
                                  outdir=None)
 
     from itertools import chain

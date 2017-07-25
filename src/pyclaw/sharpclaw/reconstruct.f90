@@ -97,14 +97,14 @@ contains
     !   It does no characteristic decomposition
 
         use weno
-        use clawparams, only: weno_order
+        use clawparams, only: interpolation_order
         implicit none
 
         integer,          intent(in) :: num_eqn, maxnx, num_ghost
         double precision, intent(in) :: q(num_eqn,maxnx+2*num_ghost)
         double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost),qr(num_eqn,maxnx+2*num_ghost)
 
-        select case(weno_order)
+        select case(interpolation_order)
         case (5)
            call weno5(q,ql,qr,num_eqn,maxnx,num_ghost)
         case (7)
@@ -120,7 +120,7 @@ contains
         case (17)
            call weno17(q,ql,qr,num_eqn,maxnx,num_ghost)           
         case default
-           print *, 'ERROR: weno_order must be an odd number between 5 and 17 (inclusive).'
+           print *, 'ERROR: interpolation_order must be an odd number between 5 and 17 (inclusive).'
            stop
         end select
 

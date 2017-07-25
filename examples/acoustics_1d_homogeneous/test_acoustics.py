@@ -59,7 +59,7 @@ def test_1d_acoustics():
     weno_tests = gen_variants(acoustics_1d.setup, verify_expected(0.000153),
                               kernel_languages=('Fortran',),
                               solver_type='sharpclaw', time_integrator='SSP104',
-                              weno_order=17, disable_output=True)
+                              interpolation_order=17, disable_output=True)
 
     from itertools import chain
     for test in chain(classic_tests, time_step_test, ptwise_tests,
