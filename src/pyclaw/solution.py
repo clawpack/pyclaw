@@ -323,7 +323,9 @@ class Solution(object):
          - *path* - (string) Base path to the files to be read. 
            ``default = './_output'``
          - *file_format* - (string) Format of the file, should match on of the 
-           modules inside of the io package.  ``default = 'ascii'``
+           modules inside of the io package.  If this is `None` then attempt to
+           determine format by file names and default to ``ascii`` if 
+           unsuccessful.  Default is ``None``.
          - *file_prefix* - (string) Name prefix in front of all the files, 
            defaults to whatever the format defaults to, e.g. fort for ascii
          - *options* - (dict) Dictionary of optional arguments dependent on 
@@ -332,19 +334,38 @@ class Solution(object):
         :Output:
          - (bool) - True if read was successful, False otherwise
         """
-        
-        read_func = self.get_read_func(file_format)
 
         path = os.path.expandvars(os.path.expanduser(path))
+
+        # Attempt to determine the type of file - Note that this will NOt detect
+        # whether ForestClaw should be used.
+        if file_format is None:
+            for root, dirs, files in os.walk(path):
+                for file_name in files:
+                    if file_name.startswith(file_prefix + ".b"):
+                        file_format = "binary"
+                        break
+                    elif file_name.endswith(".hdf"):
+                        file_format = "hdf"
+                        break
+                    elif file_name.endswith(".ptc"):
+                        file_format = "petsc"
+                if file_format is None:
+                    file_format = "ascii"
+
+        read_func = self.get_read_func(file_format)
+
         if file_prefix is None:
-            read_func(self,frame,path,read_aux=read_aux,options=options)
+            read_func(self, frame, path, read_aux=read_aux, options=options)
         else:
-            read_func(self,frame,path,file_prefix=file_prefix,
-                                    read_aux=read_aux,options=options)
+            read_func(self, frame, path, file_prefix=file_prefix,
+                      read_aux=read_aux, options=options)
         logging.getLogger('pyclaw.fileio').info("Read in solution for time t=%s" % self.t)
 
 
     def get_read_func(self, file_format):
+        r""""""
+
         if file_format == 'binary':
             import clawpack.pyclaw.fileio.binary
             return clawpack.pyclaw.fileio.binary.read
