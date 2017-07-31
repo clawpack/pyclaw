@@ -300,37 +300,37 @@ class Solution(object):
             msg = "Wrote out solution in format %s for time t=%s" % (form,self.t)
             logging.getLogger('pyclaw.fileio').info(msg)
 
-        
-    def read(self, frame, path='./_output', file_format='ascii', 
+
+    def read(self, frame, path='./_output', file_format='ascii',
                           file_prefix=None, read_aux=True, options={}, **kargs):
         r"""
         Reads in a Solution object from a file
-        
-        Reads in and initializes this Solution with the data specified.  This 
-        function will raise an IOError if it was unsuccessful.  
+
+        Reads in and initializes this Solution with the data specified.  This
+        function will raise an IOError if it was unsuccessful.
 
         Any format must conform to the following call signiture and return
         True if the file has been successfully read into the given solution or
         False otherwise.  Options is a dictionary of parameters that each
         format can specify.  See the ascii module for an example.::
-        
+
             read_<format>(solution,path,frame,file_prefix,options={})
-            
+
         ``<format>`` is the name of the format in question.
-        
+
         :Input:
          - *frame* - (int) Frame number to be read in
-         - *path* - (string) Base path to the files to be read. 
+         - *path* - (string) Base path to the files to be read.
            ``default = './_output'``
-         - *file_format* - (string) Format of the file, should match on of the 
-           modules inside of the io package.  If this is `None` then attempt to
-           determine format by file names and default to ``ascii`` if 
-           unsuccessful.  Default is ``None``.
-         - *file_prefix* - (string) Name prefix in front of all the files, 
+         - *file_format* - (string) Format of the file, should match one of the
+           modules inside of the fileio package.  If this is `None` then an
+           attempt to determine the format by matching file names and suffixes.
+           If unsuccessful it will default to ``ascii``.  Default is ``None``.
+         - *file_prefix* - (string) Name prefix in front of all the files,
            defaults to whatever the format defaults to, e.g. fort for ascii
-         - *options* - (dict) Dictionary of optional arguments dependent on 
+         - *options* - (dict) Dictionary of optional arguments dependent on
            the format being read in.  ``default = {}``
-            
+
         :Output:
          - (bool) - True if read was successful, False otherwise
         """
@@ -350,6 +350,7 @@ class Solution(object):
                         break
                     elif file_name.endswith(".ptc"):
                         file_format = "petsc"
+                        break
                 if file_format is None:
                     file_format = "ascii"
 
