@@ -337,22 +337,21 @@ class Solution(object):
 
         path = os.path.expandvars(os.path.expanduser(path))
 
-        # Attempt to determine the type of file - Note that this will NOt detect
+        # Attempt to determine the type of file - Note that this will NOT detect
         # whether ForestClaw should be used.
         if file_format is None:
-            for root, dirs, files in os.walk(path):
-                for file_name in files:
-                    if file_name.startswith(file_prefix + ".b"):
-                        file_format = "binary"
-                        break
-                    elif file_name.endswith(".hdf"):
-                        file_format = "hdf"
-                        break
-                    elif file_name.endswith(".ptc"):
-                        file_format = "petsc"
-                        break
-                if file_format is None:
-                    file_format = "ascii"
+            for file_names in os.listdir(path):
+                if file_name.startswith(file_prefix + ".b"):
+                    file_format = "binary"
+                    break
+                elif file_name.endswith(".hdf"):
+                    file_format = "hdf"
+                    break
+                elif file_name.endswith(".ptc"):
+                    file_format = "petsc"
+                    break
+            if file_format is None:
+                file_format = "ascii"
 
         read_func = self.get_read_func(file_format)
 
@@ -361,7 +360,8 @@ class Solution(object):
         else:
             read_func(self, frame, path, file_prefix=file_prefix,
                       read_aux=read_aux, options=options)
-        logging.getLogger('pyclaw.fileio').info("Read in solution for time t=%s" % self.t)
+        logging.getLogger('pyclaw.fileio').info(("Read in solution for ",
+                                                 "time t=%s" % self.t))
 
 
     def get_read_func(self, file_format):
