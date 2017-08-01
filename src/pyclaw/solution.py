@@ -301,7 +301,7 @@ class Solution(object):
             logging.getLogger('pyclaw.fileio').info(msg)
 
 
-    def read(self, frame, path='./_output', file_format='ascii',
+    def read(self, frame, path='./_output', file_format=None,
                           file_prefix=None, read_aux=True, options={}, **kargs):
         r"""
         Reads in a Solution object from a file
@@ -340,8 +340,12 @@ class Solution(object):
         # Attempt to determine the type of file - Note that this will NOT detect
         # whether ForestClaw should be used.
         if file_format is None:
-            for file_names in os.listdir(path):
-                if file_name.startswith(file_prefix + ".b"):
+            if file_format is None:
+                file_prefix_check = "fort"
+            else:
+                file_prefix_check = file_prefix
+            for file_name in os.listdir(path):
+                if file_name.startswith(file_prefix_check + ".b"):
                     file_format = "binary"
                     break
                 elif file_name.endswith(".hdf"):
