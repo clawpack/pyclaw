@@ -590,9 +590,10 @@ class Solver(object):
                     raise Exception('dt does not divide (tend-tstart) and dt is fixed!')
         if self.dt_variable == 1 and self.cfl_desired > self.cfl_max:
             raise Exception('Variable time-stepping and desired CFL > maximum CFL')
-        if tend <= tstart and not take_one_step:
-            self.logger.info("Already at or beyond end time: no evolution required.")
-            self.max_steps = 0
+        if not take_one_step:
+            if tend <= tstart and not take_one_step:
+                self.logger.info("Already at or beyond end time: no evolution required.")
+                self.max_steps = 0
 
         # Main time-stepping loop
         for n in range(self.max_steps):
@@ -644,14 +645,17 @@ class Solver(object):
                     raise Exception('CFL too large, giving up!')
 
             # See if we are finished yet
-            if solution.t >= tend or take_one_step:
+            if take_one_step:
+                break
+            elif solution.t >= tend:
                 break
 
         # End of main time-stepping loop -------------------------------------
 
-        if self.dt_variable and solution.t < tend \
-                and num_steps == self.max_steps:
-            raise Exception("Maximum number of timesteps have been taken")
+        if not take_one_step:
+            if self.dt_variable and solution.t < tend \
+                    and num_steps == self.max_steps:
+                raise Exception("Maximum number of timesteps have been taken")
 
         return self.status
 
