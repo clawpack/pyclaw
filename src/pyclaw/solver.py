@@ -549,7 +549,7 @@ class Solver(object):
             if tend - t - self.dt < 1.e-14*t:
                 self.dt = tend - t
 
-    def evolve_to_time(self,solution,tend=None):
+    def evolve_to_time(self, solution, tend=None):
         r"""
         Evolve solution from solution.t to tend.  If tend is not specified,
         take a single step.
@@ -586,13 +586,18 @@ class Solver(object):
                 self.max_steps = 1
             else:
                 self.max_steps = int((tend - tstart + 1e-10) / self.dt)
-                if abs(self.max_steps*self.dt - (tend - tstart)) > 1e-5 * (tend-tstart):
-                    raise Exception('dt does not divide (tend-tstart) and dt is fixed!')
+                if abs(self.max_steps*self.dt - (tend - tstart)) >      \
+                   1e-5 * (tend - tstart):
+                    raise Exception('dt does not divide (tend-tstart) and dt '
+                                    'is fixed!')
         if self.dt_variable == 1 and self.cfl_desired > self.cfl_max:
-            raise Exception('Variable time-stepping and desired CFL > maximum CFL')
-        if tend <= tstart and not take_one_step:
-            self.logger.info("Already at or beyond end time: no evolution required.")
-            self.max_steps = 0
+            raise Exception('Variable time-stepping and desired CFL > maximum '
+                            'CFL')
+        if not take_one_step:
+            if tend <= tstart:
+                self.logger.info("Already at or beyond end time: no evolution ",
+                                 "required.")
+                self.max_steps = 0
 
         # Main time-stepping loop
         for n in range(self.max_steps):
@@ -605,10 +610,10 @@ class Solver(object):
                 told = solution.t
 
             if self.before_step is not None:
-                self.before_step(self,solution.states[0])
+                self.before_step(self, solution.states[0])
 
             # Note that the solver may alter dt during the step() routine
-            self.step(solution,take_one_step,tstart,tend)
+            self.step(solution, take_one_step, tstart, tend)
 
             # Check to make sure that the Courant number was not too large
             cfl = self.cfl.get_cached_max()
@@ -644,14 +649,17 @@ class Solver(object):
                     raise Exception('CFL too large, giving up!')
 
             # See if we are finished yet
-            if solution.t >= tend or take_one_step:
+            if take_one_step:
+                break
+            elif solution.t >= tend:
                 break
 
         # End of main time-stepping loop -------------------------------------
 
-        if self.dt_variable and solution.t < tend \
-                and num_steps == self.max_steps:
-            raise Exception("Maximum number of timesteps have been taken")
+        if not take_one_step:
+            if self.dt_variable and solution.t < tend \
+                    and num_steps == self.max_steps:
+                raise Exception("Maximum number of timesteps have been taken")
 
         return self.status
 
