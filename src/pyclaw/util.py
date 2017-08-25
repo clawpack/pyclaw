@@ -569,9 +569,14 @@ def read_data_line(inputfile,num_entries=1,data_type=float):
 
     """
     l = []
+    count = 0
     while  l==[]:  # skip over blank lines
         line = inputfile.readline()
         l = line.split()
+        count += 1
+        if count>100:
+            print('*** Infinite loop??')
+            raise IOError('*** Infinite loop?? inputfile = %s' % inputfile)
     if num_entries == 1:  # This is a convenience for calling functions
         return data_type(l[0])
     val = np.empty(num_entries,data_type)
