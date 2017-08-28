@@ -572,7 +572,7 @@ def read_data_line(inputfile,num_entries=1,data_type=float):
     while  l==[]:  # skip over blank lines
         line = inputfile.readline()
         if line == '':
-            raise IOError('*** Reached EOF in file %s' % inputfile)
+            raise IOError('*** Reached EOF in file %s' % inputfile.name)
         l = line.split()
     if num_entries == 1:  # This is a convenience for calling functions
         return data_type(l[0])

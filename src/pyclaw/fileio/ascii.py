@@ -336,7 +336,7 @@ def read_array(f, state, num_var):
                 while len(l)<num_var:
                     line = f.readline()
                     if line=='':
-                        raise IOError('Unexpected EOF')
+                        raise IOError('Unexpected EOF in %s' % f.name)
                     l = l + line.split()
                 for m in range(num_var):
                     q[m,i] = float(l[m])
@@ -347,7 +347,7 @@ def read_array(f, state, num_var):
                     while len(l)<num_var:
                         line = f.readline()
                         if line=='':
-                            raise IOError('Unexpected EOF')
+                            raise IOError('Unexpected EOF in %s' % f.name)
                         l = l + line.split()
                     for m in range(num_var):
                         q[m,i,j] = float(l[m])
@@ -360,7 +360,7 @@ def read_array(f, state, num_var):
                         while len(l) < num_var:
                             line = f.readline()
                             if line=='':
-                                raise IOError('Unexpected EOF')
+                                raise IOError('Unexpected EOF in %s' % f.name)
                             l = l + line.split()
                         for m in range(num_var):
                             q[m,i,j,k] = float(l[m])
