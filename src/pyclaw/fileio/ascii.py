@@ -335,6 +335,8 @@ def read_array(f, state, num_var):
                 l = []
                 while len(l)<num_var:
                     line = f.readline()
+                    if line=='':
+                        raise IOError('Unexpected EOF')
                     l = l + line.split()
                 for m in range(num_var):
                     q[m,i] = float(l[m])
@@ -344,6 +346,8 @@ def read_array(f, state, num_var):
                     l = []
                     while len(l)<num_var:
                         line = f.readline()
+                        if line=='':
+                            raise IOError('Unexpected EOF')
                         l = l + line.split()
                     for m in range(num_var):
                         q[m,i,j] = float(l[m])
@@ -355,6 +359,8 @@ def read_array(f, state, num_var):
                         l=[]
                         while len(l) < num_var:
                             line = f.readline()
+                            if line=='':
+                                raise IOError('Unexpected EOF')
                             l = l + line.split()
                         for m in range(num_var):
                             q[m,i,j,k] = float(l[m])
@@ -366,8 +372,7 @@ def read_array(f, state, num_var):
             raise Exception(msg)
     except:
         msg = '*** Problem reading patch data'
-        if l[m] == 'grid_number':
-            msg = msg + '\n*** Format might be binary, is plotdata.format set properly?'
+        msg = msg + '\n*** Format might be binary, is plotdata.format set properly?'
         logger.critical(msg)
         raise IOError(msg)
 
