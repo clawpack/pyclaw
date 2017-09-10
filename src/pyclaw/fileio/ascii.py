@@ -329,39 +329,51 @@ def read_array(f, state, num_var):
     q = np.zeros(q_shape)
 
 
-    if patch.num_dim == 1:
-        for i in range(patch.dimensions[0].num_cells):
-            l = []
-            while len(l)<num_var:
-                line = f.readline()
-                l = l + line.split()
-            for m in range(num_var):
-                q[m,i] = float(l[m])
-    elif patch.num_dim == 2:
-        for j in range(patch.dimensions[1].num_cells):
+    try:
+        if patch.num_dim == 1:
             for i in range(patch.dimensions[0].num_cells):
                 l = []
                 while len(l)<num_var:
                     line = f.readline()
+                    if line == '':
+                        raise IOError('Unexpected EOF in %s' % f.name)
                     l = l + line.split()
                 for m in range(num_var):
-                    q[m,i,j] = float(l[m])
-            blank = f.readline()
-    elif patch.num_dim == 3:
-        for k in range(patch.dimensions[2].num_cells):
+                    q[m,i] = float(l[m])
+        elif patch.num_dim == 2:
             for j in range(patch.dimensions[1].num_cells):
                 for i in range(patch.dimensions[0].num_cells):
-                    l=[]
+                    l = []
                     while len(l) < num_var:
                         line = f.readline()
+                        if line == '':
+                            raise IOError('Unexpected EOF in %s' % f.name)
                         l = l + line.split()
                     for m in range(num_var):
-                        q[m,i,j,k] = float(l[m])
+                        q[m,i,j] = float(l[m])
                 blank = f.readline()
-            blank = f.readline()
-    else:
-        msg = "Read only supported up to 3d."
+        elif patch.num_dim == 3:
+            for k in range(patch.dimensions[2].num_cells):
+                for j in range(patch.dimensions[1].num_cells):
+                    for i in range(patch.dimensions[0].num_cells):
+                        l=[]
+                        while len(l) < num_var:
+                            line = f.readline()
+                            if line == '':
+                                raise IOError('Unexpected EOF in %s' % f.name)
+                            l = l + line.split()
+                        for m in range(num_var):
+                            q[m,i,j,k] = float(l[m])
+                    blank = f.readline()
+                blank = f.readline()
+        else:
+            msg = "Read only supported up to 3d."
+            logger.critical(msg)
+            raise Exception(msg)
+    except:
+        msg = '*** Problem reading patch data'
+        msg = msg + '\n*** Format might be binary, is plotdata.format set properly?'
         logger.critical(msg)
-        raise Exception(msg)
+        raise IOError(msg)
 
     return q
