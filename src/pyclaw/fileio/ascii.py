@@ -335,7 +335,7 @@ def read_array(f, state, num_var):
                 l = []
                 while len(l)<num_var:
                     line = f.readline()
-                    if line=='':
+                    if line == '':
                         raise IOError('Unexpected EOF in %s' % f.name)
                     l = l + line.split()
                 for m in range(num_var):
@@ -344,9 +344,9 @@ def read_array(f, state, num_var):
             for j in range(patch.dimensions[1].num_cells):
                 for i in range(patch.dimensions[0].num_cells):
                     l = []
-                    while len(l)<num_var:
+                    while len(l) < num_var:
                         line = f.readline()
-                        if line=='':
+                        if line == '':
                             raise IOError('Unexpected EOF in %s' % f.name)
                         l = l + line.split()
                     for m in range(num_var):
@@ -359,7 +359,7 @@ def read_array(f, state, num_var):
                         l=[]
                         while len(l) < num_var:
                             line = f.readline()
-                            if line=='':
+                            if line == '':
                                 raise IOError('Unexpected EOF in %s' % f.name)
                             l = l + line.split()
                         for m in range(num_var):
