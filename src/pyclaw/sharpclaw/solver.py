@@ -186,6 +186,7 @@ class SharpClawSolver(Solver):
         self.dq_dt = None
         self.dq_dt_downwind = None
         self.dt_old = None
+        self.sspcoeff = None # used only if time integrator is 'DWRK' or a multistep method
 
         # Used only if time integrator is 'RK'
         self.a = None
@@ -199,13 +200,13 @@ class SharpClawSolver(Solver):
         self.v = None
         self.a_nonzero_cols = []
         self.a_tilde_nonzero_cols = []
+        self.downwind = None
 
         # Used only if time integrator is a multistep method
         self.sspcoeff0 = None
         self.alpha = None
         self.beta = None
         self.lmm_steps = 4
-        self.sspcoeff = None
         self.prev_dq_dt_values = []
         self.prev_dt_values = []
         self.prev_dtFE_values = []
@@ -604,6 +605,7 @@ class SharpClawSolver(Solver):
         Evaluate dq/dt * (delta t)
         """
 
+        self.downwind = downwind
         deltaq = self.dq_hyperbolic(state,downwind)
 
         if self.dq_src is not None:
