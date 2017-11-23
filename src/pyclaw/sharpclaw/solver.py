@@ -284,6 +284,7 @@ class SharpClawSolver(Solver):
         Take one step with a Runge-Kutta or multistep method as specified by
         `solver.time_integrator`.
         """
+        
         state = solution.states[0]
         step_index = self.status['numsteps'] + 1
         if self.accept_step == True:
@@ -515,9 +516,19 @@ class SharpClawSolver(Solver):
     def _set_mthlim(self):
         self._mthlim = self.limiters
         if not isinstance(self.limiters,list): self._mthlim=[self._mthlim]
-        if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_waves
-        if len(self._mthlim)!=self.num_waves:
-            raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_waves')
+        if self.lim_type==1:
+            if self.char_decomp == 0 or self.char_decomp == 3:
+                if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_eqn
+                if len(self._mthlim)!=self.num_eqn:
+                    raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_eqn')
+            elif self.char_decomp == 1 or self.char_decomp == 4:
+                if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_waves
+                if len(self._mthlim)!=self.num_waves:
+                    raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_waves')
+        else:
+            if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_waves
+            if len(self._mthlim)!=self.num_waves:
+                raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_waves')
 
        
     def dq(self,state):
@@ -526,7 +537,9 @@ class SharpClawSolver(Solver):
         """
 
         deltaq = self.dq_hyperbolic(state)
-
+        
+        #state.q += deltaq
+        #deltaq[...] = 0.
         if self.dq_src is not None:
             deltaq+=self.dq_src(self,state,self.dt)
 

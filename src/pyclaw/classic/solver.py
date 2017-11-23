@@ -141,7 +141,7 @@ class ClawSolver(Solver):
             # Godunov Splitting
             if self.source_split == 1:
                 self.step_source(self,solution.states[0],self.dt)
-                
+
         return True
 
     def _check_cfl_settings(self):
@@ -684,7 +684,7 @@ class ClawSolver3D(ClawSolver):
             if self.dimensional_split:
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp3.f in Clawpack.
-
+                #"""
                 q, cfl_x = self.fmod.step3ds(maxm,self.nthreads,self.num_ghost,\
                     mx,my,mz,qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,\
                     self._mthlim,self.aux1,self.aux2,self.aux3,self.work,1,\
@@ -699,6 +699,27 @@ class ClawSolver3D(ClawSolver):
                     mx,my,mz,q,q,self.auxbc,dx,dy,dz,self.dt,self._method,\
                     self._mthlim,self.aux1,self.aux2,self.aux3,self.work,3,\
                     self.fwave,rpn3,rpt3,rptt3)
+                #"""
+
+                """
+                #print "No Dim Splitting..."
+                # No Dimensional Splitting, Similar to SharpClaw
+                dq = qnew.copy('F')
+                dq[...] = 0.
+                dq, cfl_x = self.fmod.step3ds(maxm,self.nthreads,self.num_ghost,\
+                    mx,my,mz,qold,dq,self.auxbc,dx,dy,dz,self.dt,self._method,\
+                    self._mthlim,self.aux1,self.aux2,self.aux3,self.work,1,\
+                    self.fwave,rpn3,rpt3,rptt3)
+                dq, cfl_y = self.fmod.step3ds(maxm,self.nthreads,self.num_ghost,\
+                    mx,my,mz,qold,dq,self.auxbc,dx,dy,dz,self.dt,self._method,\
+                    self._mthlim,self.aux1,self.aux2,self.aux3,self.work,2,\
+                    self.fwave,rpn3,rpt3,rptt3)
+                dq, cfl_z = self.fmod.step3ds(maxm,self.nthreads,self.num_ghost,\
+                    mx,my,mz,qold,dq,self.auxbc,dx,dy,dz,self.dt,self._method,\
+                    self._mthlim,self.aux1,self.aux2,self.aux3,self.work,3,\
+                    self.fwave,rpn3,rpt3,rptt3)
+                self.qbc += dq
+                """
 
                 cfl = max(cfl_x,cfl_y,cfl_z)
 

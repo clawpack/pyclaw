@@ -13,7 +13,7 @@ def configuration(parent_package='',top_path=None):
                          ['limiter.f90','philim.f90','flux2.f90','step2ds.f90','step2.f90'],f2py_options=['--quiet'])
 
     config.add_extension('classic3',
-                         ['limiter.f90','philim.f90','flux3.f90','step3ds.f90','step3.f90'],f2py_options=['--quiet'],extra_f90_compile_args=['-fopenmp'],libraries=['gomp'])
+                         ['limiter.f90','philim.f90','flux3.f90','step3ds.f90','step3.f90'],f2py_options=['--quiet'],extra_f90_compile_args=['-fopenmp -Warray-bounds -fcheck=all'],libraries=['gomp'])
 
     return config
 
