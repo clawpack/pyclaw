@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 import numpy as np
 import os
-import shocktube
+from . import shocktube
 
 "Runs the shocktube test problem with the Python HLLC solver."
 

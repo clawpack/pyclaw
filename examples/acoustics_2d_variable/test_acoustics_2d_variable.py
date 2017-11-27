@@ -1,7 +1,8 @@
+from __future__ import absolute_import
 def test_acoustics_2d_variable():
     """Test variable-coefficient 2D acoustics"""
 
-    import acoustics_2d_interface
+    from . import acoustics_2d_interface
 
     def verify_acoustics(controller, solver_type='classic'):
         """ Verifies 2d variable-coefficient acoustics from a previously verified classic run """

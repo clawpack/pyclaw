@@ -7,14 +7,16 @@ which is why there is no "write" function here (the code that
 writes these files is in AMRClaw, in Fortran).
 """
 
+from __future__ import absolute_import
 import os
 import logging
 
 from ..util import read_data_line
 import numpy as np
 import clawpack.pyclaw as pyclaw
+from six.moves import range
 
-logger = logging.getLogger('pyclaw.io')
+logger = logging.getLogger('pyclaw.fileio')
 
 
 def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
@@ -67,23 +69,23 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
 
     with open(q_fname,'r') as f:
         # Loop through patches, setting the appropriate information
-        for m in xrange(nstates):
+        for m in range(nstates):
         
             # Read in header for this patch
             patch_index = read_data_line(f,data_type=int)
             level       = read_data_line(f,data_type=int)
-            for i in xrange(num_dim):
+            for i in range(num_dim):
                 n[i] = read_data_line(f,data_type=int)
-            for i in xrange(num_dim):
+            for i in range(num_dim):
                 lower[i] = read_data_line(f)
-            for i in xrange(num_dim):
+            for i in range(num_dim):
                 d[i] = read_data_line(f)
 
             blank = f.readline()
 
             # Construct the patch
             dimensions = []
-            for i in xrange(num_dim):
+            for i in range(num_dim):
                 dimensions.append(
                     pyclaw.geometry.Dimension(lower[i],lower[i] + n[i]*d[i],n[i],name=names[i]))
             patch = pyclaw.geometry.Patch(dimensions)

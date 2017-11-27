@@ -8,9 +8,12 @@ PETSc's parallel i/o capabilities to allow for parallel reads and writes of
 frame data.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 from petsc4py import PETSc
 import pickle
 import os
+from six.moves import range
     
 
 def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
@@ -133,7 +136,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
     try:
         metadata_file = open(filenames['metadata'],'rb')
     except IOError:
-        print "Error: file " + filenames['metadata'] + " does not exist or is unreadable."
+        print("Error: file " + filenames['metadata'] + " does not exist or is unreadable.")
         raise
 
     # this dictionary is mostly holding debugging information, only nstates is needed
@@ -156,7 +159,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
         aux_viewer = set_up_viewers(filenames['aux'],file_format.lower(),PETSc.Viewer.Mode.READ)
 
     patches = []
-    for m in xrange(nstates):
+    for m in range(nstates):
         patch_dict = pickle.load(metadata_file)
 
         level   = patch_dict['level']
@@ -167,7 +170,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
 
         from clawpack import petclaw
         dimensions = []
-        for i in xrange(num_dim):
+        for i in range(num_dim):
             dimensions.append(
                 petclaw.Dimension(lower[i],lower[i] + n[i]*d[i],n[i],name=names[i]))
         patch = petclaw.Patch(dimensions)
@@ -175,7 +178,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=False,options={}):
         state = petclaw.State(patch,num_eqn,num_aux)
         state.t = value_dict['t']
         state.problem_data = value_dict.get('problem_data',{})
-        if value_dict.has_key('mapc2p'):
+        if 'mapc2p' in value_dict:
             # If no mapc2p is provided, leave the default identity map in grid
             state.grid.mapc2p = value_dict['mapc2p']
 
@@ -220,7 +223,7 @@ def read_t(frame,path='./',file_prefix='claw'):
     try:
         f = open(path,'rb')
     except IOError:
-        print "Error: file " + path + " does not exist or is unreadable."
+        print("Error: file " + path + " does not exist or is unreadable.")
         raise
     logger.debug("Opening %s file." % path)
     patch_dict = pickle.load(f)

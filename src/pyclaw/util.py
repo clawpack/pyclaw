@@ -4,6 +4,8 @@ r"""
 Pyclaw utility methods
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import time
 import os
 import sys
@@ -15,6 +17,7 @@ import warnings
 
 import numpy as np
 import contextlib
+from six.moves import zip
 
 
 LOGGING_LEVELS = {0:logging.CRITICAL,
@@ -188,7 +191,7 @@ def build_variant_arg_dicts(kernel_languages=('Fortran',), disable_petsc=False):
 
     opt_names = 'use_petsc','kernel_language'
     opt_product = itertools.product(use_petsc_opts,kernel_languages)
-    arg_dicts = [dict(zip(opt_names,argset)) for argset in opt_product]
+    arg_dicts = [dict(list(zip(opt_names,argset))) for argset in opt_product]
 
     return arg_dicts
 
@@ -221,7 +224,7 @@ def test_app(application, verifier, kwargs):
     For an example verifier method, see util.check_diff
 
     """
-    print kwargs
+    print(kwargs)
 
     if 'use_petsc' in kwargs and not kwargs['use_petsc']:
         try:
@@ -230,7 +233,7 @@ def test_app(application, verifier, kwargs):
             rank = PETSc.COMM_WORLD.getRank()
             if rank != 0:
                 return
-        except ImportError, e:
+        except ImportError as e:
             pass
 
     claw = application(**kwargs)
@@ -266,7 +269,7 @@ def check_diff(expected, test, **kwargs):
 
     This function expects either the keyword argument 'abstol' or 'reltol'.
     """
-    if kwargs.has_key('delta'):
+    if 'delta' in kwargs:
         d = np.prod(kwargs['delta'])
     else:
         d = 1.0
@@ -400,13 +403,13 @@ def compile_library(source_list,module_name,interface_functions=[],
 
     # Fetch environment variables we need for compilation
     if FC is None:
-        if os.environ.has_key('FC'):
+        if 'FC' in os.environ:
             FC = os.environ['FC']
         else:
             FC = 'gfortran'
 
     if FFLAGS is None:
-        if os.environ.has_key('FFLAGS'):
+        if 'FFLAGS' in os.environ:
             FFLAGS = os.environ['FFLAGS']
         else:
             FFLAGS = ''
@@ -541,7 +544,7 @@ def construct_function_handle(path,function_name=None):
         suffix = path.split('.')[-1]
         # This is a python file and we just need to read it and map it
         if suffix in ['py']:
-            execfile(full_path,globals())
+            exec(compile(open(full_path).read(), full_path, 'exec'),globals())
             return eval('%s' % function_name)
         else:
             raise Exception("Invalid file type for function handle.")
@@ -568,13 +571,15 @@ def read_data_line(inputfile,num_entries=1,data_type=float):
     l = []
     while  l==[]:  # skip over blank lines
         line = inputfile.readline()
+        if line == '':
+            raise IOError('*** Reached EOF in file %s' % inputfile.name)
         l = line.split()
     if num_entries == 1:  # This is a convenience for calling functions
         return data_type(l[0])
     val = np.empty(num_entries,data_type)
     if num_entries > len(l):
-        print 'Error in read_data_line: num_entries = ', num_entries
-        print '  is larger than length of l = ',l
+        print('Error in read_data_line: num_entries = ', num_entries)
+        print('  is larger than length of l = ',l)
     val = [data_type(entry) for entry in l[:num_entries]]
     return val
 

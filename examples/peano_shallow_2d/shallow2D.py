@@ -8,6 +8,8 @@
 # Import libraries
 #===========================================================================
 
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 #from petclaw import plot
 #import pdb  # Debugger
@@ -76,7 +78,7 @@ def shallow2D(use_petsc=False,outdir='./_output',solver_type='classic', disable_
 
     # Domain:
     from clawpack.pyclaw import geometry
-    print(geometry.__file__)
+    print((geometry.__file__))
     xlower = 0.0
     xupper = 1.0
     mx = subdivisionFactor
@@ -111,7 +113,7 @@ def shallow2D(use_petsc=False,outdir='./_output',solver_type='classic', disable_
 if __name__=="__main__":
     from clawpack.pyclaw.util import run_app_from_main
     output = run_app_from_main(shallow2D)
-    print 'Error: ', output
+    print('Error: ', output)
 
 
 

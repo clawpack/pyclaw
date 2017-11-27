@@ -10,8 +10,11 @@ This problem evolves the 3D Euler equations using an F-wave
 The primary variables are: 
    density (rho), x,y, and z momentum (rho*u,rho*v,rho*w), and energy.
 """
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 from mappedGrid import euler3d_mappedgrid as mg
+from six.moves import range
 
 try:
     from mpi4py import MPI
@@ -208,10 +211,10 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
     dzc = domain.grid.delta[2]
     pmx, pmy, pmz = grid.num_cells[0], grid.num_cells[1], grid.num_cells[2]
 
-    # Computational Grid Centers and Edges
+    # Computational Grid Centers and nodes
     centers = grid.c_centers # centers (Comp.)
     centersBC = grid.c_centers_with_ghost(mbc) # centers w Ghost (Comp.)
-    edgesBC = grid.c_edges_with_ghost(mbc) # edges w Ghost (Comp.)
+    nodesBC = grid.c_nodes_with_ghost(mbc) # nodes w Ghost (Comp.)
 
     # Grid Centers Without Boundary Cells (1D Slice) - Comp. and Phys.
     xcc = grid.x.centers # x centers (Comp.)
@@ -226,10 +229,10 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
     Ycp = np.reshape(Ycp,[pmx,pmy,pmz],order='F') # y centers (Phys.)
     Zcp = np.reshape(Zcp,[pmx,pmy,pmz],order='F') # z centers (Phys.)
 
-    # Grid Edges With Boundary Cells (1D Slice along z)- Comp. and Phys.
-    xecZ = edgesBC[0][0][0][:] # x edges along z (Comp.)
-    yecZ = edgesBC[1][0][0][:] # y edges along z (Comp.)
-    zecZ = edgesBC[2][0][0][:] # z edges along z (Comp.)
+    # Grid nodes With Boundary Cells (1D Slice along z)- Comp. and Phys.
+    xecZ = nodesBC[0][0][0][:] # x nodes along z (Comp.)
+    yecZ = nodesBC[1][0][0][:] # y nodes along z (Comp.)
+    zecZ = nodesBC[2][0][0][:] # z nodes along z (Comp.)
     xepZ,yepZ,zepZ = mg.mapc2pwrapper(xecZ,yecZ,zecZ,pmz,xyzMin,xyzMax,mapType)
 
     # Grid Centers With Boundary Cells (1D Slice along z) - Comp. and Phys.
@@ -240,7 +243,7 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
     xcpZ,ycpZ,zcpZ = mg.mapc2pwrapper(xccZ,yccZ,zccZ,pmz,xyzMin,xyzMax,mapType)
  
     if np.sqrt(xepZ[0]**2+yepZ[0]**2+zepZ[0]**2) <= 0:
-        print "WARNING: z may go below Earth's surface"," zepZ: ",zepZ[0:10]
+        print("WARNING: z may go below Earth's surface"," zepZ: ",zepZ[0:10])
 
     # Create vectors for 1D pressure and density column with boundary cells
     mz0 = pmz+2*mbc
@@ -256,7 +259,7 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
     p0 = modifyEquilibriumAtmosphere(zepZ,p0,rho0)
 
     # Set the auxiliary variables
-    xlower,ylower,zlower = edgesBC[0][0][0][0],edgesBC[1][0][0][0],edgesBC[2][0][0][0]
+    xlower,ylower,zlower = nodesBC[0][0][0][0],nodesBC[1][0][0][0],nodesBC[2][0][0][0]
     dxc,dyc,dzc = domain.grid.delta[0],domain.grid.delta[1],domain.grid.delta[2]
         
     global auxtmp

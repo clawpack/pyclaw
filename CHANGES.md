@@ -1,3 +1,7 @@
+# 5.4.0 release
+- PyClaw is now compatible with both Python 2.7 and Python 3.5.
+- There is a new 1D Euler shocktube example that uses the new HLLC Riemann solver.
+
 # 5.3.1 release
 - Added a new example that shows how to use a custom Riemann solver.
   It solves a two-species advection-reaction problem in 2D and is in 

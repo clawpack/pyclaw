@@ -1,6 +1,9 @@
 #!/usr/bin/env python
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 from petsc4py import PETSc
+from six.moves import range
 
 class PetCLAW:
     def advection1D(self, M, cfl, T):
@@ -11,10 +14,10 @@ class PetCLAW:
         # PETSc DA object, which handles structured grids, here are
         # requesting M global points 
         da = PETSc.DA().create([M])
-        print da.getSizes()
+        print(da.getSizes())
 
         ranges = da.getRanges()
-        print ranges[0][1] - ranges[0][0]
+        print(ranges[0][1] - ranges[0][0])
         
 
         # this solves the problem on the domain [0 1] by default
@@ -59,7 +62,7 @@ class PetCLAW:
         # this should dump the properly set initial conditions
         fg.view()
         
-        for n in xrange(N+1):
+        for n in range(N+1):
             # grab the working array out of the local vector
             # (including ghost points)
             q = fl.getArray()
@@ -90,7 +93,7 @@ class PetCLAW:
         cfl = OptDB.getReal('cfl',0.95)
         T = OptDB.getReal('T',2.)
         self.advection1D(M, cfl, T)
-        print 'Done'
+        print('Done')
         return
           
 if __name__ == '__main__':

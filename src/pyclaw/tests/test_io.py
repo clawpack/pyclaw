@@ -1,7 +1,9 @@
+from __future__ import absolute_import
 import os
 import numpy as np
 from clawpack.pyclaw import Solution
 from clawpack.pyclaw.util import check_solutions_are_same
+import six
 
 class IOTest():
     @property
@@ -58,5 +60,5 @@ class IOTest():
 
         # Compare solutions
         # Probably better to do this by defining __eq__ for each class
-        for fmt, sol in s.iteritems():
+        for fmt, sol in six.iteritems(s):
             check_solutions_are_same(sol,ref_sol)

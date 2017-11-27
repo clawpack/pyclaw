@@ -16,14 +16,17 @@ is a bit tricky.
 
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 
 import pyweno.symbolic
 import pyweno.c
+from six.moves import range
 
 # config
 
-K = range(3, 10)                        # 2*k-1 order reconstructions
+K = list(range(3, 10))                        # 2*k-1 order reconstructions
 module = 'reconstruct'                  # py module name
 output = module + '.c'
 
@@ -37,7 +40,7 @@ f.write(c.wrapper_head(module))
 # smoothness
 for k in K:
 
-    print 'generating code for k = %d...' % k
+    print('generating code for k = %d...' % k)
 
     beta = pyweno.symbolic.jiang_shu_smoothness_coefficients(k)
     c.set_smoothness(beta)

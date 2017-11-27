@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 def test_sedov_and_hdf():
     """Test HDF I/O on Sedov 3D Euler application"""
 
@@ -8,7 +10,7 @@ def test_sedov_and_hdf():
         import nose
         raise nose.SkipTest
 
-    import Sedov
+    from . import Sedov
 
     def verify_sedov(controller):
         import os
@@ -57,8 +59,9 @@ def test_sedov_and_hdf():
         ERROR_STR= """Error removing %(path)s, %(error)s """
         try:
             shutil.rmtree(tempdir )
-        except OSError as (errno, strerror):
-            print ERROR_STR % {'path' : tempdir, 'error': strerror }
+        except OSError as xxx_todo_changeme:
+            (errno, strerror) = xxx_todo_changeme.args
+            print(ERROR_STR % {'path' : tempdir, 'error': strerror })
 
 
 if __name__=="__main__":

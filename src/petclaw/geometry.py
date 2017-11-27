@@ -4,6 +4,7 @@ r"""
 Module containing petclaw.geometry.
 """
 
+from __future__ import absolute_import
 from clawpack import pyclaw
 from clawpack.pyclaw import geometry as pyclaw_geometry
 
@@ -12,9 +13,9 @@ class Patch(pyclaw_geometry.Patch):
     """
 
     __doc__ += pyclaw.util.add_parent_doc(pyclaw_geometry.Patch)
-    
+
     def __init__(self,dimensions):
-        
+
         super(Patch,self).__init__(dimensions)
 
         self._da = self._create_DA()
@@ -26,8 +27,7 @@ class Patch(pyclaw_geometry.Patch):
             num_cells   = nrange[1]-nrange[0]
 
             grid_dimensions.append(pyclaw_geometry.Dimension(lower,upper,
-                                        num_cells,name=dimensions[i].name))
-
+                                   num_cells,name=self.dimensions[i].name))
 
             if nrange[0] == 0:
                 grid_dimensions[-1].on_lower_boundary = True
@@ -37,7 +37,7 @@ class Patch(pyclaw_geometry.Patch):
             if nrange[1] == self.num_cells_global[i]:
                 grid_dimensions[-1].on_upper_boundary = True
             else:
-                grid_dimensions[-1].on_upper_boundary = False  
+                grid_dimensions[-1].on_upper_boundary = False
 
         self.grid = pyclaw_geometry.Grid(grid_dimensions)
 
@@ -58,18 +58,18 @@ class Patch(pyclaw_geometry.Patch):
                 raise Exception("Invalid number of dimensions")
 
             DA = PETSc.DA().create(dim=self.num_dim,
-                                          dof=1,
-                                          sizes=self.num_cells_global,
-                                          periodic_type = periodic_type,
-                                          stencil_width=0,
-                                          comm=PETSc.COMM_WORLD)
+                                   dof=1,
+                                   sizes=self.num_cells_global,
+                                   periodic_type=periodic_type,
+                                   stencil_width=0,
+                                   comm=PETSc.COMM_WORLD)
         else:
             DA = PETSc.DA().create(dim=self.num_dim,
-                                          dof=1,
-                                          sizes=self.num_cells_global,
-                                          boundary_type = PETSc.DA.BoundaryType.PERIODIC,
-                                          stencil_width=0,
-                                          comm=PETSc.COMM_WORLD)
+                                   dof=1,
+                                   sizes=self.num_cells_global,
+                                   boundary_type=PETSc.DA.BoundaryType.PERIODIC,
+                                   stencil_width=0,
+                                   comm=PETSc.COMM_WORLD)
 
         return DA
 
@@ -77,9 +77,9 @@ class Patch(pyclaw_geometry.Patch):
 #  PetClaw Domain object definition
 # ============================================================================
 class Domain(pyclaw_geometry.Domain):
-    r""" Parallel Domain Class    
+    r""" Parallel Domain Class
     """
-    
+
     __doc__ += pyclaw.util.add_parent_doc(pyclaw.ClawSolver2D)
 
     def __init__(self,geom):
@@ -94,6 +94,5 @@ class Dimension(pyclaw_geometry.Dimension):
     def __init__(self, lower, upper, num_cells, name='x',
                  on_lower_boundary=None,on_upper_boundary=None, units=None):
         super(Dimension, self).__init__(lower, upper, num_cells, name,
-                 on_lower_boundary,on_upper_boundary, units)
-
-
+                                        on_lower_boundary,on_upper_boundary,
+                                        units)

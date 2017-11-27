@@ -14,6 +14,8 @@ Reference: Logically Rectangular Grids and Finite Volume Methods for PDEs in
            SIAM Review 50 (2008), 723-752. 
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import math
 import os
 import sys
@@ -23,10 +25,11 @@ import numpy as np
 from clawpack import pyclaw
 from clawpack import riemann
 from clawpack.pyclaw.util import inplace_build
+from six.moves import range
 
 try:
-    import problem
-    import classic2
+    from clawpack.pyclaw.examples.shallow_sphere import problem
+    from clawpack.pyclaw.examples.shallow_sphere import classic2
 
 except ImportError:
     this_dir = os.path.dirname(__file__)
@@ -36,10 +39,10 @@ except ImportError:
 
     try:
         # Now try to import again
-        import problem
-        import classic2
+        from clawpack.pyclaw.examples.shallow_sphere import problem
+        from clawpack.pyclaw.examples.shallow_sphere import classic2
     except ImportError:
-        print >> sys.stderr, "***\nUnable to import problem module or automatically build, try running (in the directory of this file):\n python setup.py build_ext -i\n***"
+        print("***\nUnable to import problem module or automatically build, try running (in the directory of this file):\n python setup.py build_ext -i\n***", file=sys.stderr)
         raise
 
 
@@ -529,7 +532,7 @@ def plot_on_sphere():
         # Concatenate path and file name
         pathFileName = path + "/" + fileName
 
-        f = file(pathFileName,"r")
+        f = open(pathFileName,"r")
 
         # Read file header
         # ================

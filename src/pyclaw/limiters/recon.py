@@ -1,10 +1,12 @@
 #Reconstruction functions for SharpClaw
 
+from __future__ import absolute_import
+from six.moves import range
 def weno(k, q):
     import numpy as np
 
     if k != 5:
-        raise ValueError, '%d order WENO reconstruction not supported' % k
+        raise ValueError('%d order WENO reconstruction not supported' % k)
 
     epweno=1.e-36
 
@@ -74,12 +76,12 @@ def weno5_wave(q,wave,s):
         inone=-im
         intwo=-2*im
 
-        for mw in xrange(num_waves):
+        for mw in range(num_waves):
             wnorm2 = wave[0,mw,LL:UL]**2
             theta1 = wave[0,mw,LL+intwo:UL+intwo]*wave[0,mw,LL:UL]
             theta2 = wave[0,mw,LL+inone:UL+inone]*wave[0,mw,LL:UL]
             theta3 = wave[0,mw,LL+ione :UL+ione ]*wave[0,mw,LL:UL]
-            for m in xrange(1,num_eqn):
+            for m in range(1,num_eqn):
                 wnorm2 += wave[m,mw,LL:UL]**2
                 theta1 += wave[m,mw,LL+intwo:UL+intwo]*wave[m,mw,LL:UL]
                 theta2 += wave[m,mw,LL+inone:UL+inone]*wave[m,mw,LL:UL]
@@ -108,7 +110,7 @@ def weno5_wave(q,wave,s):
             u=np.where(wnorm2>1.e-14,z,0.)
             wnorm2=np.where(wnorm2>1.e-14,1./wnorm2,1.)
 
-            for m in xrange(num_eqn):
+            for m in range(num_eqn):
                 if m1==1: qr[m,LL:UL] += u*wave[m,mw,LL:UL]*wnorm2
                 else: ql[m,LL+1:UL+1] += u*wave[m,mw,LL:UL]*wnorm2
 

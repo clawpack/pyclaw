@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
+r"""
 Compressible Euler flow over a forward-facing step
 ==================================================
 
 Solve the Euler equations of compressible fluid dynamics in 2D:
 
 .. math::
-    \rho_t + (\rho u)_x + (\rho v)_y & = 0 \\
-    (\rho u)_t + (\rho u^2 + p)_x + (\rho uv)_y & = 0 \\
-    (\rho v)_t + (\rho uv)_x + (\rho v^2 + p)_y & = 0 \\
-    E_t + (u (E + p) )_x + (v (E + p))_y & = 0.
+    \rho_t + (\rho u)_x + (\rho v)_y = 0 \\
+    (\rho u)_t + (\rho u^2 + p)_x + (\rho uv)_y = 0 \\
+    (\rho v)_t + (\rho uv)_x + (\rho v^2 + p)_y = 0 \\
+    E_t + (u (E + p) )_x + (v (E + p))_y = 0.
 
 
 Here :math:`\rho` is the density, (u,v) is the velocity, and E is the total energy.
@@ -27,9 +27,30 @@ to handle other internal boundary geometries, as long as they are
 aligned with the grid.
 """
 
+from __future__ import absolute_import
+from six.moves import range
+import os
+
 gamma = 1.4 # Ratio of specific heats
 
-def incoming_shock(state,dim,t,qbc,num_ghost):
+try:
+    from clawpack.pyclaw.examples.euler_2d import euler_with_boundaries
+except ImportError:
+    this_dir = os.path.dirname(__file__)
+    if this_dir == '':
+        this_dir = os.path.abspath('.')
+    import subprocess
+    cmd = "make -C "+this_dir
+    proc = subprocess.Popen("make -C "+this_dir+"/", shell=True, stdout = subprocess.PIPE)#, stdout=subprocess.PIPE)
+    proc.wait()
+    try:
+        # Now try to import again
+        from clawpack.pyclaw.examples.euler_2d import euler_with_boundaries
+    except ImportError:
+        raise
+
+
+def incoming_shock(state,dim,t,qbc,auxbc,num_ghost):
     """
     Incoming shock at left boundary.
     """
@@ -39,7 +60,7 @@ def incoming_shock(state,dim,t,qbc,num_ghost):
     p   = 1.0;
     T   = 2*p/rho;
 
-    for i in xrange(num_ghost):
+    for i in range(num_ghost):
         qbc[0,i,...] = rho
         qbc[1,i,...] = rho*u
         qbc[2,i,...] = rho*v
@@ -54,10 +75,7 @@ def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_langua
     else:
         from clawpack import pyclaw
 
-    try:
-        import euler_with_boundaries
-    except ImportError:
-        raise Exception("Please run make in this directory to compile the Riemann solver.")
+    import euler_with_boundaries
 
     if solver_type=='sharpclaw':
         #solver = pyclaw.SharpClawSolver2D(euler_with_boundaries)

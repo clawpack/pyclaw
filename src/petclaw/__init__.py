@@ -1,5 +1,6 @@
 """Main petclaw package"""
 
+from __future__ import absolute_import
 import os
 import logging, logging.config
 
@@ -29,9 +30,9 @@ __all__.append('BC')
 from clawpack.pyclaw.solver import BC
 
 # Sub-packages
-import limiters
-from limiters import *
+from . import limiters
+from .limiters import *
 __all__.extend(limiters.__all__)
 
-import plot
+from . import plot
 __all__.append('plot')

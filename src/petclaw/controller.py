@@ -2,6 +2,7 @@
 Module for PetClaw controller class.
 """
 
+from __future__ import absolute_import
 from clawpack import pyclaw
 
 class Controller(pyclaw.controller.Controller):

@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from six.moves import range
 def interactive_plot(outdir='./_output',file_format='petsc',setplot=None):
     """
     Convenience function for launching an interactive plotting session.
@@ -21,7 +23,7 @@ def plotPetsc(clawobj,delay=1):
     from clawpack.pyclaw import controller, solution
 
     if isinstance(clawobj,controller.Controller):
-        for n in xrange(0,clawobj.num_output_times):
+        for n in range(0,clawobj.num_output_times):
             sol = clawobj.frames[n]
             viewer = PETSc.Viewer.DRAW(sol.patch.gqVec.comm)
             OptDB = PETSc.Options()

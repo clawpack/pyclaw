@@ -6,8 +6,8 @@ Advection in an annular domain
 
 Solve the linear advection equation:
 
-.. math:: 
-    q_t + (u(x,y) q)_x + (v(x,y) q)_y & = 0
+.. math::
+    q_t + (u(x,y) q)_x + (v(x,y) q)_y = 0
 
 in an annular domain, using a mapped grid.
 
@@ -16,6 +16,7 @@ field.  We take a rotational velocity field: :math:`u = \cos(\theta), v = \sin(\
 
 This is the simplest example that shows how to use a mapped grid in PyClaw.
 """
+from __future__ import absolute_import
 import numpy as np
 
 def mapc2p_annulus(xc, yc):
@@ -66,9 +67,9 @@ def ghost_velocities_upper(state,dim,t,qbc,auxbc,num_ghost):
     grid=state.grid
     if dim == grid.dimensions[0]:
         dx, dy = grid.delta
-        R_edges,Theta_edges = grid.p_edges_with_ghost(num_ghost=2)
+        R_nodes,Theta_nodes = grid.p_nodes_with_ghost(num_ghost=2)
 
-        auxbc[:,-num_ghost:,:] = edge_velocities_and_area(R_edges[-num_ghost-1:,:],Theta_edges[-num_ghost-1:,:],dx,dy)
+        auxbc[:,-num_ghost:,:] = edge_velocities_and_area(R_nodes[-num_ghost-1:,:],Theta_nodes[-num_ghost-1:,:],dx,dy)
 
     else:
         raise Exception('Custom BC for this boundary is not appropriate!')
@@ -82,40 +83,40 @@ def ghost_velocities_lower(state,dim,t,qbc,auxbc,num_ghost):
     grid=state.grid
     if dim == grid.dimensions[0]:
         dx, dy = grid.delta
-        R_edges,Theta_edges = grid.p_edges_with_ghost(num_ghost=2)
+        R_nodes,Theta_nodes = grid.p_nodes_with_ghost(num_ghost=2)
 
-        auxbc[:,0:num_ghost,:] = edge_velocities_and_area(R_edges[0:num_ghost+1,:],Theta_edges[0:num_ghost+1,:],dx,dy)
+        auxbc[:,0:num_ghost,:] = edge_velocities_and_area(R_nodes[0:num_ghost+1,:],Theta_nodes[0:num_ghost+1,:],dx,dy)
 
     else:
         raise Exception('Custom BC for this boundary is not appropriate!')
 
 
-def edge_velocities_and_area(R_edges,Theta_edges,dx,dy):
+def edge_velocities_and_area(R_nodes,Theta_nodes,dx,dy):
     """This routine fills in the aux arrays for the problem:
 
         aux[0,i,j] = u-velocity at left edge of cell (i,j)
         aux[1,i,j] = v-velocity at bottom edge of cell (i,j)
         aux[2,i,j] = physical area of cell (i,j) (relative to area of computational cell)
     """
-    mx = R_edges.shape[0]-1
-    my = R_edges.shape[1]-1
+    mx = R_nodes.shape[0]-1
+    my = R_nodes.shape[1]-1
     aux = np.empty((3,mx,my), order='F')
 
     # Bottom-left corners
-    Xp0 = R_edges[:mx,:my]
-    Yp0 = Theta_edges[:mx,:my]
+    Xp0 = R_nodes[:mx,:my]
+    Yp0 = Theta_nodes[:mx,:my]
 
     # Top-left corners
-    Xp1 = R_edges[:mx,1:]
-    Yp1 = Theta_edges[:mx,1:]
+    Xp1 = R_nodes[:mx,1:]
+    Yp1 = Theta_nodes[:mx,1:]
 
     # Top-right corners
-    Xp2 = R_edges[1:,1:]
-    Yp2 = Theta_edges[1:,1:]
+    Xp2 = R_nodes[1:,1:]
+    Yp2 = Theta_nodes[1:,1:]
 
     # Top-left corners
-    Xp3 = R_edges[1:,:my]
-    Yp3 = Theta_edges[1:,:my]
+    Xp3 = R_nodes[1:,:my]
+    Yp3 = Theta_nodes[1:,:my]
 
     # Compute velocity component
     aux[0,:mx,:my] = (stream(Xp1,Yp1)- stream(Xp0,Yp0))/dy
@@ -195,7 +196,7 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     qinit(state)
 
     dx, dy = state.grid.delta
-    p_corners = state.grid.p_edges
+    p_corners = state.grid.p_nodes
     state.aux = edge_velocities_and_area(p_corners[0],p_corners[1],dx,dy)
     state.index_capa = 2 # aux[2,:,:] holds the capacity function
 
@@ -214,7 +215,7 @@ def setplot(plotdata):
     """ 
     Plot solution using VisClaw.
     """
-    from mapc2p import mapc2p
+    from clawpack.pyclaw.examples.advection_2d_annulus.mapc2p import mapc2p
     import numpy as np
     from clawpack.visclaw import colormaps
 
