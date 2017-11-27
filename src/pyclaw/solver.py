@@ -32,6 +32,14 @@ def before_step(solver,solution):
     """
     pass
 
+def after_step(solver,solution):
+    r"""
+    Dummy routine called after each step
+    
+    Replace this routine if you want to do something after each time step.
+    """
+    pass
+
 class Solver(object):
     r"""
     Pyclaw solver superclass.
@@ -84,6 +92,14 @@ class Solver(object):
         The required signature for this function is:
         
         def before_step(solver,solution)
+
+    .. attribute:: after_step
+    
+        Function called after each time step is taken.
+        The required signature for this function is:
+        
+        def after_step(solver,solution)
+
 
     .. attribute:: dt_variable
     
@@ -179,6 +195,7 @@ class Solver(object):
         self._use_old_bc_sig = False
         self.accept_step = True
         self.before_step = None
+        self.after_step = None
 
         # select package to build solver objects from, by default this will be
         # the package that contains the module implementing the derived class
@@ -609,6 +626,9 @@ class Solver(object):
 
             # Note that the solver may alter dt during the step() routine
             self.step(solution,take_one_step,tstart,tend)
+
+            if self.after_step is not None:
+                self.after_step(self,solution.states[0])
 
             # Check to make sure that the Courant number was not too large
             cfl = self.cfl.get_cached_max()
