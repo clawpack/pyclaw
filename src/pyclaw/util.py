@@ -284,8 +284,41 @@ def check_diff(expected, test, **kwargs):
     else:
         raise Exception('Incorrect use of check_diff verifier, specify tol!')
 
+def check_solutions_are_same(sol_a,sol_b):
+    assert len(sol_a.states) == len(sol_b.states)
+    assert sol_a.t == sol_b.t
+    for state in sol_a.states:
+        for ref_state in sol_b.states:
+            if ref_state.patch.patch_index == state.patch.patch_index:
+                break
 
+        # Required state attributes
+        assert np.linalg.norm(state.q - ref_state.q) < 1.e-6 # Not sure why this can be so large
+        if ref_state.aux is not None:
+            assert np.linalg.norm(state.aux - ref_state.aux) < 1.e-16
+        for attr in ['t', 'num_eqn', 'num_aux']:
+            assert getattr(state,attr) == getattr(ref_state,attr)
+        # Optional state attributes
+        for attr in ['patch_index', 'level']:
+            if hasattr(ref_state,attr):
+                assert getattr(state,attr) == getattr(ref_state,attr)
 
+        patch = state.patch
+        ref_patch = ref_state.patch
+        # Required patch attributes
+        for attr in ['patch_index', 'level']:
+            assert getattr(patch,attr) == getattr(ref_patch,attr)
+
+        dims = patch.dimensions
+        ref_dims = ref_patch.dimensions
+        for dim, ref_dim in zip(dims,ref_dims):
+            # Required dim attributes
+            for attr in ['num_cells','lower','delta']:
+                assert getattr(dim,attr) == getattr(ref_dim,attr)
+            # Optional dim attributes
+            for attr in ['units','on_lower_boundary','on_upper_boundary']:
+                if hasattr(ref_dim,attr):
+                    assert getattr(dim,attr) == getattr(ref_dim,attr)
 # ============================================================================
 #  F2PY Utility Functions
 # ============================================================================
