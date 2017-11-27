@@ -52,15 +52,10 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(rs)
-        solver.time_integrator = 'Euler'
+        solver.time_integrator = 'RK'
         solver.a, solver.b, solver.c = a, b, c
         solver.cfl_desired = 0.6
         solver.cfl_max = 0.7
-
-        solver.weno_order = 2
-        solver.num_ghost = 2
-        solver.lim_type = 1
-        
         if use_char_decomp:
             try:
                 import sharpclaw1               # Import custom Fortran code

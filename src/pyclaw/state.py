@@ -189,7 +189,7 @@ class State(object):
             valid = False
         if self.aux is not None:
             if not self.aux.flags['F_CONTIGUOUS']:
-                logger.debug('aux array is not Fortran contiguous.')
+                logger.debug('q array is not Fortran contiguous.')
                 valid = False
         return valid
  
