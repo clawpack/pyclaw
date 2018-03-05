@@ -47,7 +47,6 @@ install:
   - conda install -c conda-forge petsc4py
   - conda install -c conda-forge scipy
   - conda install -c conda-forge python-coveralls
-  - python -c "import scipy; print(scipy.__version__)"
   - python setup.py install
 
 script:
