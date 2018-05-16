@@ -39,31 +39,33 @@ class SharpClawSolver(Solver):
     .. attribute:: lim_type
 
         Limiter(s) to be used.
-        0: No limiting.
-        1: TVD reconstruction.
-        2: WENO reconstruction.
+            - 0: No limiting.
+            - 1: TVD reconstruction.
+            - 2: WENO reconstruction.
+
         ``Default = 2``
 
     .. attribute:: weno_order
 
         Order of the WENO reconstruction. From 1st to 17th order (PyWENO)
+
         ``Default = 5``
 
     .. attribute:: time_integrator
 
         Time integrator to be used. Currently implemented methods:
 
-        'Euler'  : 1st-order Forward Euler integration
-        'SSP33'  : 3rd-order strong stability preserving method of Shu & Osher
-        'SSP104' : 4th-order strong stability preserving method Ketcheson
-        'SSPLMM32': 2nd-order strong stability preserving 3-step linear multistep method,
-                   using Euler for starting values
-        'SSPLMM43': 3rd-order strong stability preserving 4-step linear multistep method
-                   using SSPRK22 for starting values
-        'RK'     : Arbitrary Runge-Kutta method, specified by setting `solver.a`
-                   and `solver.b` to the Butcher arrays of the method.
-        'LMM'    : Arbitrary linear multistep method, specified by setting the
-                   coefficient arrays `solver.alpha` and `solver.beta`.
+            - 'Euler'  : 1st-order Forward Euler integration
+            - 'SSP33'  : 3rd-order strong stability preserving method of Shu & Osher
+            - 'SSP104' : 4th-order strong stability preserving method Ketcheson
+            - 'SSPLMM32': 2nd-order strong stability preserving 3-step linear multistep method,
+                          using Euler for starting values
+            - 'SSPLMM43': 3rd-order strong stability preserving 4-step linear multistep method
+                          using SSPRK22 for starting values
+            - 'RK'     : Arbitrary Runge-Kutta method, specified by setting `solver.a`
+                         and `solver.b` to the Butcher arrays of the method.
+            - 'LMM'    : Arbitrary linear multistep method, specified by setting the
+                         coefficient arrays `solver.alpha` and `solver.beta`.
 
         ``Default = 'SSP104'``
 
