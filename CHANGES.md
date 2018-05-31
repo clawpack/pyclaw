@@ -1,3 +1,16 @@
+# 5.5.0 release
+- Some improvements to what happens if a user specifies the wrong file format when reading simulation data.
+
+# 5.4.1 release
+- Fixed a few bugs involving things that didn't work in Python 3.
+- Added gauges.compare_gauges() function to easily plot gauge data from different directories on a single plot.
+- Enabled reading of gauges for 1D simulations.
+- Bug fix: loggers no longer try to access pyclaw.io (changed to pyclaw.fileio).
+- A PetClaw Patch object can be initialized using a single Dimension (no need for a list).
+- Support for ForestClaw moved to src/forestclaw.  Added tests for ForestClaw.
+- Added a 2D shallow water example with bathymetry in examples/shallow_2d/sill.py.
+- Inform user when boundary conditions are not set.
+
 # 5.4.0 release
 - PyClaw is now compatible with both Python 2.7 and Python 3.5.
 - There is a new 1D Euler shocktube example that uses the new HLLC Riemann solver.

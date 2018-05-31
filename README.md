@@ -20,5 +20,10 @@ of Clawpack and SharpClaw.
 It has been designed with easy extensibility, performance, and exploration in mind.
 PyClaw also includes a scalable parallel implementation of Clawpack using PETSc.
 
+Full documentation is available at http://clawpack.org/pyclaw/.
+
 You can get the latest development version of PyClaw from
 http://github.com/clawpack/.
+
+If you use PyClaw in research that leads to publication, please
+[cite PyClaw](http://www.clawpack.org/pyclaw/index.html#citing).
