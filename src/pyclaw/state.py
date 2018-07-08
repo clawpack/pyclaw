@@ -2,9 +2,6 @@
 # encoding: utf-8
 r"""
 Module containing all Pyclaw solution objects
-
-:Authors:
-    David I. Ketcheson -- Initial version (June 2011)
 """
 
 

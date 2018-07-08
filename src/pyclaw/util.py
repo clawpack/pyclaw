@@ -30,8 +30,7 @@ def add_parent_doc(parent):
     """add parent documentation for a class""" 
     
     return """
-    Parent Class Documentation
-    ==========================
+    **Parent Class Documentation:**
     """ + parent.__doc__
 
 def run_serialized(fun):
