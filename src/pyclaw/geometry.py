@@ -85,8 +85,8 @@ class Grid(object):
         >>> grid.num_cells
         [10, 25, 21]
 
-    Coordinates
-    ===========
+    **Coordinates:**
+
     We can get the x, y, and z-coordinate arrays of cell nodes and centers from the grid.
     Properties beginning with 'c' refer to the computational (unmapped) domain, while
     properties beginning with 'p' refer to the physical (mapped) domain.  For grids with
@@ -113,8 +113,8 @@ class Grid(object):
         >>> grid1d.c_centers_with_ghost(2)
         [array([-0.3, -0.1,  0.1,  0.3,  0.5,  0.7,  0.9,  1.1,  1.3])]
 
-    Mappings
-    ========
+    **Mappings:**
+
     A grid mapping can be used to solve in a domain that is not rectangular,
     or to adjust the local spacing of grid cells.  For instance, we can
     use smaller cells on the left and larger cells on the right by doing:
