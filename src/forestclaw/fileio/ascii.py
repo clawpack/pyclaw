@@ -15,7 +15,7 @@ from .. import Dimension, Patch
 from clawpack.pyclaw.fileio.ascii import write
 from clawpack.pyclaw.fileio.ascii import read
 from clawpack.pyclaw.util import read_data_line
-import forestclaw
+import clawpack.forestclaw as forestclaw
 
 
 
