@@ -9,13 +9,12 @@ from __future__ import print_function
 
 import logging
 import numpy as np
-# import clawpack.forestclaw as forestclaw
+from clawpack import forestclaw
 
 from .. import Dimension, Patch
 from clawpack.pyclaw.fileio.ascii import write
 from clawpack.pyclaw.fileio.ascii import read
 from clawpack.pyclaw.util import read_data_line
-import forestclaw
 
 
 
