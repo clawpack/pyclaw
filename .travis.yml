@@ -10,7 +10,7 @@ env:
 
 python:
   - 2.7
-  - 3.5
+  - 3.6
 
 before_install:
   - sudo apt-get update -qq
@@ -38,12 +38,7 @@ install:
   - conda info -a
   - conda install -c conda-forge mpich mpi4py
   - conda install matplotlib nose coverage
-  - conda install -c clawpack hdf5-parallel
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.5" ]]; then
-      conda install -c clawpack -c conda-forge h5py-parallel=2.6.0=py35_0;
-    else
-      conda install -c clawpack h5py-parallel=2.6.0=py27_0;
-    fi
+  - conda install -c clawpack hdf5-parallel h5py-parallel
   - conda install -c conda-forge petsc4py
   - conda install -c conda-forge scipy
   - conda install -c conda-forge python-coveralls
