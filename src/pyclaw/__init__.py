@@ -4,6 +4,13 @@ from __future__ import absolute_import
 import os
 import logging, logging.config
 
+
+# To get pyclaw.examples
+_path = os.path.dirname(os.path.dirname(__path__[0]))
+if os.path.isdir(_path):
+    __path__.append(_path)
+del _path
+
 # Default logging configuration file
 _DEFAULT_LOG_CONFIG_PATH = os.path.join(os.path.dirname(__file__),'log.config')
 del os
