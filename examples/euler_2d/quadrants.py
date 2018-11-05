@@ -71,21 +71,26 @@ def setplot(plotdata):
     return plotdata
 
 
-def setup(use_petsc=False):
+def setup(use_petsc=False,riemann_solver='roe'):
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
         from clawpack import pyclaw
 
-    solver = pyclaw.ClawSolver2D(riemann.euler_4wave_2D)
+    if riemann_solver.lower() == 'roe':
+        solver = pyclaw.ClawSolver2D(riemann.euler_4wave_2D)
+        solver.transverse_waves = 2
+    elif riemann_solver.lower() == 'hlle':
+        solver = pyclaw.ClawSolver2D(riemann.euler_hlle_2D)
+        solver.transverse_waves = 0
+        solver.cfl_desired = 0.4
+        solver.cfl_max = 0.5
     solver.all_bcs = pyclaw.BC.extrap
 
     domain = pyclaw.Domain([0.,0.],[1.,1.],[100,100])
     solution = pyclaw.Solution(num_eqn,domain)
     gamma = 1.4
     solution.problem_data['gamma']  = gamma
-    solver.dimensional_split = False
-    solver.transverse_waves = 2
 
     # Set initial data
     xx, yy = domain.grid.p_centers
@@ -109,6 +114,7 @@ def setup(use_petsc=False):
 
     claw = pyclaw.Controller()
     claw.tfinal = 0.8
+    claw.num_output_times = 10
     claw.solution = solution
     claw.solver = solver
 
