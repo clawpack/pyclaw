@@ -29,36 +29,18 @@ aligned with the grid.
 
 from __future__ import absolute_import
 from six.moves import range
-import os
 
 gamma = 1.4 # Ratio of specific heats
-
-try:
-    from clawpack.pyclaw.examples.euler_2d import euler_with_boundaries
-except ImportError:
-    this_dir = os.path.dirname(__file__)
-    if this_dir == '':
-        this_dir = os.path.abspath('.')
-    import subprocess
-    cmd = "make -C "+this_dir
-    proc = subprocess.Popen("make -C "+this_dir+"/", shell=True, stdout = subprocess.PIPE)#, stdout=subprocess.PIPE)
-    proc.wait()
-    try:
-        # Now try to import again
-        from clawpack.pyclaw.examples.euler_2d import euler_with_boundaries
-    except ImportError:
-        raise
-
 
 def incoming_shock(state,dim,t,qbc,auxbc,num_ghost):
     """
     Incoming shock at left boundary.
     """
-    rho = 1.4;
-    u   = 3.0;
-    v   = 0.0;
-    p   = 1.0;
-    T   = 2*p/rho;
+    rho = 1.4
+    u   = 3.0
+    v   = 0.0
+    p   = 1.0
+    T   = 2*p/rho
 
     for i in range(num_ghost):
         qbc[0,i,...] = rho
@@ -75,13 +57,13 @@ def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_langua
     else:
         from clawpack import pyclaw
 
-    import euler_with_boundaries
+    from clawpack import riemann
 
     if solver_type=='sharpclaw':
         #solver = pyclaw.SharpClawSolver2D(euler_with_boundaries)
         raise Exception('This problem does not currently work with SharpClaw')
     else:
-        solver = pyclaw.ClawSolver2D(euler_with_boundaries)
+        solver = pyclaw.ClawSolver2D(riemann.euler_hlle_with_walls_2D)
         solver.dimensional_split = True
 
     solver.num_eqn = 4
@@ -107,16 +89,16 @@ def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_langua
     solver.aux_bc_lower[1]=pyclaw.BC.wall
     solver.aux_bc_upper[1]=pyclaw.BC.wall
 
-    rho = 1.4;
-    u = 3.0;
-    v = 0.;
-    p = 1.0;
-    T = 2*p/rho;
+    rho = 1.4
+    u = 3.0
+    v = 0.
+    p = 1.0
+    T = 2*p/rho
 
-    state.q[0,...] = rho;
-    state.q[1,...] = rho*u;
-    state.q[2,...] = rho*v;
-    state.q[3,...] = rho*(5.0/4 * T + (u**2+v**2)/2.);
+    state.q[0,...] = rho
+    state.q[1,...] = rho*u
+    state.q[2,...] = rho*v
+    state.q[3,...] = rho*(5.0/4 * T + (u**2+v**2)/2.)
 
     x,y = domain.grid.p_centers
 
@@ -144,14 +126,13 @@ def setplot(plotdata):
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
     
-    # Pressure plot
+    # Density plot
     plotfigure = plotdata.new_plotfigure(name='Density', figno=0)
 
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.title = 'Density'
     plotaxes.scaled = True      # so aspect ratio is 1
     plotaxes.afteraxes = fill_step
-    #plotitem = plotaxes.new_plotitem(plot_type='2d_schlieren')
     plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
     plotitem.plot_var = 0
     plotitem.pcolor_cmin = 1
@@ -159,30 +140,27 @@ def setplot(plotdata):
     plotitem.add_colorbar = True
     
 
-    # Energy plot
-    plotfigure = plotdata.new_plotfigure(name='Energy', figno=2)
+    # Schlieren plot of density
+    plotfigure = plotdata.new_plotfigure(name='Schlieren', figno=1)
 
     plotaxes = plotfigure.new_plotaxes()
-    plotaxes.title = 'Energy'
+    plotaxes.title = 'Density (Schlieren)'
     plotaxes.scaled = True      # so aspect ratio is 1
     
     plotaxes.afteraxes = fill_step
-    plotitem = plotaxes.new_plotitem(plot_type='2d_pcolor')
-    plotitem.pcolor_cmin = 2.
-    plotitem.pcolor_cmax=18.0
-    plotitem.plot_var = 3
-    plotitem.pcolor_cmap = colormaps.yellow_red_blue
-    plotitem.add_colorbar = True
+    plotitem = plotaxes.new_plotitem(plot_type='2d_schlieren')
+    plotitem.schlieren_cmin = 0.
+    plotitem.schlieren_cmax = 3.
+    plotitem.plot_var = 0
+    plotitem.add_colorbar = False
     
     return plotdata
    
-def fill_step(currentdata):
+def fill_step(_):
     "Fill the step area with a black rectangle."
     import matplotlib.pyplot as plt
-    plt.hold(True);
     rectangle = plt.Rectangle((0.6,0.0),2.4,0.2,color="k",fill=True)
     plt.gca().add_patch(rectangle)
-    plt.hold(False);
 
 
 if __name__=="__main__":

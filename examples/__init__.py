@@ -9,7 +9,9 @@ from .advection_2d import advection_2d
 from .advection_2d_annulus import advection_annulus
 from .burgers_1d import burgers_1d
 from .euler_1d import woodward_colella_blast
+from .euler_1d import shocktube
 from .euler_2d import shock_bubble_interaction
+from .euler_2d import quadrants
 from .kpp import kpp
 from .psystem_2d import psystem_2d
 from .shallow_1d import dam_break

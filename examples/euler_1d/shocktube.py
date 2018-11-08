@@ -18,7 +18,7 @@ This script runs a shock-tube problem.
 """
 from __future__ import absolute_import
 from clawpack import riemann
-from clawpack.riemann.euler_with_efix_1D_constants import *
+from clawpack.riemann.euler_with_efix_1D_constants import density, momentum, energy, num_eqn
 
 gamma = 1.4 # Ratio of specific heats
 
@@ -33,7 +33,7 @@ def setup(use_petsc=False, outdir='./_output', solver_type='classic',
     if kernel_language =='Python':
         rs = riemann.euler_1D_py.euler_hllc_1D
     elif kernel_language =='Fortran':
-        rs = riemann.euler_with_efix_1D
+        rs = riemann.euler_hlle_1D
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(rs)
@@ -45,7 +45,7 @@ def setup(use_petsc=False, outdir='./_output', solver_type='classic',
     solver.bc_lower[0]=pyclaw.BC.extrap
     solver.bc_upper[0]=pyclaw.BC.extrap
 
-    mx = 800;
+    mx = 800
     x = pyclaw.Dimension(-1.0,1.0,mx,name='x')
     domain = pyclaw.Domain([x])
     state = pyclaw.State(domain,num_eqn)
