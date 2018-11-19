@@ -32,18 +32,24 @@ def qinit(state,h_in=2.,h_out=1.,dam_radius=0.5):
     state.q[y_momentum,:,:] = 0.
 
     
-def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
+def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output',
+          solver_type='classic', riemann_solver='roe',disable_output=False):
     if use_petsc:
         import clawpack.petclaw as pyclaw
     else:
         from clawpack import pyclaw
 
+    if riemann_solver.lower() == 'roe':
+        rs = riemann.shallow_roe_with_efix_2D
+    elif riemann_solver.lower() == 'hlle':
+        rs = riemann.shallow_hlle_2D
+
     if solver_type == 'classic':
-        solver = pyclaw.ClawSolver2D(riemann.shallow_roe_with_efix_2D)
+        solver = pyclaw.ClawSolver2D(rs)
         solver.limiters = pyclaw.limiters.tvd.MC
         solver.dimensional_split=1
     elif solver_type == 'sharpclaw':
-        solver = pyclaw.SharpClawSolver2D(riemann.shallow_roe_with_efix_2D)
+        solver = pyclaw.SharpClawSolver2D(rs)
 
     solver.bc_lower[0] = pyclaw.BC.extrap
     solver.bc_upper[0] = pyclaw.BC.wall
@@ -72,6 +78,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     claw.tfinal = 2.5
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
+    if disable_output:
+        claw.output_format = None
     claw.outdir = outdir
     claw.num_output_times = 10
     claw.setplot = setplot
