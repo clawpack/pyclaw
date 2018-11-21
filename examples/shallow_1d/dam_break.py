@@ -20,7 +20,8 @@ import numpy as np
 from clawpack import riemann
 from clawpack.riemann.shallow_roe_with_efix_1D_constants import depth, momentum, num_eqn
 
-def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_type='classic'):
+def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_type='classic',
+          riemann_solver='roe', disable_output=False):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -28,9 +29,15 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
         from clawpack import pyclaw
 
     if kernel_language == 'Python':
-        rs = riemann.shallow_1D_py.shallow_1D
+        if riemann_solver.lower() == 'roe':
+            raise Exception('Python Roe solver not implemented.')
+        elif riemann_solver.lower() == 'hlle':
+            rs = riemann.shallow_1D_py.shallow_hll_1D
     elif kernel_language == 'Fortran':
-        rs = riemann.shallow_roe_with_efix_1D
+        if riemann_solver.lower() == 'roe':
+            rs = riemann.shallow_roe_with_efix_1D
+        elif riemann_solver.lower() == 'hlle':
+            rs = riemann.shallow_hlle_1D
  
     if solver_type == 'classic':
         solver = pyclaw.ClawSolver1D(rs)
@@ -81,6 +88,8 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
+    if disable_output:
+        claw.output_format = None
     claw.tfinal = 2.0
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
