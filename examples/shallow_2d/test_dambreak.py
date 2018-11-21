@@ -20,10 +20,10 @@ def test_1d_dambreak():
             thisdir = os.path.dirname(__file__)
             expected_depth = np.loadtxt(os.path.join(thisdir,'./dam_break_ref.txt'))
 
-            test_depth = claw.frames[claw.num_output_times].state.get_q_global()[0,:]
+            test_solution = claw.frames[claw.num_output_times].state.get_q_global()
 
-            if test_depth is not None:
-                return check_diff(expected_depth, test_depth, reltol=1e-3)
+            if test_solution is not None:
+                return check_diff(expected_depth, test_solution[0,:], reltol=1e-3)
             else:
                 return
         return dambreak_verify
