@@ -135,6 +135,8 @@ class GaugeSolution(object):
             self.q = pandas.DataFrame()
         else:
             data = numpy.loadtxt(gauge_path, comments="#")
+            if len(x.shape) == 1:
+                x = np.array([x])
             self.level = data[:, 0].astype(numpy.int64)
             self.t = data[:, 1]
             self.q = data[:, 2:].transpose()
