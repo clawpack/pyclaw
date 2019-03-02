@@ -62,6 +62,8 @@ class GaugeSolution(object):
         r"""(ndarray(*, :) - float) - Observed data"""
         self.aux = None
         r"""(ndarray(*, :) - float) - Auxiliary data"""
+        self.gtype = 'stationary'
+        r"""(str) - 'stationary' or 'lagrangian'"""
 
         # Read in gauge data from file
         if gauge_id is not None:
@@ -111,9 +113,22 @@ class GaugeSolution(object):
                 self.location = (float(data[4]), float(data[5]), float(data[6]))
                 num_eqn = int(data[9])
 
+            line = gauge_file.readline()
+            if 'Lagrangian' in line:
+                # Lagrangian gauge (particle)
+                self.gtype = 'lagrangian'
+                gauge_file.readline() # third line of header
+            elif 'Stationary' in line:
+                # Standard stationary gauge
+                self.gtype = 'stationary'
+                gauge_file.readline() # third line of header
+            else:
+                # backward compatibility
+                self.gtype = 'stationary'
+            
             # Read in one more line to check to make sure there's actually data
             # in here
-            gauge_file.readline()
+            
             if len(gauge_file.readline()) == 0:
                 import warnings
                 warnings.warn("Gauge file %s is empty." % gauge_id)
@@ -211,9 +226,9 @@ class GaugeSolution(object):
 
 
     def __str__(self):
-        return ("Gauge %s: location = %s, t = [%s, %s]" %
+        return ("Gauge %s: location = %s, t = [%s, %s], %s" %
                                     (self.id, self.location,
-                                     self.t[0], self.t[-1]))
+                                     self.t[0], self.t[-1], self.gtype))
 
 
 # ==============================
