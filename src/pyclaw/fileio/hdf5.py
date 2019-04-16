@@ -197,11 +197,11 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
                 state = pyclaw.state.State(pyclaw_patch, \
                          patch.attrs['num_eqn'],patch.attrs['num_aux'])
                 state.t = patch.attrs['t']
-                state.q = patch['q'][:].reshape(state.q.shape,order='F')
+                state.q = patch['q'][:].ravel(order='F').reshape(state.q.shape,order='F')
 
                 # Read in aux if applicable
                 if read_aux and patch.get('aux',None) is not None:
-                    state.aux = patch['aux'][:].reshape(state.aux.shape,order='F')
+                    state.aux = patch['aux'][:].ravel(order='F').reshape(state.aux.shape,order='F')
 
                 solution.states.append(state)
                 patches.append(pyclaw_patch)
