@@ -1,3 +1,8 @@
+#5.6.0 release
+- New HLLE solvers for 2D Euler, 1D/2D Shallow water
+- Forward-facing step example now works (uses HLLE solver)
+- Minor improvements and bugfixes
+
 # 5.5.0 release
 - Some improvements to what happens if a user specifies the wrong file format when reading simulation data.
 
