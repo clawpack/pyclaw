@@ -1,4 +1,4 @@
-#5.6.0 release
+# 5.6.0 release
 - New HLLE solvers for 2D Euler, 1D/2D Shallow water
 - Forward-facing step example now works (uses HLLE solver)
 - Minor improvements and bugfixes
