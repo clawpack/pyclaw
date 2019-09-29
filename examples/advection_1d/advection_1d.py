@@ -55,6 +55,17 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
 
     state.problem_data['u'] = 1.  # Advection velocity
 
+    state.index_capa = 0
+    xpxc = nx * 1.0 / (nx-1) # physical grid size to computational grid size ratio
+    nw = 50 # where the nonuniformities lie
+    alpha = 0.1 # the ratio of nonuniformity
+    #beta = 0.2 # another test case (let nw'th cell be beta * xpxc)
+    state.aux = np.zeros((1,nx))
+    state.aux[0, :] = xpxc
+    state.aux[0, nw-1] = alpha * xpxc
+    state.aux[0, nw] = (1 - alpha) * xpxc
+    #state.aux[0, nw] = beta * xpxc # the other test case
+    
     # Initial data
     xc = state.grid.x.centers
     beta = 100; gamma = 0; x0 = 0.75
