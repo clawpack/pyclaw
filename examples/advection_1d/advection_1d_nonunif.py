@@ -2,12 +2,12 @@
 # encoding: utf-8
 
 r"""
-One-dimensional advection with *random nonuniform grid*
+One-dimensional advection
 =========================
 
 Solve the linear advection equation:
 
-.. math::
+.. math:: 
     q_t + u q_x = 0.
 
 Here q is the density of some conserved quantity and u is the velocity.
@@ -19,13 +19,10 @@ crossed the domain exactly once.
 from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
-from clawpack.pyclaw.plot import plot
+from clawpack.pyclaw.plot import plot 
 
-
-
-
-def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5,
-          time_integrator='SSP104', outdir='./_output_hb'):
+def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5, 
+          time_integrator='SSP104', outdir='./_output'):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -36,7 +33,7 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
         riemann_solver = riemann.advection_1D
     elif kernel_language == 'Python':
         riemann_solver = riemann.advection_1D_py.advection_1D
-
+            
     if solver_type=='classic':
         solver = pyclaw.ClawSolver1D(riemann_solver)
     elif solver_type=='sharpclaw':
@@ -49,10 +46,7 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language
-    solver.order=1
-    solver.limiters = None
-    solver.num_eqn=1
-    solver.num_waves=1
+
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
     solver.aux_bc_lower[0] = pyclaw.BC.periodic
@@ -60,46 +54,43 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
 
     x = pyclaw.Dimension(0.0,1.0,nx,name='x')
     domain = pyclaw.Domain(x)
-    state = pyclaw.State(domain,1)
-
+    state = pyclaw.State(domain,solver.num_eqn,num_aux=1)
+    
     state.problem_data['u'] = 1.  # Advection velocity
-
-    # nonuniform grid set
-    state.index_capa = 0
-    state.aux = np.zeros((1,nx))
-    state.aux[0, :] = np.random.uniform(0.9,1,nx)  # random nouniformity ranging from 0.9 to 1
 
     # Initial data
     xc = state.grid.x.centers
     beta = 100; gamma = 0; x0 = 0.75
     state.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
 
+    state.capa_index = 0    
+    state.aux[0,:] = np.zeros((1,nx))
+    state.aux[0,:51] = 0.9 
+    state.aux[0,51:] = 1.1 
+
     claw = pyclaw.Controller()
     claw.keep_copy = True
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
 
-    claw.tfinal = 1.0
-    claw.outdir = outdir
-    if outdir is None:
+    if outdir is not None:
+        claw.outdir = outdir
+    else:
         claw.output_format = None
 
+    claw.tfinal =1.0
+
     claw.run()
+    
+    claw.setplot=setplot
+    plot(setplot=setplot, plotdir='./_plots', iplot=False, htmlplot = True)
 
-
-    claw.setplot = setplot
-
-    print("conservation check:",(sum(claw.frames[0].q[0,:]*(1.0-0)/(nx-1)*state.aux[0,:])  - sum(claw.frames[-1].q[0,:]*(1.0-0)/(nx-1)*state.aux[0,:]))
-/sum(claw.frames[0].q[0,:]*(1.0-0)/(nx-1)*state.aux[0,:]))
-    plot(setplot=setplot,outdir='./_output_hb',plotdir='./plots_hb',iplot=False, htmlplot=True)
-
-  # return claw
+#    return claw
 
 def setplot(plotdata):
-    """
-    Plot plot(setplot=setplot,outdir='./_output_hb',plotdir='./plots_hb',iplot=False, htmlplot=True)
-solution using VisClaw.
-    """
+    """ 
+    Plot solution using VisClaw.
+    """ 
     plotdata.clearfigures()  # clear any old figures,axes,items data
 
     plotfigure = plotdata.new_plotfigure(name='q', figno=1)
@@ -115,11 +106,9 @@ solution using VisClaw.
     plotitem.plotstyle = '-o'
     plotitem.color = 'b'
     plotitem.kwargs = {'linewidth':2,'markersize':5}
-
+    
     return plotdata
 
-
 if __name__=="__main__":
-    #from clawpack.pyclaw.util import run_app_from_main
-    #output = run_app_from_main(setup,setplot)
-    setup()
+    from clawpack.pyclaw.util import run_app_from_main
+    output = run_app_from_main(setup,setplot)
