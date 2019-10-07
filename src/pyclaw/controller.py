@@ -170,27 +170,27 @@ class Controller(object):
         self.num_output_times = 10                  # Outstyle 1 defaults
         r"""(int) - Number of output times, only used with ``output_style = 1``,
         ``default = 10``"""
-        self.out_times = np.linspace(0.0,self.tfinal,self.num_output_times
-                                     -self.start_frame) # Outstyle 2
+        self.out_times = np.linspace(0.0,self.tfinal,self.num_output_times-
+                                     self.start_frame)  # Outstyle 2
         r"""(int) - Output time list, only used with ``output_style = 2``,
         ``default = numpy.linspace(0.0,tfinal,num_output_times)``"""
-        
+
         self.nstepout = 1               # Outstyle 3 defaults
-        r"""(int) - Number of steps between output, only used with 
+        r"""(int) - Number of steps between output, only used with
         ``output_style = 3``, ``default = 1``"""
-        
+
         # Data objects
         self.plotdata = None
-        r"""(:class:`~visclaw.data.ClawPlotData`) - An instance of a 
-        :class:`~visclaw.data.ClawPlotData` object defining the 
+        r"""(:class:`~visclaw.data.ClawPlotData`) - An instance of a
+        :class:`~visclaw.data.ClawPlotData` object defining the
         objects plot parameters."""
-        
+
         # Derived quantity p
         self.file_prefix_p = 'claw_p'
         r"""(string) - File prefix to be prepended to derived quantity output files"""
         self.compute_p = None
         r"""(function) - function that computes derived quantities"""
-        
+
         # functionals
         self.compute_F = None
         r"""(function) - Function that computes density of functional F"""
@@ -198,7 +198,7 @@ class Controller(object):
         r"""(string) - Name of text file containing functionals"""
 
     # ========== Access methods ===============================================
-    def __str__(self):        
+    def __str__(self):
         output = "Controller attributes:\n"
         for attr in self.viewable_attributes:
             value = getattr(self,attr)
@@ -213,9 +213,9 @@ class Controller(object):
             for frame in self.frames:
                 output = output + "    " + str(frame) + "\n"
         return output
-        
+
     # ========== Properties ==================================================
-    
+
     def check_validity(self):
         r"""Check that the controller has been properly set up and is ready to run.
 
@@ -228,16 +228,15 @@ class Controller(object):
             raise Exception("Solver is not of correct type.")
         valid, reason = self.solver.is_valid()
         if not valid:
-            raise Exception("The solver failed to initialize properly because "+reason) 
-            
+            raise Exception("The solver failed to initialize properly because "+reason)
+
         # Check to make sure the initial solution is valid
         if not self.solution.is_valid():
             raise Exception("Initial solution is not valid.")
         if not all([state.is_valid() for state in self.solution.states]):
             raise Exception("Initial states are not valid.")
-        
- 
-    # ========== Plotting methods ============================================        
+
+    # ========== Plotting methods ============================================
     def set_plotdata(self):
         from clawpack.visclaw import data
         from clawpack.visclaw import frametools
@@ -247,7 +246,7 @@ class Controller(object):
         plotdata._mode = 'iplotclaw'
 
     def load_frame(self,frame_number):
-        try: 
+        try:
             return self.frames[frame_number]
         except IndexError:
             print("Cannot plot frame %s; only %s frames available" % (frame_number, len(self.frames)))
@@ -278,16 +277,16 @@ class Controller(object):
     # ========== Solver convenience methods ==================================
     def run(self):
         r"""
-        Convenience routine that will evolve solution based on the 
+        Convenience routine that will evolve solution based on the
         traditional clawpack output and run parameters.
-        
+
         This function uses the run parameters and solver parameters to evolve
         the solution to the end time specified in run_data, outputting at the
         appropriate times.
-        
+
         :Input:
             None
-            
+
         :Ouput:
             (dict) - Return a dictionary of the status of the solver.
         """
@@ -302,11 +301,11 @@ class Controller(object):
         frame = FrameCounter()
 
         frame.set_counter(self.start_frame)
-                    
+
         if not self.solver._is_set_up:
             self.solver.setup(self.solution)
             self.solver.dt = self.solver.dt_initial
-            
+
         self.check_validity()
 
         # Write initial gauge values
@@ -314,27 +313,27 @@ class Controller(object):
 
         # Output styles
         if self.output_style == 1:
-            output_times = np.linspace(self.solution.t,
-                    self.tfinal,self.num_output_times+1)
+            output_times = np.linspace(self.solution.t,self.tfinal,
+                                       self.num_output_times+1)
         elif self.output_style == 2:
             output_times = self.out_times
         elif self.output_style == 3:
-            output_times = np.ones((self.num_output_times+1
-                                    -self.start_frame))
+            output_times = np.ones((self.num_output_times+1-
+                                    self.start_frame))
         else:
-            raise Exception("Invalid output style %s" % self.output_style)  
+            raise Exception("Invalid output style %s" % self.output_style)
 
         if len(output_times) == 0:
             print("No valid output times; halting.")
             if self.t == self.tfinal:
                 print("Simulation has already reached tfinal.")
             return None
-         
+
         # Output and save initial frame
         if self.keep_copy:
             self.frames.append(copy.deepcopy(self.solution))
         if self.output_format is not None:
-            if os.path.exists(self.outdir) and self.overwrite==False:
+            if os.path.exists(self.outdir) and self.overwrite is False:
                 raise Exception("Refusing to overwrite existing output data. \
                  \nEither delete/move the directory or set controller.overwrite=True.")
             if self.compute_p is not None:
@@ -342,9 +341,9 @@ class Controller(object):
                 self.solution.write(frame,self.outdir_p,
                                         self.output_format,
                                         self.file_prefix_p,
-                                        write_aux = False,
-                                        options = self.output_options,
-                                        write_p = True) 
+                                        write_aux=False,
+                                        options=self.output_options,
+                                        write_p=True)
 
             write_aux = (self.write_aux_always or self.write_aux_init)
             self.solution.write(frame,self.outdir,
@@ -355,10 +354,10 @@ class Controller(object):
 
         self.write_F('w')
 
-        self.log_info("Solution %s computed for time t=%f" % 
+        self.log_info("Solution %s computed for time t=%f" %
                         (frame,self.solution.t) )
 
-        for t in output_times[1:]:                
+        for t in output_times[1:]:
             if self.output_style < 3:
                 status = self.solver.evolve_to_time(self.solution,t)
             else:
@@ -375,10 +374,10 @@ class Controller(object):
                     self.solution.write(frame,self.outdir_p,
                                             self.output_format,
                                             self.file_prefix_p,
-                                            write_aux = False, 
-                                            options = self.output_options,
-                                            write_p = True) 
-                
+                                            write_aux=False,
+                                            options=self.output_options,
+                                            write_p=True)
+
                 self.solution.write(frame,self.outdir,
                                             self.output_format,
                                             self.output_file_prefix,
@@ -387,17 +386,17 @@ class Controller(object):
             self.write_F()
 
             self.log_info("Solution %s computed for time t=%f"
-                % (frame,self.solution.t))
-            for gfile in self.solution.state.grid.gauge_files: 
+                          % (frame,self.solution.t))
+            for gfile in self.solution.state.grid.gauge_files:
                 gfile.flush()
-            
+
         for gfile in self.solution.state.grid.gauge_files: gfile.close()
 
         self.solution._start_frame = len(self.frames)
 
         # Return the current status of the solver
         return status
-    
+
     # ========== Advanced output methods ==================================
 
     def write_F(self,mode='a'):
@@ -411,7 +410,7 @@ class Controller(object):
                 F_file = open(self.F_path,mode)
                 F_file.write(str(t)+' '+' '.join(str(j) for j in F) + '\n')
                 F_file.close()
-    
+
     def is_proc_0(self):
         return True
 
@@ -424,20 +423,20 @@ class Controller(object):
 class OutputController(object):
     r"""Output controller object providing an interface to the io package.
 
-    This controller is meant to provide a uniform interface to the IO 
+    This controller is meant to provide a uniform interface to the IO
     capabilities in PyClaw.
 
     :Note: This object is meant to be a test bed for restructuring the way
     PyClaw does IO and should be used at one's own risk as rapid changes could
     occur that will break backwards compatibility.
-            
+
     :Initialization:
-    
-        Input: 
+
+        Input:
             - *output_path* - (path) Path to output both for reading and writing.
-            - *file_format* - (string) String indicating type of file format 
+            - *file_format* - (string) String indicating type of file format
               to be used.  Default is `ascii`.
-    
+
     .. attribute:: output_path
 
         Path to output directory either for writing or reading.
@@ -445,7 +444,7 @@ class OutputController(object):
     .. attribute:: file_format
 
         Format used for reading and writing.  Should be one of the modules in
-        the io package.  Changing this attribute will automatically load the 
+        the io package.  Changing this attribute will automatically load the
         new backend io package.
 
     """
@@ -456,20 +455,20 @@ class OutputController(object):
     @file_format.setter
     def file_format(self, value):
         if value.lower() == 'petsc':
-            self._io_module = __import__("clawpack.petclaw.fileio.petsc", 
+            self._io_module = __import__("clawpack.petclaw.fileio.petsc",
                                          fromlist=["clawpack.petclaw.fileio"])
             self._file_format = value
         else:
-            self._io_module = __import__("clawpack.pyclaw.fileio.%s" % value, 
+            self._io_module = __import__("clawpack.pyclaw.fileio.%s" % value,
                                          fromlist=['clawpack.pyclaw.fileio'])
             self._file_format = value
 
-        
+
 
     def __init__(self, output_path, file_format='ascii'):
         r"""
         Initialization routine for an OutputController object.
-        
+
         See :class:`OutputController` for full documentation.
         """
 
