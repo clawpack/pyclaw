@@ -58,9 +58,9 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     solver.aux_bc_lower[0] = pyclaw.BC.periodic
     solver.aux_bc_upper[0] = pyclaw.BC.periodic
 
-    x = pyclaw.Dimension(0.0,1.0,nx,name='x',num_aux=1)
+    x = pyclaw.Dimension(0.0,1.0,nx,name='x')
     domain = pyclaw.Domain(x)
-    state = pyclaw.State(domain,1)
+    state = pyclaw.State(domain,1, num_aux=1)
 
     state.problem_data['u'] = 1.  # Advection velocity
 
