@@ -86,6 +86,9 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
 
     claw.tfinal = 1.0
     claw.outdir = outdir
+    claw.num_output_times = 10
+    claw.nstepout = 1
+    
     if outdir is None:
         claw.output_format = None
 
