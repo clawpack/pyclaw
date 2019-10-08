@@ -11,7 +11,8 @@ Solve the linear advection equation:
     q_t + u q_x = 0.
 
 Here q is the density of some conserved quantity and u is the velocity.
-
+The grid is nonuniform as shown by the aux variable, with first half of the grid being 0.9*dx and second half being 1.1*dx, 
+where dx is the computational grid size i.e. 1/nx
 The initial condition is a Gaussian and the boundary conditions are periodic.
 The final solution is identical to the initial data because the wave has
 crossed the domain exactly once.
@@ -66,11 +67,15 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
 
     state.index_capa = 0
     state.aux = np.zeros((1,nx))
-    state.aux[0, :int(nw)/2 + 1] = 0.9 
-    state.aux[0, int(nw)/2 + 1:] = 1.1
+    state.aux[0, :int(nx)/2 + 1] = 0.9 
+    state.aux[0, int(nx)/2 + 1:] = 1.1
 
     # Initial data
     xc = state.grid.x.centers
+    delta_xc = (1.0-0.0)/nx
+    xc[:int(nx/2)+1] -= 0.05*delta_xc
+    xc[int(nx/2)+1:] += 0.05*delta_xc
+ 
     beta = 100; gamma = 0; x0 = 0.75
     state.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
 
