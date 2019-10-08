@@ -67,8 +67,8 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
 
     state.index_capa = 0
     state.aux = np.zeros((1,nx))
-    state.aux[0, :int(nx)/2 + 1] = 0.9 
-    state.aux[0, int(nx)/2 + 1:] = 1.1
+    state.aux[0, :int(nx/2) + 1] = 0.9 
+    state.aux[0, int(nx/2) + 1:] = 1.1
 
     # Initial data
     xc = state.grid.x.centers
@@ -94,9 +94,9 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
 
     claw.setplot = setplot
 
-#    plot(setplot=setplot,outdir='./_output_hb',plotdir='./plots_hb',iplot=False, htmlplot=True)
+#    plot(setplot=setplot,outdir='./_output',plotdir='./plots',iplot=False, htmlplot=True)
 
-  # return claw
+    return claw
 
 def setplot(plotdata):
     """
