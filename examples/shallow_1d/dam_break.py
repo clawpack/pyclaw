@@ -74,6 +74,7 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
         ur = 0.
         state.q[depth,:] = hl * (xc <= x0) + hr * (xc > x0)
         state.q[momentum,:] = hl*ul * (xc <= x0) + hr*ur * (xc > x0)
+
     elif IC=='2-shock':
         hl = 1.
         ul = 1.
@@ -81,10 +82,13 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
         ur = -1.
         state.q[depth,:] = hl * (xc <= x0) + hr * (xc > x0)
         state.q[momentum,:] = hl*ul * (xc <= x0) + hr*ur * (xc > x0)
+
     elif IC=='perturbation':
         eps=0.1
         state.q[depth,:] = 1.0 + eps*np.exp(-(xc-x0)**2/0.5)
         state.q[momentum,:] = 0.
+        state.aux[0,:] = np.zeros((1,mx))
+        state.aux[0,int(mx/2):] +=0.5
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
