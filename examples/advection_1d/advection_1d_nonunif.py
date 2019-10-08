@@ -25,7 +25,7 @@ from clawpack.pyclaw.plot import plot
 
 
 def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5,
-          time_integrator='SSP104', outdir='./_output_hb'):
+          time_integrator='SSP104', outdir='./_output'):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -58,20 +58,16 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     solver.aux_bc_lower[0] = pyclaw.BC.periodic
     solver.aux_bc_upper[0] = pyclaw.BC.periodic
 
-    x = pyclaw.Dimension(0.0,1.0,nx,name='x')
+    x = pyclaw.Dimension(0.0,1.0,nx,name='x',num_aux=1)
     domain = pyclaw.Domain(x)
     state = pyclaw.State(domain,1)
 
     state.problem_data['u'] = 1.  # Advection velocity
-    nw = 50 # location of nouniformity
-    alpha = 0.1 # ratio of nonuniform small cell to standard cell
 
     state.index_capa = 0
-    xpxc = nx * 1.0 / (nx-1)
     state.aux = np.zeros((1,nx))
-    state.aux[0, :] = xpxc
-    state.aux[0, nw-1] = alpha * xpxc
-    state.aux[0, nw] = (1-alpha) * xpxc
+    state.aux[0, :int(nw)/2 + 1] = 0.9 
+    state.aux[0, int(nw)/2 + 1:] = 1.1
 
     # Initial data
     xc = state.grid.x.centers
@@ -83,7 +79,7 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
 
-    claw.tfinal =1.0
+    claw.tfinal = 1.0
     claw.outdir = outdir
     if outdir is None:
         claw.output_format = None
