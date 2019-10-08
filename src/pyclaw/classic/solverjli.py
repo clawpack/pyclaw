@@ -8,12 +8,9 @@ are both pure virtual classes; the only solver classes that should be instantiat
 are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`.
 """
 
-from __future__ import absolute_import
 from clawpack.pyclaw.util import add_parent_doc
 from clawpack.pyclaw.solver import Solver
 from clawpack.pyclaw.limiters import tvd
-from six.moves import range
-from imp import reload
 
 # ============================================================================
 #  Generic Clawpack solver class
@@ -78,8 +75,8 @@ class ClawSolver(Solver):
         - (:class:`ClawSolver`) - Initialized clawpack solver
         """
         self.num_ghost = 2
-        self.limiters = tvd.minmod
-        self.order = 1
+        self.limiters = tvd.vanleer
+        self.order = 2
         self.source_split = 1
         self.fwave = False
         self.step_source = None
@@ -166,11 +163,11 @@ class ClawSolver(Solver):
         Convenience routine to convert users limiter specification to
         the format understood by the Fortran code (i.e., a list of length num_waves).
         """
-        self._mthlim = self.limiters
-        if not isinstance(self.limiters,list): self._mthlim=[self._mthlim]
-        if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_waves
-        if len(self._mthlim)!=self.num_waves:
-            raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_waves')
+        #self._mthlim = self.limiters
+        #if not isinstance(self.limiters,list): self._mthlim=[self._mthlim]
+       # if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_waves
+       # if len(self._mthlim)!=self.num_waves:
+         #   raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_waves')
 
     def _set_method(self,state):
         r"""
@@ -276,6 +273,7 @@ class ClawSolver1D(ClawSolver):
 
         super(ClawSolver1D,self).__init__(riemann_solver, claw_package)
 
+
     # ========== Homogeneous Step =====================================
     def step_hyperbolic(self,solution):
         r"""
@@ -289,7 +287,7 @@ class ClawSolver1D(ClawSolver):
 
         state = solution.states[0]
         grid = state.grid
-        #print(grid)
+
 
         self._apply_bcs(state)
 
@@ -304,52 +302,212 @@ class ClawSolver1D(ClawSolver):
             self.qbc,cfl = self.fmod.step1(num_ghost,mx,self.qbc,self.auxbc,dx,dt,self._method,self._mthlim,self.fwave,rp1)
 
         elif(self.kernel_language == 'Python'):
-
-            q   = self.qbc
+            q = self.qbc
             aux = self.auxbc
             # Limiter to use in the pth family
             limiter = np.array(self._mthlim,ndmin=1)
+
             dtdx = np.zeros( (2*self.num_ghost+grid.num_cells[0]) )
 
             # Find local value for dt/dx
-            if state.index_capa>=0:
+            if 'method' not in state.problem_data:
+                if state.index_capa>=0:
+                    dtdx = self.dt / (grid.delta[0] * aux[state.index_capa,:])
+                else:
+                    dtdx += self.dt / grid.delta[0]
+            elif state.problem_data['method'] == 'h_box':
+                xpxc = state.problem_data['xpxc']
                 dtdx = self.dt / (grid.delta[0] * aux[state.index_capa,:])
-            else:
-                dtdx += self.dt/grid.delta[0]
+                dtdx_hbox = np.zeros( (2*self.num_ghost+grid.num_cells[0]) )
+                dtdx_hbox += self.dt / (grid.delta[0] * xpxc)
+            elif state.problem_data['method'] == 'h_box_wave':
+                xpxc = state.problem_data['xpxc']
+                dtdx = self.dt / (grid.delta[0] * aux[state.index_capa,:])
+                dtdx_hbox = np.zeros( (2*self.num_ghost+grid.num_cells[0]) )
+                dtdx_hbox += self.dt / (grid.delta[0] * xpxc)
+
+
 
             # Solve Riemann problem at each interface
-            q_l=q[:,:-1]
-            q_r=q[:,1:]
+            q_l=q[:,:-1].copy()
+            q_r=q[:,1:].copy()
             if state.aux is not None:
-                aux_l=aux[:,:-1]
-                aux_r=aux[:,1:]
+                aux_l=aux[:,:-1].copy()
+                aux_r=aux[:,1:].copy()
             else:
                 aux_l = None
                 aux_r = None
-            wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.problem_data)
 
-            # Update loop limits, these are the limits for the Riemann solver
-            # locations, which then update a grid cell value
-            # We include the Riemann problem just outside of the grid so we can
-            # do proper limiting at the grid edges
-            #        LL    |                               |     UL
-            #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
-            #              |                               |
+            if 'method' not in state.problem_data:
+            # normal case
+                wave,s,amdq,apdq = self.rp(q_l,q_r,aux_l,aux_r,state.problem_data)
 
-            LL = self.num_ghost - 1  # 1
-            UL = self.num_ghost + grid.num_cells[0] + 1 #35
 
-            # Update q for Godunov update
-            for m in range(num_eqn):
-                q[m,LL:UL] -= dtdx[LL:UL]*apdq[m,LL-1:UL-1]
-                q[m,LL-1:UL-1] -= dtdx[LL-1:UL-1]*amdq[m,LL-1:UL-1]
+                # Update loop limits, these are the limits for the Riemann solver
+                # locations, which then update a grid cell value
+                # We include the Riemann problem just outside of the grid so we can
+                # do proper limiting at the grid edges
+                #        LL    |                               |     UL
+                #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
+                #              |                               |
+
+                LL = self.num_ghost - 1
+                UL = self.num_ghost + grid.num_cells[0] + 1
+
+                # Update q for Godunov update
+                for m in range(num_eqn):
+                    q[m,LL:UL] -= dtdx[LL:UL]*apdq[m,LL-1:UL-1]
+                    q[m,LL-1:UL-1] -= dtdx[LL-1:UL-1]*amdq[m,LL-1:UL-1]
+
+            elif state.problem_data['method'] == 'h_box':
+                # # add corrections
+                wave,s,amdq,apdq,f_corr_l,f_corr_r = self.rp(q_l,q_r,aux_l,aux_r,state.problem_data)
+                LL = self.num_ghost - 1
+                UL = self.num_ghost + grid.num_cells[0] + 1
+
+                # Update q for Godunov update
+                for m in range(num_eqn):
+                    q[m,LL:UL] -= dtdx[LL:UL]*(apdq[m,LL-1:UL-1] - f_corr_r[m,LL-1:UL-1])
+                    q[m,LL-1:UL-1] -= dtdx[LL-1:UL-1]*(amdq[m,LL-1:UL-1] + f_corr_l[m,LL-1:UL-1])
+
+            elif state.problem_data['method'] == 'h_box_wave':
+                 # # add corrections
+                state.problem_data['arrival_state'] = False
+
+
+                wave,s,amdq,apdq,q_hbox_initial,aux_hbox = self.rp(q_l,q_r,aux_l,aux_r,state.problem_data)
+                LL = self.num_ghost - 1
+                UL = self.num_ghost + grid.num_cells[0] + 1
+
+                # Update q for Godunov update
+                iw = state.problem_data['wall_position'] + self.num_ghost - 1
+                q_last = q[:,iw:iw+2].copy()
+
+                for m in range(num_eqn):
+                    q[m,LL:UL] -= dtdx[LL:UL]*apdq[m,LL-1:UL-1]
+                    q[m,LL-1:UL-1] -= dtdx[LL-1:UL-1]*amdq[m,LL-1:UL-1]
+
+                # check the arrivals
+                q[:,iw:iw+2] = q_last[:,:] # reset the wall cells
+                dt = self.dt
+                num_waves = self.num_waves
+                dx = grid.delta[0] * xpxc
+                alpha = state.problem_data['fraction']
+                arrival_times = np.array([0.0])
+                for mw in range(num_waves):
+                    if (s[mw,iw-1] > 0 and (s[mw,iw-1] * dt > alpha * dx)):
+                        arrival_times = np.append(arrival_times, alpha * dx / s[mw,iw-1])
+                    if (s[mw,iw+1] < 0 and ( (-s[mw,iw+1]) * dt > (1 - alpha) * dx ) ):
+                        arrival_times = np.append(arrival_times, -(1 - alpha) * dx / s[mw,iw+1])
+                arrival_times.sort()
+
+                n_arrival_times = len(arrival_times)
+                if n_arrival_times == 1 :
+                    state.problem_data['arrival_state'] = False
+                else:
+                    state.problem_data['arrival_state'] = True
+                    s_cells = np.zeros((num_waves, 3, n_arrival_times))
+                    s_cells[:,:,0] = s[:, iw-1:iw+2].copy()
+                    wave_cells = np.zeros((num_eqn, num_waves, 3, n_arrival_times))
+                    wave_cells[:,:,:,0] = wave[:,:,iw-1:iw+2].copy()
+
+
+                if state.problem_data['arrival_state'] == False:
+                    q[:,iw] -= dt/(alpha * dx) * apdq[:,iw-1]
+                    q[:,iw+1] -= dt/((1 - alpha)*dx) * amdq[:,iw+1]
+                    for mw in range(num_waves):
+                        if (s[mw,iw] < 0):
+                            q[:,iw-1] -= dt/dx * ( max(0, -s[mw,iw] * dt - alpha * dx) / (-s[mw,iw] * dt) * wave[:,mw,iw] )
+                            q[:,iw] -= dt/(alpha * dx) * (min(-s[mw,iw] * dt, alpha * dx) / (-s[mw,iw] * dt) * wave[:,mw,iw] )
+                        elif (s[mw,iw] > 0):
+                            q[:,iw+1] -= dt/((1 - alpha)*dx) * (min(s[mw,iw] * dt, (1 - alpha) * dx) / (s[mw,iw] * dt) * wave[:,mw,iw] )
+                            q[:,iw+2] -= dt/dx * ( (max(0, s[mw,iw] * dt - (1 - alpha) * dx) /  s[mw,iw] * dt) * wave[:,mw,iw] )
+
+                if state.problem_data['arrival_state'] == True:
+                    ## update q_hbox
+                    for i in range(1, n_arrival_times):
+                        q_hbox = q_hbox_initial.copy()
+
+                        for mw in range(num_waves):
+                            if s[mw,iw-2] > 0:
+                                q_hbox[:,0] -= arrival_times[i] / dx * (max(0, s[mw,iw-2] * arrival_times[i] - alpha * dx) / (s[mw,iw-2] * arrival_times[i]) * wave[:,mw,iw-2])
+
+                            if s[mw, iw-1] < 0:
+                                q_hbox[:,0] -= arrival_times[i] / dx * (min(-s[mw,iw-1] * arrival_times[i], (1 - alpha) * dx) / (-s[mw,iw-1] * arrival_times[i]) * wave[:,mw,iw-1])
+
+                            if s_cells[mw,0,i] > 0:
+                                for j in range(i):
+                                    q_hbox[:,0] -= (arrival_times[j+1] - arrival_times[j]) / dx * (wave_cells[:,mw,0,j])
+
+                                if s_cells[mw,0,i] * arrival_times[i] > alpha * dx: # - 1e-14:
+                                    # check the arrival wave
+                                    wave_cells[:,mw,0,i] = 0.0
+
+                            if s_cells[mw,1,i] < 0:
+                                for j in range(i):
+                                    q_hbox[:,0] -= (arrival_times[j+1] - arrival_times[j]) / dx * (wave_cells[:,mw,1,j])
+
+                            if s_cells[mw,1,i] > 0:
+                                for j in range(i):
+                                    q_hbox[:,1] -= (arrival_times[j+1] - arrival_times[j]) / dx * (wave_cells[:,mw,1,j])
+
+                            if s_cells[mw,2,i] < 0:
+                                for j in range(i):
+                                    q_hbox[:,1] -= (arrival_times[j+1] - arrival_times[j]) / dx * (wave_cells[:,mw,2,j])
+
+                                if (-s_cells[mw,2,i] * arrival_times[i]) > (1 - alpha) * dx: # - 1e-14:
+                                    # check the arrival wave
+                                    wave_cells[:,mw,2,i] = 0.0
+
+                            if s[mw,iw+1] > 0:
+                                q_hbox[:,1] -= arrival_times[i] / dx * (min(s[mw,iw+1] * arrival_times[i], alpha * dx) / (-s[mw,iw+1] * arrival_times[i]) * wave[:,mw,iw+1])
+
+                            if s[mw,iw+2] < 0:
+                                q_hbox[:,1] -= arrival_times[i] / dx * (max(0, -s[mw,iw+2] * arrival_times[i] - (1 - alpha) * dx) / (-s[mw,iw+2] * arrival_times[i]) * wave[:,mw,iw+2])
+
+
+
+
+                        wave_cells[:,:,1,i],s_cells[:,1,i],amdq_arr,apdq_arr = self.rp(q_hbox[:,0],q_hbox[:,1],aux_hbox[:,0],aux_hbox[:,1],state.problem_data)
+#update wave cells :,:,0,i and others by doing middle value update every arrival step. make qhbox_middle
+#add code in shallow_fwave_hbox_dry_1d with fw[iw-1] = middle and q_iw-1 and fw[iw+1] = middle and q_iw+2
+                    ## update q[iw-1], q[iw], q[iw+1] and q[iw+2]
+                    arrival_times = np.append(arrival_times, dt)
+                    n_arrival_times = len(arrival_times)
+
+                    for mw in range(num_waves):
+                        for i in range(n_arrival_times-1):
+                            if s_cells[mw,0,i] > 0:
+                                q[:,iw] -= (arrival_times[i+1] - arrival_times[i]) / (alpha * dx) * (wave_cells[:,mw,0,i])
+                            if s_cells[mw,2,i] < 0:
+                                q[:,iw+1] -= (arrival_times[i+1] - arrival_times[i]) / ((1 - alpha) * dx) * (wave_cells[:,mw,2,i])
+                            if s_cells[mw,1,i] < 0:
+                                q[:,iw-1] -= (dt - arrival_times[i]) / dx * ( max(0, -s_cells[mw,1,i] * (dt - arrival_times[i]) - alpha * dx) / (-s_cells[mw,1,i] * (dt - arrival_times[i])) * wave_cells[:,mw,1,i] )
+                                q[:,iw] -= (dt - arrival_times[i]) / (alpha * dx) * ( min(-s_cells[mw,1, i] * (dt - arrival_times[i]), alpha * dx) / (-s_cells[mw,1,i] * (dt - arrival_times[i])) * wave_cells[:,mw,1,i] )
+                            if s_cells[mw,1,i] > 0:
+                                q[:,iw+1] -= (dt - arrival_times[i]) / ((1 - alpha) * dx) * ( min(s_cells[mw,1, i] * (dt - arrival_times[i]), (1 - alpha) * dx) / (s_cells[mw,1,i] * (dt - arrival_times[i])) * wave_cells[:,mw,1,i] )
+                                q[:,iw+2] -= (dt - arrival_times[i]) / dx * ( max(0, s_cells[mw,1,i] * (dt - arrival_times[i]) - (1- alpha) * dx) / (s_cells[mw,1,i] * (dt - arrival_times[i])) * wave_cells[:,mw,1,i] )
+
 
             # Compute maximum wave speed
+            # add additional conditions for h-box
             cfl = 0.0
-            for mw in range(wave.shape[1]):
-                smax1 = np.max(dtdx[LL:UL]*s[mw,LL-1:UL-1])
-                smax2 = np.max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
-                cfl = max(cfl,smax1,smax2)
+            if 'method' not in state.problem_data:
+                for mw in range(wave.shape[1]):
+                    smax1 = np.max(dtdx[LL:UL]*s[mw,LL-1:UL-1])
+                    smax2 = np.max(-dtdx[LL-1:UL-1]*s[mw,LL-1:UL-1])
+                    cfl = max(cfl,smax1,smax2)
+            elif state.problem_data['method'] == 'h_box':
+                for mw in range(wave.shape[1]):
+                    smax1 = np.max(dtdx_hbox[LL:UL]*s[mw,LL-1:UL-1])
+                    smax2 = np.max(-dtdx_hbox[LL-1:UL-1]*s[mw,LL-1:UL-1])
+                    cfl = max(cfl,smax1,smax2)
+            elif state.problem_data['method'] == 'h_box_wave':
+                for mw in range(wave.shape[1]):
+                    smax1 = np.max(dtdx_hbox[LL:UL]*s[mw,LL-1:UL-1])
+                    smax2 = np.max(-dtdx_hbox[LL-1:UL-1]*s[mw,LL-1:UL-1])
+                    cfl = max(cfl,smax1,smax2)
+
 
             # If we are doing slope limiting we have more work to do
             if self.order == 2:
@@ -380,12 +538,14 @@ class ClawSolver1D(ClawSolver):
                 for m in range(num_eqn):
                     q[m,LL:UL-1] -= dtdx[LL:UL-1] * (f[m,LL+1:UL] - f[m,LL:UL-1])
 
+
         else: raise Exception("Unrecognized kernel_language; choose 'Fortran' or 'Python'")
 
         self.cfl.update_global_max(cfl)
         state.set_q_from_qbc(num_ghost,self.qbc)
         if state.num_aux > 0:
             state.set_aux_from_auxbc(num_ghost,self.auxbc)
+
 
 # ============================================================================
 #  ClawPack 2d Solver Class
