@@ -79,7 +79,7 @@ class ClawSolver(Solver):
         """
         self.num_ghost = 2
         self.limiters = tvd.minmod
-        self.order = 2
+        self.order = 1
         self.source_split = 1
         self.fwave = False
         self.step_source = None
@@ -276,7 +276,6 @@ class ClawSolver1D(ClawSolver):
 
         super(ClawSolver1D,self).__init__(riemann_solver, claw_package)
 
-
     # ========== Homogeneous Step =====================================
     def step_hyperbolic(self,solution):
         r"""
@@ -290,6 +289,7 @@ class ClawSolver1D(ClawSolver):
 
         state = solution.states[0]
         grid = state.grid
+        #print(grid)
 
         self._apply_bcs(state)
 
@@ -307,23 +307,12 @@ class ClawSolver1D(ClawSolver):
 
             q   = self.qbc
             aux = self.auxbc
-            # Limiter to use in the pth family
             limiter = np.array(self._mthlim,ndmin=1)
-            #print("num_ghost",self.num_ghost)
             dtdx = np.zeros( (2*self.num_ghost+grid.num_cells[0]) )
-            #print(dtdx.shape)
 
             # Find local value for dt/dx
             if state.index_capa>=0:
-            #    print(aux)
-                nw = 25
-                cells_number = 100
-                alpha = 0.25
-                xpxc = (cells_number-1) * 1.0 / (cells_number)
-                aux[1,nw+2-1] = alpha *xpxc
-                aux[1,nw+2] = 1-alpha * xpxc
                 dtdx = self.dt / (grid.delta[0] * aux[state.index_capa,:]) #state.aux[state.index_capa,:])
-            #    print(dtdx.shape)
             else:
                 dtdx += self.dt/grid.delta[0]
 
@@ -346,16 +335,14 @@ class ClawSolver1D(ClawSolver):
             #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
             #              |                               |
 
-            LL = self.num_ghost - 1  # 1
-        #    print("LL",LL)
-            UL = self.num_ghost + grid.num_cells[0] + 1 #35
-        #    print("UL",UL)
-        #    print("dtdx",dtdx,"apdq",apdq.shape,"q",q.shape)
-            # Update q for Godunov update
+            LL = self.num_ghost - 1 
+            UL = self.num_ghost + grid.num_cells[0] + 1 
+
             for m in range(num_eqn):
                 q[m,LL:UL] -= dtdx[LL:UL]*apdq[m,LL-1:UL-1]
                 q[m,LL-1:UL-1] -= dtdx[LL-1:UL-1]*amdq[m,LL-1:UL-1]
 
+        
             # Compute maximum wave speed
             cfl = 0.0
             for mw in range(wave.shape[1]):
@@ -398,7 +385,6 @@ class ClawSolver1D(ClawSolver):
         state.set_q_from_qbc(num_ghost,self.qbc)
         if state.num_aux > 0:
             state.set_aux_from_auxbc(num_ghost,self.auxbc)
-
 
 # ============================================================================
 #  ClawPack 2d Solver Class
