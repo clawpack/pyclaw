@@ -63,6 +63,15 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     state = pyclaw.State(domain,1)
 
     state.problem_data['u'] = 1.  # Advection velocity
+    nw = 50 # location of nouniformity
+    alpha = 0.1 # ratio of nonuniform small cell to standard cell
+
+    state.index_capa = 0
+    xpxc = nx * 1.0 / (nx-1)
+    state.aux = np.zeros((1,nx))
+    state.aux[0, :] = xpxc
+    state.aux[0, nw-1] = alpha * xpxc
+    state.aux[0, nw] = (1-alpha) * xpxc
 
     # Initial data
     xc = state.grid.x.centers
@@ -84,6 +93,7 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
 
     claw.setplot = setplot
 
+#    plot(setplot=setplot,outdir='./_output_hb',plotdir='./plots_hb',iplot=False, htmlplot=True)
 
   # return claw
 
@@ -108,8 +118,6 @@ def setplot(plotdata):
     plotitem.kwargs = {'linewidth':2,'markersize':5}
 
     return plotdata
-
-#plot(setplot=setplot,outdir='./_output_hb',plotdir='./plots_hb',iplot=False, htmlplot=True)
 
 if __name__=="__main__":
     #from clawpack.pyclaw.util import run_app_from_main
