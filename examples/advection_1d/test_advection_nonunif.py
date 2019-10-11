@@ -30,15 +30,15 @@ def test_1d_advection():
                                  kernel_languages=('Python','Fortran'),
                                  solver_type='classic', outdir=None)
 
-    sharp_tests_rk  = gen_variants(advection_1d_nonunif.setup, verify_expected(1.163605e-05),
+    sharp_tests_rk  = gen_variants(advection_1d.setup, verify_expected(1.163605e-05),
                                  kernel_languages=('Python','Fortran'),
                                  solver_type='sharpclaw',time_integrator='SSP104', outdir=None)
 
-    sharp_tests_lmm = gen_variants(advection_1d_nonunif.setup, verify_expected(1.500727e-05),
+    sharp_tests_lmm = gen_variants(advection_1d.setup, verify_expected(1.500727e-05),
                                  kernel_languages=('Python','Fortran'),
                                  solver_type='sharpclaw',time_integrator='SSPLMMk3', outdir=None)
 
-    weno_tests = gen_variants(advection_1d_nonunif.setup, verify_expected(7.489618e-06),
+    weno_tests = gen_variants(advection_1d.setup, verify_expected(7.489618e-06),
                                  kernel_languages=('Fortran',), solver_type='sharpclaw', 
                                  time_integrator='SSP104', weno_order=17,
                                  outdir=None)
