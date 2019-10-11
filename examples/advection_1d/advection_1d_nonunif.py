@@ -22,7 +22,19 @@ import numpy as np
 from clawpack import riemann
 from clawpack.pyclaw.plot import plot
 
-
+def mapc2p_nonunif(xc):
+    """
+    moves the computational centers--which are centers of uniform grid from [0,1]
+    to centers of physical grid, whose cell size is 0.9*dx_computational from [0, 0.45]
+    and 1.1*dx_computational from [0.45, 1]
+    """
+    nx = 100 # number of cells
+    shift = np.ones(nx)
+    shift[:int(nx/2)+1] *= -0.05 * (1-0)/nx
+    shift[int(nx/2)+1:] *= 0.05 * (1-0)/nx
+    xp = xc + shift
+    
+    return xp
 
 
 def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5,
@@ -50,10 +62,7 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language
-    solver.order=1
-    solver.limiters = None
-    solver.num_eqn=1
-    solver.num_waves=1
+
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
     solver.aux_bc_lower[0] = pyclaw.BC.periodic
@@ -71,12 +80,8 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     state.aux[0, int(nx/2) + 1:] = 1.1
 
     # Initial data
-    xc = state.grid.x.centers
-    delta_xc = (1.0-0.0)/nx
-    xc[:int(nx/2)+1] -= 0.05*delta_xc
-    xc[int(nx/2)+1:] += 0.05*delta_xc
- 
     beta = 100; gamma = 0; x0 = 0.75
+    xc = state.grid.x.centers
     state.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
 
     claw = pyclaw.Controller()
@@ -92,11 +97,8 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     if outdir is None:
         claw.output_format = None
 
-    claw.run()
-
-
     claw.setplot = setplot
-
+#    claw.run()  # uncomment these two lines to also plot
 #    plot(setplot=setplot,outdir='./_output',plotdir='./plots',iplot=False, htmlplot=True)
 
     return claw
@@ -106,7 +108,7 @@ def setplot(plotdata):
     Plot solution using VisClaw.
     """
     plotdata.clearfigures()  # clear any old figures,axes,items data
-
+    plotdata.mapc2p = mapc2p_nonunif
     plotfigure = plotdata.new_plotfigure(name='q', figno=1)
 
     # Set up for axes in this figure:
@@ -120,7 +122,8 @@ def setplot(plotdata):
     plotitem.plotstyle = '-o'
     plotitem.color = 'b'
     plotitem.kwargs = {'linewidth':2,'markersize':5}
-
+    plotitem.MappedGrid = True
+    
     return plotdata
 
 if __name__=="__main__":
