@@ -5,6 +5,7 @@ def test_1d_advection():
     tests against expected classic, sharpclaw, and high-order weno results """
 
     from . import advection_1d_nonunif
+    from . import advection_1d # we test the classic solver only for advection_1d_nonunif
 
     def verify_expected(expected):
         """ given an expected value, returns a verification function """
@@ -25,7 +26,7 @@ def test_1d_advection():
 
     from clawpack.pyclaw.util import gen_variants
 
-    classic_tests = gen_variants(advection_1d_nonunif.setup, verify_expected(3.203924e-04),
+    classic_tests = gen_variants(advection_1d_nonunif.setup, verify_expected(4.47796411e-4),
                                  kernel_languages=('Python','Fortran'),
                                  solver_type='classic', outdir=None)
 
