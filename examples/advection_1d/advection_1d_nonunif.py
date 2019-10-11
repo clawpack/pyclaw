@@ -11,8 +11,8 @@ Solve the linear advection equation:
     q_t + u q_x = 0.
 
 Here q is the density of some conserved quantity and u is the velocity.
-The grid is nonuniform as shown by the aux variable, with first half of the grid being 0.9*dx and second half being 1.1*dx, 
-where dx is the computational grid size i.e. 1/nx
+The physical grid is nonuniform as set by mapc2p by a shifting of centers to left in between [0, 0.45]
+and shifting of centers to right in between [0.45,1] .
 The initial condition is a Gaussian and the boundary conditions are periodic.
 The final solution is identical to the initial data because the wave has
 crossed the domain exactly once.
