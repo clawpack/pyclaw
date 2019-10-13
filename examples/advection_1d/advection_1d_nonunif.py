@@ -5,13 +5,13 @@ r"""
 One-dimensional advection
 =========================
 
-Solve the linear advection equation:
+Solve the linear advection equation on a nonuniform grid:
 
 .. math::
     q_t + u q_x = 0.
 
 Here q is the density of some conserved quantity and u is the velocity.
-
+The nonuniform grid is accomplished by transformation of x**2
 The initial condition is a Gaussian and the boundary conditions are periodic.
 The final solution is identical to the initial data because the wave has
 crossed the domain exactly once.
