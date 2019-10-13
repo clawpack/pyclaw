@@ -51,7 +51,7 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
 
     solver.kernel_language = kernel_language
     solver.order=1
-    solver.limiters = None
+    solver.limiters = pyclaw.limiters.tvd.minmod
     solver.num_eqn=1
     solver.num_waves=1
     solver.bc_lower[0] = pyclaw.BC.periodic
