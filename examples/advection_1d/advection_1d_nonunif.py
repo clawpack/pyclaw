@@ -31,7 +31,7 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
         import clawpack.petclaw as pyclaw
     else:
         from clawpack import pyclaw
-         
+        from clawpack.pyclaw.geometry import Grid
 
     if kernel_language == 'Fortran':
         riemann_solver = riemann.advection_1D
@@ -61,7 +61,7 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
 
     x = pyclaw.Dimension(0.0,1.0,nx,name='x')
     domain = pyclaw.Domain(x)
-    grid1d = pyclaw.geometry.Grid(x)
+    grid1d = Grid(x)
     state = pyclaw.State(domain,1,num_aux=1)
     state.problem_data['u'] = 1.  # Advection velocity
 
