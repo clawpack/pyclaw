@@ -27,8 +27,8 @@ from clawpack.pyclaw.plot import plot
 def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5,
           time_integrator='SSP104', outdir='./_output_hb'):
 
-    #if use_petsc:
-    import clawpack.petclaw as pyclaw
+    if use_petsc:
+        import clawpack.petclaw as pyclaw
     #else:
     from clawpack import pyclaw
     import clawpack.pyclaw.geometry as Geom
