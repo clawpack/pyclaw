@@ -49,7 +49,7 @@ def test_1d_advection():
 
     from clawpack.pyclaw.util import gen_variants
 
-    classic_tests = gen_variants(advection_1d_nonunif.setup, verify_expected_nu(-0.00016905458739204524),
+    classic_tests = gen_variants(advection_1d_nonunif.setup, verify_expected_nu(-1.6905458739204524e-04),
                                  kernel_languages=('Python','Fortran'),
                                  solver_type='classic', outdir=None)
 
