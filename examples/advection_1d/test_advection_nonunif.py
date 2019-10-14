@@ -27,10 +27,9 @@ def test_1d_advection():
                 return
         return advection_verify
 
-
     def verify_expected_nu(expected):
     # given an expected value, returns a verification function for nonuniform 1d advection example
-         def advection_verify_nu(claw):
+        def advection_verify_nu(claw):
             q0=claw.frames[0].state.get_q_global()
             qfinal=claw.frames[claw.num_output_times].state.get_q_global()
             if q0 is not None and qfinal is not None:
