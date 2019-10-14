@@ -30,22 +30,21 @@ def test_1d_advection():
 
     def verify_expected_nu(expected):
     # given an expected value, returns a verification function for nonuniform 1d advection example
-        
-        def advection_verify_nu(claw):
+         def advection_verify_nu(claw):
             q0=claw.frames[0].state.get_q_global()
-            qfinal=claw.frames[claw.num_output_times].state.get_q_global()
+            qfinal=claw.frames[claw.num_output_times].state.get_q_glo$
             if q0 is not None and qfinal is not None:
                 dx=claw.solution.domain.grid.delta[0]
                 nx = 100
-                cap_arr = np.zeros(nx)
-                for i in range(nx):
-                    cap_arr[i] = (2*i + 1)/nx
+                xc_edges = np.linspace(0.0,1.0,nx+1)
+                xp_edges = np.square(xc_edges)
+                cap_arr = np.diff(xp_edges)/np.diff(xc_edges)
                 test = np.sum(np.multiply(dx*cap_arr,(qfinal-q0)))
                 return check_diff(expected, test, reltol=1e-4)
             else:
                 return
         return advection_verify_nu
-   
+                
 
     from clawpack.pyclaw.util import gen_variants
 
