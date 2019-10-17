@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 def test_shocksine():
-    """ tests against expected sharpclaw results """
+    """ Test shock-sine wave interaction (Euler 1D)"""
     from . import shocksine
     from clawpack.pyclaw.util import test_app, check_diff
 
