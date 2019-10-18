@@ -42,8 +42,8 @@ def test_1d_advection():
                 dx=claw.solution.domain.grid.delta[0]
                 grid1d = claw.frames[0].state.grid
                 grid1d.mapc2p = mapc2p_nonunif
-
-                aux = np.zeros((1,500))
+                nx = 500
+                aux = np.zeros((1,nx))
                 aux[0,:] = np.diff(grid1d.p_nodes)/np.diff(grid1d.x.nodes)
                 test = abs(np.sum(dx*aux[0,:]*(qfinal-q0)))
                 return check_diff(expected, test, reltol=1e-4)
