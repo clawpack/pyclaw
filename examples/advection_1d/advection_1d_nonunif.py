@@ -11,7 +11,7 @@ Solve the linear advection equation:
     q_t + u q_x = 0.
 
 Here q is the density of some conserved quantity and u is the velocity.
-
+Here we have a nonuniform grid, given by the transformation x**2
 The initial condition is a Gaussian and the boundary conditions are periodic.
 The final solution is identical to the initial data because the wave has
 crossed the domain exactly once.
@@ -21,16 +21,25 @@ import numpy as np
 from clawpack import riemann
 from clawpack.pyclaw.plot import plot
 
+def mapc2p_nonunif(xc):
+    """computational coord center is given by xc_i = (2i+1)/(2nx)
+       physicachange  change
+    """
+    neg = -1*(xc < 0) + (xc > 0)
+    xp = xc**2
+    xp = neg*xp
+    return xp
 
 
 
-def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5,
-          time_integrator='SSP104', outdir='./_output_hb'):
+def setup(nx=500, kernel_language='Python', use_petsc=False, solver_type='sharpclaw', weno_order=5,
+          time_integrator='SSP104', outdir='./_output'):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
-    else:
-        from clawpack import pyclaw
+    #else:
+    from clawpack import pyclaw
+    import clawpack.pyclaw.geometry
 
     if kernel_language == 'Fortran':
         riemann_solver = riemann.advection_1D
@@ -49,8 +58,8 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language
-    solver.order=1
-    solver.limiters = None
+    #solver.order = 1
+    solver.limiters = pyclaw.tvd.minmod
     solver.num_eqn=1
     solver.num_waves=1
     solver.bc_lower[0] = pyclaw.BC.periodic
@@ -58,55 +67,57 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     solver.aux_bc_lower[0] = pyclaw.BC.periodic
     solver.aux_bc_upper[0] = pyclaw.BC.periodic
 
-    x = pyclaw.Dimension(0.0,1.0,nx,name='x')
+    x = pyclaw.Dimension(-1.0,1.0,nx,name='x')
     domain = pyclaw.Domain(x)
-    state = pyclaw.State(domain,1)
-
+    state = pyclaw.State(domain,1,num_aux=1)
     state.problem_data['u'] = 1.  # Advection velocity
-    nw = 50 # location of nouniformity
-    alpha = 0.1 # ratio of nonuniform small cell to standard cell
 
-    state.index_capa = 0
-    xpxc = nx * 1.0 / (nx-1)
+    xc = state.grid.x.centers
+    grid1d = state.grid
+#    print("pre",xc)
+    # mapping to nonunif grid
+    grid1d.mapc2p = mapc2p_nonunif
+
     state.aux = np.zeros((1,nx))
-    state.aux[0, :] = xpxc
-    state.aux[0, nw-1] = alpha * xpxc
-    state.aux[0, nw] = (1-alpha) * xpxc
+    state.aux[0,:] = np.diff(grid1d.p_nodes)/np.diff(state.grid.x.nodes)
+
+    # for i in range(nx):
+    #     state.aux[0, i] = (2*i + 1)/nx  # dxp_i/dxc_i
+    #                                     # dxp_i = (2i+1)/(nx^2)
+    #                                     # dxc_i = 1/nx
 
     # Initial data
-    xc = state.grid.x.centers
     beta = 100; gamma = 0; x0 = 0.75
-    state.q[0,:] = np.exp(-beta * (xc-x0)**2) * np.cos(gamma * (xc - x0))
+    state.q[0,:] = np.exp(-beta * (grid1d.p_centers-x0)**2) * np.cos(gamma * (grid1d.p_centers - x0))
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
 
-    claw.tfinal =1.0
+    claw.tfinal = 2.0
     claw.outdir = outdir
+    claw.num_output_times = 10
+    claw.nstepout = 1
     if outdir is None:
         claw.output_format = None
 
-    claw.run()
-
-
     claw.setplot = setplot
-
 #    plot(setplot=setplot,outdir='./_output_hb',plotdir='./plots_hb',iplot=False, htmlplot=True)
 
-  # return claw
+    return claw
 
 def setplot(plotdata):
     """
     Plot solution using VisClaw.
     """
     plotdata.clearfigures()  # clear any old figures,axes,items data
-
+    plotdata.mapc2p = mapc2p_nonunif
     plotfigure = plotdata.new_plotfigure(name='q', figno=1)
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
+    plotaxes.xlimits = [-1.0,1.0]
     plotaxes.ylimits = [-.2,1.0]
     plotaxes.title = 'q'
 
@@ -115,11 +126,9 @@ def setplot(plotdata):
     plotitem.plot_var = 0
     plotitem.plotstyle = '-o'
     plotitem.color = 'b'
-    plotitem.kwargs = {'linewidth':2,'markersize':5}
-
+    plotitem.kwargs = {'linewidth':2,'markersize':1}
     return plotdata
 
 if __name__=="__main__":
-    #from clawpack.pyclaw.util import run_app_from_main
-    #output = run_app_from_main(setup,setplot)
-    setup()
+    from clawpack.pyclaw.util import run_app_from_main
+    output = run_app_from_main(setup,setplot)

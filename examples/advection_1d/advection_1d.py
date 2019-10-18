@@ -25,7 +25,7 @@ from clawpack.pyclaw.plot import plot
 
 
 def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5,
-          time_integrator='SSP104', outdir='./_output_hb'):
+          time_integrator='SSP104', outdir='./_output'):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -55,8 +55,6 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     solver.num_waves=1
     solver.bc_lower[0] = pyclaw.BC.periodic
     solver.bc_upper[0] = pyclaw.BC.periodic
-    solver.aux_bc_lower[0] = pyclaw.BC.periodic
-    solver.aux_bc_upper[0] = pyclaw.BC.periodic
 
     x = pyclaw.Dimension(0.0,1.0,nx,name='x')
     domain = pyclaw.Domain(x)
@@ -79,13 +77,15 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     if outdir is None:
         claw.output_format = None
 
-    claw.run()
+ #   claw.run()
 
 
     claw.setplot = setplot
 
+#    plot(setplot=setplot,outdir='./_output',plotdir='./plots',iplot=False, htmlplot=True)
 
-  # return claw
+
+    return claw
 
 def setplot(plotdata):
     """
@@ -109,7 +109,10 @@ def setplot(plotdata):
 
     return plotdata
 
-#plot(setplot=setplot,outdir='./_output_hb',plotdir='./plots_hb',iplot=False, htmlplot=True)
+#plot(setplot=setplot,outdir='./_output',plotdir='./plots',iplot=False, htmlplot=True)
+
+
+
 
 if __name__=="__main__":
     #from clawpack.pyclaw.util import run_app_from_main
