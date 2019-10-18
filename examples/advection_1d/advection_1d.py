@@ -22,8 +22,6 @@ from clawpack import riemann
 from clawpack.pyclaw.plot import plot
 
 
-
-
 def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5,
           time_integrator='SSP104', outdir='./_output'):
 
@@ -77,13 +75,7 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     if outdir is None:
         claw.output_format = None
 
- #   claw.run()
-
-
     claw.setplot = setplot
-
-#    plot(setplot=setplot,outdir='./_output',plotdir='./plots',iplot=False, htmlplot=True)
-
 
     return claw
 
@@ -109,12 +101,7 @@ def setplot(plotdata):
 
     return plotdata
 
-#plot(setplot=setplot,outdir='./_output',plotdir='./plots',iplot=False, htmlplot=True)
-
-
-
 
 if __name__=="__main__":
-    #from clawpack.pyclaw.util import run_app_from_main
-    #output = run_app_from_main(setup,setplot)
-    setup()
+    from clawpack.pyclaw.util import run_app_from_main
+    output = run_app_from_main(setup,setplot)
