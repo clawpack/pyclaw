@@ -4,7 +4,7 @@ def test_1d_advection():
 
     tests against expected classic, sharpclaw, and high-order weno results """
 
-    from . import advection_1d
+    import advection_1d
 
     def verify_expected(expected):
         """ given an expected value, returns a verification function """

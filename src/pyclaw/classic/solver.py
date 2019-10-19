@@ -79,7 +79,7 @@ class ClawSolver(Solver):
         """
         self.num_ghost = 2
         self.limiters = tvd.minmod
-        self.order = 1
+        self.order = 2
         self.source_split = 1
         self.fwave = False
         self.step_source = None
@@ -289,7 +289,6 @@ class ClawSolver1D(ClawSolver):
 
         state = solution.states[0]
         grid = state.grid
-        #print(grid)
 
         self._apply_bcs(state)
 
@@ -307,6 +306,7 @@ class ClawSolver1D(ClawSolver):
 
             q   = self.qbc
             aux = self.auxbc
+            # Limiter to use in the pth family
             limiter = np.array(self._mthlim,ndmin=1)
             dtdx = np.zeros( (2*self.num_ghost+grid.num_cells[0]) )
 

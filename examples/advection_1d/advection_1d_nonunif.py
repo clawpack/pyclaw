@@ -33,8 +33,8 @@ def mapc2p_nonunif(xc):
 
 
 
-def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='sharpclaw', weno_order=5,
-          time_integrator='SSPLMMk3', outdir='./_output'):
+def setup(nx=100, kernel_language='Fortran', use_petsc=False, solver_type='sharpclaw', weno_order=17,
+          time_integrator='SSP104', outdir='./_output'):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw

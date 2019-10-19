@@ -87,8 +87,6 @@ def setup(use_petsc=False,kernel_language='Fortran',outdir='./_output',solver_ty
         eps=0.1
         state.q[depth,:] = 1.0 + eps*np.exp(-(xc-x0)**2/0.5)
         state.q[momentum,:] = 0.
-        state.aux[0,:] = np.zeros((1,mx))
-        state.aux[0,int(mx/2):] +=0.5
 
     claw = pyclaw.Controller()
     claw.keep_copy = True
