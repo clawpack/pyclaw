@@ -11,18 +11,19 @@ Solve the linear advection equation:
     q_t + u q_x = 0.
 
 Here q is the density of some conserved quantity and u is the velocity.
-Here we have a nonuniform grid, given by the transformation x**2 on grid [-1,1]
-The initial condition is a Gaussian and the boundary conditions are periodic.
+Here we have a nonuniform grid, given by the transformation x**2 on grid [-0.5,0.5] to [-0.25,0.25].
+The initial condition is a Gaussian centered at 0 and the boundary conditions are periodic.
 The final solution is identical to the initial data because the wave has
-crossed the domain exactly once, which takes computational time 2, because the speed is 1 and grid length 2.
+crossed the domain exactly once, which takes computational time 0.5, because the speed is 1 and grid length 0.5.
 """
 from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 
 def mapc2p_nonunif(xc):
-    """This function takes the interval [-1,1] and squares the computational coordinate
+    """This function takes the interval [-xL,xR] and squares the computational coordinate
        while keeping the negative coordinates to be squared and yet retain their negativity
+       to the physical coordinate [-xL**2, xR**2]
        This serves as an example of transformation to a nonuniform grid.
     """
     neg = -1*(xc < 0) + (xc > 0)
@@ -32,8 +33,8 @@ def mapc2p_nonunif(xc):
 
 
 
-def setup(nx=500, kernel_language='Python', use_petsc=False, solver_type='sharpclaw', weno_order=5,
-          time_integrator='SSP104', outdir='./_output'):
+def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='sharpclaw', weno_order=5,
+          time_integrator='SSPLMMk3', outdir='./_output'):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -57,7 +58,7 @@ def setup(nx=500, kernel_language='Python', use_petsc=False, solver_type='sharpc
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language
-    #solver.order = 1 # in order to make test file pass without complaint
+    #solver.order = 2 # in order to make test file pass without complaint
     solver.limiters = pyclaw.tvd.minmod
     solver.num_eqn=1
     solver.num_waves=1
@@ -66,21 +67,22 @@ def setup(nx=500, kernel_language='Python', use_petsc=False, solver_type='sharpc
     solver.aux_bc_lower[0] = pyclaw.BC.periodic
     solver.aux_bc_upper[0] = pyclaw.BC.periodic
 
-    x = pyclaw.Dimension(-1.0,1.0,nx,name='x')
+    x = pyclaw.Dimension(-0.5,0.5,nx,name='x')
     domain = pyclaw.Domain(x)
     state = pyclaw.State(domain,1,num_aux=1)
     state.problem_data['u'] = 1.  # Advection velocity
+    state.index_capa = 0
 
     xc = state.grid.x.centers
     grid1d = state.grid
 
     # mapping to nonunif grid
     grid1d.mapc2p = mapc2p_nonunif
-    state.aux = np.zeros((1,nx))
+    state.aux = np.zeros((1,nx)) # capacity array dx_p/dx_c
     state.aux[0,:] = np.diff(grid1d.p_nodes)/np.diff(state.grid.x.nodes)
 
     # Initial data
-    beta = 100; gamma = 0; x0 = 0.75
+    beta = 100; gamma = 0; x0 = 0.0
     state.q[0,:] = np.exp(-beta * (grid1d.p_centers-x0)**2) * np.cos(gamma * (grid1d.p_centers - x0))
 
     claw = pyclaw.Controller()
@@ -88,7 +90,7 @@ def setup(nx=500, kernel_language='Python', use_petsc=False, solver_type='sharpc
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
 
-    claw.tfinal = 2.0
+    claw.tfinal = 0.5 # one cycle
     claw.outdir = outdir
     claw.num_output_times = 10
     claw.nstepout = 1
@@ -109,7 +111,7 @@ def setplot(plotdata):
 
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
-    plotaxes.xlimits = [-1.0,1.0]
+    plotaxes.xlimits = [-0.25,0.25]
     plotaxes.ylimits = [-.2,1.0]
     plotaxes.title = 'q'
 
@@ -118,7 +120,7 @@ def setplot(plotdata):
     plotitem.plot_var = 0
     plotitem.plotstyle = '-o'
     plotitem.color = 'b'
-    plotitem.kwargs = {'linewidth':2,'markersize':1}
+    plotitem.kwargs = {'linewidth':2,'markersize':5}
     return plotdata
 
 if __name__=="__main__":
