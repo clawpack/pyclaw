@@ -33,7 +33,7 @@ def mapc2p_nonunif(xc):
 
 
 
-def setup(nx=100, kernel_language='Fortran', use_petsc=False, solver_type='sharpclaw', weno_order=17,
+def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5,
           time_integrator='SSP104', outdir='./_output'):
 
     if use_petsc:
@@ -112,7 +112,7 @@ def setplot(plotdata):
     # Set up for axes in this figure:
     plotaxes = plotfigure.new_plotaxes()
     plotaxes.xlimits = [-0.25,0.25]
-    plotaxes.ylimits = [-.2,1.0]
+    plotaxes.ylimits = [-.2,1.5]
     plotaxes.title = 'q'
 
     # Set up for item on these axes:
