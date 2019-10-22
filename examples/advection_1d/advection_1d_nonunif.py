@@ -16,7 +16,6 @@ The initial condition is a Gaussian centered at 0 and the boundary conditions ar
 The final solution is identical to the initial data because the wave has
 crossed the domain exactly once, which takes computational time 0.5, because the speed is 1 and grid length 0.5.
 """
-
 from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
@@ -57,7 +56,7 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language
-    #solver.order = 1 # in order to make test file pass without complaint
+    #solver.order = 2 # in order to make test file pass without complaint
     solver.limiters = pyclaw.tvd.minmod
     solver.num_eqn=1
     solver.num_waves=1

@@ -76,9 +76,6 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     if outdir is None:
         claw.output_format = None
 
-    claw.run()
-
-
     claw.setplot = setplot
 
 

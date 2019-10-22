@@ -336,10 +336,9 @@ class ClawSolver1D(ClawSolver):
             #  |  LL |     |     |     |  ...  |     |     |  UL  |     |
             #              |                               |
 
-            LL = self.num_ghost - 1  # 1
-            UL = self.num_ghost + grid.num_cells[0] + 1 #35
+            LL = self.num_ghost - 1 
+            UL = self.num_ghost + grid.num_cells[0] + 1 
 
-            # Update q for Godunov update
             for m in range(num_eqn):
                 q[m,LL:UL] -= dtdx[LL:UL]*apdq[m,LL-1:UL-1]
                 q[m,LL-1:UL-1] -= dtdx[LL-1:UL-1]*amdq[m,LL-1:UL-1]
