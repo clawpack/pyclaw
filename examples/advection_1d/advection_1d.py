@@ -79,7 +79,7 @@ def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classi
     claw.setplot = setplot
 
 
-  # return claw
+   return claw
 
 def setplot(plotdata):
     """
@@ -104,6 +104,5 @@ def setplot(plotdata):
     return plotdata
 
 if __name__=="__main__":
-    #from clawpack.pyclaw.util import run_app_from_main
-    #output = run_app_from_main(setup,setplot)
-    setup()
+    from clawpack.pyclaw.util import run_app_from_main
+    output = run_app_from_main(setup,setplot)
