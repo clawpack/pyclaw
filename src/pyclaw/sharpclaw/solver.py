@@ -735,7 +735,8 @@ class SharpClawSolver1D(SharpClawSolver):
         import numpy as np
 
         self._apply_bcs(state)
-        q = self.qbc 
+        q = self.qbc
+        aux = self.auxbc 
 
         grid = state.grid
         mx = grid.num_cells[0]
@@ -758,11 +759,10 @@ class SharpClawSolver1D(SharpClawSolver):
 
             # Find local value for dt/dx
             if state.index_capa>=0:
-                dtdx = self.dt / (grid.delta[0] * state.aux[state.index_capa,:])
+                dtdx = self.dt / (grid.delta[0] * aux[state.index_capa,:])
             else:
                 dtdx += self.dt/grid.delta[0]
  
-            aux=self.auxbc
             if aux.shape[0]>0:
                 aux_l=aux[:,:-1]
                 aux_r=aux[:,1: ]
