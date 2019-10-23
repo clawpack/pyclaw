@@ -2,7 +2,7 @@ from __future__ import absolute_import
 def test_1d_advection():
     """test_1d_advection
 
-    tests against expected classic, sharpclaw, and high-order weno results """
+    tests against expected classic results """
 
     from . import advection_1d_nonunif
 
@@ -56,23 +56,7 @@ def test_1d_advection():
                                  kernel_languages=('Python','Fortran'),
                                  solver_type='classic', outdir=None)
 
-    sharp_tests_rk  = gen_variants(advection_1d_nonunif.setup, verify_expected_nonunif(1.677906041554036e-05),
-                                 kernel_languages=('Fortran',), # Not working for Python kernel
-                                 solver_type='sharpclaw',time_integrator='SSP104', outdir=None)
-
-    sharp_tests_lmm = gen_variants(advection_1d_nonunif.setup, verify_expected_nonunif(1.6815055672658585e-08),
-                                 kernel_languages=('Python',),
-                                 solver_type='sharpclaw',time_integrator='SSPLMMk3', outdir=None)
-
-    sharp_tests_lmm2 = gen_variants(advection_1d_nonunif.setup, verify_expected_nonunif(1.6779069237771793e-05),
-                                 kernel_languages=('Fortran',),
-                                 solver_type='sharpclaw',time_integrator='SSPLMMk3', outdir=None)
-
-    weno_tests = gen_variants(advection_1d_nonunif.setup, verify_expected_nonunif(2.4413818316872576e-04),
-                                 kernel_languages=('Fortran',), solver_type='sharpclaw',
-                                 time_integrator='SSP104', weno_order=17,
-                                 outdir=None)
-
+    
     from itertools import chain
     for test in chain(classic_tests, sharp_tests_rk, sharp_tests_lmm, sharp_tests_lmm2, weno_tests):
         yield test
