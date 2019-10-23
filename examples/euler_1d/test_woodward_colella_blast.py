@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 def test_woodward_colella_blast():
-    """ tests against expected sharpclaw results """
+    """ Woodward-Colella blast wave test (Euler 1D)"""
     from . import woodward_colella_blast
     from clawpack.pyclaw.util import test_app, check_diff
 
