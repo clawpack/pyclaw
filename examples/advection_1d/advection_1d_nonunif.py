@@ -45,19 +45,13 @@ def setup(nx=100, kernel_language='Fortran', use_petsc=False, solver_type='class
     elif kernel_language == 'Python':
         riemann_solver = riemann.advection_1D_py.advection_1D
 
+    # sharpclaw does not accomodate nonuniform grids
     if solver_type=='classic':
         solver = pyclaw.ClawSolver1D(riemann_solver)
-    elif solver_type=='sharpclaw':
-        solver = pyclaw.SharpClawSolver1D(riemann_solver)
-        solver.weno_order = weno_order
-        solver.time_integrator = time_integrator
-        if time_integrator == 'SSPLMMk3':
-            solver.lmm_steps = 5
-            solver.check_lmm_cond = True
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language
-    #solver.order = 1 # in order to make test file pass without complaint
+    solver.order = 1 
     solver.limiters = pyclaw.tvd.minmod
     solver.num_eqn=1
     solver.num_waves=1
