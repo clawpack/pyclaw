@@ -58,7 +58,7 @@ def test_1d_advection():
 
     
     from itertools import chain
-    for test in chain(classic_tests, sharp_tests_rk, sharp_tests_lmm, sharp_tests_lmm2, weno_tests):
+    for test in chain(classic_tests):
         yield test
 
 
