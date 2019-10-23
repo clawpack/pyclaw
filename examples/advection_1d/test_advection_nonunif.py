@@ -52,13 +52,13 @@ def test_1d_advection():
 
     from clawpack.pyclaw.util import gen_variants
 
-    classic_tests = gen_variants(advection_1d_nonunif.setup, verify_expected_nonunif(1.145595120502496e-16),
+    classic_tests = gen_variants(advection_1d_nonunif.setup, verify_expected_nonunif(7.817097663620487e-17),
                                  kernel_languages=('Python','Fortran'),
                                  solver_type='classic', outdir=None)
 
     
     from itertools import chain
-    for test in chain(classic_tests, sharp_tests_rk, sharp_tests_lmm, sharp_tests_lmm2, weno_tests):
+    for test in chain(classic_tests):
         yield test
 
 
