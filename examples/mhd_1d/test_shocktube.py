@@ -5,7 +5,7 @@ def test_shocktube():
     "Shock tube test (1D MHD with Roe solver)"
     import numpy as np
     import os
-    import shocktube
+    from . import shocktube
     from clawpack.riemann.mhd_1D_constants import B_2, B_3
 
     claw = shocktube.setup(kernel_language='Fortran')
