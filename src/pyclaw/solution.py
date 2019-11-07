@@ -56,7 +56,7 @@ class Solution(object):
                  - (:class:`~pyclaw.geometry.Dimension`) - A domain and 
                    patch is created with the dimensions or list of 
                    dimensions provided.
-            3. `args` is a variable number of arguments that describes the 
+            3. `args` is a variable number of keyword arguments that describes the
                location of a file to be read in to initialize the object
     
     :Examples:
@@ -140,17 +140,14 @@ class Solution(object):
             frame = arg[0]
             if not isinstance(frame,int):
                 raise Exception('Invalid pyclaw.Solution object initialization')
-            if 'count_from_zero' in list(kargs.keys()) and\
-              kargs['count_from_zero'] == True:
-                self._start_frame = 0
-            else:
-                self._start_frame = frame
-            try:
+            if ('count_from_zero' in kargs):
+                if (kargs['count_from_zero'] == True):
+                    self._start_frame = 0
+                else:
+                    self._start_frame = frame
                 kargs.pop('count_from_zero')
-            except KeyError:
-                pass
-
             self.read(frame,**kargs)
+
         elif len(arg) == 2:
             #Set domain
             if isinstance(arg[1],Domain):
@@ -163,7 +160,7 @@ class Solution(object):
                 elif isinstance(arg[1][0],Patch):
                     self.domain = Domain(arg[1])
                 else:
-                    raise Exception("Invalid argument list")
+                    raise Exception("Invalid arguments for Solution initialization.")
 
             #Set state
             if isinstance(arg[0],State):
@@ -176,11 +173,21 @@ class Solution(object):
                 elif isinstance(arg[0][0],int):
                     self.states = State(self.domain,arg[0][0],arg[0][1])
                 else:
-                    raise Exception("Invalid argument list")
+                    raise Exception("Invalid arguments for Solution initialization.")
             elif isinstance(arg[0],int):
                 self.states.append(State(self.domain,arg[0]))
             if self.states == [] or self.domain is None:
-                raise Exception("Invalid argument list")
+                raise Exception("Invalid arguments for Solution initialization.")
+        elif len(arg) == 0:
+            if 'frame' in kargs:
+                frame = kargs.pop('frame')
+                self.read(frame,**kargs)
+            elif not kargs:
+                pass  # With no arguments, initialize empty solution
+            else:
+                raise Exception("Invalid arguments for Solution initialization.")
+        else:
+            raise Exception("Invalid arguments for Solution initialization.")
                 
                 
     def is_valid(self):
