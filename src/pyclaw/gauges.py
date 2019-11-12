@@ -347,9 +347,9 @@ def compare_old_gauges(old_path, new_path, gauge_id, plot=False, abs_tol=1e-14,
     # Turn these into assertions or logicals
     if verbose:
         print("Comparison of guage %s:" % gauge_id)
-        print("           ||\Delta q||_2 = ",
+        print(r"           ||\Delta q||_2 = ",
                               numpy.linalg.norm(q - gauge.q.transpose(), ord=2))
-        print("  arg(||\Delta q||_\infty = ",
+        print(r"  arg(||\Delta q||_\infty = ",
                               numpy.argmax(q - gauge.q.transpose()))
 
     if plot:
