@@ -613,8 +613,16 @@ class ClawSolver3D(ClawSolver):
         self.aux2 = None
         self.aux3 = None
         self.work = None
+        self.nthreads = None
 
         super(ClawSolver3D,self).__init__(riemann_solver, claw_package)
+
+        import os
+        if 'OMP_NUM_THREADS' not in os.environ:
+            self.logger.warn(""""The env variable 'OMP_NUM_THREADS' is unset.
+                                       Set this variable to use OpenMP with more 
+                                       than 1 thread (i.e. export OMP_NUM_THREADS=4).""")
+        self.nthreads = int(os.environ.get('OMP_NUM_THREADS',1))
 
     # ========== Setup routine =============================   
     def _allocate_workspace(self,solution):
@@ -639,10 +647,11 @@ class ClawSolver3D(ClawSolver):
 
         # These work arrays really ought to live inside a fortran module
         # as is done for sharpclaw
-        self.aux1 = np.empty((num_aux,maxm+2*num_ghost,3),order='F')
-        self.aux2 = np.empty((num_aux,maxm+2*num_ghost,3),order='F')
-        self.aux3 = np.empty((num_aux,maxm+2*num_ghost,3),order='F')
-        mwork = (maxm+2*num_ghost) * (31*num_eqn + num_waves + num_eqn*num_waves)
+        self.aux1 = np.empty((num_aux,maxm+2*num_ghost,3,self.nthreads),order='F')
+        self.aux2 = np.empty((num_aux,maxm+2*num_ghost,3,self.nthreads),order='F')
+        self.aux3 = np.empty((num_aux,maxm+2*num_ghost,3,self.nthreads),order='F')
+        mwork = (maxm+2*num_ghost)\
+                *(31*num_eqn + num_waves + num_eqn*num_waves)*self.nthreads
         self.work = np.empty((mwork),order='F')
 
 
@@ -679,25 +688,29 @@ class ClawSolver3D(ClawSolver):
                 #Right now only Godunov-dimensional-splitting is implemented.
                 #Strang-dimensional-splitting could be added following dimsp3.f in Clawpack.
 
-                q, cfl_x = self.fmod.step3ds(maxm,self.num_ghost,mx,my,mz, \
-                      qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,1,self.fwave,rpn3,rpt3,rptt3)
+                q, cfl_x = self.fmod.step3ds(maxm,self.nthreads,self.num_ghost,\
+                    mx,my,mz,qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,\
+                    self._mthlim,self.aux1,self.aux2,self.aux3,self.work,1,\
+                    self.fwave,rpn3,rpt3,rptt3)
 
-                q, cfl_y = self.fmod.step3ds(maxm,self.num_ghost,mx,my,mz, \
-                      q,q,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,2,self.fwave,rpn3,rpt3,rptt3)
+                q, cfl_y = self.fmod.step3ds(maxm,self.nthreads,self.num_ghost,\
+                    mx,my,mz,q,q,self.auxbc,dx,dy,dz,self.dt,self._method,\
+                    self._mthlim,self.aux1,self.aux2,self.aux3,self.work,2,\
+                    self.fwave,rpn3,rpt3,rptt3)
 
-                q, cfl_z = self.fmod.step3ds(maxm,self.num_ghost,mx,my,mz, \
-                      q,q,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,3,self.fwave,rpn3,rpt3,rptt3)
+                q, cfl_z = self.fmod.step3ds(maxm,self.nthreads,self.num_ghost,\
+                    mx,my,mz,q,q,self.auxbc,dx,dy,dz,self.dt,self._method,\
+                    self._mthlim,self.aux1,self.aux2,self.aux3,self.work,3,\
+                    self.fwave,rpn3,rpt3,rptt3)
 
                 cfl = max(cfl_x,cfl_y,cfl_z)
 
             else:
 
-                q, cfl = self.fmod.step3(maxm,self.num_ghost,mx,my,mz, \
-                      qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,self._mthlim,\
-                      self.aux1,self.aux2,self.aux3,self.work,self.fwave,rpn3,rpt3,rptt3)
+                q, cfl = self.fmod.step3(maxm,self.nthreads,self.num_ghost,\
+                    mx,my,mz,qold,qnew,self.auxbc,dx,dy,dz,self.dt,self._method,\
+                    self._mthlim,self.aux1,self.aux2,self.aux3,self.work,\
+                    self.fwave,rpn3,rpt3,rptt3)
 
             self.cfl.update_global_max(cfl)
             state.set_q_from_qbc(self.num_ghost,self.qbc)
