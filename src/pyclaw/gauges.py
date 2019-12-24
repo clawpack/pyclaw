@@ -263,26 +263,28 @@ def compare_gauges(paths, gauge_id, fields='all'):
 
     import matplotlib.pyplot as plt
 
-    if len(path) != 2:
+    if len(paths) != 2:
         raise ValueError("Provide two paths to gauge files for comparison.")
 
+    gauges = []
     for path in paths:
-        gauges = GaugeSolution(path=path, gauge_id=gauge_id)
+        gauges.append(GaugeSolution(path=path, gauge_id=gauge_id))
 
-    if fields.lower() == 'all':
-        fields = range(gauges[0].q.shape[0])
+    if isinstance(fields, str):
+        if fields.lower() == 'all':
+            fields = range(gauges[0].q.shape[0])
 
     fig = plt.figure()
-    fig.suptitle("Gauge %s" % gauges[0].gauge_id)
+    fig.suptitle("Gauge %s" % gauges[0].id)
     for (i, n) in enumerate(fields):
-        axes = fig.add_subplot(len(fields), 2, 2 * i + 1)
+        axes = fig.add_subplot(len(fields), 2, 2 * i + 1, )
         axes.plot(gauges[0].t, gauges[0].q[n, :], 'ko', label="%s" % paths[0])
-        axes.plot(gauges[0].t, gauges[1].q[n, :], 'rx', label="%s" % paths[1])
+        axes.plot(gauges[1].t, gauges[1].q[n, :], 'rx', label="%s" % paths[1])
         axes.set_xlabel("t")
         axes.set_ylabel("q[%s, :]" % n)
         axes.legend()
 
-        axes = fig.add_subplot(len(fields), 2, 2 * i + 1)
+        axes = fig.add_subplot(len(fields), 2, 2 * i + 2)
         axes.plot(gauges[0].t, 
                   numpy.abs(gauges[0].q[n, :] - gauges[1].q[n, :]), 'r')
         axes.set_xlabel("t")
@@ -373,9 +375,9 @@ def compare_old_gauges(old_path, new_path, gauge_id, plot=False, abs_tol=1e-14,
     # Turn these into assertions or logicals
     if verbose:
         print("Comparison of guage %s:" % gauge_id)
-        print("           ||\Delta q||_2 = ",
+        print(r"           ||\Delta q||_2 = ",
                               numpy.linalg.norm(q - gauge.q.transpose(), ord=2))
-        print("  arg(||\Delta q||_\infty = ",
+        print(r"  arg(||\Delta q||_\infty = ",
                               numpy.argmax(q - gauge.q.transpose()))
 
     if plot:
@@ -443,7 +445,7 @@ fields specified.  Only one gauge_id can be specified at a time but a number of
 fields can be specfied including 'all'.
 """
 
-    fields = [0]
+    fields = 'all'
     gauge_id = 1
     if len(sys.argv) < 3:
         print(help_msg)

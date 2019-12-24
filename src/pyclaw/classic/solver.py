@@ -314,7 +314,7 @@ class ClawSolver1D(ClawSolver):
 
             # Find local value for dt/dx
             if state.index_capa>=0:
-                dtdx = self.dt / (grid.delta[0] * state.aux[state.index_capa,:])
+                dtdx = self.dt / (grid.delta[0] * aux[state.index_capa,:])
             else:
                 dtdx += self.dt/grid.delta[0]
         

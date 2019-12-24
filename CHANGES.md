@@ -1,3 +1,13 @@
+# 5.6.1 release
+- New example of using a non-uniform grid in 1D added in `pyclaw/examples/advection_1d/advection_1d_nonunif.py`.
+- Fixed a bug when using a capacity function in the pure Python code.
+- Fixed a bug in `compare_gauges`
+
+# 5.6.0 release
+- New HLLE solvers for 2D Euler, 1D/2D Shallow water
+- Forward-facing step example now works (uses HLLE solver)
+- Minor improvements and bugfixes
+
 # 5.5.0 release
 - Some improvements to what happens if a user specifies the wrong file format when reading simulation data.
 
