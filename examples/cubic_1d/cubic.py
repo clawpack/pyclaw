@@ -33,6 +33,9 @@ def setup(use_petsc=0, outdir='./_output', solver_type='classic', weno_order=5, 
         solver = pyclaw.ClawSolver1D(riemann_solver)
         solver.limiters = pyclaw.limiters.tvd.vanleer
 
+    solver.cfl_max = 1.0
+    solver.cfl_desired = 0.5
+
     solver.kernel_language = 'Fortran'
 
     solver.bc_lower[0] = pyclaw.BC.extrap
