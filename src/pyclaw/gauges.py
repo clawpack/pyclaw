@@ -62,6 +62,12 @@ class GaugeSolution(object):
         r"""(ndarray(*, :) - float) - Observed data"""
         self.aux = None
         r"""(ndarray(*, :) - float) - Auxiliary data"""
+        self.gtype = 'stationary'
+        r"""(str) - 'stationary' or 'lagrangian'"""
+        self.particle_path = None
+        r"""(ndarray(:,3) - for lagrangian gauge columns are t,x,y,
+            for stationary gauge, single row with [t0,x,y]
+            Only implemented in 2d so far."""
 
         # Read in gauge data from file
         if gauge_id is not None:
@@ -111,9 +117,22 @@ class GaugeSolution(object):
                 self.location = (float(data[4]), float(data[5]), float(data[6]))
                 num_eqn = int(data[9])
 
+            line = gauge_file.readline()
+            if 'lagrangian' in line.lower():
+                # Lagrangian gauge (particle)
+                self.gtype = 'lagrangian'
+                gauge_file.readline() # third line of header
+            elif 'stationary' in line.lower():
+                # Standard stationary gauge
+                self.gtype = 'stationary'
+                gauge_file.readline() # third line of header
+            else:
+                # backward compatibility
+                self.gtype = 'stationary'
+            
             # Read in one more line to check to make sure there's actually data
             # in here
-            gauge_file.readline()
+            
             if len(gauge_file.readline()) == 0:
                 import warnings
                 warnings.warn("Gauge file %s is empty." % gauge_id)
@@ -145,6 +164,18 @@ class GaugeSolution(object):
         if num_eqn != self.q.shape[0]:
             raise ValueError("Number of fields in gauge file does not match",
                              "recorded number in header.")
+
+        if len(self.location) == 2:
+            # lagrangian gauges only implemented in 2d so far
+            if self.gtype == 'lagrangian':
+                # for lagrangian gauges x,y paths are stored in q in place of u,v
+                # note: only implemented in 2d geoclaw for now!
+                self.particle_path = numpy.vstack((self.t, self.q[1,:], 
+                                                  self.q[2,:])).T
+            else:
+                # set the lagrangian path to a single fixed location at t=t0:
+                self.particle_path = numpy.array([[self.t[0], self.location[0], 
+                                             self.location[1]]])
 
 
     def write(self, path=None, format="%+.15e"):
@@ -211,9 +242,9 @@ class GaugeSolution(object):
 
 
     def __str__(self):
-        return ("Gauge %s: location = %s, t = [%s, %s]" %
+        return ("Gauge %s: location = %s, t = [%s, %s], %s" %
                                     (self.id, self.location,
-                                     self.t[0], self.t[-1]))
+                                     self.t[0], self.t[-1], self.gtype))
 
 
 # ==============================
