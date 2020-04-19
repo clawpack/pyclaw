@@ -10,7 +10,7 @@ env:
 
 python:
   - 2.7
-  - 3.6
+  - 3.6.10
 
 before_install:
   - sudo apt-get update -qq
