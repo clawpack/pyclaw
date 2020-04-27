@@ -18,15 +18,15 @@
 
     implicit double precision (a-h,o-z)
     double precision :: qold(num_eqn, 1-num_ghost:mx+num_ghost, &
-    1-num_ghost:my+num_ghost)
+                             1-num_ghost:my+num_ghost)
     double precision :: qnew(num_eqn, 1-num_ghost:mx+num_ghost, &
-    1-num_ghost:my+num_ghost)
+                             1-num_ghost:my+num_ghost)
     double precision ::  q1d(num_eqn, 1-num_ghost:maxm+num_ghost)
     double precision :: qadd(num_eqn, 1-num_ghost:maxm+num_ghost)
     double precision :: fadd(num_eqn, 1-num_ghost:maxm+num_ghost)
     double precision :: gadd(num_eqn, 2, 1-num_ghost:maxm+num_ghost)
     double precision :: aux(num_aux, 1-num_ghost:mx+num_ghost, &
-    1-num_ghost:my+num_ghost)
+                            1-num_ghost:my+num_ghost)
     double precision :: aux1(num_aux, 1-num_ghost:maxm+num_ghost)
     double precision :: aux2(num_aux, 1-num_ghost:maxm+num_ghost)
     double precision :: aux3(num_aux, 1-num_ghost:maxm+num_ghost)
@@ -93,7 +93,7 @@
     !     # cell values to the intermediate state as needed in the following
     !     # sweep in the y-direction.
     
-        do 50 j = 1-num_ghost,my+num_ghost
+        do j = 1-num_ghost,my+num_ghost
         
         !        # copy data along a slice into 1d arrays:
             forall (m=1:num_eqn, i = 1-num_ghost: mx+num_ghost)
@@ -101,29 +101,32 @@
             end forall
         
             if (index_capa > 0)  then
-                do 22 i = 1-num_ghost, mx+num_ghost
+                do i = 1-num_ghost, mx+num_ghost
                     dtdx1d(i) = dtdx / aux(index_capa,i,j)
-                22 END DO
+                end do
             endif
         
             if (num_aux > 0)  then
-                do 23 ma=1,num_aux
-                    do 23 i = 1-num_ghost, mx+num_ghost
+                do ma=1,num_aux
+                    do i = 1-num_ghost, mx+num_ghost
                         aux2(ma,i) = aux(ma,i,j  )
-                23 END DO
+                    end do
+                end do
             
                 if(j /= 1-num_ghost)then
-                    do 24 ma=1,num_aux
-                        do 24 i = 1-num_ghost, mx+num_ghost
+                    do ma=1,num_aux
+                        do i = 1-num_ghost, mx+num_ghost
                             aux1(ma,i) = aux(ma,i,j-1)
-                    24 END DO
+                        end do
+                    end do
                 endif
             
                 if(j /= my+num_ghost)then
-                    do 25 ma=1,num_aux
-                        do 25 i = 1-num_ghost, mx+num_ghost
+                    do ma=1,num_aux
+                        do i = 1-num_ghost, mx+num_ghost
                             aux3(ma,i) = aux(ma,i,j+1)
-                    25 END DO
+                        end do
+                    end do
                 endif
             
             endif
@@ -135,11 +138,11 @@
         
         !        # compute modifications fadd and gadd to fluxes along this slice:
             call flux2(1,maxm,num_eqn,num_waves,num_aux,num_ghost,mx, &
-            q1d,dtdx1d,aux1,aux2,aux3,method,mthlim, &
-            qadd,fadd,gadd,cfl1d, &
-            work(i0wave),work(i0s),work(i0amdq),work(i0apdq), &
-            work(i0cqxx),work(i0bmadq),work(i0bpadq),rpn2,rpt2, &
-            use_fwave)
+                       q1d,dtdx1d,aux1,aux2,aux3,method,mthlim, &
+                       qadd,fadd,gadd,cfl1d, &
+                       work(i0wave),work(i0s),work(i0amdq),work(i0apdq), &
+                       work(i0cqxx),work(i0bmadq),work(i0bpadq),rpn2,rpt2, &
+                       use_fwave)
             cfl = dmax1(cfl,cfl1d)
         
         !        # update qnew by flux differencing.
@@ -151,21 +154,21 @@
             
             !            # no capa array.  Standard flux differencing:
                 forall (m=1:num_eqn, i=1:mx)
-                qnew(m,i,j) = qnew(m,i,j) + qadd(m,i) &
-                - dtdx * (fadd(m,i+1) - fadd(m,i))
+                    qnew(m,i,j) = qnew(m,i,j) + qadd(m,i) &
+                        - dtdx * (fadd(m,i+1) - fadd(m,i))
                 end forall
             
             else
             
             !            # with capa array.
                 forall (m=1:num_eqn, i=1:mx)
-                qnew(m,i,j) = qnew(m,i,j) + qadd(m,i) &
-                - dtdx * (fadd(m,i+1) - fadd(m,i)) &
-                / aux(index_capa,i,j)
+                    qnew(m,i,j) = qnew(m,i,j) + qadd(m,i) &
+                        - dtdx * (fadd(m,i+1) - fadd(m,i)) &
+                        / aux(index_capa,i,j)
                 end forall
             endif
-        50 END DO
-    
+        end do
+
     endif
 
     if( ids == 2 )then
@@ -174,38 +177,41 @@
     !     ==================
     
     
-        do 100 i = 1-num_ghost, mx+num_ghost
+        do i = 1-num_ghost, mx+num_ghost
         
         !        # copy data along a slice into 1d arrays:
             forall (m=1:num_eqn, j = 1-num_ghost: my+num_ghost)
-            q1d(m,j) = qold(m,i,j)
+                q1d(m,j) = qold(m,i,j)
             end forall
         
             if (index_capa > 0)  then
-                do 72 j = 1-num_ghost, my+num_ghost
+                do j = 1-num_ghost, my+num_ghost
                     dtdy1d(j) = dtdy / aux(index_capa,i,j)
-                72 END DO
+                end do
             endif
         
             if (num_aux > 0)  then
             
-                do 73 ma=1,num_aux
-                    do 73 j = 1-num_ghost, my+num_ghost
+                do ma=1,num_aux
+                    do j = 1-num_ghost, my+num_ghost
                         aux2(ma,j) = aux(ma,i,j)
-                73 END DO
+                    end do
+                end do
             
                 if(i /= 1-num_ghost)then
-                    do 74 ma=1,num_aux
-                        do 74 j = 1-num_ghost, my+num_ghost
+                    do ma=1,num_aux
+                        do j = 1-num_ghost, my+num_ghost
                             aux1(ma,j) = aux(ma,i-1,j)
-                    74 END DO
+                        end do
+                    end do
                 endif
             
                 if(i /= mx+num_ghost)then
-                    do 75 ma=1,num_aux
-                        do 75 j = 1-num_ghost, my+num_ghost
+                    do ma=1,num_aux
+                        do j = 1-num_ghost, my+num_ghost
                             aux3(ma,j) = aux(ma,i+1,j)
-                    75 END DO
+                        end do
+                    end do
                 endif
             
             endif
@@ -217,11 +223,11 @@
         
         !        # compute modifications fadd and gadd to fluxes along this slice:
             call flux2(2,maxm,num_eqn,num_waves,num_aux,num_ghost,my, &
-            q1d,dtdy1d,aux1,aux2,aux3,method,mthlim, &
-            qadd,fadd,gadd,cfl1d, &
-            work(i0wave),work(i0s),work(i0amdq),work(i0apdq), &
-            work(i0cqxx),work(i0bmadq),work(i0bpadq),rpn2,rpt2, &
-            use_fwave)
+                       q1d,dtdy1d,aux1,aux2,aux3,method,mthlim, &
+                       qadd,fadd,gadd,cfl1d, &
+                       work(i0wave),work(i0s),work(i0amdq),work(i0apdq), &
+                       work(i0cqxx),work(i0bmadq),work(i0bpadq),rpn2,rpt2, &
+                       use_fwave)
         
             cfl = dmax1(cfl,cfl1d)
         
@@ -232,27 +238,27 @@
         
             if (index_capa == 0) then
             
-            !            # no capa array.  Standard flux differencing:
+                ! no capa array.  Standard flux differencing:
                 forall (m=1:num_eqn, j=1:my)
-                qnew(m,i,j) = qnew(m,i,j) + qadd(m,j) &
-                - dtdy * (fadd(m,j+1) - fadd(m,j))
+                    qnew(m,i,j) = qnew(m,i,j) + qadd(m,j) &
+                        - dtdy * (fadd(m,j+1) - fadd(m,j))
                 end forall
 
             
             else
             
-            !            # with capa array.
+                ! with capa array.
                 forall (m=1:num_eqn, j=1:my)
-                qnew(m,i,j) = qnew(m,i,j) + qadd(m,j) &
-                - dtdy * (fadd(m,j+1) - fadd(m,j)) &
-                / aux(index_capa,i,j)
+                    qnew(m,i,j) = qnew(m,i,j) + qadd(m,j) &
+                        - dtdy * (fadd(m,j+1) - fadd(m,j)) &
+                        / aux(index_capa,i,j)
                 end forall
 
             endif
-        100 END DO
+        end do
     
     endif
 
 
     return
-    end subroutine step2ds
+end subroutine step2ds
