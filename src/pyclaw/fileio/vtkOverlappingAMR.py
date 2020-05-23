@@ -54,28 +54,39 @@ class vtkOverlappingAMR(object):
         self.xml_version = str1
 
     # todo: define other setting functions
-    def write_ascii(self, filename):
-        op_file = open(filename + '.vthb', 'w')
-        op_file.write('<?xml version=\"'+self.xml_version+'\"?>\n')
-        op_file.write('<VTKFile type=\"vtkOverlappingAMR" version=\"' +
-                      self.vtk_file_type_version+'\" byte_order=\"' +
-                      self.byte_order + '\" header_type=\"' +
-                      self.header_type + '\" compressor=\"' +
-                      self.compressor + '\">\n')
-        op_file.write('  <vtkOverlappingAMR origin=\"' +
-                      str(self.origin[0]) + ' ' +
-                      str(self.origin[1]) + ' ' +
-                      str(self.origin[2]) +
-                      '\" grid_description=\"' +
-                      self.grid_description + '\">\n')
-        op_file.close()
+    def write_ascii(self, path, filename):
+        """
+        Write the .vthb function
+
+        path
+        filename
+        """
+        import os
+
+        with open(os.path.join(path, filename) + '.vthb', 'w') as op_file:
+            op_file.write('<?xml version=\"'+self.xml_version+'\"?>\n')
+            op_file.write('<VTKFile type=\"vtkOverlappingAMR" version=\"' +
+                          self.vtk_file_type_version+'\" byte_order=\"' +
+                          self.byte_order + '\" header_type=\"' +
+                          self.header_type + '\" compressor=\"' +
+                          self.compressor + '\">\n')
+            op_file.write('  <vtkOverlappingAMR origin=\"' +
+                          str(self.origin[0]) + ' ' +
+                          str(self.origin[1]) + ' ' +
+                          str(self.origin[2]) +
+                          '\" grid_description=\"' +
+                          self.grid_description + '\">\n')
+
+        # write individual block files in folder. This appends information to
+        # the .vthb file.
         for i in range(self.num_levels):
             # pdb.set_trace()
-            self.blocks[i].write_root_file(filename)
-        op_file = open(filename + '.vthb', 'a')
-        op_file.write('  </vtkOverlappingAMR>\n')
-        op_file.write('</VTKFile>')
-        op_file.close()
+            self.blocks[i].write_root_file(path, filename)
+
+        # write end of .vthb file.
+        with open(os.path.join(path, filename) + '.vthb', 'a') as op_file:
+            op_file.write('  </vtkOverlappingAMR>\n')
+            op_file.write('</VTKFile>')
 
 
 class vtkAMRBlock(object):
@@ -103,22 +114,28 @@ class vtkAMRBlock(object):
         amrbox.set_spacing(self.spacing)
         self.boxes.append(amrbox)
 
-    def write_root_file(self, filename):
-        op_file = open(filename + '.vthb', 'a')
+    def write_root_file(self, path, filename):
+        # write block info to .vthb file.
+        import os
+
+        op_file = open(os.path.join(path, filename) + '.vthb', 'a')
         op_file.write('    <Block level=\"' + str(self.level) +
                       '\" spacing=\"' +
                       str(self.spacing[0]) + ' ' +
                       str(self.spacing[1]) + ' ' +
                       str(self.spacing[2]) + '\">\n')
-        import os
-        if filename not in os.listdir('./'):
-            os.mkdir(filename)
+
+        if filename not in os.listdir(path):
+            os.makedirs(os.path.join(path, filename))
+
         for i in range(self.nbox):
             # pdb.set_trace()
             boundary_index = self.boxes[i].get_global_boundary_index(
                              self.global_origin)
-            child_path = filename + '/' + filename + \
-                '_' + str(self.level) + '_' + str(i) + '.vti'
+
+            fn = filename+'_'+str(self.level)+'_'+str(i)+'.vti'
+
+            child_path = os.path.join(filename, fn)
             op_file.write('      <DataSet index=\"' +
                           str(i) + '\" amr_box=\"' +
                           str(boundary_index[0]) + ' ' +
@@ -130,7 +147,7 @@ class vtkAMRBlock(object):
                           '\" file=\"' + child_path + '\">\n')
             op_file.write('      </DataSet>\n')
             # write data in children directory
-            self.boxes[i].write_child_ascii(child_path)
+            self.boxes[i].write_child_ascii(path, child_path)
         op_file.write('    </Block>\n')
         op_file.close()
 
@@ -215,87 +232,87 @@ class vtkAMRBox(object):
 
         return np.array([i_low, i_high, j_low, j_high, k_low, k_high])
 
-    def write_child_ascii(self, filename):
-        op_file = open(filename, 'w')
-        op_file.write('<?xml version=\"'+self.xml_version+'\"?>\n')
-        op_file.write('<VTKFile type=\"ImageData\" version=\"' +
-                      self.vtk_file_type_version+'\" byte_order=\"' +
-                      self.byte_order + '\" header_type=\"' +
-                      self.header_type + '\" compressor=\"' +
-                      self.compressor + '\">\n')
-        extent = self.get_local_boundary_index()
-        op_file.write('  <ImageData WholeExtent=\"' +
-                      str(extent[0]) + ' ' +
-                      str(extent[1]) + ' ' +
-                      str(extent[2]) + ' ' +
-                      str(extent[3]) + ' ' +
-                      str(extent[4]) + ' ' +
-                      str(extent[5]) + '\" ' +
-                      'Origin=\"' +
-                      str(self.origin[0]) + ' ' +
-                      str(self.origin[1]) + ' ' +
-                      str(self.origin[2]) +
-                      '\" Spacing=\"' +
-                      str(self.spacing[0]) + ' ' +
-                      str(self.spacing[1]) + ' ' +
-                      str(self.spacing[2]) + '\">\n')
-        op_file.write('  <Piece Extent=\"' +
-                      str(extent[0]) + ' ' +
-                      str(extent[1]) + ' ' +
-                      str(extent[2]) + ' ' +
-                      str(extent[3]) + ' ' +
-                      str(extent[4]) + ' ' +
-                      str(extent[5]) + '\">\n')
-        op_file.write('    <PointData>\n')
-        if len(self.point_data) != 0:  # write point data
-            for data_name, point_data in zip(self.point_data_name,
-                                             self.point_data):
-                op_file.write('      <DataArray type=\"Float64\" Name=\"' +
-                              data_name + '\" ' +
-                              'format=\"ascii\" RangeMin=\"' +
-                              str(point_data.min()) + '\" ' +
-                              'RangeMax=\"' + str(point_data.max()) + '\">\n')
-                data_flat = point_data.flatten()
-                op_file.write('       ')
-                for i, item in enumerate(data_flat):
-                    # write every 6 numbers in a line
-                    if (i % 6 == 0) and (i != 0):
-                        op_file.write('\n')
-                        op_file.write('       ')
-                    op_file.write(str(item) + ' ')
-                op_file.write('\n')
-                op_file.write('      </DataArray>\n')
-        op_file.write('    </PointData>\n')
-        op_file.write('    <CellData>\n')
-        if len(self.cell_data) != 0:  # write cell data
-            for data_name, cell_data, data_type in \
-                    zip(
-                        self.cell_data_name,
-                        self.cell_data,
-                        self.cell_data_type
-                       ):
-                op_file.write('      <DataArray type=\"' +
-                              data_type + '\" Name=\"' +
-                              data_name + '\" ' +
-                              'format=\"ascii\" RangeMin=\"' +
-                              str(cell_data.min()) + '\" ' +
-                              'RangeMax=\"' + str(cell_data.max()) + '\">\n')
-                data_flat = cell_data.flatten()
-                op_file.write('       ')
-                for i, item in enumerate(data_flat):
-                    # write every 6 numbers in a line
-                    if (i % 6 == 0) and (i != 0):
-                        op_file.write('\n')
-                        op_file.write('       ')
-                    # we should write data as integer
-                    if ("Int" in data_type):
-                        op_file.write(str(int(item)) + ' ')
-                    else:
+    def write_child_ascii(self, path, filename):
+        import os
+        with open(os.path.join(path, filename), 'w') as op_file:
+            op_file.write('<?xml version=\"'+self.xml_version+'\"?>\n')
+            op_file.write('<VTKFile type=\"ImageData\" version=\"' +
+                          self.vtk_file_type_version+'\" byte_order=\"' +
+                          self.byte_order + '\" header_type=\"' +
+                          self.header_type + '\" compressor=\"' +
+                          self.compressor + '\">\n')
+            extent = self.get_local_boundary_index()
+            op_file.write('  <ImageData WholeExtent=\"' +
+                          str(extent[0]) + ' ' +
+                          str(extent[1]) + ' ' +
+                          str(extent[2]) + ' ' +
+                          str(extent[3]) + ' ' +
+                          str(extent[4]) + ' ' +
+                          str(extent[5]) + '\" ' +
+                          'Origin=\"' +
+                          str(self.origin[0]) + ' ' +
+                          str(self.origin[1]) + ' ' +
+                          str(self.origin[2]) +
+                          '\" Spacing=\"' +
+                          str(self.spacing[0]) + ' ' +
+                          str(self.spacing[1]) + ' ' +
+                          str(self.spacing[2]) + '\">\n')
+            op_file.write('  <Piece Extent=\"' +
+                          str(extent[0]) + ' ' +
+                          str(extent[1]) + ' ' +
+                          str(extent[2]) + ' ' +
+                          str(extent[3]) + ' ' +
+                          str(extent[4]) + ' ' +
+                          str(extent[5]) + '\">\n')
+            op_file.write('    <PointData>\n')
+            if len(self.point_data) != 0:  # write point data
+                for data_name, point_data in zip(self.point_data_name,
+                                                 self.point_data):
+                    op_file.write('      <DataArray type=\"Float64\" Name=\"' +
+                                  data_name + '\" ' +
+                                  'format=\"ascii\" RangeMin=\"' +
+                                  str(point_data.min()) + '\" ' +
+                                  'RangeMax=\"' + str(point_data.max()) + '\">\n')
+                    data_flat = point_data.flatten()
+                    op_file.write('       ')
+                    for i, item in enumerate(data_flat):
+                        # write every 6 numbers in a line
+                        if (i % 6 == 0) and (i != 0):
+                            op_file.write('\n')
+                            op_file.write('       ')
                         op_file.write(str(item) + ' ')
-                op_file.write('\n')
-                op_file.write('      </DataArray>\n')
-        op_file.write('    </CellData>\n')
-        op_file.write('  </Piece>\n')
-        op_file.write('  </ImageData>\n')
-        op_file.write('</VTKFile>')
-        op_file.close()
+                    op_file.write('\n')
+                    op_file.write('      </DataArray>\n')
+            op_file.write('    </PointData>\n')
+            op_file.write('    <CellData>\n')
+            if len(self.cell_data) != 0:  # write cell data
+                for data_name, cell_data, data_type in \
+                        zip(
+                            self.cell_data_name,
+                            self.cell_data,
+                            self.cell_data_type
+                           ):
+                    op_file.write('      <DataArray type=\"' +
+                                  data_type + '\" Name=\"' +
+                                  data_name + '\" ' +
+                                  'format=\"ascii\" RangeMin=\"' +
+                                  str(cell_data.min()) + '\" ' +
+                                  'RangeMax=\"' + str(cell_data.max()) + '\">\n')
+                    data_flat = cell_data.flatten()
+                    op_file.write('       ')
+                    for i, item in enumerate(data_flat):
+                        # write every 6 numbers in a line
+                        if (i % 6 == 0) and (i != 0):
+                            op_file.write('\n')
+                            op_file.write('       ')
+                        # we should write data as integer
+                        if ("Int" in data_type):
+                            op_file.write(str(int(item)) + ' ')
+                        else:
+                            op_file.write(str(item) + ' ')
+                    op_file.write('\n')
+                    op_file.write('      </DataArray>\n')
+            op_file.write('    </CellData>\n')
+            op_file.write('  </Piece>\n')
+            op_file.write('  </ImageData>\n')
+            op_file.write('</VTKFile>')

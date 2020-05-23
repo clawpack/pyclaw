@@ -2,6 +2,8 @@
 
 # Author: Xinsheng (Shawn) Qin
 # date: 03/2016
+# Modified by Katy Barnhart
+# date 05/2020
 
 from .vtkOverlappingAMR import vtkOverlappingAMR, vtkAMRBlock, vtkAMRBox
 from .claw_find_overlapped import set_overlapped_status
@@ -21,13 +23,16 @@ def write(
     For each input frame a folder input_prefixXXXX.vthb and a folder called
     input_prefixXXXX containing multiple files will be created.
 
-    To open in paraview, choose the group of vthb files.
+    To open in paraview, choose the group of vthb files, not the group of
+    folders.
+
+    Might need to do CellDataToPointData in paraview to use filters like WarpByScalar.
 
     Args:
         sol (int): frame number of the clawpack output file
-        path (string): output directory of clawpack.
-                             It's usually "_output".
-        file_prefix (str): File name of output VTK files in input_path.
+        path (string): path for vtk output. Default: "_output".
+        file_prefix (str): File name of output VTK files in input_path. Default
+            is "claw".
     """
     assert(isinstance(frame, int))
     set_overlapped_status(solution)
@@ -36,6 +41,7 @@ def write(
     global_origin.append(0.0)  # append z
     global_origin = np.array(global_origin)
     levels = [state.patch.level-1 for state in solution.states]
+
     # shift base level to 0, since the base level in clawpack
     # is 1 while the base level in VTK is 0
     level_count = {}
@@ -97,7 +103,8 @@ def write(
             # amrbox.set_point_data(point_data)
             block.attached_amrbox(amrbox)
             AMRdata.attached_block(level, block)
+
         global_index = global_index + box_per_level[level]
 
     filename = file_prefix+str(frame).zfill(4)
-    AMRdata.write_ascii(filename)
+    AMRdata.write_ascii(path, filename)
