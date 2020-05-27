@@ -21,7 +21,8 @@ def write(
     """Convert solution to VTK.
 
     For each input frame a folder input_prefixXXXX.vthb and a folder called
-    input_prefixXXXX containing multiple files will be created.
+    input_prefixXXXX containing multiple files called
+    input_prefixXXXX_<level>_<patch>.vti. Each of these
 
     To open in paraview, choose the group of vthb files, not the group of
     folders.
@@ -33,6 +34,18 @@ def write(
         path (string): path for vtk output. Default: "_output".
         file_prefix (str): File name of output VTK files in input_path. Default
             is "claw".
+
+    TODO ADD WRITE AUX OPTIONS.
+
+    Examples
+    --------
+    >>> from clawpack.pyclaw import Solution
+    >>> from clawpack.pyclaw.fileio.vtk import write as write_vtk
+    >>> for frame in range(21):
+    ...     path = "_output"
+    ...     sol = Solution(frame, path=path, file_format="ascii")
+    ...     write_vtk(sol, frame=frame)
+
     """
     assert(isinstance(frame, int))
     set_overlapped_status(solution)
@@ -88,6 +101,9 @@ def write(
                 q_i = q[i, ...]
                 q_i = q_i.transpose()
                 amrbox.set_cell_data(q_i, "q_"+str(i))
+
+            # this is where writing out aux files wouild happen.
+            
             q_ol = q[-1, ...]  # last piece is used to mark overlapped cells
             q_ol = q_ol.transpose()
             amrbox.set_cell_data(q_ol, "vtkGhostType", "UInt8")
