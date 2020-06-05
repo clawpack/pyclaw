@@ -35,6 +35,9 @@ class IOTest():
         regression_dir = os.path.join(self.test_data_dir,'./advection_2d_with_aux')
         self.read_write_and_compare(self.file_formats,regression_dir,'hdf5',0,aux=True)
 
+    def test_io_to_vtk(self):
+        pass
+
     def read_write_and_compare(self, file_formats,regression_dir,regression_format,frame_num,aux=False):
         r"""Test IO file formats:
             - Reading in an HDF file
