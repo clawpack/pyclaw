@@ -8,7 +8,7 @@
 import sys
 import os
 import numpy as np
-from pyclaw import Solution
+from clawpack.pyclaw import Solution
 
 
 def write(
