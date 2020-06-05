@@ -17,34 +17,30 @@ def write(
     path="_output",
     file_prefix='claw',
     ):
-    """Convert solution to VTK.
+    """Write out a VTK representation of solution
 
-    For each input frame a folder input_prefixXXXX.vthb and a folder called
-    input_prefixXXXX containing multiple files called
-    input_prefixXXXX_<level>_<patch>.vti. Each of these
+    For each input frame the following files and directories are created:
+      - input_prefixXXXX.vthb. This file provides the metadata to describe
+        how AMR patches are represented in the .vti files (including a relative
+        path to the .vti files).
+      - directory: input_prefixXXXX containing multiple files called
+        input_prefixXXXX_<level>_<patch>.vti. <level> represents the AMR level
+        and <patch> indicates the
 
-    To open in paraview, choose the group of vthb files, not the group of
-    folders.
+    To open in paraview, choose the group of .vthb files, not the group of
+    folders. This will be read in as cell data. In order to use filters like
+    WarpByScalar you must use the CellDataToPointData filter first.
 
-    Might need to do CellDataToPointData in paraview to use filters like WarpByScalar.
+    :Input:
+     - *solution* - (:class:`~pyclaw.solution.Solution`) Pyclaw object to be
+       output
+     - *frame* - (int) Frame number
+     - *path* - (string) Root path
+     - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
 
-    Args:
-        sol (int): frame number of the clawpack output file
-        path (string): path for vtk output. Default: "_output".
-        file_prefix (str): File name of output VTK files in input_path. Default
-            is "claw".
-
-    TODO ADD WRITE AUX OPTIONS.
-
-    Examples
-    --------
-    >>> from clawpack.pyclaw import Solution
-    >>> from clawpack.pyclaw.fileio.vtk import write as write_vtk
-    >>> for frame in range(21):
-    ...     path = "_output"
-    ...     sol = Solution(frame, path=path, file_format="ascii")
-    ...     write_vtk(sol, frame=frame)
-
+    Not yet implemented
+        - Add options for writing aux files.
+        - Consider making an equilvalent vtk.read function. 
     """
     assert(isinstance(frame, int))
     assert(isinstance(solution, Solution))
