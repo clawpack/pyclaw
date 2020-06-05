@@ -16,6 +16,9 @@ def write(
     frame,
     path="_output",
     file_prefix='claw',
+    write_aux=None,
+    options=None,
+    write_p=None,
     ):
     """Write out a VTK representation of solution
 
@@ -25,7 +28,7 @@ def write(
         path to the .vti files).
       - directory: input_prefixXXXX containing multiple files called
         input_prefixXXXX_<level>_<patch>.vti. <level> represents the AMR level
-        and <patch> indicates the
+        and <patch> indicates the AMR patch number at the given AMR level.
 
     To open in paraview, choose the group of .vthb files, not the group of
     folders. This will be read in as cell data. In order to use filters like
@@ -37,10 +40,17 @@ def write(
      - *frame* - (int) Frame number
      - *path* - (string) Root path
      - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
+     - *write_aux* - (bool) Not implemented.
+     - *options* - (dict) Not implemented.
+     - *write_p* - (bool) Not implemented.
 
-    Not yet implemented
+    Note that some keyword arguments are not used. This is to maintain
+    compatibility with the function signature expected by
+    :py:class:`~pyclaw.Solution`
+
+    Notes on what is not yet implemented
         - Add options for writing aux files.
-        - Consider making an equilvalent vtk.read function. 
+        - Consider making an equilvalent vtk.read function.
     """
     assert(isinstance(frame, int))
     assert(isinstance(solution, Solution))
@@ -120,9 +130,6 @@ def write(
 
     filename = file_prefix+str(frame).zfill(4)
     AMRdata.write_ascii(path, filename)
-
-
-
 
 
 def _set_overlapped_status(sol):
