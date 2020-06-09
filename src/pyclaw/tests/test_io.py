@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import os
+import glob
 import numpy as np
 from clawpack.pyclaw import Solution
 from clawpack.pyclaw.util import check_solutions_are_same
@@ -67,20 +68,54 @@ class IOTest():
         # since the VTK only has a write and no read, I'm making sure that
         # the output matches sample output.
 
-        # TODO: verify that the the VTI and VTHB files I've made are, in fact
-        # correct 
-
-        regression_dir = os.path.join(self.test_data_dir,'./advection_2d_with_aux')
+        # Input format (Binary)
+        regression_dir = os.path.join(self.test_data_dir,'./advection_2d_binary')
 
         # read in from ascii.
         ref_sol = self.solution
-        ref_sol.read(0,path=regression_dir,file_format="ascii")
+        ref_sol.read(0,path=regression_dir,file_format="binary")
 
         # write out to vtk in io_test_dir
         io_test_dir = os.path.join(self.this_dir,'./io_test')
-        ref_sol.write(0,path=regression_dir,file_format="vtk", file_prefix="test", path=io_test_dir)
+        ref_sol.write(0, file_format="vtk", file_prefix="test", path=io_test_dir)
+
+        # Known correct data:
+        comparison_dir = os.path.join(self.test_data_dir,'./advection_2d_vtk')
 
         # use glob to find all vthb and vti files.
         # compare  line by line.
+        assert self.compare_vtk(comparison_dir, io_test_dir)==True
 
         # clean up files.
+
+    def compare_vtk(self, dir1, dir2):
+        # compare vtk files in two directories, return True if files are
+        # equivalent.
+
+        # assumption is that there are vthb files at top level and one level
+        # down in folders are vthb files.
+
+        dir1_vthb_files = glob.glob(os.path.join(dir1, ".vthb"))
+        assert len(dir1_vthb_files) == 1
+
+        dir1_vti_files = glob.glob(os.path.join(dir2, *["*", ".vti"]))
+        assert len(dir1_vti_files) == 17
+
+        # for all files do line by line comparison.
+        for dir1_file in dir1_vti_files + dir1_vthb_files:
+            dir2_file = dir1_file.replace(dir1, dir2)
+
+            # open files
+            with open(dir1_file, 'r') as  f1:
+                lines1 = f1.readlines()
+            with open(dir2_file, 'r') as  f2:
+                lines2 = f1.readlines()
+
+            # compare each line.
+            for l1, l2 in (lines1, lines2):
+                assert l1.strip() == lines2.strip()
+
+            # delete lines for this file.
+            del lines1, lines2
+
+        return True
