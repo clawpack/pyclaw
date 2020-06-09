@@ -284,8 +284,6 @@ class vtkOverlappingAMR(object):
         path
         filename
         """
-        import os
-
         with open(os.path.join(path, filename) + '.vthb', 'w') as op_file:
             op_file.write('<?xml version=\"'+self.xml_version+'\"?>\n')
             op_file.write('<VTKFile type=\"vtkOverlappingAMR" version=\"' +
@@ -339,8 +337,6 @@ class vtkAMRBlock(object):
 
     def write_root_file(self, path, filename):
         # write block info to .vthb file.
-        import os
-
         op_file = open(os.path.join(path, filename) + '.vthb', 'a')
         op_file.write('    <Block level=\"' + str(self.level) +
                       '\" spacing=\"' +
@@ -456,7 +452,6 @@ class vtkAMRBox(object):
         return np.array([i_low, i_high, j_low, j_high, k_low, k_high])
 
     def write_child_ascii(self, path, filename):
-        import os
         with open(os.path.join(path, filename), 'w') as op_file:
             op_file.write('<?xml version=\"'+self.xml_version+'\"?>\n')
             op_file.write('<VTKFile type=\"ImageData\" version=\"' +
