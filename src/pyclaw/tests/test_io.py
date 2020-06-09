@@ -77,7 +77,7 @@ class IOTest():
 
         # write out to vtk in io_test_dir
         io_test_dir = os.path.join(self.this_dir,'./io_test')
-        ref_sol.write(0, file_format="vtk", file_prefix="test", path=io_test_dir)
+        ref_sol.write(0, file_format="vtk", path=io_test_dir)
 
         # Known correct data:
         comparison_dir = os.path.join(self.test_data_dir,'./advection_2d_vtk')
@@ -86,8 +86,6 @@ class IOTest():
         # compare  line by line.
         assert self.compare_vtk(comparison_dir, io_test_dir)==True
 
-        # clean up files.
-
     def compare_vtk(self, dir1, dir2):
         # compare vtk files in two directories, return True if files are
         # equivalent.
@@ -95,10 +93,11 @@ class IOTest():
         # assumption is that there are vthb files at top level and one level
         # down in folders are vthb files.
 
-        dir1_vthb_files = glob.glob(os.path.join(dir1, ".vthb"))
+        # number of vthb and vti files is known. assert them.
+        dir1_vthb_files = glob.glob(os.path.join(dir1, "*.vthb"))
         assert len(dir1_vthb_files) == 1
 
-        dir1_vti_files = glob.glob(os.path.join(dir2, *["*", ".vti"]))
+        dir1_vti_files = glob.glob(os.path.join(dir2, *["*", "*.vti"]))
         assert len(dir1_vti_files) == 17
 
         # for all files do line by line comparison.
@@ -109,13 +108,14 @@ class IOTest():
             with open(dir1_file, 'r') as  f1:
                 lines1 = f1.readlines()
             with open(dir2_file, 'r') as  f2:
-                lines2 = f1.readlines()
+                lines2 = f2.readlines()
 
             # compare each line.
-            for l1, l2 in (lines1, lines2):
-                assert l1.strip() == lines2.strip()
+            for l1, l2 in zip(lines1, lines2):
+                assert l1.strip() == l2.strip()
 
             # delete lines for this file.
             del lines1, lines2
 
+        # Only if all assertions succeed, return True.
         return True
