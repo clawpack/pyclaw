@@ -10,6 +10,7 @@ import os
 import numpy as np
 from clawpack.pyclaw import Solution
 import vtk
+from vtk.util import numpy_support
 
 def write(
     solution,
@@ -31,8 +32,8 @@ def write(
         and <patch> indicates the AMR patch number at the given AMR level.
 
 
-https://vtk.org/doc/nightly/html/classvtkOverlappingAMR.html
-https://lorensen.github.io/VTKExamples/site/Python/CompositeData/OverlappingAMR/
+    https://vtk.org/doc/nightly/html/classvtkOverlappingAMR.html
+    https://lorensen.github.io/VTKExamples/site/Python/CompositeData/OverlappingAMR/
 
     To open in paraview, choose the group of .vthb files, not the group of
     folders. This will be read in as cell data. In order to use filters like
@@ -85,72 +86,88 @@ https://lorensen.github.io/VTKExamples/site/Python/CompositeData/OverlappingAMR/
                      sorted(level_count.items(),
                             key=lambda a: a[0])]
 
+    # Initialize the vtkOverlappingAMR object.
+    amr = vtkOverlappingAMR()
     amr.Initialize(numLevels, blocksPerLevel)
+
+    # get states and initialize the global index (used below)
     states_sorted = sorted(solution.states, key=lambda a: a.patch.level)
+    global_index = 0
 
-FIX LEVEL AND BLOCK INDEXING TO SIMPLIFY
-
-
-
+    # for each AMR level create the vtkAMRBox and vtkUniformGrid and add to
+    # the vtkOverlappingAMR object.
     for level in level_count.keys():
-        nbox = level_count[level]
+        # get number of blocks per level.
+        nblocks = blocksPerLevel[level]
 
-        for index in range(box_per_level[level]):
-            # ----each vtkAMRBlock can have multiple vtkAMRBox
+        # and the spacing at that level
+        spacing = level_spacing[level]
+
+        # for each block at this AMR level.
+        for index in range(nblocks):
+
+            # get the origin and number of dimensions.
             local_index = global_index + index
             origin = states_sorted[local_index].patch.lower_global
             origin.append(0.0)  # append z
             origin = np.array(origin)
+
             ndim = states_sorted[local_index].patch.num_cells_global
             ndim.append(0.0)  # mz
             ndim = np.array(ndim, dtype=np.int)
             ndim = ndim + 1  # ndim should be num of nodes
-            amrbox = vtkAMRBox(origin, ndim)
 
+            # create a vtkUniformGrid.
+            grid = vtk.vtkUniformGrid()
+
+            # Describe the geometry
+            grid.SetOrigin(origin) # origin = (x0, y0, z0)
+            grid.SetSpacing(spacing) # spacing = (dx, dy, dz)
+            grid.SetDimensions(dims) # dims = (i, j, k) (integers)
+
+            # Set the data of the vtkUniformGrid
+
+            # get the cell data, and add each to the uniform grid.
+            # ignore the last element of q, which provides info about overlapping.
+            # it is set next.
             q = states_sorted[local_index].q
             for i in range(q.shape[0]-1):
+                array_name = "q_"+str(i)
                 q_i = q[i, ...]
                 q_i = q_i.transpose()
-                amrbox.set_cell_data(q_i, "q_"+str(i))
 
-            # this is where writing out aux files wouild happen.
+                #https://pyscience.wordpress.com/2014/09/06/numpy-to-vtk-converting-your-numpy-arrays-to-vtk-arrays-and-files/
+                # transform into an array.
+                array = numpy_support.numpy_to_vtk(num_array=q_i.ravel(), deep=True, array_type=vtk.VTK_FLOAT)
 
+                # add the array to the uniform grid.
+                grid.GetPointData().AddArray(array)
+
+                # set the name.
+                array.SetName(array_name)
+
+            # mark overlapping cells using the vtkGhostType array name.
             q_ol = q[-1, ...]  # last piece is used to mark overlapped cells
             q_ol = q_ol.transpose()
             amrbox.set_cell_data(q_ol, "vtkGhostType", "UInt8")
-
-            # set vtkGhostType data
-            # ghost_q = np.zeros(q[0, ...].shape, dtype=int)
-            # ghost_q = ghost_q.transpose()
-            # amrbox.set_cell_data(ghost_q, "vtkGhostType", data_type="UInt8")
-
-            # shape = list(q1.shape)
-            # shape.append(1)
-            # point_data = np.ones( np.array(shape) + 1)
-            # amrbox.set_point_data(point_data)
-
-            # create a uniform grid.
-            ug = vtk.vtkUniformGrid()
-            # Geometry
-            ug.SetOrigin(origin)
-            ug.SetSpacing(spacing)
-            ug.SetDimensions(dims)
-
-            # Data
-            scalars = vtk.vtkFloatArray()
-            ug.GetPointData().SetScalars(scalars)
-            MakeScalars(dims, origin, spacing, scalars)
+            array = numpy_support.numpy_to_vtk(q_ol.ravel(), deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
+            array.SetName("vtkGhostType")
 
             # make AMR box
-            box1 = vtk.vtkAMRBox()
+            box = vtk.vtkAMRBox()
 
             # add AMR box and uniform grid to the overlapping AMR object.
             amr.SetAMRBox(level, block, box)
             amr.SetDataSet(level, block, ug)
 
-        # write out.
-        amr.write()
+        # write out the vtkOverlappingAMR object.
         # https://lorensen.github.io/VTKExamples/site/Python/IO/WriteXMLLinearCells/
+
+        amr.write()
+
+        # Potential future reference info on working with VTK. 
+        #https://stackoverflow.com/questions/7666981/how-to-set-data-values-on-a-vtkstructuredgrid/7667417#7667417
+
 
 def _set_overlapped_status(sol):
     """
