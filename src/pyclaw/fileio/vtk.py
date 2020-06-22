@@ -31,15 +31,21 @@ def write(
         input_prefixXXXX_<index>.vti. <index> represents the file index. There
         is a file for each patch at each AMR level.
 
+    # the VTK users guide:
+    https://www.kitware.com/products/books/VTKUsersGuide.pdf
+
     # these VTK classes
     https://vtk.org/doc/nightly/html/classvtkUniformGrid.html
     https://vtk.org/doc/nightly/html/classvtkOverlappingAMR.html
     https://vtk.org/doc/nightly/html/classvtkAMRBox.html
     https://vtk.org/doc/nightly/html/classvtkXMLUniformGridAMRWriter.html
 
-    # These vtk examples. 
+    # These vtk examples.
     https://lorensen.github.io/VTKExamples/site/Python/CompositeData/OverlappingAMR/
     https://lorensen.github.io/VTKExamples/site/Python/IO/WriteXMLLinearCells/
+
+    # blog post on numpy integration:
+    https://blog.kitware.com/improved-vtk-numpy-integration-part-5/
 
     To open in paraview, choose the group of .vthb files, not the group of
     folders. This will be read in as cell data. In order to use filters like
