@@ -34,6 +34,21 @@ def write(
     ):
     """Write out a VTK representation of solution
 
+    This capability requires installation of the vtk module that is created by
+    Kitware. Binary distributions are available through
+    `PyPI <https://pypi.org/project/vtk/>`_
+    or `conda-forge <https://anaconda.org/conda-forge/vtk>`_.
+
+    .. code-block:: bash
+
+       $ conda install -c conda-forge vtk
+
+    or
+
+    .. code-block:: bash
+
+       $ pip install vtk
+    
     For each input frame the following files and directories are created in
     the directory specified by *path*:
       - input_prefixXXXX.vthb. This file provides the metadata to describe
