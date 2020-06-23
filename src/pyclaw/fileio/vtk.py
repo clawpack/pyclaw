@@ -9,8 +9,19 @@ import sys
 import os
 import numpy as np
 from clawpack.pyclaw import Solution
-import vtk
-from vtk.util import numpy_support
+
+import logging
+
+logger = logging.getLogger('pyclaw.fileio')
+
+try:
+    import vtk
+    from vtk.util import numpy_support
+except ImportError:
+    logging.critical("Could not import vtk!")
+    error_msg = ("Could not import VTK, please install (package are available"
+    " through conda-forge and pypi. See the docstring for details).")
+    print(error_msg)
 
 def write(
     solution,
