@@ -24,4 +24,6 @@ class PetClawIOTest(pyclaw.IOTest):
         return
 
     def test_io_to_vtk(self):
-        TODO return # this test is not valid for petclaw b/c can't read binary. 
+        return # this test is not valid for petclaw b/c can't read binary.
+        # note that petclaw can write VTK through the PETSC vtk writing
+        # capabilities. 
