@@ -23,29 +23,27 @@ def write(
     ):
     """Write out a VTK representation of solution
 
-    For each input frame the following files and directories are created:
+    For each input frame the following files and directories are created in
+    the directory specified by *path*:
       - input_prefixXXXX.vthb. This file provides the metadata to describe
         how AMR patches are represented in the .vti files (including a relative
         path to the .vti files).
-      - directory: input_prefixXXXX containing multiple files called
+      - directory: input_prefixXXXX containing files called
         input_prefixXXXX_<index>.vti. <index> represents the file index. There
         is a file for each patch at each AMR level.
 
-    # the VTK users guide:
-    https://www.kitware.com/products/books/VTKUsersGuide.pdf
+    Writing this function took advantage of the following VTK resources:
+      - `the VTK users guide <https://www.kitware.com/products/books/VTKUsersGuide.pdf>`_
+      - `this blog post on numpy integration <https://blog.kitware.com/improved-vtk-numpy-integration-part-5/>`_
+      - `the vtkOverlappingAMR example <https://lorensen.github.io/VTKExamples/site/Python/CompositeData/OverlappingAMR/>`_
+      - `the XML writing example <https://lorensen.github.io/VTKExamples/site/Python/IO/WriteXMLLinearCells/>`_
 
-    # these VTK classes
-    https://vtk.org/doc/nightly/html/classvtkUniformGrid.html
-    https://vtk.org/doc/nightly/html/classvtkOverlappingAMR.html
-    https://vtk.org/doc/nightly/html/classvtkAMRBox.html
-    https://vtk.org/doc/nightly/html/classvtkXMLUniformGridAMRWriter.html
+    This function uses the following VTK classes:
 
-    # These vtk examples.
-    https://lorensen.github.io/VTKExamples/site/Python/CompositeData/OverlappingAMR/
-    https://lorensen.github.io/VTKExamples/site/Python/IO/WriteXMLLinearCells/
-
-    # blog post on numpy integration:
-    https://blog.kitware.com/improved-vtk-numpy-integration-part-5/
+      - `vtkUniformGrid <https://vtk.org/doc/nightly/html/classvtkUniformGrid.html>`_
+      - `vtkOverlappingAMR <https://vtk.org/doc/nightly/html/classvtkOverlappingAMR.html>`_
+      - `vtkAMRBox <https://vtk.org/doc/nightly/html/classvtkAMRBox.html>`_
+      - `vtkXMLUniformGridAMRWriter <https://vtk.org/doc/nightly/html/classvtkXMLUniformGridAMRWriter.html>`_
 
     To open in paraview, choose the group of .vthb files, not the group of
     folders. This will be read in as cell data. In order to use filters like
@@ -58,7 +56,8 @@ def write(
      - *path* - (string) Root path
      - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
      - *write_aux* - (bool) Not implemented.
-     - *options* - (dict) Not implemented.
+     - *options* - (dict) if contains the key value pair ``binary = True`` then
+       output will be in binary rather than ascii. Default is ascii.
      - *write_p* - (bool) Not implemented.
 
     Note that some keyword arguments are not used. This is to maintain
@@ -69,8 +68,14 @@ def write(
         - Add options for writing aux files.
         - Consider making an equilvalent vtk.read function.
     """
+    # get options from the options dictionary.
+    binary = options.get("binary", False)
+
+    # check types.
     assert(isinstance(frame, int))
     assert(isinstance(solution, Solution))
+
+    # calculate overlapped status, used to identify some cells as ghosts.
     _set_overlapped_status(solution)
 
     global_origin = solution.state.patch.lower_global + [0.]  # base patch
@@ -96,7 +101,8 @@ def write(
                      sorted(level_count.items(),
                             key=lambda a: a[0])]
 
-    # Initialize the vtkOverlappingAMR object.
+    # Initialize the vtkOverlappingAMR object. Provide it the number of levels,
+    # number of blocks per level, and the global origin.
     amr = vtk.vtkOverlappingAMR()
     amr.Initialize(numLevels, blocksPerLevel)
     amr.SetOrigin(global_origin)
@@ -117,12 +123,11 @@ def write(
 
         # for each block at this AMR level.
         for index in range(nblocks):
-
-            # get the origin and number of dimensions.
+            # get the index used on the states_sorted file.
             local_index = global_index + index
 
+            # get the origin and number of dimensions.
             origin = states_sorted[local_index].patch.lower_global + [0.]
-
             node_dims = [x + 1 for x in states_sorted[local_index].patch.num_cells_global + [0]]
 
             # create a vtkUniformGrid using the vtkAMRBox
@@ -132,16 +137,12 @@ def write(
             grid.SetSpacing(spacing)
             grid.SetDimensions(node_dims)
 
-            # Set the data of the vtkUniformGrid
-
-            # make AMR box
-            # https://vtk.org/doc/nightly/html/classvtkAMRBox.html
-            box = vtk.vtkAMRBox(origin, node_dims, spacing, global_origin)
-
-                # Construct an AMR box from the description a vtkUniformGrid
+            # Construct an vtkAMRbox
             # Note that the dimensions specify the node dimensions, rather than the cell dimensions.
             # Nodes are one more than the cells.
+            box = vtk.vtkAMRBox(origin, node_dims, spacing, global_origin)
 
+            # Set the data of the vtkUniformGrid
 
             # get the cell data, and add each to the uniform grid.
             # ignore the last element of q, which provides info about overlapping.
@@ -149,11 +150,9 @@ def write(
             q = states_sorted[local_index].q
 
             for i in range(q.shape[0]-1):
-
                 array_name = "q_"+str(i)
                 q_i = q[i, ...]
                 q_i = q_i.transpose()
-                print(level, index, array_name, origin, spacing, node_dims, q_i.size, q_i.shape)
 
                 #https://pyscience.wordpress.com/2014/09/06/numpy-to-vtk-converting-your-numpy-arrays-to-vtk-arrays-and-files/
                 # transform into an array.
@@ -164,13 +163,13 @@ def write(
 
                 # verify the sizes are correct.
                 assert q_i.size == grid.GetNumberOfCells()
+
                 # add the array to the uniform grid.
                 grid.GetCellData().AddArray(array)
 
             # mark overlapping cells using the vtkGhostType array name.
             q_ol = q[-1, ...]  # last piece is used to mark overlapped cells
             q_ol = q_ol.transpose()
-            #amrbox.set_cell_data(q_ol, "vtkGhostType", "UInt8")
             array = numpy_support.numpy_to_vtk(q_ol.ravel(), deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
             array.SetName("vtkGhostType")
             # add the array to the uniform grid.
@@ -180,20 +179,17 @@ def write(
             amr.SetAMRBox(level, index, box)
             amr.SetDataSet(level, index, grid)
 
+            # verify that the box is not invalid.
             assert not box.IsInvalid()
 
-        # after each level is done increment index
+        # after each level is done increment global_index used with states_sorted
         global_index += nblocks
 
     # write out the vtkOverlappingAMR object.
-    # https://lorensen.github.io/VTKExamples/site/Python/IO/WriteXMLLinearCells/
-
-# TODO set precision of writing out correctly (7?)
-
-# provide an option of binary or ascii?
     out = os.path.join(path, file_prefix+str(frame).zfill(4)+'.vthb')
     writer = vtk.vtkXMLUniformGridAMRWriter()
-    writer.SetDataModeToAscii()
+    if not binary:
+        writer.SetDataModeToAscii()
     writer.SetFileName(out)
     writer.SetInputData(amr)
     success = writer.Write()
@@ -201,8 +197,6 @@ def write(
     # assert writing returned 1, indicating success.
     assert success == 1
 
-    # Potential future reference info on working with VTK.
-    #https://stackoverflow.com/questions/7666981/how-to-set-data-values-on-a-vtkstructuredgrid/7667417#7667417
 
 def _set_overlapped_status(sol):
     """
