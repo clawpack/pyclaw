@@ -3,7 +3,7 @@ language: python
 os: linux
 
 env:
-  matrix: 
+  matrix:
     - TEST_PACKAGE="pyclaw"
     - TEST_PACKAGE="petclaw"
     - TEST_PACKAGE="forestclaw"
@@ -42,6 +42,7 @@ install:
   - conda install -c clawpack hdf5-parallel h5py-parallel
   - conda install -c conda-forge petsc4py
   - conda install -c conda-forge scipy
+  - conda install -c conda-forge vtk
   - conda install -c conda-forge python-coveralls
   - python setup.py install
 
