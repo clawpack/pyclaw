@@ -16,12 +16,19 @@ logger = logging.getLogger('pyclaw.fileio')
 
 try:
     import vtk
-    from vtk.util import numpy_support
 except ImportError:
     logging.critical("Could not import vtk!")
     error_msg = ("Could not import VTK, please install (package are available"
     " through conda-forge and pypi. See the docstring for details).")
     print(error_msg)
+
+from vtk.util import numpy_support
+
+from vtk import (
+    vtkOverlappingAMR,
+    vtkUniformGrid,
+    vtkAMRBox,
+    vtkXMLUniformGridAMRWriter)
 
 def write(
     solution,
@@ -48,7 +55,7 @@ def write(
     .. code-block:: bash
 
        $ pip install vtk
-    
+
     For each input frame the following files and directories are created in
     the directory specified by *path*:
       - input_prefixXXXX.vthb. This file provides the metadata to describe
@@ -129,7 +136,7 @@ def write(
 
     # Initialize the vtkOverlappingAMR object. Provide it the number of levels,
     # number of blocks per level, and the global origin.
-    amr = vtk.vtkOverlappingAMR()
+    amr = vtkOverlappingAMR()
     amr.Initialize(numLevels, blocksPerLevel)
     amr.SetOrigin(global_origin)
 
@@ -157,7 +164,7 @@ def write(
             node_dims = [x + 1 for x in states_sorted[local_index].patch.num_cells_global + [0]]
 
             # create a vtkUniformGrid using the vtkAMRBox
-            grid = vtk.vtkUniformGrid()
+            grid = vtkUniformGrid()
             grid.Initialize()
             grid.SetOrigin(origin)
             grid.SetSpacing(spacing)
@@ -166,7 +173,7 @@ def write(
             # Construct an vtkAMRbox
             # Note that the dimensions specify the node dimensions, rather than the cell dimensions.
             # Nodes are one more than the cells.
-            box = vtk.vtkAMRBox(origin, node_dims, spacing, global_origin)
+            box = vtkAMRBox(origin, node_dims, spacing, global_origin)
 
             # Set the data of the vtkUniformGrid
 
@@ -213,7 +220,7 @@ def write(
 
     # write out the vtkOverlappingAMR object.
     out = os.path.join(path, file_prefix+str(frame).zfill(4)+'.vthb')
-    writer = vtk.vtkXMLUniformGridAMRWriter()
+    writer = vtkXMLUniformGridAMRWriter()
     if not binary:
         writer.SetDataModeToAscii()
     writer.SetFileName(out)

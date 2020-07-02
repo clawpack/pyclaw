@@ -28,7 +28,3 @@ try:
     __all__ += ['netcdf.read', 'netcdf.write']
 except(ImportError):
     logger.debug("No netcdf4 support found.")
-
-# add vtk
-from . import vtk
-__all__ += ['vtk.write']

@@ -375,6 +375,9 @@ class Solution(object):
         if file_format == "forestclaw":
             import clawpack.forestclaw.fileio.ascii
             return clawpack.forestclaw.fileio.ascii.write
+        elif file_format == "vtk":
+            import clawpack.pyclaw.fileio.claw_vtk
+            return clawpack.pyclaw.fileio.claw_vtk.write
         else:
             try:
                 import importlib
