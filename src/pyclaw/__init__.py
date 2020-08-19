@@ -16,7 +16,7 @@ _DEFAULT_LOG_CONFIG_PATH = os.path.join(os.path.dirname(__file__),'log.config')
 del os
 
 # Setup loggers
-logging.config.fileConfig(_DEFAULT_LOG_CONFIG_PATH)
+logging.config.fileConfig(_DEFAULT_LOG_CONFIG_PATH, disable_existing_loggers=False)
 
 __all__ = []
 
