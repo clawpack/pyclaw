@@ -1,3 +1,11 @@
+# 5.7.1 release
+- Added support for VTK output from all Clawpack packages (contributed by Katy Barnhart based also on work by Xinsheng Qin)
+- Fixed disabling loggers of other packages when they import pyclaw (contributed by Thomas Vogt)
+
+# 5.7.0 release
+- Added magnetohydrodynamics (MHD) shock tube example in `pyclaw/examples/mhd_1d` (contributed by Hendrik Ranocha)
+- Added cubic flux (1D scalar) example in `pyclaw/examples/cubic_1d` (contributed by Hendrik Ranocha)
+
 # 5.6.1 release
 - New example of using a non-uniform grid in 1D added in `pyclaw/examples/advection_1d/advection_1d_nonunif.py`.
 - Fixed a bug when using a capacity function in the pure Python code.
