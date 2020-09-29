@@ -9,7 +9,6 @@ env:
     - TEST_PACKAGE="forestclaw"
 
 python:
-  - 2.7
   - 3.6.10
 
 before_install:
