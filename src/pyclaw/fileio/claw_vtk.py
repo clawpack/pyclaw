@@ -58,12 +58,14 @@ def write(
 
     For each input frame the following files and directories are created in
     the directory specified by *path*:
-      - input_prefixXXXX.vthb. This file provides the metadata to describe
-        how AMR patches are represented in the .vti files (including a relative
+
+      - input_prefixXXXX.vthb. This file provides the metadata to
+        describe how AMR patches are represented in the .vti files
+        (including a relative
         path to the .vti files).
       - directory: input_prefixXXXX containing files called
-        input_prefixXXXX_<index>.vti. <index> represents the file index. There
-        is a file for each patch at each AMR level.
+        input_prefixXXXX_<index>.vti. <index> represents the file
+        index. There is a file for each patch at each AMR level.
 
     Writing this function took advantage of the following VTK resources:
       - `the VTK users guide <https://www.kitware.com/products/books/VTKUsersGuide.pdf>`_
@@ -90,7 +92,7 @@ def write(
      - *file_prefix* - (string) Prefix for the file name. ``default = 'claw'``
      - *write_aux* - (bool) Not implemented.
      - *options* - (dict) if contains the key value pair ``binary = True`` then
-       output will be in binary rather than ascii. Default is ascii.
+       output will be in binary rather than ascii. Default is ascii. Not implemented.
      - *write_p* - (bool) Not implemented.
 
     Note that some keyword arguments are not used. This is to maintain
