@@ -48,9 +48,6 @@ contains
             case(3)
                 allocate(uu(2,maxnx+2*num_ghost))
                 allocate( dq1m(maxnx+2*num_ghost))
-            case(4)
-                allocate(uu(2,maxnx+2*num_ghost))
-                allocate( dq1m(maxnx+2*num_ghost))
         end select
         recon_alloc = .True.
 
@@ -87,9 +84,6 @@ contains
                     deallocate(uh)
             end select
             case(3)
-                deallocate(uu)
-                deallocate(dq1m)
-            case(4)
                 deallocate(uu)
                 deallocate(dq1m)
         end select
