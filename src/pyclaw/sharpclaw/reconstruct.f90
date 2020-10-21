@@ -849,7 +849,7 @@ contains
             print *, 'Warning: 10th reconstruction order is not fully tested'
             call poly10(q,ql,qr,num_eqn,maxnx,num_ghost)          
         case default
-           print *, 'ERROR: reconstruction_order for polynomial must be either 4 or 6'
+           print *, 'ERROR: reconstruction_order for polynomial must be an odd number between 4 and 10 (inclusive)'
            stop
         end select
 
