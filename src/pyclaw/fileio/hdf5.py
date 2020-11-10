@@ -21,6 +21,7 @@ import logging
 
 from clawpack import pyclaw
 import six
+import numpy as np
 
 logger = logging.getLogger('pyclaw.fileio')
 
@@ -173,8 +174,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
             for patch in six.itervalues(f):
                 # Construct each dimension
                 dimensions = []
-                dim_names = [ name.decode('ascii')
-                              for name in patch.attrs['dimensions'] ]
+                dim_names = np.array(patch.attrs["dimensions"]).astype(str)
                 for dim_name in dim_names:
                     dim = pyclaw.solution.Dimension(
                                         patch.attrs["%s.lower" % dim_name],
