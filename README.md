@@ -6,11 +6,13 @@
 
 Quick start:
 
-    git clone git@github.com:clawpack/clawpack.git
+    git clone https://github.com/ketch/nodepy.git
     cd clawpack
+    git submodule init
+    git submodule update
     pip install -e .
-    cd clawpack/pyclaw/examples/euler_2d
-    python shockbubble.py iplot=1
+    cd pyclaw/examples/euler_2d
+    python shock_bubble_interaction.py iplot=1
 
 
 # PyClaw
@@ -26,4 +28,5 @@ You can get the latest development version of PyClaw from
 http://github.com/clawpack/.
 
 If you use PyClaw in research that leads to publication, please
-[cite PyClaw](http://www.clawpack.org/pyclaw/index.html#citing).
+[cite PyClaw](http://www.clawpack.org/pyclaw/index.html#citing)
+(see also [citing Clawpack](http://www.clawpack.org/about.html#citing-this-work)).
