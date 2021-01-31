@@ -16,20 +16,20 @@ double precision function philim(a,b,meth)
     r = b/a
     select case (meth)
 
-    case (10) ! minmod
+    case (1) ! minmod
         philim = dmax1(0.d0, dmin1(1.d0, r))
 
-    case (20) ! superbee
+    case (2) ! superbee
         philim = dmax1(0.d0, dmin1(1.d0, 2.d0*r), dmin1(2.d0, r))
 
-    case (30) ! van Leer
+    case (3) ! van Leer
         philim = (r + dabs(r)) / (1.d0 + dabs(r))
 
-    case (40) ! monotonized centered
+    case (4) ! monotonized centered
         c = (1.d0 + r)/2.d0
         philim = dmax1(0.d0, dmin1(c, 2.d0, 2.d0*r))
 
-    case (50) ! Beam-Warming
+    case (5) ! Beam-Warming
         philim = r
 
     end select
