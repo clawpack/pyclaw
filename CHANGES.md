@@ -1,3 +1,6 @@
+# 5.8.0 release
+- Fixed an issue with h5py file reading (contributed by Ian Bolliger)
+
 # 5.7.1 release
 - Added support for VTK output from all Clawpack packages (contributed by Katy Barnhart based also on work by Xinsheng Qin)
 - Fixed disabling loggers of other packages when they import pyclaw (contributed by Thomas Vogt)
