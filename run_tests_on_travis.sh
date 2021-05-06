@@ -13,7 +13,7 @@ if [ "${TEST_PACKAGE}" == "pyclaw" ]; then
     nosetests --first-pkg-wins --with-doctest --exclude=limiters --exclude=sharpclaw --exclude=fileio --exclude=example --with-coverage --cover-package=clawpack.pyclaw;
     mv .coverage .coverage.doctest;
     # pyclaw examples and I/O tests
-    nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --with-coverage --cover-package=clawpack.pyclaw --include=IOTest;
+    #nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --with-coverage --cover-package=clawpack.pyclaw --include=IOTest;
     cd ../../examples;
     nosetests -v --with-coverage --cover-package=clawpack.pyclaw;
     mv .coverage ../src/pyclaw/.coverage.examples;
@@ -29,6 +29,14 @@ if [[ "${TEST_PACKAGE}" == "petclaw" ]]; then
     cd ../../../examples;
     mpirun -n 4 nosetests -v --first-pkg-wins;
 fi
+
+if [ "${TEST_PACKAGE}" == "IO" ]; then
+    # pyclaw I/O tests
+    nosetests -v --first-pkg-wins --exclude=limiters --exclude=sharpclaw --with-coverage --cover-package=clawpack.pyclaw --include=IOTest;
+    #cd ../src/pyclaw;
+    #coverage combine;
+fi
+
 
 if [[ "${TEST_PACKAGE}" == "forestclaw" ]]; then
     # forestclaw tests (I/O only)

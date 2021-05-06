@@ -206,6 +206,7 @@ class ClawSolver(Solver):
 
         self._check_cfl_settings()
 
+        assert isinstance(self.num_waves, int), "You must set solver.num_waves before using the solver."
         self._set_mthlim()
         if(self.kernel_language == 'Fortran'):
             if self.fmod is None:
