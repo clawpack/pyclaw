@@ -5261,8 +5261,13 @@ static PyMethodDef reconstructmethods[] = {
 };
 
 PyMODINIT_FUNC
+#if PY_MAJOR_VERSION >= 3
+PyInit_reconstruct (void)
+#else
 initreconstruct (void)
+#endif
 {
+PyObject *module;  
 #if PY_MAJOR_VERSION >= 3
   static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
@@ -5275,9 +5280,13 @@ initreconstruct (void)
     NULL,                /* m_clear */
     NULL                 /* m_free */
   };
-  PyModule_Create(&moduledef);
+  module = PyModule_Create(&moduledef);
+  if (module == NULL)
+    return NULL;
+  return module;  
 #else
-  (void) Py_InitModule ("reconstruct", reconstructmethods);
+  module = Py_InitModule ("reconstruct", reconstructmethods);
+  if (module == NULL)
+    return NULL;
 #endif
-  import_array ();
 }
