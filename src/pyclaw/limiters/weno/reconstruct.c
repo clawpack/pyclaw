@@ -5287,6 +5287,6 @@ PyObject *module;
 #else
   module = Py_InitModule ("reconstruct", reconstructmethods);
   if (module == NULL)
-    return NULL;
+    return;
 #endif
 }
