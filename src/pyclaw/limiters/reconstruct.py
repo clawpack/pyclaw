@@ -27,7 +27,7 @@ def weno(k, q):
     if (k % 2) == 0:
         raise ValueError('even order WENO reconstructions are not supported')
 
-    k = (k+1)/2
+    k = (k+1)//2
     sigma = np.zeros((q.shape[1], k))
     weights = np.zeros((q.shape[1], k))
 
