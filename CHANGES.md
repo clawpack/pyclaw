@@ -1,3 +1,6 @@
+# 5.8.1 release
+- Only bugfixes related to compatibility with updates to compilers and other Python packages.
+
 # 5.8.0 release
 - Fixed an issue with h5py file reading (contributed by Ian Bolliger)
 
