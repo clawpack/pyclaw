@@ -32,7 +32,6 @@ jobs:
           # remove master branch of pyclaw and use branch we're testing
           rm -rf pyclaw
           ln -s ../ pyclaw
-          Add conda to system path
       - run: |
           # $CONDA is an environment variable pointing to the root of the miniconda directory
           echo $CONDA/bin >> $GITHUB_PATH
