@@ -109,13 +109,22 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
 
             if patch.num_dim == 1:
                 ##  NOT YET TESTED ##
-                state.q = qpatch[:,mbc:-mbc]
+                if mbc==0:
+                    state.q = qpatch
+                else:
+                    state.q = qpatch[:,mbc:-mbc]
             elif patch.num_dim == 2:
                 ## FIXED FOR BINARY ##
-                state.q = qpatch[:,mbc:-mbc,mbc:-mbc]
+                if mbc==0:
+                    state.q = qpatch
+                else:
+                    state.q = qpatch[:,mbc:-mbc,mbc:-mbc]
             elif patch.num_dim == 3:
                 ##  NOT YET TESTED ##
-                state.q = qpatch[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
+                if mbc==0:
+                    state.q = qpatch
+                else:
+                    state.q = qpatch[:,mbc:-mbc,mbc:-mbc,mbc:-mbc]
             else:
                 msg = "Read only supported up to 3d."
                 logger.critical(msg)
