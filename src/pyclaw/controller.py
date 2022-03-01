@@ -490,7 +490,8 @@ class OutputController(object):
         """
 
         if "read_t" in dir(self._io_module):
-            return self._io_module.read_t(frame_num, path=self.output_path)[0]
+            return self._io_module.read_t(frame_num, path=self.output_path,
+                                          file_prefix=self.file_prefix)[0]
         else:
             return None
 
