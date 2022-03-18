@@ -6,7 +6,7 @@
 
 Quick start:
 
-    git clone https://github.com/ketch/nodepy.git
+    git clone https://github.com/clawpack/clawpack.git
     cd clawpack
     git submodule init
     git submodule update
