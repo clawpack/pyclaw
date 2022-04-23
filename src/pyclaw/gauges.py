@@ -79,8 +79,13 @@ class GaugeSolution(object):
     def read(self, gauge_id, path=None, use_pandas=False):
         r"""Read the gauge file at path into this object
 
-        Read in the gauge with gauge id `gauge_id` located at `path`.  If
-        `use_pandas` is `True` then `q` will be a Pandas frame.
+        Read in the gauge with gauge id `gauge_id` located at `path`.  
+
+        If `use_pandas` is `True` then `q` will be a Pandas frame.
+            (not yet implemented)
+
+        New in v5.9.0: If gauge00000N.txt file contains only a header,
+        read data from corresponding .bin file.
 
         :Input:
          - *gauge_id* - (int) Gauge id to be read
@@ -96,10 +101,14 @@ class GaugeSolution(object):
         # Construct path to gauge
         if path is None:
             path = os.getcwd()
+
+        # First read header from .txt file:
         gauge_file_name = "gauge%s.txt" % str(gauge_id).zfill(5)
         gauge_path = os.path.join(path, gauge_file_name)
+        if not os.path.isfile(gauge_path):
+            print('Did not find %s' % gauge_path)
+            file_format = 'binary'
 
-        # Read header info
         with open(gauge_path, 'r') as gauge_file:
             # First line
             data = gauge_file.readline().split()
@@ -130,13 +139,13 @@ class GaugeSolution(object):
                 # backward compatibility
                 self.gtype = 'stationary'
             
-            # Read in one more line to check to make sure there's actually data
-            # in here
+            # Check to see if there is also data in the .txt file,
+            # otherwise perhaps it's in a binary .bin file.
             
-            if len(gauge_file.readline()) == 0:
-                import warnings
-                warnings.warn("Gauge file %s is empty." % gauge_id)
-                return
+            if len(gauge_file.readline()) > 0:
+                file_format = 'ascii'
+            else:
+                file_format = 'binary'
 
         # Check to see if the gauge file name ID and that inside of the gauge
         # file are the same
@@ -146,21 +155,46 @@ class GaugeSolution(object):
                              "file!")
 
         # Read gauge data
+
         if use_pandas:
+            raise NotImplementedError("Pandas data backend not implemented yet.")
             if not pandas_available:
                 raise ImportError("Pandas not available.")
 
-            raise NotImplementedError("Pandas data backend not implemented yet.")
-            self.q = pandas.DataFrame()
-        else:
+
+        if file_format == 'ascii':
+            # data follows header in .txt file:
             data = numpy.loadtxt(gauge_path, comments="#")
             if data.ndim == 1:
                 # only one line in gauge file, expand to 2d array
                 data = data.reshape((1,len(data)))
-            self.level = data[:, 0].astype(numpy.int64)
-            self.t = data[:, 1]
-            self.q = data[:, 2:].transpose()
 
+        if file_format == 'binary':
+            # data is in separate .bin file:
+            gauge_file_name = "gauge%s.bin" % str(gauge_id).zfill(5)
+            gauge_path = os.path.join(path, gauge_file_name)
+            if not os.path.isfile(gauge_path):
+                msg = 'No data in .txt file and did not find ' \
+                         + '\n   binary file %s' %  gauge_path
+                import warnings
+                warnings.warn(msg)
+                return
+
+            data = numpy.fromfile(gauge_path)
+
+            # assume rows have format: level, t, q[0:num_eqn]
+            ncol = num_eqn + 2
+            assert numpy.mod(len(data),ncol) == 0, \
+                  '*** unexpected number of values in gauge file' \
+                  + '\n*** expected ncol = %i columns'  % ncol
+            nrow = int(len(data)/ncol)
+            data = data.reshape((nrow,ncol))
+
+        self.level = data[:, 0].astype(numpy.int64)
+        self.t = data[:, 1]
+        self.q = data[:, 2:].transpose()
+
+    
         if num_eqn != self.q.shape[0]:
             raise ValueError("Number of fields in gauge file does not match",
                              "recorded number in header.")
@@ -176,6 +210,7 @@ class GaugeSolution(object):
                 # set the lagrangian path to a single fixed location at t=t0:
                 self.particle_path = numpy.array([[self.t[0], self.location[0], 
                                              self.location[1]]])
+
 
 
     def write(self, path=None, format="%+.15e"):
