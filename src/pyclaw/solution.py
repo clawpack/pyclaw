@@ -352,7 +352,8 @@ class Solution(object):
 
 
     def get_read_func(self, file_format):
-        if file_format == 'binary':
+        if file_format[:6] == 'binary':
+            # could be 'binary64' or 'binary32'
             import clawpack.pyclaw.fileio.binary
             return clawpack.pyclaw.fileio.binary.read
         elif file_format == 'ascii':

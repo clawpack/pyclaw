@@ -55,9 +55,18 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
 
     patches = []
     
-    # Read in values from fort.q file:
+    # Read in values from fort.b file:
+    file_format = options.get('format','binary64')
+    
     with open(b_fname,'rb') as b_file:
-        qdata = np.fromfile(file=b_file, dtype=np.float64)
+        if file_format in ['binary', 'binary64']:
+            qdata = np.fromfile(file=b_file, dtype=np.float64)
+        elif file_format == 'binary32':
+            qdata = np.fromfile(file=b_file, dtype=np.float32)
+        else:
+            msg = "Unrecognized format: %s" % file_format
+            logger.critical(msg)
+            raise Exception(msg)
 
     i_start_patch = 0  # index into qdata for start of next patch
     n     = np.zeros((num_dim),dtype=int)

@@ -458,6 +458,11 @@ class OutputController(object):
             self._io_module = __import__("clawpack.petclaw.fileio.petsc",
                                          fromlist=["clawpack.petclaw.fileio"])
             self._file_format = value
+        elif value.lower()[:6] == 'binary':
+            # could be 'binary64' or 'binary32'
+            self._io_module = __import__("clawpack.pyclaw.fileio.binary",
+                                         fromlist=['clawpack.pyclaw.fileio'])
+            self._file_format = value
         else:
             self._io_module = __import__("clawpack.pyclaw.fileio.%s" % value,
                                          fromlist=['clawpack.pyclaw.fileio'])
