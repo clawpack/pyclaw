@@ -357,7 +357,7 @@ class Solution(object):
             import clawpack.pyclaw.fileio.binary
             return clawpack.pyclaw.fileio.binary.read
         elif file_format == 'ascii':
-            import clawpack.pyclaw.fileio.binary
+            import clawpack.pyclaw.fileio.ascii
             return clawpack.pyclaw.fileio.ascii.read
         elif file_format in ('hdf','hdf5'):
             import clawpack.pyclaw.fileio.hdf5
