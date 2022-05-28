@@ -465,7 +465,7 @@ class OutputController(object):
 
 
 
-    def __init__(self, output_path, file_format='ascii'):
+    def __init__(self, output_path, file_format='ascii', file_prefix='fort'):
         r"""
         Initialization routine for an OutputController object.
 
@@ -475,6 +475,7 @@ class OutputController(object):
         self._io_module = None
         self.file_format = file_format
         self.output_path = output_path
+        self.file_prefix = file_prefix
 
 
     def get_time(self, frame_num):
