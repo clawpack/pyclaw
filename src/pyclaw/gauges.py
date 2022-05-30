@@ -130,21 +130,33 @@ class GaugeSolution(object):
             if 'lagrangian' in line.lower():
                 # Lagrangian gauge (particle)
                 self.gtype = 'lagrangian'
-                gauge_file.readline() # third line of header
+                line = gauge_file.readline() # third line of header
             elif 'stationary' in line.lower():
                 # Standard stationary gauge
                 self.gtype = 'stationary'
-                gauge_file.readline() # third line of header
+                line = gauge_file.readline() # third line of header
             else:
                 # backward compatibility
                 self.gtype = 'stationary'
+
+            #data = line.split()
+            #nvals = 1 + len(data)-6  # should agree with num_eqn
             
             # Check to see if there is also data in the .txt file,
             # otherwise perhaps it's in a binary .bin file.
             
-            if len(gauge_file.readline()) > 0:
-                file_format = 'ascii'
+            line = gauge_file.readline()
+            if len(line) > 0:
+                if 'binary32' in line:
+                    file_format = 'binary32'
+                elif 'binary' in line:
+                    file_format = 'binary'  # also allows 'binary64'
+                else:
+                    # if 'ascii' in line, or no file_format line (data follows)
+                    # (for backward compatibility)
+                    file_format = 'ascii'
             else:
+                # if file_format line missing and no data lines, try binary:
                 file_format = 'binary'
 
         # Check to see if the gauge file name ID and that inside of the gauge
@@ -169,7 +181,7 @@ class GaugeSolution(object):
                 # only one line in gauge file, expand to 2d array
                 data = data.reshape((1,len(data)))
 
-        if file_format == 'binary':
+        if file_format[:6] == 'binary':
             # data is in separate .bin file:
             gauge_file_name = "gauge%s.bin" % str(gauge_id).zfill(5)
             gauge_path = os.path.join(path, gauge_file_name)
@@ -180,15 +192,18 @@ class GaugeSolution(object):
                 warnings.warn(msg)
                 return
 
-            data = numpy.fromfile(gauge_path)
+            if file_format in ['binary','binary64']:
+                data = numpy.fromfile(gauge_path, dtype=numpy.float64)
+            elif file_format == 'binary32':
+                data = numpy.fromfile(gauge_path, dtype=numpy.float32)
 
-            # assume rows have format: level, t, q[0:num_eqn]
-            ncol = num_eqn + 2
-            assert numpy.mod(len(data),ncol) == 0, \
+            # assume rows are: level, t, q[0:num_eqn]
+            nrows = 2 + num_eqn
+            assert numpy.mod(len(data),nrows) == 0, \
                   '*** unexpected number of values in gauge file' \
-                  + '\n*** expected ncol = %i columns'  % ncol
-            nrow = int(len(data)/ncol)
-            data = data.reshape((nrow,ncol))
+                  + '\n*** expected nrows = %i rows'  % nrows
+            ncols = int(len(data)/nrows)
+            data = data.reshape((nrows,ncols), order='F').T
 
         self.level = data[:, 0].astype(numpy.int64)
         self.t = data[:, 1]
