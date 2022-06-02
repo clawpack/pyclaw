@@ -340,15 +340,9 @@ class Solution(object):
          - (bool) - True if read was successful, False otherwise
         """
         
-        if file_format is not None:
-            print('+++ solution.read called with file_format = ',file_format)
-        print('+++ solution.read called with file_prefix = ',file_prefix)
-
-        print('+++ calling read_t with arguments: ',frame,path,file_prefix)
         [t,num_eqn,nstates,num_aux,num_dim,num_ghost,file_format] = \
              self.read_t(frame,path,file_prefix=file_prefix)
 
-        print('+++ read_t returned file_format = ',file_format)
 
         read_func = self.get_read_func(file_format)
 
@@ -415,7 +409,6 @@ class Solution(object):
 
 
     def get_read_func(self, file_format):
-        print('+++ importing read for file_format = ',file_format)
         if file_format[:6] == 'binary':
             # could be 'binary64' or 'binary32'
             import clawpack.pyclaw.fileio.binary

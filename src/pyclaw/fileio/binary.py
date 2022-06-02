@@ -53,7 +53,6 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     # Read in values from fort.t file:
     [t,num_eqn,nstates,num_aux,num_dim,num_ghost] = read_t(frame,path,file_prefix)
 
-    print('+++ in binary read, options = ',options)
     patches = []
     
     # Read in values from fort.b file:
