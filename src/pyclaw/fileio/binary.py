@@ -166,7 +166,14 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
             
         # Found a valid path, try to open and read it
         with open(fname,'rb') as b_file:
-            auxdata = np.fromfile(file=b_file, dtype=np.float64)
+            if file_format in ['binary', 'binary64']:
+                auxdata = np.fromfile(file=b_file, dtype=np.float64)
+            elif file_format == 'binary32':
+                auxdata = np.fromfile(file=b_file, dtype=np.float32)
+            else:
+                msg = "Unrecognized file_format: %s" % file_format
+                logger.critical(msg)
+                raise Exception(msg)
 
         i_start_patch = 0  # index into auxdata for start of next patch
         for state in solution.states:
