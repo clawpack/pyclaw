@@ -24,7 +24,7 @@ jobs:
       - image: cimg/python:3.10.2
 
     steps:
-      #- checkout
+      - checkout
       #- python/install-packages:
       #    pkg-manager: pip
       - run:
@@ -35,6 +35,9 @@ jobs:
               sudo apt-get install -qq gfortran liblapack-pic
               sudo apt-get install pv liblapack-dev;
               pip install numpy
+              pip install coverage
+              pip install nose
+              pip install matplotlib
               git clone --branch=master --depth=100 --quiet https://github.com/clawpack/clawpack
               cd clawpack
               git submodule init
