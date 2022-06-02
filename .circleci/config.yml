@@ -42,11 +42,12 @@ jobs:
               cd clawpack
               git submodule init
               git submodule update clawutil visclaw riemann
-              #rm -rf pyclaw
-              #ln -s ../ pyclaw
+              rm -rf pyclaw
+              ln -s ../ pyclaw
 
               python setup.py install
-              coverage run --source=nodepy tests.py
+              cd pyclaw
+              bash ./run_tests_on_travis.sh
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
