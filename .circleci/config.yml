@@ -39,8 +39,8 @@ jobs:
               cd clawpack
               git submodule init
               git submodule update clawutil visclaw riemann
-              rm -rf pyclaw
-              ln -s ../ pyclaw
+              #rm -rf pyclaw
+              #ln -s ../ pyclaw
 
               python setup.py install
               coverage run --source=nodepy tests.py
