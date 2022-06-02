@@ -53,6 +53,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     # Read in values from fort.t file:
     [t,num_eqn,nstates,num_aux,num_dim,num_ghost] = read_t(frame,path,file_prefix)
 
+    print('+++ in binary read, options = ',options)
     patches = []
     
     # Read in values from fort.b file:
@@ -64,7 +65,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
         elif file_format == 'binary32':
             qdata = np.fromfile(file=b_file, dtype=np.float32)
         else:
-            msg = "Unrecognized format: %s" % file_format
+            msg = "Unrecognized file_format: %s" % file_format
             logger.critical(msg)
             raise Exception(msg)
 
