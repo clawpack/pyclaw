@@ -330,7 +330,8 @@ class Solution(object):
          - *path* - (string) Base path to the files to be read. 
            ``default = './_output'``
          - *file_format* - (string) Format of the file, should match on of the 
-           modules inside of the io package.  ``default = 'ascii'``
+           modules inside of the io package.  ``default = None``
+           but now attempts to read from header file (as of v5.9.0).
          - *file_prefix* - (string) Name prefix in front of all the files, 
            defaults to whatever the format defaults to, e.g. fort for ascii
          - *options* - (dict) Dictionary of optional arguments dependent on 
@@ -340,9 +341,12 @@ class Solution(object):
          - (bool) - True if read was successful, False otherwise
         """
         
-        [t,num_eqn,nstates,num_aux,num_dim,num_ghost,file_format] = \
+        [t,num_eqn,nstates,num_aux,num_dim,num_ghost,file_format2] = \
              self.read_t(frame,path,file_prefix=file_prefix)
 
+        if file_format2 is not None:
+            # value was read in from file, use it:
+            file_format = file_format2
 
         read_func = self.get_read_func(file_format)
 
@@ -363,6 +367,9 @@ class Solution(object):
         Note this file is always ascii and now contains a line that tells
         the file_format.  Adapted from fileio.binary.read_t so that we can
         read the file_format before importing the appropriate read function.
+
+        For backward compatibility, if file_format line is missing then
+        return None and handle this elsewhere.
 
         This version also reads in num_ghost so that we
         can extract only the data that's relevant.
@@ -399,8 +406,10 @@ class Solution(object):
             num_aux = read_data_line(f, data_type=int)
             num_dim = read_data_line(f, data_type=int)
             num_ghost = read_data_line(f, data_type=int)
-            file_format = read_data_line(f, data_type=str)
-            #file_format_int = read_data_line(f, data_type=int)
+            try:
+                file_format = read_data_line(f, data_type=str)
+            except:
+                file_format = None
 
         #file_format_map = {1:'ascii', 2:'binary32', 3:'binary64'}
         #file_format = file_format_map[file_format_int]
