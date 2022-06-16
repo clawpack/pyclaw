@@ -340,9 +340,11 @@ class Solution(object):
         :Output:
          - (bool) - True if read was successful, False otherwise
         """
+
+        from clawpack.pyclaw.fileio.ascii import read_t
         
         [t,num_eqn,nstates,num_aux,num_dim,num_ghost,file_format2] = \
-             self.read_t(frame,path,file_prefix=file_prefix)
+             read_t(frame,path,file_prefix=file_prefix)
 
         if file_format2 is not None:
             # value was read in from file, use it:
@@ -359,62 +361,6 @@ class Solution(object):
             read_func(self,frame,path,file_prefix=file_prefix,
                                     read_aux=read_aux,options=options)
         logging.getLogger('pyclaw.fileio').info("Read in solution for time t=%s" % self.t)
-
-            
-    def read_t(self,frame,path='./',file_prefix='fort'):
-        r"""Read only the fort.t file and return the data.
-
-        Note this file is always ascii and now contains a line that tells
-        the file_format.  Adapted from fileio.binary.read_t so that we can
-        read the file_format before importing the appropriate read function.
-
-        For backward compatibility, if file_format line is missing then
-        return None and handle this elsewhere.
-
-        This version also reads in num_ghost so that we
-        can extract only the data that's relevant.
-        
-        :Input:
-         - *frame* - (int) Frame number to be read in
-         - *path* - (string) Path to the current directory of the file
-         - *file_prefix* - (string) Prefix of the files to be read in.  
-           ``default = 'fort'``
-         
-        :Output:
-         - (list) List of output variables
-         - *t* - (int) Time of frame
-         - *num_eqn* - (int) Number of equations in the frame
-         - *nstates* - (int) Number of states
-         - *num_aux* - (int) Auxiliary value in the frame
-         - *num_dim* - (int) Number of dimensions in q and aux
-         - *num_ghost* - (int) Number of ghost cells on each side
-         - *file_format* - (str) 'ascii', 'binary32', 'binary64'
-        
-        """
-
-        from .util import read_data_line
-        import logging
-        logger = logging.getLogger('pyclaw.fileio')
-
-        base_path = os.path.join(path,)
-        path = os.path.join(base_path, '%s.t' % file_prefix) + str(frame).zfill(4)
-        logger.debug("Opening %s file." % path)
-        with open(path,'r') as f:
-            t = read_data_line(f)
-            num_eqn = read_data_line(f, data_type=int)
-            nstates = read_data_line(f, data_type=int)
-            num_aux = read_data_line(f, data_type=int)
-            num_dim = read_data_line(f, data_type=int)
-            num_ghost = read_data_line(f, data_type=int)
-            try:
-                file_format = read_data_line(f, data_type=str)
-            except:
-                file_format = None
-
-        #file_format_map = {1:'ascii', 2:'binary32', 3:'binary64'}
-        #file_format = file_format_map[file_format_int]
-            
-        return t,num_eqn,nstates,num_aux,num_dim,num_ghost,file_format
 
 
     def get_read_func(self, file_format):

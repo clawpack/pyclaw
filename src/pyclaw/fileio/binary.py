@@ -44,6 +44,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
      - *options* - (dict) Dictionary of optional arguments dependent on 
        the format being read in.  ``default = {}``
     """
+    from clawpack.pyclaw.fileio.ascii import read_t
     
     # Construct path names
     base_path = os.path.join(path,)
@@ -51,7 +52,8 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     b_fname = os.path.join(base_path, '%s.b' % file_prefix) + str(frame).zfill(4)
 
     # Read in values from fort.t file:
-    [t,num_eqn,nstates,num_aux,num_dim,num_ghost] = read_t(frame,path,file_prefix)
+    [t,num_eqn,nstates,num_aux,num_dim,num_ghost,file_format] = \
+        read_t(frame,path,file_prefix)
 
     patches = []
     
@@ -204,41 +206,4 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
                 raise Exception(msg)
 
             i_start_patch = i_end_patch  # prepare for next patch
-
-            
-def read_t(frame,path='./',file_prefix='fort'):
-    r"""Read only the fort.t file and return the data.
-
-    Note that this version reads in the extra value for num_ghost so that we
-    can extract only the data that's relevant.
-    
-    :Input:
-     - *frame* - (int) Frame number to be read in
-     - *path* - (string) Path to the current directory of the file
-     - *file_prefix* - (string) Prefix of the files to be read in.  
-       ``default = 'fort'``
-     
-    :Output:
-     - (list) List of output variables
-     - *t* - (int) Time of frame
-     - *num_eqn* - (int) Number of equations in the frame
-     - *nstates* - (int) Number of states
-     - *num_aux* - (int) Auxiliary value in the frame
-     - *num_dim* - (int) Number of dimensions in q and aux
-     - *num_ghost* - (int) Number of ghost cells on each side
-    
-    """
-
-    base_path = os.path.join(path,)
-    path = os.path.join(base_path, '%s.t' % file_prefix) + str(frame).zfill(4)
-    logger.debug("Opening %s file." % path)
-    with open(path,'r') as f:
-        t = read_data_line(f)
-        num_eqn = read_data_line(f, data_type=int)
-        nstates = read_data_line(f, data_type=int)
-        num_aux = read_data_line(f, data_type=int)
-        num_dim = read_data_line(f, data_type=int)
-        num_ghost = read_data_line(f, data_type=int)
-        
-    return t,num_eqn,nstates,num_aux,num_dim,num_ghost
 
