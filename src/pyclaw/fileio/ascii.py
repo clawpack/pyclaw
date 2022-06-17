@@ -289,10 +289,6 @@ def read_t(frame,path='./',file_prefix='fort'):
             file_format = read_data_line(f, data_type=str)
         except:
             file_format = None
-        print('+++ file_format in read_t: ',file_format)
-
-    #file_format_map = {1:'ascii', 2:'binary32', 3:'binary64'}
-    #file_format = file_format_map[file_format_int]
         
     return t,num_eqn,nstates,num_aux,num_dim,num_ghost,file_format
 
