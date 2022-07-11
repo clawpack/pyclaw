@@ -167,7 +167,8 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     q_fname = os.path.join(base_path, '%s.q' % file_prefix) + str(frame).zfill(4)
 
     # Read in values from fort.t file:
-    [t,num_eqn,nstates,num_aux,num_dim] = read_t(frame,path,file_prefix)
+    [t,num_eqn,nstates,num_aux,num_dim,num_ghost,file_format] = \
+         read_t(frame,path,file_prefix)
 
     patches = []
 
@@ -237,9 +238,20 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
 
                 state.aux = read_array(f, state, num_aux)
 
-            
+        
 def read_t(frame,path='./',file_prefix='fort'):
-    r"""Read only the fort.t file and return the data
+    r"""Read only the fort.t file and return the data.
+
+    Note this file is always ascii and now contains a line that tells
+    the file_format, so we can read this file before importing the 
+    appropriate read function for the solution data.
+
+    For backward compatibility, if file_format line is missing then
+    return None and handle this where it is called.
+
+    This version also reads in num_ghost so that if the data is binary,
+    we can extract only the data that's relevant (since ghost cells are
+    included).
     
     :Input:
      - *frame* - (int) Frame number to be read in
@@ -252,22 +264,34 @@ def read_t(frame,path='./',file_prefix='fort'):
      - *t* - (int) Time of frame
      - *num_eqn* - (int) Number of equations in the frame
      - *nstates* - (int) Number of states
-     - *num_aux* - (int) Auxillary value in the frame
+     - *num_aux* - (int) Auxiliary value in the frame
      - *num_dim* - (int) Number of dimensions in q and aux
+     - *num_ghost* - (int) Number of ghost cells on each side
+     - *file_format* - (str) 'ascii', 'binary32', 'binary64'
     
     """
+
+    from clawpack.pyclaw.util import read_data_line
+    import logging
+    logger = logging.getLogger('pyclaw.fileio')
 
     base_path = os.path.join(path,)
     path = os.path.join(base_path, '%s.t' % file_prefix) + str(frame).zfill(4)
     logger.debug("Opening %s file." % path)
     with open(path,'r') as f:
         t = read_data_line(f)
-        num_eqn = read_data_line(f,data_type=int)
-        nstates = read_data_line(f,data_type=int)
-        num_aux = read_data_line(f,data_type=int)
-        num_dim = read_data_line(f,data_type=int)
-    
-    return t, num_eqn, nstates, num_aux, num_dim
+        num_eqn = read_data_line(f, data_type=int)
+        nstates = read_data_line(f, data_type=int)
+        num_aux = read_data_line(f, data_type=int)
+        num_dim = read_data_line(f, data_type=int)
+        num_ghost = read_data_line(f, data_type=int)
+        try:
+            file_format = read_data_line(f, data_type=str)
+        except:
+            file_format = None
+        
+    return t,num_eqn,nstates,num_aux,num_dim,num_ghost,file_format
+
 
 
 def read_patch_header(f, num_dim):
