@@ -427,7 +427,7 @@ def compare_old_gauges(old_path, new_path, gauge_id, plot=False, abs_tol=1e-14,
 
     # Turn these into assertions or logicals
     if verbose:
-        print("Comparison of guage %s:" % gauge_id)
+        print("Comparison of gauge %s:" % gauge_id)
         print(r"           ||\Delta q||_2 = ",
                               numpy.linalg.norm(q - gauge.q.transpose(), ord=2))
         print(r"  arg(||\Delta q||_\infty = ",
@@ -449,7 +449,7 @@ def compare_old_gauges(old_path, new_path, gauge_id, plot=False, abs_tol=1e-14,
 def check_old_gauge_data(path, gauge_id, new_gauge_path="./regression_data"):
     """Compare old gauge data to new gauge format
 
-    Function is meant to check discrepencies between versions of the gauge
+    Function is meant to check discrepancies between versions of the gauge
     files.  Note that this function also directly prints out some info.
 
     :Input:
@@ -495,7 +495,7 @@ if __name__ == "__main__":
 
 Plots a comparison between the gauges at path1 and path2 with gauge_id and the 
 fields specified.  Only one gauge_id can be specified at a time but a number of 
-fields can be specfied including 'all'.
+fields can be specified including 'all'.
 """
 
     fields = 'all'

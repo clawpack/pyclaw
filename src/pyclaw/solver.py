@@ -95,7 +95,7 @@ class Solver(object):
 
     .. attribute:: max_steps
 
-        The maximum number of time steps allowd to reach the end time
+        The maximum number of time steps allowed to reach the end time
         requested, ``default = 10000``.  If exceeded, an exception is
         raised.
 
@@ -448,7 +448,7 @@ class Solver(object):
         :Input:
          - *patch* - (:class:`Patch`) Patch that the dimension belongs to.
 
-        :Input/Ouput:
+        :Input/Output:
          - *array* - (ndarray(...,num_eqn)) Array with added ghost cells which
            will be set in this routines.
         """
@@ -489,7 +489,7 @@ class Solver(object):
         :Input:
          - *patch* - (:class:`Patch`) Patch that the dimension belongs to
 
-        :Input/Ouput:
+        :Input/Output:
          - *array* - (ndarray(...,num_eqn)) Array with added ghost cells which will
            be set in this routines
         """

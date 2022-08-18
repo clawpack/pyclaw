@@ -71,7 +71,7 @@ c
 c
 c     # note that notation for u and v reflects assumption that the 
 c     # Riemann problems are in the x-direction with u in the normal
-c     # direciton and v in the orthogonal direcion, but with the above
+c     # direction and v in the orthogonal direction, but with the above
 c     # definitions of mu and mv the routine also works with ixy=2
 c     # and returns, for example, f0 as the Godunov flux g0 for the
 c     # Riemann problems u_t + g(u)_y = 0 in the y-direction.

@@ -60,7 +60,7 @@ def inclusion_mapping(xc, yc):
         R = r1*np.ones(d1.shape)
         R = r1**2 / (r2*d)
 
-        # Modify d1 and R ouside circle to morph back to square:
+        # Modify d1 and R outside circle to morph back to square:
         ij = np.where(d>(r1/r2))
         d1[ij] = r1/np.sqrt(2) + (d[ij]-r1/r2)*(r2-r1/np.sqrt(2))/(1.-r1/r2)
         R[ij] = r1 * ((1.-r1/r2) / (1.-d[ij]))**(r2/r1 + 0.5)

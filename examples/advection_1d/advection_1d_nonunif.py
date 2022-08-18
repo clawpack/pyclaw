@@ -45,7 +45,7 @@ def setup(nx=100, kernel_language='Fortran', use_petsc=False, solver_type='class
     elif kernel_language == 'Python':
         riemann_solver = riemann.advection_1D_py.advection_1D
 
-    # sharpclaw does not accomodate nonuniform grids
+    # sharpclaw does not accommodate nonuniform grids
     if solver_type=='classic':
         solver = pyclaw.ClawSolver1D(riemann_solver)
     else: raise Exception('Unrecognized value of solver_type.')

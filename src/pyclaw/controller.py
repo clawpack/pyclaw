@@ -287,7 +287,7 @@ class Controller(object):
         :Input:
             None
 
-        :Ouput:
+        :Output:
             (dict) - Return a dictionary of the status of the solver.
         """
         import numpy as np

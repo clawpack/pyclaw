@@ -3,7 +3,7 @@ Script to convert Clawpack 4.6.x problem setup to PyClaw setup.
 Automatically writes a basic PyClaw script with all the options
 from the setrun.py in the current directory.  Also generates a 
 Makefile and a wrapper for qinit.f.  Additional wrappers will be
-needed for any other custom Fortan code, such as setaux, b4step, etc.
+needed for any other custom Fortran code, such as setaux, b4step, etc.
 
 If you try this out, please raise issues in the PyClaw tracker for 
 anything that doesn't work.

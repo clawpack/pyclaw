@@ -25,9 +25,9 @@ def write(solution, frame, path, file_prefix='fort', write_aux=False,
     including writing out fort.t, fort.q, and fort.aux if necessary.  Note
     that there are some parameters that assumed to be the same for every patch
     in this format which is not necessarily true for the actual data objects.
-    Make sure that if you use this output format that all of you patchs share
-    the appropriate values of num_dim, num_eqn, num_aux, and t.  Only supports up to
-    3 dimensions.
+    Make sure that if you use this output format that all of your patches share
+    the appropriate values of num_dim, num_eqn, num_aux, and t.  Only supports
+    up to 3 dimensions.
     
     :Input:
      - *solution* - (:class:`~pyclaw.solution.Solution`) Pyclaw object to be 
@@ -143,7 +143,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
      - *path* - (string) Path to the current directory of the file
      - *file_prefix* - (string) Prefix of the files to be read in.  
        ``default = 'fort'``
-     - *read_aux* (bool) Whether or not an auxillary file will try to be read 
+     - *read_aux* (bool) Whether or not an auxiliary file will try to be read 
        in.  ``default = False``
      - *options* - (dict) Dictionary of optional arguments dependent on 
        the format being read in.  ``default = {}``
@@ -200,7 +200,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
 
     solution.domain = pyclaw.geometry.Domain(patches)
 
-    # Read auxillary file if available and requested
+    # Read auxiliary file if available and requested
     # Matching dimension parameter tolerances
     ABS_TOL = 1e-8
     REL_TOL = 1e-15
@@ -216,7 +216,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
             fname = fname2
             # Note that this is generally not true when AMR is used.
         else:
-            logger.debug("Unable to open auxillary file %s or %s" % (fname1,fname2))
+            logger.debug("Unable to open auxiliary file %s or %s" % (fname1,fname2))
             return
             
         # Read in fort.auxxxxx file

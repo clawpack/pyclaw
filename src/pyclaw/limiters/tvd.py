@@ -64,7 +64,7 @@ in review.
 """
 # ============================================================================
 #      Copyright (C) 2008 Kyle T. Mandli <mandli@amath.washington.edu>
-#      Copyrigth (C) 2009 Randall J. LeVeque <rjl@amath.washington.edu>
+#      Copyright (C) 2009 Randall J. LeVeque <rjl@amath.washington.edu>
 #
 #  Distributed under the terms of the Berkeley Software Distribution (BSD) 
 #  license
