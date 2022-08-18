@@ -273,7 +273,7 @@ class Solution(object):
            containing the desired output formats. ``default = 'ascii'``
          - *file_prefix* - (string) Prefix for the file name.  Defaults to
            the particular io modules default.
-         - *write_aux* - (book) Write the auxillary array out as well if 
+         - *write_aux* - (book) Write the auxiliary array out as well if 
            present. ``default = False``
          - *options* - (dict) Dictionary of optional arguments dependent on 
            which format is being used. ``default = {}``

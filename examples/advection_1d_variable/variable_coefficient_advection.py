@@ -46,7 +46,7 @@ def qinit(state):
 
 
 def auxinit(state):
-    # Initilize petsc Structures for aux
+    # Initialize petsc Structures for aux
     xc=state.grid.x.centers
     state.aux[0,:] = np.sin(2.*np.pi*xc)+2
     

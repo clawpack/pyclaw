@@ -89,7 +89,7 @@ subroutine qinit(maxmx,maxmy,num_eqn,num_ghost,mx,my,xlower,ylower, &
             Uin(3) = 0.d0
         
 
-            ! calculate velocity vetor in cartesian coordinates
+            ! calculate velocity vector in cartesian coordinates
             Uout(1) = (-dsin(xp)*Uin(1)-dsin(yp)*dcos(xp)*Uin(2))
             Uout(2) = (dcos(xp)*Uin(1)-dsin(yp)*dsin(xp)*Uin(2))
             Uout(3) = dcos(yp)*Uin(2)

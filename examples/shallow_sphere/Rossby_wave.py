@@ -276,10 +276,10 @@ def qinit(state,mx,my):
 
             # Radial velocity component
             Uin[2] = 0.0 # The fluid does not enter in the sphere
-            
 
-            # Calculate velocity vetor in cartesian coordinates
-            # =================================================
+
+            # Calculate velocity vector in cartesian coordinates
+            # ==================================================
             Uout = np.zeros(3)
 
             Uout[0] = (-np.sin(xp)*Uin[0]-np.sin(yp)*np.cos(xp)*Uin[1])
@@ -420,7 +420,7 @@ def setup(use_petsc=False,solver_type='classic',outdir='./_output', disable_outp
 
     # Check whether or not the even number of cells are used in in both 
     # directions. If odd numbers are used a message is print at screen and the 
-    # simulation is interrputed.
+    # simulation is interrupted.
     if(mx % 2 != 0 or my % 2 != 0):
         message = 'Please, use even numbers of cells in both direction. ' \
                   'Only even numbers allow to impose correctly the boundary ' \

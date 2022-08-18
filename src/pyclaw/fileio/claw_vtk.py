@@ -101,7 +101,7 @@ def write(
 
     Notes on what is not yet implemented
         - Add options for writing aux files.
-        - Consider making an equilvalent vtk.read function.
+        - Consider making an equivalent vtk.read function.
     """
     # get options from the options dictionary.
     binary = options.get("binary", False)
@@ -239,7 +239,7 @@ def _set_overlapped_status(sol):
     whose entries denote overlapped status for each patch.
 
     @type sol:  pyclaw.Solution
-    @param sol: Solution obejct of pyclaw that contains all information
+    @param sol: Solution object of pyclaw that contains all information
                 of this time step.
     @rtype:     list
     @return:    add a component to the solution q,

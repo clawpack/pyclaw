@@ -714,7 +714,7 @@ class FrameCounter:
     Simple frame counter
 
     Simple frame counter to keep track of current frame number.  This can
-    also be used to keep multiple runs frames seperated by having multiple
+    also be used to keep multiple runs frames separated by having multiple
     counters at once.
 
     Initializes to 0
