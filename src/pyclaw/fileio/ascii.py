@@ -48,6 +48,8 @@ def write(solution, frame, path, file_prefix='fort', write_aux=False,
         f.write("%5i                  nstates\n" % len(solution.states))
         f.write("%5i                  num_aux\n" % solution.num_aux)
         f.write("%5i                  num_dim\n" % solution.domain.num_dim)
+        f.write("%5i                  num_ghost\n" % 0)
+        f.write("%s                  file_format\n" % "ascii")
 
     # Write fort.qxxxx file
     file_name = 'fort.q%s' % str(frame).zfill(4)
@@ -284,7 +286,10 @@ def read_t(frame,path='./',file_prefix='fort'):
         nstates = read_data_line(f, data_type=int)
         num_aux = read_data_line(f, data_type=int)
         num_dim = read_data_line(f, data_type=int)
-        num_ghost = read_data_line(f, data_type=int)
+        try:
+            num_ghost = read_data_line(f, data_type=int)
+        except:
+            num_ghost = 0
         try:
             file_format = read_data_line(f, data_type=str)
         except:
