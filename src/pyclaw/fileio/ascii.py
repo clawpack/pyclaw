@@ -49,6 +49,7 @@ def write(solution, frame, path, file_prefix='fort', write_aux=False,
         f.write("%5i                  num_aux\n" % solution.num_aux)
         f.write("%5i                  num_dim\n" % solution.domain.num_dim)
         f.write("%5i                  num_ghost\n" % 0)
+        f.write("%s                  file_format\n" % "ascii")
 
     # Write fort.qxxxx file
     file_name = 'fort.q%s' % str(frame).zfill(4)
