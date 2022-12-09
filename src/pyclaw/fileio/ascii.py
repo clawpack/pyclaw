@@ -355,7 +355,7 @@ def read_array(f, state, num_var):
     """
     patch = state.patch
     q_shape = [num_var] + patch.num_cells_global
-    q = np.zeros(q_shape)
+    q = np.zeros(q_shape, order='F')
 
 
     try:
