@@ -342,9 +342,13 @@ class Solution(object):
         """
 
         from clawpack.pyclaw.fileio.ascii import read_t
+        file_format2 = None
         
-        [t,num_eqn,nstates,num_aux,num_dim,num_ghost,file_format2] = \
-             read_t(frame,path,file_prefix=file_prefix)
+        try:
+            [t,num_eqn,nstates,num_aux,num_dim,num_ghost,file_format2] = \
+                 read_t(frame,path,file_prefix=file_prefix)
+        except:
+            pass
 
         if file_format2 is not None:
             # value was read in from file, use it:
@@ -352,7 +356,10 @@ class Solution(object):
 
         read_func = self.get_read_func(file_format)
 
-        options['format'] = file_format
+        if file_format == 'petsc':
+            options['format'] = 'binary'
+        else:
+            options['format'] = file_format
 
         path = os.path.expandvars(os.path.expanduser(path))
         if file_prefix is None:
