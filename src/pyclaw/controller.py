@@ -172,7 +172,7 @@ class Controller(object):
         ``default = 10``"""
         self.out_times = np.linspace(0.0,self.tfinal,self.num_output_times-
                                      self.start_frame)  # Outstyle 2
-        r"""(int) - Output time list, only used with ``output_style = 2``,
+        r"""(list of floats) - Output time list, only used with ``output_style = 2``,
         ``default = numpy.linspace(0.0,tfinal,num_output_times)``"""
 
         self.nstepout = 1               # Outstyle 3 defaults
