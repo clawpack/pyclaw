@@ -337,9 +337,11 @@ class SharpClawSolver(Solver):
             num_stages = len(self.b)
             for i in range(1,num_stages):
                 self._registers[i].q[:] = state.q
+                self._registers[i].t = state.t + self.dt*self.c[i]
+                if self.call_before_step_each_stage:
+                    self.before_step(self,self._registers[i])
                 for j in range(i):
                     self._registers[i].q += self.a[i,j]*self._registers[j].q
-                self._registers[i].t = state.t + self.dt*self.c[i]
 
                 # self._registers[i].q eventually stores dt*f(y_i) after stage solution y_i is computed
                 self._registers[i].q = self.dq(self._registers[i])
