@@ -273,7 +273,7 @@ class Solution(object):
            containing the desired output formats. ``default = 'ascii'``
          - *file_prefix* - (string) Prefix for the file name.  Defaults to
            the particular io modules default.
-         - *write_aux* - (book) Write the auxillary array out as well if 
+         - *write_aux* - (book) Write the auxiliary array out as well if 
            present. ``default = False``
          - *options* - (dict) Dictionary of optional arguments dependent on 
            which format is being used. ``default = {}``
@@ -308,8 +308,8 @@ class Solution(object):
             logging.getLogger('pyclaw.fileio').info(msg)
 
         
-    def read(self, frame, path='./_output', file_format='ascii', 
-                          file_prefix=None, read_aux=True, options={}, **kargs):
+    def read(self, frame, path='./_output', file_format=None, 
+                          file_prefix='fort', read_aux=True, options={}, **kargs):
         r"""
         Reads in a Solution object from a file
         
@@ -330,7 +330,8 @@ class Solution(object):
          - *path* - (string) Base path to the files to be read. 
            ``default = './_output'``
          - *file_format* - (string) Format of the file, should match on of the 
-           modules inside of the io package.  ``default = 'ascii'``
+           modules inside of the io package.  ``default = None``
+           but now attempts to read from header file (as of v5.9.0).
          - *file_prefix* - (string) Name prefix in front of all the files, 
            defaults to whatever the format defaults to, e.g. fort for ascii
          - *options* - (dict) Dictionary of optional arguments dependent on 
@@ -339,8 +340,26 @@ class Solution(object):
         :Output:
          - (bool) - True if read was successful, False otherwise
         """
+
+        from clawpack.pyclaw.fileio.ascii import read_t
+        file_format2 = None
         
+        try:
+            [t,num_eqn,nstates,num_aux,num_dim,num_ghost,file_format2] = \
+                 read_t(frame,path,file_prefix=file_prefix)
+        except:
+            pass
+
+        if file_format2 is not None:
+            # value was read in from file, use it:
+            file_format = file_format2
+
         read_func = self.get_read_func(file_format)
+
+        if file_format == 'petsc':
+            options['format'] = 'binary'
+        else:
+            options['format'] = file_format
 
         path = os.path.expandvars(os.path.expanduser(path))
         if file_prefix is None:
@@ -352,11 +371,12 @@ class Solution(object):
 
 
     def get_read_func(self, file_format):
-        if file_format == 'binary':
+        if file_format[:6] == 'binary':
+            # could be 'binary64' or 'binary32'
             import clawpack.pyclaw.fileio.binary
             return clawpack.pyclaw.fileio.binary.read
         elif file_format == 'ascii':
-            import clawpack.pyclaw.fileio.binary
+            import clawpack.pyclaw.fileio.ascii
             return clawpack.pyclaw.fileio.ascii.read
         elif file_format in ('hdf','hdf5'):
             import clawpack.pyclaw.fileio.hdf5

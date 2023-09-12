@@ -4,17 +4,18 @@ r"""
 Advection in an annular domain
 ==============================
 
-Solve the linear advection equation:
+Solve the linear non-conservative advection equation:
 
 .. math::
-    q_t + (u(x,y) q)_x + (v(x,y) q)_y = 0
+    q_t + u(x,y) q_x + v(x,y) q_y = 0
 
 in an annular domain, using a mapped grid.
 
-Here q is the density of some conserved quantity and (u,v) is the velocity
+Here q is the density of some quantity and (u,v) is the velocity
 field.  We take a rotational velocity field: :math:`u = \cos(\theta), v = \sin(\theta)`.
 
 This is the simplest example that shows how to use a mapped grid in PyClaw.
+However, it doesn't use a mapped-grid Riemann solver.
 """
 from __future__ import absolute_import
 import numpy as np

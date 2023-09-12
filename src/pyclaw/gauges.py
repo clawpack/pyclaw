@@ -79,8 +79,13 @@ class GaugeSolution(object):
     def read(self, gauge_id, path=None, use_pandas=False):
         r"""Read the gauge file at path into this object
 
-        Read in the gauge with gauge id `gauge_id` located at `path`.  If
-        `use_pandas` is `True` then `q` will be a Pandas frame.
+        Read in the gauge with gauge id `gauge_id` located at `path`.  
+
+        If `use_pandas` is `True` then `q` will be a Pandas frame.
+            (not yet implemented)
+
+        New in v5.9.0: If gauge00000N.txt file contains only a header,
+        read data from corresponding .bin file.
 
         :Input:
          - *gauge_id* - (int) Gauge id to be read
@@ -96,10 +101,14 @@ class GaugeSolution(object):
         # Construct path to gauge
         if path is None:
             path = os.getcwd()
+
+        # First read header from .txt file:
         gauge_file_name = "gauge%s.txt" % str(gauge_id).zfill(5)
         gauge_path = os.path.join(path, gauge_file_name)
+        if not os.path.isfile(gauge_path):
+            print('Did not find %s' % gauge_path)
+            file_format = 'binary'
 
-        # Read header info
         with open(gauge_path, 'r') as gauge_file:
             # First line
             data = gauge_file.readline().split()
@@ -121,22 +130,34 @@ class GaugeSolution(object):
             if 'lagrangian' in line.lower():
                 # Lagrangian gauge (particle)
                 self.gtype = 'lagrangian'
-                gauge_file.readline() # third line of header
+                line = gauge_file.readline() # third line of header
             elif 'stationary' in line.lower():
                 # Standard stationary gauge
                 self.gtype = 'stationary'
-                gauge_file.readline() # third line of header
+                line = gauge_file.readline() # third line of header
             else:
                 # backward compatibility
                 self.gtype = 'stationary'
+
+            #data = line.split()
+            #nvals = 1 + len(data)-6  # should agree with num_eqn
             
-            # Read in one more line to check to make sure there's actually data
-            # in here
+            # Check to see if there is also data in the .txt file,
+            # otherwise perhaps it's in a binary .bin file.
             
-            if len(gauge_file.readline()) == 0:
-                import warnings
-                warnings.warn("Gauge file %s is empty." % gauge_id)
-                return
+            line = gauge_file.readline()
+            if len(line) > 0:
+                if 'binary32' in line:
+                    file_format = 'binary32'
+                elif 'binary' in line:
+                    file_format = 'binary'  # also allows 'binary64'
+                else:
+                    # if 'ascii' in line, or no file_format line (data follows)
+                    # (for backward compatibility)
+                    file_format = 'ascii'
+            else:
+                # if file_format line missing and no data lines, try binary:
+                file_format = 'binary'
 
         # Check to see if the gauge file name ID and that inside of the gauge
         # file are the same
@@ -146,21 +167,49 @@ class GaugeSolution(object):
                              "file!")
 
         # Read gauge data
+
         if use_pandas:
+            raise NotImplementedError("Pandas data backend not implemented yet.")
             if not pandas_available:
                 raise ImportError("Pandas not available.")
 
-            raise NotImplementedError("Pandas data backend not implemented yet.")
-            self.q = pandas.DataFrame()
-        else:
+
+        if file_format == 'ascii':
+            # data follows header in .txt file:
             data = numpy.loadtxt(gauge_path, comments="#")
             if data.ndim == 1:
                 # only one line in gauge file, expand to 2d array
                 data = data.reshape((1,len(data)))
-            self.level = data[:, 0].astype(numpy.int64)
-            self.t = data[:, 1]
-            self.q = data[:, 2:].transpose()
 
+        if file_format[:6] == 'binary':
+            # data is in separate .bin file:
+            gauge_file_name = "gauge%s.bin" % str(gauge_id).zfill(5)
+            gauge_path = os.path.join(path, gauge_file_name)
+            if not os.path.isfile(gauge_path):
+                msg = 'No data in .txt file and did not find ' \
+                         + '\n   binary file %s' %  gauge_path
+                import warnings
+                warnings.warn(msg)
+                return
+
+            if file_format in ['binary','binary64']:
+                data = numpy.fromfile(gauge_path, dtype=numpy.float64)
+            elif file_format == 'binary32':
+                data = numpy.fromfile(gauge_path, dtype=numpy.float32)
+
+            # assume rows are: level, t, q[0:num_eqn]
+            nrows = 2 + num_eqn
+            assert numpy.mod(len(data),nrows) == 0, \
+                  '*** unexpected number of values in gauge file' \
+                  + '\n*** expected nrows = %i rows'  % nrows
+            ncols = int(len(data)/nrows)
+            data = data.reshape((nrows,ncols), order='F').T
+
+        self.level = data[:, 0].astype(numpy.int64)
+        self.t = data[:, 1]
+        self.q = data[:, 2:].transpose()
+
+    
         if num_eqn != self.q.shape[0]:
             raise ValueError("Number of fields in gauge file does not match",
                              "recorded number in header.")
@@ -176,6 +225,7 @@ class GaugeSolution(object):
                 # set the lagrangian path to a single fixed location at t=t0:
                 self.particle_path = numpy.array([[self.t[0], self.location[0], 
                                              self.location[1]]])
+
 
 
     def write(self, path=None, format="%+.15e"):
@@ -377,7 +427,7 @@ def compare_old_gauges(old_path, new_path, gauge_id, plot=False, abs_tol=1e-14,
 
     # Turn these into assertions or logicals
     if verbose:
-        print("Comparison of guage %s:" % gauge_id)
+        print("Comparison of gauge %s:" % gauge_id)
         print(r"           ||\Delta q||_2 = ",
                               numpy.linalg.norm(q - gauge.q.transpose(), ord=2))
         print(r"  arg(||\Delta q||_\infty = ",
@@ -399,7 +449,7 @@ def compare_old_gauges(old_path, new_path, gauge_id, plot=False, abs_tol=1e-14,
 def check_old_gauge_data(path, gauge_id, new_gauge_path="./regression_data"):
     """Compare old gauge data to new gauge format
 
-    Function is meant to check discrepencies between versions of the gauge
+    Function is meant to check discrepancies between versions of the gauge
     files.  Note that this function also directly prints out some info.
 
     :Input:
@@ -445,7 +495,7 @@ if __name__ == "__main__":
 
 Plots a comparison between the gauges at path1 and path2 with gauge_id and the 
 fields specified.  Only one gauge_id can be specified at a time but a number of 
-fields can be specfied including 'all'.
+fields can be specified including 'all'.
 """
 
     fields = 'all'

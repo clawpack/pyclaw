@@ -25,9 +25,9 @@ def write(solution, frame, path, file_prefix='fort', write_aux=False,
     including writing out fort.t, fort.q, and fort.aux if necessary.  Note
     that there are some parameters that assumed to be the same for every patch
     in this format which is not necessarily true for the actual data objects.
-    Make sure that if you use this output format that all of you patchs share
-    the appropriate values of num_dim, num_eqn, num_aux, and t.  Only supports up to
-    3 dimensions.
+    Make sure that if you use this output format that all of your patches share
+    the appropriate values of num_dim, num_eqn, num_aux, and t.  Only supports
+    up to 3 dimensions.
     
     :Input:
      - *solution* - (:class:`~pyclaw.solution.Solution`) Pyclaw object to be 
@@ -48,6 +48,8 @@ def write(solution, frame, path, file_prefix='fort', write_aux=False,
         f.write("%5i                  nstates\n" % len(solution.states))
         f.write("%5i                  num_aux\n" % solution.num_aux)
         f.write("%5i                  num_dim\n" % solution.domain.num_dim)
+        f.write("%5i                  num_ghost\n" % 0)
+        f.write("%s                  file_format\n" % "ascii")
 
     # Write fort.qxxxx file
     file_name = 'fort.q%s' % str(frame).zfill(4)
@@ -143,7 +145,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
      - *path* - (string) Path to the current directory of the file
      - *file_prefix* - (string) Prefix of the files to be read in.  
        ``default = 'fort'``
-     - *read_aux* (bool) Whether or not an auxillary file will try to be read 
+     - *read_aux* (bool) Whether or not an auxiliary file will try to be read 
        in.  ``default = False``
      - *options* - (dict) Dictionary of optional arguments dependent on 
        the format being read in.  ``default = {}``
@@ -167,7 +169,8 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
     q_fname = os.path.join(base_path, '%s.q' % file_prefix) + str(frame).zfill(4)
 
     # Read in values from fort.t file:
-    [t,num_eqn,nstates,num_aux,num_dim] = read_t(frame,path,file_prefix)
+    [t,num_eqn,nstates,num_aux,num_dim,num_ghost,file_format] = \
+         read_t(frame,path,file_prefix)
 
     patches = []
 
@@ -199,7 +202,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
 
     solution.domain = pyclaw.geometry.Domain(patches)
 
-    # Read auxillary file if available and requested
+    # Read auxiliary file if available and requested
     # Matching dimension parameter tolerances
     ABS_TOL = 1e-8
     REL_TOL = 1e-15
@@ -215,7 +218,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
             fname = fname2
             # Note that this is generally not true when AMR is used.
         else:
-            logger.debug("Unable to open auxillary file %s or %s" % (fname1,fname2))
+            logger.debug("Unable to open auxiliary file %s or %s" % (fname1,fname2))
             return
             
         # Read in fort.auxxxxx file
@@ -237,9 +240,20 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
 
                 state.aux = read_array(f, state, num_aux)
 
-            
+        
 def read_t(frame,path='./',file_prefix='fort'):
-    r"""Read only the fort.t file and return the data
+    r"""Read only the fort.t file and return the data.
+
+    Note this file is always ascii and now contains a line that tells
+    the file_format, so we can read this file before importing the 
+    appropriate read function for the solution data.
+
+    For backward compatibility, if file_format line is missing then
+    return None and handle this where it is called.
+
+    This version also reads in num_ghost so that if the data is binary,
+    we can extract only the data that's relevant (since ghost cells are
+    included).
     
     :Input:
      - *frame* - (int) Frame number to be read in
@@ -252,22 +266,37 @@ def read_t(frame,path='./',file_prefix='fort'):
      - *t* - (int) Time of frame
      - *num_eqn* - (int) Number of equations in the frame
      - *nstates* - (int) Number of states
-     - *num_aux* - (int) Auxillary value in the frame
+     - *num_aux* - (int) Auxiliary value in the frame
      - *num_dim* - (int) Number of dimensions in q and aux
+     - *num_ghost* - (int) Number of ghost cells on each side
+     - *file_format* - (str) 'ascii', 'binary32', 'binary64'
     
     """
+
+    from clawpack.pyclaw.util import read_data_line
+    import logging
+    logger = logging.getLogger('pyclaw.fileio')
 
     base_path = os.path.join(path,)
     path = os.path.join(base_path, '%s.t' % file_prefix) + str(frame).zfill(4)
     logger.debug("Opening %s file." % path)
     with open(path,'r') as f:
         t = read_data_line(f)
-        num_eqn = read_data_line(f,data_type=int)
-        nstates = read_data_line(f,data_type=int)
-        num_aux = read_data_line(f,data_type=int)
-        num_dim = read_data_line(f,data_type=int)
-    
-    return t, num_eqn, nstates, num_aux, num_dim
+        num_eqn = read_data_line(f, data_type=int)
+        nstates = read_data_line(f, data_type=int)
+        num_aux = read_data_line(f, data_type=int)
+        num_dim = read_data_line(f, data_type=int)
+        try:
+            num_ghost = read_data_line(f, data_type=int)
+        except:
+            num_ghost = 0
+        try:
+            file_format = read_data_line(f, data_type=str)
+        except:
+            file_format = None
+        
+    return t,num_eqn,nstates,num_aux,num_dim,num_ghost,file_format
+
 
 
 def read_patch_header(f, num_dim):
@@ -326,7 +355,7 @@ def read_array(f, state, num_var):
     """
     patch = state.patch
     q_shape = [num_var] + patch.num_cells_global
-    q = np.zeros(q_shape)
+    q = np.zeros(q_shape, order='F')
 
 
     try:

@@ -80,7 +80,7 @@ contains
 !
 !     # note that notation for u and v reflects assumption that the 
 !     # Riemann problems are in the x-direction with u in the normal
-!     # direciton and v in the orthogonal direcion, but with the above
+!     # direction and v in the orthogonal direction, but with the above
 !     # definitions of mu and mv the routine also works with ixy=2
 !     # and returns, for example, f0 as the Godunov flux g0 for the
 !     # Riemann problems u_t + g(u)_y = 0 in the y-direction.

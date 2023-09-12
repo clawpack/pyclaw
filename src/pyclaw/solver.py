@@ -95,7 +95,7 @@ class Solver(object):
 
     .. attribute:: max_steps
 
-        The maximum number of time steps allowd to reach the end time
+        The maximum number of time steps allowed to reach the end time
         requested, ``default = 10000``.  If exceeded, an exception is
         raised.
 
@@ -326,7 +326,7 @@ class Solver(object):
         import inspect
         for fun in (self.user_bc_lower,self.user_bc_upper,self.user_aux_bc_lower,self.user_aux_bc_upper):
             if fun is not None:
-                args = inspect.getargspec(fun)[0]
+                args = inspect.getfullargspec(fun)[0]
                 if len(args) == 5:
                     self.logger.warn("""The custom boundary condition
                                         function signature has been changed.
@@ -448,7 +448,7 @@ class Solver(object):
         :Input:
          - *patch* - (:class:`Patch`) Patch that the dimension belongs to.
 
-        :Input/Ouput:
+        :Input/Output:
          - *array* - (ndarray(...,num_eqn)) Array with added ghost cells which
            will be set in this routines.
         """
@@ -489,7 +489,7 @@ class Solver(object):
         :Input:
          - *patch* - (:class:`Patch`) Patch that the dimension belongs to
 
-        :Input/Ouput:
+        :Input/Output:
          - *array* - (ndarray(...,num_eqn)) Array with added ghost cells which will
            be set in this routines
         """

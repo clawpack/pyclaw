@@ -16,7 +16,7 @@ max_timeSteps = 101
 timesStepsValues = empty((noOfTestSamples ))
 timeResultsVectorized =empty((noOfTestSamples ))
 timeResultsPointwise =empty((noOfTestSamples ))
-# error when max_mx is devisible by noOfTestSamples. size of arrays should be noOfTestSamples-1, use j to decide what to plot
+# error when max_mx is divisible by noOfTestSamples. size of arrays should be noOfTestSamples-1, use j to decide what to plot
 
 
 
@@ -71,7 +71,7 @@ max_timeSteps = 101
 mxValues = empty((noOfTestSamples ))
 timeResultsVectorized =empty((noOfTestSamples ))
 timeResultsPointwise =empty((noOfTestSamples ))
-# error when max_mx is devisible by noOfTestSamples. size of arrays should be noOfTestSamples-1, use j to decide what to plot
+# error when max_mx is divisible by noOfTestSamples. size of arrays should be noOfTestSamples-1, use j to decide what to plot
 
 
 

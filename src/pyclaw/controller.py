@@ -172,7 +172,7 @@ class Controller(object):
         ``default = 10``"""
         self.out_times = np.linspace(0.0,self.tfinal,self.num_output_times-
                                      self.start_frame)  # Outstyle 2
-        r"""(int) - Output time list, only used with ``output_style = 2``,
+        r"""(list of floats) - Output time list, only used with ``output_style = 2``,
         ``default = numpy.linspace(0.0,tfinal,num_output_times)``"""
 
         self.nstepout = 1               # Outstyle 3 defaults
@@ -287,7 +287,7 @@ class Controller(object):
         :Input:
             None
 
-        :Ouput:
+        :Output:
             (dict) - Return a dictionary of the status of the solver.
         """
         import numpy as np
@@ -458,6 +458,11 @@ class OutputController(object):
             self._io_module = __import__("clawpack.petclaw.fileio.petsc",
                                          fromlist=["clawpack.petclaw.fileio"])
             self._file_format = value
+        elif value.lower()[:6] == 'binary':
+            # could be 'binary64' or 'binary32'
+            self._io_module = __import__("clawpack.pyclaw.fileio.binary",
+                                         fromlist=['clawpack.pyclaw.fileio'])
+            self._file_format = value
         else:
             self._io_module = __import__("clawpack.pyclaw.fileio.%s" % value,
                                          fromlist=['clawpack.pyclaw.fileio'])
@@ -465,7 +470,7 @@ class OutputController(object):
 
 
 
-    def __init__(self, output_path, file_format='ascii'):
+    def __init__(self, output_path, file_format='ascii', file_prefix='fort'):
         r"""
         Initialization routine for an OutputController object.
 
@@ -475,6 +480,7 @@ class OutputController(object):
         self._io_module = None
         self.file_format = file_format
         self.output_path = output_path
+        self.file_prefix = file_prefix
 
 
     def get_time(self, frame_num):
@@ -490,7 +496,8 @@ class OutputController(object):
         """
 
         if "read_t" in dir(self._io_module):
-            return self._io_module.read_t(frame_num, path=self.output_path)[0]
+            return self._io_module.read_t(frame_num, path=self.output_path,
+                                          file_prefix=self.file_prefix)[0]
         else:
             return None
 

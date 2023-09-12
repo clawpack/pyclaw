@@ -10,7 +10,7 @@ import six
 
 def debug_loggers():
     """
-    Turn on maximimum debugging from all loggers.
+    Turn on maximum debugging from all loggers.
     """
 
     root_logger = logging.getLogger()

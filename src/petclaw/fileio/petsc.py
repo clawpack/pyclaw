@@ -211,7 +211,7 @@ def read_t(frame,path='./',file_prefix='claw'):
       - *t* - (int) Time of frame
       - *num_eqn* - (int) Number of equations in the frame
       - *npatches* - (int) Number of patches
-      - *num_aux* - (int) Auxillary value in the frame
+      - *num_aux* - (int) Auxiliary value in the frame
       - *num_dim* - (int) Number of dimensions in q and aux
     
     """

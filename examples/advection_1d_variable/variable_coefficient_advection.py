@@ -4,11 +4,12 @@ r"""
 One-dimensional advection with variable velocity
 ================================================
 
-Solve the conservative variable-coefficient advection equation:
+Solve the non-conservative variable-coefficient advection equation
+(also known as the color equation):
 
-.. math:: q_t + (u(x)q)_x = 0.
+.. math:: q_t + u(x) q_x = 0.
 
-Here q is the density of some conserved quantity and u(x) is the velocity.
+Here q is the density of some quantity and u(x) is the velocity.
 The velocity field used is
 
 .. math:: u(x) = 2 + sin(2\pi x).
@@ -45,7 +46,7 @@ def qinit(state):
 
 
 def auxinit(state):
-    # Initilize petsc Structures for aux
+    # Initialize petsc Structures for aux
     xc=state.grid.x.centers
     state.aux[0,:] = np.sin(2.*np.pi*xc)+2
     
@@ -60,12 +61,12 @@ def setup(use_petsc=False,solver_type='classic',kernel_language='Python',outdir=
 
     if solver_type=='classic':
         if kernel_language == 'Fortran':
-            solver = pyclaw.ClawSolver1D(riemann.vc_advection_1D)
+            solver = pyclaw.ClawSolver1D(riemann.advection_color_1D)
         elif kernel_language=='Python': 
             solver = pyclaw.ClawSolver1D(riemann.vc_advection_1D_py.vc_advection_1D)
     elif solver_type=='sharpclaw':
         if kernel_language == 'Fortran':
-            solver = pyclaw.SharpClawSolver1D(riemann.vc_advection_1D)
+            solver = pyclaw.SharpClawSolver1D(riemann.advection_color_1D)
         elif kernel_language=='Python': 
             solver = pyclaw.SharpClawSolver1D(riemann.vc_advection_1D_py.vc_advection_1D)
         solver.reconstruction_order=reconstruction_order

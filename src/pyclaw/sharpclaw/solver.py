@@ -668,7 +668,7 @@ class SharpClawSolver(Solver):
                     rho = 0.6 if len(self._registers)== 4 else 0.57
                     self.dt = rho * self.dt
             else:
-                # Step size selection guarantees CFL condition is satified.
+                # Step size selection guarantees CFL condition is satisfied.
                 # Only need to check 3rd-order LMM's condition
                 if self.accept_step:
                     s = len(self._registers)

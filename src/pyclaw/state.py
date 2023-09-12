@@ -10,7 +10,7 @@ import six
 class State(object):
     r"""
     A PyClaw State object contains the current state on a particular patch,
-    including the unkowns q, the time t, and the auxiliary coefficients aux.
+    including the unknowns q, the time t, and the auxiliary coefficients aux.
 
     The variables num_eqn and num_aux determine the length of the first
     dimension of the q and aux arrays.
