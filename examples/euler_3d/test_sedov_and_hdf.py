@@ -18,11 +18,11 @@ def test_sedov_and_hdf():
         from clawpack.pyclaw import Solution
         
         thisdir = os.path.dirname(__file__)
-        verify_dir = os.path.join(thisdir,'./Sedov_regression')
+        verify_dir = os.path.join(thisdir,'Sedov_regression')
 
         # Expected solution
         sol_expected = Solution()
-        sol_expected.read(1,path=verify_dir,file_format='hdf',read_aux=False)
+        sol_expected.read(1,path=verify_dir,file_format='hdf',read_aux=False, file_prefix='claw')
         assert sol_expected.t == 0.1
         expected_q = sol_expected.state.q
 
@@ -30,6 +30,7 @@ def test_sedov_and_hdf():
         sol_test = Solution()
         sol_test.read(1,path=controller.outdir,
                         file_format=controller.output_format,
+                        file_prefix='claw',
                         read_aux=False,
                         options=controller.output_options)
         test_q = sol_test.state.get_q_global()
