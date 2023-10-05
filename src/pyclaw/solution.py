@@ -382,8 +382,15 @@ class Solution(object):
             import clawpack.pyclaw.fileio.hdf5
             return clawpack.pyclaw.fileio.hdf5.read
         elif file_format == 'petsc':
-            import clawpack.petclaw.fileio
-            return clawpack.petclaw.fileio.petsc.read
+            try:
+                import clawpack.petclaw.fileio
+                return clawpack.petclaw.fileio.petsc.read
+            except AttributeError as e:
+                try:
+                    from petsc4py import PETSc
+                except ImportError:
+                    raise ImportError("petsc4py is required for reading petsc format files, but petsc4py could not be imported.")
+                raise e
         elif file_format == 'forestclaw':
             import clawpack.forestclaw.fileio.ascii
             return clawpack.forestclaw.fileio.ascii.read
