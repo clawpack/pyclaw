@@ -57,6 +57,10 @@ foreach subpkg, subsrcs: python_sources
   )
 endforeach
 
+py.install_sources(
+    'log.config',
+    subdir: pkg_dir
+)
 
 fortran_extensions = {
   'classic': {
@@ -72,19 +76,33 @@ fortran_extensions = {
 }
 
 foreach subpkg, module: fortran_extensions
-  ext_srcs = []
   srcdir = join_paths(subpkg.split('.'))
   foreach ext_name, sources : module
+    ext_srcs = []
     foreach src: sources
       ext_srcs += srcdir / src
     endforeach
+    f2py_srcs = custom_target(
+      command: [f2py, ext_name],
+      input: ext_srcs,
+      output: [ext_name + 'module.c', ext_name + '-f2pywrappers.f'],
+    )
     py.extension_module(
-      ext_name, ext_srcs,
+      ext_name, [ext_srcs, f2py_srcs],
       incdir_f2py / 'fortranobject.c',
-      include_directories: incdir_numpy,
+      include_directories: inc_np,
       dependencies : py_dep,
-      subdir: 'clawpack/' + srcdir,
+      subdir: 'clawpack/pyclaw/' + srcdir,
       install : true
     )
   endforeach
 endforeach
+
+py.extension_module(
+    'reconstruct', 
+    ['limiters/weno/reconstruct.c'],
+    include_directories: inc_np,
+    dependencies : py_dep,
+    subdir: 'clawpack/pyclaw/limiters/weno',
+    install : true
+)
