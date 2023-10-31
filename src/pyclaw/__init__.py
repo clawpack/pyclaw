@@ -5,8 +5,11 @@ import os
 import logging, logging.config
 
 
+CLAW_dir = os.environ.get('CLAW')
+if CLAW_dir == None:
+    raise Exception('You must set the CLAW environment to use an editable install.')
 # To get pyclaw.examples
-_path = os.path.dirname(os.path.dirname(__path__[0]))
+_path = os.path.dirname(os.path.join(CLAW_dir, 'clawpack'))
 if os.path.isdir(_path):
     __path__.append(_path)
 del _path
