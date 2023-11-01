@@ -27,26 +27,6 @@ from __future__ import print_function
 from clawpack import riemann
 from clawpack.riemann.euler_with_efix_1D_constants import *
 
-# Compile Fortran code if not already compiled
-try:
-    from clawpack.pyclaw.examples.euler_1d import sharpclaw1
-except ImportError:
-    import os
-    from clawpack.pyclaw.util import inplace_build
-    this_dir = os.path.dirname(__file__)
-    if this_dir == '':
-        this_dir = os.path.abspath('.')
-    inplace_build(this_dir)
-    try:
-        # Now try to import again
-        from clawpack.pyclaw.examples.euler_1d import sharpclaw1
-    except ImportError:
-        import logging
-        logger = logging.getLogger()
-        logger.warn('unable to compile Fortran modules; some SharpClaw options will not be available for this example')
-        print('unable to compile Fortran modules; some SharpClaw options will not be available for this example')
-        raise
-
 gamma = 1.4 # Ratio of specific heats
 
 def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_language='Fortran',tfluct_solver=True):
@@ -68,22 +48,12 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
         solver.cfl_desired = 0.6
         solver.tfluct_solver = tfluct_solver
         if solver.tfluct_solver:
-            try:
-                from clawpack.pyclaw.examples.euler_1d import euler_tfluct
-                solver.tfluct = euler_tfluct
-            except ImportError:
-                import logging
-                logger = logging.getLogger()
-                logger.error('Unable to load tfluct solver, did you run make?')
-                print('Unable to load tfluct solver, did you run make?')
-                raise
+            from clawpack.pyclaw.examples.euler_1d import euler_tfluct
+            solver.tfluct = euler_tfluct
         solver.lim_type = 1
         solver.char_decomp = 2
-        try:
-            from clawpack.pyclaw.examples.euler_1d import sharpclaw1
-            solver.fmod = sharpclaw1
-        except ImportError:
-            pass
+        from clawpack.pyclaw.sharpclaw import euler_sharpclaw1
+        solver.fmod = euler_sharpclaw1
     elif solver_type=='classic':
         solver = pyclaw.ClawSolver1D(rs)
         solver.limiters = 4

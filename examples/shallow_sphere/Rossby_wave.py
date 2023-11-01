@@ -27,24 +27,8 @@ from clawpack import riemann
 from clawpack.pyclaw.util import inplace_build
 from six.moves import range
 
-try:
-    from clawpack.pyclaw.examples.shallow_sphere import problem
-    from clawpack.pyclaw.examples.shallow_sphere import classic2
-
-except ImportError:
-    this_dir = os.path.dirname(__file__)
-    if this_dir == '':
-        this_dir = os.path.abspath('.')
-    inplace_build(this_dir)
-
-    try:
-        # Now try to import again
-        from clawpack.pyclaw.examples.shallow_sphere import problem
-        from clawpack.pyclaw.examples.shallow_sphere import classic2
-    except ImportError:
-        print("***\nUnable to import problem module or automatically build, try running (in the directory of this file):\n python setup.py build_ext -i\n***", file=sys.stderr)
-        raise
-
+from clawpack.pyclaw.examples.shallow_sphere import sw_sphere_problem
+from clawpack.pyclaw.classic import classic2_sw_sphere as classic2
 
 # Nondimensionalized radius of the earth
 Rsphere = 1.0
