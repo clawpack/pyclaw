@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 def test_2d_euler_shockbubble():
     """test_2d_euler_shockbubble"""
     def verify_classic_shockbubble(controller):

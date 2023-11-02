@@ -1,10 +1,8 @@
 r"""Convenience routines for easily plotting with VisClaw."""
 
-from __future__ import absolute_import
 import os
 import sys
 import types
-import six
 
 def plot(setplot=None, outdir="./_output", plotdir=None, htmlplot=False, 
          iplot=True, file_format='ascii', **plot_kargs):
@@ -35,7 +33,7 @@ def plot(setplot=None, outdir="./_output", plotdir=None, htmlplot=False,
             # setplot points to a module
             setplot_func = lambda plotdata:setplot.setplot(plotdata, **plot_kargs)
             
-        elif isinstance(setplot, six.string_types):
+        elif isinstance(setplot, str):
             # setplot contains a path to a module
             path = os.path.abspath(os.path.expandvars(os.path.expanduser(setplot)))
             setplot_module_dir = os.path.dirname(path)

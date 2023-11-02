@@ -2,13 +2,9 @@
 
 """Module contains class definitions related to dealing with gauge data"""
 
-from __future__ import print_function
-from __future__ import absolute_import
 import os
 import sys
-
 import numpy
-from six.moves import range
 
 # See if pandas is available
 try:

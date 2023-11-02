@@ -22,8 +22,6 @@ This example also demonstrates:
  - How to use characteristic decomposition with an evec() routine in SharpClaw
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
 import numpy as np
 from clawpack import riemann
 from clawpack.riemann.euler_with_efix_1D_constants import density, momentum, energy, num_eqn

@@ -17,9 +17,7 @@ and :math:`\rho(x,y)` is the density.
 This example shows how to solve a problem with variable coefficients on a mapped grid.
 The domain contains circular inclusions with different acoustic properties.
 """
-from __future__ import absolute_import
 import numpy as np
-from six.moves import range
 
 # Circle radius, square radius, circle center:
 # ((r1, r2), (x0, y0))

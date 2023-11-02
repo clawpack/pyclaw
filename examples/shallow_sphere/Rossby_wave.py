@@ -14,8 +14,6 @@ Reference: Logically Rectangular Grids and Finite Volume Methods for PDEs in
            SIAM Review 50 (2008), 723-752. 
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
 import math
 import os
 import sys
@@ -25,7 +23,6 @@ import numpy as np
 from clawpack import pyclaw
 from clawpack import riemann
 from clawpack.pyclaw.util import inplace_build
-from six.moves import range
 
 from clawpack.pyclaw.examples.shallow_sphere import sw_sphere_problem
 from clawpack.pyclaw.classic import classic2_sw_sphere as classic2

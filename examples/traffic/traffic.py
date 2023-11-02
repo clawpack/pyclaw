@@ -12,7 +12,6 @@ Solve the Lighthill-Whitham-Richards (LWR) traffic flow model:
 Here q is the density of cars, and u is a constant specifying the speed limit.
 """
 
-from __future__ import absolute_import
 from clawpack import riemann
 
 def setup(use_petsc=0,outdir='./_output',solver_type='classic'):

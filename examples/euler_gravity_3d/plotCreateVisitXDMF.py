@@ -6,8 +6,6 @@
 !   files for use visualizing within VisIt (https://visit.llnl.gov).
 !-----------------------------------------------------------------------
 """
-from __future__ import absolute_import
-from __future__ import print_function
 import os,sys
 import h5py
 from numpy import *

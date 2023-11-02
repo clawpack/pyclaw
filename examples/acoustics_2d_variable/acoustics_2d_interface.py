@@ -18,7 +18,6 @@ This example shows how to solve a problem with variable coefficients.
 The left and right halves of the domain consist of different materials.
 """
  
-from __future__ import absolute_import
 import numpy as np
 
 def setup(kernel_language='Fortran', use_petsc=False, outdir='./_output', 

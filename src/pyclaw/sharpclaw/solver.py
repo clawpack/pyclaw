@@ -6,10 +6,8 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 #  Author:      David Ketcheson
 """
 # Solver superclass
-from __future__ import absolute_import
 from clawpack.pyclaw.solver import Solver
 from clawpack.pyclaw.util import add_parent_doc
-from six.moves import range
 
 # Reconstructor
 try:

@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 def test_2d_psystem():
     """test_2d_psystem"""
 

@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 def test_1d_advection():
     """test_1d_advection
 

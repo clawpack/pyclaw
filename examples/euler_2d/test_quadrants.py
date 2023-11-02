@@ -1,5 +1,4 @@
 "Runs the quadrants test problem with the HLLC solver."
-from __future__ import absolute_import
 import numpy as np
 import os
 from . import quadrants

@@ -1,5 +1,4 @@
 "Runs the shocktube test problem with the Python and Fortran HLL solvers."
-from __future__ import absolute_import
 
 def test_shocktube():
     "Shock tube test (Euler 1D)"

@@ -1,11 +1,8 @@
 r"""
 Module specifying the interface to every solver in PyClaw.
 """
-from __future__ import absolute_import
 import logging
 import numpy as np
-import six
-from six.moves import range
 
 class CFLError(Exception):
     """Error raised when cfl_max is exceeded.  Is this a
@@ -309,7 +306,7 @@ class Solver(object):
 
     def __str__(self):
         output = "Solver Status:\n"
-        for (k,v) in six.iteritems(self.status):
+        for (k,v) in self.status.items():
             output = "\n".join((output,"%s = %s" % (k.rjust(25),v)))
         return output
 

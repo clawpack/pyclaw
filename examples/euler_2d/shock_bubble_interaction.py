@@ -26,12 +26,10 @@ This problem demonstrates:
     - how to use the auxiliary array for spatially-varying coefficients
 """
 
-from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 from clawpack.riemann.euler_5wave_2D_constants import density, x_momentum, y_momentum, \
         energy, num_eqn
-from six.moves import range
 
 gamma = 1.4 # Ratio of specific heats
 

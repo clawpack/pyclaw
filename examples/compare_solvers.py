@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from __future__ import absolute_import
-from __future__ import print_function
 from clawpack import pyclaw
 import numpy as np
 import logging
-import six
 
 def debug_loggers():
     """
@@ -91,7 +88,7 @@ def compare_1D(nx=1000):
 
     times, tests = {}, {}
 
-    for name, solver in six.iteritems(solvers):
+    for name, solver in solvers.items():
         solver.bc_lower[0] = pyclaw.BC.periodic
         solver.bc_upper[0] = pyclaw.BC.periodic
 
@@ -127,7 +124,7 @@ def compare_2D(nx=(250,250)):
 
     times, tests = {}, {}
 
-    for name, solver in six.iteritems(solvers):
+    for name, solver in solvers.items():
         solver.num_waves = 3
         solver.bc_lower[0] = pyclaw.BC.extrap
         solver.bc_upper[0] = pyclaw.BC.wall

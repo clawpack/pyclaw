@@ -7,14 +7,12 @@ which is why there is no "write" function here (the code that
 writes these files is in AMRClaw, in Fortran).
 """
 
-from __future__ import absolute_import
 import os
 import logging
 
 from ..util import read_data_line
 import numpy as np
 import clawpack.pyclaw as pyclaw
-from six.moves import range
 
 logger = logging.getLogger('pyclaw.fileio')
 

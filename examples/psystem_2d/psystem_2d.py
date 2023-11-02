@@ -21,10 +21,8 @@ use gauges, compute output functionals, and restart a simulation
 from a checkpoint.
 """
 
-from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
-from six.moves import range
 
 def qinit(state,A,x0,y0,varx,vary):
     r""" Set initial conditions:

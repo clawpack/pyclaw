@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 def test_shocksine():
     """ Test shock-sine wave interaction (Euler 1D)"""
     from . import shocksine

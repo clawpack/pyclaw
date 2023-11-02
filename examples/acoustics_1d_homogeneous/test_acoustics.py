@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 
 def test_1d_acoustics():
     """test_1d_acoustics

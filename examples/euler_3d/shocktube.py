@@ -8,7 +8,6 @@ This script evolves the 3D Euler equations.
 The primary variables are: 
     density (rho), x,y, and z momentum (rho*u,rho*v,rho*w), and energy.
 """
-from __future__ import absolute_import
 from clawpack import riemann
 from clawpack.riemann.euler_3D_constants import density, x_momentum, \
                 y_momentum, z_momentum, energy, num_eqn
