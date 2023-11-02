@@ -28,14 +28,10 @@ To install the netCDF 4 library, please see:
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-from __future__ import absolute_import
-from __future__ import print_function
 import os,sys
 import logging
 
 import clawpack.pyclaw.solution
-import six
-from six.moves import range
 
 logger = logging.getLogger('pyclaw.fileio')
 
@@ -168,7 +164,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
                        'chunksizes':None,'endian':'native',
                        'least_significant_digit':None,'fill_value':None,
                        'clobber':True,'description':{}}
-    for (k,v) in six.iteritems(option_defaults):
+    for (k,v) in option_defaults.items():
         if k in options:
             exec("%s = options['%s']" % (k,k))
         else:
@@ -183,7 +179,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
         
         # Loop through description dictionary and add the attributes to the
         # root group
-        for (k,v) in six.iteritems(description):
+        for (k,v) in description.items():
             exec('f.%s = %s' % (k,v))
         
         # For each patch, write out attributes
@@ -262,7 +258,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
     
     # Option parsing
     option_defaults = {}
-    for (k,v) in six.iteritems(option_defaults):
+    for (k,v) in option_defaults.items():
         if k in options:
             exec("%s = options['%s']" % (k,k))
         else:
@@ -277,7 +273,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
         
         # We only expect subgroups of patches, otherwise we need to put some
         # sort of conditional here
-        for subgroup in six.itervalues(f.groups):
+        for subgroup in f.groups.values():
             # Construct each dimension
             dimensions = []
             

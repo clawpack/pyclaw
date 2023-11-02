@@ -1,5 +1,4 @@
 "Runs the shocktube test problem with the Fortran Roe solver."
-from __future__ import absolute_import
 
 def test_shocktube():
     "Shock tube test (1D MHD with Roe solver)"

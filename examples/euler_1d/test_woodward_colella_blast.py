@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 def test_woodward_colella_blast():
     """ Woodward-Colella blast wave test (Euler 1D)"""
     from . import woodward_colella_blast

@@ -1,5 +1,4 @@
 "Runs the test problem."
-from __future__ import absolute_import
 
 def test_cubic():
     import numpy as np

@@ -20,11 +20,7 @@ The problem solved here is based on [LeVYon03]_.  An initial hump
 evolves into two trains of solitary waves.
 
 """
-from __future__ import absolute_import
-from __future__ import print_function
 import numpy as np
-from six.moves import range
-
 
 def qinit(state,ic=2,a2=1.0,xupper=600.):
     x = state.grid.x.centers

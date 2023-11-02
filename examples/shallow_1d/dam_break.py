@@ -15,7 +15,6 @@ Here h is the depth, u is the velocity, and g is the gravitational constant.
 The default initial condition used here models a dam break.
 """
 
-from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 from clawpack.riemann.shallow_roe_with_efix_1D_constants import depth, momentum, num_eqn

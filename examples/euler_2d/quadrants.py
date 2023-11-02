@@ -17,7 +17,6 @@ The initial condition is one of the 2D Riemann problems from the paper of
 Liska and Wendroff.
 
 """
-from __future__ import absolute_import
 from clawpack import riemann
 from clawpack.riemann.euler_4wave_2D_constants import density, x_momentum, y_momentum, \
         energy, num_eqn

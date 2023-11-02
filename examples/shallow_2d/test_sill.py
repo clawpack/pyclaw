@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from __future__ import absolute_import
 def test_2d_sill():
     """test_2d_sill
 

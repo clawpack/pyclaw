@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 def test_acoustics_2d_variable_io():
     """Test I/O on variable-coefficient 2D acoustics application"""
 

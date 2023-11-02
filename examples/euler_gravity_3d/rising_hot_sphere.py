@@ -10,11 +10,8 @@ This problem evolves the 3D Euler equations using an F-wave
 The primary variables are: 
    density (rho), x,y, and z momentum (rho*u,rho*v,rho*w), and energy.
 """
-from __future__ import absolute_import
-from __future__ import print_function
 import numpy as np
 from mappedGrid import euler3d_mappedgrid as mg
-from six.moves import range
 
 try:
     from mpi4py import MPI

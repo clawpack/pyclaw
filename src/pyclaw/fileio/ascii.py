@@ -4,7 +4,6 @@ r"""
 Routines for reading and writing an ascii output file
 """
 
-from __future__ import absolute_import
 import os
 import logging
 import numpy as np
@@ -12,7 +11,6 @@ import pickle
 import clawpack.pyclaw as pyclaw
 
 from clawpack.pyclaw.util import read_data_line
-from six.moves import range
 
 logger = logging.getLogger('pyclaw.fileio')
 

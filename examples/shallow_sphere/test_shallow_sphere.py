@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 def test_shallow_sphere():
     """Test solution of shallow water equations on the sphere."""
     from . import Rossby_wave

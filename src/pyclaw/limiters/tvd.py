@@ -71,8 +71,6 @@ in review.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-from __future__ import absolute_import
-from six.moves import range
 minmod = 1
 superbee = 2
 vanleer = 3

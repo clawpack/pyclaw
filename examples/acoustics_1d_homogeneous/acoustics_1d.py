@@ -18,7 +18,6 @@ The initial condition is a Gaussian and the boundary conditions are periodic.
 The final solution is identical to the initial data because both waves have
 crossed the domain exactly once.
 """
-from __future__ import absolute_import
 from numpy import sqrt, exp, cos
 from clawpack import riemann
 
