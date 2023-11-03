@@ -56,14 +56,14 @@ py_smoothness_k3 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &f_py, &sigma_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
@@ -76,10 +76,10 @@ py_smoothness_k3 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (f_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  fsi = f_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
 
   smoothness_k3 (f, n, fsi, sigma, ssi, ssr);
 
@@ -132,20 +132,20 @@ py_weights_left_k3 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &sigma_py, &omega_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -158,19 +158,19 @@ py_weights_left_k3 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   weights_left_k3 (sigma, n, ssi, ssr, omega, wsi, wsl, wsr);
@@ -233,32 +233,32 @@ py_reconstruct_left_k3 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OOO", &f_py, &omega_py, &fr_py))
     return NULL;
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
       return NULL;
     }
 
-  if (fr_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(fr_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "fr must be of type float");
       return NULL;
     }
 
-  if (!(fr_py->nd == 1 || fr_py->nd == 2))
+  if (!(PyArray_NDIM(fr_py) == 1 || PyArray_NDIM(fr_py) == 2))
     {
       PyErr_SetString (PyExc_ValueError, "fr must be one or two dimensional");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -272,8 +272,8 @@ py_reconstruct_left_k3 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  fsi = f_py->strides[0] / sizeof (double);
-  frsi = fr_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
+  frsi = PyArray_STRIDES(fr_py)[0] / sizeof (double);
 
   if (n == 1)
     {
@@ -281,19 +281,19 @@ py_reconstruct_left_k3 (PyObject * self, PyObject * args)
     }
   else
     {
-      frsl = fr_py->strides[1] / sizeof (double);
+      frsl = PyArray_STRIDES(fr_py)[1] / sizeof (double);
     }
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   reconstruct_left_k3 (f, n, fsi, omega, wsi, wsl, wsr, fr, frsi, frsl);
@@ -347,20 +347,20 @@ py_weights_right_k3 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &sigma_py, &omega_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -373,19 +373,19 @@ py_weights_right_k3 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   weights_right_k3 (sigma, n, ssi, ssr, omega, wsi, wsl, wsr);
@@ -437,32 +437,32 @@ py_reconstruct_right_k3 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OOO", &f_py, &omega_py, &fr_py))
     return NULL;
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
       return NULL;
     }
 
-  if (fr_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(fr_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "fr must be of type float");
       return NULL;
     }
 
-  if (!(fr_py->nd == 1 || fr_py->nd == 2))
+  if (!(PyArray_NDIM(fr_py) == 1 || PyArray_NDIM(fr_py) == 2))
     {
       PyErr_SetString (PyExc_ValueError, "fr must be one or two dimensional");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -476,8 +476,8 @@ py_reconstruct_right_k3 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  fsi = f_py->strides[0] / sizeof (double);
-  frsi = fr_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
+  frsi = PyArray_STRIDES(fr_py)[0] / sizeof (double);
 
   if (n == 1)
     {
@@ -485,19 +485,19 @@ py_reconstruct_right_k3 (PyObject * self, PyObject * args)
     }
   else
     {
-      frsl = fr_py->strides[1] / sizeof (double);
+      frsl = PyArray_STRIDES(fr_py)[1] / sizeof (double);
     }
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   reconstruct_right_k3 (f, n, fsi, omega, wsi, wsl, wsr, fr, frsi, frsl);
@@ -580,14 +580,14 @@ py_smoothness_k4 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &f_py, &sigma_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
@@ -600,10 +600,10 @@ py_smoothness_k4 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (f_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  fsi = f_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
 
   smoothness_k4 (f, n, fsi, sigma, ssi, ssr);
 
@@ -661,20 +661,20 @@ py_weights_left_k4 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &sigma_py, &omega_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -687,19 +687,19 @@ py_weights_left_k4 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   weights_left_k4 (sigma, n, ssi, ssr, omega, wsi, wsl, wsr);
@@ -758,32 +758,32 @@ py_reconstruct_left_k4 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OOO", &f_py, &omega_py, &fr_py))
     return NULL;
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
       return NULL;
     }
 
-  if (fr_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(fr_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "fr must be of type float");
       return NULL;
     }
 
-  if (!(fr_py->nd == 1 || fr_py->nd == 2))
+  if (!(PyArray_NDIM(fr_py) == 1 || PyArray_NDIM(fr_py) == 2))
     {
       PyErr_SetString (PyExc_ValueError, "fr must be one or two dimensional");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -797,8 +797,8 @@ py_reconstruct_left_k4 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  fsi = f_py->strides[0] / sizeof (double);
-  frsi = fr_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
+  frsi = PyArray_STRIDES(fr_py)[0] / sizeof (double);
 
   if (n == 1)
     {
@@ -806,19 +806,19 @@ py_reconstruct_left_k4 (PyObject * self, PyObject * args)
     }
   else
     {
-      frsl = fr_py->strides[1] / sizeof (double);
+      frsl = PyArray_STRIDES(fr_py)[1] / sizeof (double);
     }
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   reconstruct_left_k4 (f, n, fsi, omega, wsi, wsl, wsr, fr, frsi, frsl);
@@ -877,20 +877,20 @@ py_weights_right_k4 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &sigma_py, &omega_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -903,19 +903,19 @@ py_weights_right_k4 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   weights_right_k4 (sigma, n, ssi, ssr, omega, wsi, wsl, wsr);
@@ -974,32 +974,32 @@ py_reconstruct_right_k4 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OOO", &f_py, &omega_py, &fr_py))
     return NULL;
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
       return NULL;
     }
 
-  if (fr_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(fr_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "fr must be of type float");
       return NULL;
     }
 
-  if (!(fr_py->nd == 1 || fr_py->nd == 2))
+  if (!(PyArray_NDIM(fr_py) == 1 || PyArray_NDIM(fr_py) == 2))
     {
       PyErr_SetString (PyExc_ValueError, "fr must be one or two dimensional");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -1013,8 +1013,8 @@ py_reconstruct_right_k4 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  fsi = f_py->strides[0] / sizeof (double);
-  frsi = fr_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
+  frsi = PyArray_STRIDES(fr_py)[0] / sizeof (double);
 
   if (n == 1)
     {
@@ -1022,19 +1022,19 @@ py_reconstruct_right_k4 (PyObject * self, PyObject * args)
     }
   else
     {
-      frsl = fr_py->strides[1] / sizeof (double);
+      frsl = PyArray_STRIDES(fr_py)[1] / sizeof (double);
     }
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   reconstruct_right_k4 (f, n, fsi, omega, wsi, wsl, wsr, fr, frsi, frsl);
@@ -1154,14 +1154,14 @@ py_smoothness_k5 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &f_py, &sigma_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
@@ -1174,10 +1174,10 @@ py_smoothness_k5 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (f_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  fsi = f_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
 
   smoothness_k5 (f, n, fsi, sigma, ssi, ssr);
 
@@ -1240,20 +1240,20 @@ py_weights_left_k5 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &sigma_py, &omega_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -1266,19 +1266,19 @@ py_weights_left_k5 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   weights_left_k5 (sigma, n, ssi, ssr, omega, wsi, wsl, wsr);
@@ -1345,32 +1345,32 @@ py_reconstruct_left_k5 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OOO", &f_py, &omega_py, &fr_py))
     return NULL;
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
       return NULL;
     }
 
-  if (fr_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(fr_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "fr must be of type float");
       return NULL;
     }
 
-  if (!(fr_py->nd == 1 || fr_py->nd == 2))
+  if (!(PyArray_NDIM(fr_py) == 1 || PyArray_NDIM(fr_py) == 2))
     {
       PyErr_SetString (PyExc_ValueError, "fr must be one or two dimensional");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -1384,8 +1384,8 @@ py_reconstruct_left_k5 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  fsi = f_py->strides[0] / sizeof (double);
-  frsi = fr_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
+  frsi = PyArray_STRIDES(fr_py)[0] / sizeof (double);
 
   if (n == 1)
     {
@@ -1393,19 +1393,19 @@ py_reconstruct_left_k5 (PyObject * self, PyObject * args)
     }
   else
     {
-      frsl = fr_py->strides[1] / sizeof (double);
+      frsl = PyArray_STRIDES(fr_py)[1] / sizeof (double);
     }
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   reconstruct_left_k5 (f, n, fsi, omega, wsi, wsl, wsr, fr, frsi, frsl);
@@ -1469,20 +1469,20 @@ py_weights_right_k5 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &sigma_py, &omega_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -1495,19 +1495,19 @@ py_weights_right_k5 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   weights_right_k5 (sigma, n, ssi, ssr, omega, wsi, wsl, wsr);
@@ -1574,32 +1574,32 @@ py_reconstruct_right_k5 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OOO", &f_py, &omega_py, &fr_py))
     return NULL;
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
       return NULL;
     }
 
-  if (fr_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(fr_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "fr must be of type float");
       return NULL;
     }
 
-  if (!(fr_py->nd == 1 || fr_py->nd == 2))
+  if (!(PyArray_NDIM(fr_py) == 1 || PyArray_NDIM(fr_py) == 2))
     {
       PyErr_SetString (PyExc_ValueError, "fr must be one or two dimensional");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -1613,8 +1613,8 @@ py_reconstruct_right_k5 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  fsi = f_py->strides[0] / sizeof (double);
-  frsi = fr_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
+  frsi = PyArray_STRIDES(fr_py)[0] / sizeof (double);
 
   if (n == 1)
     {
@@ -1622,19 +1622,19 @@ py_reconstruct_right_k5 (PyObject * self, PyObject * args)
     }
   else
     {
-      frsl = fr_py->strides[1] / sizeof (double);
+      frsl = PyArray_STRIDES(fr_py)[1] / sizeof (double);
     }
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   reconstruct_right_k5 (f, n, fsi, omega, wsi, wsl, wsr, fr, frsi, frsl);
@@ -1807,14 +1807,14 @@ py_smoothness_k6 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &f_py, &sigma_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
@@ -1827,10 +1827,10 @@ py_smoothness_k6 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (f_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  fsi = f_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
 
   smoothness_k6 (f, n, fsi, sigma, ssi, ssr);
 
@@ -1898,20 +1898,20 @@ py_weights_left_k6 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &sigma_py, &omega_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -1924,19 +1924,19 @@ py_weights_left_k6 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   weights_left_k6 (sigma, n, ssi, ssr, omega, wsi, wsl, wsr);
@@ -2015,32 +2015,32 @@ py_reconstruct_left_k6 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OOO", &f_py, &omega_py, &fr_py))
     return NULL;
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
       return NULL;
     }
 
-  if (fr_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(fr_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "fr must be of type float");
       return NULL;
     }
 
-  if (!(fr_py->nd == 1 || fr_py->nd == 2))
+  if (!(PyArray_NDIM(fr_py) == 1 || PyArray_NDIM(fr_py) == 2))
     {
       PyErr_SetString (PyExc_ValueError, "fr must be one or two dimensional");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -2054,8 +2054,8 @@ py_reconstruct_left_k6 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  fsi = f_py->strides[0] / sizeof (double);
-  frsi = fr_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
+  frsi = PyArray_STRIDES(fr_py)[0] / sizeof (double);
 
   if (n == 1)
     {
@@ -2063,19 +2063,19 @@ py_reconstruct_left_k6 (PyObject * self, PyObject * args)
     }
   else
     {
-      frsl = fr_py->strides[1] / sizeof (double);
+      frsl = PyArray_STRIDES(fr_py)[1] / sizeof (double);
     }
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   reconstruct_left_k6 (f, n, fsi, omega, wsi, wsl, wsr, fr, frsi, frsl);
@@ -2144,20 +2144,20 @@ py_weights_right_k6 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &sigma_py, &omega_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -2170,19 +2170,19 @@ py_weights_right_k6 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   weights_right_k6 (sigma, n, ssi, ssr, omega, wsi, wsl, wsr);
@@ -2261,32 +2261,32 @@ py_reconstruct_right_k6 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OOO", &f_py, &omega_py, &fr_py))
     return NULL;
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
       return NULL;
     }
 
-  if (fr_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(fr_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "fr must be of type float");
       return NULL;
     }
 
-  if (!(fr_py->nd == 1 || fr_py->nd == 2))
+  if (!(PyArray_NDIM(fr_py) == 1 || PyArray_NDIM(fr_py) == 2))
     {
       PyErr_SetString (PyExc_ValueError, "fr must be one or two dimensional");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -2300,8 +2300,8 @@ py_reconstruct_right_k6 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  fsi = f_py->strides[0] / sizeof (double);
-  frsi = fr_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
+  frsi = PyArray_STRIDES(fr_py)[0] / sizeof (double);
 
   if (n == 1)
     {
@@ -2309,19 +2309,19 @@ py_reconstruct_right_k6 (PyObject * self, PyObject * args)
     }
   else
     {
-      frsl = fr_py->strides[1] / sizeof (double);
+      frsl = PyArray_STRIDES(fr_py)[1] / sizeof (double);
     }
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   reconstruct_right_k6 (f, n, fsi, omega, wsi, wsl, wsr, fr, frsi, frsl);
@@ -2566,14 +2566,14 @@ py_smoothness_k7 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &f_py, &sigma_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
@@ -2586,10 +2586,10 @@ py_smoothness_k7 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (f_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  fsi = f_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
 
   smoothness_k7 (f, n, fsi, sigma, ssi, ssr);
 
@@ -2662,20 +2662,20 @@ py_weights_left_k7 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &sigma_py, &omega_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -2688,19 +2688,19 @@ py_weights_left_k7 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   weights_left_k7 (sigma, n, ssi, ssr, omega, wsi, wsl, wsr);
@@ -2802,32 +2802,32 @@ py_reconstruct_left_k7 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OOO", &f_py, &omega_py, &fr_py))
     return NULL;
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
       return NULL;
     }
 
-  if (fr_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(fr_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "fr must be of type float");
       return NULL;
     }
 
-  if (!(fr_py->nd == 1 || fr_py->nd == 2))
+  if (!(PyArray_NDIM(fr_py) == 1 || PyArray_NDIM(fr_py) == 2))
     {
       PyErr_SetString (PyExc_ValueError, "fr must be one or two dimensional");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -2841,8 +2841,8 @@ py_reconstruct_left_k7 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  fsi = f_py->strides[0] / sizeof (double);
-  frsi = fr_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
+  frsi = PyArray_STRIDES(fr_py)[0] / sizeof (double);
 
   if (n == 1)
     {
@@ -2850,19 +2850,19 @@ py_reconstruct_left_k7 (PyObject * self, PyObject * args)
     }
   else
     {
-      frsl = fr_py->strides[1] / sizeof (double);
+      frsl = PyArray_STRIDES(fr_py)[1] / sizeof (double);
     }
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   reconstruct_left_k7 (f, n, fsi, omega, wsi, wsl, wsr, fr, frsi, frsl);
@@ -2936,20 +2936,20 @@ py_weights_right_k7 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &sigma_py, &omega_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -2962,19 +2962,19 @@ py_weights_right_k7 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   weights_right_k7 (sigma, n, ssi, ssr, omega, wsi, wsl, wsr);
@@ -3076,32 +3076,32 @@ py_reconstruct_right_k7 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OOO", &f_py, &omega_py, &fr_py))
     return NULL;
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
       return NULL;
     }
 
-  if (fr_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(fr_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "fr must be of type float");
       return NULL;
     }
 
-  if (!(fr_py->nd == 1 || fr_py->nd == 2))
+  if (!(PyArray_NDIM(fr_py) == 1 || PyArray_NDIM(fr_py) == 2))
     {
       PyErr_SetString (PyExc_ValueError, "fr must be one or two dimensional");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -3115,8 +3115,8 @@ py_reconstruct_right_k7 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  fsi = f_py->strides[0] / sizeof (double);
-  frsi = fr_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
+  frsi = PyArray_STRIDES(fr_py)[0] / sizeof (double);
 
   if (n == 1)
     {
@@ -3124,19 +3124,19 @@ py_reconstruct_right_k7 (PyObject * self, PyObject * args)
     }
   else
     {
-      frsl = fr_py->strides[1] / sizeof (double);
+      frsl = PyArray_STRIDES(fr_py)[1] / sizeof (double);
     }
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   reconstruct_right_k7 (f, n, fsi, omega, wsi, wsl, wsr, fr, frsi, frsl);
@@ -3475,14 +3475,14 @@ py_smoothness_k8 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &f_py, &sigma_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
@@ -3495,10 +3495,10 @@ py_smoothness_k8 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (f_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  fsi = f_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
 
   smoothness_k8 (f, n, fsi, sigma, ssi, ssr);
 
@@ -3576,20 +3576,20 @@ py_weights_left_k8 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &sigma_py, &omega_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -3602,19 +3602,19 @@ py_weights_left_k8 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   weights_left_k8 (sigma, n, ssi, ssr, omega, wsi, wsl, wsr);
@@ -3730,32 +3730,32 @@ py_reconstruct_left_k8 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OOO", &f_py, &omega_py, &fr_py))
     return NULL;
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
       return NULL;
     }
 
-  if (fr_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(fr_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "fr must be of type float");
       return NULL;
     }
 
-  if (!(fr_py->nd == 1 || fr_py->nd == 2))
+  if (!(PyArray_NDIM(fr_py) == 1 || PyArray_NDIM(fr_py) == 2))
     {
       PyErr_SetString (PyExc_ValueError, "fr must be one or two dimensional");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -3769,8 +3769,8 @@ py_reconstruct_left_k8 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  fsi = f_py->strides[0] / sizeof (double);
-  frsi = fr_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
+  frsi = PyArray_STRIDES(fr_py)[0] / sizeof (double);
 
   if (n == 1)
     {
@@ -3778,19 +3778,19 @@ py_reconstruct_left_k8 (PyObject * self, PyObject * args)
     }
   else
     {
-      frsl = fr_py->strides[1] / sizeof (double);
+      frsl = PyArray_STRIDES(fr_py)[1] / sizeof (double);
     }
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   reconstruct_left_k8 (f, n, fsi, omega, wsi, wsl, wsr, fr, frsi, frsl);
@@ -3869,20 +3869,20 @@ py_weights_right_k8 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &sigma_py, &omega_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -3895,19 +3895,19 @@ py_weights_right_k8 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   weights_right_k8 (sigma, n, ssi, ssr, omega, wsi, wsl, wsr);
@@ -4023,32 +4023,32 @@ py_reconstruct_right_k8 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OOO", &f_py, &omega_py, &fr_py))
     return NULL;
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
       return NULL;
     }
 
-  if (fr_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(fr_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "fr must be of type float");
       return NULL;
     }
 
-  if (!(fr_py->nd == 1 || fr_py->nd == 2))
+  if (!(PyArray_NDIM(fr_py) == 1 || PyArray_NDIM(fr_py) == 2))
     {
       PyErr_SetString (PyExc_ValueError, "fr must be one or two dimensional");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -4062,8 +4062,8 @@ py_reconstruct_right_k8 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  fsi = f_py->strides[0] / sizeof (double);
-  frsi = fr_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
+  frsi = PyArray_STRIDES(fr_py)[0] / sizeof (double);
 
   if (n == 1)
     {
@@ -4071,19 +4071,19 @@ py_reconstruct_right_k8 (PyObject * self, PyObject * args)
     }
   else
     {
-      frsl = fr_py->strides[1] / sizeof (double);
+      frsl = PyArray_STRIDES(fr_py)[1] / sizeof (double);
     }
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   reconstruct_right_k8 (f, n, fsi, omega, wsi, wsl, wsr, fr, frsi, frsl);
@@ -4542,14 +4542,14 @@ py_smoothness_k9 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &f_py, &sigma_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
@@ -4562,10 +4562,10 @@ py_smoothness_k9 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (f_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  fsi = f_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
 
   smoothness_k9 (f, n, fsi, sigma, ssi, ssr);
 
@@ -4650,20 +4650,20 @@ py_weights_left_k9 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &sigma_py, &omega_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -4676,19 +4676,19 @@ py_weights_left_k9 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   weights_left_k9 (sigma, n, ssi, ssr, omega, wsi, wsl, wsr);
@@ -4828,32 +4828,32 @@ py_reconstruct_left_k9 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OOO", &f_py, &omega_py, &fr_py))
     return NULL;
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
       return NULL;
     }
 
-  if (fr_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(fr_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "fr must be of type float");
       return NULL;
     }
 
-  if (!(fr_py->nd == 1 || fr_py->nd == 2))
+  if (!(PyArray_NDIM(fr_py) == 1 || PyArray_NDIM(fr_py) == 2))
     {
       PyErr_SetString (PyExc_ValueError, "fr must be one or two dimensional");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -4867,8 +4867,8 @@ py_reconstruct_left_k9 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  fsi = f_py->strides[0] / sizeof (double);
-  frsi = fr_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
+  frsi = PyArray_STRIDES(fr_py)[0] / sizeof (double);
 
   if (n == 1)
     {
@@ -4876,19 +4876,19 @@ py_reconstruct_left_k9 (PyObject * self, PyObject * args)
     }
   else
     {
-      frsl = fr_py->strides[1] / sizeof (double);
+      frsl = PyArray_STRIDES(fr_py)[1] / sizeof (double);
     }
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   reconstruct_left_k9 (f, n, fsi, omega, wsi, wsl, wsr, fr, frsi, frsl);
@@ -4974,20 +4974,20 @@ py_weights_right_k9 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OO", &sigma_py, &omega_py))
     return NULL;
 
-  if (sigma_py->nd != 2 || sigma_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(sigma_py) != 2 || PyArray_TYPE(sigma_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "sigma must be two-dimensional and of type float");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -5000,19 +5000,19 @@ py_weights_right_k9 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  ssi = sigma_py->strides[0] / sizeof (double);
-  ssr = sigma_py->strides[1] / sizeof (double);
+  ssi = PyArray_STRIDES(sigma_py)[0] / sizeof (double);
+  ssr = PyArray_STRIDES(sigma_py)[1] / sizeof (double);
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   weights_right_k9 (sigma, n, ssi, ssr, omega, wsi, wsl, wsr);
@@ -5152,32 +5152,32 @@ py_reconstruct_right_k9 (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "OOO", &f_py, &omega_py, &fr_py))
     return NULL;
 
-  if (f_py->nd != 1 || f_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_NDIM(f_py) != 1 || PyArray_TYPE(f_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError,
 		       "f must be one-dimensional and of type float");
       return NULL;
     }
 
-  if (fr_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(fr_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "fr must be of type float");
       return NULL;
     }
 
-  if (!(fr_py->nd == 1 || fr_py->nd == 2))
+  if (!(PyArray_NDIM(fr_py) == 1 || PyArray_NDIM(fr_py) == 2))
     {
       PyErr_SetString (PyExc_ValueError, "fr must be one or two dimensional");
       return NULL;
     }
 
-  if (omega_py->descr->type_num != PyArray_DOUBLE)
+  if (PyArray_TYPE(omega_py) != NPY_DOUBLE)
     {
       PyErr_SetString (PyExc_ValueError, "omega must be of type float");
       return NULL;
     }
 
-  if (!(omega_py->nd >= 2 && omega_py->nd <= 4))
+  if (!(PyArray_NDIM(omega_py) >= 2 && PyArray_NDIM(omega_py) <= 4))
     {
       PyErr_SetString (PyExc_ValueError,
 		       "omega must be two, three, or four dimensional");
@@ -5191,8 +5191,8 @@ py_reconstruct_right_k9 (PyObject * self, PyObject * args)
 
   n = PyArray_DIM (omega_py, 0);
 
-  fsi = f_py->strides[0] / sizeof (double);
-  frsi = fr_py->strides[0] / sizeof (double);
+  fsi = PyArray_STRIDES(f_py)[0] / sizeof (double);
+  frsi = PyArray_STRIDES(fr_py)[0] / sizeof (double);
 
   if (n == 1)
     {
@@ -5200,19 +5200,19 @@ py_reconstruct_right_k9 (PyObject * self, PyObject * args)
     }
   else
     {
-      frsl = fr_py->strides[1] / sizeof (double);
+      frsl = PyArray_STRIDES(fr_py)[1] / sizeof (double);
     }
 
-  wsi = omega_py->strides[0] / sizeof (double);
-  if (omega_py->nd == 3)
+  wsi = PyArray_STRIDES(omega_py)[0] / sizeof (double);
+  if (PyArray_NDIM(omega_py) == 3)
     {
-      wsl = omega_py->strides[1] / sizeof (double);
-      wsr = omega_py->strides[2] / sizeof (double);
+      wsl = PyArray_STRIDES(omega_py)[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[2] / sizeof (double);
     }
   else
     {
       wsl = 0;
-      wsr = omega_py->strides[1] / sizeof (double);
+      wsr = PyArray_STRIDES(omega_py)[1] / sizeof (double);
     }
 
   reconstruct_right_k9 (f, n, fsi, omega, wsi, wsl, wsr, fr, frsi, frsl);
@@ -5261,14 +5261,8 @@ static PyMethodDef reconstructmethods[] = {
 };
 
 PyMODINIT_FUNC
-#if PY_MAJOR_VERSION >= 3
 PyInit_reconstruct (void)
-#else
-initreconstruct (void)
-#endif
 {
-PyObject *module;  
-#if PY_MAJOR_VERSION >= 3
   static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
     "reconstruct",       /* m_name */
@@ -5280,13 +5274,6 @@ PyObject *module;
     NULL,                /* m_clear */
     NULL                 /* m_free */
   };
-  module = PyModule_Create(&moduledef);
-  if (module == NULL)
-    return NULL;
-  return module;  
-#else
-  module = Py_InitModule ("reconstruct", reconstructmethods);
-  if (module == NULL)
-    return;
-#endif
+  import_array();
+  return PyModule_Create(&moduledef);
 }
