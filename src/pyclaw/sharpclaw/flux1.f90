@@ -115,9 +115,11 @@ subroutine flux1(q1d,dq1d,aux,dt,cfl,t,ixyz,num_aux,num_eqn,mx,num_ghost,maxnx,r
         end select
         case(3)
             call weno5(q1d,ql,qr,num_eqn,maxnx,num_ghost)
+        case(4)
+            call poly_comp(q1d,ql,qr,num_eqn,maxnx,num_ghost)
         case default
             write(*,*) 'ERROR: Unrecognized limiter type option'
-            write(*,*) 'You should set 1<=lim_type<=3'
+            write(*,*) 'You should set 1<=lim_type<=4'
             stop
       end select
 

@@ -40,13 +40,14 @@ class SharpClawSolver(Solver):
             - 0: No limiting.
             - 1: TVD reconstruction.
             - 2: WENO reconstruction.
+            - 3: Polynomial reconstruction.
 
         ``Default = 2``
 
-    .. attribute:: weno_order
+    .. attribute:: reconstruction_order
 
-        Order of the WENO reconstruction. From 1st to 17th order (PyWENO)
-
+        Order of the reconstruction. From 1st to 17th order (PyWENO), and from
+        4 to 10 (even) in Poly
         ``Default = 5``
 
     .. attribute:: time_integrator
@@ -159,7 +160,7 @@ class SharpClawSolver(Solver):
         """
         self.limiters = [1]
         self.lim_type = 2
-        self.weno_order = 5
+        self.reconstruction_order = 5
         self.time_integrator = 'SSP104'
         self.char_decomp = 0
         self.tfluct_solver = False
@@ -204,9 +205,12 @@ class SharpClawSolver(Solver):
         Allocate RK stage arrays or previous step solutions and fortran routine work arrays.
         """
         if self.lim_type == 2:
-            self.num_ghost = (self.weno_order+1)//2
+            self.num_ghost = int((self.reconstruction_order+1)/2)
 
-        if self.lim_type == 2 and self.weno_order != 5 and self.kernel_language == 'Python':
+        if self.lim_type == 3:
+            self.num_ghost = int(1 + self.reconstruction_order/2)
+
+        if self.lim_type == 2 and self.reconstruction_order != 5 and self.kernel_language == 'Python':
             raise Exception('Only 5th-order WENO reconstruction is implemented in Python kernels. \
                              Use Fortran for higher-order WENO.')
         # This is a hack to deal with the fact that petsc4py
@@ -563,7 +567,7 @@ class SharpClawSolver(Solver):
         grid = state.grid
         clawparams.num_dim       = grid.num_dim
         clawparams.lim_type      = self.lim_type
-        clawparams.weno_order    = self.weno_order
+        clawparams.reconstruction_order    = self.reconstruction_order
         clawparams.char_decomp   = self.char_decomp
         clawparams.tfluct_solver = self.tfluct_solver
         clawparams.fwave         = self.fwave
