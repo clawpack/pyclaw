@@ -419,6 +419,33 @@ class Solution(object):
         raise NotImplementedError("Direct solution plotting has not been " +
             "implemented as of yet, please refer to the plotting module for" +
             " how to plot solutions.")
+        
+class MyPyclaw(Solution):
+    def __init__(self, domain, state, use_petsc=False):
+        super(MyPyclaw, self).__init__(domain, state, use_petsc)
+
+        # Check if the mapping is specified
+        if self.domain.mapc2p is not None:
+            if self.domain.c_centers is None or self.domain.c_nodes is None:
+                raise ValueError("Capacity array must be set when mapc2p is specified.")
+
+        # Check if Capacity Array is not set but mapc2p is
+        if self.domain.mapc2p is not None and self.domain.c_centers is None:
+            import warnings
+            warnings.warn("Capacity array is not set, but mapc2p is specified. "
+                          "Make sure to set the capacity array using set_c_capacity().")
+
+    def set_c_capacity(self):
+       num_cells = self.domain.grid.num_cells_global
+
+    # Check if the capacity array is not already set
+    if self.domain.c_centers is None:
+        # Allocate memory for the capacity array
+        self.domain.c_centers = numpy.empty((num_cells[0], num_cells[1]), dtype=float)
+
+        # Initialize capacity array with some default values, modify as needed
+        self.domain.c_centers[:, :] = 1.0
+        pass
 
 
 if __name__ == "__main__":
