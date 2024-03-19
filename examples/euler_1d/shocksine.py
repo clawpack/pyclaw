@@ -61,8 +61,8 @@ def setup(use_petsc=False,iplot=False,htmlplot=False,outdir='./_output',solver_t
             solver.fmod = euler_sharpclaw1
             solver.tfluct_solver = tfluct_solver     # Use total fluctuation solver for efficiency
             if solver.tfluct_solver:
-                    from pyclaw.sharpclaw import euler_tfluct
-                    solver.tfluct = euler_tfluct
+                    from pyclaw.sharpclaw import euler_tfluct1
+                    solver.tfluct = euler_tfluct1
             solver.lim_type = 2             # WENO reconstruction
             solver.char_decomp = 2          # characteristic-wise reconstruction
     else:

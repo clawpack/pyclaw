@@ -46,8 +46,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='sharpclaw',kernel_lang
         solver.cfl_desired = 0.6
         solver.tfluct_solver = tfluct_solver
         if solver.tfluct_solver:
-            from clawpack.pyclaw.examples.euler_1d import euler_tfluct
-            solver.tfluct = euler_tfluct
+            from clawpack.pyclaw.sharpclaw import euler_tfluct1
+            solver.tfluct = euler_tfluct1
         solver.lim_type = 1
         solver.char_decomp = 2
         from clawpack.pyclaw.sharpclaw import euler_sharpclaw1
