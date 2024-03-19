@@ -284,6 +284,8 @@ py.extension_module(
 
 # Special extensions for examples
 
+## Shallow water on the sphere
+
 ext_name = 'sw_sphere_problem'
 ext_srcs = [
   '../../examples/shallow_sphere/mapc2p.f90',
@@ -303,5 +305,27 @@ py.extension_module(
   include_directories: inc_np,
   dependencies : py_dep,
   subdir: 'clawpack/pyclaw/examples/shallow_sphere',
+  install : true
+)
+
+## 2D Advection-reaction problem
+
+ext_name = 'advection_2d'
+ext_srcs = [
+  '../../examples/advection_reaction_2d/rpn2_vc_advection_vector.f90',
+  '../../examples/advection_reaction_2d/rpt2_dummy.f90',
+]
+f2py_srcs = custom_target(
+  command: [f2py, ext_name],
+  input: ext_srcs,
+  output: [ext_name + 'module.c', ext_name + '-f2pywrappers.f'],
+)
+
+py.extension_module(
+  ext_name, [ext_srcs, f2py_srcs],
+  incdir_f2py / 'fortranobject.c',
+  include_directories: inc_np,
+  dependencies : py_dep,
+  subdir: 'clawpack/pyclaw/examples/advection_reaction_2d',
   install : true
 )
