@@ -266,7 +266,6 @@ foreach subpkg, module: fortran_extensions
       incdir_f2py / 'fortranobject.c',
       c_args: [numpy_nodepr_api],
       include_directories: inc_np,
-      dependencies : py_dep,
       subdir: 'clawpack/pyclaw/' + srcdir,
       install : true
     )
@@ -277,7 +276,6 @@ py.extension_module(
     'reconstruct', 
     ['limiters/weno/reconstruct.c'],
     include_directories: inc_np,
-    dependencies : py_dep,
     subdir: 'clawpack/pyclaw/limiters/weno',
     install : true
 )
@@ -303,7 +301,6 @@ py.extension_module(
   ext_name, [ext_srcs, f2py_srcs],
   incdir_f2py / 'fortranobject.c',
   include_directories: inc_np,
-  dependencies : py_dep,
   subdir: 'clawpack/pyclaw/examples/shallow_sphere',
   install : true
 )
@@ -325,7 +322,6 @@ py.extension_module(
   ext_name, [ext_srcs, f2py_srcs],
   incdir_f2py / 'fortranobject.c',
   include_directories: inc_np,
-  dependencies : py_dep,
   subdir: 'clawpack/pyclaw/examples/advection_reaction_2d',
   install : true
 )
