@@ -19,7 +19,7 @@ crossed the domain exactly once.
 import numpy as np
 from clawpack import riemann
 
-def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5, 
+def setup(nx=400, kernel_language='Python', use_petsc=False, solver_type='classic', weno_order=5, 
           time_integrator='SSP104', outdir='./_output'):
 
     if use_petsc:

@@ -1,50 +1,46 @@
-def test_1d_advection():
-    """test_1d_advection
+from . import advection_1d
+import numpy as np
+from clawpack.pyclaw.util import check_diff
+import os
 
-    tests against expected classic, sharpclaw, and high-order weno results """
+def error(**kwargs):
+    """
+    Compute difference between initial and final solutions.
+    This should vanish due to the periodic boundary conditions
+    """
 
-    from . import advection_1d
+    claw = advection_1d.setup(outdir=None,**kwargs)
+    claw.run()
 
-    def verify_expected(expected):
-        """ given an expected value, returns a verification function """
-        def advection_verify(claw):
-            from clawpack.pyclaw.util import check_diff
-            import numpy as np
+    # tests are done across the entire domain of q normally
+    q0 = claw.frames[0].state.get_q_global()
+    qfinal = claw.frames[claw.num_output_times].state.get_q_global()
 
-            q0=claw.frames[0].state.get_q_global()
-            qfinal=claw.frames[claw.num_output_times].state.get_q_global()
+    q0 = q0.reshape([-1])
+    qfinal = qfinal.reshape([-1])
+    dx = claw.solution.domain.grid.delta[0]
+    diff = dx*np.sum(np.abs(qfinal-q0))
+    return diff
 
-            if q0 is not None and qfinal is not None:
-                dx=claw.solution.domain.grid.delta[0]
-                test = dx*np.linalg.norm(qfinal-q0,1)
-                return check_diff(expected, test, reltol=1e-4)
-            else:
-                return
-        return advection_verify
 
-    from clawpack.pyclaw.util import gen_variants
+class TestAdvection1D:
+    def test_python_classic(self):
+        assert abs(error(kernel_language='Python',solver_type='classic')-3.203924e-04)<1e-4
 
-    classic_tests = gen_variants(advection_1d.setup, verify_expected(3.203924e-04),
-                                 kernel_languages=('Python','Fortran'),
-                                 solver_type='classic', outdir=None)
+    def test_fortran_classic(self):
+        assert abs(error(kernel_language='Fortran',solver_type='classic')-3.203924e-04)<1e-4
 
-    sharp_tests_rk  = gen_variants(advection_1d.setup, verify_expected(1.163605e-05),
-                                 kernel_languages=('Python','Fortran'),
-                                 solver_type='sharpclaw',time_integrator='SSP104', outdir=None)
+    def test_python_sharpclaw(self):
+        assert abs(error(kernel_language='Python',solver_type='sharpclaw')-1.163605e-05)<1e-4
 
-    sharp_tests_lmm = gen_variants(advection_1d.setup, verify_expected(1.500727e-05),
-                                 kernel_languages=('Python','Fortran'),
-                                 solver_type='sharpclaw',time_integrator='SSPLMMk3', outdir=None)
+    def test_fortran_sharpclaw(self):
+        assert abs(error(kernel_language='Fortran',solver_type='sharpclaw')-1.163605e-05)<1e-4
 
-    weno_tests = gen_variants(advection_1d.setup, verify_expected(7.489618e-06),
-                                 kernel_languages=('Fortran',), solver_type='sharpclaw', 
-                                 time_integrator='SSP104', weno_order=17,
-                                 outdir=None)
+    def test_sharpclaw_multistep(self):
+        assert abs(error(kernel_language='Fortran',solver_type='sharpclaw',time_integrator='SSPLMMk3')-1.500727e-05)<1e-4
 
-    from itertools import chain
-    for test in chain(classic_tests, sharp_tests_rk, sharp_tests_lmm, weno_tests):
-        yield test
-
+    def test_weno17(self):
+        assert abs(error(kernel_language='Fortran',solver_type='sharpclaw',weno_order=17)-7.489618e-06)<1e-4
 
 if __name__=="__main__":
     import nose
