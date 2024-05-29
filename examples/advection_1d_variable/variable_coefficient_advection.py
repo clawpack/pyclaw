@@ -68,7 +68,7 @@ def setup(use_petsc=False,solver_type='classic',kernel_language='Python',outdir=
             solver = pyclaw.SharpClawSolver1D(riemann.advection_color_1D)
         elif kernel_language=='Python': 
             solver = pyclaw.SharpClawSolver1D(riemann.vc_advection_1D_py.vc_advection_1D)
-        solver.weno_order=weno_order
+        solver.reconstruction_order=reconstruction_order
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language

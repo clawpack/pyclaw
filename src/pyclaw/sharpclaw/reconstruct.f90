@@ -83,8 +83,12 @@ contains
                     deallocate(hh)
                     deallocate(uh)
             end select
-            recon_alloc = .False.
+            case(3)
+                deallocate(uu)
+                deallocate(dq1m)
         end select
+        recon_alloc = .False.
+
     end subroutine dealloc_recon_workspace
 
 ! ===================================================================
@@ -97,14 +101,14 @@ contains
     !   It does no characteristic decomposition
 
         use weno
-        use clawparams, only: weno_order
+        use clawparams, only: reconstruction_order
         implicit none
 
         integer,          intent(in) :: num_eqn, maxnx, num_ghost
         double precision, intent(in) :: q(num_eqn,maxnx+2*num_ghost)
         double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost),qr(num_eqn,maxnx+2*num_ghost)
 
-        select case(weno_order)
+        select case(reconstruction_order)
         case (5)
            call weno5(q,ql,qr,num_eqn,maxnx,num_ghost)
         case (7)
@@ -120,7 +124,7 @@ contains
         case (17)
            call weno17(q,ql,qr,num_eqn,maxnx,num_ghost)           
         case default
-           print *, 'ERROR: weno_order must be an odd number between 5 and 17 (inclusive).'
+           print *, 'ERROR: reconstruction_order in WENO must be an odd number between 5 and 17 (inclusive).'
            stop
         end select
 
@@ -820,5 +824,36 @@ contains
 
       return
       end subroutine tvd2_wave
+
+    ! ===================================================================
+    subroutine poly_comp(q,ql,qr,num_eqn,maxnx,num_ghost)
+    ! ===================================================================
+
+        use poly
+        use clawparams, only: reconstruction_order
+        implicit none
+
+        integer,          intent(in) :: num_eqn, maxnx, num_ghost
+        double precision, intent(in) :: q(num_eqn,maxnx+2*num_ghost)
+        double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost),qr(num_eqn,maxnx+2*num_ghost)
+
+        select case(reconstruction_order)
+        case (4)
+            call poly4(q,ql,qr,num_eqn,maxnx,num_ghost)
+        case (6)
+            call poly6(q,ql,qr,num_eqn,maxnx,num_ghost)           
+        case (8)
+            print *, 'Warning: 8th reconstruction order is not fully tested'
+            call poly8(q,ql,qr,num_eqn,maxnx,num_ghost)
+        case(10)
+            print *, 'Warning: 10th reconstruction order is not fully tested'
+            call poly10(q,ql,qr,num_eqn,maxnx,num_ghost)          
+        case default
+           print *, 'ERROR: reconstruction_order for polynomial must be an odd number between 4 and 10 (inclusive)'
+           stop
+        end select
+
+    return
+    end subroutine poly_comp
 
 end module reconstruct

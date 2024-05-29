@@ -16,7 +16,7 @@ example for problems with non-convex flux functions.
 import numpy as np
 from clawpack import riemann
 
-def setup(use_petsc=0, outdir='./_output', solver_type='classic', weno_order=5, N=1000):
+def setup(use_petsc=0, outdir='./_output', solver_type='classic', reconstruction_order=5, lim_type=2, N=1000):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -27,7 +27,8 @@ def setup(use_petsc=0, outdir='./_output', solver_type='classic', weno_order=5, 
 
     if solver_type=='sharpclaw':
         solver = pyclaw.SharpClawSolver1D(riemann_solver)
-        solver.weno_order = weno_order
+        solver.reconstruction_order = reconstruction_order
+        solver.lim_type = lim_type
     else:
         solver = pyclaw.ClawSolver1D(riemann_solver)
         solver.limiters = pyclaw.limiters.tvd.vanleer
