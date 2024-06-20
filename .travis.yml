@@ -6,6 +6,7 @@ env:
   matrix:
     - TEST_PACKAGE="pyclaw"
     - TEST_PACKAGE="petclaw"
+    - TEST_PACKAGE="IO"
     - TEST_PACKAGE="forestclaw"
 
 python:
