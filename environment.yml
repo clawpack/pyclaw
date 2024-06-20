@@ -1,0 +1,12 @@
+name: pyclaw
+channels:
+  - conda-forge
+  - clawpack
+dependencies:
+  - python >= 3.6
+  - numpy >= 1.9
+  - matplotlib >= 3.0
+  - scipy
+  - hdf5
+  - nose
+  - coverage
