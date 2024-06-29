@@ -16,9 +16,9 @@ def test_advection_reaction():
             test_density = test_solution[0,:,:]
             return check_diff(expected_density, test_density, reltol=1.e-5,delta=controller.solution.grid.delta)
 
-    return test_app(advection_reaction.setup, verify_advection_reaction, {})
+    return test_app(advection_reaction.setup, verify_advection_reaction, {"outdir":''})
 
 
-if __name__=="__main__":
-    import nose
-    nose.main()
+# if __name__=="__main__":
+#     import nose
+#     nose.main()

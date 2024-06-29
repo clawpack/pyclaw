@@ -63,7 +63,7 @@ def set_velocities(solver,state):
     state.aux[:] = v_t * state.aux[:]
 
 
-def setup():
+def setup(outdir='./_output'):
     from clawpack import pyclaw
     from clawpack.pyclaw.examples.advection_reaction_2d import advection_2d
 
@@ -105,6 +105,9 @@ def setup():
     claw.solution = pyclaw.Solution(state, domain)
     claw.solver = solver
     claw.keep_copy = True
+    claw.outdir = outdir
+    if outdir == '':
+        claw.output_format = None
     claw.setplot = setplot
 
     return claw

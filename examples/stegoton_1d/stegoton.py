@@ -83,7 +83,8 @@ def moving_wall_bc(state,dim,t,qbc,auxbc,num_ghost):
 
 
 
-def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./_output'):
+def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./_output',
+          tfinal=500., num_output_times = 20):
     from clawpack import riemann
 
     if use_petsc:
@@ -141,8 +142,6 @@ def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./
     state.aux[:,:] = setaux(xc,rhoB,KB,rhoA,KA,alpha,xlower=xlower,xupper=xupper)
     qinit(state,ic=1,a2=1.0,xupper=xupper)
 
-    tfinal=500.; num_output_times = 20;
-
     solver.max_steps = 5000000
     solver.fwave = True 
     solver.before_step = b4step 
@@ -150,8 +149,11 @@ def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./
     solver.user_bc_upper=zero_bc
 
     claw = pyclaw.Controller()
-    claw.output_style = 1
     claw.num_output_times = num_output_times
+    claw.outdir = outdir
+    claw.output_style = 1
+    if outdir is None:
+        claw.output_format = None
     claw.tfinal = tfinal
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver

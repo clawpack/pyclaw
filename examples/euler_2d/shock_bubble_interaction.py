@@ -222,7 +222,7 @@ def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_langua
     claw.solver = solver
 
     claw.keep_copy = True
-    if disable_output:
+    if disable_output or outdir is None:
         claw.output_format = None
     claw.tfinal = tfinal
     claw.num_output_times = num_output_times

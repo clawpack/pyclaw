@@ -17,7 +17,8 @@ try:
     from mpi4py import MPI
     mpiAvailable = True
 except ImportError:
-    raise ImportError('mpi4py is not available')
+    import warnings
+    warnings.warn('mpi4py is not available')
     mpiAvailable = False
 
 if mpiAvailable:
@@ -340,7 +341,7 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
     claw.solver = solver
     claw.output_format = output_format
     claw.output_file_prefix = file_prefix
-    claw.keep_copy = False
+    claw.keep_copy = True
     if disable_output:
         claw.output_format = None
     claw.tfinal = tfinal

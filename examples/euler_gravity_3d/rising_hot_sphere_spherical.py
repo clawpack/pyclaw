@@ -18,7 +18,8 @@ try:
     from mpi4py import MPI
     mpiAvailable = True
 except ImportError:
-    raise ImportError('mpi4py is not available')
+    import warnings
+    warnings.warn('mpi4py is not available')
     mpiAvailable = False
 
 if mpiAvailable:

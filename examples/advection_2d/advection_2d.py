@@ -26,7 +26,8 @@ def qinit(state):
     state.q[0,:,:] = 0.9*(0.1<X)*(X<0.6)*(0.1<Y)*(Y<0.6) + 0.1
                 
 
-def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
+def setup(use_petsc=False,outdir='./_output',solver_type='classic',
+          dimensional_split=1,transverse_waves=0):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -35,7 +36,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
 
     if solver_type == 'classic':
         solver = pyclaw.ClawSolver2D(riemann.advection_2D)
-        solver.dimensional_split = 1
+        solver.dimensional_split = dimensional_split
+        solver.transverse_waves = transverse_waves
         solver.limiters = pyclaw.limiters.tvd.vanleer
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver2D(riemann.advection_2D)
@@ -45,8 +47,12 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     solver.bc_lower[1] = pyclaw.BC.periodic
     solver.bc_upper[1] = pyclaw.BC.periodic
 
-    solver.cfl_max = 1.0
-    solver.cfl_desired = 0.9
+    if not dimensional_split and not transverse_waves and solver_type == 'classic':
+        solver.cfl_max = 0.5
+        solver.cfl_desired = 0.45
+    else:
+        solver.cfl_max = 1.0
+        solver.cfl_desired = 0.9
 
     # Domain:
     mx = 50; my = 50
@@ -67,6 +73,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
+    if outdir is None:
+        claw.output_format = None
     claw.setplot = setplot
     claw.keep_copy = True
 

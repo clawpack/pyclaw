@@ -20,7 +20,3 @@ def test_shocktube():
         test_err = np.linalg.norm(expected_B2 - test_B2) + np.linalg.norm(expected_B3 - test_B3)
         assert test_err < 1.e-4
 
-
-if __name__=="__main__":
-    import nose
-    nose.main()

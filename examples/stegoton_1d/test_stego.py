@@ -1,41 +1,31 @@
-#!/usr/bin/env python
-# encoding: utf-8
+from . import stegoton
+import numpy as np
+from pytest import importorskip
+import os
 
-def test_1d_stego():
-    """test_stego
+thisdir = os.path.dirname(__file__)
+path_expected_sols = os.path.join(thisdir,'expected_sols.npy')
+expected_sols_dict = np.load(path_expected_sols,allow_pickle=True).item()
 
-    Tests against expected solution for stegoton problem."""
+def error(test_name,**kwargs):
+    claw = stegoton.setup(tfinal=50.0, outdir=None, **kwargs)
+    claw.run()
+    strain_test = claw.frames[claw.num_output_times].state.get_q_global()[0].reshape([-1])
+    dx = claw.solution.domain.grid.delta[0]
+    assert test_name in expected_sols_dict.keys(), f"Test name {test_name} not found in {path_expected_sols}"
+    strain_expected = expected_sols_dict[test_name]
+    diff_L1 = dx*np.sum(np.abs(strain_test-strain_expected))
+    return diff_L1
 
-    from . import stegoton
+class TestStegoton1D:
+    def test_fortran_classic(self):
+        assert error(test_name='fortran_classic', kernel_language='Fortran', solver_type="classic")<1e-6
 
-    def verify_expected(expected):
-        """ given an expected value, returns a verification function """
-        def stego_verify(claw):
-            from clawpack.pyclaw.util import check_diff
-            import numpy as np
-
-            q0 = claw.frames[0].state.get_q_global()
-            qfinal = claw.frames[claw.num_output_times].state.get_q_global()
-
-            if q0 is not None and qfinal is not None:
-                dx = claw.solution.domain.grid.delta[0]
-                test = dx * np.linalg.norm(qfinal - q0, 1)
-                return check_diff(expected, test, reltol=1e-3)
-            else:
-                return
-        return stego_verify
-
-    from clawpack.pyclaw.util import gen_variants
-    classic_tests = gen_variants(stegoton.setup, verify_expected(0.104401108929),
-                                             kernel_languages=["Fortran", "Python"],
-                                             solver_type='classic',
-                                             outdir=None)
-
-    from itertools import chain
-    for test in chain(classic_tests):
-        yield test
-
-
-if __name__=='__main__':
-    import nose
-    nose.main()
+    def test_fortran_sharpclaw(self):
+        assert error(test_name='fortran_sharpclaw', kernel_language='Fortran', solver_type="sharpclaw")<1e-6
+    
+    def test_python_classic(self):
+        assert error(test_name='python_classic', kernel_language='Python', solver_type="classic")<1e-6
+    
+    def test_python_sharpclaw(self):
+        assert error(test_name='python_sharpclaw', kernel_language='Python', solver_type="sharpclaw")<1e-6

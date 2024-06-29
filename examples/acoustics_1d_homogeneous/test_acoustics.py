@@ -1,70 +1,48 @@
+from . import acoustics_1d
+from clawpack.pyclaw.util import check_diff
+import numpy as np
 
-def test_1d_acoustics():
-    """test_1d_acoustics
+def error(**kwargs):
+    """
+    Compute difference between initial and final solutions.
+    This should vanish due to the periodic boundary conditions
+    """
 
-    tests against known classic, sharpclaw, and high-order weno results """
+    claw = acoustics_1d.setup(disable_output=True,**kwargs)
+    claw.run()
 
-    from . import acoustics_1d
+    # tests are done across the entire domain of q normally
+    q0 = claw.frames[0].state.get_q_global()
+    qfinal = claw.frames[claw.num_output_times].state.get_q_global()
 
-    def verify_expected(expected):
-        """ binds the expected value to the acoustics_verify methods """
-        def acoustics_verify(claw):
-            from clawpack.pyclaw.util import check_diff
-            import numpy as np
+    q0 = q0.reshape([-1])
+    qfinal = qfinal.reshape([-1])
+    dx = claw.solution.domain.grid.delta[0]
+    diff = dx*np.sum(np.abs(qfinal-q0))
+    return diff
 
-            # tests are done across the entire domain of q normally
-            q0 = claw.frames[0].state.get_q_global()
-            qfinal = claw.frames[claw.num_output_times].state.get_q_global()
+class TestRegression:
+    def test_python_classic(self):
+        assert abs(error(kernel_language='Python',solver_type='classic')-0.001981)<1e-5
 
-            # and q_global is only returned on process 0
-            if q0 is not None and qfinal is not None:
-                q0 = q0.reshape([-1])
-                qfinal = qfinal.reshape([-1])
-                dx = claw.solution.domain.grid.delta[0]
-                test = dx*np.sum(np.abs(qfinal-q0))
-                return check_diff(expected, test, abstol=1e-4)
-            else:
-                return
-        return acoustics_verify
+    def test_fortran_classic(self):
+        assert abs(error(kernel_language='Fortran',solver_type='classic')-0.001981)<1e-5
 
-    from clawpack.pyclaw.util import gen_variants
+    def test_sharpclaw(self):
+        assert abs(error(kernel_language='Fortran',solver_type='sharpclaw')-0.001540)<1e-5
+        assert abs(error(kernel_language='Fortran',solver_type='sharpclaw',weno_order=11)-0.000521)<1e-5
+        assert abs(error(kernel_language='Fortran',solver_type='sharpclaw',time_integrator='SSPLMMk3')-0.001545)<1e-5
 
-    classic_tests = gen_variants(acoustics_1d.setup, verify_expected(0.001049),
-                                 kernel_languages=('Python', 'Fortran'),
-                                 solver_type='classic', disable_output=True)
+class TestAccuracy:
 
-    time_step_test = gen_variants(acoustics_1d.setup, verify_expected(0.002020),
-                                  kernel_languages=('Python',),
-                                  solver_type='classic', disable_output=True,
-                                  output_style=(3))
+    def test_python_classic(self):
+        assert abs(error(num_cells=2000,kernel_language='Python',solver_type='classic'))<1e-5
 
-    ptwise_tests = gen_variants(acoustics_1d.setup, verify_expected(0.001049),
-                                kernel_languages=('Fortran',), ptwise=True,
-                                solver_type='classic', disable_output=True)
+    def test_fortran_classic(self):
+        assert abs(error(num_cells=2000,kernel_language='Fortran',solver_type='classic'))<1e-5
+        assert abs(error(num_cells=4000,kernel_language='Fortran',solver_type='classic'))<2e-6
 
-    sharp_tests_rk = gen_variants(acoustics_1d.setup, verify_expected(0.000299),
-                                  kernel_languages=('Python', 'Fortran'),
-                                  solver_type='sharpclaw',
-                                  time_integrator='SSP104', disable_output=True)
-
-    sharp_tests_lmm = gen_variants(acoustics_1d.setup,
-                                   verify_expected(0.000231),
-                                   kernel_languages=('Python', 'Fortran'),
-                                   solver_type='sharpclaw',
-                                   time_integrator='SSPLMMk3',
-                                   disable_output=True)
-
-    weno_tests = gen_variants(acoustics_1d.setup, verify_expected(0.000153),
-                              kernel_languages=('Fortran',),
-                              solver_type='sharpclaw', time_integrator='SSP104',
-                              weno_order=17, disable_output=True)
-
-    from itertools import chain
-    for test in chain(classic_tests, time_step_test, ptwise_tests,
-                      sharp_tests_rk, sharp_tests_lmm, weno_tests):
-        yield test
-
-
-if __name__ == "__main__":
-    import nose
-    nose.main()
+    def test_sharpclaw(self):
+        assert abs(error(num_cells=2000,kernel_language='Fortran',solver_type='sharpclaw'))<1e-8
+        assert abs(error(num_cells=2000,kernel_language='Fortran',solver_type='sharpclaw',weno_order=11))<1e-8
+        assert abs(error(num_cells=2000,kernel_language='Fortran',solver_type='sharpclaw',time_integrator='SSPLMMk3'))<2e-8

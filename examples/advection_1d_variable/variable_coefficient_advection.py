@@ -50,7 +50,8 @@ def auxinit(state):
     state.aux[0,:] = np.sin(2.*np.pi*xc)+2
     
 
-def setup(use_petsc=False,solver_type='classic',kernel_language='Python',outdir='./_output'):
+def setup(use_petsc=False,solver_type='classic',kernel_language='Python',outdir='./_output',
+          weno_order=5,time_integrator='SSP104',rk_coeffs=None):
     from clawpack import riemann
 
     if use_petsc:
@@ -68,7 +69,12 @@ def setup(use_petsc=False,solver_type='classic',kernel_language='Python',outdir=
             solver = pyclaw.SharpClawSolver1D(riemann.advection_color_1D)
         elif kernel_language=='Python': 
             solver = pyclaw.SharpClawSolver1D(riemann.vc_advection_1D_py.vc_advection_1D)
-        solver.weno_order=weno_order
+        solver.weno_order = weno_order
+        solver.time_integrator = time_integrator
+        if time_integrator == 'RK':
+            solver.a, solver.b, solver.c = rk_coeffs
+            solver.cfl_desired = 0.9
+            solver.cfl_max = 1.0
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language
@@ -91,6 +97,8 @@ def setup(use_petsc=False,solver_type='classic',kernel_language='Python',outdir=
 
     claw = pyclaw.Controller()
     claw.outdir = outdir
+    if outdir is None:
+        claw.output_format = None
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
 

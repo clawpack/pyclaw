@@ -119,6 +119,7 @@ def setup(use_petsc=False,riemann_solver='roe'):
 
     claw.output_format = 'ascii'    
     claw.outdir = "./_output"
+    claw.keep_copy = True
     claw.setplot = setplot
 
     return claw
