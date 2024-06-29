@@ -46,6 +46,8 @@ def setup(use_petsc=0,outdir='./_output',solver_type='classic'):
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
+    if outdir is None:
+        claw.output_format = None
     claw.setplot = setplot
     claw.keep_copy = True
 

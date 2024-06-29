@@ -42,6 +42,3 @@ class TestAdvection1D:
     def test_weno17(self):
         assert abs(error(kernel_language='Fortran',solver_type='sharpclaw',weno_order=17)-7.489618e-06)<1e-4
 
-if __name__=="__main__":
-    import nose
-    nose.main()

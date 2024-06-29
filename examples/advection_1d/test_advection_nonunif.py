@@ -1,66 +1,34 @@
-def test_1d_advection():
-    """test_1d_advection
+from . import advection_1d_nonunif
+import numpy as np
+from clawpack.pyclaw.util import check_diff
+import os
 
-    tests against expected classic results """
+thisdir = os.path.dirname(__file__)
+path_expected_sols = os.path.join(thisdir,'expected_sols.npy')
+expected_sols_dict = np.load(path_expected_sols,allow_pickle=True).item()
 
-    from . import advection_1d_nonunif
+def error(test_name,**kwargs):
+    """
+    Compute L1 norm of difference between test and expected
+    solutions in the physical domain.
+    """
 
-    def verify_expected(expected):
-        """ given an expected value, returns a verification function """
-        def advection_verify(claw):
-            from clawpack.pyclaw.util import check_diff
-            import numpy as np
+    claw = advection_1d_nonunif.setup(outdir=None,**kwargs)
+    claw.run()
+    qtest = claw.frames[claw.num_output_times].state.get_q_global().reshape([-1])
 
-            q0=claw.frames[0].state.get_q_global()
-            qfinal=claw.frames[claw.num_output_times].state.get_q_global()
+    assert test_name in expected_sols_dict.keys(), f"Test name {test_name} not found in {path_expected_sols}"
+    qexpected = expected_sols_dict[test_name]
 
-            if q0 is not None and qfinal is not None:
-                dx=claw.solution.domain.grid.delta[0]
-                test = dx*np.linalg.norm(qfinal-q0,1)
-                return check_diff(expected, test, reltol=1e-4)
-            else:
-                return
-        return advection_verify
+    physical_nodes = claw.frames[0].state.grid.p_nodes
+    dx=claw.solution.domain.grid.delta[0]
+    comp_nodes = claw.frames[0].state.grid.c_nodes
+    jac_mapc2p = np.diff(physical_nodes)/np.diff(comp_nodes)
+    return np.sum(abs(dx*jac_mapc2p*(qtest-qexpected)))
 
-    def verify_expected_nonunif(expected):
-        """ given an expected value, returns a verification function for the nonuniform advection ex"""
-        from clawpack.pyclaw.util import check_diff
-        import numpy as np
+class TestAdvectionNonUnif1D:
+    def test_python_classic(self):
+        assert error(test_name="python_classic",kernel_language='Python',solver_type='classic')<1e-6
 
-        def mapc2p_nonunif(xc):
-            neg = -1*(xc < 0) + (xc > 0)
-            xp = xc**2
-            xp = neg*xp
-            return xp
-
-        def advection_nu_verify(claw):
-            q0=claw.frames[0].state.get_q_global()
-            qfinal=claw.frames[claw.num_output_times].state.get_q_global()
-            if q0 is not None and qfinal is not None:
-                dx=claw.solution.domain.grid.delta[0]
-                grid1d = claw.frames[0].state.grid
-                grid1d.mapc2p = mapc2p_nonunif
-                nx = 100
-                aux = np.zeros((1,nx))
-                aux[0,:] = np.diff(grid1d.p_nodes)/np.diff(grid1d.x.nodes)
-                test = abs(np.sum(dx*aux[0,:]*(qfinal-q0)))
-                return check_diff(expected, test, reltol=1e-4)
-            else:
-                return
-        return advection_nu_verify
-
-    from clawpack.pyclaw.util import gen_variants
-
-    classic_tests = gen_variants(advection_1d_nonunif.setup, verify_expected_nonunif(7.817097663620487e-17),
-                                 kernel_languages=('Python','Fortran'),
-                                 solver_type='classic', outdir=None)
-
-    
-    from itertools import chain
-    for test in chain(classic_tests):
-        yield test
-
-
-if __name__=="__main__":
-    import nose
-    nose.main()
+    def test_fortran_classic(self):
+        assert error(test_name="fortran_classic",kernel_language='Fortran',solver_type='classic')<1e-6
