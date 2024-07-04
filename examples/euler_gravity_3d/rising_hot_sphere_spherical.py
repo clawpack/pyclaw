@@ -12,7 +12,6 @@ The primary variables are:
 """
 import numpy as np
 from clawpack.pyclaw.examples.euler_gravity_3d.mappedGrid import euler3d_mappedgrid as mg
-# from .mappedGrid import euler3d_mappedgrid as mg
 
 # Test for MPI, and set sizes accordingly
 try:
@@ -175,7 +174,6 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
     import logging
     solver.logger.setLevel(logging.DEBUG)
     from clawpack.pyclaw.examples.euler_gravity_3d import euler_3d_gmap
-    #from . import euler_3d_gmap
     solver.rp = euler_3d_gmap
     solver.num_eqn = 5
     solver.num_waves = 3
