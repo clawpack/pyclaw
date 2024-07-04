@@ -11,13 +11,15 @@ The primary variables are:
    density (rho), x,y, and z momentum (rho*u,rho*v,rho*w), and energy.
 """
 import numpy as np
-from mappedGrid import euler3d_mappedgrid as mg
+from clawpack.pyclaw.examples.euler_gravity_3d.mappedGrid import euler3d_mappedgrid as mg
+# from .mappedGrid import euler3d_mappedgrid as mg
 
 try:
     from mpi4py import MPI
     mpiAvailable = True
 except ImportError:
-    raise ImportError('mpi4py is not available')
+    import warnings
+    warnings.warn('mpi4py is not available')
     mpiAvailable = False
 
 if mpiAvailable:
@@ -175,8 +177,8 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
 
     import logging
     solver.logger.setLevel(logging.DEBUG)
-
-    import euler_3d_gmap
+    from clawpack.pyclaw.examples.euler_gravity_3d import euler_3d_gmap
+    # from . import euler_3d_gmap
     solver.rp = euler_3d_gmap
     solver.num_eqn = 5
     solver.num_waves = 3
@@ -340,7 +342,7 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
     claw.solver = solver
     claw.output_format = output_format
     claw.output_file_prefix = file_prefix
-    claw.keep_copy = False
+    claw.keep_copy = True
     if disable_output:
         claw.output_format = None
     claw.tfinal = tfinal
