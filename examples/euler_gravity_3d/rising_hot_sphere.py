@@ -155,7 +155,7 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
             use_petsc=False,outdir='./_output',\
             output_format='hdf5',file_prefix='equil',disable_output=False,\
             mx=mxyz[0],my=mxyz[1],mz=mxyz[2],\
-            tfinal=64.0,num_output_times=1):
+            tfinal=64.0,num_output_times=1,keep_copy=False):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -177,7 +177,7 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
     import logging
     solver.logger.setLevel(logging.DEBUG)
     from clawpack import riemann
-    solver.rp = riemann.euler_3d_gmap
+    solver.rp = riemann.euler_mapgrid_3D
     solver.num_eqn = 5
     solver.num_waves = 3
     solver.cfl_max = 0.6
@@ -340,7 +340,7 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
     claw.solver = solver
     claw.output_format = output_format
     claw.output_file_prefix = file_prefix
-    claw.keep_copy = True
+    claw.keep_copy = keep_copy
     if disable_output:
         claw.output_format = None
     claw.tfinal = tfinal

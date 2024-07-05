@@ -174,7 +174,7 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
     import logging
     solver.logger.setLevel(logging.DEBUG)
     from clawpack import riemann
-    solver.rp = riemann.euler_3d_gmap
+    solver.rp = riemann.euler_mapgrid_3D
     solver.num_eqn = 5
     solver.num_waves = 3
     solver.cfl_max = 0.6
