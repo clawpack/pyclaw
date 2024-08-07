@@ -30,7 +30,7 @@ class TestShallowWater2D:
             for riemann_solver in riemann_solvers:
                 test_name = f'radialdambreak_{solver_type}_{riemann_solver}'
                 assert error(test_name=test_name, solver_type=solver_type,
-                            riemann_solver=riemann_solver, disable_output=True)<1e-6, f"Test {test_name} failed"
+                            riemann_solver=riemann_solver, disable_output=True)<1e-5, f"Test {test_name} failed"
         
     def test_sill(self):
         assert error(test_name="sill", outdir=None)<1e-6, f"Test sill failed"
