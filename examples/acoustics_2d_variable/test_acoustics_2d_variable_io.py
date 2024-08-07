@@ -1,15 +1,14 @@
 def test_acoustics_2d_variable_io():
     """Test I/O on variable-coefficient 2D acoustics application"""
-
+    import os
     from . import acoustics_2d_interface
+    thisdir = os.path.dirname(__file__)
 
     def verify_acoustics_io(controller):
         """ Verifies I/O on 2d variable-coefficient acoustics application"""
-        import os
         from clawpack.pyclaw.util import check_diff
         from clawpack.pyclaw import Solution
         
-        thisdir = os.path.dirname(__file__)
         verify_dir = os.path.join(thisdir,'./io_test_verification')
         
         # Expected solution
@@ -52,28 +51,8 @@ def test_acoustics_2d_variable_io():
                 return aux_err
         else:
             return
-
-
-    from clawpack.pyclaw.util import gen_variants
-    tempdir = './_io_test_results'
-    classic_tests = gen_variants(acoustics_2d_interface.setup, 
-                                 verify_acoustics_io, solver_type='classic', 
-                                 outdir=tempdir, num_cells=(50, 50), disable_petsc=True)
-
-    import shutil
-    from itertools import chain
-    try:
-        for test in chain(classic_tests):
-            yield test
-    finally:
-        ERROR_STR= """Error removing %(path)s, %(error)s """
-        try:
-            shutil.rmtree(tempdir )
-        except OSError as xxx_todo_changeme:
-            (errno, strerror) = xxx_todo_changeme.args
-            print(ERROR_STR % {'path' : tempdir, 'error': strerror })
-
-
-if __name__=="__main__":
-    import nose
-    nose.main()
+    
+    tempdir = os.path.join(thisdir,'_io_test_results')
+    claw = acoustics_2d_interface.setup(outdir=tempdir,num_cells=(50,50))
+    claw.run()
+    verify_acoustics_io(claw)

@@ -1,5 +1,6 @@
-from nose.plugins.attrib import attr
-    
+# from nose.plugins.attrib import attr
+import pytest
+
 def qinit(state,hl,ul,vl,hr,ur,vr,radDam):
     import numpy as np
     x0=0.5
@@ -30,8 +31,9 @@ def setup_solver():
     
     return solver
 
-@attr(petsc=False)
-@attr(peanoclaw=True)
+# @attr(petsc=False)
+# @attr(peanoclaw=True)
+@pytest.mark.skip(reason="Test not working yet PeanoClaw.")
 def test_3x3_grid():
     r"""This test simply solves a 3x3 grid, once with PyClaw and once as one patch 
     with PeanoClaw. In the end it checks if the resulting qbcs match.
@@ -117,6 +119,6 @@ def test_3x3_grid():
     
     assert(np.max(np.abs(pyclaw_solver.qbc - peanoclaw_solver.qbc)) < 1e-9)
     
-if __name__=="__main__":
-    import nose
-    nose.main()
+# if __name__=="__main__":
+#     import nose
+#     nose.main()

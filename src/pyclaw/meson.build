@@ -97,14 +97,17 @@ examples = {
   'advection_1d_variable' : [
     '__init__.py',
     'variable_coefficient_advection.py',
+    'test_variable_coefficient_advection.py',
   ],
   'advection_2d' : [
     '__init__.py',
     'advection_2d.py',
+    'test_2d_advection.py',
   ],
   'advection_2d_annulus' : [
     '__init__.py',
     'advection_annulus.py',
+    'test_2d_advection_annulus.py',
     'mapc2p.py',
   ],
   'advection_reaction_2d' : [
@@ -115,6 +118,7 @@ examples = {
   'burgers_1d' : [
     '__init__.py',
     'burgers_1d.py',
+    'test_burgers_1d.py',
   ],
   'cubic_1d' : [
     '__init__.py',
@@ -136,22 +140,21 @@ examples = {
     'quadrants.py',
     'shock_bubble_interaction.py',
     'shock_forward_step.py',
-    'test_euler2d_shockbubble.py',
-    'test_quadrants.py',
+    'test_euler2d.py',
   ],
   'euler_3d' : [
     'Sedov.py',
     '__init__.py',
     'shock_bubble.py',
     'shocktube.py',
-    'test_sedov_and_hdf.py',
+    'test_euler3d.py',
   ],
   'euler_gravity_3d' : [
     '__init__.py',
     'plotCreateVisitXDMF.py',
     'rising_hot_sphere.py',
     'rising_hot_sphere_spherical.py',
-    'test_rising_hot_sphere.py',
+    'test_eulerg3d.py',
     'visitHDF5XDMF.py',
   ],
   'iso_c_advection' : [
@@ -183,15 +186,13 @@ examples = {
     '__init__.py',
     'dam_break.py',
     'sill.py',
-    'test_dambreak.py',
-    'test_sill.py',
+    'test_shallow1d.py',
   ],
   'shallow_2d' : [
     '__init__.py',
     'radial_dam_break.py',
     'sill.py',
-    'test_dambreak.py',
-    'test_sill.py',
+    'test_shallow2d.py',
   ],
   'shallow_sphere' : [
     '__init__.py',
@@ -207,6 +208,7 @@ examples = {
   'traffic' : [
     '__init__.py',
     'traffic.py',
+    'test_traffic.py',
   ],
 }
 
