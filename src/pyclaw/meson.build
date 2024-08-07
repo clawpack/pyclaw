@@ -147,6 +147,7 @@ examples = {
     'test_sedov_and_hdf.py',
   ],
   'euler_gravity_3d' : [
+    '__init__.py',
     'plotCreateVisitXDMF.py',
     'rising_hot_sphere.py',
     'rising_hot_sphere_spherical.py',
