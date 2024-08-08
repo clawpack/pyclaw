@@ -9,15 +9,12 @@ class TestEulerGravity3D:
 
     def test_rising_hot_sphere(self):
         _ = importorskip("scipy") # skip test if scipy is not installed
-        #Compile source
-        command = ["make", "all"]
-        subprocess.call(command,cwd=thisdir)
         
         # Read expected solution
         expected_density = np.loadtxt(os.path.join(thisdir,'verify_rising_hot_sphere_classic_1.txt'))
 
         #Run test
-        import rising_hot_sphere
+        from . import rising_hot_sphere
         claw = rising_hot_sphere.euler3d(kernel_language='Fortran',solver_type='classic', 
                                          disable_output=True,mx=80, my=80, mz=80, tfinal=1.0, num_output_times=1)
         claw.run()
