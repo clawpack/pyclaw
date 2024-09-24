@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from __future__ import absolute_import
 IC='gauss_square'
 if IC=='gauss_square':
     beta=200.; x0=0.3; mx=100

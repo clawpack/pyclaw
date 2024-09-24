@@ -3,10 +3,6 @@
 r"""
 Routines for reading and writing an ascii output file from ForestClaw
 """
-
-from __future__ import absolute_import
-from __future__ import print_function
-
 import logging
 import numpy as np
 # import clawpack.forestclaw as forestclaw

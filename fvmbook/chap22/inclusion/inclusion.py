@@ -3,7 +3,6 @@
 r"""
 Variable-coefficient elasticity example.
 """
-from __future__ import absolute_import
 import numpy as np
 from six.moves import range
 t0wall  = 0.025
