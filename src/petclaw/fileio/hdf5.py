@@ -9,8 +9,6 @@ This module reads and writes hdf5 files via the following module:
 To install h5py, you must also install the hdf5 library from the website:
     http://www.hdfgroup.org/HDF5/release/obtain5.html
 """
-
-from __future__ import absolute_import
 from mpi4py import MPI
 import os
 import logging

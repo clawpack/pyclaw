@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 import RiemannSolver
 from RiemannSolver import *
 from numpy import load, absolute
@@ -23,4 +21,3 @@ waves1, s1  = rs.solveVectorized(timer = True)
 
 assert (absolute(wavesRead - waves1)< tolerance).all()
 assert (absolute(sRead -s1)< tolerance).all()
-

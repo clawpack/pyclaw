@@ -3,9 +3,6 @@
 r"""
 Test suite for forestclaw
 """
-
-from __future__ import absolute_import
-
 from .geometry import Patch
 from clawpack.pyclaw.geometry import Dimension
 

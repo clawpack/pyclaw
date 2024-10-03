@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from clawpack import pyclaw
 from clawpack.pyclaw.solution import Solution
 
@@ -33,5 +32,3 @@ class Solution(Solution):
             return fileio.hdf5.write
         else:
             raise ValueError("File format %s not supported." % file_format)
-
-

@@ -1,12 +1,9 @@
-from __future__ import absolute_import
-from __future__ import print_function
 from numpy import random, empty,zeros
 #from numpy import *
 from FRS import vec_rp, pw_rp
 from time import clock
 from pylab import plot,  figure
 from six.moves import range
-
 
 
 

@@ -1,5 +1,3 @@
-
-from __future__ import absolute_import
 import RiemannSolver
 from RiemannSolver import *
 from pylab import plot,  figure, suptitle

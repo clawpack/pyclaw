@@ -7,9 +7,6 @@ These routines preserve petclaw/pyclaw syntax for i/o while taking advantage of
 PETSc's parallel i/o capabilities to allow for parallel reads and writes of
 frame data.
 """
-
-from __future__ import absolute_import
-from __future__ import print_function
 from petsc4py import PETSc
 import pickle
 import os

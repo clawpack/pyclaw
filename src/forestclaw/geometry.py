@@ -4,9 +4,6 @@ r"""
 Module containing forestclaw.geometry.
 All we do here is override the pyclaw.Patch class to add a block_number and mpi_rank.
 """
-
-from __future__ import absolute_import
-
 from clawpack import pyclaw
 from clawpack.pyclaw import geometry as pyclaw_geometry
 from clawpack.pyclaw.geometry import Dimension

@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from __future__ import absolute_import
-from __future__ import print_function
 from petsc4py import PETSc
 from six.moves import range
 

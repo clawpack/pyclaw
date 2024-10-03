@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """Output package for PetClaw"""
-
-from __future__ import absolute_import
 import logging
 from clawpack.pyclaw.fileio import ascii
 __all__ = ['ascii.read','ascii.write']

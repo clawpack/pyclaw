@@ -1,7 +1,6 @@
 r"""
 Module for the CFL object.
 """
-from __future__ import absolute_import
 class CFL(object):
     """ Parallel CFL object, responsible for computing the
     Courant-Friedrichs-Lewy condition across all processes.
@@ -12,11 +11,10 @@ class CFL(object):
         self._local_max = global_max
         self._global_max = global_max
         self._reduce_vec = PETSc.Vec().createWithArray([0])
-        
+
     def get_global_max(self):
         r"""
         Compute the maximum CFL number over all processes for the current step.
-
         This is used to determine whether the CFL condition was
         violated and adjust the timestep.
         """
@@ -36,4 +34,3 @@ class CFL(object):
     def update_global_max(self,new_local_max):
         self._reduce_vec.array = new_local_max
         self._global_max = max(self._global_max,self._reduce_vec.max()[1])
-
