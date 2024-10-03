@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/clawpack/pyclaw.svg?branch=master)](https://travis-ci.com/clawpack/pyclaw)
+[![Build Status](https://github.com/clawpack/pyclaw/actions/workflows/testing.yml/badge.svg)](https://github.com/clawpack/pyclaw/actions)
 [![Coverage Status](https://img.shields.io/coveralls/clawpack/pyclaw.svg)](https://coveralls.io/r/clawpack/pyclaw?branch=master)
 
 [![PyPI version](https://badge.fury.io/py/clawpack.svg)](https://badge.fury.io/py/clawpack)
