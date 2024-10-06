@@ -1,18 +1,20 @@
-!      =======================================================
-    subroutine src2(maxmx,maxmy,num_eqn,num_ghost,mx,my,xlower,ylower, &
-    dx,dy,q,num_aux,aux,t,dt,Rsphere)
-!      =======================================================
-
+subroutine src2(maxmx,maxmy,num_eqn,num_ghost,mx,my,xlower,ylower, &
+                dx,dy,q,num_aux,aux,t,dt,Rsphere)
 
 !     # Compute source term for Rossby-Haurwitz wave.
 !     # The source term models the Coriolis force using a 4-stage RK method
 !     # and the projection of the velocity components to the tangent plane.
 
+    implicit none
 
-    implicit double precision (a-h,o-z)
-    dimension    q(num_eqn, 1:mx, 1:my)
-    dimension aux(num_aux,  1:mx, 1:my)
-    double precision :: RK(4,3)
+    real(kind=8) ::    q(num_eqn, 1:mx, 1:my)
+    real(kind=8) ::  aux(num_aux, 1:mx, 1:my)
+    real(kind=8) :: RK(4,3)
+    real(kind=8) :: a, Omega, df, erx, ery, erz, qn, xc, yc, rad, theta
+    real(kind=8) :: xp, yp, zp, phi, fcor, hu, hv, hw
+    integer :: num_eqn, num_ghost, mx, my, num_aux, maxmx, maxmy
+    integer :: i, j, m
+    real(kind=8) :: xlower, ylower, dx, dy, t, dt, Rsphere
 
 !f2py integer intent(in) maxmx
 !f2py integer intent(in) maxmy
