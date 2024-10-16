@@ -55,7 +55,7 @@ jobs:
         cd ${CLAW}/pyclaw
         coverage run --source=src -m pytest --ignore=development
 
-    -name: Upload to Coveralls
+    - name: Upload to Coveralls
       run: coveralls
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
