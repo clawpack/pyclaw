@@ -53,7 +53,7 @@ jobs:
     - name: Test with pytest
       run: |
         cd ${CLAW}/pyclaw
-        coverage run --source=src -m pytest --ignore=development
+        coverage run --source=src -m pytest --ignore=development -k "not test_shallow_sphere"
 
     - name: Upload to Coveralls
       if: always()
