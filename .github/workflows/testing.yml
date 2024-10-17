@@ -58,6 +58,7 @@ jobs:
     - name: Upload to Coveralls
       if: always()
       run: |
+        cd ${CLAW}/pyclaw
         ls -l .coverage
         coveralls
       env:
