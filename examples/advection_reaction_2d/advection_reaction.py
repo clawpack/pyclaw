@@ -80,6 +80,7 @@ def setup(outdir='./_output'):
     domain = pyclaw.Domain( (0.,0.), (1.,1.), (100,100) )
     solver.num_eqn = 2
     solver.num_waves = 1
+    solver.fwave = False
     num_aux = 2
     state = pyclaw.State(domain, solver.num_eqn, num_aux)
 
