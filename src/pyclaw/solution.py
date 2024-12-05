@@ -138,7 +138,10 @@ class Solution(object):
             # Load frame
             frame = arg[0]
             if not isinstance(frame,numbers.Integral):
-                raise Exception('Invalid pyclaw.Solution object initialization')
+                raise Exception(
+                    'Invalid pyclaw.Solution object initialization: '
+                    + repr(frame) + ' is not an int.'
+                )
             if ('count_from_zero' in kargs):
                 if (kargs['count_from_zero'] == True):
                     self._start_frame = 0
