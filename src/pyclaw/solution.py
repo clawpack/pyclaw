@@ -6,6 +6,7 @@ Module containing all Pyclaw solution objects
 
 import os
 import logging
+import numbers
 
 from .geometry import Patch, Dimension, Domain
 
@@ -136,7 +137,7 @@ class Solution(object):
         if len(arg) == 1:
             # Load frame
             frame = arg[0]
-            if not isinstance(frame,int):
+            if not isinstance(frame,numbers.Integral):
                 raise Exception('Invalid pyclaw.Solution object initialization')
             if ('count_from_zero' in kargs):
                 if (kargs['count_from_zero'] == True):
