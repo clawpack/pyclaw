@@ -6,7 +6,6 @@ Module containing all Pyclaw solution objects
 
 import os
 import logging
-import numbers
 
 from .geometry import Patch, Dimension, Domain
 
