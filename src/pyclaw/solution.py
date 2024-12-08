@@ -135,8 +135,7 @@ class Solution(object):
         self.domain = None
         if len(arg) == 1:
             # Load frame
-            frame = arg[0]
-            frame = int(frame)
+            frame = int(arg[0])
             if ('count_from_zero' in kargs):
                 if (kargs['count_from_zero'] == True):
                     self._start_frame = 0
