@@ -135,9 +135,7 @@ class Solution(object):
         self.domain = None
         if len(arg) == 1:
             # Load frame
-            frame = arg[0]
-            if not isinstance(frame,int):
-                raise Exception('Invalid pyclaw.Solution object initialization')
+            frame = int(arg[0])
             if ('count_from_zero' in kargs):
                 if (kargs['count_from_zero'] == True):
                     self._start_frame = 0
@@ -178,7 +176,7 @@ class Solution(object):
                 raise Exception("Invalid arguments for Solution initialization.")
         elif len(arg) == 0:
             if 'frame' in kargs:
-                frame = kargs.pop('frame')
+                frame = int(kargs.pop('frame'))
                 self.read(frame,**kargs)
             elif not kargs:
                 pass  # With no arguments, initialize empty solution
