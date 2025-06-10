@@ -13,6 +13,7 @@ import logging
 from ..util import read_data_line
 import numpy as np
 import clawpack.pyclaw as pyclaw
+from clawpack.pyclaw.fileio.ascii import read_t
 
 logger = logging.getLogger('pyclaw.fileio')
 
@@ -42,7 +43,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
      - *options* - (dict) Dictionary of optional arguments dependent on 
        the format being read in.  ``default = {}``
     """
-    from clawpack.pyclaw.fileio.ascii import read_t
+    
     
     # Construct path names
     base_path = os.path.join(path,)
