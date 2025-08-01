@@ -2,9 +2,13 @@
 
 """Module contains class definitions related to dealing with gauge data"""
 
+# TODO: switch to pathlib for all file handling
+from pathlib import Path
 import os
-import sys
-import numpy
+import argparse
+import warnings
+
+import numpy as np
 
 # See if pandas is available
 try:
@@ -75,7 +79,7 @@ class GaugeSolution(object):
     def read(self, gauge_id, path=None, use_pandas=False):
         r"""Read the gauge file at path into this object
 
-        Read in the gauge with gauge id `gauge_id` located at `path`.  
+        Read in the gauge with gauge id `gauge_id` located at `path`.
 
         If `use_pandas` is `True` then `q` will be a Pandas frame.
             (not yet implemented)
@@ -137,10 +141,10 @@ class GaugeSolution(object):
 
             #data = line.split()
             #nvals = 1 + len(data)-6  # should agree with num_eqn
-            
+
             # Check to see if there is also data in the .txt file,
             # otherwise perhaps it's in a binary .bin file.
-            
+
             line = gauge_file.readline()
             if len(line) > 0:
                 if 'binary32' in line:
@@ -172,7 +176,7 @@ class GaugeSolution(object):
 
         if file_format == 'ascii':
             # data follows header in .txt file:
-            data = numpy.loadtxt(gauge_path, comments="#")
+            data = np.loadtxt(gauge_path, comments="#")
             if data.ndim == 1:
                 # only one line in gauge file, expand to 2d array
                 data = data.reshape((1,len(data)))
@@ -184,28 +188,27 @@ class GaugeSolution(object):
             if not os.path.isfile(gauge_path):
                 msg = 'No data in .txt file and did not find ' \
                          + '\n   binary file %s' %  gauge_path
-                import warnings
                 warnings.warn(msg)
                 return
 
             if file_format in ['binary','binary64']:
-                data = numpy.fromfile(gauge_path, dtype=numpy.float64)
+                data = np.fromfile(gauge_path, dtype=np.float64)
             elif file_format == 'binary32':
-                data = numpy.fromfile(gauge_path, dtype=numpy.float32)
+                data = np.fromfile(gauge_path, dtype=np.float32)
 
             # assume rows are: level, t, q[0:num_eqn]
             nrows = 2 + num_eqn
-            assert numpy.mod(len(data),nrows) == 0, \
+            assert np.mod(len(data), nrows) == 0, \
                   '*** unexpected number of values in gauge file' \
                   + '\n*** expected nrows = %i rows'  % nrows
             ncols = int(len(data)/nrows)
             data = data.reshape((nrows,ncols), order='F').T
 
-        self.level = data[:, 0].astype(numpy.int64)
+        self.level = data[:, 0].astype(np.int64)
         self.t = data[:, 1]
         self.q = data[:, 2:].transpose()
 
-    
+
         if num_eqn != self.q.shape[0]:
             raise ValueError("Number of fields in gauge file does not match",
                              "recorded number in header.")
@@ -215,11 +218,11 @@ class GaugeSolution(object):
             if self.gtype == 'lagrangian':
                 # for lagrangian gauges x,y paths are stored in q in place of u,v
                 # note: only implemented in 2d geoclaw for now!
-                self.particle_path = numpy.vstack((self.t, self.q[1,:], 
+                self.particle_path = np.vstack((self.t, self.q[1,:],
                                                   self.q[2,:])).T
             else:
                 # set the lagrangian path to a single fixed location at t=t0:
-                self.particle_path = numpy.array([[self.t[0], self.location[0], 
+                self.particle_path = np.array([[self.t[0], self.location[0],
                                              self.location[1]]])
 
 
@@ -333,11 +336,15 @@ def compare_gauges(paths, gauge_id, fields='all'):
         axes.set_ylabel("q[%s, :]" % n)
         axes.legend()
 
-        axes = fig.add_subplot(len(fields), 2, 2 * i + 2)
-        axes.plot(gauges[0].t, 
-                  numpy.abs(gauges[0].q[n, :] - gauges[1].q[n, :]), 'r')
-        axes.set_xlabel("t")
-        axes.set_ylabel("$|q_{old}[%s, :] - q_{new}[%s, :]|$" % (n, n))
+        if gauges[0].t.shape == gauges[1].t.shape:
+            axes = fig.add_subplot(len(fields), 2, 2 * i + 2)
+            axes.plot(gauges[0].t,
+                      np.abs(gauges[0].q[n, :] - gauges[1].q[n, :]), 'r')
+            axes.set_xlabel("t")
+            axes.set_ylabel("$|q_{old}[%s, :] - q_{new}[%s, :]|$" % (n, n))
+        else:
+            warnings.warn("Gauge time series do not match, skipping direct " +
+                          "comparison.")
 
     return fig
 
@@ -363,17 +370,17 @@ def convert_gauges(path, output_path=None):
         output_path = os.getcwd()
 
     # Load old data
-    data = numpy.loadtxt(path)
-    old_ids = numpy.asarray(data[:, 0], dtype=int)
-    unique_ids = numpy.asarray(list(set(old_ids)))
+    data = np.loadtxt(path)
+    old_ids = np.asarray(data[:, 0], dtype=int)
+    unique_ids = np.asarray(list(set(old_ids)))
 
     # Create new gauges and compare
     for gauge_id in unique_ids:
-        gauge_indices = numpy.nonzero(old_ids == gauge_id)[0]
+        gauge_indices = np.nonzero(old_ids == gauge_id)[0]
         new_gauge = GaugeSolution()
         new_gauge.id = gauge_id
-        new_gauge.location = (numpy.nan, numpy.nan)
-        new_gauge.level = numpy.asarray(data[gauge_indices, 1], dtype=int)
+        new_gauge.location = (np.nan, np.nan)
+        new_gauge.level = np.asarray(data[gauge_indices, 1], dtype=int)
         new_gauge.t = data[gauge_indices, 2]
         new_gauge.q = data[gauge_indices, 3:].transpose()
         new_gauge.write(output_path)
@@ -386,7 +393,7 @@ def convert_gauges(path, output_path=None):
 
 
 def compare_old_gauges(old_path, new_path, gauge_id, plot=False, abs_tol=1e-14,
-                                                     rel_tol=0.0, 
+                                                     rel_tol=0.0,
                                                      verbose=False):
     r"""Compare old gauge data at `path` to new gauge data at same path
 
@@ -413,9 +420,9 @@ def compare_old_gauges(old_path, new_path, gauge_id, plot=False, abs_tol=1e-14,
     """
 
     # Load old gauge data
-    data = numpy.loadtxt(old_path)
-    old_ids = numpy.asarray(data[:, 0], dtype=int)
-    gauge_indices = numpy.nonzero(old_ids == gauge_id)[0]
+    data = np.loadtxt(old_path)
+    old_ids = np.asarray(data[:, 0], dtype=int)
+    gauge_indices = np.nonzero(old_ids == gauge_id)[0]
     q = data[gauge_indices, 3:]
 
     # Load new data
@@ -425,9 +432,9 @@ def compare_old_gauges(old_path, new_path, gauge_id, plot=False, abs_tol=1e-14,
     if verbose:
         print("Comparison of gauge %s:" % gauge_id)
         print(r"           ||\Delta q||_2 = ",
-                              numpy.linalg.norm(q - gauge.q.transpose(), ord=2))
+                              np.linalg.norm(q - gauge.q.transpose(), ord=2))
         print(r"  arg(||\Delta q||_\infty = ",
-                              numpy.argmax(q - gauge.q.transpose()))
+                              np.argmax(q - gauge.q.transpose()))
 
     if plot:
         import matplotlib.pyplot as plt
@@ -439,7 +446,7 @@ def compare_old_gauges(old_path, new_path, gauge_id, plot=False, abs_tol=1e-14,
             axes.set_xlabel("t (s)")
             axes.set_ylabel("q(%s, :)" % i)
 
-    return numpy.allclose(q, gauge.q.transpose(), rtol=rel_tol, atol=abs_tol)
+    return np.allclose(q, gauge.q.transpose(), rtol=rel_tol, atol=abs_tol)
 
 
 def check_old_gauge_data(path, gauge_id, new_gauge_path="./regression_data"):
@@ -451,27 +458,27 @@ def check_old_gauge_data(path, gauge_id, new_gauge_path="./regression_data"):
     :Input:
      - *path* (string) - Path to old gauge data file
      - *gauge_id* (int) - Gauge id to compare
-     - *new_gauge_path* (path) - Path to directory containing new gauge files, 
+     - *new_gauge_path* (path) - Path to directory containing new gauge files,
        defaults to './regression_data'.
 
     :Output:
-     - (figure) Returns a matplotlib figure object plotting the differences in 
+     - (figure) Returns a matplotlib figure object plotting the differences in
        time.
     """
 
     import matplotlib.pyplot as plt
 
     # Load old gauge data
-    data = numpy.loadtxt(path)
-    old_ids = numpy.asarray(data[:, 0], dtype=int)
-    gauge_indices = numpy.nonzero(old_ids == gauge_id)[0]
+    data = np.loadtxt(path)
+    old_ids = np.asarray(data[:, 0], dtype=int)
+    gauge_indices = np.nonzero(old_ids == gauge_id)[0]
     q = data[gauge_indices, 3:]
 
     # Load new data
     gauge = GaugeSolution(gauge_id, new_gauge_path)
 
-    print(numpy.linalg.norm(q - gauge.q.transpose(), ord=2))
-    print(numpy.argmax(q - gauge.q.transpose()))
+    print(np.linalg.norm(q - gauge.q.transpose(), ord=2))
+    print(np.argmax(q - gauge.q.transpose()))
 
     fig = plt.figure()
     for i in range(gauge.q.shape[0]):
@@ -481,34 +488,29 @@ def check_old_gauge_data(path, gauge_id, new_gauge_path="./regression_data"):
 
     return fig
 
-
 if __name__ == "__main__":
-
     import matplotlib.pyplot as plt
+    parser = argparse.ArgumentParser()
+    parser.add_argument('path', type=Path, nargs=2,
+                            help="Paths to gauge data directories")
+    parser.add_argument('--id', type=int, nargs='+', default=None,
+                            help="Gauge IDs to plot, " +
+                                 "defaults to all found in first path")
+    parser.add_argument('--fields', type=int, nargs='+', default=None,
+                            help="Fields to plot, defaults to all")
+    args = parser.parse_args()
 
-    help_msg = \
-"""gauges.py path1 path2 [gauge_id] [fields...]
+    if args.id:
+        gauge_ids = args.id
+    else:
+        gauge_ids = [int(str(path.name[5:10]))
+                        for path in args.path[0].glob("gauge*.txt")]
+    if args.fields:
+        fields = args.fields
+    else:
+        fields = 'all'
 
-Plots a comparison between the gauges at path1 and path2 with gauge_id and the 
-fields specified.  Only one gauge_id can be specified at a time but a number of 
-fields can be specified including 'all'.
-"""
+    for gauge_id in gauge_ids:
+        fig = compare_gauges(args.path, gauge_id, fields)
 
-    fields = 'all'
-    gauge_id = 1
-    if len(sys.argv) < 3:
-        print(help_msg)
-        sys.exit(0)
-    elif len(sys.argv) >= 3:
-        paths = [str(sys.argv[1]), str(sys.argv[2])]
-        if len(sys.argv) > 3:
-            gauge_id = int(sys.argv[3])
-            if len(sys.argv) > 4:
-                if sys.argv[4].lower() == 'all':
-                    fields = 'all'
-                else:
-                    fields = [int(field for field in sys.argv[4:])]
-
-
-    fig = compare_gauges(paths, gauge_id, fields)
     plt.show()
