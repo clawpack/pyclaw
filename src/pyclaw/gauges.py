@@ -493,10 +493,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('path', type=Path, nargs=2,
                             help="Paths to gauge data directories")
-    parser.add_argument('--id', type=int, nargs='+', default=None,
+    parser.add_argument('--id', '-n', type=int, nargs='+', default=None,
                             help="Gauge IDs to plot, " +
                                  "defaults to all found in first path")
-    parser.add_argument('--fields', type=int, nargs='+', default=None,
+    parser.add_argument('--fields', '-f', type=int, nargs='+', default=None,
                             help="Fields to plot, defaults to all")
     args = parser.parse_args()
 
