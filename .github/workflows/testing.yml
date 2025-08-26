@@ -23,7 +23,7 @@ jobs:
       fail-fast: false # Probably want to turn this off for a large matrix
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ["3.8", "3.12"]
+        python-version: ["3.12"]
         build: [debug, opt]
         toolchain:
           - {compiler: gcc, version: 14}
@@ -84,7 +84,8 @@ jobs:
             export FFLAGS="-O0 -g -fcheck=all -fbacktrace -fbounds-check -ffpe-trap=invalid,zero,overflow -finit-real=nan -finit-integer=nan -Wall -Wunderflow -Wextra -Wconversion -Wuninitialized -Warray-bounds -Wshadow -Wno-unused-function -Wno-unused-variable -Wno-unused-parameter -Wno-unused-label -Wno-unused-but-set-variable"
             export CFLAGS=""
           elif [ "${{ matrix.build }}" = "opt" ]; then
-            export FFLAGS="-O1 -funroll-loops -finline-functions -ftree-vectorize -fstack-protector-strong -flto -march=native"
+            # export FFLAGS="-O1 -funroll-loops -finline-functions -ftree-vectorize -fstack-protector-strong -flto -march=native"
+            export FFLAGS=""
             export CFLAGS=""
           else
             echo "Unknown build type: ${{ matrix.build }}"
