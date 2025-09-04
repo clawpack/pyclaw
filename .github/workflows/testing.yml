@@ -125,7 +125,15 @@ jobs:
     - name: Test with pytest
       run: |
         cd ${CLAW}/pyclaw
-        coverage run --source=src -m pytest -vv --showlocals --ignore=development -k "not test_shallow_sphere"
+        coverage run --source=src -m pytest -vv --showlocals --ignore=development -k "not test_shallow_sphere" --junitxml=test-results.xml
+
+    - name: Process test results
+      uses: test-summary/action@v2.4
+      if: always()
+      with:
+        paths: .test_report.xml
+        output: test-summary.md
+        show: all
 
     - name: Upload to Coveralls
       if: always()
