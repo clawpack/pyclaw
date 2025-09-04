@@ -131,7 +131,7 @@ jobs:
       uses: test-summary/action@v2.4
       if: always()
       with:
-        paths: .test_report.xml
+        paths: test_report.xml
         output: test-summary.md
         show: all
 
