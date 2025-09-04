@@ -110,13 +110,13 @@ jobs:
         echo "Using `$FC --version`"
         echo "FFLAGS: $FFLAGS"
         echo "CFLAGS: $CFLAGS"
-        cd ${CLAW}
+        cd ${{ env.CLAW }}
         pip install --no-build-isolation --editable .
 
     - name: Lint with flake8
       if: ${{ matrix.build == 'debug' }}
       run: |
-        cd ${CLAW}/pyclaw
+        cd ${{ env.CLAW }}
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude "development","src/pyclaw/fileio/netcdf.py"
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
@@ -124,21 +124,21 @@ jobs:
 
     - name: Test with pytest
       run: |
-        cd ${CLAW}/pyclaw
+        cd ${{ env.CLAW }}
         coverage run --source=src -m pytest -vv --showlocals --ignore=development -k "not test_shallow_sphere" --junitxml=test-results.xml
 
     - name: Process test results
       uses: test-summary/action@v2.4
       if: always()
       with:
-        paths: test_report.xml
+        paths: ${{ env.CLAW }}/pyclaw/test_report.xml
         output: test-summary.md
         show: all
 
     - name: Upload to Coveralls
       if: ${{ matrix.os == 'ubuntu-latest' && matrix.toolchain.compiler == 'gcc' && matrix.build == 'opt' && matrix.python-version == '3.12' }}
       run: |
-        cd ${CLAW}/pyclaw
+        cd ${{ env.CLAW }}/pyclaw
         ls -l .coverage
         coveralls
       env:
@@ -146,10 +146,10 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload test results
-      if: failure()
+      # if: failure()
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: test_results
-        # Currently this does not save anything
-        path: ${{ env.CLAW }}/pyclaw/*_output
+        path: ${{ env.CLAW }}/pyclaw/test-summary.md
         if-no-files-found: ignore
