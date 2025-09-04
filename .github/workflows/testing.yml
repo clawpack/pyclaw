@@ -132,7 +132,7 @@ jobs:
       if: always()
       with:
         paths: ${{ env.CLAW }}/pyclaw/test-report.xml
-        output: test-summary.md
+        output: ${{ env.CLAW }}/pyclaw/test-summary.md
         show: "all"
 
     - name: Upload test results
