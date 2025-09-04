@@ -131,7 +131,7 @@ jobs:
       uses: test-summary/action@v2.4
       if: always()
       with:
-        paths: ${{ env.CLAW }}/pyclaw/test_report.xml
+        paths: ${{ env.CLAW }}/test_report.xml
         output: test-summary.md
         show: all
 
@@ -141,7 +141,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: test_results
-        path: ${{ env.CLAW }}/pyclaw/test-summary.md
+        path: ${{ env.CLAW }}/test-summary.md
         if-no-files-found: ignore
 
     - name: Upload to Coveralls
