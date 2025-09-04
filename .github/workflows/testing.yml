@@ -20,7 +20,7 @@ jobs:
       ${{ matrix.os }} - py ${{ matrix.python-version }} - ${{ matrix.toolchain.compiler }} ${{ matrix.build }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true # Probably want to turn this off for a large matrix
+      fail-fast: false # Probably want to turn this off for a large matrix
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.12"]
@@ -133,7 +133,7 @@ jobs:
       with:
         paths: ${{ env.CLAW }}/pyclaw/test-report.xml
         output: test-summary.md
-        show: all
+        show: "all"
 
     - name: Upload test results
       # if: failure()
