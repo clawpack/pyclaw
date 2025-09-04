@@ -20,7 +20,7 @@ jobs:
       ${{ matrix.os }} - py ${{ matrix.python-version }} - ${{ matrix.toolchain.compiler }} ${{ matrix.build }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false # Probably want to turn this off for a large matrix
+      fail-fast: true # Probably want to turn this off for a large matrix
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.12"]
@@ -125,7 +125,7 @@ jobs:
     - name: Test with pytest
       run: |
         cd ${{ env.CLAW }}
-        coverage run --source=src -m pytest -vv --showlocals --ignore=development -k "not test_shallow_sphere" --junitxml=test-results.xml
+        coverage run --source=src -m pytest -vv --showlocals --ignore=development -k "not test_shallow_sphere" --junitxml=test-report.xml
 
     - name: Process test results
       uses: test-summary/action@v2.4
@@ -134,6 +134,15 @@ jobs:
         paths: ${{ env.CLAW }}/pyclaw/test_report.xml
         output: test-summary.md
         show: all
+
+    - name: Upload test results
+      # if: failure()
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test_results
+        path: ${{ env.CLAW }}/pyclaw/test-summary.md
+        if-no-files-found: ignore
 
     - name: Upload to Coveralls
       if: ${{ matrix.os == 'ubuntu-latest' && matrix.toolchain.compiler == 'gcc' && matrix.build == 'opt' && matrix.python-version == '3.12' }}
@@ -144,12 +153,3 @@ jobs:
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Upload test results
-      # if: failure()
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test_results
-        path: ${{ env.CLAW }}/pyclaw/test-summary.md
-        if-no-files-found: ignore
