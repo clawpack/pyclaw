@@ -136,7 +136,7 @@ jobs:
         show: all
 
     - name: Upload to Coveralls
-      if: ${ matrix.os == 'ubuntu-latest' matrix.toolchain.compiler == 'gcc' && matrix.build == 'opt' && python-version == '3.12' }
+      if: ${{ matrix.os == 'ubuntu-latest' && matrix.toolchain.compiler == 'gcc' && matrix.build == 'opt' && matrix.python-version == '3.12' }}
       run: |
         cd ${CLAW}/pyclaw
         ls -l .coverage
