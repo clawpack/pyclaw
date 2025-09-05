@@ -125,7 +125,7 @@ jobs:
     - name: Test with pytest
       run: |
         cd ${{ env.CLAW }}/pyclaw
-        coverage run --source=src -m pytest -vv --showlocals --ignore=development -k "not test_shallow_sphere" --junitxml=test-report.xml
+        coverage run --source=src -m pytest -vv -s --showlocals --ignore=development -k "not test_shallow_sphere" --junitxml=test-report.xml
 
     - name: Process test results
       uses: test-summary/action@v2.4
