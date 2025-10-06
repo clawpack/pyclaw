@@ -518,6 +518,7 @@ class SharpClawSolver(Solver):
 
     def _set_mthlim(self):
         self._mthlim = self.limiters
+        if not isinstance(self.limiters,list): self._mthlim=[self._mthlim]
         if self.char_decomp == 0:  # entry-wise limiting
             if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_eqn
             if not isinstance(self.limiters,list): self._mthlim=[self._mthlim]
