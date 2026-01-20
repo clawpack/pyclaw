@@ -114,6 +114,22 @@ class State(object):
             raise Exception('Cannot change state.mF after aux is initialized.')
         else:
             self.F = self.new_array(mF)
+    
+    @property
+    def index_capa(self):
+        r"""(int) - Index of capacity function in aux array, or -1 if none."""
+        if self.grid.mapc2p is None:
+            raise ValueError("Capacity function index requested but no mapping defined.")
+        else:
+            return self._index_capa
+    @index_capa.setter
+    def index_capa(self,index):
+        if self.aux is None:
+            raise Exception("Cannot set capacity function index before aux array is initialized.")
+        elif index < -1 or index >= self.num_aux:
+            raise Exception("Capacity function index out of range.")
+        else:
+            self._index_capa = index
 
     # ========== Class Methods ===============================================
     def __init__(self,geom,num_eqn,num_aux=0):
@@ -138,7 +154,7 @@ class State(object):
         self.t=0.
         r"""(float) - Current time represented on this patch, 
             ``default = 0.0``"""
-        self.index_capa = -1
+        self._index_capa = -1
         self.keep_gauges = False
         r"""(bool) - Keep gauge values in memory for every time step, 
         ``default = False``"""
