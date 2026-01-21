@@ -188,6 +188,20 @@ class State(object):
                 logger.debug('aux array is not Fortran contiguous.')
                 valid = False
         return valid
+    
+    def is_mapped_state_valid(self) -> bool:
+        if self.grid.mapc2p is not None and self.aux is None:
+            if self.grid.mapc2p is not None and self.aux is not None:
+                if self.index_capa < -1 or self.index_capa >= self.num_aux:
+                    raise ValueError("Capacity function index out of range.")
+                elif self.index_capa == -1:
+                    raise ValueError("Capacity function index is not set.")
+            raise ValueError("Mapped grid requires aux array to be set.")
+        elif self.grid.mapc2p is None and self.aux is not None:
+            return False
+        return True
+            
+
  
     def set_cparam(self,fortran_module):
         """

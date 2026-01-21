@@ -198,6 +198,20 @@ class Solution(object):
          - (bool) - True if valid, false otherwise
         """
         return all([state.is_valid() for state in self.states])
+    
+    def is_mapped_solution_valid(self) -> bool:
+
+        r""" Checks to see if this mapped solution is valid 
+        
+        The Solution checks to make sure it is valid by checking each of its states.
+        If the mapping and aux is missing, then False is returned.
+        If the capacity function index is invalid, an ValueError is raised.
+        If the mapping is present and the capacity array is not set an ValueError is raised.
+        :Output: 
+         - (bool) - True if valid, false if nothing is set, ValueError otherwise"""
+
+        return all([state.is_mapped_state_valid() for state in self.states])
+
 
 
     def __str__(self):
