@@ -196,7 +196,7 @@ class State(object):
                     raise ValueError("Capacity function index out of range.")
                 elif self.index_capa == -1:
                     raise ValueError("Capacity function index is not set.")
-            raise ValueError("Mapped grid requires aux array to be set.")
+            raise ValueError("Mapped grid requires capacity array to be set.")
         elif self.grid.mapc2p is None and self.aux is not None:
             return False
         return True
