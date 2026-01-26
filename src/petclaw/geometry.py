@@ -81,13 +81,25 @@ class Domain(pyclaw_geometry.Domain):
 
     __doc__ += pyclaw.util.add_parent_doc(pyclaw.ClawSolver2D)
 
-    def __init__(self,geom):
-        if not isinstance(geom,list):
-            geom = [geom]
-        if isinstance(geom[0],Patch):
-            self.patches = geom
-        elif isinstance(geom[0],pyclaw_geometry.Dimension):
-            self.patches = [Patch(geom)]
+    def __init__(self,*arg):
+        if len(arg)>1:
+            lower = arg[0]
+            upper = arg[1]
+            n     = arg[2]
+            dims = []
+            names = ['x','y','z']
+            names = names[:len(n)+1]
+            for low,up,nn,name in zip(lower,upper,n,names):
+                dims.append(Dimension(low,up,nn,name=name))
+            self.patches = [Patch(dims)]
+        else:
+            geom = arg[0]
+            if not isinstance(geom,list) and not isinstance(geom,tuple):
+                geom = [geom]
+            if isinstance(geom[0],Patch):
+                self.patches = geom
+            elif isinstance(geom[0],pyclaw_geometry.Dimension):
+                self.patches = [Patch(geom)]
 
 class Dimension(pyclaw_geometry.Dimension):
     def __init__(self, lower, upper, num_cells, name='x',
