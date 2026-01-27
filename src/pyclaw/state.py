@@ -188,8 +188,8 @@ class State(object):
                 logger.debug('aux array is not Fortran contiguous.')
                 valid = False
         if self.grid.mapc2p is not None and self.aux is None:
-            raise ValueError("Mapped grid requires capacity array to be set. " \
-            "Please set state.aux.")
+            raise ValueError("Mapped grid requires a capacity function, stored in the aux array, " \
+            "but no aux array is present. Please set state.num_aux to a positive value.")
         elif self.grid.mapc2p is not None and self.aux is not None:
             if self.index_capa == -1:
                 raise ValueError("Capacity function index is not set. " \
