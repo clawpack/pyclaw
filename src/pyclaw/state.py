@@ -4,6 +4,21 @@ r"""
 Module containing all Pyclaw solution objects
 """
 
+# Default mapc2p functions
+def identity_map_1d(x):
+    return x,
+
+def identity_map_2d(x,y):
+    return x,y
+
+def identity_map_3d(x,y,z):
+    return x,y,z
+
+identity_map={'1': identity_map_1d,
+              '2': identity_map_2d,
+              '3': identity_map_3d}
+
+
 class State(object):
     r"""
     A PyClaw State object contains the current state on a particular patch,
@@ -187,16 +202,19 @@ class State(object):
             if not self.aux.flags['F_CONTIGUOUS']:
                 logger.debug('aux array is not Fortran contiguous.')
                 valid = False
-        if self.grid.mapc2p is not None and self.aux is None:
-            raise ValueError("Mapped grid requires a capacity function, stored in the aux array, " \
-            "but no aux array is present. Please set state.num_aux to a positive value.")
-        elif self.grid.mapc2p is not None and self.aux is not None:
-            if self.index_capa == -1:
-                raise ValueError("Capacity function index is not set. " \
-                "Please set state.index_capa to the appropriate index in the aux array.")
-            elif self.index_capa < 0 or self.index_capa > self.num_aux -1:
-                raise ValueError("Capacity function index out of range. " \
-                "Please set state.index_capa to the appropriate index in the aux array.")
+        if self.grid.mapc2p in list(identity_map.values()):
+            pass # No mapping
+        else:
+            if self.aux is None:
+                raise ValueError("Mapped grid requires a capacity function, stored in the aux array, " \
+                "but no aux array is present. Please set state.num_aux to a positive value.")
+            elif self.aux is not None:
+                if self.index_capa == -1:
+                    raise ValueError("Capacity function index is not set. " \
+                    "Please set state.index_capa to the appropriate index in the aux array.")
+                elif self.index_capa < 0 or self.index_capa > self.num_aux -1:
+                    raise ValueError("Capacity function index out of range. " \
+                    "Please set state.index_capa to the appropriate index in the aux array.")
         return valid
  
     def set_cparam(self,fortran_module):
