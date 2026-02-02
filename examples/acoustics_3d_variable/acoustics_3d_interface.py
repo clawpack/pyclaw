@@ -64,7 +64,7 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',
         if solver_type=='classic':
             solver.dimensional_split=True
         else:
-            solver.lim_type = 1
+            solver.lim_type = 2
 
         solver.limiters = [4]
         
