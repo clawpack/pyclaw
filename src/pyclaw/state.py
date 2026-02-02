@@ -4,21 +4,6 @@ r"""
 Module containing all Pyclaw solution objects
 """
 
-# Default mapc2p functions
-def identity_map_1d(x):
-    return x,
-
-def identity_map_2d(x,y):
-    return x,y
-
-def identity_map_3d(x,y,z):
-    return x,y,z
-
-identity_map={'1': identity_map_1d,
-              '2': identity_map_2d,
-              '3': identity_map_3d}
-
-
 class State(object):
     r"""
     A PyClaw State object contains the current state on a particular patch,
@@ -193,6 +178,7 @@ class State(object):
         
         """
         import logging
+        from .geometry import identity_map
         valid = True
         logger = logging.getLogger('pyclaw.solution')
         if not self.q.flags['F_CONTIGUOUS']:
