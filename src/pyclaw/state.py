@@ -178,6 +178,7 @@ class State(object):
         
         """
         import logging
+        from .geometry import identity_map
         valid = True
         logger = logging.getLogger('pyclaw.solution')
         if not self.q.flags['F_CONTIGUOUS']:
@@ -187,6 +188,19 @@ class State(object):
             if not self.aux.flags['F_CONTIGUOUS']:
                 logger.debug('aux array is not Fortran contiguous.')
                 valid = False
+        if self.grid.mapc2p in list(identity_map.values()):
+            pass # No mapping
+        else:
+            if self.aux is None:
+                raise ValueError("Mapped grid requires a capacity function, stored in the aux array, " \
+                "but no aux array is present. Please set state.num_aux to a positive value.")
+            elif self.aux is not None:
+                if self.index_capa == -1:
+                    raise ValueError("Capacity function index is not set. " \
+                    "Please set state.index_capa to the appropriate index in the aux array.")
+                elif self.index_capa < 0 or self.index_capa > self.num_aux -1:
+                    raise ValueError("Capacity function index out of range. " \
+                    "Please set state.index_capa to the appropriate index in the aux array.")
         return valid
  
     def set_cparam(self,fortran_module):

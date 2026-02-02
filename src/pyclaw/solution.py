@@ -198,8 +198,6 @@ class Solution(object):
          - (bool) - True if valid, false otherwise
         """
         return all([state.is_valid() for state in self.states])
-
-
     def __str__(self):
         output = "states:\n"
         # This is information about each of the states
