@@ -4,7 +4,7 @@ r"""
 Variable-coefficient elasticity example.
 """
 import numpy as np
-from six.moves import range
+
 t0wall  = 0.025
 tperiod = 0.05
 
@@ -13,7 +13,7 @@ def moving_wall_bc(state,dim,t,qbc,auxbc,num_ghost):
     if t<t0wall:
         s = np.sin(np.pi*t/tperiod)
     else:
-        s = 0.
+        s = 0.0
 
     for i in range(num_ghost):
         # First reflect-extrapolate
@@ -21,12 +21,12 @@ def moving_wall_bc(state,dim,t,qbc,auxbc,num_ghost):
         # Now set velocity
         qbc[3,i,:] = 2.0*s - qbc[3,i,:]
         qbc[4,i,:] =       - qbc[4,i,:]
-    
+
 
 #def no_stress_bc(state,dim,t,qbc,num_ghost):
 #    """No-stress boundary condition: sigma_{12} = sigma_{11} = 0"""
 #    if state.grid.on_lower_boundary[idim]:
-#        jghost = 
+#        jghost =
 #    # First extrapolate
 #    tmp = qbc[:,:,self.num_ghost]
 #    tmp = np.tile(tmp,(1,1,num_ghost))
@@ -35,8 +35,8 @@ def moving_wall_bc(state,dim,t,qbc,auxbc,num_ghost):
 #    # Then negate the sig12 and sig11 components
 
 def integrate_displacement(solver,state):
-    aux[5,:,:] = aux[5,:,:] + dt*q[3,:,:]
-    aux[6,:,:] = aux[6,:,:] + dt*q[4,:,:]
+    state.aux[5,:,:] = state.aux[5,:,:] + solver.dt * state.q[3,:,:]
+    state.aux[6,:,:] = state.aux[6,:,:] + solver.dt * state.q[4,:,:]
 
 
 def inclusion():
@@ -116,19 +116,19 @@ def inclusion():
 #--------------------------
 def setplot(plotdata):
 #--------------------------
-    
-    """ 
+
+    """
     Specify what is to be plotted at each frame.
     Input:  plotdata, an instance of visclaw.data.ClawPlotData.
     Output: a modified version of plotdata.
-    
-    """ 
+
+    """
 
 
     from clawpack.visclaw import colormaps
 
     plotdata.clearfigures()  # clear any old figures,axes,items data
-    
+
 
     # Figure for pressure
     # -------------------
@@ -148,11 +148,11 @@ def setplot(plotdata):
     plotitem.pcolor_cmap = colormaps.yellow_red_blue
     plotitem.add_colorbar = True
     plotitem.show = True       # show on plot?
-    
+
 
     # Figure for x-velocity plot
     # -----------------------
-    
+
     plotfigure = plotdata.new_plotfigure(name='x-Velocity', figno=1)
 
     # Set up for axes in this figure:
@@ -166,7 +166,7 @@ def setplot(plotdata):
     plotitem.pcolor_cmap = colormaps.yellow_red_blue
     plotitem.add_colorbar = True
     plotitem.show = True       # show on plot?
-    
+
     # Parameters used only when creating html and/or latex hardcopy
     # e.g., via visclaw.frametools.printframes:
 
@@ -190,4 +190,3 @@ if __name__ == '__main__':
 
     from clawpack.pyclaw import plot
     plot.interactive_plot()
-

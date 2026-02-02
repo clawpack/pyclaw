@@ -6,7 +6,7 @@ from . import acoustics_3d_interface
 
 def check_error(**kwargs):
 
-    claw = acoustics_3d_interface.setup(problem='homogeneous',mx=128,my=4,mz=4,disable_output=True,**kwargs)
+    claw = acoustics_3d_interface.setup(problem='homogeneous',mx=128,my=8,mz=8,disable_output=True,**kwargs)
     claw.run()
 
     test_pressure = claw.frames[-1].q[0,:,:,:]

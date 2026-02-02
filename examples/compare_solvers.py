@@ -160,12 +160,12 @@ if __name__=="__main__":
     import sys
 
     vis = True
-    
+
     if vis:
         compare_solvers.outdir='./_output'
     else:
         compare_solvers.outdir = None
-        
+
     if len(sys.argv) > 1:
         nx_1D = int(sys.argv[1])
     else:
@@ -173,7 +173,7 @@ if __name__=="__main__":
 
     if len(sys.argv) > 2:
         # '(2,2)' -> (2,2)
-        nx_2D = tuple(int(i) for i in argv.split(','))
+        nx_2D = tuple(int(i) for i in sys.argv.split(','))
     else:
         nx_2D = 100,100
 
