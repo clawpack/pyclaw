@@ -78,7 +78,7 @@ def moving_wall_bc(state,dim,t,qbc,auxbc,num_ghost):
         t0 = (t-t1)/tw1
         if abs(t0)<=1.: vwall = -a1*(1.+np.cos(t0*np.pi))
         else: vwall=0.
-        for ibc in range(num_ghost-1):
+        for ibc in range(num_ghost):
             qbc[1,num_ghost-ibc-1] = 2*vwall*state.aux[1,ibc] - qbc[1,num_ghost+ibc]
 
 
