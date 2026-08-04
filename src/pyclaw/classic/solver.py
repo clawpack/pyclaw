@@ -402,17 +402,17 @@ class ClawSolver2D(ClawSolver):
     
     .. attribute:: dimensional_split
     
-        If True, use dimensional splitting (Godunov splitting).
-        Dimensional splitting with Strang splitting is not supported
-        at present but could easily be enabled if necessary.
-        If False, use unsplit Clawpack algorithms, possibly including
+        If set to 1, use dimensional splitting (Godunov splitting).
+        Can also be set to 2 for Strang splitting, but this is
+        implemented in an inefficient way and is not recommended.
+        If False (zero), use unsplit Clawpack algorithms, possibly including
         transverse Riemann solves.
 
     .. attribute:: transverse_waves
     
-        If dimensional_split is True, this option has no effect.  If
-        dimensional_split is False, then transverse_waves should be one of
-        the following values:
+        If dimensional_split is >0, this option has no effect.  If
+        dimensional_split is False (zero), then transverse_waves should be one
+        of the following values:
 
         ClawSolver2D.no_trans: Transverse Riemann solver
         not used.  The stable CFL for this algorithm is 0.5.  Not recommended.
@@ -515,14 +515,14 @@ class ClawSolver2D(ClawSolver):
             
             rpn2 = self.rp.rpn2._cpointer
 
-            if (self.dimensional_split) or (self.transverse_waves==0):
+            if (self.dimensional_split>0) or (self.transverse_waves==0):
                 rpt2 = rpn2 # dummy value; it won't be called
             else:
                 rpt2 = self.rp.rpt2._cpointer
 
-            if self.dimensional_split:
-                #Right now only Godunov-dimensional-splitting is implemented.
-                #Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
+            if self.dimensional_split == 1:
+                # Right now only Godunov-dimensional-splitting is implemented.
+                # Strang-dimensional-splitting could be added following dimsp2.f in Clawpack.
 
                 self.qbc, cfl_x = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
                       qold,self.qbc,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
@@ -534,7 +534,30 @@ class ClawSolver2D(ClawSolver):
 
                 cfl = max(cfl_x,cfl_y)
 
+            elif self.dimensional_split == 2:
+                # Dimensional Strang splitting
+                # Note that this is ineefficient but is the simplest way
+                # to work with variable time step size.  Also,
+                # time-dependent boundary conditions won't be set
+                # correctly with the current implementation.
+
+                self.qbc, cfl_x1 = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
+                      qold,self.qbc,self.auxbc,dx,dy,self.dt/2,self._method,self._mthlim,\
+                      self.aux1,self.aux2,self.aux3,self.work,1,self.fwave,rpn2,rpt2)
+
+                self.qbc, cfl_y = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
+                      self.qbc,self.qbc,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
+                      self.aux1,self.aux2,self.aux3,self.work,2,self.fwave,rpn2,rpt2)
+
+
+                self.qbc, cfl_x2 = self.fmod.step2ds(maxm,self.num_ghost,mx,my, \
+                      qold,self.qbc,self.auxbc,dx,dy,self.dt/2,self._method,self._mthlim,\
+                      self.aux1,self.aux2,self.aux3,self.work,1,self.fwave,rpn2,rpt2)
+
+                cfl = max(cfl_x1, cfl_x2, cfl_y)
+
             else:
+                # Unsplit algorithm
 
                 self.qbc, cfl = self.fmod.step2(maxm,self.num_ghost,mx,my, \
                       qold,self.qbc,self.auxbc,dx,dy,self.dt,self._method,self._mthlim,\
@@ -563,16 +586,15 @@ class ClawSolver3D(ClawSolver):
     
     .. attribute:: dimensional_split
     
-        If True, use dimensional splitting (Godunov splitting).
-        Dimensional splitting with Strang splitting is not supported
-        at present but could easily be enabled if necessary.
-        If False, use unsplit Clawpack algorithms, possibly including
+        If set to 1, use dimensional splitting (Godunov splitting).
+        Dimensional Strang splitting is not implemented in 3D.
+        If False (zero), use unsplit Clawpack algorithms, possibly including
         transverse Riemann solves.
 
     .. attribute:: transverse_waves
     
-        If dimensional_split is True, this option has no effect.  If
-        dim_plit is False, then transverse_waves should be one of
+        If dimensional_split is >0, this option has no effect.  If
+        dimensional_split is False, then transverse_waves should be one of
         the following values:
 
         ClawSolver3D.no_trans: Transverse Riemann solver
