@@ -828,32 +828,19 @@ contains
     ! ===================================================================
     subroutine poly_comp(q,ql,qr,num_eqn,maxnx,num_ghost)
     ! ===================================================================
+    !   Linear polynomial reconstruction; see module poly for the
+    !   meaning of lim_type 4, 5 and 6.
 
-        use poly
-        use clawparams, only: reconstruction_order
+        use poly, only: poly_recon
+        use clawparams, only: lim_type, reconstruction_order
         implicit none
 
         integer,          intent(in) :: num_eqn, maxnx, num_ghost
         double precision, intent(in) :: q(num_eqn,maxnx+2*num_ghost)
         double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost),qr(num_eqn,maxnx+2*num_ghost)
 
-        select case(reconstruction_order)
-        case (4)
-            call poly4(q,ql,qr,num_eqn,maxnx,num_ghost)
-        case (6)
-            call poly6(q,ql,qr,num_eqn,maxnx,num_ghost)           
-        case (8)
-            print *, 'Warning: 8th reconstruction order is not fully tested'
-            call poly8(q,ql,qr,num_eqn,maxnx,num_ghost)
-        case(10)
-            print *, 'Warning: 10th reconstruction order is not fully tested'
-            call poly10(q,ql,qr,num_eqn,maxnx,num_ghost)          
-        case default
-           print *, 'ERROR: reconstruction_order for polynomial must be an odd number between 4 and 10 (inclusive)'
-           stop
-        end select
+        call poly_recon(q,ql,qr,num_eqn,maxnx,num_ghost,lim_type,reconstruction_order)
 
-    return
     end subroutine poly_comp
 
 end module reconstruct

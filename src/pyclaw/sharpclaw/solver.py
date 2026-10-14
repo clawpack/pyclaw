@@ -5,6 +5,8 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 #  Created:     2010-03-20
 #  Author:      David Ketcheson
 """
+import warnings
+
 # Solver superclass
 from clawpack.pyclaw.solver import Solver
 from clawpack.pyclaw.util import add_parent_doc
@@ -36,18 +38,57 @@ class SharpClawSolver(Solver):
 
     .. attribute:: lim_type
 
-        Limiter(s) to be used.
-            - 0: No limiting.
-            - 1: TVD reconstruction.
-            - 2: WENO reconstruction.
-            - 3: Polynomial reconstruction.
+        Reconstruction used to compute interface values from cell
+        averages. Can be set with an integer or, equivalently, a name:
+
+            - -1 or ``'godunov'``: first-order Godunov (Python kernels only).
+            - 0: no limiting (not implemented).
+            - 1 or ``'tvd'``: TVD reconstruction.
+            - 2 or ``'weno'``: WENO reconstruction (odd
+              ``reconstruction_order``, 5 to 17).
+            - 3 or ``'weno5'``: original fifth-order WENO routine.
+            - 4 or ``'poly'``: non-dissipative polynomial reconstruction.
+            - 5 or ``'poly_dissipative'``: dissipative (upwind-biased)
+              polynomial reconstruction.
+            - 6 or ``'poly_cell_centered'``: dissipative, cell-centred
+              polynomial reconstruction.
+
+        The value is always stored, and read back, as an integer.
+
+        The polynomial reconstructions (4, 5 and 6) are linear and
+        unlimited, so they suit smooth solutions, e.g. electromagnetic
+        waves in smooth media; at discontinuities they produce Gibbs
+        oscillations. They take an even ``reconstruction_order`` N in
+        {4, 6, 8, 10}, are available with Fortran kernels only, and act
+        component-wise (``char_decomp`` is ignored). With k = N/2:
+
+            - ``'poly'`` uses the N cells centred on each face, so both
+              sides of a face get the same value: no numerical dissipation
+              is added (only the time integrator dissipates); for linear,
+              constant-coefficient problems the semi-discrete scheme
+              conserves the discrete L2 energy. Formal order N. Unresolved (grid-scale)
+              modes are not damped.
+            - ``'poly_dissipative'`` uses the same width, shifted one cell
+              upwind for each face state. Formal order N, with damping
+              that grows with wavenumber.
+            - ``'poly_cell_centered'`` uses the N+1 cells centred on each
+              cell (a polynomial of degree N). Formal order N+1, and less
+              dissipative than ``'poly_dissipative'``; it equals WENO of
+              order N+1 with its ideal linear weights.
+
+        All three need k+1 ghost cells, which is set automatically. The
+        time integrator ``'SSP104'`` is fourth order, so with N > 4 the
+        time error dominates unless the CFL number is reduced.
 
         ``Default = 2``
 
     .. attribute:: reconstruction_order
 
-        Order of the reconstruction. From 1st to 17th order (PyWENO), and from
-        4 to 10 (even) in Poly
+        Order of the reconstruction: odd, from 5 to 17, for WENO
+        (``lim_type`` 2); even, from 4 to 10, for the polynomial
+        reconstructions (``lim_type`` 4, 5 and 6; see ``lim_type`` for
+        how N relates to the formal order). Replaces ``weno_order``,
+        which still works but issues a ``FutureWarning``.
         ``Default = 5``
 
     .. attribute:: time_integrator
@@ -151,6 +192,45 @@ class SharpClawSolver(Solver):
         'SSPLMM53': [0.24, 0.25]
         }
 
+    _lim_type_names = {
+        'godunov': -1,
+        'tvd': 1,
+        'weno': 2,
+        'weno5': 3,
+        'poly': 4,
+        'poly_dissipative': 5,
+        'poly_cell_centered': 6,
+        }
+
+    _poly_lim_types = (4, 5, 6)
+    _poly_orders = (4, 6, 8, 10)
+
+    @property
+    def lim_type(self):
+        return self._lim_type
+
+    @lim_type.setter
+    def lim_type(self, value):
+        if isinstance(value, str):
+            try:
+                value = self._lim_type_names[value.lower()]
+            except KeyError:
+                raise ValueError("Unknown lim_type '%s'; valid names are %s"
+                                 % (value, ', '.join(self._lim_type_names)))
+        self._lim_type = value
+
+    @property
+    def weno_order(self):
+        warnings.warn("solver.weno_order has been replaced by "
+                      "solver.reconstruction_order", FutureWarning, stacklevel=2)
+        return self.reconstruction_order
+
+    @weno_order.setter
+    def weno_order(self, value):
+        warnings.warn("solver.weno_order has been replaced by "
+                      "solver.reconstruction_order", FutureWarning, stacklevel=2)
+        self.reconstruction_order = value
+
     # ========================================================================
     #   Initialization routines
     # ========================================================================
@@ -207,8 +287,15 @@ class SharpClawSolver(Solver):
         if self.lim_type == 2:
             self.num_ghost = int((self.reconstruction_order+1)/2)
 
-        if self.lim_type == 3:
-            self.num_ghost = int(1 + self.reconstruction_order/2)
+        if self.lim_type in self._poly_lim_types:
+            if self.reconstruction_order not in self._poly_orders:
+                raise ValueError('Polynomial reconstruction (lim_type %s) needs an even '
+                                 'reconstruction_order in %s, not %s.'
+                                 % (self.lim_type, self._poly_orders, self.reconstruction_order))
+            if self.kernel_language != 'Fortran':
+                raise NotImplementedError('Polynomial reconstruction (lim_type %s) is only '
+                                          'implemented in Fortran kernels.' % self.lim_type)
+            self.num_ghost = self.reconstruction_order//2 + 1
 
         if self.lim_type == 2 and self.reconstruction_order != 5 and self.kernel_language == 'Python':
             raise Exception('Only 5th-order WENO reconstruction is implemented in Python kernels. \
