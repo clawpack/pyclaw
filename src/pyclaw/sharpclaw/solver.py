@@ -6,10 +6,8 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 #  Author:      David Ketcheson
 """
 # Solver superclass
-from __future__ import absolute_import
 from clawpack.pyclaw.solver import Solver
 from clawpack.pyclaw.util import add_parent_doc
-from six.moves import range
 
 # Reconstructor
 try:
@@ -525,9 +523,14 @@ class SharpClawSolver(Solver):
     def _set_mthlim(self):
         self._mthlim = self.limiters
         if not isinstance(self.limiters,list): self._mthlim=[self._mthlim]
-        if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_waves
-        if len(self._mthlim)!=self.num_waves:
-            raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_waves')
+        if self.char_decomp == 0:  # entry-wise limiting
+            if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_eqn
+            if len(self._mthlim)!=self.num_eqn:
+                raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_eqn')
+        else: # Wave-wise limiting
+            if len(self._mthlim)==1: self._mthlim = self._mthlim * self.num_waves
+            if len(self._mthlim)!=self.num_waves:
+                raise Exception('Length of solver.limiters is not equal to 1 or to solver.num_waves')
 
        
     def dq(self,state):

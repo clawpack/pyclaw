@@ -1,7 +1,5 @@
 #Reconstruction functions for SharpClaw
 
-from __future__ import absolute_import
-from six.moves import range
 def weno(k, q):
     import numpy as np
 

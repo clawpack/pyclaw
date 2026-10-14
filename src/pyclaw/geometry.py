@@ -1,15 +1,10 @@
-r"""
+"""
 Module defining Pyclaw geometry objects.
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
 import numpy as np
 
 import warnings
-import six
-from six.moves import range
-from six.moves import zip
 deprec_message = "'edges' has been deprecated; please use 'nodes' instead."
 # ============================================================================
 #  Default function definitions
@@ -403,7 +398,7 @@ class Grid(object):
             # Check if gauge belongs to this grid:
             if all(self.lower[n]<=gauge[n]<self.upper[n] for n in range(self.num_dim)):
                 # Set indices relative to this grid
-                gauge_index = [int(round((gauge[n]-self.lower[n])/self.delta[n]))
+                gauge_index = [int((gauge[n]-self.lower[n])//self.delta[n])
                                for n in range(self.num_dim)]
                 gauge_file_name = 'gauge'+'_'.join(str(coord) for coord in gauge)+'.txt'
                 self.gauge_file_names.append(gauge_file_name)
@@ -608,7 +603,7 @@ class Dimension(object):
 
         See :class:`Dimension` for full documentation
         """
-        if isinstance(lower,six.string_types):
+        if isinstance(lower,str):
             raise Exception('Passing dimension name as first argument is deprecated. \
                              Pass it as a keyword argument instead.')
 

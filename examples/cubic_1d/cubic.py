@@ -13,7 +13,6 @@ Solve the cubic conservation law:
 This is a scalar nonlinear conservation law which is often used as a simple
 example for problems with non-convex flux functions.
 """
-from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 

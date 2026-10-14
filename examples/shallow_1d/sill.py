@@ -15,7 +15,6 @@ Here h is the depth, u is the velocity, g is the gravitational constant, and b
 the bathymetry.  
 """
 
-from __future__ import absolute_import
 import numpy
 from clawpack import riemann
 

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # encoding: utf-8
-
-from __future__ import absolute_import
 import numpy as np
 from scipy import integrate
 from six.moves import range

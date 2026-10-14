@@ -15,12 +15,10 @@ To install either, you must also install the hdf5 library from the website:
     http://www.hdfgroup.org/HDF5/release/obtain5.html
 """
 
-from __future__ import absolute_import
 import os
 import logging
 
 from clawpack import pyclaw
-import six
 import numpy as np
 
 logger = logging.getLogger('pyclaw.fileio')
@@ -96,7 +94,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
     """
     option_defaults = {'compression':None,'compression_opts':None,
                        'chunks':None,'shuffle':False,'fletcher32':False}
-    for (k,v) in six.iteritems(option_defaults):
+    for (k,v) in option_defaults.items():
         options[k] = options.get(k,v)
     
     filename = os.path.join(path,'%s%s.hdf' % 
@@ -171,7 +169,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
     if use_h5py:
         with h5py.File(filename,'r') as f:
         
-            for patch in six.itervalues(f):
+            for patch in f.values():
                 # Construct each dimension
                 dimensions = []
                 dim_names = np.array(patch.attrs["dimensions"]).astype(str)

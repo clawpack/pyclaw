@@ -4,9 +4,6 @@ r"""
 Module containing all Pyclaw solution objects
 """
 
-
-from __future__ import absolute_import
-import six
 class State(object):
     r"""
     A PyClaw State object contains the current state on a particular patch,
@@ -181,6 +178,7 @@ class State(object):
         
         """
         import logging
+        from .geometry import identity_map
         valid = True
         logger = logging.getLogger('pyclaw.solution')
         if not self.q.flags['F_CONTIGUOUS']:
@@ -190,6 +188,19 @@ class State(object):
             if not self.aux.flags['F_CONTIGUOUS']:
                 logger.debug('aux array is not Fortran contiguous.')
                 valid = False
+        if self.grid.mapc2p in list(identity_map.values()):
+            pass # No mapping
+        else:
+            if self.aux is None:
+                raise ValueError("Mapped grid requires a capacity function, stored in the aux array, " \
+                "but no aux array is present. Please set state.num_aux to a positive value.")
+            elif self.aux is not None:
+                if self.index_capa == -1:
+                    raise ValueError("Capacity function index is not set. " \
+                    "Please set state.index_capa to the appropriate index in the aux array.")
+                elif self.index_capa < 0 or self.index_capa > self.num_aux -1:
+                    raise ValueError("Capacity function index out of range. " \
+                    "Please set state.index_capa to the appropriate index in the aux array.")
         return valid
  
     def set_cparam(self,fortran_module):
@@ -216,7 +227,7 @@ class State(object):
                 raise Exception("""Some required value(s) in the cparam common 
                                    block in the Riemann solver have not been 
                                    set in problem_data.""")
-            for global_var_name,global_var_value in six.iteritems(self.problem_data): 
+            for global_var_name,global_var_value in self.problem_data.items():
                 setattr(fortran_module.cparam,global_var_name,global_var_value)
 
     def set_num_ghost(self,num_ghost):

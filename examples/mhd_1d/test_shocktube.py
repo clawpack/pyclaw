@@ -1,5 +1,4 @@
 "Runs the shocktube test problem with the Fortran Roe solver."
-from __future__ import absolute_import
 
 def test_shocktube():
     "Shock tube test (1D MHD with Roe solver)"
@@ -21,7 +20,3 @@ def test_shocktube():
         test_err = np.linalg.norm(expected_B2 - test_B2) + np.linalg.norm(expected_B3 - test_B3)
         assert test_err < 1.e-4
 
-
-if __name__=="__main__":
-    import nose
-    nose.main()

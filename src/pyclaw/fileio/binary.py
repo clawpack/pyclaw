@@ -7,14 +7,13 @@ which is why there is no "write" function here (the code that
 writes these files is in AMRClaw, in Fortran).
 """
 
-from __future__ import absolute_import
 import os
 import logging
 
 from ..util import read_data_line
 import numpy as np
 import clawpack.pyclaw as pyclaw
-from six.moves import range
+from clawpack.pyclaw.fileio.ascii import read_t
 
 logger = logging.getLogger('pyclaw.fileio')
 
@@ -44,7 +43,7 @@ def read(solution,frame,path='./',file_prefix='fort',read_aux=False,
      - *options* - (dict) Dictionary of optional arguments dependent on 
        the format being read in.  ``default = {}``
     """
-    from clawpack.pyclaw.fileio.ascii import read_t
+    
     
     # Construct path names
     base_path = os.path.join(path,)

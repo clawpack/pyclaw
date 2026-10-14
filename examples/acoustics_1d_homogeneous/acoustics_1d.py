@@ -18,14 +18,14 @@ The initial condition is a Gaussian and the boundary conditions are periodic.
 The final solution is identical to the initial data because both waves have
 crossed the domain exactly once.
 """
-from __future__ import absolute_import
 from numpy import sqrt, exp, cos
 from clawpack import riemann
 
 
 def setup(use_petsc=False, kernel_language='Fortran', solver_type='classic',
           outdir='./_output', ptwise=False, reconstruction_order=5, lim_type=2,
-          time_integrator='SSP104', disable_output=False, output_style=1):
+          time_integrator='SSP104', disable_output=False, output_style=1,
+          num_cells=100):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -56,7 +56,7 @@ def setup(use_petsc=False, kernel_language='Fortran', solver_type='classic',
 
     solver.kernel_language = kernel_language
 
-    x = pyclaw.Dimension(0.0, 1.0, 100, name='x')
+    x = pyclaw.Dimension(0.0, 1.0, num_cells, name='x')
     domain = pyclaw.Domain(x)
     num_eqn = 2
     state = pyclaw.State(domain, num_eqn)
@@ -73,9 +73,9 @@ def setup(use_petsc=False, kernel_language='Fortran', solver_type='classic',
     state.problem_data['cc'] = sqrt(bulk/rho)   # Sound speed
 
     xc = domain.grid.x.centers
-    beta = 100
+    beta = 200
     gamma = 0
-    x0 = 0.75
+    x0 = 0.5
     state.q[0, :] = exp(-beta * (xc-x0)**2) * cos(gamma * (xc - x0))
     state.q[1, :] = 0.0
 

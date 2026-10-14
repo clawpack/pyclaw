@@ -6,7 +6,6 @@
 ! HDF5 and XDMF routines for creating output files for VisIt.
 !-----------------------------------------------------------------------
 """
-from __future__ import absolute_import
 import os,sys
 import h5py
 from numpy import *

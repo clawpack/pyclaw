@@ -19,7 +19,6 @@ This example shows how to solve a problem with variable coefficients.
 The left and right halves of the domain consist of different materials.
 """
  
-from __future__ import absolute_import
 import numpy as np
 
 def setup(use_petsc=False,outdir='./_output',solver_type='classic',
@@ -65,7 +64,7 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic',
         if solver_type=='classic':
             solver.dimensional_split=True
         else:
-            solver.lim_type = 1
+            solver.lim_type = 2
 
         solver.limiters = [4]
         

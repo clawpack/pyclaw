@@ -20,7 +20,6 @@ fast and slow parts of the velocity field.
 """
 
 
-from __future__ import absolute_import
 import numpy as np
 
 def qinit(state):
@@ -51,7 +50,8 @@ def auxinit(state):
     state.aux[0,:] = np.sin(2.*np.pi*xc)+2
     
 
-def setup(use_petsc=False,solver_type='classic',kernel_language='Python',outdir='./_output'):
+def setup(use_petsc=False,solver_type='classic',kernel_language='Python',outdir='./_output',
+          reconstruction_order=5,time_integrator='SSP104',rk_coeffs=None):
     from clawpack import riemann
 
     if use_petsc:
@@ -69,7 +69,12 @@ def setup(use_petsc=False,solver_type='classic',kernel_language='Python',outdir=
             solver = pyclaw.SharpClawSolver1D(riemann.advection_color_1D)
         elif kernel_language=='Python': 
             solver = pyclaw.SharpClawSolver1D(riemann.vc_advection_1D_py.vc_advection_1D)
-        solver.reconstruction_order=reconstruction_order
+        solver.reconstruction_order = reconstruction_order
+        solver.time_integrator = time_integrator
+        if time_integrator == 'RK':
+            solver.a, solver.b, solver.c = rk_coeffs
+            solver.cfl_desired = 0.9
+            solver.cfl_max = 1.0
     else: raise Exception('Unrecognized value of solver_type.')
 
     solver.kernel_language = kernel_language
@@ -92,6 +97,8 @@ def setup(use_petsc=False,solver_type='classic',kernel_language='Python',outdir=
 
     claw = pyclaw.Controller()
     claw.outdir = outdir
+    if outdir is None:
+        claw.output_format = None
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
 

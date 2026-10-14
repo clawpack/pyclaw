@@ -4,7 +4,6 @@ r"""
 Routines for reading and writing an ascii output file
 """
 
-from __future__ import absolute_import
 import os
 import logging
 import numpy as np
@@ -12,7 +11,6 @@ import pickle
 import clawpack.pyclaw as pyclaw
 
 from clawpack.pyclaw.util import read_data_line
-from six.moves import range
 
 logger = logging.getLogger('pyclaw.fileio')
 
@@ -52,7 +50,7 @@ def write(solution, frame, path, file_prefix='fort', write_aux=False,
         f.write("%s                  file_format\n" % "ascii")
 
     # Write fort.qxxxx file
-    file_name = 'fort.q%s' % str(frame).zfill(4)
+    file_name = '%s.q%s' % (file_prefix,str(frame).zfill(4))
     with open(os.path.join(path,file_name),'w') as q_file:
         for state in solution.states:
             write_patch_header(q_file,state.patch)
@@ -64,7 +62,7 @@ def write(solution, frame, path, file_prefix='fort', write_aux=False,
 
     # Write fort.auxxxxx file if required
     if solution.num_aux > 0 and write_aux:
-        file_name = 'fort.a%s' % str(frame).zfill(4)
+        file_name = '%s.a%s' % (file_prefix,str(frame).zfill(4))
         with open(os.path.join(path,file_name),'w') as aux_file:
             for state in solution.states:
                 write_patch_header(aux_file,state.patch)

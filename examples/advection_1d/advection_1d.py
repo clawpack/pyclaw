@@ -16,11 +16,10 @@ The initial condition is a Gaussian and the boundary conditions are periodic.
 The final solution is identical to the initial data because the wave has
 crossed the domain exactly once.
 """
-from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 
-def setup(nx=100, kernel_language='Python', use_petsc=False, solver_type='classic', reconstruction_order=5, 
+def setup(nx=400, kernel_language='Python', use_petsc=False, solver_type='classic', reconstruction_order=5, 
           time_integrator='SSP104', outdir='./_output'):
 
     if use_petsc:

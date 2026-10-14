@@ -17,7 +17,6 @@ field.  We take a rotational velocity field: :math:`u = \cos(\theta), v = \sin(\
 This is the simplest example that shows how to use a mapped grid in PyClaw.
 However, it doesn't use a mapped-grid Riemann solver.
 """
-from __future__ import absolute_import
 import numpy as np
 
 def mapc2p_annulus(xc, yc):
@@ -206,6 +205,8 @@ def setup(use_petsc=False,outdir='./_output',solver_type='classic'):
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
+    if outdir is None:
+        claw.output_format = None
     claw.setplot = setplot
     claw.keep_copy = True
 

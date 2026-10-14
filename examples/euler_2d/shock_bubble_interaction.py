@@ -26,12 +26,10 @@ This problem demonstrates:
     - how to use the auxiliary array for spatially-varying coefficients
 """
 
-from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 from clawpack.riemann.euler_5wave_2D_constants import density, x_momentum, y_momentum, \
         energy, num_eqn
-from six.moves import range
 
 gamma = 1.4 # Ratio of specific heats
 
@@ -224,7 +222,7 @@ def setup(use_petsc=False,solver_type='classic', outdir='_output', kernel_langua
     claw.solver = solver
 
     claw.keep_copy = True
-    if disable_output:
+    if disable_output or outdir is None:
         claw.output_format = None
     claw.tfinal = tfinal
     claw.num_output_times = num_output_times

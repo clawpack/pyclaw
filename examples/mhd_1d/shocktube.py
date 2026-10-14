@@ -17,7 +17,6 @@ e is internal energy.
 
 This script runs a shock-tube problem, cf. https://doi.org/10.1016/j.jcp.2016.10.034.
 """
-from __future__ import absolute_import
 from clawpack import riemann
 from clawpack.riemann.mhd_1D_constants import num_eqn, density, momentum_1, momentum_2, momentum_3, energy, B_1, B_2, B_3
 

@@ -1,19 +1,16 @@
 """Main pyclaw package"""
 
-from __future__ import absolute_import
 import os
 import logging, logging.config
 
-
-# To get pyclaw.examples
-_path = os.path.dirname(os.path.dirname(__path__[0]))
-if os.path.isdir(_path):
-    __path__.append(_path)
-del _path
+_init = os.path.abspath(__file__)
+_root = os.path.dirname(os.path.dirname(os.path.dirname(_init)))
+if os.path.isdir(_root):
+    __path__.append(_root)
 
 # Default logging configuration file
 _DEFAULT_LOG_CONFIG_PATH = os.path.join(os.path.dirname(__file__),'log.config')
-del os
+del os, _init, _root
 
 # Setup loggers
 logging.config.fileConfig(_DEFAULT_LOG_CONFIG_PATH, disable_existing_loggers=False)

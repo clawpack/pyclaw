@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from .advection_1d import advection_1d
 from .acoustics_1d_homogeneous import acoustics_1d
 from .acoustics_2d_homogeneous import acoustics_2d

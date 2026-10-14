@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from clawpack import pyclaw
 from clawpack.pyclaw.solution import Solution
 
@@ -9,8 +8,17 @@ class Solution(Solution):
 
     def get_read_func(self, file_format):
         from clawpack.petclaw import fileio
+
         if file_format == 'petsc':
-            return fileio.petsc.read
+            try:
+                import clawpack.petclaw.fileio
+                return clawpack.petclaw.fileio.petsc.read
+            except AttributeError as e:
+                try:
+                    from petsc4py import PETSc
+                except ImportError:
+                    raise ImportError("petsc4py is required for reading petsc format files, but petsc4py could not be imported.")
+                raise e
         elif file_format == 'hdf5':
             return fileio.hdf5.read
         else:
@@ -24,5 +32,3 @@ class Solution(Solution):
             return fileio.hdf5.write
         else:
             raise ValueError("File format %s not supported." % file_format)
-
-

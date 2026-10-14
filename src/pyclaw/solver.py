@@ -1,11 +1,8 @@
 r"""
 Module specifying the interface to every solver in PyClaw.
 """
-from __future__ import absolute_import
 import logging
 import numpy as np
-import six
-from six.moves import range
 
 class CFLError(Exception):
     """Error raised when cfl_max is exceeded.  Is this a
@@ -221,6 +218,7 @@ class Solver(object):
 
         self.num_eqn   = None
         self.num_waves = None
+        self.fwave = None
 
         self.compute_gauge_values = default_compute_gauge_values
         r"""(function) - Function that computes quantities to be recorded at gauges"""
@@ -237,6 +235,7 @@ class Solver(object):
                 rp_name = rp_name.replace("_ptwise", "")
             self.num_eqn   = riemann.static.num_eqn.get(rp_name,None)
             self.num_waves = riemann.static.num_waves.get(rp_name,None)
+            self.fwave = riemann.static.fwave.get(rp_name,None)
 
         self._isinitialized = True
 
@@ -276,6 +275,9 @@ class Solver(object):
         if self.num_eqn is None:
             valid = False
             reason = 'solver.num_eqn has not been set.'
+        if self.fwave is None:
+            valid = False
+            reason = 'solver.fwave has not been set.'
         if (None in self.bc_lower) or (None in self.bc_upper):
             valid = False
             reason = 'One of the boundary conditions has not been set.'
@@ -309,7 +311,7 @@ class Solver(object):
 
     def __str__(self):
         output = "Solver Status:\n"
-        for (k,v) in six.iteritems(self.status):
+        for (k,v) in self.status.items():
             output = "\n".join((output,"%s = %s" % (k.rjust(25),v)))
         return output
 

@@ -17,7 +17,6 @@ The initial condition is one of the 2D Riemann problems from the paper of
 Liska and Wendroff.
 
 """
-from __future__ import absolute_import
 from clawpack import riemann
 from clawpack.riemann.euler_4wave_2D_constants import density, x_momentum, y_momentum, \
         energy, num_eqn
@@ -118,8 +117,10 @@ def setup(use_petsc=False,riemann_solver='roe'):
     claw.solution = solution
     claw.solver = solver
 
-    claw.output_format = 'ascii'    
+    if not use_petsc:
+        claw.output_format = 'ascii'   
     claw.outdir = "./_output"
+    claw.keep_copy = True
     claw.setplot = setplot
 
     return claw

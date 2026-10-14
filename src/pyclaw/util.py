@@ -4,8 +4,6 @@ r"""
 Pyclaw utility methods
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
 import time
 import os
 import sys
@@ -17,7 +15,6 @@ import warnings
 
 import numpy as np
 import contextlib
-from six.moves import zip
 
 
 LOGGING_LEVELS = {0:logging.CRITICAL,

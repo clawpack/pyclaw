@@ -16,7 +16,6 @@ The bathymetry contains a gaussian hump.
 are outflow.
 """
 
-from __future__ import absolute_import
 from clawpack import riemann
 from clawpack import pyclaw
 from clawpack.riemann.shallow_roe_with_efix_2D_constants import depth, x_momentum, y_momentum, num_eqn

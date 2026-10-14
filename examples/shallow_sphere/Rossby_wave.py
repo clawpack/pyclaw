@@ -14,8 +14,6 @@ Reference: Logically Rectangular Grids and Finite Volume Methods for PDEs in
            SIAM Review 50 (2008), 723-752. 
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
 import math
 import os
 import sys
@@ -25,26 +23,9 @@ import numpy as np
 from clawpack import pyclaw
 from clawpack import riemann
 from clawpack.pyclaw.util import inplace_build
-from six.moves import range
 
-try:
-    from clawpack.pyclaw.examples.shallow_sphere import problem
-    from clawpack.pyclaw.examples.shallow_sphere import classic2
-
-except ImportError:
-    this_dir = os.path.dirname(__file__)
-    if this_dir == '':
-        this_dir = os.path.abspath('.')
-    inplace_build(this_dir)
-
-    try:
-        # Now try to import again
-        from clawpack.pyclaw.examples.shallow_sphere import problem
-        from clawpack.pyclaw.examples.shallow_sphere import classic2
-    except ImportError:
-        print("***\nUnable to import problem module or automatically build, try running (in the directory of this file):\n python setup.py build_ext -i\n***", file=sys.stderr)
-        raise
-
+from clawpack.pyclaw.examples.shallow_sphere import sw_sphere_problem
+from clawpack.pyclaw.classic import classic2_sw_sphere as classic2
 
 # Nondimensionalized radius of the earth
 Rsphere = 1.0
@@ -69,7 +50,7 @@ def fortran_src_wrapper(solver,state,dt):
     t = state.t
 
     # Call src2 function
-    state.q = problem.src2(mx,my,num_ghost,xlower,ylower,dx,dy,q,aux,t,dt,Rsphere)
+    state.q = sw_sphere_problem.src2(mx,my,num_ghost,xlower,ylower,dx,dy,q,aux,t,dt,Rsphere)
 
 
 def mapc2p_sphere_nonvectorized(X,Y):
@@ -331,7 +312,7 @@ def auxbc_lower_y(state,dim,t,qbc,auxbc,num_ghost):
 
     # Impose BC
     auxtemp = auxbc.copy()
-    auxtemp = problem.setaux(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
+    auxtemp = sw_sphere_problem.setaux(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
     auxbc[:,:,:num_ghost] = auxtemp[:,:,:num_ghost]
 
 def auxbc_upper_y(state,dim,t,qbc,auxbc,num_ghost):
@@ -349,7 +330,7 @@ def auxbc_upper_y(state,dim,t,qbc,auxbc,num_ghost):
     
     # Impose BC
     auxtemp = auxbc.copy()
-    auxtemp = problem.setaux(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
+    auxtemp = sw_sphere_problem.setaux(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,auxtemp,Rsphere)
     auxbc[:,:,-num_ghost:] = auxtemp[:,:,-num_ghost:]
 
 
@@ -460,7 +441,7 @@ def setup(use_petsc=False,solver_type='classic',outdir='./_output', disable_outp
 
     num_ghost = 2
     auxtmp = np.ndarray(shape=(num_aux,mx+2*num_ghost,my+2*num_ghost), dtype=float, order='F')
-    auxtmp = problem.setaux(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
+    auxtmp = sw_sphere_problem.setaux(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,auxtmp,Rsphere)
     state.aux[:,:,:] = auxtmp[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
 
     # Set index for capa
@@ -470,7 +451,7 @@ def setup(use_petsc=False,solver_type='classic',outdir='./_output', disable_outp
     # ====================== 
     # 1) Call fortran function
     qtmp = np.ndarray(shape=(solver.num_eqn,mx+2*num_ghost,my+2*num_ghost), dtype=float, order='F')
-    qtmp = problem.qinit(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
+    qtmp = sw_sphere_problem.qinit(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
     state.q[:,:,:] = qtmp[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
 
     # 2) call python function define above

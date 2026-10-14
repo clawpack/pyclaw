@@ -1,10 +1,7 @@
-from __future__ import absolute_import
-from __future__ import print_function
 from petsc4py import PETSc
 import numpy as np
 import DMPFOR
 from six.moves import range
-
 
 
 global_nx =3

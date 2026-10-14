@@ -9,9 +9,7 @@ PyClaw solver.
 
 """
 
-from __future__ import absolute_import
 import pyclaw.limiters.weno.reconstruct as recon
-from six.moves import range
 
 def weno(k, q):
     r"""Return the *k* order WENO based reconstruction of *q*.

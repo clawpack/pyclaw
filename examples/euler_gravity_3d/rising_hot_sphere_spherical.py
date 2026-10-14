@@ -10,18 +10,16 @@ This problem evolves the 3D Euler equations using an F-wave
 The primary variables are: 
    density (rho), x,y, and z momentum (rho*u,rho*v,rho*w), and energy.
 """
-from __future__ import absolute_import
-from __future__ import print_function
 import numpy as np
-from mappedGrid import euler3d_mappedgrid as mg
-from six.moves import range
+from clawpack.riemann.mappedGrid import euler3d_mappedgrid as mg
 
 # Test for MPI, and set sizes accordingly
 try:
     from mpi4py import MPI
     mpiAvailable = True
 except ImportError:
-    raise ImportError('mpi4py is not available')
+    import warnings
+    warnings.warn('mpi4py is not available')
     mpiAvailable = False
 
 if mpiAvailable:
@@ -175,9 +173,8 @@ def euler3d(kernel_language='Fortran',solver_type='classic',\
 
     import logging
     solver.logger.setLevel(logging.DEBUG)
-
-    import euler_3d_gmap
-    solver.rp = euler_3d_gmap
+    from clawpack import riemann
+    solver.rp = riemann.euler_mapgrid_3D
     solver.num_eqn = 5
     solver.num_waves = 3
     solver.cfl_max = 0.6

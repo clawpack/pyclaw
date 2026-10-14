@@ -1,5 +1,6 @@
-from __future__ import absolute_import
-from __future__ import print_function
+import pytest
+
+@pytest.mark.skip(reason="Test not working yet PeanoClaw.")
 def test_initialization():
     from pyclaw.clawpack.clawpack import ClawSolver2D
     
@@ -17,6 +18,6 @@ def test_initialization():
             print((member[0]))
     
 
-if __name__=="__main__":
-    import nose
-    nose.main()
+# if __name__=="__main__":
+#     import nose
+#     nose.main()

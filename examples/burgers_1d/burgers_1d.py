@@ -16,7 +16,6 @@ model for fluid dynamics.
 The initial condition is sinusoidal, but after a short time a shock forms
 (due to the nonlinearity).
 """
-from __future__ import absolute_import
 import numpy as np
 from clawpack import riemann
 
@@ -57,6 +56,8 @@ def setup(use_petsc=0,kernel_language='Fortran',outdir='./_output',solver_type='
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver
     claw.outdir = outdir
+    if outdir is None:
+        claw.output_format = None
     claw.setplot = setplot
     claw.keep_copy = True
 

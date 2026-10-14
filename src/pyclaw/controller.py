@@ -10,8 +10,6 @@ output time specification.  It also can be used to set up easy plotting and
 running of compiled fortran binaries.
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
 import logging
 import sys
 import os
@@ -20,7 +18,6 @@ import copy
 from .solver import Solver
 from .util import FrameCounter
 from .util import LOGGING_LEVELS
-from six.moves import range
 
 class Controller(object):
     r"""Controller for pyclaw simulation runs and plotting

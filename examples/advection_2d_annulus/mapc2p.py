@@ -1,6 +1,3 @@
-
-
-from __future__ import absolute_import
 def mapc2p(xc,yc):
     """
     Specifies the mapping to curvilinear coordinates    

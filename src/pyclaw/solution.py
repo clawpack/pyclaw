@@ -4,8 +4,6 @@ r"""
 Module containing all Pyclaw solution objects
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
 import os
 import logging
 
@@ -137,9 +135,7 @@ class Solution(object):
         self.domain = None
         if len(arg) == 1:
             # Load frame
-            frame = arg[0]
-            if not isinstance(frame,int):
-                raise Exception('Invalid pyclaw.Solution object initialization')
+            frame = int(arg[0])
             if ('count_from_zero' in kargs):
                 if (kargs['count_from_zero'] == True):
                     self._start_frame = 0
@@ -180,7 +176,7 @@ class Solution(object):
                 raise Exception("Invalid arguments for Solution initialization.")
         elif len(arg) == 0:
             if 'frame' in kargs:
-                frame = kargs.pop('frame')
+                frame = int(kargs.pop('frame'))
                 self.read(frame,**kargs)
             elif not kargs:
                 pass  # With no arguments, initialize empty solution
@@ -202,8 +198,6 @@ class Solution(object):
          - (bool) - True if valid, false otherwise
         """
         return all([state.is_valid() for state in self.states])
-
-
     def __str__(self):
         output = "states:\n"
         # This is information about each of the states
@@ -382,8 +376,15 @@ class Solution(object):
             import clawpack.pyclaw.fileio.hdf5
             return clawpack.pyclaw.fileio.hdf5.read
         elif file_format == 'petsc':
-            import clawpack.petclaw.fileio
-            return clawpack.petclaw.fileio.petsc.read
+            try:
+                import clawpack.petclaw.fileio
+                return clawpack.petclaw.fileio.petsc.read
+            except AttributeError as e:
+                try:
+                    from petsc4py import PETSc
+                except ImportError:
+                    raise ImportError("petsc4py is required for reading petsc format files, but petsc4py could not be imported.")
+                raise e
         elif file_format == 'forestclaw':
             import clawpack.forestclaw.fileio.ascii
             return clawpack.forestclaw.fileio.ascii.read

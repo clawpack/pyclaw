@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 import RiemannSolver
 from RiemannSolver import *
 from numpy import empty
@@ -122,7 +120,3 @@ plot(mxValues, timeResultsVectorized, "go-")
 #figure(4)
 #suptitle("Figure 4 shows the the execution time for different mx values\n for the pointwize solver, timeSteps = {0}".format(max_timeSteps))	
 plot(mxValues, timeResultsPointwise, "bo-")
-
-
-
-

@@ -4,7 +4,6 @@ r"""
 Module containing SharpClaw solvers for PetClaw
 """
 
-from __future__ import absolute_import
 from clawpack import pyclaw
 
 class SharpClawSolver1D(pyclaw.SharpClawSolver1D):

@@ -20,11 +20,7 @@ The problem solved here is based on [LeVYon03]_.  An initial hump
 evolves into two trains of solitary waves.
 
 """
-from __future__ import absolute_import
-from __future__ import print_function
 import numpy as np
-from six.moves import range
-
 
 def qinit(state,ic=2,a2=1.0,xupper=600.):
     x = state.grid.x.centers
@@ -82,12 +78,13 @@ def moving_wall_bc(state,dim,t,qbc,auxbc,num_ghost):
         t0 = (t-t1)/tw1
         if abs(t0)<=1.: vwall = -a1*(1.+np.cos(t0*np.pi))
         else: vwall=0.
-        for ibc in range(num_ghost-1):
+        for ibc in range(num_ghost):
             qbc[1,num_ghost-ibc-1] = 2*vwall*state.aux[1,ibc] - qbc[1,num_ghost+ibc]
 
 
 
-def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./_output'):
+def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./_output',
+          tfinal=500., num_output_times = 20):
     from clawpack import riemann
 
     if use_petsc:
@@ -145,8 +142,6 @@ def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./
     state.aux[:,:] = setaux(xc,rhoB,KB,rhoA,KA,alpha,xlower=xlower,xupper=xupper)
     qinit(state,ic=1,a2=1.0,xupper=xupper)
 
-    tfinal=500.; num_output_times = 20;
-
     solver.max_steps = 5000000
     solver.fwave = True 
     solver.before_step = b4step 
@@ -154,8 +149,11 @@ def setup(use_petsc=0,kernel_language='Fortran',solver_type='classic',outdir='./
     solver.user_bc_upper=zero_bc
 
     claw = pyclaw.Controller()
-    claw.output_style = 1
     claw.num_output_times = num_output_times
+    claw.outdir = outdir
+    claw.output_style = 1
+    if outdir is None:
+        claw.output_format = None
     claw.tfinal = tfinal
     claw.solution = pyclaw.Solution(state,domain)
     claw.solver = solver

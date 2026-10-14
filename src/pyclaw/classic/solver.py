@@ -8,11 +8,9 @@ are both pure virtual classes; the only solver classes that should be instantiat
 are the dimension-specific ones, :class:`ClawSolver1D` and :class:`ClawSolver2D`.
 """
 
-from __future__ import absolute_import
 from clawpack.pyclaw.util import add_parent_doc
 from clawpack.pyclaw.solver import Solver
 from clawpack.pyclaw.limiters import tvd
-from six.moves import range
 from importlib import reload
 
 # ============================================================================

@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 def test_shallow_sphere():
     """Test solution of shallow water equations on the sphere."""
     from . import Rossby_wave
@@ -25,7 +24,3 @@ def test_shallow_sphere():
                     verify_shallow_sphere,
                     kwargs)
 
-
-if __name__=="__main__":
-    import nose
-    nose.main()

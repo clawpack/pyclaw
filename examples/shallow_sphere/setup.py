@@ -3,7 +3,6 @@
 # How to use this file
 # python setup.py build_ext -i
 
-from __future__ import absolute_import
 import os
 from os.path import join as pjoin
 from os.path import pardir as pardir

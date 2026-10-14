@@ -8,8 +8,6 @@ needed for any other custom Fortran code, such as setaux, b4step, etc.
 If you try this out, please raise issues in the PyClaw tracker for 
 anything that doesn't work.
 """
-from __future__ import absolute_import
-from __future__ import print_function
 import setrun
 import six
 

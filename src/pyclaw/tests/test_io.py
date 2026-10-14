@@ -1,10 +1,8 @@
-from __future__ import absolute_import
 import os
 import glob
 import numpy as np
 from clawpack.pyclaw import Solution
 from clawpack.pyclaw.util import check_solutions_are_same
-import six
 
 class IOTest():
     @property
@@ -61,7 +59,7 @@ class IOTest():
 
         # Compare solutions
         # Probably better to do this by defining __eq__ for each class
-        for fmt, sol in six.iteritems(s):
+        for fmt, sol in s.items():
             check_solutions_are_same(sol,ref_sol)
 
     def test_io_to_vtk(self):

@@ -26,11 +26,13 @@ subroutine setaux(maxmx,maxmy,num_ghost,mx,my,xlower,ylower,dxc,dyc, &
 
 
     implicit double precision (a-h,o-z)
-    parameter (maxm3 = 1005)
-    dimension xc(-3:maxm3), yc(-3:maxm3)
-    dimension xp(-3:maxm3,-3:maxm3), yp(-3:maxm3,-3:maxm3)
-    dimension zp(-3:maxm3,-3:maxm3)
-    dimension theta(-3:maxm3,-3:maxm3), phi(-3:maxm3,-3:maxm3)
+    !parameter (maxm3 = 1005)
+    dimension xc(-num_ghost:maxmx+num_ghost), yc(-num_ghost:maxmx+num_ghost)
+    dimension xp(-num_ghost:maxmx+num_ghost,-num_ghost:maxmx+num_ghost)
+    dimension yp(-num_ghost:maxmx+num_ghost,-num_ghost:maxmx+num_ghost)
+    dimension zp(-num_ghost:maxmx+num_ghost,-num_ghost:maxmx+num_ghost)
+    dimension theta(-num_ghost:maxmx+num_ghost,-num_ghost:maxmx+num_ghost)
+    dimension phi(-num_ghost:maxmx+num_ghost,-num_ghost:maxmx+num_ghost)
     dimension aux(num_aux,1-num_ghost:maxmx+num_ghost,1-num_ghost:maxmy+num_ghost)
 
 !f2py integer intent(in) maxmx
@@ -47,16 +49,6 @@ subroutine setaux(maxmx,maxmy,num_ghost,mx,my,xlower,ylower,dxc,dyc, &
 !f2py double precision intent(in) Rsphere
 
     pi = 4.d0*datan(1.d0)
-
-    if (num_ghost > 4) then
-        write(6,*)'***  increase size of local arrays in setaux ***'
-        stop
-    endif
-          
-    if (mx+num_ghost+1 > 1005 .OR. my+num_ghost+1 > 1005) then
-        write(6,*)'***  increase size of 1005 in setaux ***'
-        stop
-    endif
 
     ! Set xc and yc so that (xc(i),yc(j)) is the
     ! lower left corner of (i,j) cell in computational space:

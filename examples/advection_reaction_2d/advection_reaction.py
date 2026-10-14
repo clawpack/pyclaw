@@ -16,7 +16,6 @@ at cell edges.
 This example also shows how to use your own Riemann solver.
 """
 
-from __future__ import absolute_import
 import numpy as np
 import os
 
@@ -64,7 +63,7 @@ def set_velocities(solver,state):
     state.aux[:] = v_t * state.aux[:]
 
 
-def setup():
+def setup(outdir='./_output'):
     from clawpack import pyclaw
     from clawpack.pyclaw.examples.advection_reaction_2d import advection_2d
 
@@ -81,6 +80,7 @@ def setup():
     domain = pyclaw.Domain( (0.,0.), (1.,1.), (100,100) )
     solver.num_eqn = 2
     solver.num_waves = 1
+    solver.fwave = False
     num_aux = 2
     state = pyclaw.State(domain, solver.num_eqn, num_aux)
 
@@ -106,6 +106,9 @@ def setup():
     claw.solution = pyclaw.Solution(state, domain)
     claw.solver = solver
     claw.keep_copy = True
+    claw.outdir = outdir
+    if outdir == '':
+        claw.output_format = None
     claw.setplot = setplot
 
     return claw

@@ -1,6 +1,3 @@
-
-from __future__ import absolute_import
-from __future__ import print_function
 def get_fcompiler():
     import numpy.distutils.fcompiler
     numpy.distutils.log.set_verbosity(-1)
@@ -8,7 +5,7 @@ def get_fcompiler():
     fc.customize()
     return fc
 
-if __name__=="__main__":
+if __name__ == "__main__":
     fc = get_fcompiler()
     import sys
     if sys.argv[1] == 'get_compiler':

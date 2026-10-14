@@ -5,8 +5,6 @@ This file currently only exists so that these solvers have a different
 __module__ property, used by pyclaw.solver.Solver.__init__ to
 determine the containing claw_package to use.
 """
-
-from __future__ import absolute_import
 from clawpack import pyclaw
 
 class ClawSolver1D(pyclaw.ClawSolver1D):
