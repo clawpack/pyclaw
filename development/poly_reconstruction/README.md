@@ -14,7 +14,7 @@ directory.
 | 5 | `'poly_dissipative'` | N, shifted one cell upwind | N | strongest |
 | 6 | `'poly_cell_centered'` | N+1, centred on the cell | N+1 | moderate |
 
-N is `solver.reconstruction_order` (or `solver.poly_order`), an even
+N is `solver.reconstruction_order`, an even
 number in {4, 6, 8, 10}.
 
 ## 1. What a reconstruction computes
@@ -187,15 +187,25 @@ What this means in practice:
 solver = pyclaw.SharpClawSolver1D(riemann_solver)
 solver.lim_type = 'poly'          # or 4; 'poly_dissipative' (5), 'poly_cell_centered' (6)
 solver.reconstruction_order = 6   # even: 4, 6, 8 or 10
-# or, equivalently, select the polynomial family and its order at once:
-solver.poly_order = 6             # sets lim_type to 4 unless it is already 4, 5 or 6
 ```
 
-`solver.lim_type` also accepts `'godunov'` (-1), `'tvd'` (1), `'weno'`
-(2) and `'weno5'` (3). `solver.weno_order` and `solver.poly_order` read
-back the order of the active family (None otherwise). The example
-`setup()` functions accept `weno_order=` or `poly_order=` as well as
-`reconstruction_order=` and `lim_type=`.
+The example `setup()` functions take the same two keywords:
+
+```python
+claw = acoustics_1d.setup(solver_type='sharpclaw', lim_type='poly', reconstruction_order=6)
+```
+
+`reconstruction_order` is the keyword to use; it is the one that will
+remain. `solver.lim_type` also accepts `'godunov'` (-1), `'tvd'` (1),
+`'weno'` (2) and `'weno5'` (3).
+
+For compatibility, `weno_order` and `poly_order` still work, both as
+solver attributes and as `setup()` keywords. Setting one sets
+`reconstruction_order` and selects the matching family (`weno_order`
+switches to `lim_type` 2, `poly_order` to 4, unless a type of that family
+is already selected), and issues a `FutureWarning`: future releases may
+deprecate them. Reading them is silent and returns the order of the
+active family, or None.
 
 Limitations:
 

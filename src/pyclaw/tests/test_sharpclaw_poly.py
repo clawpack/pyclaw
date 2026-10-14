@@ -156,6 +156,7 @@ class TestLimTypeNames:
         assert advect(20, name, order) == advect(20, value, order)
 
 
+@pytest.mark.filterwarnings("ignore:.*may deprecate:FutureWarning")
 class TestOrderProperties:
 
     def make_solver(self, **kwargs):
@@ -195,14 +196,7 @@ class TestOrderProperties:
         with pytest.raises(ValueError):
             self.make_solver().poly_order = order
 
-    def test_order_properties_do_not_warn(self):
-        with warnings.catch_warnings():
-            warnings.simplefilter("error")
-            solver = self.make_solver(weno_order=7)
-            solver.poly_order = 4
-            solver.weno_order, solver.poly_order
-
-
+@pytest.mark.filterwarnings("ignore:.*may deprecate:FutureWarning")
 class TestSetReconstruction:
 
     def configure(self, **kwargs):
@@ -236,8 +230,10 @@ class TestSetReconstruction:
             self.configure(**kwargs)
 
 
+@pytest.mark.filterwarnings("ignore:.*may deprecate:FutureWarning")
 class TestExampleSetup:
-    """Example setup() functions accept weno_order and poly_order."""
+    """Example setup() functions accept reconstruction_order, and still
+    accept weno_order and poly_order."""
 
     def solver(self, **kwargs):
         from examples.acoustics_1d_homogeneous import acoustics_1d
@@ -284,6 +280,66 @@ class TestExampleSetup:
         advection_1d_nonunif.setup(poly_order=4)
 
 
+class TestFutureWarnings:
+    """weno_order and poly_order still work but warn that future releases
+    may deprecate them; reconstruction_order never warns."""
+
+    MATCH = "future releases may deprecate"
+
+    def solver(self):
+        return pyclaw.SharpClawSolver1D(riemann.advection_1D)
+
+    @pytest.mark.parametrize("name, value", [('weno_order', 7), ('poly_order', 6)])
+    def test_setting_warns(self, name, value):
+        solver = self.solver()
+        with pytest.warns(FutureWarning, match=self.MATCH):
+            setattr(solver, name, value)
+
+    @pytest.mark.parametrize("kwargs", [{'weno_order': 7}, {'poly_order': 6}])
+    def test_set_reconstruction_warns(self, kwargs):
+        with pytest.warns(FutureWarning, match=self.MATCH):
+            self.solver().set_reconstruction(**kwargs)
+
+    @pytest.mark.parametrize("kwargs", [{'weno_order': 7}, {'poly_order': 6}])
+    def test_example_setup_warns_at_the_call(self, kwargs):
+        from examples.acoustics_1d_homogeneous import acoustics_1d
+        with pytest.warns(FutureWarning, match=self.MATCH) as record:
+            acoustics_1d.setup(solver_type='sharpclaw', disable_output=True, **kwargs)
+        assert len(record) == 1
+        assert record[0].filename == __file__
+
+    def test_reading_and_reconstruction_order_do_not_warn(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            solver = self.solver()
+            solver.reconstruction_order = 7
+            solver.set_reconstruction(lim_type='poly', reconstruction_order=6)
+            solver.weno_order, solver.poly_order
+
+    @pytest.mark.parametrize("module, kwargs, order", [
+        ('examples.acoustics_1d_homogeneous.acoustics_1d', {'disable_output': True}, 11),
+        ('examples.advection_1d.advection_1d', {'kernel_language': 'Fortran'}, 7),
+        ('examples.advection_1d_variable.variable_coefficient_advection',
+         {'kernel_language': 'Fortran'}, 9),
+        ('examples.cubic_1d.cubic', {'N': 50}, 7),
+        ])
+    def test_examples_take_reconstruction_order(self, module, kwargs, order):
+        import importlib
+        setup = importlib.import_module(module).setup
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", FutureWarning)
+            claw = setup(solver_type='sharpclaw', reconstruction_order=order, **kwargs)
+            assert (claw.solver.lim_type, claw.solver.reconstruction_order) == (2, order)
+            claw = setup(solver_type='sharpclaw', lim_type='poly', reconstruction_order=6, **kwargs)
+            assert (claw.solver.lim_type, claw.solver.reconstruction_order) == (4, 6)
+
+    def test_nonuniform_example_takes_reconstruction_order(self):
+        from examples.advection_1d import advection_1d_nonunif
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", FutureWarning)
+            advection_1d_nonunif.setup(reconstruction_order=5)
+
+
 def test_poly_2d():
     """The 2D solver reuses the 1D reconstruction along each direction."""
     solver = pyclaw.SharpClawSolver2D(riemann.advection_2D)
@@ -320,22 +376,24 @@ def test_poly_2d():
     assert np.abs(qf - q0).max() < 1e-4
 
 
+@pytest.fixture(scope='module')
+def generator():
+    """development/poly_reconstruction/poly_weights.py, loaded by path."""
+    import importlib.util
+    import os
+    path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'development',
+                        'poly_reconstruction', 'poly_weights.py')
+    if not os.path.exists(path):
+        pytest.skip('development/ is not available')
+    spec = importlib.util.spec_from_file_location('poly_weights', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 class TestGenerator:
     """poly.f90 is generated by development/poly_reconstruction/poly_weights.py;
     these tests stop the two from drifting apart."""
-
-    @pytest.fixture(scope='class')
-    def generator(self):
-        import importlib.util
-        import os
-        path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'development',
-                            'poly_reconstruction', 'poly_weights.py')
-        if not os.path.exists(path):
-            pytest.skip('development/ is not available')
-        spec = importlib.util.spec_from_file_location('poly_weights', path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return module
 
     def test_poly_f90_matches_generator(self, generator):
         with open(generator.POLY_F90) as f:

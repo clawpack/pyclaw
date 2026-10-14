@@ -5,6 +5,8 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 #  Created:     2010-03-20
 #  Author:      David Ketcheson
 """
+import warnings
+
 # Solver superclass
 from clawpack.pyclaw.solver import Solver
 from clawpack.pyclaw.util import add_parent_doc
@@ -24,6 +26,12 @@ def default_tfluct(self):
     if self.tfluct_solver:
         raise Exception("You set solver.tfluct_solver=True, but solver.tfluct has not been set.")
     pass
+
+def _warn_order_keyword(name, stacklevel):
+    warnings.warn("%s is kept for compatibility, but future releases may deprecate it; "
+                  "use reconstruction_order (with lim_type) instead." % name,
+                  FutureWarning, stacklevel=stacklevel)
+
 
 class SharpClawSolver(Solver):
     r"""
@@ -85,9 +93,11 @@ class SharpClawSolver(Solver):
         Order of the reconstruction: odd, from 5 to 17, for WENO
         (``lim_type`` 2); even, from 4 to 10, for the polynomial
         reconstructions (``lim_type`` 4, 5 and 6; see ``lim_type`` for
-        how N relates to the formal order). This is the canonical
-        attribute; ``weno_order`` and ``poly_order`` are views of it that
-        also select the kind of reconstruction.
+        how N relates to the formal order). This is the preferred way to
+        set the order; ``weno_order`` and ``poly_order`` are views of it
+        that also select the kind of reconstruction, and setting them
+        issues a ``FutureWarning`` because future releases may deprecate
+        them.
         ``Default = 5``
 
     .. attribute:: weno_order
@@ -95,14 +105,16 @@ class SharpClawSolver(Solver):
         The WENO order: ``reconstruction_order`` when ``lim_type`` is 2,
         5 when it is 3 (fixed-order routine), otherwise None. Setting it
         sets ``reconstruction_order`` and switches ``lim_type`` to 2 unless
-        it is already 2 or 3.
+        it is already 2 or 3, and issues a ``FutureWarning`` (future
+        releases may deprecate it; prefer ``reconstruction_order``).
 
     .. attribute:: poly_order
 
         The polynomial reconstruction order: ``reconstruction_order`` when
         ``lim_type`` is 4, 5 or 6, otherwise None. Setting it (to 4, 6, 8
         or 10) sets ``reconstruction_order`` and switches ``lim_type`` to 4
-        unless it is already 4, 5 or 6.
+        unless it is already 4, 5 or 6, and issues a ``FutureWarning``
+        (future releases may deprecate it; prefer ``reconstruction_order``).
 
     .. attribute:: time_integrator
 
@@ -244,6 +256,10 @@ class SharpClawSolver(Solver):
 
     @weno_order.setter
     def weno_order(self, value):
+        _warn_order_keyword('weno_order', stacklevel=4)
+        self._set_weno_order(value)
+
+    def _set_weno_order(self, value):
         if self.lim_type not in self._weno_lim_types:
             self.lim_type = 2
         self.reconstruction_order = value
@@ -256,6 +272,10 @@ class SharpClawSolver(Solver):
 
     @poly_order.setter
     def poly_order(self, value):
+        _warn_order_keyword('poly_order', stacklevel=4)
+        self._set_poly_order(value)
+
+    def _set_poly_order(self, value):
         if value not in self._poly_orders:
             raise ValueError('poly_order must be one of %s, not %s.' % (self._poly_orders, value))
         if self.lim_type not in self._poly_lim_types:
@@ -271,7 +291,9 @@ class SharpClawSolver(Solver):
         ``weno_order`` selects WENO (``lim_type`` 2 unless ``lim_type`` is
         already 2 or 3) and ``poly_order`` selects a polynomial
         reconstruction (``lim_type`` 4 unless ``lim_type`` is already 4, 5
-        or 6). Contradictory arguments raise ``ValueError``: both
+        or 6); both issue a ``FutureWarning``, since future releases may
+        deprecate them in favour of ``reconstruction_order``. Contradictory
+        arguments raise ``ValueError``: both
         ``weno_order`` and ``poly_order``, either of them together with a
         different ``reconstruction_order``, or either of them with an
         explicit ``lim_type`` of the other kind.
@@ -291,10 +313,13 @@ class SharpClawSolver(Solver):
                 raise ValueError('weno_order cannot be used with lim_type %s.' % self.lim_type)
             if poly_order is not None and self.lim_type not in self._poly_lim_types:
                 raise ValueError('poly_order cannot be used with lim_type %s.' % self.lim_type)
+        # stacklevel 4 points the warning at the caller of the example's setup()
         if weno_order is not None:
-            self.weno_order = weno_order
+            _warn_order_keyword('weno_order', stacklevel=4)
+            self._set_weno_order(weno_order)
         elif poly_order is not None:
-            self.poly_order = poly_order
+            _warn_order_keyword('poly_order', stacklevel=4)
+            self._set_poly_order(poly_order)
         elif reconstruction_order is not None:
             self.reconstruction_order = reconstruction_order
 
