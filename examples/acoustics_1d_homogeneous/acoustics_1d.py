@@ -23,9 +23,9 @@ from clawpack import riemann
 
 
 def setup(use_petsc=False, kernel_language='Fortran', solver_type='classic',
-          outdir='./_output', ptwise=False, reconstruction_order=5, lim_type=2,
+          outdir='./_output', ptwise=False, reconstruction_order=None, lim_type=None,
           time_integrator='SSP104', disable_output=False, output_style=1,
-          num_cells=100):
+          num_cells=100, weno_order=None, poly_order=None):
 
     if use_petsc:
         import clawpack.petclaw as pyclaw
@@ -46,9 +46,9 @@ def setup(use_petsc=False, kernel_language='Fortran', solver_type='classic',
         solver.limiters = pyclaw.limiters.tvd.MC
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver1D(riemann_solver)
-        solver.reconstruction_order = reconstruction_order
+        solver.set_reconstruction(lim_type=lim_type, reconstruction_order=reconstruction_order,
+                                 weno_order=weno_order, poly_order=poly_order)
         solver.time_integrator = time_integrator
-        solver.lim_type = lim_type
         if time_integrator == 'SSPLMMk3':
             solver.lmm_steps = 4
     else:

@@ -1,6 +1,7 @@
 """
 Tests for the SharpClaw polynomial reconstructions (lim_type 4, 5 and 6),
-the lim_type names and the deprecated weno_order alias.
+the lim_type names, the weno_order and poly_order properties and the
+example setup() keywords.
 """
 import warnings
 
@@ -155,21 +156,132 @@ class TestLimTypeNames:
         assert advect(20, name, order) == advect(20, value, order)
 
 
-class TestWenoOrderAlias:
+class TestOrderProperties:
 
-    def test_weno_order_maps_to_reconstruction_order(self):
+    def make_solver(self, **kwargs):
         solver = pyclaw.SharpClawSolver1D(riemann.advection_1D)
-        with pytest.warns(FutureWarning, match="reconstruction_order"):
-            solver.weno_order = 9
-        assert solver.reconstruction_order == 9
-        with pytest.warns(FutureWarning):
-            assert solver.weno_order == 9
+        for key, value in kwargs.items():
+            setattr(solver, key, value)
+        return solver
 
-    def test_reconstruction_order_does_not_warn(self):
-        solver = pyclaw.SharpClawSolver1D(riemann.advection_1D)
+    def test_weno_order_reads_by_lim_type(self):
+        assert self.make_solver(reconstruction_order=9).weno_order == 9
+        assert self.make_solver(lim_type='weno5').weno_order == 5
+        assert self.make_solver(lim_type='poly', reconstruction_order=6).weno_order is None
+
+    def test_weno_order_selects_weno(self):
+        solver = self.make_solver(lim_type='poly', reconstruction_order=6)
+        solver.weno_order = 7
+        assert (solver.lim_type, solver.reconstruction_order) == (2, 7)
+        solver = self.make_solver(lim_type='weno5')
+        solver.weno_order = 5
+        assert solver.lim_type == 3
+
+    def test_poly_order_reads_by_lim_type(self):
+        assert self.make_solver().poly_order is None
+        for lim_type in POLY:
+            assert self.make_solver(lim_type=lim_type, reconstruction_order=8).poly_order == 8
+
+    def test_poly_order_selects_poly(self):
+        solver = self.make_solver()
+        solver.poly_order = 6
+        assert (solver.lim_type, solver.reconstruction_order) == (4, 6)
+        solver = self.make_solver(lim_type='poly_cell_centered')
+        solver.poly_order = 10
+        assert (solver.lim_type, solver.reconstruction_order) == (6, 10)
+
+    @pytest.mark.parametrize("order", (5, 12))
+    def test_poly_order_rejects_invalid_order(self, order):
+        with pytest.raises(ValueError):
+            self.make_solver().poly_order = order
+
+    def test_order_properties_do_not_warn(self):
         with warnings.catch_warnings():
             warnings.simplefilter("error")
-            solver.reconstruction_order = 7
+            solver = self.make_solver(weno_order=7)
+            solver.poly_order = 4
+            solver.weno_order, solver.poly_order
+
+
+class TestSetReconstruction:
+
+    def configure(self, **kwargs):
+        solver = pyclaw.SharpClawSolver1D(riemann.advection_1D)
+        solver.set_reconstruction(**kwargs)
+        return solver.lim_type, solver.reconstruction_order
+
+    @pytest.mark.parametrize("kwargs, expected", [
+        ({}, (2, 5)),
+        ({'reconstruction_order': 7}, (2, 7)),
+        ({'weno_order': 11}, (2, 11)),
+        ({'weno_order': 9, 'reconstruction_order': 9}, (2, 9)),
+        ({'lim_type': 'weno5', 'weno_order': 5}, (3, 5)),
+        ({'poly_order': 6}, (4, 6)),
+        ({'lim_type': 'poly_dissipative', 'poly_order': 8}, (5, 8)),
+        ({'lim_type': 6, 'reconstruction_order': 4}, (6, 4)),
+        ])
+    def test_valid(self, kwargs, expected):
+        assert self.configure(**kwargs) == expected
+
+    @pytest.mark.parametrize("kwargs", [
+        {'weno_order': 5, 'poly_order': 4},
+        {'weno_order': 7, 'reconstruction_order': 5},
+        {'poly_order': 6, 'reconstruction_order': 4},
+        {'lim_type': 'poly', 'weno_order': 5},
+        {'lim_type': 'weno', 'poly_order': 4},
+        {'lim_type': 'tvd', 'poly_order': 4},
+        ])
+    def test_contradictions_raise(self, kwargs):
+        with pytest.raises(ValueError):
+            self.configure(**kwargs)
+
+
+class TestExampleSetup:
+    """Example setup() functions accept weno_order and poly_order."""
+
+    def solver(self, **kwargs):
+        from examples.acoustics_1d_homogeneous import acoustics_1d
+        claw = acoustics_1d.setup(solver_type='sharpclaw', disable_output=True, **kwargs)
+        return claw.solver
+
+    def test_weno_order(self):
+        solver = self.solver(weno_order=11)
+        assert (solver.lim_type, solver.reconstruction_order) == (2, 11)
+
+    def test_poly_order(self):
+        solver = self.solver(poly_order=6)
+        assert (solver.lim_type, solver.reconstruction_order) == (4, 6)
+        solver = self.solver(poly_order=6, lim_type='poly_dissipative')
+        assert (solver.lim_type, solver.reconstruction_order) == (5, 6)
+
+    def test_defaults_unchanged(self):
+        solver = self.solver()
+        assert (solver.lim_type, solver.reconstruction_order) == (2, 5)
+
+    def test_weno_order_matches_upstream_result(self):
+        """setup(weno_order=11) reproduces the WENO11 regression value."""
+        from examples.acoustics_1d_homogeneous.test_acoustics import error
+        assert abs(error(kernel_language='Fortran', solver_type='sharpclaw',
+                         weno_order=11) - 0.000521) < 1e-5
+
+    @pytest.mark.parametrize("module, kwargs", [
+        ('examples.advection_1d.advection_1d', {'kernel_language': 'Fortran'}),
+        ('examples.advection_1d_variable.variable_coefficient_advection', {'kernel_language': 'Fortran'}),
+        ('examples.cubic_1d.cubic', {'N': 50}),
+        ])
+    @pytest.mark.parametrize("order_kwarg", [{'weno_order': 7}, {'poly_order': 6}])
+    def test_other_examples(self, module, kwargs, order_kwarg):
+        import importlib
+        setup = importlib.import_module(module).setup
+        claw = setup(solver_type='sharpclaw', **kwargs, **order_kwarg)
+        expected_lim_type = 2 if 'weno_order' in order_kwarg else 4
+        assert claw.solver.lim_type == expected_lim_type
+        assert claw.solver.reconstruction_order == list(order_kwarg.values())[0]
+
+    def test_nonuniform_example_accepts_keywords(self):
+        from examples.advection_1d import advection_1d_nonunif
+        advection_1d_nonunif.setup(weno_order=5)
+        advection_1d_nonunif.setup(poly_order=4)
 
 
 def test_poly_2d():
@@ -206,3 +318,34 @@ def test_poly_2d():
     q0 = claw.frames[0].q[0]
     qf = claw.frames[-1].q[0]
     assert np.abs(qf - q0).max() < 1e-4
+
+
+class TestGenerator:
+    """poly.f90 is generated by development/poly_reconstruction/poly_weights.py;
+    these tests stop the two from drifting apart."""
+
+    @pytest.fixture(scope='class')
+    def generator(self):
+        import importlib.util
+        import os
+        path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'development',
+                            'poly_reconstruction', 'poly_weights.py')
+        if not os.path.exists(path):
+            pytest.skip('development/ is not available')
+        spec = importlib.util.spec_from_file_location('poly_weights', path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_poly_f90_matches_generator(self, generator):
+        with open(generator.POLY_F90) as f:
+            assert f.read() == generator.fortran_source(), \
+                'poly.f90 is out of date: run development/poly_reconstruction/poly_weights.py --write'
+
+    @pytest.mark.parametrize("lim_type", sorted(POLY))
+    @pytest.mark.parametrize("order", ORDERS)
+    def test_compiled_weights_match_exact_weights(self, generator, lim_type, order):
+        lo, hi, w, ok = sharpclaw1.poly.poly_weights(lim_type, order)
+        cells, exact = generator.ql_weights(lim_type, order)
+        assert ok and (lo, hi) == (cells[0], cells[-1])
+        np.testing.assert_allclose(w[lo+5:hi+6], [float(v) for v in exact], rtol=0, atol=1e-15)
