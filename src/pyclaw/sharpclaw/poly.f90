@@ -129,14 +129,14 @@ contains
         if (.not. ok) then
             print *, 'ERROR: polynomial reconstruction needs lim_type 4, 5 or 6'
             print *, '       and an even reconstruction_order between 4 and 10.'
-            stop
+            error stop
         endif
 
         mx2 = size(q,2)
         reach = max(-lo, hi)
         if (reach >= num_ghost) then
             print *, 'ERROR: polynomial reconstruction needs num_ghost >= ', reach+1
-            stop
+            error stop
         endif
 
         ql = 0.d0

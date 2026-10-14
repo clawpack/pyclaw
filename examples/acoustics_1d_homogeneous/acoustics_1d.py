@@ -47,7 +47,7 @@ def setup(use_petsc=False, kernel_language='Fortran', solver_type='classic',
     elif solver_type == 'sharpclaw':
         solver = pyclaw.SharpClawSolver1D(riemann_solver)
         solver.set_reconstruction(lim_type=lim_type, reconstruction_order=reconstruction_order,
-                                 weno_order=weno_order, poly_order=poly_order)
+                                 weno_order=weno_order, poly_order=poly_order, stacklevel=4)
         solver.time_integrator = time_integrator
         if time_integrator == 'SSPLMMk3':
             solver.lmm_steps = 4

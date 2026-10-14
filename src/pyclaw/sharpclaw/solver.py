@@ -102,11 +102,13 @@ class SharpClawSolver(Solver):
 
     .. attribute:: weno_order
 
-        The WENO order: ``reconstruction_order`` when ``lim_type`` is 2,
-        5 when it is 3 (fixed-order routine), otherwise None. Setting it
-        sets ``reconstruction_order`` and switches ``lim_type`` to 2 unless
-        it is already 2 or 3, and issues a ``FutureWarning`` (future
-        releases may deprecate it; prefer ``reconstruction_order``).
+        The WENO order: ``reconstruction_order``, except 5 when
+        ``lim_type`` is 3 (fixed-order routine) and None for the
+        polynomial reconstructions (``lim_type`` 4, 5 and 6). Setting it
+        sets ``reconstruction_order``; it switches ``lim_type`` to 2 only
+        from a polynomial reconstruction, so that, as before, it leaves
+        TVD and Godunov solvers alone. It issues a ``FutureWarning``
+        (future releases may deprecate it; prefer ``reconstruction_order``).
 
     .. attribute:: poly_order
 
@@ -245,14 +247,17 @@ class SharpClawSolver(Solver):
         self._lim_type = value
 
     _weno_lim_types = (2, 3)
+    _weno_orders = tuple(range(5, 18, 2))
+    # lim_types the Fortran kernels (flux1.f90) implement
+    _fortran_lim_types = (1, 2, 3, 4, 5, 6)
 
     @property
     def weno_order(self):
-        if self.lim_type == 2:
-            return self.reconstruction_order
         if self.lim_type == 3:
             return 5    # the original WENO5 routine has a fixed order
-        return None
+        if self.lim_type in self._poly_lim_types:
+            return None
+        return self.reconstruction_order
 
     @weno_order.setter
     def weno_order(self, value):
@@ -260,7 +265,9 @@ class SharpClawSolver(Solver):
         self._set_weno_order(value)
 
     def _set_weno_order(self, value):
-        if self.lim_type not in self._weno_lim_types:
+        # Before reconstruction_order existed, weno_order was stored but
+        # only used by WENO, so it must not change a TVD or Godunov solver.
+        if self.lim_type in self._poly_lim_types:
             self.lim_type = 2
         self.reconstruction_order = value
 
@@ -283,20 +290,24 @@ class SharpClawSolver(Solver):
         self.reconstruction_order = value
 
     def set_reconstruction(self, lim_type=None, reconstruction_order=None,
-                           weno_order=None, poly_order=None):
+                           weno_order=None, poly_order=None, stacklevel=3):
         r"""
         Set the reconstruction from the arguments an example's ``setup()``
         receives. Arguments left as None keep the solver's current value.
 
-        ``weno_order`` selects WENO (``lim_type`` 2 unless ``lim_type`` is
-        already 2 or 3) and ``poly_order`` selects a polynomial
+        ``weno_order`` sets the order and switches a polynomial
+        reconstruction to WENO (``lim_type`` 2), leaving any other
+        ``lim_type`` as it is; ``poly_order`` selects a polynomial
         reconstruction (``lim_type`` 4 unless ``lim_type`` is already 4, 5
-        or 6); both issue a ``FutureWarning``, since future releases may
-        deprecate them in favour of ``reconstruction_order``. Contradictory
-        arguments raise ``ValueError``: both
+        or 6). Both issue a ``FutureWarning``, since future releases may
+        deprecate them in favour of ``reconstruction_order``; ``stacklevel``
+        says which frame the warning is attributed to, 3 for the caller of
+        this method, 4 when an example's ``setup()`` calls it on behalf of
+        its own caller. Contradictory arguments raise ``ValueError``: both
         ``weno_order`` and ``poly_order``, either of them together with a
-        different ``reconstruction_order``, or either of them with an
-        explicit ``lim_type`` of the other kind.
+        different ``reconstruction_order``, ``weno_order`` with an explicit
+        polynomial ``lim_type``, or ``poly_order`` with an explicit
+        non-polynomial ``lim_type``.
         """
         if weno_order is not None and poly_order is not None:
             raise ValueError('Pass either weno_order or poly_order, not both.')
@@ -309,16 +320,15 @@ class SharpClawSolver(Solver):
                                 family_order))
         if lim_type is not None:
             self.lim_type = lim_type
-            if weno_order is not None and self.lim_type not in self._weno_lim_types:
+            if weno_order is not None and self.lim_type in self._poly_lim_types:
                 raise ValueError('weno_order cannot be used with lim_type %s.' % self.lim_type)
             if poly_order is not None and self.lim_type not in self._poly_lim_types:
                 raise ValueError('poly_order cannot be used with lim_type %s.' % self.lim_type)
-        # stacklevel 4 points the warning at the caller of the example's setup()
         if weno_order is not None:
-            _warn_order_keyword('weno_order', stacklevel=4)
+            _warn_order_keyword('weno_order', stacklevel=stacklevel)
             self._set_weno_order(weno_order)
         elif poly_order is not None:
-            _warn_order_keyword('poly_order', stacklevel=4)
+            _warn_order_keyword('poly_order', stacklevel=stacklevel)
             self._set_poly_order(poly_order)
         elif reconstruction_order is not None:
             self.reconstruction_order = reconstruction_order
@@ -376,7 +386,21 @@ class SharpClawSolver(Solver):
         """
         Allocate RK stage arrays or previous step solutions and fortran routine work arrays.
         """
+        # Validate here: the Fortran kernels answer a bad lim_type or order
+        # with a bare 'stop', which ends the process without an exception.
+        if self.lim_type not in (-1, 0) + self._fortran_lim_types:
+            raise ValueError('lim_type must be between -1 and 6, or one of the names %s; got %s.'
+                             % (', '.join(self._lim_type_names), self.lim_type))
+        if self.lim_type == 0:
+            raise NotImplementedError('Unlimited reconstruction (lim_type 0) is not implemented.')
+        if self.kernel_language == 'Fortran' and self.lim_type not in self._fortran_lim_types:
+            raise NotImplementedError('lim_type %s is implemented in Python kernels only.'
+                                      % self.lim_type)
+
         if self.lim_type == 2:
+            if self.reconstruction_order not in self._weno_orders:
+                raise ValueError('WENO (lim_type 2) needs an odd reconstruction_order from 5 to 17, '
+                                 'not %s.' % self.reconstruction_order)
             self.num_ghost = int((self.reconstruction_order+1)/2)
 
         if self.lim_type in self._poly_lim_types:

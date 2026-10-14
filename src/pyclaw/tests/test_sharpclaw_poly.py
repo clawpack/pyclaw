@@ -3,6 +3,7 @@ Tests for the SharpClaw polynomial reconstructions (lim_type 4, 5 and 6),
 the lim_type names, the weno_order and poly_order properties and the
 example setup() keywords.
 """
+import inspect
 import warnings
 
 import numpy as np
@@ -131,6 +132,56 @@ class TestSolver:
             advect(20, 'poly', 4, kernel_language='Python')
 
 
+class TestSetupValidation:
+    """setup() rejects what the Fortran kernels would answer with a bare
+    'stop', which ends the process with exit status 0 and no exception."""
+
+    def setup_solver(self, lim_type, order, kernel_language='Fortran'):
+        solver = pyclaw.SharpClawSolver1D(riemann.advection_1D)
+        solver.kernel_language = kernel_language
+        solver.lim_type = lim_type
+        solver.reconstruction_order = order
+        solver.bc_lower[0] = pyclaw.BC.periodic
+        solver.bc_upper[0] = pyclaw.BC.periodic
+        domain = pyclaw.Domain(pyclaw.Dimension(0., 1., 20, name='x'))
+        state = pyclaw.State(domain, 1)
+        state.problem_data['u'] = 1.
+        solver.setup(pyclaw.Solution(state, domain))
+        return solver
+
+    @pytest.mark.parametrize("order", (4, 6, 19))
+    def test_weno_rejects_even_or_out_of_range_order(self, order):
+        with pytest.raises(ValueError):
+            self.setup_solver('weno', order)
+
+    @pytest.mark.parametrize("order", (5, 17))
+    def test_weno_accepts_odd_orders(self, order):
+        assert self.setup_solver('weno', order).num_ghost == (order + 1)//2
+
+    def test_godunov_is_python_only(self):
+        with pytest.raises(NotImplementedError):
+            self.setup_solver('godunov', 5)
+        assert self.setup_solver('godunov', 5, kernel_language='Python').lim_type == -1
+
+    def test_unlimited_is_not_implemented(self):
+        with pytest.raises(NotImplementedError):
+            self.setup_solver(0, 5, kernel_language='Python')
+
+    @pytest.mark.parametrize("lim_type", (-2, 7, 1000))
+    def test_unknown_lim_type(self, lim_type):
+        with pytest.raises(ValueError):
+            self.setup_solver(lim_type, 5)
+
+    def test_even_order_without_lim_type_raises(self):
+        """The preferred keyword with an even order but the default (WENO)
+        lim_type is a likely slip; it must raise, not end the process."""
+        from examples.acoustics_1d_homogeneous import acoustics_1d
+        claw = acoustics_1d.setup(solver_type='sharpclaw', reconstruction_order=6,
+                                  disable_output=True)
+        with pytest.raises(ValueError, match='odd reconstruction_order'):
+            claw.run()
+
+
 class TestLimTypeNames:
 
     @pytest.mark.parametrize("name, value", [
@@ -169,6 +220,9 @@ class TestOrderProperties:
         assert self.make_solver(reconstruction_order=9).weno_order == 9
         assert self.make_solver(lim_type='weno5').weno_order == 5
         assert self.make_solver(lim_type='poly', reconstruction_order=6).weno_order is None
+        # as before this branch, it reads 5 on solvers that do not use it
+        assert self.make_solver(lim_type='tvd').weno_order == 5
+        assert self.make_solver(lim_type='godunov').weno_order == 5
 
     def test_weno_order_selects_weno(self):
         solver = self.make_solver(lim_type='poly', reconstruction_order=6)
@@ -177,6 +231,14 @@ class TestOrderProperties:
         solver = self.make_solver(lim_type='weno5')
         solver.weno_order = 5
         assert solver.lim_type == 3
+
+    @pytest.mark.parametrize("lim_type", ('tvd', 'godunov'))
+    def test_weno_order_leaves_other_solvers_alone(self, lim_type):
+        """Scripts that set weno_order on a TVD solver must still get TVD."""
+        solver = self.make_solver(lim_type=lim_type)
+        solver.weno_order = 7
+        assert solver.lim_type == solver._lim_type_names[lim_type]
+        assert solver.reconstruction_order == 7
 
     def test_poly_order_reads_by_lim_type(self):
         assert self.make_solver().poly_order is None
@@ -210,6 +272,7 @@ class TestSetReconstruction:
         ({'weno_order': 11}, (2, 11)),
         ({'weno_order': 9, 'reconstruction_order': 9}, (2, 9)),
         ({'lim_type': 'weno5', 'weno_order': 5}, (3, 5)),
+        ({'lim_type': 'tvd', 'weno_order': 5}, (1, 5)),
         ({'poly_order': 6}, (4, 6)),
         ({'lim_type': 'poly_dissipative', 'poly_order': 8}, (5, 8)),
         ({'lim_type': 6, 'reconstruction_order': 4}, (6, 4)),
@@ -279,6 +342,14 @@ class TestExampleSetup:
         advection_1d_nonunif.setup(weno_order=5)
         advection_1d_nonunif.setup(poly_order=4)
 
+    def test_cubic_keeps_positional_order(self):
+        """Upstream's positional order (use_petsc, outdir, solver_type,
+        order, N) still holds; lim_type is appended after N."""
+        from examples.cubic_1d import cubic
+        claw = cubic.setup(0, './_output', 'sharpclaw', 7, 50)
+        assert claw.solution.domain.grid.num_cells[0] == 50
+        assert (claw.solver.lim_type, claw.solver.reconstruction_order) == (2, 7)
+
 
 class TestFutureWarnings:
     """weno_order and poly_order still work but warn that future releases
@@ -296,9 +367,11 @@ class TestFutureWarnings:
             setattr(solver, name, value)
 
     @pytest.mark.parametrize("kwargs", [{'weno_order': 7}, {'poly_order': 6}])
-    def test_set_reconstruction_warns(self, kwargs):
-        with pytest.warns(FutureWarning, match=self.MATCH):
+    def test_set_reconstruction_warns_at_the_call(self, kwargs):
+        with pytest.warns(FutureWarning, match=self.MATCH) as record:
+            line = inspect.currentframe().f_lineno + 1
             self.solver().set_reconstruction(**kwargs)
+        assert (record[0].filename, record[0].lineno) == (__file__, line)
 
     @pytest.mark.parametrize("kwargs", [{'weno_order': 7}, {'poly_order': 6}])
     def test_example_setup_warns_at_the_call(self, kwargs):

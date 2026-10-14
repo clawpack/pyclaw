@@ -142,7 +142,7 @@ claw = acoustics_1d.setup(solver_type='sharpclaw', lim_type='poly', reconstructi
 
 `reconstruction_order` is the keyword to use; it is the one that will remain. `solver.lim_type` also accepts `'godunov'` (-1), `'tvd'` (1), `'weno'` (2) and `'weno5'` (3).
 
-For compatibility, `weno_order` and `poly_order` still work, both as solver attributes and as `setup()` keywords. Setting one sets `reconstruction_order` and selects the matching family (`weno_order` switches to `lim_type` 2, `poly_order` to 4, unless a type of that family is already selected), and issues a `FutureWarning`: future releases may deprecate them. Reading them is silent and returns the order of the active family, or None.
+For compatibility, `weno_order` and `poly_order` still work, both as solver attributes and as `setup()` keywords. Setting one sets `reconstruction_order` and issues a `FutureWarning`: future releases may deprecate them. `poly_order` switches to `lim_type` 4 unless a polynomial type is already selected; `weno_order` switches a polynomial type to `lim_type` 2 and, as it always did, leaves TVD and Godunov solvers alone. Reading them is silent: `poly_order` returns the order of a polynomial type, or None; `weno_order` returns the order for every other type, or None for a polynomial one.
 
 Limitations:
 

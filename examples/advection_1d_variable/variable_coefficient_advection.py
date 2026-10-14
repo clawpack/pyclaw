@@ -71,7 +71,7 @@ def setup(use_petsc=False,solver_type='classic',kernel_language='Python',outdir=
         elif kernel_language=='Python': 
             solver = pyclaw.SharpClawSolver1D(riemann.vc_advection_1D_py.vc_advection_1D)
         solver.set_reconstruction(lim_type=lim_type, reconstruction_order=reconstruction_order,
-                                 weno_order=weno_order, poly_order=poly_order)
+                                 weno_order=weno_order, poly_order=poly_order, stacklevel=4)
         solver.time_integrator = time_integrator
         if time_integrator == 'RK':
             solver.a, solver.b, solver.c = rk_coeffs
