@@ -1,0 +1,119 @@
+name: Nightly tests
+
+# Runs once a day (and on demand).  Carries the macOS test coverage that was
+# moved off the per-PR path (testing.yml) because of macOS runners' 10x minute
+# multiplier.  Use workflow_dispatch to run it against a branch before merging
+# macOS-sensitive changes.  Lint and coverage stay on the per-PR Linux path.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 7 * * *'
+
+permissions:
+  contents: read
+
+env:
+  CLAW: ${{ github.workspace }}
+
+jobs:
+  tests:
+    name: >
+      ${{ matrix.os }} - py ${{ matrix.python-version }} - ${{ matrix.toolchain.compiler }} ${{ matrix.build }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest]
+        python-version: ["3.12"]
+        build: [debug, opt]
+        toolchain:
+          - {compiler: gcc, version: 15}
+
+    steps:
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v7.0.0
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Set up compilers
+      uses: fortran-lang/setup-fortran@v1.10.0
+      id: setup-fortran
+      with:
+        compiler: ${{ matrix.toolchain.compiler }}
+        version: ${{ matrix.toolchain.version }}
+
+    - name: Install python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install numpy
+        pip install matplotlib #Some imports require matplotlib
+        pip install scipy #To not skip tests
+        pip install meson-python ninja pytest
+
+    - name: Checkout Clawpack
+      uses: actions/checkout@v7.0.1
+      with:
+        repository: clawpack/clawpack
+        submodules: true
+
+    - name: Checkout PyClaw branch
+      uses: actions/checkout@v7.0.1
+      with:
+        path: pyclaw
+
+    - name: Install clawpack
+      run: |
+        if [ "${{ matrix.toolchain.compiler }}" = "gcc" ]; then
+          if [ "${{ matrix.build }}" = "debug" ]; then
+            export FFLAGS="-O0 -g -fcheck=all -fbacktrace -fbounds-check -ffpe-trap=invalid,zero,overflow -finit-real=nan -finit-integer=nan -Wall -Wunderflow -Wextra -Wconversion -Wuninitialized -Warray-bounds -Wshadow -Wno-unused-function -Wno-unused-variable -Wno-unused-parameter -Wno-unused-label -Wno-unused-but-set-variable"
+            export CFLAGS=""
+          elif [ "${{ matrix.build }}" = "opt" ]; then
+            # export FFLAGS="-O1 -funroll-loops -finline-functions -ftree-vectorize -fstack-protector-strong -flto -march=native"
+            export FFLAGS=""
+            export CFLAGS=""
+          else
+            echo "Unknown build type: ${{ matrix.build }}"
+            exit 1
+          fi
+        elif [ "${{ matrix.toolchain.compiler }}" = "intel" ] || [ "${{ matrix.toolchain.compiler }}" = "intel-classic" ]; then
+          if [ "${{ matrix.build }}" = "debug" ]; then
+            export FFLAGS=""
+            export CFLAGS=""
+          elif [ "${{ matrix.build }}" = "opt" ]; then
+            export FFLAGS=""
+            export CFLAGS=""
+          else
+            echo "Unknown build type: ${{ matrix.build }}"
+            exit 1
+          fi
+        else
+          echo "Unknown compiler: ${{ matrix.toolchain.compiler }}"
+          exit 1
+        fi
+        echo "Using `$FC --version`"
+        echo "FFLAGS: $FFLAGS"
+        echo "CFLAGS: $CFLAGS"
+        cd ${{ env.CLAW }}
+        pip install --no-build-isolation --editable .
+
+    - name: Test with pytest
+      run: |
+        cd ${{ env.CLAW }}/pyclaw
+        python -m pytest -vv -s --showlocals --ignore=development -k "not test_shallow_sphere" --junitxml=test-report.xml
+
+    - name: Process test results
+      uses: test-summary/action@v2.6
+      if: always()
+      with:
+        paths: ${{ env.CLAW }}/pyclaw/test-report.xml
+        output: ${{ env.CLAW }}/pyclaw/test-summary.md
+        show: "all"
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: nightly-${{ matrix.os }}-py${{ matrix.python-version }}-${{ matrix.toolchain.compiler }}-${{ matrix.build }}
+        path: ${{ env.CLAW }}/pyclaw/test-summary.md
+        if-no-files-found: ignore

@@ -3,13 +3,29 @@ name: Test PyClaw
 on:
   push:
     branches: [ "master" ]
+    paths-ignore:
+      - '**.md'
+      - '**.rst'
+      - 'docs/**'
+      - '.gitignore'
   pull_request:
     branches: [ "master" ]
+    paths-ignore:
+      - '**.md'
+      - '**.rst'
+      - 'docs/**'
+      - '.gitignore'
 
   workflow_dispatch:
 
 permissions:
   contents: read
+
+# Cancel superseded runs on the same ref (e.g. new pushes to a PR) so we do not
+# stack full matrix runs and burn Actions minutes on stale commits.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   CLAW: ${{ github.workspace }}
@@ -19,15 +35,17 @@ jobs:
     name: >
       ${{ matrix.os }} - py ${{ matrix.python-version }} - ${{ matrix.toolchain.compiler }} ${{ matrix.build }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false # Probably want to turn this off for a large matrix
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        # Linux only on the per-PR path; macOS tests run nightly (nightly.yml)
+        # where its 10x minute multiplier is paid once a day.
+        os: [ubuntu-latest]
         python-version: ["3.12"]
         build: [debug, opt]
         toolchain:
           - {compiler: gcc, version: 14}
-          - {compiler: gcc, version: 15}
           # - {compiler: intel, version: '2025.0'}
           # - {compiler: intel-classic, version: '2021.10'}
           # - {compiler: nvidia-hpc, version: '25.1'} # does not build python
@@ -38,20 +56,15 @@ jobs:
         #     python-version: 3.10
         #     build: opt
         #     toolchain: {compiler: gcc, version: 14}
-        exclude:
-          - os: ubuntu-latest
-            toolchain: {compiler: gcc, version: 15}
-          - os: macos-latest
-            toolchain: {compiler: gcc, version: 14}
 
     steps:
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7.0.0
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Set up compilers
-      uses: fortran-lang/setup-fortran@v1
+      uses: fortran-lang/setup-fortran@v1.10.0
       id: setup-fortran
       with:
         compiler: ${{ matrix.toolchain.compiler }}
@@ -68,13 +81,13 @@ jobs:
         # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     - name: Checkout Clawpack
-      uses: actions/checkout@v4.1.5
+      uses: actions/checkout@v7.0.1
       with:
         repository: clawpack/clawpack
         submodules: true
 
     - name: Checkout PyClaw branch
-      uses: actions/checkout@v4.1.5
+      uses: actions/checkout@v7.0.1
       with:
         path: pyclaw
 
@@ -128,7 +141,7 @@ jobs:
         coverage run --source=src -m pytest -vv -s --showlocals --ignore=development -k "not test_shallow_sphere" --junitxml=test-report.xml
 
     - name: Process test results
-      uses: test-summary/action@v2.4
+      uses: test-summary/action@v2.6
       if: always()
       with:
         paths: ${{ env.CLAW }}/pyclaw/test-report.xml
@@ -138,7 +151,7 @@ jobs:
     - name: Upload test results
       # if: failure()
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.os }}-py${{ matrix.python-version }}-${{ matrix.toolchain.compiler }}-${{ matrix.build }}
         path: ${{ env.CLAW }}/pyclaw/test-summary.md
