@@ -15,7 +15,6 @@ import logging
 
 from clawpack.petclaw import geometry
 from clawpack import petclaw
-import six
 
 logger = logging.getLogger('pyclaw.fileio')
 
@@ -81,7 +80,7 @@ def write(solution,frame,path,file_prefix='claw',write_aux=False,
     """
     option_defaults = {'compression':None,'compression_opts':None,
                        'chunks':None,'shuffle':False,'fletcher32':False}
-    for (k,v) in six.iteritems(option_defaults):
+    for (k,v) in option_defaults.items():
         options[k] = options.get(k,v)
     
     filename = os.path.join(path,'%s%s.hdf' % 
@@ -160,7 +159,7 @@ def read(solution,frame,path='./',file_prefix='claw',read_aux=True,
     patches = []
 
     with h5py.File(filename,'r',driver='mpio',comm=MPI.COMM_WORLD) as f:
-        for patch in six.itervalues(f):
+        for patch in f.values():
             # Construct each dimension
             dimensions = []
             dim_names = [ name.decode('ascii')

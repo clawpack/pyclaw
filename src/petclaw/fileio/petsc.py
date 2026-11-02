@@ -10,7 +10,6 @@ frame data.
 from petsc4py import PETSc
 import pickle
 import os
-from six.moves import range
     
 
 def write(solution,frame,path='./',file_prefix='claw',write_aux=False,
