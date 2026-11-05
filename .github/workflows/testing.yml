@@ -41,7 +41,11 @@ jobs:
       matrix:
         # Linux only on the per-PR path; macOS tests run nightly (nightly.yml)
         # where its 10x minute multiplier is paid once a day.
-        os: [ubuntu-latest]
+        # TEMPORARY: pinned to ubuntu-24.04 because test_shocksine fails in the
+        # gcc opt build on ubuntu-26.04 (now ubuntu-latest). Unpin back to
+        # ubuntu-latest (here and in the Coveralls `if:` below) when resolving
+        # https://github.com/clawpack/pyclaw/issues/767
+        os: [ubuntu-24.04]
         python-version: ["3.12"]
         build: [debug, opt]
         toolchain:
@@ -158,7 +162,7 @@ jobs:
         if-no-files-found: ignore
 
     - name: Upload to Coveralls
-      if: ${{ matrix.os == 'ubuntu-latest' && matrix.toolchain.compiler == 'gcc' && matrix.build == 'opt' && matrix.python-version == '3.12' }}
+      if: ${{ matrix.os == 'ubuntu-24.04' && matrix.toolchain.compiler == 'gcc' && matrix.build == 'opt' && matrix.python-version == '3.12' }}
       run: |
         cd ${{ env.CLAW }}/pyclaw
         ls -l .coverage
