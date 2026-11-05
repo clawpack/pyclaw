@@ -1,0 +1,40 @@
+name: Retry nightly on runner shortage
+
+# The hosted macOS arm64 pool is often short on capacity, and a nightly job
+# sometimes gets no runner within GitHub's ~15 minute acquisition window
+# ("The job was not acquired by Runner of type hosted even after multiple
+# attempts").  When that is the *only* reason the nightly failed, re-run the
+# failed jobs, up to two extra attempts.  Real test failures are never retried.
+on:
+  workflow_run:
+    workflows: ["Nightly tests"]
+    types: [completed]
+
+permissions:
+  actions: write
+
+jobs:
+  retry:
+    if: >
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.run_attempt < 3
+    runs-on: ubuntu-latest
+    steps:
+    - name: Re-run jobs that never got a runner
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        RUN_ID: ${{ github.event.workflow_run.id }}
+      run: |
+        # Jobs of the latest attempt that did not succeed.  A job that was
+        # never acquired has no runner assigned.
+        jobs=$(gh api "repos/$REPO/actions/runs/$RUN_ID/jobs" \
+          --jq '[.jobs[] | select(.conclusion != "success" and .conclusion != "skipped")]')
+        failed=$(jq 'length' <<< "$jobs")
+        unacquired=$(jq '[.[] | select((.runner_name // "") == "")] | length' <<< "$jobs")
+        echo "Non-successful jobs: $failed, never acquired a runner: $unacquired"
+        if [ "$failed" -eq 0 ] || [ "$unacquired" -ne "$failed" ]; then
+          echo "Not a pure runner-shortage failure; leaving it for a human."
+          exit 0
+        fi
+        gh run rerun "$RUN_ID" --repo "$REPO" --failed
