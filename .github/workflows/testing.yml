@@ -41,15 +41,11 @@ jobs:
       matrix:
         # Linux only on the per-PR path; macOS tests run nightly (nightly.yml)
         # where its 10x minute multiplier is paid once a day.
-        # TEMPORARY: pinned to ubuntu-24.04 because test_shocksine fails in the
-        # gcc opt build on ubuntu-26.04 (now ubuntu-latest). Unpin back to
-        # ubuntu-latest (here and in the Coveralls `if:` below) when resolving
-        # https://github.com/clawpack/pyclaw/issues/767
-        os: [ubuntu-24.04]
+        os: [ubuntu-latest]
         python-version: ["3.12"]
         build: [debug, opt]
         toolchain:
-          - {compiler: gcc, version: 14}
+          - {compiler: gcc, version: 15}
           # - {compiler: intel, version: '2025.0'}
           # - {compiler: intel-classic, version: '2021.10'}
           # - {compiler: nvidia-hpc, version: '25.1'} # does not build python
@@ -73,6 +69,13 @@ jobs:
       with:
         compiler: ${{ matrix.toolchain.compiler }}
         version: ${{ matrix.toolchain.version }}
+
+    # Record the compiler and its default target (-march/-mtune); runner image
+    # changes can silently change these (see clawpack/pyclaw#767).
+    - name: Show compiler configuration
+      run: |
+        ${FC} --version
+        ${FC} -Q --help=target | grep -E '^ +-m(arch|tune)=' || true
 
     - name: Install python dependencies
       run: |
@@ -162,7 +165,7 @@ jobs:
         if-no-files-found: ignore
 
     - name: Upload to Coveralls
-      if: ${{ matrix.os == 'ubuntu-24.04' && matrix.toolchain.compiler == 'gcc' && matrix.build == 'opt' && matrix.python-version == '3.12' }}
+      if: ${{ matrix.os == 'ubuntu-latest' && matrix.toolchain.compiler == 'gcc' && matrix.build == 'opt' && matrix.python-version == '3.12' }}
       run: |
         cd ${{ env.CLAW }}/pyclaw
         ls -l .coverage
