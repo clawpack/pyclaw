@@ -30,7 +30,7 @@ class TestRegression:
 
     def test_sharpclaw(self):
         assert abs(error(kernel_language='Fortran',solver_type='sharpclaw')-0.001540)<1e-5
-        assert abs(error(kernel_language='Fortran',solver_type='sharpclaw',weno_order=11)-0.000521)<1e-5
+        assert abs(error(kernel_language='Fortran',solver_type='sharpclaw',reconstruction_order=11)-0.000521)<1e-5
         assert abs(error(kernel_language='Fortran',solver_type='sharpclaw',time_integrator='SSPLMMk3')-0.001545)<1e-5
 
 class TestAccuracy:
@@ -44,5 +44,5 @@ class TestAccuracy:
 
     def test_sharpclaw(self):
         assert abs(error(num_cells=2000,kernel_language='Fortran',solver_type='sharpclaw'))<1e-8
-        assert abs(error(num_cells=2000,kernel_language='Fortran',solver_type='sharpclaw',weno_order=11))<1e-8
+        assert abs(error(num_cells=2000,kernel_language='Fortran',solver_type='sharpclaw',reconstruction_order=11))<1e-8
         assert abs(error(num_cells=2000,kernel_language='Fortran',solver_type='sharpclaw',time_integrator='SSPLMMk3'))<2e-8

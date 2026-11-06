@@ -236,11 +236,11 @@ fortran_extensions = {
     'classic2_sw_sphere': ['limiter.f90','philim.f90','flux2.f90','step2ds.f90','../../../examples/shallow_sphere/step2qcor.f90','../../../examples/shallow_sphere/qcor.f90'],
   },
   'sharpclaw': {
-    'sharpclaw1': ['ClawParams.f90','weno.f90','reconstruct.f90','evec.f90','workspace.f90','flux1.f90'],
-    'sharpclaw2': ['ClawParams.f90','weno.f90','reconstruct.f90','evec.f90','workspace.f90','flux2.f90','flux1.f90'],
-    'sharpclaw3': ['ClawParams.f90','weno.f90','reconstruct.f90','evec.f90','workspace.f90','flux3.f90','flux1.f90'],
+    'sharpclaw1': ['ClawParams.f90','weno.f90','poly.f90','reconstruct.f90','evec.f90','workspace.f90','flux1.f90'],
+    'sharpclaw2': ['ClawParams.f90','weno.f90','poly.f90','reconstruct.f90','evec.f90','workspace.f90','flux2.f90','flux1.f90'],
+    'sharpclaw3': ['ClawParams.f90','weno.f90','poly.f90','reconstruct.f90','evec.f90','workspace.f90','flux3.f90','flux1.f90'],
     # 1D Euler with characteristic decomposition for SharpClaw limiting
-    'euler_sharpclaw1': ['ClawParams.f90','weno.f90','reconstruct.f90','../../../examples/euler_1d/evec.f90','workspace.f90','flux1.f90'],
+    'euler_sharpclaw1': ['ClawParams.f90','weno.f90','poly.f90','reconstruct.f90','../../../examples/euler_1d/evec.f90','workspace.f90','flux1.f90'],
     'euler_tfluct1': ['../../../examples/euler_1d/euler_tfluct.f90'],
   },
 }

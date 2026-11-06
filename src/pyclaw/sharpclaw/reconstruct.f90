@@ -83,8 +83,12 @@ contains
                     deallocate(hh)
                     deallocate(uh)
             end select
-            recon_alloc = .False.
+            case(3)
+                deallocate(uu)
+                deallocate(dq1m)
         end select
+        recon_alloc = .False.
+
     end subroutine dealloc_recon_workspace
 
 ! ===================================================================
@@ -97,14 +101,14 @@ contains
     !   It does no characteristic decomposition
 
         use weno
-        use clawparams, only: weno_order
+        use clawparams, only: reconstruction_order
         implicit none
 
         integer,          intent(in) :: num_eqn, maxnx, num_ghost
         double precision, intent(in) :: q(num_eqn,maxnx+2*num_ghost)
         double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost),qr(num_eqn,maxnx+2*num_ghost)
 
-        select case(weno_order)
+        select case(reconstruction_order)
         case (5)
            call weno5(q,ql,qr,num_eqn,maxnx,num_ghost)
         case (7)
@@ -120,7 +124,7 @@ contains
         case (17)
            call weno17(q,ql,qr,num_eqn,maxnx,num_ghost)           
         case default
-           print *, 'ERROR: weno_order must be an odd number between 5 and 17 (inclusive).'
+           print *, 'ERROR: reconstruction_order in WENO must be an odd number between 5 and 17 (inclusive).'
            stop
         end select
 
@@ -820,5 +824,23 @@ contains
 
       return
       end subroutine tvd2_wave
+
+    ! ===================================================================
+    subroutine poly_comp(q,ql,qr,num_eqn,maxnx,num_ghost)
+    ! ===================================================================
+    !   Linear polynomial reconstruction; see module poly for the
+    !   meaning of lim_type 4, 5 and 6.
+
+        use poly, only: poly_recon
+        use clawparams, only: lim_type, reconstruction_order
+        implicit none
+
+        integer,          intent(in) :: num_eqn, maxnx, num_ghost
+        double precision, intent(in) :: q(num_eqn,maxnx+2*num_ghost)
+        double precision, intent(out) :: ql(num_eqn,maxnx+2*num_ghost),qr(num_eqn,maxnx+2*num_ghost)
+
+        call poly_recon(q,ql,qr,num_eqn,maxnx,num_ghost,lim_type,reconstruction_order)
+
+    end subroutine poly_comp
 
 end module reconstruct

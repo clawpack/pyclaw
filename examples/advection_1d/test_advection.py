@@ -40,5 +40,5 @@ class TestAdvection1D:
         assert abs(error(kernel_language='Fortran',solver_type='sharpclaw',time_integrator='SSPLMMk3')-1.500727e-05)<1e-4
 
     def test_weno17(self):
-        assert abs(error(kernel_language='Fortran',solver_type='sharpclaw',weno_order=17)-7.489618e-06)<1e-4
+        assert abs(error(kernel_language='Fortran',solver_type='sharpclaw',reconstruction_order=17)-7.489618e-06)<1e-4
 
