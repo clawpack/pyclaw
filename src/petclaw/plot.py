@@ -1,4 +1,3 @@
-from six.moves import range
 def interactive_plot(outdir='./_output',file_format='petsc',setplot=None):
     """
     Convenience function for launching an interactive plotting session.
