@@ -326,6 +326,13 @@ def compare_gauges(paths, gauge_id, fields='all'):
         if fields.lower() == 'all':
             fields = range(gauges[0].q.shape[0])
 
+    num_fields = min(gauge.q.shape[0] for gauge in gauges)
+    bad_fields = [n for n in fields if not 0 <= n < num_fields]
+    if bad_fields:
+        raise ValueError("Fields %s out of range, gauge %s has %s fields "
+                         "available in both paths."
+                         % (bad_fields, gauge_id, num_fields))
+
     fig = plt.figure()
     fig.suptitle("Gauge %s" % gauges[0].id)
     for (i, n) in enumerate(fields):
@@ -488,6 +495,28 @@ def check_old_gauge_data(path, gauge_id, new_gauge_path="./regression_data"):
 
     return fig
 
+
+def find_gauge_ids(path):
+    r"""Return the sorted gauge ids of the gauge files found in `path`
+
+    Gauge files are named `gaugeNNNNN.txt` where the id is zero padded to at
+    least 5 digits, so ids with more digits, e.g. `gauge1234567.txt`, are
+    valid.  Files matching `gauge*.txt` without an integer id are ignored.
+
+    :Input:
+     - *path* (path) - Directory to search for gauge files.
+
+    :Output:
+     - (list) Sorted list of integer gauge ids.
+    """
+    gauge_ids = []
+    for gauge_path in Path(path).glob("gauge*.txt"):
+        id_str = gauge_path.stem[len("gauge"):]
+        if id_str.isdigit():
+            gauge_ids.append(int(id_str))
+    return sorted(gauge_ids)
+
+
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     parser = argparse.ArgumentParser()
@@ -503,8 +532,7 @@ if __name__ == "__main__":
     if args.id:
         gauge_ids = args.id
     else:
-        gauge_ids = [int(str(path.name[5:10]))
-                        for path in args.path[0].glob("gauge*.txt")]
+        gauge_ids = find_gauge_ids(args.path[0])
     if args.fields:
         fields = args.fields
     else:
