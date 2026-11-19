@@ -5,6 +5,7 @@ Module containing SharpClaw solvers for PyClaw/PetClaw
 #  Created:     2010-03-20
 #  Author:      David Ketcheson
 """
+
 # Solver superclass
 from clawpack.pyclaw.solver import Solver
 from clawpack.pyclaw.util import add_parent_doc
@@ -36,18 +37,58 @@ class SharpClawSolver(Solver):
 
     .. attribute:: lim_type
 
-        Limiter(s) to be used.
-            - 0: No limiting.
+        Reconstruction used to compute interface values from cell
+        averages. Can be set with an integer or, equivalently, a name:
+
+            - -1: first-order Godunov (Python kernels only).
+            - 0: no limiting (not implemented).
             - 1: TVD reconstruction.
-            - 2: WENO reconstruction.
+            - 2: WENO reconstruction (odd
+              ``weno_order``, 5 to 17).
+            - 3: original fifth-order WENO routine.
+            - 4 or ``'poly'``: non-dissipative polynomial reconstruction.
+            - 5 or ``'poly_dissipative'``: dissipative (upwind-biased)
+              polynomial reconstruction.
+            - 6 or ``'poly_cell_centered'``: dissipative, cell-centred
+              polynomial reconstruction.
+
+        The value is always stored, and read back, as an integer.
+
+        The polynomial reconstructions (4, 5 and 6) are linear and
+        unlimited, so they suit smooth solutions, e.g. electromagnetic
+        waves in smooth media; at discontinuities they produce Gibbs
+        oscillations. They take an even ``poly_order`` N in
+        {4, 6, 8, 10}, are available with Fortran kernels only, and act
+        component-wise (``char_decomp`` is ignored). With k = N/2:
+
+            - ``'poly'`` uses the N cells centred on each face, so both
+              sides of a face get the same value: no numerical dissipation
+              is added (only the time integrator dissipates); for linear,
+              constant-coefficient problems the semi-discrete scheme
+              conserves the discrete L2 energy. Formal order N. Unresolved (grid-scale)
+              modes are not damped.
+            - ``'poly_dissipative'`` uses the same width, shifted one cell
+              upwind for each face state. Formal order N, with damping
+              that grows with wavenumber.
+            - ``'poly_cell_centered'`` uses the N+1 cells centred on each
+              cell (a polynomial of degree N). Formal order N+1, and less
+              dissipative than ``'poly_dissipative'``; it equals WENO of
+              order N+1 with its ideal linear weights.
+
+        All three need k+1 ghost cells, which is set automatically. The
+        time integrator ``'SSP104'`` is fourth order, so with N > 4 the
+        time error dominates unless the CFL number is reduced.
 
         ``Default = 2``
 
     .. attribute:: weno_order
 
-        Order of the WENO reconstruction. From 1st to 17th order (PyWENO)
+        Order of WENO reconstruction for ``lim_type`` 2. Default is 5.
 
-        ``Default = 5``
+    .. attribute:: poly_order
+
+        Polynomial stencil parameter N (4, 6, 8 or 10). Default is 4.
+        The formal order is N for types 4 and 5, and N+1 for type 6.
 
     .. attribute:: time_integrator
 
@@ -150,6 +191,33 @@ class SharpClawSolver(Solver):
         'SSPLMM53': [0.24, 0.25]
         }
 
+    _lim_type_names = {
+        'poly': 4,
+        'poly_dissipative': 5,
+        'poly_cell_centered': 6,
+        }
+
+    _poly_lim_types = (4, 5, 6)
+    _poly_orders = (4, 6, 8, 10)
+
+    @property
+    def lim_type(self):
+        return self._lim_type
+
+    @lim_type.setter
+    def lim_type(self, value):
+        if isinstance(value, str):
+            try:
+                value = self._lim_type_names[value.lower()]
+            except KeyError:
+                raise ValueError("Unknown lim_type '%s'; valid names are %s"
+                                 % (value, ', '.join(self._lim_type_names)))
+        self._lim_type = value
+
+    _weno_orders = tuple(range(5, 18, 2))
+    # lim_types the Fortran kernels (flux1.f90) implement
+    _fortran_lim_types = (1, 2, 3, 4, 5, 6)
+
     # ========================================================================
     #   Initialization routines
     # ========================================================================
@@ -160,6 +228,7 @@ class SharpClawSolver(Solver):
         self.limiters = [1]
         self.lim_type = 2
         self.weno_order = 5
+        self.poly_order = 4
         self.time_integrator = 'SSP104'
         self.char_decomp = 0
         self.tfluct_solver = False
@@ -203,8 +272,32 @@ class SharpClawSolver(Solver):
         """
         Allocate RK stage arrays or previous step solutions and fortran routine work arrays.
         """
+        # Validate here: the Fortran kernels answer a bad lim_type or order
+        # with a bare 'stop', which ends the process without an exception.
+        if self.lim_type not in (-1, 0) + self._fortran_lim_types:
+            raise ValueError('lim_type must be between -1 and 6, or one of the names %s; got %s.'
+                             % (', '.join(self._lim_type_names), self.lim_type))
+        if self.lim_type == 0:
+            raise NotImplementedError('Unlimited reconstruction (lim_type 0) is not implemented.')
+        if self.kernel_language == 'Fortran' and self.lim_type not in self._fortran_lim_types:
+            raise NotImplementedError('lim_type %s is implemented in Python kernels only.'
+                                      % self.lim_type)
+
         if self.lim_type == 2:
-            self.num_ghost = (self.weno_order+1)//2
+            if self.weno_order not in self._weno_orders:
+                raise ValueError('WENO (lim_type 2) needs an odd weno_order from 5 to 17, '
+                                 'not %s.' % self.weno_order)
+            self.num_ghost = int((self.weno_order+1)/2)
+
+        if self.lim_type in self._poly_lim_types:
+            if self.poly_order not in self._poly_orders:
+                raise ValueError('Polynomial reconstruction (lim_type %s) needs an even '
+                                 'poly_order in %s, not %s.'
+                                 % (self.lim_type, self._poly_orders, self.poly_order))
+            if self.kernel_language != 'Fortran':
+                raise NotImplementedError('Polynomial reconstruction (lim_type %s) is only '
+                                          'implemented in Fortran kernels.' % self.lim_type)
+            self.num_ghost = int(self.poly_order)//2 + 1
 
         if self.lim_type == 2 and self.weno_order != 5 and self.kernel_language == 'Python':
             raise Exception('Only 5th-order WENO reconstruction is implemented in Python kernels. \
@@ -270,7 +363,7 @@ class SharpClawSolver(Solver):
         Deallocate F90 module arrays.
         Also delete Fortran objects, which otherwise tend to persist in Python sessions.
         """
-        if self.kernel_language=='Fortran':
+        if self.kernel_language == 'Fortran' and self.fmod is not None:
             self.fmod.clawparams.dealloc_clawparams()
             self.fmod.workspace.dealloc_workspace(self.char_decomp)
             self.fmod.reconstruct.dealloc_recon_workspace(self.fmod.clawparams.lim_type,self.fmod.clawparams.char_decomp)
@@ -568,7 +661,8 @@ class SharpClawSolver(Solver):
         grid = state.grid
         clawparams.num_dim       = grid.num_dim
         clawparams.lim_type      = self.lim_type
-        clawparams.weno_order    = self.weno_order
+        clawparams.reconstruction_order = (self.poly_order if self.lim_type in self._poly_lim_types
+                                           else self.weno_order)
         clawparams.char_decomp   = self.char_decomp
         clawparams.tfluct_solver = self.tfluct_solver
         clawparams.fwave         = self.fwave

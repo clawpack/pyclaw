@@ -21,6 +21,7 @@ def configuration(parent_package='',top_path=None):
     sharpclaw_srcs = [pjoin(sharpclaw_dir, src) for src in ['ClawParams.f90',
                                                             'workspace.f90',
                                                             'weno.f90',
+                                                            'poly.f90',
                                                             'reconstruct.f90','flux1.f90']]
 
     config.add_extension('sharpclaw1',
