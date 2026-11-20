@@ -42,6 +42,7 @@ python_sources = {
   ],
   'tests': [
     '__init__.py',
+    'test_gauges.py',
     'test_io.py',
   ],
 }
