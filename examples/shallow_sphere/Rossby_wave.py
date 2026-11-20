@@ -450,7 +450,7 @@ def setup(use_petsc=False,solver_type='classic',outdir='./_output', disable_outp
     # Set initial conditions
     # ====================== 
     # 1) Call fortran function
-    qtmp = np.ndarray(shape=(solver.num_eqn,mx+2*num_ghost,my+2*num_ghost), dtype=float, order='F')
+    qtmp = np.zeros(shape=(solver.num_eqn,mx+2*num_ghost,my+2*num_ghost), dtype=float, order='F')
     qtmp = sw_sphere_problem.qinit(mx,my,num_ghost,mx,my,xlower,ylower,dx,dy,qtmp,auxtmp,Rsphere)
     state.q[:,:,:] = qtmp[:,num_ghost:-num_ghost,num_ghost:-num_ghost]
 
